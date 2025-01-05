@@ -610,8 +610,8 @@ static void bacnet_device_object_property_add(
             device_data->Object_List, rp_data->object_type,
             rp_data->object_instance);
         if (!object_data) {
-            debug_perror(
-                "%s-%u object fail to add!\n",
+            debug_fprintf(
+                stderr, "%s-%u object fail to add!\n",
                 bactext_object_type_name(rp_data->object_type),
                 rp_data->object_instance);
             return;
@@ -619,8 +619,8 @@ static void bacnet_device_object_property_add(
         property_data = bacnet_property_data_add(
             object_data->Property_List, rp_data->object_property);
         if (!property_data) {
-            debug_perror(
-                "%s-%u %s property fail to add!\n",
+            debug_fprintf(
+                stderr, "%s-%u %s property fail to add!\n",
                 bactext_object_type_name(rp_data->object_type),
                 rp_data->object_instance,
                 bactext_property_name(rp_data->object_property));
@@ -640,8 +640,8 @@ static void bacnet_device_object_property_add(
                     property_data->application_data, rp_data->application_data,
                     rp_data->application_data_len);
             } else {
-                debug_perror(
-                    "%s-%u %s property fail to allocate!\n",
+                debug_fprintf(
+                    stderr, "%s-%u %s property fail to allocate!\n",
                     bactext_object_type_name(rp_data->object_type),
                     rp_data->object_instance,
                     bactext_property_name(rp_data->object_property));
@@ -794,7 +794,8 @@ bacnet_discover_device_fsm(uint32_t device_id, BACNET_DEVICE_DATA *device_data)
                 device_data->Discovery_State =
                     BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_REQUEST;
             } else {
-                debug_perror("%u object-list-size fail to queue!\n", device_id);
+                debug_fprintf(
+                    stderr, "%u object-list-size fail to queue!\n", device_id);
             }
             break;
         case BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_REQUEST:
@@ -824,9 +825,9 @@ bacnet_discover_device_fsm(uint32_t device_id, BACNET_DEVICE_DATA *device_data)
                         BACNET_DISCOVER_STATE_OBJECT_LIST_REQUEST;
                     return;
                 } else {
-                    debug_perror(
-                        "%u object-list[%u] %s-%u fail to queue!\n", device_id,
-                        device_data->Object_List_Index,
+                    debug_fprintf(
+                        stderr, "%u object-list[%u] %s-%u fail to queue!\n",
+                        device_id, device_data->Object_List_Index,
                         bactext_object_type_name(object_type),
                         (unsigned)object_instance);
                     device_data->Object_List_Index--;
@@ -862,9 +863,9 @@ bacnet_discover_device_fsm(uint32_t device_id, BACNET_DEVICE_DATA *device_data)
                         BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_REQUEST;
                     device_data->Object_List_Index++;
                 } else {
-                    debug_perror(
-                        "%u object-list[%u] %s-%u fail to queue!\n", device_id,
-                        device_data->Object_List_Index,
+                    debug_fprintf(
+                        stderr, "%u object-list[%u] %s-%u fail to queue!\n",
+                        device_id, device_data->Object_List_Index,
                         bactext_object_type_name(object_type),
                         (unsigned)object_instance);
                 }
@@ -886,8 +887,8 @@ bacnet_discover_device_fsm(uint32_t device_id, BACNET_DEVICE_DATA *device_data)
             }
             break;
         default:
-            debug_perror(
-                "%u unknown state %u!\n", device_id,
+            debug_fprintf(
+                stderr, "%u unknown state %u!\n", device_id,
                 device_data->Discovery_State);
             break;
     }
@@ -911,7 +912,7 @@ static void bacnet_discover_devices_task(void)
     for (device_index = 0; device_index < device_count; device_index++) {
         device_data = Keylist_Data_Index(Device_List, device_index);
         if (!device_data) {
-            debug_perror("device[%u] is NULL!\n", device_index);
+            debug_fprintf(stderr, "device[%u] is NULL!\n", device_index);
             continue;
         }
         if (Keylist_Index_Key(Device_List, device_index, &key)) {

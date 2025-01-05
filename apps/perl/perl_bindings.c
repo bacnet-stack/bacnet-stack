@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <time.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"

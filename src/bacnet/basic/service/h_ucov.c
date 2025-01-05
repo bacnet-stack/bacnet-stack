@@ -1,15 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Handles Unconfirmed COV Notifications.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date December 2010
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -22,9 +21,6 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
-
-/** @file h_ucov.c  Handles Unconfirmed COV Notifications. */
-#define PRINTF debug_perror
 
 #ifndef MAX_COV_PROPERTIES
 #define MAX_COV_PROPERTIES 2
@@ -72,6 +68,41 @@ void handler_ucov_notification_add(BACNET_COV_NOTIFICATION *cb)
     } while (head);
 }
 
+/**
+ * @brief Print the UnconfirmedCOV data
+ * @param cov_data - data decoded from the COV notification
+ */
+void handler_ucov_data_print(BACNET_COV_DATA *cov_data)
+{
+    BACNET_PROPERTY_VALUE *pProperty_value = NULL;
+
+    debug_printf_stderr("UCOV: PID=%u ", cov_data->subscriberProcessIdentifier);
+    debug_printf_stderr("instance=%u ", cov_data->initiatingDeviceIdentifier);
+    debug_printf_stderr(
+        "%s %u ",
+        bactext_object_type_name(cov_data->monitoredObjectIdentifier.type),
+        cov_data->monitoredObjectIdentifier.instance);
+    debug_printf_stderr("time remaining=%u seconds ", cov_data->timeRemaining);
+    debug_printf_stderr("\n");
+    pProperty_value = cov_data->listOfValues;
+    while (pProperty_value) {
+        debug_printf_stderr("UCOV: ");
+        if (pProperty_value->propertyIdentifier < 512) {
+            debug_printf_stderr(
+                "%s ",
+                bactext_property_name(pProperty_value->propertyIdentifier));
+        } else {
+            debug_printf_stderr(
+                "proprietary %u ", pProperty_value->propertyIdentifier);
+        }
+        if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
+            debug_printf_stderr("%u ", pProperty_value->propertyArrayIndex);
+        }
+        debug_printf_stderr("\n");
+        pProperty_value = pProperty_value->next;
+    }
+}
+
 /*  */
 /** Handler for an Unconfirmed COV Notification.
  * @ingroup DSCOV
@@ -89,7 +120,6 @@ void handler_ucov_notification(
 {
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
-    BACNET_PROPERTY_VALUE *pProperty_value = NULL;
     int len = 0;
 
     /* src not needed for this application */
@@ -98,37 +128,13 @@ void handler_ucov_notification(
        than one property value is expected */
     bacapp_property_value_list_init(&property_value[0], MAX_COV_PROPERTIES);
     cov_data.listOfValues = &property_value[0];
-    PRINTF("UCOV: Received Notification!\n");
+    debug_print("UCOV: Received Notification!\n");
     /* decode the service request only */
     len = cov_notify_decode_service_request(
         service_request, service_len, &cov_data);
     if (len > 0) {
         handler_ucov_notification_callback(&cov_data);
-        PRINTF("UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
-        PRINTF("instance=%u ", cov_data.initiatingDeviceIdentifier);
-        PRINTF(
-            "%s %u ",
-            bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
-            cov_data.monitoredObjectIdentifier.instance);
-        PRINTF("time remaining=%u seconds ", cov_data.timeRemaining);
-        PRINTF("\n");
-        pProperty_value = &property_value[0];
-        while (pProperty_value) {
-            PRINTF("UCOV: ");
-            if (pProperty_value->propertyIdentifier < 512) {
-                PRINTF(
-                    "%s ",
-                    bactext_property_name(pProperty_value->propertyIdentifier));
-            } else {
-                PRINTF("proprietary %u ", pProperty_value->propertyIdentifier);
-            }
-            if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
-                PRINTF("%u ", pProperty_value->propertyArrayIndex);
-            }
-            PRINTF("\n");
-            pProperty_value = pProperty_value->next;
-        }
     } else {
-        PRINTF("UCOV: Unable to decode service request!\n");
+        debug_print("UCOV: Unable to decode service request!\n");
     }
 }

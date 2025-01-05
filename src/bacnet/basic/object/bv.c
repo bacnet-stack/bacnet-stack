@@ -21,16 +21,13 @@
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
 #include "bacnet/cov.h"
+/* basic objects and services */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/keylist.h"
+#include "bacnet/basic/sys/debug.h"
 /* me! */
 #include "bacnet/basic/object/bv.h"
-
-#include "bacnet/basic/sys/debug.h"
-#if !defined(PRINT)
-#define PRINT debug_perror
-#endif
 
 static const char *Default_Active_Text = "Active";
 static const char *Default_Inactive_Text = "Inactive";
@@ -285,7 +282,7 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - binary value
  */
 static void Binary_Value_Present_Value_COV_Detect(
     struct object_data *pObject, BACNET_BINARY_PV value)
@@ -525,7 +522,7 @@ bool Binary_Value_Present_Value_Set(
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
+ * @param  value - binary value
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
@@ -592,7 +589,7 @@ bool Binary_Value_Object_Name(
     if (pObject) {
         if (pObject->Object_Name == NULL) {
             snprintf(
-                text, sizeof(text), "BINARY INPUT %lu",
+                text, sizeof(text), "BINARY VALUE %lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, text);
         } else {
@@ -1273,7 +1270,7 @@ void Binary_Value_Write_Disable(uint32_t object_instance)
 }
 
 /**
- * @brief Creates a Binary Output object
+ * @brief Creates a Binary Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
@@ -1345,7 +1342,7 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
 }
 
 /**
- * Initializes the Binary Input object data
+ * Deletes the Binary Value object data
  */
 void Binary_Value_Cleanup(void)
 {
@@ -1364,7 +1361,7 @@ void Binary_Value_Cleanup(void)
 }
 
 /**
- * Creates a Binary Input object
+ * Deletes a Binary Value object
  */
 bool Binary_Value_Delete(uint32_t object_instance)
 {
@@ -1381,7 +1378,7 @@ bool Binary_Value_Delete(uint32_t object_instance)
 }
 
 /**
- * Initializes the Binary Input object data
+ * Initializes the Binary Value object data
  */
 void Binary_Value_Init(void)
 {
@@ -1747,7 +1744,7 @@ int Binary_Value_Alarm_Summary(
     struct object_data *pObject = Binary_Value_Object_Index(index);
 
     if (getalarm_data == NULL) {
-        PRINT(
+        debug_printf(
             "[%s %d]: NULL pointer parameter! getalarm_data = %p\r\n", __FILE__,
             __LINE__, (void *)getalarm_data);
         return -2;
@@ -1942,7 +1939,8 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         pObject->Ack_notify_data.bSendAckNotify = false;
         /* copy toState */
         ToState = pObject->Ack_notify_data.EventState;
-        PRINT("Binary-Input[%d]: Send AckNotification.\n", object_instance);
+        debug_printf(
+            "Binary-Value[%d]: Send AckNotification.\n", object_instance);
         characterstring_init_ansi(&msgText, "AckNotification");
 
         /* Notify Type */
@@ -2022,8 +2020,8 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
                 default:
                     break;
             } /* switch (ToState) */
-            PRINT(
-                "Binary-Input[%d]: Event_State goes from %.128s to %.128s.\n",
+            debug_printf(
+                "Binary-Value[%d]: Event_State goes from %.128s to %.128s.\n",
                 object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
             /* Notify Type */
@@ -2135,7 +2133,7 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         }
 
         /* add data from notification class */
-        PRINT(
+        debug_printf(
             "Binary-Value[%d]: Notification Class[%d]-%s "
             "%u/%u/%u-%u:%u:%u.%u!\n",
             object_instance, event_data.notificationClass,
@@ -2152,7 +2150,7 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* Ack required */
         if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
             (event_data.ackRequired == true)) {
-            PRINT("Binary-Value[%d]: Ack Required!\n", object_instance);
+            debug_printf("Binary-Value[%d]: Ack Required!\n", object_instance);
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                     pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL]

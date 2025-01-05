@@ -24,8 +24,8 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
-#define PRINTF debug_aprintf
-#define PRINTF_ERR debug_perror
+#define PRINTF debug_printf_stdout
+#define PRINTF_ERR debug_printf_stderr
 
 /** For debugging...
  * @param [in] data portion of the ACK

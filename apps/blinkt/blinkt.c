@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <errno.h>
 #include "blinkt.h"
 
 #define BLINKT_DEFAULT_BRIGHTNESS 7

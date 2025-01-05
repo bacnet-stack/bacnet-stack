@@ -1,11 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
-/* linux Ethernet/IP specific */
+/**
+ * @file
+ * @brief Initializes BACnet/IP interface (Linux).
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <asm/types.h>
 #include <netinet/ether.h>
 #include <netinet/in.h>
@@ -23,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 /* BACnet specific */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -30,8 +30,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
-
-/** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 
 /* unix sockets */
 static int BIP_Socket = -1;
@@ -273,7 +271,7 @@ uint8_t bip_get_subnet_prefix(void)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip_send_mpdu(
     const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -425,7 +423,7 @@ uint16_t bip_receive(
  * @param mtu - the bytes of data to send
  * @param mtu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip_send_pdu(
     BACNET_ADDRESS *dest,

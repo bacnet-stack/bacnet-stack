@@ -14,7 +14,6 @@
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
 #endif
-#include <errno.h>
 #include <assert.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
