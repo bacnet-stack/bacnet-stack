@@ -31,6 +31,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed all confirmed service handlers, except GetEventInformation, by sending
+  a reject when confirmed services are received with zero length and
+  required parameters are missing. (#885)
+* Fixed the NDPU priority on confirmed messages to use requested NDPU
+  priority. (#885)
 * Fixed datalink environment for BIP6 foreign device registration for
   the example apps. (#884)
 * Fixed basic Multistate Value and Input objects that were missing RELIABILITY
@@ -74,6 +79,17 @@ The git repositories are hosted at the following sites:
   accidentally removed in common DLMSTP module. (#848)
 * Fixed compiler warnings by removing extraneous structure dereferences.
 * Fixed doxygen build for newer doxygen. (#845)
+
+### Changed
+
+* Changed some debug.c module functions to macros to be able to use them
+  in code without having to add #ifdef around them in the code. This
+  enables smaller non-printing embedded builds to use the same handlers
+  as the example OS based applications. Refactored errno use in service
+  using debug_perror. Changed debug_perror usage to debug_fprintf.
+  Renamed debug_aprintf to debug_printf_stdout for clarity.
+  Converted most debug_fprintf usage to debug_print to reduce text
+  bloat in AVR build. (#885)
 
 ## [1.4.0] - 2024-11-04
 
