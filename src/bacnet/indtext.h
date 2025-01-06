@@ -24,9 +24,6 @@ typedef const struct {
 extern "C" {
 #endif /* __cplusplus */
 
-BACNET_STACK_EXPORT
-int indtext_stricmp(const char *a, const char *b);
-
 /*  Searches for a matching string and returns the index to the string
     in the parameter found_index.
     If the string is not found, false is returned

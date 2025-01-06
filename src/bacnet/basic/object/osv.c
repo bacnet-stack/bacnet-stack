@@ -257,7 +257,7 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     unsigned int object_index = 0;
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     OCTETSTRING_VALUE_DESCR *CurrentAV;
 
     /* decode the some of the request */

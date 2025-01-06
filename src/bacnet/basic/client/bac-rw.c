@@ -896,9 +896,10 @@ uint16_t bacnet_read_write_vendor_id_filter(void)
  */
 void bacnet_read_write_init(void)
 {
-    Ringbuf_Init(
+    Ringbuf_Initialize(
         &Target_Data_Queue, (uint8_t *)&Target_Data_Buffer,
-        TARGET_DATA_QUEUE_SIZE, TARGET_DATA_QUEUE_COUNT);
+        sizeof(Target_Data_Buffer), TARGET_DATA_QUEUE_SIZE,
+        TARGET_DATA_QUEUE_COUNT);
     /* handle i-am to support binding to other devices */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, My_I_Am_Bind);
     /* handle the data coming back from confirmed requests */

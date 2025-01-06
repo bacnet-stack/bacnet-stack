@@ -146,7 +146,7 @@ bool Analog_Value_Write_Property(
     bool status = false; /* return value */
     unsigned int object_index = 0;
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!Analog_Value_Valid_Instance(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;

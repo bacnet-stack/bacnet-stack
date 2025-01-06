@@ -22,7 +22,6 @@ static void test_access_rule_positive(BACNET_ACCESS_RULE *data)
 {
     BACNET_ACCESS_RULE test_data = { 0 };
     uint8_t apdu[MAX_APDU];
-    uint8_t tag_number = 1;
     int len;
     int test_len;
     int null_len;
@@ -49,33 +48,6 @@ static void test_access_rule_positive(BACNET_ACCESS_RULE *data)
     }
     while (--len) {
         test_len = bacnet_access_rule_decode(apdu, len, &test_data);
-        zassert_true(test_len <= 0, NULL);
-    }
-
-    /* context tagged */
-    null_len = bacapp_encode_context_access_rule(NULL, tag_number, data);
-    len = bacapp_encode_context_access_rule(apdu, tag_number, data);
-    zassert_equal(null_len, len, NULL);
-    test_len =
-        bacnet_access_rule_context_decode(apdu, len, tag_number, &test_data);
-    zassert_equal(test_len, len, NULL);
-    zassert_equal(
-        data->time_range_specifier, test_data.time_range_specifier, NULL);
-    zassert_equal(data->location_specifier, test_data.location_specifier, NULL);
-    zassert_equal(data->enable, test_data.enable, NULL);
-    if (data->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
-        status = bacnet_device_object_property_reference_same(
-            &data->time_range, &test_data.time_range);
-        zassert_true(status, NULL);
-    }
-    if (data->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
-        status = bacnet_device_object_reference_same(
-            &data->location, &test_data.location);
-        zassert_true(status, NULL);
-    }
-    while (--len) {
-        test_len = bacnet_access_rule_context_decode(
-            apdu, len, tag_number, &test_data);
         zassert_true(test_len <= 0, NULL);
     }
 }

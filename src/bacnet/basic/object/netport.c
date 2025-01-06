@@ -27,6 +27,7 @@
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
+#include <bacnet/basic/object/netport_internal.h>
 
 #if defined(BACDL_BIP6)
 #include "bacnet/datalink/bvlc6.h"
@@ -44,7 +45,9 @@ struct bacnet_ipv4_port {
     uint8_t IP_DNS_Server[BIP_DNS_MAX][4];
     uint16_t Port;
     BACNET_IP_MODE Mode;
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     bool IP_DHCP_Enable;
+#endif
     uint32_t IP_DHCP_Lease_Seconds;
     uint32_t IP_DHCP_Lease_Seconds_Remaining;
     uint8_t IP_DHCP_Server[4];
@@ -90,9 +93,15 @@ struct mstp_port {
     uint8_t Max_Info_Frames;
 };
 
+struct bsc_port {
+    uint8_t MAC_Address[6];
+    BACNET_SC_PARAMS Parameters;
+};
+
 struct object_data {
     uint32_t Instance_Number;
     const char *Object_Name;
+    const char *Description;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changes_Pending : 1;
@@ -101,20 +110,26 @@ struct object_data {
     BACNET_PORT_QUALITY Quality;
     uint16_t APDU_Length;
     float Link_Speed;
+    bacnet_network_port_activate_changes Activate_Changes;
+    bacnet_network_port_discard_changes Discard_Changes;
     union {
         struct bacnet_ipv4_port IPv4;
         struct bacnet_ipv6_port IPv6;
         struct ethernet_port Ethernet;
         struct mstp_port MSTP;
+        struct bsc_port BSC;
     } Network;
 };
+
 #ifndef BACNET_NETWORK_PORTS_MAX
 #define BACNET_NETWORK_PORTS_MAX 1
 #endif
+
 static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
     PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
@@ -124,13 +139,20 @@ static const int Network_Port_Properties_Required[] = {
     PROP_LINK_SPEED,        -1
 };
 
-static const int Ethernet_Port_Properties_Optional[] = { PROP_MAC_ADDRESS, -1 };
+static const int Ethernet_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, PROP_MAC_ADDRESS, -1
+};
 
-static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-                                                     PROP_MAX_MASTER,
-                                                     PROP_MAX_INFO_FRAMES, -1 };
+static const int MSTP_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    -1
+};
 
 static const int BIP_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IP_MODE,
     PROP_IP_ADDRESS,
@@ -138,7 +160,9 @@ static const int BIP_Port_Properties_Optional[] = {
     PROP_IP_SUBNET_MASK,
     PROP_IP_DEFAULT_GATEWAY,
     PROP_IP_DNS_SERVER,
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     PROP_IP_DHCP_ENABLE,
+#endif
 #if defined(BACDL_BIP) && (BBMD_ENABLED)
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
@@ -152,6 +176,8 @@ static const int BIP_Port_Properties_Optional[] = {
 };
 
 static const int BIP6_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IPV6_MODE,
     PROP_IPV6_ADDRESS,
@@ -174,6 +200,53 @@ static const int BIP6_Port_Properties_Optional[] = {
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
 #endif
+    -1
+};
+
+static const int BSC_Port_Properties_Optional[] = {
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH,
+    PROP_MAC_ADDRESS,
+    PROP_BACNET_IP_MODE,
+    PROP_IP_ADDRESS,
+    PROP_BACNET_IP_UDP_PORT,
+    PROP_IP_SUBNET_MASK,
+    PROP_IP_DEFAULT_GATEWAY,
+    PROP_IP_DNS_SERVER,
+    PROP_MAX_BVLC_LENGTH_ACCEPTED,
+    PROP_MAX_NPDU_LENGTH_ACCEPTED,
+    PROP_SC_PRIMARY_HUB_URI,
+    PROP_SC_FAILOVER_HUB_URI,
+    PROP_SC_MINIMUM_RECONNECT_TIME,
+    PROP_SC_MAXIMUM_RECONNECT_TIME,
+    PROP_SC_CONNECT_WAIT_TIMEOUT,
+    PROP_SC_DISCONNECT_WAIT_TIMEOUT,
+    PROP_SC_HEARTBEAT_TIMEOUT,
+    PROP_SC_HUB_CONNECTOR_STATE,
+    PROP_OPERATIONAL_CERTIFICATE_FILE,
+    PROP_ISSUER_CERTIFICATE_FILES,
+    PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
+/*SC optional*/
+#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
+    PROP_ROUTING_TABLE,
+#endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
+    PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
+    PROP_SC_FAILOVER_HUB_CONNECTION_STATUS,
+    PROP_SC_HUB_FUNCTION_ENABLE,
+    PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
+    PROP_SC_HUB_FUNCTION_BINDING,
+    PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
+    PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
+    PROP_SC_DIRECT_CONNECT_BINDING,
+    PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
+    PROP_SC_FAILED_CONNECTION_REQUESTS,
     -1
 };
 
@@ -211,6 +284,9 @@ void Network_Port_Property_List(
                     break;
                 case PORT_TYPE_BIP:
                     *pOptional = BIP_Port_Properties_Optional;
+                    break;
+                case PORT_TYPE_BSC:
+                    *pOptional = BSC_Port_Properties_Optional;
                     break;
                 case PORT_TYPE_BIP6:
                     *pOptional = BIP6_Port_Properties_Optional;
@@ -337,6 +413,47 @@ const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
     }
 
     return NULL;
+}
+
+/**
+ * @brief For a given object instance-number, returns the ASCII description
+ * @param  object_instance - object-instance number of the object
+ * @return ASCII C string object name, or NULL if not found or not set.
+ */
+const char *Network_Port_Description(uint32_t instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        return Object_List[index].Description;
+    }
+
+    return NULL;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ * Note that the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be written
+ *         Expecting a pointer to a static ANSI C string for zero copy.
+ *
+ * @return  true if object-name was set
+ */
+bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Description = new_name;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -532,6 +649,16 @@ uint8_t Network_Port_Type(uint32_t object_instance)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         port_type = Object_List[index].Network_Type;
+#if (BACNET_PROTOCOL_REVISION >= 17) && (BACNET_PROTOCOL_REVISION <= 23)
+        /*  For BACnet/SC network port implementations with
+            a protocol revision Protocol_Revision 17 and higher through 23,
+            BACnet/SC network ports shall be represented by a Network Port
+            object at the BACNET_APPLICATION protocol level with
+            a proprietary network type value. */
+        if (port_type == PORT_TYPE_BSC) {
+            port_type = PORT_TYPE_BSC_INTERIM;
+        }
+#endif
     }
 
     return port_type;
@@ -554,7 +681,18 @@ bool Network_Port_Type_Set(uint32_t object_instance, uint8_t value)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
+#if (BACNET_PROTOCOL_REVISION >= 17) && (BACNET_PROTOCOL_REVISION <= 23)
+        /*  For BACnet/SC network port implementations with
+            a protocol revision Protocol_Revision 17 and higher through 23,
+            BACnet/SC network ports shall be represented by a Network Port
+            object at the BACNET_APPLICATION protocol level with
+            a proprietary network type value. */
+        if (value == PORT_TYPE_BSC_INTERIM) {
+            value = PORT_TYPE_BSC;
+        }
+#endif
         Object_List[index].Network_Type = value;
+
         status = true;
     }
 
@@ -690,6 +828,10 @@ uint8_t Network_Port_MAC_Address_Value(
                 mac = &Object_List[index].Network.IPv6.MAC_Address[0];
                 mac_len = sizeof(Object_List[index].Network.IPv6.MAC_Address);
                 break;
+            case PORT_TYPE_BSC:
+                mac = &Object_List[index].Network.BSC.MAC_Address[0];
+                mac_len = sizeof(Object_List[index].Network.BSC.MAC_Address);
+                break;
             default:
                 break;
         }
@@ -766,6 +908,10 @@ bool Network_Port_MAC_Address_Set(
                 mac_dest = &Object_List[index].Network.IPv6.MAC_Address[0];
                 mac_size = sizeof(Object_List[index].Network.IPv6.MAC_Address);
                 break;
+            case PORT_TYPE_BSC:
+                mac_dest = &Object_List[index].Network.BSC.MAC_Address[0];
+                mac_size = sizeof(Object_List[index].Network.BSC.MAC_Address);
+                break;
             default:
                 break;
         }
@@ -779,7 +925,7 @@ bool Network_Port_MAC_Address_Set(
 }
 
 /**
- * For a given object instance-number, gets the BACnet Network Number.
+ * For a given object instance-number, gets the APDU length.
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -799,7 +945,7 @@ uint16_t Network_Port_APDU_Length(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the BACnet Network Number
+ * For a given object instance-number, sets the APDU length
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - APDU length 0..65535
@@ -900,6 +1046,9 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = value;
+        if (value == false) {
+            Network_Port_Changes_Pending_Discard(object_instance);
+        }
         status = true;
     }
 
@@ -916,7 +1065,25 @@ void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+        if (Object_List[index].Activate_Changes) {
+            Object_List[index].Activate_Changes(object_instance);
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, sets the callback function
+ * to activate any pending changes
+ */
+void Network_Port_Changes_Pending_Activate_Callback_Set(
+    uint32_t object_instance, bacnet_network_port_activate_changes callback)
+
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Activate_Changes = callback;
     }
 }
 
@@ -930,7 +1097,25 @@ void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+        if (Object_List[index].Discard_Changes) {
+            Object_List[index].Discard_Changes(object_instance);
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, sets the callback function
+ * to discard any pending changes
+ */
+void Network_Port_Changes_Pending_Discard_Callback_Set(
+    uint32_t object_instance, bacnet_network_port_discard_changes callback)
+
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Discard_Changes = callback;
     }
 }
 
@@ -1073,9 +1258,9 @@ bool Network_Port_IP_Address(
  *
  * @param  object_instance - object-instance number of the object
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1092,6 +1277,7 @@ bool Network_Port_IP_Address_Set(
             Object_List[index].Network.IPv4.IP_Address[1] = b;
             Object_List[index].Network.IPv4.IP_Address[2] = c;
             Object_List[index].Network.IPv4.IP_Address[3] = d;
+            status = true;
         }
     }
 
@@ -1218,9 +1404,9 @@ bool Network_Port_IP_Gateway(
  *
  * @param  object_instance - object-instance number of the object
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1237,12 +1423,14 @@ bool Network_Port_IP_Gateway_Set(
             Object_List[index].Network.IPv4.IP_Gateway[1] = b;
             Object_List[index].Network.IPv4.IP_Gateway[2] = c;
             Object_List[index].Network.IPv4.IP_Gateway[3] = d;
+            status = true;
         }
     }
 
     return status;
 }
 
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, returns the IP_DHCP_Enable
  * property value
@@ -1265,7 +1453,9 @@ bool Network_Port_IP_DHCP_Enable(uint32_t object_instance)
 
     return dhcp_enable;
 }
+#endif
 
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, sets the IP_DHCP_Enable property value
  *
@@ -1289,9 +1479,10 @@ bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
 
     return status;
 }
+#endif
 
 /**
- * For a given object instance-number, loads the subnet-mask-address into
+ * For a given object instance-number and dns_index, loads the ip-address into
  * an octet string.
  * Note: depends on Network_Type being set for this object
  *
@@ -1359,9 +1550,9 @@ static int Network_Port_IP_DNS_Server_Encode(
  * @param  object_instance - object-instance number of the object
  * @param  index - 0=primary, 1=secondary, 3=tertierary
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1384,6 +1575,7 @@ bool Network_Port_IP_DNS_Server_Set(
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][1] = b;
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][2] = c;
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][3] = d;
+                status = true;
             }
         }
     }
@@ -2522,6 +2714,29 @@ bool Network_Port_IPv6_Zone_Index(
 }
 
 /**
+ * For a given object instance-number, returns the Zone index ASCII.
+ * The Zone index could be "eth0" or some other name.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @return  Zone index ASCII string
+ */
+const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance)
+{
+    const char *p = NULL;
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            p = &Object_List[index].Network.IPv6.Zone_Index[0];
+        }
+    }
+
+    return p;
+}
+
+/**
  * For a given object instance-number, returns the BACnet IPv6 Auto Addressing
  * Enable property value
  *
@@ -2597,6 +2812,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
             snprintf(
                 &Object_List[index].Network.IPv6.Zone_Index[0], ZONE_INDEX_SIZE,
                 "%s", zone_index);
+            status = true;
         }
     }
 
@@ -3014,6 +3230,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(
                 &apdu[0], Network_Port_Quality(rpdata->object_instance));
             break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string,
+                Network_Port_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
         case PROP_MAC_ADDRESS:
             Network_Port_MAC_Address(rpdata->object_instance, &octet_string);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
@@ -3061,10 +3284,12 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             Network_Port_IP_Gateway(rpdata->object_instance, &octet_string);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
         case PROP_IP_DHCP_ENABLE:
             apdu_len = encode_application_boolean(
                 &apdu[0], Network_Port_IP_DHCP_Enable(rpdata->object_instance));
             break;
+#endif
         case PROP_IP_DNS_SERVER:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
@@ -3252,6 +3477,178 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+#ifdef BACDL_BSC
+        case PROP_MAX_BVLC_LENGTH_ACCEPTED:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_Max_BVLC_Length_Accepted(rpdata->object_instance));
+            break;
+        case PROP_MAX_NPDU_LENGTH_ACCEPTED:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_Max_NPDU_Length_Accepted(rpdata->object_instance));
+            break;
+        case PROP_SC_PRIMARY_HUB_URI:
+            Network_Port_SC_Primary_Hub_URI(
+                rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_SC_FAILOVER_HUB_URI:
+            Network_Port_SC_Failover_Hub_URI(
+                rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_SC_MINIMUM_RECONNECT_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_SC_Minimum_Reconnect_Time(
+                    rpdata->object_instance));
+            break;
+        case PROP_SC_MAXIMUM_RECONNECT_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_SC_Maximum_Reconnect_Time(
+                    rpdata->object_instance));
+            break;
+        case PROP_SC_CONNECT_WAIT_TIMEOUT:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_SC_Connect_Wait_Timeout(rpdata->object_instance));
+            break;
+        case PROP_SC_DISCONNECT_WAIT_TIMEOUT:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_SC_Disconnect_Wait_Timeout(
+                    rpdata->object_instance));
+            break;
+        case PROP_SC_HEARTBEAT_TIMEOUT:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_SC_Heartbeat_Timeout(rpdata->object_instance));
+            break;
+        case PROP_SC_HUB_CONNECTOR_STATE:
+            apdu_len = encode_application_enumerated(
+                &apdu[0],
+                Network_Port_SC_Hub_Connector_State(rpdata->object_instance));
+            break;
+        case PROP_OPERATIONAL_CERTIFICATE_FILE:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_Operational_Certificate_File(
+                    rpdata->object_instance));
+            break;
+        case PROP_ISSUER_CERTIFICATE_FILES:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Network_Port_Issuer_Certificate_File_Encode,
+                BACNET_ISSUER_CERT_FILE_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Network_Port_Certificate_Signing_Request_File(
+                    rpdata->object_instance));
+            break;
+            /* SC optionals */
+#if BACNET_SECURE_CONNECT_ROUTING_TABLE
+        case PROP_ROUTING_TABLE:
+            apdu_len = Network_Port_Routing_Table_Encode(
+                rpdata->object_instance, apdu, apdu_size);
+            break;
+#endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+            apdu_len = bacapp_encode_SCHubConnection(
+                &apdu[0],
+                Network_Port_SC_Primary_Hub_Connection_Status(
+                    rpdata->object_instance));
+            break;
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            apdu_len = bacapp_encode_SCHubConnection(
+                &apdu[0],
+                Network_Port_SC_Failover_Hub_Connection_Status(
+                    rpdata->object_instance));
+            break;
+        case PROP_SC_HUB_FUNCTION_ENABLE:
+            apdu_len = encode_application_boolean(
+                &apdu[0],
+                Network_Port_SC_Hub_Function_Enable(rpdata->object_instance));
+            break;
+        case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Network_Port_SC_Hub_Function_Accept_URI_Encode,
+                BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_SC_HUB_FUNCTION_BINDING:
+            Network_Port_SC_Hub_Function_Binding(
+                rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            apdu_len = Network_Port_SC_Hub_Function_Connection_Status_Encode(
+                rpdata->object_instance, apdu, apdu_size);
+            break;
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
+        case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
+            apdu_len = encode_application_boolean(
+                &apdu[0],
+                Network_Port_SC_Direct_Connect_Initiate_Enable(
+                    rpdata->object_instance));
+            break;
+        case PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE:
+            apdu_len = encode_application_boolean(
+                &apdu[0],
+                Network_Port_SC_Direct_Connect_Accept_Enable(
+                    rpdata->object_instance));
+            break;
+        case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Network_Port_SC_Direct_Connect_Accept_URI_Encode,
+                BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_SC_DIRECT_CONNECT_BINDING:
+            Network_Port_SC_Direct_Connect_Binding(
+                rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+            apdu_len = Network_Port_SC_Direct_Connect_Connection_Status_Encode(
+                rpdata->object_instance, apdu, apdu_size);
+            break;
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
+        case PROP_SC_FAILED_CONNECTION_REQUESTS:
+            apdu_len = Network_Port_SC_Failed_Connection_Requests_Encode(
+                rpdata->object_instance, apdu, apdu_size);
+            break;
+#endif /* BACDL_BSC */
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -3284,7 +3681,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!Network_Port_Valid_Instance(wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -3371,8 +3768,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
 #endif
-#endif
             break;
+#endif
         case PROP_FD_SUBSCRIPTION_LIFETIME:
 #if (BBMD_CLIENT_ENABLED)
             if (write_property_type_valid(
@@ -3400,6 +3797,15 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
     }
+    if (!status && (wp_data->error_code == ERROR_CODE_OTHER)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    }
+
+    if (!status && (wp_data->error_code == ERROR_CODE_OTHER)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    }
 
     return status;
 }
@@ -3408,7 +3814,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * ReadRange service handler for the BACnet/IP BDT.
  *
  * @param  apdu - place to encode the data
- * @param  apdu - BACNET_READ_RANGE_DATA data
+ * @param  pRequest - BACNET_READ_RANGE_DATA data
  *
  * @return number of bytes encoded
  */
@@ -3423,7 +3829,7 @@ int Network_Port_Read_Range_BDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  * ReadRange service handler for the BACnet/IP FDT.
  *
  * @param  apdu - place to encode the data
- * @param  apdu - BACNET_READ_RANGE_DATA data
+ * @param  pRequest - BACNET_READ_RANGE_DATA data
  *
  * @return number of bytes encoded
  */
@@ -3534,7 +3940,7 @@ void Network_Port_Changes_Activate(void)
 }
 
 /**
- * @brief Activate any of the changes pending for all network port objects
+ * @brief Discard any of the changes pending for all network port objects
  */
 void Network_Port_Changes_Discard(void)
 {
@@ -3553,7 +3959,16 @@ void Network_Port_Changes_Discard(void)
  */
 void Network_Port_Cleanup(void)
 {
-    /* do something interesting */
+#if defined(BACDL_BSC) && defined(BACNET_SECURE_CONNECT_ROUTING_TABLE)
+    unsigned index = 0;
+    for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+        BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
+        if (sc->Routing_Table) {
+            Keylist_Delete(sc->Routing_Table);
+            sc->Routing_Table = NULL;
+        }
+    }
+#endif
 }
 
 /**
@@ -3561,5 +3976,58 @@ void Network_Port_Cleanup(void)
  */
 void Network_Port_Init(void)
 {
+    unsigned index = 0;
+
+#ifdef BACDL_BSC
+    BACNET_SC_PARAMS *sc;
+#endif /* BACDL_BSC */
+
     /* do something interesting */
+
+    for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+        memset(&Object_List[index], 0, sizeof(Object_List[index]));
+#ifdef BACDL_BSC
+        Object_List[index].Network_Type = PORT_TYPE_BSC;
+        sc = &Object_List[index].Network.BSC.Parameters;
+        Object_List[index].Activate_Changes =
+            Network_Port_SC_Pending_Params_Apply;
+        Object_List[index].Discard_Changes =
+            Network_Port_SC_Pending_Params_Discard;
+#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
+        sc->Routing_Table = Keylist_Create();
+#endif
+        sc->SC_Failed_Connection_Requests_Count = 0;
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
+        sc->SC_Hub_Function_Connection_Status_Count = 0;
+#endif
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
+        sc->SC_Direct_Connect_Connection_Status_Count = 0;
+#endif
+        (void)sc;
+#endif /* BACDL_BSC */
+    }
 }
+
+#ifdef BACDL_BSC
+/**
+ * For a given object instance-number, gets SC parameters structure
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return SC params structure
+ */
+BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *param = NULL;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BSC) {
+            param = &Object_List[index].Network.BSC.Parameters;
+        }
+    }
+
+    return param;
+}
+#endif

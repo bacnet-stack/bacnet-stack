@@ -46,12 +46,6 @@
 #endif
 
 #if defined(_MSC_VER)
-#ifndef strcasecmp
-#define strcasecmp _stricmp
-#endif
-#ifndef strncasecmp
-#define strncasecmp _strnicmp
-#endif
 #ifndef __inline__
 #define __inline__ __inline
 #endif

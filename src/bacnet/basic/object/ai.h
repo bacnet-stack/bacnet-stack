@@ -42,6 +42,7 @@ typedef struct analog_input_descr {
     float Deadband;
     unsigned Limit_Enable : 2;
     unsigned Event_Enable : 3;
+    unsigned Event_Detection_Enable : 1;
     unsigned Notify_Type : 1;
     ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
     BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
@@ -132,6 +133,65 @@ BACNET_STACK_EXPORT
 void Analog_Input_Intrinsic_Reporting(uint32_t object_instance);
 
 #if defined(INTRINSIC_REPORTING)
+BACNET_STACK_EXPORT
+uint32_t Analog_Input_Time_Delay(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay);
+
+BACNET_STACK_EXPORT
+uint32_t Analog_Input_Notification_Class(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Notification_Class_Set(
+    uint32_t object_instance, uint32_t notification_class);
+
+BACNET_STACK_EXPORT
+float Analog_Input_High_Limit(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_High_Limit_Set(uint32_t object_instance, float high_limit);
+
+BACNET_STACK_EXPORT
+float Analog_Input_Low_Limit(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Low_Limit_Set(uint32_t object_instance, float low_limit);
+
+BACNET_STACK_EXPORT
+float Analog_Input_Deadband(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Deadband_Set(uint32_t object_instance, float deadband);
+
+BACNET_STACK_EXPORT
+BACNET_LIMIT_ENABLE Analog_Input_Limit_Enable(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Limit_Enable_Set(
+    uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable);
+
+BACNET_STACK_EXPORT
+BACNET_EVENT_ENABLE Analog_Input_Event_Enable(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Event_Detection_Enable(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Event_Detection_Enable_Set(
+    uint32_t object_instance, bool value);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Event_Enable_Set(
+    uint32_t object_instance, BACNET_EVENT_ENABLE event_enable);
+
+BACNET_STACK_EXPORT
+BACNET_NOTIFY_TYPE Analog_Input_Notify_Type(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Notify_Type_Set(
+    uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type);
+
 BACNET_STACK_EXPORT
 int Analog_Input_Event_Information(
     unsigned index, BACNET_GET_EVENT_INFORMATION_DATA *getevent_data);

@@ -228,7 +228,7 @@ int bacnet_special_event_context_decode(
 bool bacnet_special_event_same(
     const BACNET_SPECIAL_EVENT *value1, const BACNET_SPECIAL_EVENT *value2)
 {
-    BACNET_APPLICATION_DATA_VALUE adv1, adv2;
+    BACNET_APPLICATION_DATA_VALUE adv1 = { 0 }, adv2 = { 0 };
     const BACNET_TIME_VALUE *tv1, *tv2;
     int ti;
 

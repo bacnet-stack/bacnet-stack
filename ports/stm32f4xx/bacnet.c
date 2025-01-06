@@ -14,8 +14,8 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datetime.h"
 #include "bacnet/dcc.h"
 #include "bacnet/iam.h"
 /* BACnet objects */
@@ -116,6 +116,12 @@ void bacnet_init(void)
         SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    /* local time and date */
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
+        handler_timesync);
+    handler_timesync_set_callback_set(datetime_timesync);
+    datetime_init();
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);

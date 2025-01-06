@@ -23,7 +23,6 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
-    BACNET_PROPERTY_ARRAY_LISTS=1
     )
 
 include_directories(
@@ -36,6 +35,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/device.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/abort.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
@@ -83,14 +83,15 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/service/h_cov.c
     ${SRC_DIR}/bacnet/basic/service/h_wp.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/lighting_command.c
     ${SRC_DIR}/bacnet/basic/sys/linear.c
     ${SRC_DIR}/bacnet/basic/tsm/tsm.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/cov.c
     ${SRC_DIR}/bacnet/datetime.c
-    ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/dcc.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
@@ -106,6 +107,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
+    ${SRC_DIR}/bacnet/secure_connect.c
     ./stubs.c
     # Test and test library files
     ./src/main.c

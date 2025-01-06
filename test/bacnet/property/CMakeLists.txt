@@ -24,7 +24,6 @@ add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
     BACNET_PROPERTY_LISTS=1
-    BACNET_PROPERTY_ARRAY_LISTS=1
     )
 
 include_directories(
@@ -41,6 +40,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     # Test and test library files
     ./src/main.c

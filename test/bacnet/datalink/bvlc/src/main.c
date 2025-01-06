@@ -12,6 +12,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/datalink/bvlc.h>
+#include <bacnet/bactext.h>
 
 /**
  * @addtogroup bacnet_tests

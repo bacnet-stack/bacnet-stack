@@ -588,6 +588,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\linear.c">
       <Filter>Source Files\src\bacnet\basic\sys</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\lighting_command.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\bip-init.c">
       <Filter>Source Files\ports\win32</Filter>
     </ClCompile>

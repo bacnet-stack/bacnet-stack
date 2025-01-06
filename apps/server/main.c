@@ -37,6 +37,7 @@
 /* objects that have tasks inside them */
 #if (BACNET_PROTOCOL_REVISION >= 14)
 #include "bacnet/basic/object/lo.h"
+#include "bacnet/basic/object/channel.h"
 #endif
 #if (BACNET_PROTOCOL_REVISION >= 24)
 #include "bacnet/basic/object/color_object.h"
@@ -117,6 +118,7 @@ static BACNET_SUBORDINATE_DATA Lighting_Subordinate[] = {
     { 0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", 0, 0, NULL },
 #endif
 };
+static BACNET_WRITE_GROUP_NOTIFICATION Write_Group_Notification = { 0 };
 
 /**
  * @brief Update the strcutured view static data with device ID and linked lists
@@ -177,21 +179,6 @@ static void Init_Service_Handlers(void)
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
-
-#if 0
-    /*  BACnet Testing Observed Incident oi00107
-        Server only devices should not indicate that they EXECUTE I-Am
-        Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
-            BITS: BIT00040
-        Any discussions can be directed to edward@bac-test.com
-        Please feel free to remove this comment when my changes accepted after suitable time for
-        review by all interested parties. Say 6 months -> September 2016 */
-    /* In this demo, we are the server only ( BACnet "B" device ) so we do not indicate
-       that we can execute the I-Am message */
-    /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
-#endif
-
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
@@ -231,6 +218,11 @@ static void Init_Service_Handlers(void)
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
         handler_unconfirmed_private_transfer);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WRITE_GROUP, handler_write_group);
+    /* add WriteGroup iterator to the Channel objects */
+    Write_Group_Notification.callback = Channel_Write_Group;
+    handler_write_group_notification_add(&Write_Group_Notification);
 #if defined(INTRINSIC_REPORTING)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, handler_alarm_ack);

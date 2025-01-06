@@ -25,7 +25,7 @@
 #define INFO 2
 #define DEBUG 3
 
-#define DEBUG_LEVEL 3
+/* #define DEBUG_LEVEL 3 */
 #ifdef DEBUG_LEVEL
 #define PRINT(debug_level, ...)     \
     if (debug_level <= DEBUG_LEVEL) \

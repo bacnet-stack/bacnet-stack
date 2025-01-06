@@ -305,7 +305,8 @@ int bacapp_decode_timestamp(const uint8_t *apdu, BACNET_TIMESTAMP *value)
  *                    hold the time stamp.
  * @param value  Pointer to the variable that shall
  *               take the time stamp values.
- * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
+ * @return  number of bytes decoded, zero if tag mismatch,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_timestamp_context_decode(
     const uint8_t *apdu,
@@ -316,9 +317,12 @@ int bacnet_timestamp_context_decode(
     int len = 0;
     int apdu_len = 0;
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+        return 0;
     }
     apdu_len += len;
     len = bacnet_timestamp_decode(&apdu[apdu_len], apdu_size - apdu_len, value);

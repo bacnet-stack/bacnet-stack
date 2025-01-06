@@ -412,9 +412,7 @@ void Life_Safety_Zone_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Out_Of_Service != value) {
-            pObject->Out_Of_Service = value;
-        }
+        pObject->Out_Of_Service = value;
     }
 }
 
@@ -614,9 +612,7 @@ void Life_Safety_Zone_Maintenance_Required_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Maintenance_Required != value) {
-            pObject->Maintenance_Required = value;
-        }
+        pObject->Maintenance_Required = value;
     }
 }
 
@@ -753,7 +749,7 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
