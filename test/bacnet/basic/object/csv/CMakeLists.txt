@@ -62,6 +62,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     ${SRC_DIR}/bacnet/memcopy.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
