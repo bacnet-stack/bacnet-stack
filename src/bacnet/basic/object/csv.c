@@ -319,8 +319,8 @@ CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
                 characterstring_copy(
                     &pObject->Present_Value, &pObject->Present_Value_Backup);
             }
+            pObject->Out_Of_Service = value;
         }
-        Out_Of_Service[index] = value;
     }
 
     return;
