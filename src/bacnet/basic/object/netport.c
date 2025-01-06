@@ -2873,7 +2873,8 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     {
         char fqdn_copy[MAX_CHARACTER_STRING_BYTES + 1];
         char *label = NULL;
-        strncpy(fqdn_copy, val, sizeof(fqdn_copy)); /* Make a copy to manipulate */
+        strncpy(
+            fqdn_copy, val, sizeof(fqdn_copy)); /* Make a copy to manipulate */
 
         label = strtok(fqdn_copy, "."); /* Split FQDN by '.' */
 
