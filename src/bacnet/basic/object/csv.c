@@ -204,14 +204,14 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
  * For a given object instance-number, read the present-value.
  *
  * @param  object_instance - object-instance number of the object
- * @param  object_name - Pointer to the new BACnet string value,
- *                       taking the value.
+ * @param  present_value - Pointer to the new BACnet string value,
+ *                         taking the value.
  *
  * @return  true if values are within range and present-value
  *          is returned.
  */
 bool CharacterString_Value_Present_Value(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *present_value)
 {
     bool status = false;
     struct characterstring_object *pObject =
@@ -234,7 +234,7 @@ bool CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, const BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, const BACNET_CHARACTER_STRING *present_value)
 {
     bool status = false;
     struct characterstring_object *pObject =
