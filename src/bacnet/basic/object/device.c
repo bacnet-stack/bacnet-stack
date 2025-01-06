@@ -175,8 +175,8 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Iterator */, BitString_Value_Encode_Value_List,
         BitString_Value_Change_Of_Value, BitString_Value_Change_Of_Value_Clear,
         NULL /* Intrinsic Reporting */,  NULL /* Add_List_Element */,
-        NULL /* Remove_List_Element */, NULL /* Create */, NULL /* Delete */,
-        NULL /* Timer */ },
+        NULL /* Remove_List_Element */, BitString_Value_Create,
+        BitString_Value_Delete, NULL /* Timer */ },
     { OBJECT_CHARACTERSTRING_VALUE, CharacterString_Value_Init,
         CharacterString_Value_Count, CharacterString_Value_Index_To_Instance,
         CharacterString_Value_Valid_Instance, CharacterString_Value_Object_Name,
@@ -511,6 +511,7 @@ static const int Device_Properties_Optional[] = {
 #endif
     PROP_DESCRIPTION, PROP_LOCAL_TIME, PROP_UTC_OFFSET, PROP_LOCAL_DATE,
     PROP_DAYLIGHT_SAVINGS_STATUS, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS,
+    PROP_SERIAL_NUMBER, PROP_TIME_OF_DEVICE_RESTART,
 #if defined(BACNET_TIME_MASTER)
     PROP_TIME_SYNCHRONIZATION_RECIPIENTS, PROP_TIME_SYNCHRONIZATION_INTERVAL,
     PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET,
@@ -583,6 +584,8 @@ static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
 static char Description[MAX_DEV_DESC_LEN + 1] = "server";
+static char Serial_Number[MAX_DEV_DESC_LEN + 1] =
+    "BACnetDMcN56RBkeDJuNfxn3M44tfC2Y";
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -592,6 +595,7 @@ static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
+static BACNET_TIMESTAMP Time_Of_Device_Restart;
 static BACNET_TIME Local_Time; /* rely on OS, if there is one */
 static BACNET_DATE Local_Date; /* rely on OS, if there is one */
 /* NOTE: BACnet UTC Offset is inverse of common practice.
@@ -623,6 +627,10 @@ static uint32_t Database_Revision = 0;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "filister";
 static write_property_function Device_Write_Property_Store_Callback;
+
+#ifdef BAC_ROUTING
+static bool Device_Router_Mode = false;
+#endif
 
 /**
  * @brief Sets the ReinitializeDevice password
@@ -659,6 +667,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
     bool password_success = false;
+    unsigned i;
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to
@@ -683,8 +692,19 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     if (password_success) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
             case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Changes_Pending_Activate(
+                        Network_Port_Index_To_Instance(i));
+                }
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
@@ -707,6 +727,10 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
             case BACNET_REINIT_ACTIVATE_CHANGES:
                 /* note: activate changes *after* the simple ack is sent */
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Changes_Pending_Activate(
+                        Network_Port_Index_To_Instance(i));
+                }
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
@@ -747,7 +771,11 @@ uint32_t Device_Index_To_Instance(unsigned index)
 uint32_t Device_Object_Instance_Number(void)
 {
 #ifdef BAC_ROUTING
-    return Routed_Device_Object_Instance_Number();
+    if (Device_Router_Mode) {
+        return Routed_Device_Object_Instance_Number();
+    } else {
+        return Object_Instance_Number;
+    }
 #else
     return Object_Instance_Number;
 #endif
@@ -962,6 +990,35 @@ bool Device_Set_Location(const char *name, size_t length)
     if (length < sizeof(Location)) {
         memmove(Location, name, length);
         Location[length] = 0;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the device serial-number property value.
+ * @return The device serial-number, as a character string.
+ */
+const char *Device_Serial_Number(void)
+{
+    return Serial_Number;
+}
+
+/**
+ * @brief Set the device serial-number property value.
+ * @param str [in] The new device serial-number, as a character string.
+ * @param length [in] The number of characters in the string.
+ * @return true if the device serial-number was set, false if the value was
+ *  too long to store in the object.
+ */
+bool Device_Serial_Number_Set(const char *str, size_t length)
+{
+    bool status = false; /*return value */
+
+    if (length < sizeof(Serial_Number)) {
+        memmove(Serial_Number, str, length);
+        Serial_Number[length] = 0;
         status = true;
     }
 
@@ -1504,6 +1561,15 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ABORT;
             }
             break;
+        case PROP_SERIAL_NUMBER:
+            characterstring_init_ansi(&char_string, Serial_Number);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_TIME_OF_DEVICE_RESTART:
+            apdu_len =
+                bacapp_encode_timestamp(&apdu[0], &Time_Of_Device_Restart);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1614,7 +1680,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     int result = 0;
@@ -1623,8 +1689,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #endif
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
+    len = bacapp_decode_known_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1831,6 +1898,14 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
+        case PROP_TIME_OF_DEVICE_RESTART:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
+            if (status) {
+                bacapp_timestamp_copy(
+                    &Time_Of_Device_Restart, &value.type.Time_Stamp);
+            }
+            break;
         default:
             if (property_lists_member(
                     Device_Properties_Required, Device_Properties_Optional,
@@ -2408,6 +2483,7 @@ void Device_Timer(uint16_t milliseconds)
 void Routing_Device_Init(uint32_t first_object_instance)
 {
     struct object_functions *pDevObject = NULL;
+    Device_Router_Mode = true;
 
     /* Initialize with our preset strings */
     Add_Routed_Device(first_object_instance, &My_Object_Name, Description);

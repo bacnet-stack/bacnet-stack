@@ -25,6 +25,8 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     int16_t buff_len = 0;
     int apdu_offset;
     int apdu_len;
+    int net_count;
+    int i;
 
     memmove(data, msg->data, sizeof(MSG_DATA));
 
@@ -68,8 +70,7 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
         case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK: {
             PRINT(INFO, "Recieved I-Am-Router-To-Network message\n");
-            int net_count = apdu_len / 2;
-            int i;
+            net_count = apdu_len / 2;
             for (i = 0; i < net_count; i++) {
                 decode_unsigned16(
                     &data->pdu[apdu_offset + 2 * i],

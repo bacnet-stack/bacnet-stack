@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <time.h> /* for time */
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>

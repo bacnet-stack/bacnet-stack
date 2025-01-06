@@ -53,8 +53,8 @@ static const int Properties_Required[] = {
     PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1
 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
-                                           -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
+                                           PROP_STATE_TEXT, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -469,7 +469,7 @@ bool Multistate_Value_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "MULTI-STATE INPUT %lu",
+                name_text, sizeof(name_text), "MULTI-STATE VALUE %lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -815,7 +815,7 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(

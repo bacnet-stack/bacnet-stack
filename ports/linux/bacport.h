@@ -36,10 +36,6 @@
 #include <poll.h> /* for convenience */
 #endif
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h> /* for convenience */
-#endif
-
 /* Three headers are normally needed for socket/file ioctl's:
  * <sys/ioctl.h>, <sys/filio.h>, and <sys/sockio.h>.
  */
@@ -98,6 +94,6 @@ extern int bip_get_local_netmask(struct in_addr *netmask);
 
 BACNET_STACK_EXPORT
 extern int bip_get_local_address_ioctl(
-    const char *ifname, struct in_addr *addr, int request);
+    const char *ifname, struct in_addr *addr, uint32_t request);
 
 #endif

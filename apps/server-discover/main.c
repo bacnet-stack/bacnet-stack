@@ -257,13 +257,13 @@ int main(int argc, char *argv[])
         }
     }
     if (device_id > BACNET_MAX_INSTANCE) {
-        debug_perror(
-            "device-instance=%u - not greater than %u\n", device_id,
+        debug_fprintf(
+            stderr, "device-instance=%u - not greater than %u\n", device_id,
             BACNET_MAX_INSTANCE);
         return 1;
     }
     Device_Set_Object_Instance_Number(device_id);
-    debug_aprintf(
+    debug_printf_stdout(
         "BACnet Server-Discovery Demo\n"
         "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n"

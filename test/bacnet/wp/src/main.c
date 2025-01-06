@@ -63,11 +63,28 @@ static int wp_decode_apdu(
     return apdu_len;
 }
 
+static BACNET_UNSIGNED_INTEGER Test_Unsigned_Value;
+static uint32_t Test_Object_Instance;
+/**
+ * @brief API for setting a BACnet Unsigned Integer property value
+ * @param object_instance [in] Object instance number
+ * @param value [in] New value to set
+ * @return true if successful, else false
+ */
+static bool test_bacnet_property_unsigned_set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    Test_Object_Instance = object_instance;
+    Test_Unsigned_Value = value;
+    return true;
+}
+
 static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
 {
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA test_data = { 0 };
-    BACNET_APPLICATION_DATA_VALUE test_value;
+    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
+    BACNET_UNSIGNED_INTEGER test_unsigned_value_max = 0;
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int null_len = 0;
@@ -125,6 +142,21 @@ static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             zassert_equal(
                 test_value.type.Unsigned_Int, value->type.Unsigned_Int, NULL);
+            test_unsigned_value_max = test_value.type.Unsigned_Int;
+            status = write_property_unsigned_decode(
+                &test_data, &test_value, test_bacnet_property_unsigned_set,
+                test_unsigned_value_max);
+            zassert_equal(status, true, NULL);
+            zassert_equal(
+                Test_Object_Instance, test_data.object_instance, NULL);
+            zassert_equal(Test_Unsigned_Value, value->type.Unsigned_Int, NULL);
+            if (test_value.type.Unsigned_Int != 0) {
+                test_unsigned_value_max = 0;
+                status = write_property_unsigned_decode(
+                    &test_data, &test_value, test_bacnet_property_unsigned_set,
+                    test_unsigned_value_max);
+                zassert_equal(status, false, NULL);
+            }
             break;
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             zassert_equal(
@@ -181,7 +213,7 @@ ZTEST(wp_tests, testWriteProperty)
 static void testWriteProperty(void)
 #endif
 {
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     value.tag = BACNET_APPLICATION_TAG_NULL;
     testWritePropertyTag(&value);
@@ -252,6 +284,7 @@ static void testWriteProperty(void)
     value.type.Object_Id.instance = BACNET_MAX_INSTANCE;
     testWritePropertyTag(&value);
 }
+
 /**
  * @}
  */

@@ -613,8 +613,9 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+
     struct characterstring_object *pObject = NULL;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (wp_data == NULL) {
         return false;

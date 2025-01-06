@@ -157,8 +157,8 @@ static void test_Private_Transfer_Ack(void)
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
     char private_data_chunk[33] = { "00112233445566778899AABBCCDDEEFF" };
-    BACNET_APPLICATION_DATA_VALUE data_value;
-    BACNET_APPLICATION_DATA_VALUE test_data_value;
+    BACNET_APPLICATION_DATA_VALUE data_value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_data_value = { 0 };
     bool status = false;
 
     private_data.vendorID = BACNET_VENDOR_ID;
@@ -213,8 +213,8 @@ static void test_Private_Transfer_Error(void)
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
     char private_data_chunk[33] = { "00112233445566778899AABBCCDDEEFF" };
-    BACNET_APPLICATION_DATA_VALUE data_value;
-    BACNET_APPLICATION_DATA_VALUE test_data_value;
+    BACNET_APPLICATION_DATA_VALUE data_value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_data_value = { 0 };
     bool status = false;
 
     private_data.vendorID = BACNET_VENDOR_ID;
@@ -315,8 +315,8 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
     int apdu_len = 0;
     int private_data_len = 0;
     char private_data_chunk[32] = { "I Love You, Patricia!" };
-    BACNET_APPLICATION_DATA_VALUE data_value;
-    BACNET_APPLICATION_DATA_VALUE test_data_value;
+    BACNET_APPLICATION_DATA_VALUE data_value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_data_value = { 0 };
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     bool status = false;

@@ -36,10 +36,6 @@
 #include <poll.h>        /* for convenience */
 #endif
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h>     /* for convenience */
-#endif
-
 /* Three headers are normally needed for socket/file ioctl's:
  * <sys/ioctl.h>, <sys/filio.h>, and <sys/sockio.h>.
  */
@@ -54,7 +50,7 @@
 #endif
 
 #include <pthread.h>
-#include <semaphore.h>
+#include <dispatch/dispatch.h>
 
 #define ENUMS
 #include <sys/socket.h>
@@ -73,18 +69,20 @@
 #include <netdb.h>
 #include "bacnet/basic/sys/bacnet_stack_exports.h"
 
-/** @file bsd/net.h  Includes BSD network headers. */
+#define BACNET_OBJECT_TABLE(                                               \
+    table_name, _type, _init, _count, _index_to_instance, _valid_instance, \
+    _object_name, _read_property, _write_property, _RPM_list, _RR_info,    \
+    _iterator, _value_list, _COV, _COV_clear, _intrinsic_reporting)        \
+    static_assert(false, "Unsupported BACNET_OBJECT_TABLE for this platform")
+
+/** @file bsd/bacport.h  Includes BSD network headers. */
 
 /* Local helper functions for this port */
 BACNET_STACK_EXPORT
-extern int bip_get_local_netmask(
-    struct in_addr *netmask);
+extern int bip_get_local_netmask(struct in_addr *netmask);
 
-#define BACNET_OBJECT_TABLE(table_name, _type, _init, _count,               \
-                            _index_to_instance, _valid_instance, _object_name, \
-                            _read_property, _write_property, _RPM_list,     \
-                            _RR_info, _iterator, _value_list, _COV,         \
-                            _COV_clear, _intrinsic_reporting)               \
-    static_assert(false, "Unsupported BACNET_OBJECT_TABLE for this platform")
+BACNET_STACK_EXPORT
+extern int bip_get_local_address_ioctl(
+    const char *ifname, struct in_addr *addr, uint32_t request);
 
 #endif

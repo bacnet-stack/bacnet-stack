@@ -22,15 +22,15 @@ jobs:
         gcc --version
         make clean
         make LEGACY=true CSTANDARD="-std=gnu89" all
-    - name: Build Demo Apps GNU99
+    - name: LEGACY=true Build Demo Apps GNU99
       run: |
         make clean
-        make CSTANDARD="-std=gnu99" all
+        make LEGACY=true CSTANDARD="-std=gnu99" all
     - name: LEGACY=true Build Demo Apps GNU11
       run: |
         make clean
         make LEGACY=true CSTANDARD="-std=gnu11" all
-    - name: Build Demo Apps GNU17
+    - name: LEGACY=true Build Demo Apps GNU17
       run: |
         make clean
         make LEGACY=true CSTANDARD="-std=gnu17" all
@@ -77,6 +77,26 @@ jobs:
         make clean
         make LEGACY=true gateway
 
+  bacnet-sc-hub:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create BACnet/SC Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
+    - name: Build BACnet/SC Hub Demo
+      run: |
+        gcc --version
+        make clean
+        make sc-hub
+
   router:
     runs-on: ubuntu-latest
     steps:
@@ -85,6 +105,12 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Router Demo
       run: |
         gcc --version
@@ -209,7 +235,7 @@ jobs:
     - name: ports-avr
       run: |
         avr-gcc --version
-        make LEGACY=true atmega168
+        make LEGACY=true atmega328
         make LEGACY=true bdk-atxx4-mstp
         make LEGACY=true xplained
 
@@ -247,3 +273,25 @@ jobs:
       run: make LEGACY=true BUILD=win32 router-mstp
     - name: Build Win32 Demo Gateway
       run: make LEGACY=true BUILD=win32 gateway
+
+  piface:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build PiFace Demo
+      run: |
+        gcc --version
+        make clean
+        make LEGACY=true BUILD=pipeline piface
+
+  blinkt:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build Blinkt! Demo
+      run: |
+        gcc --version
+        make clean
+        make LEGACY=true BUILD=pipeline blinkt

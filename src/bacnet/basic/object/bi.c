@@ -21,16 +21,13 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/cov.h"
+/* basic objects and services */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
+#include "bacnet/basic/sys/debug.h"
 /* me! */
 #include "bacnet/basic/object/bi.h"
-
-#include "bacnet/basic/sys/debug.h"
-#if !defined(PRINT)
-#define PRINT debug_perror
-#endif
 
 static const char *Default_Active_Text = "Active";
 static const char *Default_Inactive_Text = "Inactive";
@@ -908,7 +905,9 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
             bitstring_init(&bit_string);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
+            bitstring_set_bit(
+                &bit_string, STATUS_FLAG_IN_ALARM,
+                pObject->Event_State != EVENT_STATE_NORMAL);
             state = Binary_Input_Fault(rpdata->object_instance);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, state);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
@@ -917,8 +916,8 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Binary_Input_Event_State(rpdata->object_instance));
             break;
         case PROP_OUT_OF_SERVICE:
             state = Binary_Input_Out_Of_Service(rpdata->object_instance);
@@ -1054,7 +1053,7 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct object_data *pObject;
 
     /* decode the some of the request */
@@ -1730,7 +1729,7 @@ int Binary_Input_Alarm_Summary(
     struct object_data *pObject = Binary_Input_Object_Index(index);
 
     if (getalarm_data == NULL) {
-        PRINT(
+        debug_printf(
             "[%s %d]: NULL pointer parameter! getalarm_data = %p\r\n", __FILE__,
             __LINE__, (void *)getalarm_data);
         return -2;
@@ -1917,7 +1916,8 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
         pObject->Ack_notify_data.bSendAckNotify = false;
         /* copy toState */
         ToState = pObject->Ack_notify_data.EventState;
-        PRINT("Binary-Input[%d]: Send AckNotification.\n", object_instance);
+        debug_printf(
+            "Binary-Input[%d]: Send AckNotification.\n", object_instance);
         characterstring_init_ansi(&msgText, "AckNotification");
 
         /* Notify Type */
@@ -1997,7 +1997,7 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
                 default:
                     break;
             } /* switch (ToState) */
-            PRINT(
+            debug_printf(
                 "Binary-Input[%d]: Event_State goes from %.128s to %.128s.\n",
                 object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
@@ -2110,7 +2110,7 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
         }
 
         /* add data from notification class */
-        PRINT(
+        debug_printf(
             "Binary-Input[%d]: Notification Class[%d]-%s "
             "%u/%u/%u-%u:%u:%u.%u!\n",
             object_instance, event_data.notificationClass,
@@ -2127,7 +2127,7 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
         /* Ack required */
         if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
             (event_data.ackRequired == true)) {
-            PRINT("Binary-Input[%d]: Ack Required!\n", object_instance);
+            debug_printf("Binary-Input[%d]: Ack Required!\n", object_instance);
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                     pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL]

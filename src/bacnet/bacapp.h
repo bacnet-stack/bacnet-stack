@@ -15,6 +15,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/access_rule.h"
 #include "bacnet/bacaction.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
@@ -27,6 +28,8 @@
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
+#include "bacnet/channel_value.h"
+#include "bacnet/secure_connect.h"
 
 #ifndef BACAPP_PRINT_ENABLED
 #if PRINT_ENABLED
@@ -159,6 +162,18 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined(BACAPP_SHED_LEVEL)
         BACNET_SHED_LEVEL Shed_Level;
+#endif
+#if defined(BACAPP_ACCESS_RULE)
+        BACNET_ACCESS_RULE Access_Rule;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+        BACNET_CHANNEL_VALUE Channel_Value;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
+        BACNET_SC_FAILED_CONNECTION_REQUEST SC_Failed_Req;
+        BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS SC_Hub_Function_Status;
+        BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Status;
+        BACNET_SC_HUB_CONNECTION_STATUS SC_Hub_Status;
 #endif
     } type;
     /* simple linked list if needed */
@@ -349,6 +364,10 @@ int bacapp_snprintf_value(
     char *str,
     size_t str_len,
     const BACNET_OBJECT_PROPERTY_VALUE *object_value);
+
+BACNET_STACK_EXPORT
+bool bacapp_channel_value_copy(
+    BACNET_CHANNEL_VALUE *cvalue, const BACNET_APPLICATION_DATA_VALUE *value);
 
 BACNET_STACK_EXPORT
 bool bacapp_parse_application_data(
