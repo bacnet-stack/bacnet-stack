@@ -98,7 +98,7 @@ static void testCharacterString_Value(void)
 
 void test_main(void)
 {
-    ztest_test_suite(piv_tests, ztest_unit_test(testCharacterString_Value));
+    ztest_test_suite(csv_tests, ztest_unit_test(testCharacterString_Value));
 
-    ztest_run_test_suite(piv_tests);
+    ztest_run_test_suite(csv_tests);
 }
