@@ -474,7 +474,7 @@ bool CharacterString_Value_Description_Set(
 bool CharacterString_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
+    char text[64] = "";
     bool status = false;
     struct characterstring_object *pObject;
 
