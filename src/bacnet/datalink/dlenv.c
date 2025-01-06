@@ -366,7 +366,6 @@ void dlenv_network_port_init(void)
     BACNET_IP_ADDRESS addr = { 0 };
     uint8_t prefix = 0;
 #if BBMD_ENABLED
-    uint8_t addr0, addr1, addr2, addr3;
     BACNET_HOST_N_PORT bbmd_address = {
         0,
     };
