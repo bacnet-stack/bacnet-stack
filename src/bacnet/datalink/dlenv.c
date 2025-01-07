@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Environment variables used for the BACnet command line tools
+ * @brief Datalink environment variables used for the BACnet command line tools
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2009
  * @copyright SPDX-License-Identifier: MIT
@@ -35,7 +35,9 @@
 #include "bacnet/datalink/bsc/bsc-event.h"
 #endif
 
-/** @file dlenv.c  Initialize the DataLink configuration. */
+/* enable debugging */
+static bool Datalink_Debug;
+
 /* timer used to renew Foreign Device Registration */
 #if defined(BACDL_BIP) || defined(BACDL_BIP6)
 static uint16_t BBMD_Timer_Seconds;
@@ -53,8 +55,6 @@ static uint16_t BBMD_Result = 0;
 #if BBMD_ENABLED
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
 #endif
-/* enable debugging */
-static bool BIP_DL_Debug = false;
 
 /* Debug toggle */
 
@@ -63,7 +63,7 @@ static bool BIP_DL_Debug = false;
  */
 void bip_dl_debug_enable(void)
 {
-    BIP_DL_Debug = true;
+    Datalink_Debug = true;
 }
 
 /**
@@ -71,7 +71,7 @@ void bip_dl_debug_enable(void)
  */
 void bip_dl_debug_disable(void)
 {
-    BIP_DL_Debug = false;
+    Datalink_Debug = false;
 }
 
 /* Simple setters for BBMD registration variables. */
@@ -169,7 +169,7 @@ static int bbmd_register_as_foreign_device(void)
         BBMD_Address_Valid = bip_get_addr_by_name(pEnv, &BBMD_Address);
     }
     if (BBMD_Address_Valid) {
-        if (BIP_DL_Debug) {
+        if (Datalink_Debug) {
             fprintf(
                 stderr,
                 "Registering with BBMD at %u.%u.%u.%u:%u for %u seconds\n",
@@ -199,7 +199,7 @@ static int bbmd_register_as_foreign_device(void)
                 bdt_entry_valid =
                     bip_get_addr_by_name(pEnv, &BBMD_Table_Entry.dest_address);
                 if (entry_number == 1) {
-                    if (BIP_DL_Debug) {
+                    if (Datalink_Debug) {
                         fprintf(
                             stderr, "BBMD 1 address overridden %s=%s!\n",
                             bbmd_env, pEnv);
@@ -218,7 +218,7 @@ static int bbmd_register_as_foreign_device(void)
                 if (pEnv) {
                     bdt_entry_port = strtol(pEnv, NULL, 0);
                     if (entry_number == 1) {
-                        if (BIP_DL_Debug) {
+                        if (Datalink_Debug) {
                             fprintf(
                                 stderr, "BBMD 1 port overridden %s=%s!\n",
                                 bbmd_env, pEnv);
@@ -247,7 +247,7 @@ static int bbmd_register_as_foreign_device(void)
                 }
                 bvlc_broadcast_distribution_table_entry_append(
                     bvlc_bdt_list(), &BBMD_Table_Entry);
-                if (BIP_DL_Debug) {
+                if (Datalink_Debug) {
                     fprintf(
                         stderr, "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n",
                         entry_number,
@@ -315,7 +315,7 @@ static int bbmd6_register_as_foreign_device(void)
     }
     pEnv = getenv("BACNET_BBMD6_ADDRESS");
     if (bvlc6_address_from_ascii(pEnv, &bip6_addr)) {
-        if (BIP_DL_Debug) {
+        if (Datalink_Debug) {
             fprintf(
                 stderr, "Registering with BBMD6 at %s for %u seconds\n", pEnv,
                 (unsigned)bip6_port, (unsigned)BBMD_TTL_Seconds);
@@ -374,7 +374,7 @@ void dlenv_network_port_init(void)
     Network_Port_Type_Set(instance, PORT_TYPE_BIP);
     bip_get_addr(&addr);
     prefix = bip_get_subnet_prefix();
-    if (BIP_DL_Debug) {
+    if (Datalink_Debug) {
         fprintf(
             stderr, "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
             (unsigned long)instance, (unsigned)addr.address[0],
@@ -729,6 +729,10 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_BIP6_PORT - UDP/IP port number (0..65534) used for BACnet/IPv6
  *     communications.  Default is 47808 (0xBAC0).
  *   - BACNET_BIP6_BROADCAST - FF05::BAC0 or FF02::BAC0 or ...
+ *   - BACNET_BBMD6_PORT - UDP/IPv6 port number (0..65534) used for Foreign
+ *     Device Registration.  Defaults to 47808 (0xBAC0).
+ *   - BACNET_BBMD6_TIMETOLIVE - 0..65535 seconds, defaults to 60000
+ *   - BACNET_BBMD6_ADDRESS - IPv6 address
  * - BACDL_BSC: (BACnet Secure Connect)
  *   - BACNET_SC_PRIMARY_HUB_URI
  *   - BACNET_SC_FAILOVER_HUB_URI
@@ -785,6 +789,7 @@ void dlenv_init(void)
     if (pEnv) {
         bip6_debug_enable();
         bvlc6_debug_enable();
+        Datalink_Debug = true;
     }
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
