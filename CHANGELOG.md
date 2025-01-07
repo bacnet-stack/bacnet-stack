@@ -82,6 +82,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Change the basic CharacterString Value object by adding CreateObject and
+  DeleteObject service support. (#888) (#886)
 * Changed some debug.c module functions to macros to be able to use them
   in code without having to add #ifdef around them in the code. This
   enables smaller non-printing embedded builds to use the same handlers
