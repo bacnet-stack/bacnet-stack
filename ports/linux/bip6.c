@@ -16,9 +16,7 @@
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
-#if DEBUG_ENABLED
 #include "bacnet/basic/sys/debug.h"
-#endif
 #include "bacport.h"
 
 /* enable debugging */
@@ -224,6 +222,60 @@ bool bip6_set_broadcast_addr(const BACNET_IP6_ADDRESS *addr)
 bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(addr, &BIP6_Broadcast_Addr);
+}
+
+/**
+ * @brief gets an IPv6 address by hostname (or string of numbers)
+ *
+ * gets an IPv6 address by name, where name can be a string that is an
+ * IP address in dotted form, or a name that is a domain name
+ *
+ * @param host_name - the host name
+ * @return true if the address was retrieved
+ */
+bool bip6_get_addr_by_name(const char *host_name, BACNET_IP6_ADDRESS *addr)
+{
+    bool status = false;
+    struct addrinfo hints = { 0 }, *info, *result_addrinfo;
+    struct sockaddr_in6 *sin;
+    char ipv6addr_ntop[INET6_ADDRSTRLEN] = {0};
+    int rv;
+
+    hints.ai_family = AF_INET6;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
+    hints.ai_flags = AI_NUMERICHOST;
+    if (BIP6_Debug) {
+        debug_fprintf(
+            stderr, "BIP6: seeking IPv6 address %s\n", host_name);
+    }
+    rv = getaddrinfo(host_name, NULL, &hints, &result_addrinfo);
+    if (rv != 0) {
+        debug_perror("BIP6: getaddrinfo failed");
+        return false;
+    }
+    for(
+        info = result_addrinfo;
+        info != NULL;
+        info = info->ai_next
+    ){
+        sin = (struct sockaddr_in6*)info->ai_addr;
+        inet_ntop(info->ai_family, &sin->sin6_addr, ipv6addr_ntop, info->ai_addrlen);
+        debug_fprintf(
+            stderr, "BIP6: IPv6 address=%s\n", ipv6addr_ntop);
+        status = bvlc6_address_set(
+            addr, ntohs(sin->sin6_addr.s6_addr16[0]),
+            ntohs(sin->sin6_addr.s6_addr16[1]),
+            ntohs(sin->sin6_addr.s6_addr16[2]),
+            ntohs(sin->sin6_addr.s6_addr16[3]),
+            ntohs(sin->sin6_addr.s6_addr16[4]),
+            ntohs(sin->sin6_addr.s6_addr16[5]),
+            ntohs(sin->sin6_addr.s6_addr16[6]),
+            ntohs(sin->sin6_addr.s6_addr16[7]));
+    }
+    freeaddrinfo(result_addrinfo);
+
+    return status;
 }
 
 /**

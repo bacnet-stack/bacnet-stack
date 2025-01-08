@@ -69,6 +69,19 @@ ifeq (${BBMD},full)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 
+ifeq (${BBMD6},none)
+BBMD_DEFINE = -DBBMD6_ENABLED=0
+endif
+ifeq (${BBMD6},server)
+BBMD_DEFINE = -DBBMD6_ENABLED=1
+endif
+ifeq (${BBMD6},client)
+BBMD_DEFINE = -DBBMD6_ENABLED=0 -DBBMD6_CLIENT_ENABLED
+endif
+ifeq (${BBMD6},full)
+BBMD_DEFINE = -DBBMD6_ENABLED=1 -DBBMD6_CLIENT_ENABLED
+endif
+
 endif
 
 # Define WEAK_FUNC for unsupported or specific compilers

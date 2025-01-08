@@ -84,6 +84,9 @@ BACNET_STACK_EXPORT
 void bip6_receive_callback(void);
 
 BACNET_STACK_EXPORT
+bool bip6_get_addr_by_name(const char *host_name, BACNET_IP6_ADDRESS *addr);
+
+BACNET_STACK_EXPORT
 void bip6_debug_enable(void);
 
 #ifdef __cplusplus

@@ -17,6 +17,21 @@
 #include "bacnet/basic/bbmd6/vmac.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 
+/* Define BBMD6_ENABLED to get the functions that a
+ * BBMD needs to handle its services.
+ * Separately, define BBMD6_CLIENT_ENABLED to get the
+ * functions that allow a client to manage a BBMD.
+ */
+#ifndef BBMD6_ENABLED
+#define BBMD6_ENABLED 1
+#endif
+
+#if BBMD6_ENABLED
+#ifndef BBMD6_CLIENT_ENABLED
+#define BBMD6_CLIENT_ENABLED 1
+#endif
+#endif
+
 static bool BVLC6_Debug;
 #if PRINT_ENABLED
 #include <stdarg.h>
@@ -52,11 +67,13 @@ static uint8_t BVLC6_Function_Code = BVLC6_RESULT;
 static BACNET_IP6_ADDRESS Remote_BBMD;
 /** if we are a foreign device, store the Time-To-Live Seconds here */
 static uint16_t Remote_BBMD_TTL_Seconds;
-#if defined(BACDL_BIP6) && BBMD6_ENABLED
+#if BBMD6_ENABLED || BBMD6_CLIENT_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC6_Buffer[BIP6_MPDU_MAX];
 static uint16_t BVLC6_Buffer_Len;
+#endif
 /* Broadcast Distribution Table */
+#if BBMD6_ENABLED
 #ifndef MAX_BBMD6_ENTRIES
 #define MAX_BBMD6_ENTRIES 128
 #endif
@@ -364,7 +381,7 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
 
     if (mtu) {
         bip6_get_addr(&my_addr);
-        for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+        for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
             if (BBMD_Table[i].valid) {
                 if (bvlc6_address_different(
                         &my_addr, &BBMD_Table[i].bip6_address)) {
@@ -374,7 +391,9 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
         }
     }
 }
+#endif
 
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
 /**
  * The send function for Broadcast Distribution Table
  *
@@ -391,7 +410,7 @@ static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
 
     if (mtu) {
         bip6_get_addr(&my_addr);
-        for (i = 0; i < MAX_FD_ENTRIES; i++) {
+        for (i = 0; i < MAX_FD6_ENTRIES; i++) {
             if (FD_Table[i].valid) {
                 if (bvlc6_address_different(
                         &my_addr, &FD_Table[i].bip6_address)) {
@@ -401,19 +420,15 @@ static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
         }
     }
 }
+#endif
 
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
 /**
- * The Forward NPDU send function for Broadcast Distribution Table
- *
- * @param addr - Points to a #BACNET_IP6_ADDRESS structure containing the
- *  source IPv6 address.
- * @param vmac_src - Source-Virtual-Address
+ * @brief The Forward NPDU send function for Broadcast Distribution Table
  * @param npdu - the bytes of NPDU+APDU data to send
  * @param npdu_len - the number of bytes of NPDU+APDU data to send
  */
 static void bbmd6_send_forward_npdu(
-    BACNET_IP6_ADDRESS *address,
-    uint32_t vmac_src,
     uint8_t *npdu,
     unsigned int npdu_len)
 {
@@ -421,7 +436,7 @@ static void bbmd6_send_forward_npdu(
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
 
-    for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+    for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
         if (BBMD_Table[i].valid) {
             if (bbmd6_address_match_self(&BBMD_Table[i].bip6_address)) {
                 /* don't forward to our selves */
@@ -430,7 +445,7 @@ static void bbmd6_send_forward_npdu(
             }
         }
     }
-    for (i = 0; i < MAX_FD_ENTRIES; i++) {
+    for (i = 0; i < MAX_FD6_ENTRIES; i++) {
         if (FD_Table[i].valid) {
             if (bbmd6_address_match_self(&FD_Table[i].bip6_address)) {
                 /* don't forward to our selves */
@@ -440,7 +455,6 @@ static void bbmd6_send_forward_npdu(
         }
     }
 }
-
 #endif
 
 /**
@@ -694,14 +708,30 @@ int bvlc6_bbmd_disabled_handler(
                 }
                 break;
             case BVLC6_REGISTER_FOREIGN_DEVICE:
+                /* Upon receipt of a BVLL Register-Foreign-Device message,
+                   a BACnet/IPv6 device that is not configured as a BBMD shall
+                   return a BVLC-Result message containing a result code
+                   of 'Register-Foreign-Device NAK' indicating that the
+                   registration has failed. */
                 result_code = BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK;
                 send_result = true;
                 break;
             case BVLC6_DELETE_FOREIGN_DEVICE:
+                /* Upon receipt of a BVLL Delete-Foreign-Device-Table-Entry
+                   message, a BACnet/IPv6 device that is not configured as
+                   a BBMD shall return a BVLC-Result message containing
+                   a result message containing a result code of
+                   'Delete-Foreign-Device-Table-Entry NAK' indicating
+                   that the deletion attempt has failed. */
                 result_code = BVLC6_RESULT_DELETE_FOREIGN_DEVICE_NAK;
                 send_result = true;
                 break;
             case BVLC6_DISTRIBUTE_BROADCAST_TO_NETWORK:
+                /* Upon receipt of a BVLL Distribute-Broadcast-To-Network
+                   message, a BACnet/IPv6 device that is not configured as
+                   a BBMD shall return a BVLC-Result message containing a
+                   result code of 'Distribute-Broadcast-To-Network NAK'
+                   indicating that the forwarding attempt was unsuccessful.*/
                 result_code = BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
                 send_result = true;
                 break;
@@ -787,10 +817,20 @@ int bvlc6_bbmd_disabled_handler(
                 }
                 break;
             case BVLC6_FORWARDED_ADDRESS_RESOLUTION:
-                result_code = BVLC6_RESULT_ADDRESS_RESOLUTION_NAK;
-                send_result = true;
+                /* If the BBMD is unable to transmit the
+                   Forwarded-Address-Resolution message, or
+                   the message was not received from a BBMD which is in
+                   the receiving BBMD's BDT, no BVLC-Result shall be
+                   returned and the message shall be discarded. */
                 break;
             case BVLC6_ADDRESS_RESOLUTION:
+                /* Upon receipt of a BVLL Address-Resolution message
+                   from the local multicast domain whose destination
+                   virtual address is not itself, the receiving BBMD
+                   shall construct and transmit a
+                   BVLL Forwarded-Address-Resolution via unicast to
+                   each entry in its BDT as well as to each foreign
+                   device in the BBMD's FDT.*/
                 bbmd6_address_resolution_handler(addr, pdu, pdu_len);
                 break;
             case BVLC6_ADDRESS_RESOLUTION_ACK:
@@ -819,7 +859,6 @@ int bvlc6_bbmd_disabled_handler(
 }
 
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
-#warning FIXME: Needs ported to IPv6
 /**
  * Use this handler when you are a BBMD.
  * Sets the BVLC6_Function_Code in case it is needed later.
@@ -876,16 +915,60 @@ int bvlc6_bbmd_enabled_handler(
                 }
                 break;
             case BVLC6_REGISTER_FOREIGN_DEVICE:
+                /* Upon receipt of a BVLL Register-Foreign-Device message,
+                   a BBMD configured to accept foreign device registration and
+                   having available table entries, shall add an entry to its
+                   FDT as described in Clause U.4.5.2 and reply with a
+                   BVLC-Result message containing a result code of
+                   'Successful completion' indicating the successful
+                   completion of the registration. A BBMD that does not
+                   have an available table entry of that is not configured
+                   to accept foreign device registrations shall return
+                   a BVLCResult message containing a result code of
+                   'Register-Foreign-Device NAK' indicating that the
+                   registration has failed. */
                 result_code = BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK;
                 send_result = true;
                 break;
             case BVLC6_DELETE_FOREIGN_DEVICE:
+                /* Upon receipt of a BVLL Delete-Foreign-Device-Table-Entry
+                   message, a BBMD shall search its foreign device table for an
+                   entry corresponding to the B/IPv6 address supplied in the
+                   message. If an entry is found, it shall be deleted and the
+                   BBMD shall return a BVLC-Result message to the originating
+                   device with a result code of 'Successful completion'.
+                   Otherwise, the BBMD shall return a BVLC-Result message
+                   to the originating device with a result code of
+                   'Delete-Foreign-Device-Table-Entry NAK' indicating that
+                   the deletion attempt has failed. */
                 result_code = BVLC6_RESULT_DELETE_FOREIGN_DEVICE_NAK;
                 send_result = true;
                 break;
             case BVLC6_DISTRIBUTE_BROADCAST_TO_NETWORK:
-                result_code = BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
-                send_result = true;
+                /* Upon receipt of a BVLL Distribute-Broadcast-To-Network
+                   message from a registered foreign device, the receiving BBMD
+                   shall construct a BVLL Forwarded-NPDU and multicast it to
+                   B/IPv6 devices in the local multicast domain. In addition,
+                   the constructed BVLL Forwarded-NPDU message shall be sent
+                   to each entry in its BDT as described above in the case of
+                   the receipt of a BVLL Original-Broadcast-NPDU as well as
+                   directly to each foreign device currently in the BBMD's FDT
+                   except the originating node. If the BBMD is unable to
+                   perform the forwarding function, or the message was not
+                   received from a registered foreign device, then it shall
+                   return a BVLC-Result message to the foreign device with
+                   a result code of 'Distribute-Broadcast-To-Network NAK'
+                   indicating that the forwarding attempt was unsuccessful.*/
+                function_len = bvlc6_decode_distribute_broadcast_to_network(
+                    pdu, pdu_len, &vmac_src, NULL, 0, &npdu_len);
+                if ((function_len > 0) &&
+                    (bvlc6_broadcast_distribution_table_member(addr)) {
+                    npdu = pdu + header_len + (function_len - npdu_len);
+                    bbmd6_send_forward_npdu(npdu, npdu_len);
+                } else {
+                    result_code = BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
+                    send_result = true;
+                }
                 break;
             case BVLC6_ORIGINAL_UNICAST_NPDU:
                 /* This message is used to send directed NPDUs to
@@ -928,12 +1011,12 @@ int bvlc6_bbmd_enabled_handler(
                                "Confirmed Service! Discard!");
                     } else {
                         /*  Upon receipt of a BVLL Original-Broadcast-NPDU
-                            message from the local multicast domain, a BBMD
-                            shall construct a BVLL Forwarded-NPDU message and
-                            unicast it to each entry in its BDT. In addition,
-                            the constructed BVLL Forwarded-NPDU message shall
-                            be unicast to each foreign device currently in
-                            the BBMD's FDT */
+                            message from the local multicast domain,
+                            a BBMD shall construct a BVLL Forwarded-NPDU
+                            message and unicast it to each entry in its BDT.
+                            In addition, the constructed BVLL Forwarded-NPDU
+                            message shall be unicast to each foreign device
+                            currently in the BBMD's FDT. */
                         BVLC6_Buffer_Len = bvlc6_encode_forwarded_npdu(
                             &BVLC6_Buffer[0], sizeof(BVLC6_Buffer), vmac_src,
                             addr, npdu, npdu_len);
@@ -1117,6 +1200,108 @@ void bvlc6_cleanup(void)
 {
     VMAC_Cleanup();
 }
+
+/**
+ * @brief set an entry of the BBMD table
+ * @param entry_number - the table entry number 1..N
+ * @param entry - the table entry, or NULL to invalidate the entry
+ * @return true if the entry number if valid
+ */
+bool bvlc6_broadcast_distribution_table_entry_set(
+    unsigned int entry_number,
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *entry)
+{
+    bool status = false;
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    unsigned i;
+
+    if ((entry_number >= 1) && (entry_number <= MAX_BBMD6_ENTRIES) {
+        i = entry_number - 1;
+        if (entry) {
+            bvlc6_address_copy(&BBMD_Table[i], entry);
+            BBMD_Table[i].valid = true;
+        } else {
+            BBMD_Table[i].valid = false;
+        }
+        status = true;
+    }
+#else
+    (void)entry_number;
+    (void)entry;
+#endif
+
+    return status;
+}
+
+bool bvlc6_broadcast_distribution_table_entry(
+    unsigned int entry_number,
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *entry)
+{
+    bool status = false;
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    unsigned i;
+
+    if ((entry_number >= 1) && (entry_number <= MAX_BBMD6_ENTRIES) {
+        i = entry_number - 1;
+        bvlc6_address_copy(entry, &BBMD_Table[i].bip6_address);
+        status = true;
+    }
+#else
+    (void)entry_number;
+    (void)entry;
+#endif
+
+    return status;
+}
+
+size_t bvlc6_broadcast_distribution_table_capacity(void)
+{
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    return MAX_BBMD6_ENTRIES;
+#else
+    return 0;
+#endif
+}
+
+size_t bvlc6_broadcast_distribution_table_count(void)
+{
+    size_t count = 0;
+
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    size_t i;
+
+    for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
+        if (BBMD_Table[i].valid) {
+            count++;
+        }
+    }
+#endif
+
+    return count;
+}
+
+bool bvlc6_broadcast_distribution_table_member(
+    BACNET_IP6_ADDRESS *addr)
+{
+    bool matched = false;
+
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    size_t i;
+
+    for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
+        if (BBMD_Table[i].valid) {
+            if (!bvlc6_address_different(&BBMD_Table[i].bip6_address,addr)) {
+                matched = true;
+                break;
+            }
+        }
+    }
+#endif
+
+    return matched;
+}
+
+
 
 /**
  * Initialize any tables or other memory

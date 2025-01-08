@@ -57,6 +57,25 @@ BACNET_STACK_EXPORT
 void bvlc6_remote_bbmd_address(BACNET_IP6_ADDRESS *bbmd_addr);
 
 BACNET_STACK_EXPORT
+bool bvlc6_broadcast_distribution_table_entry_set(
+    unsigned int entry_number,
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *entry);
+
+BACNET_STACK_EXPORT
+bool bvlc6_broadcast_distribution_table_entry(
+    unsigned int entry_number,
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *entry);
+
+BACNET_STACK_EXPORT
+size_t bvlc6_broadcast_distribution_table_capacity(void);
+
+BACNET_STACK_EXPORT
+size_t bvlc6_broadcast_distribution_table_count(void);
+
+BACNET_STACK_EXPORT
+bool bvlc6_broadcast_distribution_table_member(BACNET_IP6_ADDRESS *addr);
+
+BACNET_STACK_EXPORT
 uint16_t bvlc6_remote_bbmd_lifetime(void);
 
 BACNET_STACK_EXPORT

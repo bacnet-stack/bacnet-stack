@@ -38,11 +38,11 @@ mstp:
 
 .PHONY: bip6-win32
 bip6-win32:
-	$(MAKE) BACDL=bip6 BACNET_PORT=win32 -s -C apps all
+	$(MAKE) BACDL=bip6 BBMD6=full BACNET_PORT=win32 -s -C apps all
 
 .PHONY: bip6
 bip6:
-	$(MAKE) BACDL=bip6 -s -C apps all
+	$(MAKE) BACDL=bip6 BBMD6=full -s -C apps all
 
 .PHONY: bip
 bip:
