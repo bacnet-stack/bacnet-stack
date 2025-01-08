@@ -397,6 +397,150 @@ static void testCOVSubscribeProperty(void)
     data.covIncrementPresent = false;
     testCOVSubscribePropertyEncoding(invoke_id, &data);
 }
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(cov_tests, test_COV_Value_List_Encode)
+#else
+static void test_COV_Value_List_Encode(void)
+#endif
+{
+    BACNET_PROPERTY_VALUE value_list[2] = { { 0 } };
+    bool status;
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_BIT_STRING bit_string = { 0 };
+
+    cov_property_value_list_link(&value_list[0], ARRAY_SIZE(value_list));
+    /* REAL */
+    status = cov_value_list_encode_real(NULL, 0.0f, false, false, false, false);
+    zassert_false(status, NULL);
+    status = cov_value_list_encode_real(
+        &value_list[0], 21.0f, false, false, false, false);
+    zassert_true(status, NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_equal(value_list[0].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[0].value.context_specific, false, NULL);
+    zassert_equal(value_list[0].value.tag, BACNET_APPLICATION_TAG_REAL, NULL);
+    zassert_equal(value_list[0].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_true(value_list[0].next != NULL, NULL);
+    zassert_equal(value_list[1].propertyIdentifier, PROP_STATUS_FLAGS, NULL);
+    zassert_equal(value_list[1].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[1].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[1].value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(value_list[1].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_equal(value_list[1].next, NULL, NULL);
+
+    /* ENUMERATED */
+    status =
+        cov_value_list_encode_enumerated(NULL, 0, false, false, false, false);
+    zassert_false(status, NULL);
+    status = cov_value_list_encode_enumerated(
+        &value_list[0], 21, false, false, false, false);
+    zassert_true(status, NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_equal(value_list[0].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[0].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[0].value.tag, BACNET_APPLICATION_TAG_ENUMERATED, NULL);
+    zassert_equal(value_list[0].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_true(value_list[0].next != NULL, NULL);
+    zassert_equal(value_list[1].propertyIdentifier, PROP_STATUS_FLAGS, NULL);
+    zassert_equal(value_list[1].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[1].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[1].value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(value_list[1].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_equal(value_list[1].next, NULL, NULL);
+
+    /* UNSIGNED */
+    status =
+        cov_value_list_encode_unsigned(NULL, 0, false, false, false, false);
+    zassert_false(status, NULL);
+    status = cov_value_list_encode_unsigned(
+        &value_list[0], 21, false, false, false, false);
+    zassert_true(status, NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_equal(value_list[0].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[0].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[0].value.tag, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_equal(value_list[0].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_true(value_list[0].next != NULL, NULL);
+    zassert_equal(value_list[1].propertyIdentifier, PROP_STATUS_FLAGS, NULL);
+    zassert_equal(value_list[1].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[1].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[1].value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(value_list[1].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_equal(value_list[1].next, NULL, NULL);
+
+    /* SIGNED */
+    status =
+        cov_value_list_encode_signed_int(NULL, 0, false, false, false, false);
+    zassert_false(status, NULL);
+    status = cov_value_list_encode_signed_int(
+        &value_list[0], 21, false, false, false, false);
+    zassert_true(status, NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_equal(value_list[0].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[0].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[0].value.tag, BACNET_APPLICATION_TAG_SIGNED_INT, NULL);
+    zassert_equal(value_list[0].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_true(value_list[0].next != NULL, NULL);
+    zassert_equal(value_list[1].propertyIdentifier, PROP_STATUS_FLAGS, NULL);
+    zassert_equal(value_list[1].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[1].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[1].value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(value_list[1].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_equal(value_list[1].next, NULL, NULL);
+
+    /* CHARACTERSTRING */
+    status = cov_value_list_encode_character_string(
+        NULL, &char_string, false, false, false, false);
+    zassert_false(status, NULL);
+    status = cov_value_list_encode_character_string(
+        &value_list[0], &char_string, false, false, false, false);
+    zassert_true(status, NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_equal(value_list[0].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[0].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[0].value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    zassert_equal(value_list[0].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_true(value_list[0].next != NULL, NULL);
+    zassert_equal(value_list[1].propertyIdentifier, PROP_STATUS_FLAGS, NULL);
+    zassert_equal(value_list[1].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[1].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[1].value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(value_list[1].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_equal(value_list[1].next, NULL, NULL);
+
+    /* CHARACTERSTRING */
+    status = cov_value_list_encode_bit_string(
+        NULL, &bit_string, false, false, false, false);
+    zassert_false(status, NULL);
+    status = cov_value_list_encode_bit_string(
+        &value_list[0], &bit_string, false, false, false, false);
+    zassert_true(status, NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_equal(value_list[0].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[0].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[0].value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(value_list[0].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_true(value_list[0].next != NULL, NULL);
+    zassert_equal(value_list[1].propertyIdentifier, PROP_STATUS_FLAGS, NULL);
+    zassert_equal(value_list[1].propertyArrayIndex, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(value_list[1].value.context_specific, false, NULL);
+    zassert_equal(
+        value_list[1].value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(value_list[1].priority, BACNET_NO_PRIORITY, NULL);
+    zassert_equal(value_list[1].next, NULL, NULL);
+}
+
 /**
  * @}
  */
@@ -409,7 +553,8 @@ void test_main(void)
     ztest_test_suite(
         cov_tests, ztest_unit_test(testCOVNotify),
         ztest_unit_test(testCOVSubscribe),
-        ztest_unit_test(testCOVSubscribeProperty));
+        ztest_unit_test(testCOVSubscribeProperty),
+        ztest_unit_test(test_COV_Value_List_Encode));
 
     ztest_run_test_suite(cov_tests);
 }
