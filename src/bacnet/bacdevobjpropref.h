@@ -187,6 +187,10 @@ bool bacnet_property_reference_same(
     const struct BACnetPropertyReference *value1,
     const struct BACnetPropertyReference *value2);
 BACNET_STACK_EXPORT
+void bacnet_property_reference_copy(
+    struct BACnetPropertyReference *dest,
+    const struct BACnetPropertyReference *src);
+BACNET_STACK_EXPORT
 int bacnet_property_reference_decode(
     const uint8_t *apdu,
     uint32_t apdu_size,

@@ -920,6 +920,21 @@ bool bacnet_property_reference_same(
 }
 
 /**
+ * @brief Copy the complex data of src to dest
+ * @param dest - destination structure
+ * @param src - source structure
+ */
+void bacnet_property_reference_copy(
+    struct BACnetPropertyReference *dest,
+    const struct BACnetPropertyReference *src)
+{
+    if (dest && src) {
+        dest->property_identifier = src->property_identifier;
+        dest->property_array_index = src->property_array_index;
+    }
+}
+
+/**
  * @brief Decode a BACnetPropertyReference from a buffer
  * @param apdu - the APDU buffer
  * @param apdu_size - the size of the APDU buffer

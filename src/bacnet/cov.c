@@ -335,6 +335,9 @@ int cov_subscribe_apdu_encode(
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
+    if (!data) {
+        return 0;
+    }
     /* tag 0 - subscriberProcessIdentifier */
     len = encode_context_unsigned(apdu, 0, data->subscriberProcessIdentifier);
     apdu_len += len;
@@ -448,7 +451,7 @@ int cov_subscribe_encode_apdu(
  * @param apdu_size  number of valid bytes in the buffer.
  * @param data  Pointer to the data to store the decoded values.
  *
- * @return Bytes decoded or Zero/BACNET_STATUS_ERROR on error.
+ * @return Bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int cov_subscribe_decode_service_request(
     const uint8_t *apdu, unsigned apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
@@ -460,6 +463,12 @@ int cov_subscribe_decode_service_request(
     uint32_t decoded_instance = 0;
     bool decoded_boolean = false;
 
+    if (!apdu) {
+        return BACNET_STATUS_REJECT;
+    }
+    if (apdu_size == 0) {
+        return BACNET_STATUS_REJECT;
+    }
     /* subscriberProcessIdentifier [0] Unsigned32 */
     value_len = bacnet_unsigned_context_decode(
         &apdu[len], apdu_size - len, 0, &decoded_value);
@@ -609,26 +618,8 @@ int cov_subscribe_property_apdu_encode(
         }
     }
     /* tag 4 - monitoredPropertyIdentifier */
-    len = encode_opening_tag(apdu, 4);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_context_enumerated(
-        apdu, 0, data->monitoredProperty.propertyIdentifier);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    if (data->monitoredProperty.propertyArrayIndex != BACNET_ARRAY_ALL) {
-        len = encode_context_unsigned(
-            apdu, 1, data->monitoredProperty.propertyArrayIndex);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-    }
-    len = encode_closing_tag(apdu, 4);
+    len = bacnet_property_reference_context_encode(
+        apdu, 4, &data->monitoredProperty);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -811,9 +802,8 @@ int cov_subscribe_property_decode_service_request(
         &apdu[apdu_len], apdu_size - apdu_len, 4, &decoded_reference);
     if (len > 0) {
         if (data) {
-            memcpy(
-                &data->monitoredProperty, &decoded_reference,
-                sizeof(data->monitoredProperty));
+            bacnet_property_reference_copy(
+                &data->monitoredProperty, &decoded_reference);
         }
         apdu_len += len;
     } else {
