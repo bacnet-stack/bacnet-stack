@@ -766,7 +766,9 @@ int cov_subscribe_property_decode_service_request(
         }
         apdu_len += len;
     } else {
-        data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        if (data) {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
         return BACNET_STATUS_REJECT;
     }
     /* issueConfirmedNotifications  [2] BOOLEAN OPTIONAL */
@@ -795,7 +797,9 @@ int cov_subscribe_property_decode_service_request(
         apdu_len += len;
     } else {
         /* skip - optional */
-        data->lifetime = 0;
+        if (data) {
+            data->lifetime = 0;
+        }
     }
     /* monitoredPropertyIdentifier [4] BACnetPropertyReference */
     len = bacnet_property_reference_context_decode(
@@ -807,7 +811,9 @@ int cov_subscribe_property_decode_service_request(
         }
         apdu_len += len;
     } else {
-        data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        if (data) {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
         return BACNET_STATUS_REJECT;
     }
     /* covIncrement [5] REAL OPTIONAL */
@@ -821,8 +827,10 @@ int cov_subscribe_property_decode_service_request(
         apdu_len += len;
     } else {
         /* skip - optional */
-        data->covIncrement = 0.0f;
-        data->covIncrementPresent = false;
+        if (data) {
+            data->covIncrement = 0.0f;
+            data->covIncrementPresent = false;
+        }
     }
 
     return apdu_len;
