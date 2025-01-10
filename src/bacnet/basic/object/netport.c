@@ -1867,10 +1867,8 @@ bool Network_Port_Remote_BBMD_Address(
 
         if (BBMD_Address) {
             if (bbmd_address) {
-                *bbmd_address = *BBMD_Address;
+                status = host_n_port_copy(bbmd_address, BBMD_Address);
             }
-
-            status = true;
         }
     }
 
@@ -1904,36 +1902,151 @@ bool Network_Port_Remote_BBMD_Address_Set(
         }
 
         if (dest_bbmd_address) {
-            if ((dest_bbmd_address->host_name != bbmd_address->host_name) ||
-                ((bbmd_address->host_name) &&
-                 (!characterstring_same(
-                     &dest_bbmd_address->host.name,
-                     &bbmd_address->host.name))) ||
-                (dest_bbmd_address->host_ip_address !=
-                 bbmd_address->host_ip_address) ||
-                ((bbmd_address->host_ip_address) &&
-                 (!octetstring_value_same(
-                     &dest_bbmd_address->host.ip_address,
-                     &bbmd_address->host.ip_address))) ||
-                (bbmd_address->port != dest_bbmd_address->port)) {
-                if (bbmd_address->host_name) {
-                    status = characterstring_copy(
-                        &dest_bbmd_address->host.name,
-                        &bbmd_address->host.name);
-                }
-                if (bbmd_address->host_ip_address) {
-                    status = octetstring_copy(
-                        &dest_bbmd_address->host.ip_address,
-                        &bbmd_address->host.ip_address);
-                }
-
-                dest_bbmd_address->host_name = bbmd_address->host_name;
-                dest_bbmd_address->host_ip_address =
-                    bbmd_address->host_ip_address;
-                dest_bbmd_address->port = bbmd_address->port;
-
+            if (!host_n_port_same(dest_bbmd_address, bbmd_address)) {
+                host_n_port_copy(dest_bbmd_address, bbmd_address);
                 Object_List[index].Changes_Pending = true;
             }
+
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, loads the ip-address into
+ * an octet string.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  a - ip-address first octet
+ * @param  b - ip-address first octet
+ * @param  c - ip-address first octet
+ * @param  d - ip-address first octet
+ *
+ * @return  true if ip-address was retrieved
+ */
+bool Network_Port_Remote_BBMD_IP_Address(
+    uint32_t object_instance, uint8_t *a, uint8_t *b, uint8_t *c, uint8_t *d)
+{
+    bool status = false;
+    const unsigned index = /* offset from instance lookup */
+        Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            if (Object_List[index].Network.IPv4.BBMD_Address.host_ip_address) {
+                const uint8_t *value = octetstring_value(
+                    &Object_List[index]
+                         .Network.IPv4.BBMD_Address.host.ip_address);
+
+                if (a) {
+                    *a = value[0];
+                }
+                if (b) {
+                    *b = value[1];
+                }
+                if (c) {
+                    *c = value[2];
+                }
+                if (d) {
+                    *d = value[3];
+                }
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the ip-address
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  a - ip-address first octet
+ * @param  b - ip-address first octet
+ * @param  c - ip-address first octet
+ * @param  d - ip-address first octet
+ *
+ * @return  true if ip-address was set
+ */
+bool Network_Port_Remote_BBMD_IP_Address_Set(
+    uint32_t object_instance, uint8_t a, uint8_t b, uint8_t c, uint8_t d)
+{
+    bool status = false;
+    const unsigned index = /* offset from instance lookup */
+        Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            uint8_t *value = octetstring_value(
+                &Object_List[index].Network.IPv4.BBMD_Address.host.ip_address);
+            uint8_t new_value[4] = { a, b, c, d };
+
+            if ((Object_List[index].Network.IPv4.BBMD_Address.host_name) ||
+                (value[0] != a) || (value[1] != b) || (value[2] != c) ||
+                (value[3] != d)) {
+                Object_List[index].Changes_Pending = true;
+            }
+            Object_List[index].Network.IPv4.BBMD_Address.host_name = false;
+            Object_List[index].Network.IPv4.BBMD_Address.host_ip_address = true;
+            status = octetstring_init(
+                &Object_List[index].Network.IPv4.BBMD_Address.host.ip_address,
+                new_value, sizeof(new_value));
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the BBMD UDP Port number
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return BBMD UDP Port number
+ */
+uint16_t Network_Port_Remote_BBMD_BIP_Port(uint32_t object_instance)
+{
+    uint16_t value = 0;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            value = Object_List[index].Network.IPv4.BBMD_Address.port;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD UDP Port number
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BBMD UDP Port number (default=0xBAC0)
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Network_Port_Remote_BBMD_BIP_Port_Set(
+    uint32_t object_instance, uint16_t value)
+{
+    bool status = false;
+    const unsigned index = Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            if (Object_List[index].Network.IPv4.BBMD_Address.port != value) {
+                Object_List[index].Changes_Pending = true;
+            }
+            Object_List[index].Network.IPv4.BBMD_Address.port = value;
+            status = true;
         }
     }
 
@@ -2153,6 +2266,126 @@ bool Network_Port_BBMD_IP6_FD_Table_Set(
 }
 
 /**
+ * For a given object instance-number, loads the ip-address into
+ * an octet string.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  addr - pointer to IP6_ADDRESS_MAX = 16 octets buffer
+ *
+ * @return  true if ip-address was retrieved
+ */
+bool Network_Port_Remote_BBMD_IP6_Address(
+    uint32_t object_instance, uint8_t *addr)
+{
+    bool status = false;
+    const unsigned index = /* offset from instance lookup */
+        Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            if (Object_List[index].Network.IPv6.BBMD_Address.host_ip_address) {
+                if (addr) {
+                    octetstring_copy_value(
+                        addr, IP6_ADDRESS_MAX,
+                        &Object_List[index]
+                             .Network.IPv6.BBMD_Address.host.ip_address);
+                    status = true;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the ip-address
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  addr - pointer to IP6_ADDRESS_MAX = 16 octets buffer
+ *
+ * @return  true if ip-address was set
+ */
+bool Network_Port_Remote_BBMD_IP6_Address_Set(
+    uint32_t object_instance, const uint8_t *addr)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            uint8_t *value = octetstring_value(
+                &Object_List[index].Network.IPv4.BBMD_Address.host.ip_address);
+
+            if ((Object_List[index].Network.IPv6.BBMD_Address.host_name) ||
+                (memcmp(value, addr, IP6_ADDRESS_MAX))) {
+                octetstring_init(
+                    &Object_List[index]
+                         .Network.IPv4.BBMD_Address.host.ip_address,
+                    addr, IP6_ADDRESS_MAX);
+                Object_List[index].Changes_Pending = true;
+            }
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the BBMD UDP Port number
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return BBMD UDP Port number
+ */
+uint16_t Network_Port_Remote_BBMD_BIP6_Port(uint32_t object_instance)
+{
+    uint16_t value = 0;
+    const unsigned index = Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            value = Object_List[index].Network.IPv6.BBMD_Address.port;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD UDP Port number
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BBMD UDP Port number (default=0xBAC0)
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Network_Port_Remote_BBMD_BIP6_Port_Set(
+    uint32_t object_instance, uint16_t value)
+{
+    bool status = false;
+    const unsigned index = Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            if (Object_List[index].Network.IPv6.BBMD_Address.port != value) {
+                Object_List[index].Changes_Pending = true;
+            }
+            Object_List[index].Network.IPv6.BBMD_Address.port = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, gets the BBMD lifetime seconds
  * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
  *
@@ -2314,8 +2547,9 @@ bool Network_Port_IPv6_Address_Set(
 }
 
 /**
- * For a given object instance-number, gets the BACnet/IP Subnet prefix value
- * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ * For a given object instance-number, gets the BACnet/IP Subnet prefix
+ * value Note: depends on Network_Type being set to PORT_TYPE_BIP for this
+ * object
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -2337,8 +2571,9 @@ uint8_t Network_Port_IPv6_Subnet_Prefix(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the BACnet/IP Subnet prefix value
- * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ * For a given object instance-number, sets the BACnet/IP Subnet prefix
+ * value Note: depends on Network_Type being set to PORT_TYPE_BIP for this
+ * object
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - BACnet/IP Subnet prefix value 1..128
@@ -2635,6 +2870,88 @@ bool Network_Port_IPv6_DHCP_Server_Set(
 }
 
 /**
+ * For a given object instance-number, gets the IPv6_DHCP_Lease_Time.
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP6 for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return IPv6_DHCP_Lease_Time
+ */
+uint32_t Network_Port_IPv6_DHCP_Lease_Time(uint32_t object_instance)
+{
+    const unsigned index = Network_Port_Instance_To_Index(object_instance);
+    uint32_t value = 0;
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            value = Object_List[index].Network.IPv6.IP_DHCP_Lease_Time;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the IPv6 DHCP  lease-time
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - 32 bit IPv6 DHCP Lease Time
+ *
+ * @return  true if ipv6-dhcp-lease-time was set
+ */
+bool Network_Port_IPv6_DHCP_Lease_Time_Set(
+    uint32_t object_instance, const uint32_t value)
+{
+    bool status = false;
+    unsigned index = Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+#if (__STDC__) && (__STDC_VERSION__ >= 199901L)
+            struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
+#else
+            struct timeval tv = { 0, 0 };
+#endif
+
+            Object_List[index].Network.IPv6.IP_DHCP_Lease_Time = value;
+            if (gettimeofday(&tv, NULL) != 0) {
+                Object_List[index].Network.IPv6.IP_DHCP_Lease_Time_Start = 0;
+            } else {
+                Object_List[index].Network.IPv6.IP_DHCP_Lease_Time_Start =
+                    tv.tv_sec;
+            }
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the start IPv6_DHCP_Lease_Time
+ * in seconds from the epoch. Note: depends on Network_Type being set to
+ * PORT_TYPE_BIP6 for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return IPv6_DHCP_Lease_Time
+ */
+uint32_t Network_Port_IPv6_DHCP_Lease_Time_Start(uint32_t object_instance)
+{
+    const unsigned index = Network_Port_Instance_To_Index(object_instance);
+    uint32_t value = 0;
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            value = Object_List[index].Network.IPv6.IP_DHCP_Lease_Time_Start;
+        }
+    }
+
+    return value;
+}
+
+/**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
  * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
  *
@@ -2738,6 +3055,8 @@ const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance)
 /**
  * For a given object instance-number, returns the BACnet IPv6 Auto Addressing
  * Enable property value
+ * For a given object instance-number, returns the BACnet IPv6 Auto
+ * Addressing Enable property value
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -2819,77 +3138,6 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
 }
 
 #if (BBMD_CLIENT_ENABLED) && defined(BACAPP_HOST_N_PORT)
-#define MAX_LABEL_LENGTH 63
-static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
-{
-    const int len = characterstring_length(hostname);
-    const char *val = characterstring_value(hostname);
-    int dot_count = 0;
-    int i = 0;
-
-    /* Check length */
-    if (len == 0 || len > MAX_CHARACTER_STRING_BYTES) {
-        return false; /* Invalid length */
-    }
-
-    /* Check if it looks like an IP address (basic check) */
-    for (i = 0; i < len; i++) {
-        if (val[i] == '.') {
-            dot_count++;
-        }
-    }
-
-    /* Check if it's a numeric pattern (like an incomplete IP) */
-    if (dot_count > 0 && strspn(val, "0123456789.") == len) {
-        return false; /* Invalid: looks like an incomplete IP */
-    }
-
-    /* Check each character */
-    for (i = 0; i < len; i++) {
-        char c = val[i];
-
-        if (!isalnum(c) && c != '-' && c != '.') {
-            return false; /* Invalid character */
-        }
-
-        /* Check for starting and ending hyphens */
-        if (i == 0 && c == '-') {
-            return false; /* Cannot start with a hyphen */
-        }
-        if (i == len - 1 && c == '-') {
-            return false; /* Cannot end with a hyphen */
-        }
-
-        /* Check for consecutive periods or hyphens */
-        if (i > 0 &&
-            ((val[i] == '-' && val[i - 1] == '-') ||
-             (val[i] == '.' && val[i - 1] == '.'))) {
-            return false; /* Invalid consecutive characters */
-        }
-    }
-
-    /* check for each label length not exceeding 63 characters */
-    {
-        char fqdn_copy[MAX_CHARACTER_STRING_BYTES + 1];
-        char *label = NULL;
-        strncpy(
-            fqdn_copy, val,
-            sizeof(fqdn_copy) - 1); /* Make a copy to manipulate */
-
-        label = strtok(fqdn_copy, "."); /* Split FQDN by '.' */
-
-        while (label != NULL) {
-            if (strlen(label) > MAX_LABEL_LENGTH) {
-                return false; /* Invalid label found */
-            }
-
-            label = strtok(NULL, "."); /* Move to the next label */
-        }
-    }
-
-    return true; /* Valid hostname */
-}
-
 /**
  * @brief Write the FD BBMD Address
  * @param object_instance [in] BACnet network port object instance number
@@ -2926,7 +3174,7 @@ static bool Network_Port_FD_BBMD_Address_Write(
                 ((value->host_ip_address) &&
                  (value->host.ip_address.length == 4)) ||
                 ((value->host_name) &&
-                 (is_valid_hostname(&value->host.name)))) {
+                 (bacnet_is_valid_hostname(&value->host.name)))) {
                 status = Network_Port_Remote_BBMD_Address_Set(
                     object_instance, value);
             }
@@ -2947,7 +3195,7 @@ static bool Network_Port_FD_BBMD_Address_Write(
                 ((value->host_ip_address) &&
                  (value->host.ip_address.length == 16)) ||
                 ((value->host_name) &&
-                 (is_valid_hostname(&value->host.name)))) {
+                 (bacnet_is_valid_hostname(&value->host.name)))) {
                 status = Network_Port_Remote_BBMD_Address_Set(
                     object_instance, value);
             }
