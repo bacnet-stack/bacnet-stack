@@ -22,8 +22,16 @@ The git repositories are hosted at the following sites:
 
 ## [1.4.1] - Unreleased
 
+### Security
+* Secured SubscribeCOVProperty decoder. Changed datatype of monitoredProperty
+  in struct BACnet_Subscribe_COV_Data. (#892)
+* Secured the BACnet Who-Request decoder by changing deprecated decode
+  functions. (#891)
+
 ### Added
 
+* Added bvlc6.sh script to enable foreign-device-registration for
+  client tools. (#889)
 * Added check for zero length buffer size in primitive decoders
   that returns zero to enable simpler complex value optional
   element decoding. (#876)
