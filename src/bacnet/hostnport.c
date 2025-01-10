@@ -1159,3 +1159,80 @@ int bacnet_fdt_entry_to_ascii(
 
     return len;
 }
+
+#define MAX_LABEL_LENGTH 63
+/**
+ * @brief Checks conformance of a hostname with RFC 1123
+ * @param hostname - hostname as BACNET_CHARACTER_STRING
+ * @return true if the host name conorms to RFC 1123, false otherwise
+ */
+bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
+{
+    const int len = characterstring_length(hostname);
+    const char *val = characterstring_value(hostname);
+    int dot_count = 0;
+    int i = 0;
+
+    /* Check length */
+    if (len == 0 || len > MAX_CHARACTER_STRING_BYTES) {
+        return false; /* Invalid length */
+    }
+
+    /* Check if it looks like an IP address (basic check) */
+    for (i = 0; i < len; i++) {
+        if (val[i] == '.') {
+            dot_count++;
+        }
+    }
+
+    /* Check if it's a numeric pattern (like an incomplete IP) */
+    if (dot_count > 0 && strspn(val, "0123456789.") == len) {
+        return false; /* Invalid: looks like an incomplete IP */
+    }
+
+    /* Check each character */
+    for (i = 0; i < len; i++) {
+        char c = val[i];
+
+        if (!isalnum(c) && c != '-' && c != '.') {
+            return false; /* Invalid character */
+        }
+
+        /* Check for starting and ending hyphens */
+        if (i == 0 && c == '-') {
+            return false; /* Cannot start with a hyphen */
+        }
+        if (i == len - 1 && c == '-') {
+            return false; /* Cannot end with a hyphen */
+        }
+
+        /* Check for consecutive periods or hyphens */
+        if (i > 0 &&
+            ((val[i] == '-' && val[i - 1] == '-') ||
+             (val[i] == '.' && val[i - 1] == '.'))) {
+            return false; /* Invalid consecutive characters */
+        }
+    }
+
+    /* check for each label length not exceeding 63 characters */
+    {
+        char fqdn_copy[MAX_CHARACTER_STRING_BYTES + 1];
+        char *label = NULL;
+
+        strncpy(
+            fqdn_copy, val,
+            sizeof(fqdn_copy) - 1); /* Make a copy to manipulate */
+
+        label = strtok(fqdn_copy, "."); /* Split FQDN by '.' */
+
+        while (label != NULL) {
+            if (strlen(label) > MAX_LABEL_LENGTH) {
+                return false; /* Invalid label found */
+            }
+
+            label = strtok(NULL, "."); /* Move to the next label */
+        }
+    }
+
+    return true; /* Valid hostname */
+}
