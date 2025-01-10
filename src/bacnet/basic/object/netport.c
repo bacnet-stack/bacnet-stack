@@ -70,6 +70,8 @@ struct bacnet_ipv6_port {
     uint8_t IP_DNS_Server[BIP_DNS_MAX][IPV6_ADDR_SIZE];
     uint8_t IP_Multicast_Address[IPV6_ADDR_SIZE];
     uint8_t IP_DHCP_Server[IPV6_ADDR_SIZE];
+    uint32_t IP_DHCP_Lease_Time;
+    uint32_t IP_DHCP_Lease_Time_Start;
     uint16_t Port;
     BACNET_IP_MODE Mode;
     bool Auto_Addressing_Enable;
