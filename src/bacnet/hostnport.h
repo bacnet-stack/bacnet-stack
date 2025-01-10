@@ -161,6 +161,8 @@ bool bacnet_fdt_entry_from_ascii(BACNET_FDT_ENTRY *value, const char *argv);
 BACNET_STACK_EXPORT
 int bacnet_fdt_entry_to_ascii(
     char *str, size_t str_size, const BACNET_FDT_ENTRY *value);
+BACNET_STACK_EXPORT
+bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname);
 
 #ifdef __cplusplus
 }

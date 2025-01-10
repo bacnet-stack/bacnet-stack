@@ -860,14 +860,13 @@ static void test_BVLC_BBMD_Address(void)
     int test_apdu_len = 0;
     BACNET_HOST_N_PORT bbmd_address;
     BACNET_IP_ADDRESS test_bbmd_address;
+    BACNET_IP_ADDRESS bvlc_bbmd_address;
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
-#if 0
     bool status = false;
 
-    status =
-        bvlc_address_port_from_ascii(&bbmd_address, "192.168.0.255", "0xBAC0");
+    status = bvlc_address_port_from_ascii(
+        &bvlc_bbmd_address, "192.168.0.255", "0xBAC0");
     zassert_true(status, NULL);
-#endif
     bbmd_address.host_ip_address = true;
     bbmd_address.host_name = false;
     bbmd_address.host.ip_address.length = 4;
@@ -888,10 +887,8 @@ static void test_BVLC_BBMD_Address(void)
     zassert_not_equal(test_apdu_len, BACNET_STATUS_ERROR, NULL);
     zassert_not_equal(test_apdu_len, BACNET_STATUS_ABORT, NULL);
     zassert_not_equal(test_apdu_len, BACNET_STATUS_REJECT, NULL);
-#if 0
-    status = bvlc_address_different(&bbmd_address, &test_bbmd_address);
+    status = bvlc_address_different(&bvlc_bbmd_address, &test_bbmd_address);
     zassert_false(status, NULL);
-#endif
 }
 
 /**
