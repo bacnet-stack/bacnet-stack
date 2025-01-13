@@ -382,7 +382,7 @@ cppcheck:
 flawfinder:
 	flawfinder --minlevel 5 --error-level=5 ./src/
 
-IGNORE_WORDS = ba,statics,caf,implementors
+IGNORE_WORDS = ba,statics,caf,implementors,implementor
 CODESPELL_OPTIONS = --write-changes --interactive 3 --enable-colors
 CODESPELL_OPTIONS += --ignore-words-list $(IGNORE_WORDS)
 .PHONY: codespell
