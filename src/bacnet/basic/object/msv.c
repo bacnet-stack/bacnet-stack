@@ -204,10 +204,11 @@ uint32_t Multistate_Value_Max_States(uint32_t object_instance)
 {
     uint32_t count = 0;
     struct object_data *pObject;
-
+    fprintf(stderr, "### Multistate_Value_Max_States\n");
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         count = state_name_count(pObject->State_Text);
+        fprintf(stderr, "### count: %d\n", count);
     }
 
     return count;
@@ -342,10 +343,11 @@ bool Multistate_Value_Present_Value_Set(
     bool status = false;
     struct object_data *pObject;
     unsigned max_states = 0;
-
+    fprintf(stderr, "### value : %d\n", value);
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         max_states = state_name_count(pObject->State_Text);
+        fprintf(stderr,"### max_states: %d\n", max_states);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
@@ -399,7 +401,7 @@ static bool Multistate_Value_Present_Value_Write(
     bool status = false;
     struct object_data *pObject;
     uint32_t old_value = 1;
-
+    fprintf(stderr, "### msv write present value, value : %d\n", value);
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         if (value <= UINT32_MAX) {
@@ -413,6 +415,7 @@ static bool Multistate_Value_Present_Value_Write(
                         Present_Value property are decoupled from the
                         physical point when the value of Out_Of_Service
                         is true. */
+                        fprintf(stderr, "### present value out of service\n");
                 } else if (Multistate_Value_Write_Present_Value_Callback) {
                     Multistate_Value_Write_Present_Value_Callback(
                         object_instance, old_value, value);
