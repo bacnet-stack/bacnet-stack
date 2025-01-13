@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacnet/config.h"
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 #include "bacnet/hostnport.h"
