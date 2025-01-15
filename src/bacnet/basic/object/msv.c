@@ -567,7 +567,7 @@ BACNET_RELIABILITY Multistate_Value_Reliability(uint32_t object_instance)
 {
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
     struct object_data *pObject;
-    fprintf(stderr, "#### Multistate_Value_Reliability");
+    fprintf(stderr, "#### Multistate_Value_Reliability\n");
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         reliability = (BACNET_RELIABILITY)pObject->Reliability;
@@ -584,7 +584,7 @@ BACNET_RELIABILITY Multistate_Value_Reliability(uint32_t object_instance)
 static bool Multistate_Value_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
-    fprintf(stderr, "#### Multistate_Value_Object_Fault");
+    fprintf(stderr, "#### Multistate_Value_Object_Fault\n");
     if (pObject) {
         if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
             fault = true;
@@ -854,7 +854,7 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    fprintf(stderr, "#### Multistate_Value_Write_Property");
+    fprintf(stderr, "#### Multistate_Value_Write_Property\n");
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
@@ -898,6 +898,9 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_RELIABILITY:
+            fprintf(stderr, "### PROP_RELIABILITY\n");
+            break;
         default:
             if (property_lists_member(
                     Properties_Required, Properties_Optional,
@@ -905,7 +908,7 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
-                fprintf(stderr, "### ERROR_CLASS_PROPERTY");
+                fprintf(stderr, "### ERROR_CLASS_PROPERTY\n");
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             }
