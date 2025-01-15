@@ -409,6 +409,7 @@ static bool Multistate_Value_Present_Value_Write(
     if (pObject) {
         if (value <= UINT32_MAX) {
             if (pObject->Write_Enabled) {
+                status = true;
                 old_value = pObject->Present_Value;
                 Multistate_Value_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = value;
@@ -418,18 +419,18 @@ static bool Multistate_Value_Present_Value_Write(
                         Present_Value property are decoupled from the
                         physical point when the value of Out_Of_Service
                         is true. */
-                        fprintf(stderr, "### present value out of service\n");
+                    fprintf(stderr, "### present value out of service\n");
                     if(value > count) {
                         fprintf(stderr, "### value out of range\n");
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        status = false;
                     }
 
                 } else if (Multistate_Value_Write_Present_Value_Callback) {
                     Multistate_Value_Write_Present_Value_Callback(
                         object_instance, old_value, value);
                 }
-                status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
