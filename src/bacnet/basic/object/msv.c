@@ -204,11 +204,10 @@ uint32_t Multistate_Value_Max_States(uint32_t object_instance)
 {
     uint32_t count = 0;
     struct object_data *pObject;
-    fprintf(stderr, "### Multistate_Value_Max_States\n");
+
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         count = state_name_count(pObject->State_Text);
-        fprintf(stderr, "### count: %d\n", count);
     }
 
     return count;
@@ -343,11 +342,10 @@ bool Multistate_Value_Present_Value_Set(
     bool status = false;
     struct object_data *pObject;
     unsigned max_states = 0;
-    fprintf(stderr, "### value : %d\n", value);
+
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         max_states = state_name_count(pObject->State_Text);
-        fprintf(stderr,"### max_states: %d\n", max_states);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
@@ -402,7 +400,6 @@ static bool Multistate_Value_Present_Value_Write(
     struct object_data *pObject;
     uint32_t old_value = 1;
     uint32_t count = 0;
-    fprintf(stderr, "### msv write present value, value : %d\n", value);
 
     count = Multistate_Value_Max_States(object_instance);
     pObject = Multistate_Value_Object(object_instance);
@@ -419,9 +416,7 @@ static bool Multistate_Value_Present_Value_Write(
                         Present_Value property are decoupled from the
                         physical point when the value of Out_Of_Service
                         is true. */
-                    fprintf(stderr, "### present value out of service\n");
                     if(value > count) {
-                        fprintf(stderr, "### value out of range\n");
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         status = false;
@@ -572,7 +567,7 @@ BACNET_RELIABILITY Multistate_Value_Reliability(uint32_t object_instance)
 {
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
     struct object_data *pObject;
-
+    fprintf(stderr, "#### Multistate_Value_Reliability");
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         reliability = (BACNET_RELIABILITY)pObject->Reliability;
@@ -589,7 +584,7 @@ BACNET_RELIABILITY Multistate_Value_Reliability(uint32_t object_instance)
 static bool Multistate_Value_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
-
+    fprintf(stderr, "#### Multistate_Value_Object_Fault");
     if (pObject) {
         if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
             fault = true;
@@ -611,7 +606,7 @@ bool Multistate_Value_Reliability_Set(
     struct object_data *pObject;
     bool status = false;
     bool fault = false;
-
+    fprintf(stderr, "#### Multistate_Value_Reliability_Set");
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         fault = Multistate_Value_Object_Fault(pObject);
