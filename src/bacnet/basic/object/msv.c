@@ -401,7 +401,10 @@ static bool Multistate_Value_Present_Value_Write(
     bool status = false;
     struct object_data *pObject;
     uint32_t old_value = 1;
+    uint32_t count = 0;
     fprintf(stderr, "### msv write present value, value : %d\n", value);
+
+    count = Multistate_Value_Max_States(object_instance);
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         if (value <= UINT32_MAX) {
@@ -416,6 +419,12 @@ static bool Multistate_Value_Present_Value_Write(
                         physical point when the value of Out_Of_Service
                         is true. */
                         fprintf(stderr, "### present value out of service\n");
+                    if(value > count) {
+                        fprintf(stderr, "### value out of range\n");
+                        *error_class = ERROR_CLASS_PROPERTY;
+                        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
+
                 } else if (Multistate_Value_Write_Present_Value_Callback) {
                     Multistate_Value_Write_Present_Value_Callback(
                         object_instance, old_value, value);
