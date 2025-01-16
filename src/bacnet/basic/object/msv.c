@@ -900,6 +900,8 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_RELIABILITY:
             fprintf(stderr, "### PROP_RELIABILITY\n");
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
             if (property_lists_member(
