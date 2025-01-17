@@ -55,7 +55,7 @@ static const int Properties_Required[] = {
 };
 
 static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
-                                           -1 };
+                                           PROP_RELIABILITY, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -399,11 +399,14 @@ static bool Multistate_Value_Present_Value_Write(
     bool status = false;
     struct object_data *pObject;
     uint32_t old_value = 1;
+    uint32_t count = 0;
 
+    count = Multistate_Value_Max_States(object_instance);
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         if (value <= UINT32_MAX) {
             if (pObject->Write_Enabled) {
+                status = true;
                 old_value = pObject->Present_Value;
                 Multistate_Value_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = value;
@@ -413,11 +416,16 @@ static bool Multistate_Value_Present_Value_Write(
                         Present_Value property are decoupled from the
                         physical point when the value of Out_Of_Service
                         is true. */
+                    if (value > count) {
+                        *error_class = ERROR_CLASS_PROPERTY;
+                        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        status = false;
+                    }
+
                 } else if (Multistate_Value_Write_Present_Value_Callback) {
                     Multistate_Value_Write_Present_Value_Callback(
                         object_instance, old_value, value);
                 }
-                status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
