@@ -55,7 +55,8 @@ static const int Properties_Required[] = {
 };
 
 static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
-                                           -1 };
+                                           PROP_RELIABILITY, -1 };
+
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -897,10 +898,6 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 Multistate_Value_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
-            break;
-        case PROP_RELIABILITY:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
             if (property_lists_member(
