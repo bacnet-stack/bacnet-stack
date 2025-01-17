@@ -416,7 +416,7 @@ static bool Multistate_Value_Present_Value_Write(
                         Present_Value property are decoupled from the
                         physical point when the value of Out_Of_Service
                         is true. */
-                    if(value > count) {
+                    if (value > count) {
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         status = false;
