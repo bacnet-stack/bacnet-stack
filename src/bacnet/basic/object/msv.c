@@ -55,7 +55,7 @@ static const int Properties_Required[] = {
 };
 
 static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
-                                            PROP_RELIABILITY, -1 };
+                                           PROP_RELIABILITY, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
