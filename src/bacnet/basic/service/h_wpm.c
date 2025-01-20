@@ -85,7 +85,7 @@ static int write_property_multiple_decode(
                                      ERROR_CODE_INVALID_DATA_TYPE)) {
                                     wp_data->error_class = ERROR_CLASS_SERVICES;
                                     wp_data->error_code =
-                                        ERROR_CODE_INVALID_ARRAY_INDEX;
+                                        ERROR_CODE_INVALID_TAG;
                                 }
                                 return BACNET_STATUS_ERROR;
                             }
