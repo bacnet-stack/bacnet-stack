@@ -30,6 +30,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added linked list of lighting-command notification callbacks. (#893)
 * Added bvlc6.sh script to enable foreign-device-registration for
   client tools. (#889)
 * Added check for zero length buffer size in primitive decoders
@@ -39,6 +40,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed spelling errors detected by code-spell utility. (#895)
+* Fixed cppcheck preprocessorErrorDirective. Suppressed new cppcheck
+  warnings until fixed. (#895)
 * Fixed all confirmed service handlers, except GetEventInformation, by sending
   a reject when confirmed services are received with zero length and
   required parameters are missing. (#885)
