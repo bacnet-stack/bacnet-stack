@@ -410,7 +410,6 @@ CPPCHECK_OPTIONS += --suppress=duplicateCondition
 CPPCHECK_OPTIONS += --suppress=funcArgNamesDifferent
 CPPCHECK_OPTIONS += --suppress=unusedStructMember
 CPPCHECK_OPTIONS += --suppress=uselessAssignmentPtrArg
-CPPCHECK_OPTIONS += --addon=cert.py
 CPPCHECK_OPTIONS += --suppress=cert-MSC30-c
 CPPCHECK_OPTIONS += --suppress=cert-STR05-C
 CPPCHECK_OPTIONS += --suppress=cert-API01-C
