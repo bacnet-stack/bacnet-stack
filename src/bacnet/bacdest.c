@@ -755,7 +755,7 @@ int bacnet_destination_to_ascii(
 /**
  * Parse BACnet_Destination from ASCII string (as entered by user)
  *
- * @param bacdest - Destination struct to pupulate with data from the ASCII
+ * @param bacdest - Destination struct to populate with data from the ASCII
  * string
  * @param buf - ASCII string, zero terminated
  * @return true on success
