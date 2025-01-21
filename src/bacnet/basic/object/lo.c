@@ -2394,7 +2394,7 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Physical_Value = 0.0f;
         lighting_command_init(&pObject->Lighting_Command);
         pObject->Lighting_Command.Key = object_instance;
-        pObject->Lighting_Command.Tracking_Value_Callback =
+        pObject->Lighting_Command.Notification_Head.callback =
             Lighting_Output_Tracking_Value_Callback;
         pObject->Last_Lighting_Command.operation = BACNET_LIGHTS_NONE;
         pObject->Last_Lighting_Command.use_target_level = false;

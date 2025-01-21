@@ -1138,7 +1138,7 @@ uint16_t bacnet_discover_vendor_id(void)
  */
 void bacnet_discover_seconds_set(unsigned int seconds)
 {
-    Discovery_Milliseconds = seconds * 1000;
+    Discovery_Milliseconds = (unsigned long)seconds * 1000UL;
 }
 
 /**
@@ -1147,7 +1147,7 @@ void bacnet_discover_seconds_set(unsigned int seconds)
  */
 unsigned int bacnet_discover_seconds(void)
 {
-    return Discovery_Milliseconds = 1000;
+    return Discovery_Milliseconds = 1000UL;
 }
 
 /**
