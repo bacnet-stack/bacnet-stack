@@ -133,7 +133,7 @@ static void test_lighting_command_command_unit(void)
     float target_step = 1.0f;
 
     lighting_command_init(&data);
-    data.Tracking_Value_Callback = dimmer_tracking_value;
+    data.Notification_Head.callback = dimmer_tracking_value;
     lighting_command_stop(&data);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);

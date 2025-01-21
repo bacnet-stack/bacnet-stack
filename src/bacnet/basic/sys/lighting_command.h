@@ -19,6 +19,11 @@
  */
 typedef void (*lighting_command_tracking_value_callback)(
     uint32_t key, float old_value, float value);
+struct lighting_command_notification;
+struct lighting_command_notification {
+    struct lighting_command_notification *next;
+    lighting_command_tracking_value_callback callback;
+};
 
 typedef struct bacnet_lighting_command_warn_data {
     /* warn */
@@ -51,7 +56,7 @@ typedef struct bacnet_lighting_command_data {
     bool Out_Of_Service : 1;
     /* key used with callback */
     uint32_t Key;
-    lighting_command_tracking_value_callback Tracking_Value_Callback;
+    struct lighting_command_notification Notification_Head;
 } BACNET_LIGHTING_COMMAND_DATA;
 
 #ifdef __cplusplus
@@ -83,6 +88,10 @@ BACNET_STACK_EXPORT
 void lighting_command_none(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
 void lighting_command_init(struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_notification_add(
+    struct bacnet_lighting_command_data *data,
+    struct lighting_command_notification *notification);
 
 #ifdef __cplusplus
 }
