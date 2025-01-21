@@ -410,12 +410,16 @@ CPPCHECK_OPTIONS += --suppress=duplicateCondition
 CPPCHECK_OPTIONS += --suppress=funcArgNamesDifferent
 CPPCHECK_OPTIONS += --suppress=unusedStructMember
 CPPCHECK_OPTIONS += --suppress=uselessAssignmentPtrArg
-CPPCHECK_OPTIONS += --addon=cert.py
 CPPCHECK_OPTIONS += --suppress=cert-MSC30-c
 CPPCHECK_OPTIONS += --suppress=cert-STR05-C
 CPPCHECK_OPTIONS += --suppress=cert-API01-C
 CPPCHECK_OPTIONS += --suppress=cert-MSC24-C
 CPPCHECK_OPTIONS += --suppress=cert-INT31-c
+# new in cppcheck 2.13
+CPPCHECK_OPTIONS += --suppress=constParameterCallback
+CPPCHECK_OPTIONS += --suppress=constParameterPointer
+CPPCHECK_OPTIONS += --suppress=constVariablePointer
+# suppress the deprecated warning for the BACnet stack
 CPPCHECK_OPTIONS += -DBACNET_STACK_DEPRECATED
 #CPPCHECK_OPTIONS += -I./src
 #CPPCHECK_OPTIONS += --enable=information --check-config
