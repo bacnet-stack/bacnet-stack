@@ -6,6 +6,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bsc-node.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 #include "bacnet/datalink/bsc/bsc-util.h"

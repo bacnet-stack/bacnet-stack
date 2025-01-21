@@ -3367,19 +3367,19 @@ int bacapp_snprintf_value(
     char *str, size_t str_len, const BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     size_t len = 0, i = 0;
-#if defined(BACAPP_CHARACTER_STRING)
-    const char *char_str;
-#endif
     const BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
     int slen = 0;
+#if defined(BACAPP_CHARACTER_STRING)
+    const char *char_str;
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Wide character (decoded from multi-byte character). */
     wchar_t wc;
     /* Wide character length in bytes. */
     int wclen;
+#endif
 #endif
 
     if (object_value && object_value->value) {
