@@ -415,6 +415,11 @@ CPPCHECK_OPTIONS += --suppress=cert-STR05-C
 CPPCHECK_OPTIONS += --suppress=cert-API01-C
 CPPCHECK_OPTIONS += --suppress=cert-MSC24-C
 CPPCHECK_OPTIONS += --suppress=cert-INT31-c
+# new in cppcheck 2.13
+CPPCHECK_OPTIONS += --suppress=constParameterCallback
+CPPCHECK_OPTIONS += --suppress=constParameterPointer
+CPPCHECK_OPTIONS += --suppress=constVariablePointer
+# suppress the deprecated warning for the BACnet stack
 CPPCHECK_OPTIONS += -DBACNET_STACK_DEPRECATED
 #CPPCHECK_OPTIONS += -I./src
 #CPPCHECK_OPTIONS += --enable=information --check-config
