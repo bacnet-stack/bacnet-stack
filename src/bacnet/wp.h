@@ -111,7 +111,7 @@ bool write_property_unsigned_decode(
  * The WriteProperty service is used by a client BACnet-user to modify the
  * value of a single specified property of a BACnet object. This service
  * potentially allows write access to any property of any object, whether a
- * BACnet-defined object or not. Some implementors may wish to restrict write
+ * BACnet-defined object or not. Some implementers may wish to restrict write
  * access to certain properties of certain objects. In such cases, an attempt
  * to modify a restricted property shall result in the return of an error of
  * 'Error Class' PROPERTY and 'Error Code' WRITE_ACCESS_DENIED.
