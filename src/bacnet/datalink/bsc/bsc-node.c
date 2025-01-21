@@ -49,7 +49,7 @@ struct BSC_Node {
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *hub_status;
 };
 
-#if BSC_CONF_NODES_NUM < 1
+#if defined(BSC_CONF_NODES_NUM) && (BSC_CONF_NODES_NUM < 1)
 #error "BSC_CONF_NODES_NUM must be >= 1"
 #endif
 
