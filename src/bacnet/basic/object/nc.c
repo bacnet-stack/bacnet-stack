@@ -19,6 +19,7 @@
 #include "bacnet/datetime.h"
 #include "bacnet/event.h"
 #include "bacnet/wp.h"
+/* basic objects and services */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/nc.h"
 #include "bacnet/basic/binding/address.h"
@@ -26,8 +27,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
-
-#define PRINTF debug_perror
 
 #ifndef MAX_NOTIFICATION_CLASSES
 #define MAX_NOTIFICATION_CLASSES 2
@@ -295,7 +294,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     NOTIFICATION_CLASS_INFO *CurrentNotify;
     NOTIFICATION_CLASS_INFO TmpNotify;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     uint8_t TmpPriority[MAX_BACNET_EVENT_TRANSITION]; /* BACnetARRAY[3] of
                                                          Unsigned */
     bool status = false;
@@ -415,7 +414,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
                 iOffset += len;
                 /* Increasing element of list */
-                if (++idx >= NC_MAX_RECIPIENTS) {
+                if ((++idx >= NC_MAX_RECIPIENTS) &&
+                    (iOffset < wp_data->application_data_len)) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     return false;
@@ -681,7 +681,7 @@ void Notification_Class_common_reporting_function(
     }
 
     /* send notifications for active recipients */
-    PRINTF(
+    debug_printf_stderr(
         "Notification Class[%u]: send notifications\n",
         event_data->notificationClass);
     /* pointer to first recipient */
@@ -702,7 +702,7 @@ void Notification_Class_common_reporting_function(
             if (pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
                 /* send notification to the specified device */
                 device_id = pBacDest->Recipient.type.device.instance;
-                PRINTF(
+                debug_printf_stderr(
                     "Notification Class[%u]: send notification to %u\n",
                     event_data->notificationClass, (unsigned)device_id);
                 if (pBacDest->ConfirmedNotify == true) {
@@ -712,7 +712,7 @@ void Notification_Class_common_reporting_function(
                 }
             } else if (
                 pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_ADDRESS) {
-                PRINTF(
+                debug_printf_stderr(
                     "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */

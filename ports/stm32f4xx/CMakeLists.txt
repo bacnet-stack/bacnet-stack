@@ -51,8 +51,11 @@ set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(CMAKE_SIZE arm-none-eabi-size)
 set(CMAKE_NM arm-none-eabi-nm)
+set(CMAKE_GDB gdb-multiarch)
+set(CMAKE_OPENOCD openocd)
 set(CMAKE_CSTACK "${CMAKE_SOURCE_DIR}/../../tools/check-stack-usage/checkStackUsage.py")
 set(CMAKE_MEMAP "${CMAKE_SOURCE_DIR}/../../tools/memap/memap.py")
+
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 
@@ -167,6 +170,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/h_rd.c
     ${LIBRARY_BACNET_BASIC}/service/h_rp.c
     ${LIBRARY_BACNET_BASIC}/service/h_rpm.c
+    ${LIBRARY_BACNET_BASIC}/service/h_ts.c
     ${LIBRARY_BACNET_BASIC}/service/h_whohas.c
     ${LIBRARY_BACNET_BASIC}/service/h_whois.c
     ${LIBRARY_BACNET_BASIC}/service/h_wp.c
@@ -175,6 +179,9 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/s_ihave.c
     ${LIBRARY_BACNET_BASIC}/tsm/tsm.c
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
+    ${LIBRARY_BACNET_BASIC}/sys/datetime_mstimer.c
+    ${LIBRARY_BACNET_BASIC}/sys/days.c
+    ${LIBRARY_BACNET_BASIC}/sys/dst.c
     ${LIBRARY_BACNET_BASIC}/sys/ringbuf.c
     ${LIBRARY_BACNET_BASIC}/sys/fifo.c
     ${LIBRARY_BACNET_BASIC}/sys/keylist.c
@@ -211,6 +218,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/rp.c
     ${LIBRARY_BACNET_CORE}/rpm.c
     ${LIBRARY_BACNET_CORE}/timestamp.c
+    ${LIBRARY_BACNET_CORE}/timesync.c
     ${LIBRARY_BACNET_CORE}/weeklyschedule.c
     ${LIBRARY_BACNET_CORE}/dailyschedule.c
     ${LIBRARY_BACNET_CORE}/calendar_entry.c
@@ -321,4 +329,25 @@ add_custom_target(memmap
     DEPENDS ${PROJECT_NAME}.map
     COMMENT "Print file and library memory usage by size"
     COMMAND ${CMAKE_MEMAP} -t GCC_ARM ${PROJECT_NAME}.map
+)
+
+# Run OpenOCD with ST Link to debug
+add_custom_target(openocd
+    DEPENDS ${EXECUTABLE}
+    COMMENT "OpenOCD GDB Server via ST Link"
+    COMMAND ${CMAKE_OPENOCD} -f interface/stlink.cfg -f target/stm32f4x.cfg
+)
+
+add_custom_target(gdb
+    DEPENDS ${EXECUTABLE}
+    COMMENT "GDB connection to GDB Server via ST Link"
+    COMMAND ${CMAKE_GDB} -q ${EXECUTABLE} -ex "target extended-remote localhost:3333"
+)
+
+# Run OpenOCD with ST Link to flash
+set(OPENOCD_FLASH_CMD "program ${EXECUTABLE} verify reset exit")
+add_custom_target(flash
+    DEPENDS ${EXECUTABLE}
+    COMMENT "OpenOCD flash and verify using elf."
+    COMMAND ${CMAKE_OPENOCD} -f interface/stlink.cfg -f target/stm32f4x.cfg -c ${OPENOCD_FLASH_CMD}
 )

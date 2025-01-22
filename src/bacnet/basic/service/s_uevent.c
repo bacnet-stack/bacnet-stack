@@ -1,23 +1,21 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 John Minack
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send an Unconfirmed Event Notification.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include "bacnet/event.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/sys/debug.h"
 
-/** @file s_uevent.c  Send an Unconfirmed Event Notification. */
-
-/** Sends an Unconfirmed Alarm/Event Notification.
- * @ingroup EVNOTFCN
- *
+/**
+ * @brief Sends an Unconfirmed Alarm/Event Notification.
+ * @ingroup BIBB-AE-N-A
  * @param buffer [in,out] The buffer to build the message in for sending.
  * @param data [in] The information about the Event to be sent.
  * @param dest [in] The destination address information (may be a broadcast).
@@ -43,6 +41,9 @@ int Send_UEvent_Notify(
     pdu_len += len;
     /* send the data */
     bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("Failed to Send EventNotification Request");
+    }
 
     return bytes_sent;
 }

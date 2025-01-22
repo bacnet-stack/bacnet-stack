@@ -18,6 +18,7 @@
 #include "bacnet/iam.h"
 #include "bacnet/version.h"
 #include "bacnet/datetime.h"
+#include "bacnet/bacstr.h"
 /* basic datalink, timer, and filename */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -27,10 +28,6 @@
 /* OS specific includes */
 #include "bacport.h"
 #include "rs485.h"
-
-#ifdef _WIN32
-#define strncasecmp(x, y, z) _strnicmp(x, y, z)
-#endif
 
 /* define our Data Link Type for libPCAP */
 #define DLT_BACNET_MS_TP (165)
@@ -972,7 +969,8 @@ static void print_help(const char *filename)
         filename);
 }
 
-/* initialize some of the variables in the MS/TP Receive structure */
+/* initialize some of the variables in the MS/TP Receive structure
+   after each packet write  */
 static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port) {
@@ -983,9 +981,11 @@ static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
         mstp_port->HeaderCRCActual = 0;
         mstp_port->Index = 0;
         mstp_port->EventCount = 0;
+        mstp_port->DataRegister = 0xFF;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+        mstp_port->SilenceTimerReset(NULL);
     }
 }
 
@@ -1003,7 +1003,7 @@ int main(int argc, char *argv[])
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = 127;
+    MSTP_Port.This_Station = MSTP_BROADCAST_ADDRESS;
     MSTP_Port.Nmax_info_frames = 1;
     MSTP_Port.Nmax_master = 127;
     MSTP_Port.SilenceTimer = Timer_Silence;
@@ -1097,7 +1097,7 @@ int main(int argc, char *argv[])
             RS485_Set_Interface(argv[argi]);
         }
 #if defined(_WIN32)
-        if (strncasecmp(argv[argi], "com", 3) == 0) {
+        if (bacnet_strnicmp(argv[argi], "com", 3) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
             if ((argi + 1) < argc) {
@@ -1107,7 +1107,7 @@ int main(int argc, char *argv[])
             }
         }
 #else
-        if (strncasecmp(argv[argi], "/dev/", 5) == 0) {
+        if (bacnet_strnicmp(argv[argi], "/dev/", 5) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
             if ((argi + 1) < argc) {

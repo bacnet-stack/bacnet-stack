@@ -5,8 +5,6 @@
  */
 
 #include "bacnet/bacerror.h"
-
-#include <errno.h>
 #include <zephyr/fff.h>
 #include <zephyr/ztest.h>
 #include <zephyr/sys/util.h>

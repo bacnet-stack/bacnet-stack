@@ -13,12 +13,24 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bo.c
 
+# Set CROSS_PREFIX to prepend to all compiler tools at once for easier
+# cross-compilation.
+CROSS_PREFIX ?=
+CC           = $(CROSS_PREFIX)gcc
+AR           = $(CROSS_PREFIX)ar
+RANLIB       = $(CROSS_PREFIX)ranlib
+SIZE         = $(CROSS_PREFIX)size
+STRIP        = $(CROSS_PREFIX)strip
+
 CFLAGS += -DMAX_TSM_TRANSACTIONS=1
 CFLAGS += -DMAX_BINARY_INPUTS=4
 CFLAGS += -DMAX_BINARY_OUTPUTS=8
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
+
+# relies on the BACnet library
+BACNET_LIB_DIR = $(realpath ../lib)
 
 # Source locations
 PIFACE_INCLUDE = libpifacedigital/src
@@ -27,16 +39,20 @@ MCP23S17_LIB = libmcp23s17
 
 CFLAGS += -I$(PIFACE_INCLUDE)
 
+ifeq (${BUILD},pipeline)
+CFLAGS += -DBUILD_PIPELINE
+else
 LDPIFACE = -Wl,-L$(PIFACE_LIB),-lpifacedigital,-L$(MCP23S17_LIB),-lmcp23s17
 LFLAGS += $(LDPIFACE)
+endif
 
 OBJS += ${SRC:.c=.o}
 
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
 ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
-	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
-	size $@
+	$(CC) ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
+	$(SIZE) $@
 	cp $@ ../../bin
 
 ${BACNET_LIB_TARGET}:

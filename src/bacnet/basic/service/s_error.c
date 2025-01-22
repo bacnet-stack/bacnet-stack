@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send an Error message
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -21,18 +20,20 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/datalink.h"
 
-/** Encodes an Error message
+/**
+ * @brief Encodes an Error message
  * @param buffer The buffer to build the message for sending.
  * @param dest - Destination address to send the message
  * @param src - Source address from which the message originates
  * @param npdu_data - buffer to hold NPDU data encoded
  * @param invoke_id - use to match up a reply
- * @param reason - #BACNET_ABORT_REASON enumeration
- * @param server - true or false
- *
+ * @param service - BACNET_CONFIRMED_SERVICE enumeration
+ * @param error_class - #BACNET_ERROR_CLASS enumeration
+ * @param error_code - #BACNET_ERROR_CODE enumeration
  * @return Size of the message sent (bytes), or a negative value on error.
  */
 int error_encode_pdu(
@@ -60,13 +61,14 @@ int error_encode_pdu(
     return pdu_len;
 }
 
-/** Sends an Abort message
+/**
+ * @brief Sends a BACnet Error message
  * @param buffer The buffer to build the message for sending.
  * @param dest - Destination address to send the message
  * @param invoke_id - use to match up a reply
- * @param reason - #BACNET_ABORT_REASON enumeration
- * @param server - true or false
- *
+ * @param service - BACNET_CONFIRMED_SERVICE enumeration
+ * @param error_class - #BACNET_ERROR_CLASS enumeration
+ * @param error_code - #BACNET_ERROR_CODE enumeration
  * @return Size of the message sent (bytes), or a negative value on error.
  */
 int Send_Error_To_Network(
@@ -87,6 +89,7 @@ int Send_Error_To_Network(
         buffer, dest, &src, &npdu_data, invoke_id, service, error_class,
         error_code);
     bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
+    debug_perror("BACnetError: Failed to send PDU");
 
     return bytes_sent;
 }

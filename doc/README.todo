@@ -1,20 +1,19 @@
 To Do List - BACnet Stack at SourceForge
-Here are some things to do:
+Here are some things to do in no particular order:
 
-A. Finish apps/epics/main.c - EPICS demo. Use object property lists.
-B. Update src/bacnet/basic/object/lo.c - Lighting Output object demo
-C.
-D.
-E. Add HTTP demo like bacnet4linux
+A. Update apps/epics/main.c - EPICS demo to use object property lists.
+B. Change property-lists to use int32_t instead of int.
+C. Add logging module that replaces the debug print module.
+D. Modify the basic object examples to be dynamically createable (in progress)
+E. Add HTTP demo app like bacnet4linux
 F. Add SubscribeCOVProperty support in server demo.
-G. Add hooks to increment Database_Revision property
-H.
-I. Change core encode/decode to pass length for safe handling
-J.
-K.
+G. Add hooks to increment Database_Revision property.
+H. Add general device object handler in basic/services.
+I. Change core encode/decode to pass length for safe handling (in progress)
+J. Convert documents to Markdown and sequence diagrams to Mermaid.
+K. Update doxygen groupings in source files.
 L.
-M. Add function headers to each module and function with
-   doc-tags for document generator doxygen (in progress).
+M.
 N.
 O.
 P. Convert datalink methods to use network port objects
@@ -29,4 +28,3 @@ X. Change WhoIs demo to list all I-Am's received such that duplicate
    IDs with different MAC addresses can be detected.
 Y. Add tsm_alloc to allocate memory and invoke ID for sending.
 Z. Make alternate TSM that handles segmentation.
-AA. Create debug.c module for PC ports which replace printf and fix line end.

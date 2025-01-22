@@ -175,6 +175,11 @@ int lighting_command_decode(
             operation = (BACNET_LIGHTING_OPERATION)enum_value;
             if (data) {
                 data->operation = operation;
+                data->use_target_level = false;
+                data->use_ramp_rate = false;
+                data->use_step_increment = false;
+                data->use_fade_time = false;
+                data->use_priority = false;
             }
         } else {
             return BACNET_STATUS_ERROR;
@@ -198,10 +203,6 @@ int lighting_command_decode(
                     data->target_level = real_value;
                     data->use_target_level = true;
                 }
-            } else {
-                if (data) {
-                    data->use_target_level = false;
-                }
             }
             if ((apdu_size - apdu_len) > 0) {
                 /* Tag 4: fade-time - OPTIONAL */
@@ -216,10 +217,6 @@ int lighting_command_decode(
                 } else {
                     return BACNET_STATUS_ERROR;
                 }
-            } else {
-                if (data) {
-                    data->use_fade_time = false;
-                }
             }
             if ((apdu_size - apdu_len) > 0) {
                 /* priority [5] Unsigned (1..16) OPTIONAL */
@@ -231,14 +228,6 @@ int lighting_command_decode(
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
                     }
-                } else {
-                    if (data) {
-                        data->use_priority = false;
-                    }
-                }
-            } else {
-                if (data) {
-                    data->use_priority = false;
                 }
             }
             break;
@@ -255,10 +244,6 @@ int lighting_command_decode(
                     data->target_level = real_value;
                     data->use_target_level = true;
                 }
-            } else {
-                if (data) {
-                    data->use_target_level = false;
-                }
             }
             if ((apdu_size - apdu_len) > 0) {
                 /* ramp-rate [2] REAL (0.1..100.0) OPTIONAL */
@@ -270,14 +255,6 @@ int lighting_command_decode(
                         data->ramp_rate = real_value;
                         data->use_ramp_rate = true;
                     }
-                } else {
-                    if (data) {
-                        data->use_ramp_rate = false;
-                    }
-                }
-            } else {
-                if (data) {
-                    data->use_ramp_rate = false;
                 }
             }
             if ((apdu_size - apdu_len) > 0) {
@@ -290,14 +267,6 @@ int lighting_command_decode(
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
                     }
-                } else {
-                    if (data) {
-                        data->use_priority = false;
-                    }
-                }
-            } else {
-                if (data) {
-                    data->use_priority = false;
                 }
             }
             break;
@@ -315,14 +284,6 @@ int lighting_command_decode(
                         data->step_increment = real_value;
                         data->use_step_increment = true;
                     }
-                } else {
-                    if (data) {
-                        data->use_step_increment = false;
-                    }
-                }
-            } else {
-                if (data) {
-                    data->use_step_increment = false;
                 }
             }
             if ((apdu_size - apdu_len) > 0) {
@@ -335,14 +296,6 @@ int lighting_command_decode(
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
                     }
-                } else {
-                    if (data) {
-                        data->use_priority = false;
-                    }
-                }
-            } else {
-                if (data) {
-                    data->use_priority = false;
                 }
             }
             break;
@@ -360,14 +313,6 @@ int lighting_command_decode(
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
                     }
-                } else {
-                    if (data) {
-                        data->use_priority = false;
-                    }
-                }
-            } else {
-                if (data) {
-                    data->use_priority = false;
                 }
             }
             break;

@@ -23,6 +23,7 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/sys/linear.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/lighting_command.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
 /* me! */
@@ -30,10 +31,9 @@
 
 struct object_data {
     float Present_Value;
-    float Tracking_Value;
+    BACNET_LIGHTING_COMMAND_DATA Lighting_Command;
+    BACNET_LIGHTING_COMMAND Last_Lighting_Command;
     float Physical_Value;
-    BACNET_LIGHTING_COMMAND Lighting_Command;
-    BACNET_LIGHTING_IN_PROGRESS In_Progress;
     uint32_t Egress_Time;
     uint32_t Default_Fade_Time;
     float Default_Ramp_Rate;
@@ -45,15 +45,12 @@ struct object_data {
     float Relinquish_Default;
     float Power;
     float Instantaneous_Power;
-    float Min_Actual_Value;
-    float Max_Actual_Value;
     uint8_t Lighting_Command_Default_Priority;
     BACNET_OBJECT_ID Color_Reference;
     BACNET_OBJECT_ID Override_Color_Reference;
     const char *Object_Name;
     const char *Description;
     /* bits */
-    bool Out_Of_Service : 1;
     bool Blink_Warn_Enable : 1;
     bool Egress_Active : 1;
     bool Color_Override : 1;
@@ -61,8 +58,8 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static lighting_output_write_present_value_callback
-    Lighting_Output_Write_Present_Value_Callback;
+static lighting_command_tracking_value_callback
+    Lighting_Command_Tracking_Value_Callback;
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
@@ -455,7 +452,9 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
                 active priority, or
             (b) The value at the specified priority is 0.0%, or
             (c) Blink_Warn_Enable is FALSE. */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_WARN;
+        lighting_command_blink_warn(
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN,
+            &pObject->Lighting_Command.Blink);
     }
 }
 
@@ -485,7 +484,9 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
                 active priority, or
             (b) The Present_Value is 0.0%, or
             (c) Blink_Warn_Enable is FALSE. */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_WARN_OFF;
+        lighting_command_blink_warn(
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
+            &pObject->Lighting_Command.Blink);
     } else {
         Present_Value_Set(pObject, 0.0, priority);
     }
@@ -521,7 +522,9 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
                 priority, including Relinquish_Default,
                 is greater than 0.0%, or
             (d) Blink_Warn_Enable is FALSE. */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_WARN_RELINQUISH;
+        lighting_command_blink_warn(
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
+            &pObject->Lighting_Command.Blink);
     } else {
         Present_Value_Relinquish(pObject, priority);
     }
@@ -549,9 +552,7 @@ static void Lighting_Command_Fade_To(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.fade_time = fade_time;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_FADE_TO;
-        pObject->Lighting_Command.target_level = value;
+        lighting_command_fade_to(&pObject->Lighting_Command, value, fade_time);
     }
 }
 
@@ -577,9 +578,7 @@ static void Lighting_Command_Ramp_To(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.ramp_rate = ramp_rate;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_RAMP_TO;
-        pObject->Lighting_Command.target_level = value;
+        lighting_command_ramp_to(&pObject->Lighting_Command, value, ramp_rate);
     }
 }
 
@@ -604,10 +603,8 @@ static void Lighting_Command_Step(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.operation = operation;
-        pObject->Lighting_Command.fade_time = 0;
-        pObject->Lighting_Command.ramp_rate = 0.0f;
-        pObject->Lighting_Command.step_increment = step_increment;
+        lighting_command_step(
+            &pObject->Lighting_Command, operation, step_increment);
     }
 }
 
@@ -669,23 +666,18 @@ static bool Lighting_Output_Present_Value_Write(
                     /* we have priority - configure the Lighting Command */
                     if (pObject->Transition ==
                         BACNET_LIGHTING_TRANSITION_FADE) {
-                        pObject->Lighting_Command.fade_time =
-                            pObject->Default_Fade_Time;
-                        pObject->Lighting_Command.operation =
-                            BACNET_LIGHTS_FADE_TO;
+                        Lighting_Command_Fade_To(
+                            pObject, priority, value,
+                            pObject->Default_Fade_Time);
                     } else if (
                         pObject->Transition ==
                         BACNET_LIGHTING_TRANSITION_RAMP) {
-                        pObject->Lighting_Command.ramp_rate =
-                            pObject->Default_Ramp_Rate;
-                        pObject->Lighting_Command.operation =
-                            BACNET_LIGHTS_RAMP_TO;
+                        Lighting_Command_Ramp_To(
+                            pObject, priority, value,
+                            pObject->Default_Ramp_Rate);
                     } else {
-                        pObject->Lighting_Command.fade_time = 0;
-                        pObject->Lighting_Command.operation =
-                            BACNET_LIGHTS_FADE_TO;
+                        Lighting_Command_Fade_To(pObject, priority, value, 0);
                     }
-                    pObject->Lighting_Command.target_level = value;
                 }
                 status = true;
             } else {
@@ -773,19 +765,17 @@ static bool Lighting_Output_Present_Value_Relinquish_Write(
                 }
                 /* we have priority - configure the Lighting Command */
                 if (pObject->Transition == BACNET_LIGHTING_TRANSITION_FADE) {
-                    pObject->Lighting_Command.fade_time =
-                        pObject->Default_Fade_Time;
-                    pObject->Lighting_Command.operation = BACNET_LIGHTS_FADE_TO;
+                    Lighting_Command_Fade_To(
+                        pObject, new_priority, value,
+                        pObject->Default_Fade_Time);
                 } else if (
                     pObject->Transition == BACNET_LIGHTING_TRANSITION_RAMP) {
-                    pObject->Lighting_Command.ramp_rate =
-                        pObject->Default_Ramp_Rate;
-                    pObject->Lighting_Command.operation = BACNET_LIGHTS_RAMP_TO;
+                    Lighting_Command_Ramp_To(
+                        pObject, new_priority, value,
+                        pObject->Default_Ramp_Rate);
                 } else {
-                    pObject->Lighting_Command.fade_time = 0;
-                    pObject->Lighting_Command.operation = BACNET_LIGHTS_FADE_TO;
+                    Lighting_Command_Fade_To(pObject, new_priority, value, 0);
                 }
-                pObject->Lighting_Command.target_level = value;
             }
             status = true;
         } else {
@@ -921,28 +911,6 @@ bool Lighting_Output_Description_Set(
 }
 
 /**
- * For a given object instance-number, sets the lighting-command.
- *
- * @param object_instance - object-instance number of the object
- * @param value - holds the lighting command value
- *
- * @return  true if lighting command was set
- */
-bool Lighting_Output_Lighting_Command_Set(
-    uint32_t object_instance, const BACNET_LIGHTING_COMMAND *value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        status = lighting_command_copy(&pObject->Lighting_Command, value);
-    }
-
-    return status;
-}
-
-/**
  * @brief Set the lighting command if the priority is active
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
@@ -958,7 +926,7 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
+        lighting_command_stop(&pObject->Lighting_Command);
     }
 }
 
@@ -1085,6 +1053,9 @@ static bool Lighting_Output_Lighting_Command_Write(
 /**
  * For a given object instance-number, gets the lighting-command.
  *
+ * @note The Lighting_Command property shall indicate the last written
+ *  value or NONE if it has not yet been written.
+ *
  * @param object_instance - object-instance number of the object
  * @param value - holds the lighting command value
  *
@@ -1098,7 +1069,81 @@ bool Lighting_Output_Lighting_Command(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = lighting_command_copy(value, &pObject->Lighting_Command);
+        status = lighting_command_copy(value, &pObject->Last_Lighting_Command);
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the lighting-command.
+ *
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the lighting command value
+ *
+ * @return  true if lighting command was set
+ */
+bool Lighting_Output_Lighting_Command_Set(
+    uint32_t object_instance, const BACNET_LIGHTING_COMMAND *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        switch (value->operation) {
+            case BACNET_LIGHTS_NONE:
+                status = true;
+                break;
+            case BACNET_LIGHTS_FADE_TO:
+                Lighting_Command_Fade_To(
+                    pObject, value->priority, value->target_level,
+                    value->fade_time);
+                status = true;
+                break;
+            case BACNET_LIGHTS_RAMP_TO:
+                Lighting_Command_Ramp_To(
+                    pObject, value->priority, value->target_level,
+                    value->ramp_rate);
+                status = true;
+                break;
+            case BACNET_LIGHTS_STEP_UP:
+            case BACNET_LIGHTS_STEP_DOWN:
+            case BACNET_LIGHTS_STEP_ON:
+            case BACNET_LIGHTS_STEP_OFF:
+                Lighting_Command_Step(
+                    pObject, value->priority, value->operation,
+                    value->step_increment);
+                status = true;
+                break;
+            case BACNET_LIGHTS_WARN:
+                /* Provides the same functionality as the
+                   WARN lighting command. */
+                Lighting_Command_Warn(pObject, value->priority);
+                status = true;
+                break;
+            case BACNET_LIGHTS_WARN_OFF:
+                /* Provides the same functionality as the
+                   WARN_OFF lighting command. */
+                Lighting_Command_Warn_Off(pObject, value->priority);
+                status = true;
+                break;
+            case BACNET_LIGHTS_WARN_RELINQUISH:
+                /* Provides the same functionality as the
+                   WARN_RELINQUISH lighting command. */
+                Lighting_Command_Warn_Relinquish(pObject, value->priority);
+                status = true;
+                break;
+            case BACNET_LIGHTS_STOP:
+                Lighting_Command_Stop(pObject, value->priority);
+                status = true;
+                break;
+            default:
+                break;
+        }
+        if (status) {
+            lighting_command_copy(&pObject->Last_Lighting_Command, value);
+        }
     }
 
     return status;
@@ -1119,7 +1164,7 @@ Lighting_Output_In_Progress(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->In_Progress;
+        value = pObject->Lighting_Command.In_Progress;
     }
 
     return value;
@@ -1142,7 +1187,7 @@ bool Lighting_Output_In_Progress_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->In_Progress = in_progress;
+        pObject->Lighting_Command.In_Progress = in_progress;
     }
 
     return status;
@@ -1162,7 +1207,7 @@ float Lighting_Output_Tracking_Value(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Tracking_Value;
+        value = pObject->Lighting_Command.Tracking_Value;
     }
 
     return value;
@@ -1184,7 +1229,7 @@ bool Lighting_Output_Tracking_Value_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Tracking_Value = value;
+        pObject->Lighting_Command.Tracking_Value = value;
         status = true;
     }
 
@@ -1627,7 +1672,7 @@ bool Lighting_Output_Out_Of_Service(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Out_Of_Service;
+        value = pObject->Lighting_Command.Out_Of_Service;
     }
 
     return value;
@@ -1647,7 +1692,7 @@ void Lighting_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Out_Of_Service = value;
+        pObject->Lighting_Command.Out_Of_Service = value;
     }
 }
 
@@ -2141,7 +2186,7 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_known_property(
@@ -2277,366 +2322,6 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
- * Handles the timing for a single Lighting Output object Fade
- *
- * @param object_instance - Lighting Output object
- * @param milliseconds - number of milliseconds elapsed since previously
- * called.  Works best when called about every 10 milliseconds.
- */
-static void
-Lighting_Output_Fade_Handler(uint32_t object_instance, uint16_t milliseconds)
-{
-    struct object_data *pObject;
-    float old_value;
-    float x1, x2, x3, y1, y3;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
-    }
-    old_value = pObject->Tracking_Value;
-    if (milliseconds >= pObject->Lighting_Command.fade_time) {
-        /* stop fading */
-        pObject->Tracking_Value = pObject->Lighting_Command.target_level;
-        pObject->In_Progress = BACNET_LIGHTING_IDLE;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-        pObject->Lighting_Command.fade_time = 0;
-    } else {
-        if (!islessgreater(
-                pObject->Tracking_Value,
-                pObject->Lighting_Command.target_level)) {
-            /* stop fading */
-            pObject->Tracking_Value = pObject->Lighting_Command.target_level;
-            pObject->In_Progress = BACNET_LIGHTING_IDLE;
-            pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-            pObject->Lighting_Command.fade_time = 0;
-        } else {
-            /* fading */
-            x1 = 0.0f;
-            x2 = (float)milliseconds;
-            x3 = (float)pObject->Lighting_Command.fade_time;
-            y1 = old_value;
-            y3 = pObject->Lighting_Command.target_level;
-            pObject->Tracking_Value = linear_interpolate(x1, x2, x3, y1, y3);
-            pObject->Lighting_Command.fade_time -= milliseconds;
-            pObject->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
-        }
-    }
-    if (Lighting_Output_Write_Present_Value_Callback) {
-        Lighting_Output_Write_Present_Value_Callback(
-            object_instance, old_value, pObject->Tracking_Value);
-    } else {
-        debug_printf(
-            "LO[%u] Fade Handler Operation=%s Value=%f\n", object_instance,
-            bactext_lighting_operation_name(
-                pObject->Lighting_Command.operation),
-            (double)pObject->Tracking_Value);
-    }
-}
-
-/**
- * Updates the object tracking value while ramping
- *
- * Commands Present_Value to ramp from the current Tracking_Value to the
- * target-level specified in the command. The ramp operation
- * changes the output from its current value to target-level,
- * at a particular percent per second defined by ramp-rate.
- * While the ramp operation is executing, In_Progress shall be set
- * to RAMP_ACTIVE, and Tracking_Value shall be updated to reflect the current
- * progress of the ramp. <target-level> shall be clamped to
- * Min_Actual_Value and Max_Actual_Value.
- *
- * @param  object_instance - object-instance number of the object
- * @param milliseconds - number of milliseconds elapsed
- */
-static void
-Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
-{
-    float old_value, target_value, min_value, max_value, step_value, steps;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
-    }
-    old_value = pObject->Tracking_Value;
-    min_value = pObject->Min_Actual_Value;
-    max_value = pObject->Max_Actual_Value;
-    target_value = pObject->Lighting_Command.target_level;
-    /* clamp target within min/max, if needed */
-    if (isgreater(target_value, max_value)) {
-        target_value = max_value;
-    }
-    if (isless(target_value, min_value)) {
-        target_value = min_value;
-    }
-    /* determine the number of steps */
-    if (milliseconds <= 1000) {
-        /* percent per second */
-        steps = linear_interpolate(
-            0.0f, (float)milliseconds, 1000.0f, 0.0f,
-            pObject->Lighting_Command.ramp_rate);
-    } else {
-        steps = ((float)milliseconds * pObject->Lighting_Command.ramp_rate) /
-            1000.0f;
-    }
-    if (!islessgreater(pObject->Tracking_Value, target_value)) {
-        /* stop ramping */
-        pObject->Tracking_Value = target_value;
-        pObject->In_Progress = BACNET_LIGHTING_IDLE;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-    } else {
-        if (isless(old_value, target_value)) {
-            step_value = old_value + steps;
-            if (isgreater(step_value, target_value)) {
-                /* stop ramping */
-                pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-            }
-        } else if (isgreater(old_value, target_value)) {
-            debug_printf(
-                "LO[%u] Ramp Handler Down steps=%f tracking=%f\n",
-                object_instance, (double)steps, (double)old_value);
-            if (isgreater(old_value, steps)) {
-                step_value = old_value - steps;
-            } else {
-                step_value = target_value;
-            }
-            if (isless(step_value, target_value)) {
-                /* stop ramping */
-                pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-            }
-        } else {
-            debug_printf(
-                "LO[%u] Ramp Handler at target=%f tracking=%f\n",
-                object_instance, (double)target_value, (double)old_value);
-            /* stop ramping */
-            step_value = target_value;
-            pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-        }
-        /* clamp target within min/max, if needed */
-        if (isgreater(step_value, max_value)) {
-            step_value = max_value;
-        }
-        if (isless(step_value, min_value)) {
-            step_value = min_value;
-        }
-        pObject->Tracking_Value = step_value;
-        if (pObject->Lighting_Command.operation == BACNET_LIGHTS_STOP) {
-            pObject->In_Progress = BACNET_LIGHTING_IDLE;
-        } else {
-            pObject->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
-        }
-    }
-    if (Lighting_Output_Write_Present_Value_Callback) {
-        Lighting_Output_Write_Present_Value_Callback(
-            object_instance, old_value, pObject->Tracking_Value);
-    } else {
-        debug_printf(
-            "LO[%u] Ramp Handler Operation=%s Value=%f\n", object_instance,
-            bactext_lighting_operation_name(
-                pObject->Lighting_Command.operation),
-            (double)pObject->Tracking_Value);
-    }
-}
-
-/**
- * Updates the object tracking value while stepping
- *
- * Commands Present_Value to a value equal to the Tracking_Value
- * plus the step-increment. The resulting sum shall be clamped to
- * Min_Actual_Value and Max_Actual_Value
- *
- * @param  object_instance - object-instance number of the object
- */
-static void Lighting_Output_Step_Up_Handler(uint32_t object_instance)
-{
-    float old_value, target_value, min_value, max_value, step_value;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
-    }
-    old_value = pObject->Tracking_Value;
-    min_value = pObject->Min_Actual_Value;
-    max_value = pObject->Max_Actual_Value;
-    step_value = pObject->Lighting_Command.step_increment;
-    /* inhibit ON if the value is already OFF */
-    if (isgreaterequal(old_value, min_value)) {
-        target_value = old_value + step_value;
-        /* clamp target within min/max, if needed */
-        if (isgreater(target_value, max_value)) {
-            target_value = max_value;
-        }
-        if (isless(target_value, min_value)) {
-            target_value = min_value;
-        }
-        pObject->Present_Value = target_value;
-        pObject->Tracking_Value = target_value;
-        pObject->In_Progress = BACNET_LIGHTING_IDLE;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-        if (Lighting_Output_Write_Present_Value_Callback) {
-            Lighting_Output_Write_Present_Value_Callback(
-                object_instance, old_value, pObject->Tracking_Value);
-        } else {
-            debug_printf(
-                "LO[%u] Step Up Handler Operation=%s Value=%f\n",
-                object_instance,
-                bactext_lighting_operation_name(
-                    pObject->Lighting_Command.operation),
-                (double)pObject->Tracking_Value);
-        }
-    }
-}
-
-/**
- * Updates the object tracking value while stepping
- *
- * Commands Present_Value to a value equal to the Tracking_Value
- * plus the step-increment. The resulting sum shall be clamped to
- * Min_Actual_Value and Max_Actual_Value
- *
- * @param  object_instance - object-instance number of the object
- */
-static void Lighting_Output_Step_Down_Handler(uint32_t object_instance)
-{
-    float old_value, target_value, min_value, max_value, step_value;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
-    }
-    old_value = target_value = pObject->Tracking_Value;
-    min_value = pObject->Min_Actual_Value;
-    max_value = pObject->Max_Actual_Value;
-    step_value = pObject->Lighting_Command.step_increment;
-    if (isgreaterequal(target_value, step_value)) {
-        target_value -= step_value;
-    } else {
-        target_value = 0.0;
-    }
-    /* clamp target within min/max, if needed */
-    if (isgreater(target_value, max_value)) {
-        target_value = max_value;
-    }
-    if (isless(target_value, min_value)) {
-        target_value = min_value;
-    }
-    pObject->Present_Value = target_value;
-    pObject->Tracking_Value = target_value;
-    pObject->In_Progress = BACNET_LIGHTING_IDLE;
-    pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-    if (Lighting_Output_Write_Present_Value_Callback) {
-        Lighting_Output_Write_Present_Value_Callback(
-            object_instance, old_value, pObject->Tracking_Value);
-    } else {
-        debug_printf(
-            "LO[%u] Step Down Handler Operation=%s Value=%f\n", object_instance,
-            bactext_lighting_operation_name(
-                pObject->Lighting_Command.operation),
-            (double)pObject->Tracking_Value);
-    }
-}
-
-/**
- * Updates the object tracking value while stepping
- *
- * Commands Present_Value to a value equal to the Tracking_Value
- * plus the step-increment. The resulting sum shall be clamped to
- * Min_Actual_Value and Max_Actual_Value
- *
- * @param  object_instance - object-instance number of the object
- */
-static void Lighting_Output_Step_On_Handler(uint32_t object_instance)
-{
-    float old_value, target_value, min_value, max_value, step_value;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
-    }
-    old_value = target_value = pObject->Tracking_Value;
-    min_value = pObject->Min_Actual_Value;
-    max_value = pObject->Max_Actual_Value;
-    step_value = pObject->Lighting_Command.step_increment;
-    target_value += step_value;
-    /* clamp target within min/max, if needed */
-    if (isgreater(target_value, max_value)) {
-        target_value = max_value;
-    }
-    if (isless(target_value, min_value)) {
-        target_value = min_value;
-    }
-    pObject->Present_Value = target_value;
-    pObject->Tracking_Value = target_value;
-    pObject->In_Progress = BACNET_LIGHTING_IDLE;
-    pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-    if (Lighting_Output_Write_Present_Value_Callback) {
-        Lighting_Output_Write_Present_Value_Callback(
-            object_instance, old_value, pObject->Tracking_Value);
-    } else {
-        debug_printf(
-            "LO[%u] Step On Handler Operation=%s Value=%f\n", object_instance,
-            bactext_lighting_operation_name(
-                pObject->Lighting_Command.operation),
-            (double)pObject->Tracking_Value);
-    }
-}
-
-/**
- * Updates the object tracking value while stepping
- *
- * Commands Present_Value to a value equal to the Tracking_Value
- * plus the step-increment. The resulting sum shall be clamped to
- * Min_Actual_Value and Max_Actual_Value
- *
- * @param  object_instance - object-instance number of the object
- */
-static void Lighting_Output_Step_Off_Handler(uint32_t object_instance)
-{
-    float old_value, target_value, min_value, max_value, step_value;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
-    }
-    old_value = target_value = pObject->Tracking_Value;
-    min_value = pObject->Min_Actual_Value;
-    max_value = pObject->Max_Actual_Value;
-    step_value = pObject->Lighting_Command.step_increment;
-    if (isgreaterequal(target_value, step_value)) {
-        target_value -= step_value;
-    } else {
-        target_value = 0.0f;
-    }
-    /* clamp target within max */
-    if (isgreater(target_value, max_value)) {
-        target_value = max_value;
-    }
-    /* jump target to OFF if below min */
-    if (isless(target_value, min_value)) {
-        target_value = 0.0f;
-    }
-    pObject->Present_Value = target_value;
-    pObject->Tracking_Value = target_value;
-    pObject->In_Progress = BACNET_LIGHTING_IDLE;
-    pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-    if (Lighting_Output_Write_Present_Value_Callback) {
-        Lighting_Output_Write_Present_Value_Callback(
-            object_instance, old_value, pObject->Tracking_Value);
-    } else {
-        debug_printf(
-            "LO[%u] Step Off Handler Operation=%s Value=%f\n", object_instance,
-            bactext_lighting_operation_name(
-                pObject->Lighting_Command.operation),
-            (double)pObject->Tracking_Value);
-    }
-}
-
-/**
  * @brief Updates the lighting object tracking value per ramp or fade or step
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed since previously
@@ -2648,39 +2333,20 @@ void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        switch (pObject->Lighting_Command.operation) {
-            case BACNET_LIGHTS_NONE:
-                pObject->In_Progress = BACNET_LIGHTING_IDLE;
-                break;
-            case BACNET_LIGHTS_FADE_TO:
-                Lighting_Output_Fade_Handler(object_instance, milliseconds);
-                break;
-            case BACNET_LIGHTS_RAMP_TO:
-                Lighting_Output_Ramp_Handler(object_instance, milliseconds);
-                break;
-            case BACNET_LIGHTS_STEP_UP:
-                Lighting_Output_Step_Up_Handler(object_instance);
-                break;
-            case BACNET_LIGHTS_STEP_DOWN:
-                Lighting_Output_Step_Down_Handler(object_instance);
-                break;
-            case BACNET_LIGHTS_STEP_ON:
-                Lighting_Output_Step_On_Handler(object_instance);
-                break;
-            case BACNET_LIGHTS_STEP_OFF:
-                Lighting_Output_Step_Off_Handler(object_instance);
-                break;
-            case BACNET_LIGHTS_WARN:
-                break;
-            case BACNET_LIGHTS_WARN_OFF:
-                break;
-            case BACNET_LIGHTS_WARN_RELINQUISH:
-                break;
-            case BACNET_LIGHTS_STOP:
-                pObject->In_Progress = BACNET_LIGHTING_IDLE;
-                break;
-            default:
-                break;
+        lighting_command_timer(&pObject->Lighting_Command, milliseconds);
+    }
+}
+
+static void Lighting_Output_Tracking_Value_Callback(
+    uint32_t object_instance, float old_value, float value)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (Lighting_Command_Tracking_Value_Callback) {
+            Lighting_Command_Tracking_Value_Callback(
+                object_instance, old_value, value);
         }
     }
 }
@@ -2690,9 +2356,9 @@ void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds)
  * @param cb - callback used to provide indications
  */
 void Lighting_Output_Write_Present_Value_Callback_Set(
-    lighting_output_write_present_value_callback cb)
+    lighting_command_tracking_value_callback cb)
 {
-    Lighting_Output_Write_Present_Value_Callback = cb;
+    Lighting_Command_Tracking_Value_Callback = cb;
 }
 
 /**
@@ -2725,16 +2391,17 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
         pObject->Present_Value = 0.0f;
-        pObject->Tracking_Value = 0.0f;
         pObject->Physical_Value = 0.0f;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_NONE;
-        pObject->Lighting_Command.use_target_level = false;
-        pObject->Lighting_Command.use_ramp_rate = false;
-        pObject->Lighting_Command.use_step_increment = false;
-        pObject->Lighting_Command.use_fade_time = false;
-        pObject->Lighting_Command.use_priority = false;
-        pObject->In_Progress = BACNET_LIGHTING_IDLE;
-        pObject->Out_Of_Service = false;
+        lighting_command_init(&pObject->Lighting_Command);
+        pObject->Lighting_Command.Key = object_instance;
+        pObject->Lighting_Command.Notification_Head.callback =
+            Lighting_Output_Tracking_Value_Callback;
+        pObject->Last_Lighting_Command.operation = BACNET_LIGHTS_NONE;
+        pObject->Last_Lighting_Command.use_target_level = false;
+        pObject->Last_Lighting_Command.use_ramp_rate = false;
+        pObject->Last_Lighting_Command.use_step_increment = false;
+        pObject->Last_Lighting_Command.use_fade_time = false;
+        pObject->Last_Lighting_Command.use_priority = false;
         pObject->Blink_Warn_Enable = false;
         pObject->Egress_Active = false;
         pObject->Egress_Time = 0;
@@ -2750,8 +2417,6 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Relinquish_Default = 0.0f;
         pObject->Power = 0.0f;
         pObject->Instantaneous_Power = 0.0f;
-        pObject->Min_Actual_Value = 0.0f;
-        pObject->Max_Actual_Value = 100.0f;
         pObject->Lighting_Command_Default_Priority = 16;
         pObject->Color_Override = false;
         pObject->Color_Reference.type = OBJECT_COLOR;

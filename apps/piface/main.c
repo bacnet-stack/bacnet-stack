@@ -1,11 +1,10 @@
 /**
  * @file
- * @brief
+ * @brief Example server application using the BACnet Stack on a Raspberry Pi
+ * with a PiFace Digital I/O card.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date January 2023
- *
- * SPDX-License-Identifier: MIT
- *
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -37,7 +36,6 @@
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/blo.h"
 #include "bacnet/basic/object/bo.h"
-#include "pifacedigital.h"
 
 /** @file server/main.c  Example server application using the BACnet Stack. */
 
@@ -58,6 +56,15 @@ static struct mstimer BACnet_Address_Timer;
 static struct mstimer BACnet_Object_Timer;
 /* track the state of of the output */
 static bool PiFace_Output_State[PIFACE_OUTPUTS_MAX];
+
+#ifndef BUILD_PIPELINE
+#include "pifacedigital.h"
+#else
+#define pifacedigital_digital_write(a, b) printf("PiFace write[%u]=%d\n", a, b)
+#define pifacedigital_digital_read(a) printf("PiFace read[%u]\n", a)
+#define pifacedigital_open(a) printf("PiFace Open=%d\n", a)
+#define pifacedigital_close(a) printf("PiFace Close=%d\n", a)
+#endif
 
 /**
  * @brief output write value request
@@ -163,8 +170,6 @@ static void Init_Service_Handlers(void)
         SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,

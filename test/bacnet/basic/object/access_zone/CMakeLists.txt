@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/object/access_credential.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/authentication_factor.c
     ${SRC_DIR}/bacnet/assigned_access_rights.c
     ${SRC_DIR}/bacnet/bacaction.c
@@ -61,6 +62,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
+    ${SRC_DIR}/bacnet/secure_connect.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

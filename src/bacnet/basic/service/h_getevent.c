@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -18,17 +17,22 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/event.h"
 #include "bacnet/getevent.h"
 /* basic objects, services, TSM, and datalink */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
 static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
 
-/** print eventState
+/**
+ * @brief print the data for a GetEventInformation service request
+ * @param data [in]  The data to print
+ * @param device_id [in] The device id to print
  */
 void ge_ack_print_data(
     BACNET_GET_EVENT_INFORMATION_DATA *data, uint32_t device_id)
@@ -48,6 +52,11 @@ void ge_ack_print_data(
     printf("\n%u\t Total\n", count);
 }
 
+/**
+ * @brief Set the handler for the GetEventInformation service.
+ * @param object_type [in] The BACNET_OBJECT_TYPE to set the handler for.
+ * @param pFunction [in] The handler function to set.
+ */
 void handler_get_event_information_set(
     BACNET_OBJECT_TYPE object_type, get_event_info_function pFunction)
 {
@@ -56,6 +65,19 @@ void handler_get_event_information_set(
     }
 }
 
+/**
+ * @brief Handle a GetEventInformation service request.
+ * @details The GetEventInformation service is used by a client BACnet-user to
+ * obtain a summary of all "active event states". The term "active event states"
+ * refers to all event-initiating objects that have an Event_State property
+ * whose value is not equal to NORMAL,
+ * or have an Acked_Transitions property, which has at least one of the bits
+ * (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE.
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ */
 void handler_get_event_information(
     uint8_t *service_request,
     uint16_t service_len,
@@ -68,9 +90,7 @@ void handler_get_event_information(
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
     bool more_events = false;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
@@ -84,7 +104,7 @@ void handler_get_event_information(
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
@@ -92,15 +112,10 @@ void handler_get_event_information(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(
-            stderr,
-            "GetEventInformation: "
-            "Segmented message. Sending Abort!\n");
-#endif
+        debug_print("GetEventInformation: "
+                    "Segmented message. Sending Abort!\n");
         goto GET_EVENT_ABORT;
     }
-
     len = getevent_decode_service_request(
         service_request, service_len, &object_id);
     if (len < 0) {
@@ -108,9 +123,8 @@ void handler_get_event_information(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "GetEventInformation: Bad Encoding.  Sending Abort!\n");
-#endif
+        debug_print("GetEventInformation: Bad Encoding. "
+                    "Sending Abort!\n");
         goto GET_EVENT_ABORT;
     }
     len = getevent_ack_encode_apdu_init(
@@ -182,9 +196,7 @@ void handler_get_event_information(
         error = true;
         goto GET_EVENT_ERROR;
     }
-#if PRINT_ENABLED
-    fprintf(stderr, "Got a GetEventInformation request: Sending Ack!\n");
-#endif
+    debug_print("Got a GetEventInformation request: Sending Ack!\n");
 GET_EVENT_ERROR:
     if (error) {
         pdu_len = npdu_encode_pdu(
@@ -195,33 +207,22 @@ GET_EVENT_ERROR:
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-            fprintf(
-                stderr,
-                "GetEventInformation: "
-                "Reply too big to fit into APDU!\n");
-#endif
+            debug_print("GetEventInformation: "
+                        "Reply too big to fit into APDU!\n");
         } else {
             len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
-#if PRINT_ENABLED
-            fprintf(stderr, "GetEventInformation: Sending Error!\n");
-#endif
+            debug_print("GetEventInformation: Sending Error!\n");
         }
     }
 GET_EVENT_ABORT:
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("GetEventInformation: Failed to send PDU");
     }
-#endif
 
     return;
 }

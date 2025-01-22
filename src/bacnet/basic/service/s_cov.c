@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send a COVNotification or SubscribeCOV-Request.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -21,11 +20,9 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_cov.c  Send a Change of Value (COV) update or a Subscribe COV
- * request. */
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/datalink.h"
 
 /** Encodes an Unconfirmed COV Notification.
  * @ingroup DSCOV
@@ -151,21 +148,15 @@ uint8_t Send_COV_Subscribe(
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-                fprintf(
-                    stderr, "Failed to Send SubscribeCOV Request (%s)!\n",
-                    strerror(errno));
-#endif
+                debug_perror("Failed to Send SubscribeCOV Request");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send SubscribeCOV Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

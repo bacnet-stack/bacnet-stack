@@ -285,7 +285,7 @@ static bool bbmd6_address_from_bacnet_address(
  * @param pdu - the bytes of data to send
  * @param pdu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bvlc6_send_pdu(
     const BACNET_ADDRESS *dest,
@@ -452,7 +452,7 @@ static void bbmd6_send_forward_npdu(
  * @param result_code - BVLC result code
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 static int bvlc6_send_result(
     const BACNET_IP6_ADDRESS *dest_addr,
@@ -476,7 +476,7 @@ static int bvlc6_send_result(
  * @param vmac_dst - Destination-Virtual-Address
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 static int bvlc6_send_address_resolution_ack(
     const BACNET_IP6_ADDRESS *dest_addr, uint32_t vmac_src, uint32_t vmac_dst)
@@ -500,7 +500,7 @@ static int bvlc6_send_address_resolution_ack(
  * @param vmac_dst - Destination-Virtual-Address
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 static int bvlc6_send_virtual_address_resolution_ack(
     const BACNET_IP6_ADDRESS *dest_addr, uint32_t vmac_src, uint32_t vmac_dst)

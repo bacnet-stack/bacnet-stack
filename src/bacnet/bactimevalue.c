@@ -69,7 +69,7 @@ int bacnet_time_value_encode(uint8_t *apdu, const BACNET_TIME_VALUE *value)
 {
     int len;
     int apdu_len = 0;
-    BACNET_APPLICATION_DATA_VALUE data;
+    BACNET_APPLICATION_DATA_VALUE data = { 0 };
 
     if (!value || !is_data_value_schedule_compatible(value->Value.tag)) {
         return BACNET_STATUS_ERROR;

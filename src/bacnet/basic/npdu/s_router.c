@@ -7,7 +7,6 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
@@ -169,19 +168,13 @@ int Send_Network_Layer_Message(
             "Sending %s message to local BACnet network \n",
             bactext_network_layer_msg_name(network_message_type));
     }
-
     /* Now send the message */
     bytes_sent = datalink_send_pdu(
         dst, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
     if (bytes_sent <= 0) {
-        int wasErrno = errno; /* preserve the errno */
-        debug_printf(
-            "Failed to send %s message (%s)!\n",
-            bactext_network_layer_msg_name(network_message_type),
-            strerror(wasErrno));
+        debug_perror("Failed to send message");
     }
-#endif
+
     return bytes_sent;
 }
 
@@ -236,7 +229,7 @@ void Send_Reject_Message_To_Network(
     iArgs[1] = dnet;
     Send_Network_Layer_Message(
         NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, dst, iArgs);
-    debug_printf("  Reject Reason=%d, DNET=%u\n", reject_reason, dnet);
+    debug_printf("Reject Reason=%d, DNET=%u\n", reject_reason, dnet);
 }
 
 /** Send an Initialize Routing Table message, built from an optional DNET[]
