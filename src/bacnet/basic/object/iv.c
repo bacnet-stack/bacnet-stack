@@ -20,14 +20,13 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
+/* basic objects and services */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/keylist.h"
 /* me! */
 #include "bacnet/basic/object/iv.h"
-#include "bacnet/basic/sys/keylist.h"
-#include "bacnet/basic/sys/debug.h"
-
-#define PRINTF debug_perror
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List = NULL;
@@ -348,9 +347,9 @@ bool Integer_Value_Description_Set(
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Integer_Value_Description_ANSI(uint32_t object_instance)
+const char *Integer_Value_Description_ANSI(uint32_t object_instance)
 {
-    char *name = NULL;
+    const char *name = NULL;
     struct integer_object *pObject;
 
     pObject = Integer_Value_Object(object_instance);
@@ -358,7 +357,7 @@ char *Integer_Value_Description_ANSI(uint32_t object_instance)
         if (pObject->Description == NULL) {
             name = "";
         } else {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         }
     }
 
@@ -546,7 +545,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(

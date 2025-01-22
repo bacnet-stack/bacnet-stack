@@ -1,15 +1,17 @@
-/*
- * Copyright (c) 2021 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /* @file
- * @brief test BACnet integer encode/decode APIs
+ * @brief tests day of year calculations API
+ * @date August 2021
+ * @author Steve Karg <Steve Karg <skarg@users.sourceforge.net>
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/sys/days.h>
+
+/* define our epic beginnings */
+#define BACNET_EPOCH_YEAR 1900
+/* 1/1/1900 is a Monday */
+/* Monday=1..Sunday=7 */
+#define BACNET_EPOCH_DOW 1
 
 /**
  * @addtogroup bacnet_tests
@@ -31,9 +33,43 @@ static void test_epoch_conversion_date(
     days = days_since_epoch(epoch_year, year, month, day);
     days_since_epoch_to_date(
         epoch_year, days, &test_year, &test_month, &test_day);
-    zassert_equal(year, test_year, NULL);
-    zassert_equal(month, test_month, NULL);
-    zassert_equal(day, test_day, NULL);
+    zassert_equal(
+        year, test_year, "date=%u/%u/%u year=%u test_year=%u", year, month, day,
+        year, test_year);
+    zassert_equal(
+        month, test_month, "date=%u/%u/%u month=%u test_month=%u", year, month,
+        day, month, test_month);
+    zassert_equal(
+        day, test_day, "date=%u/%u/%u day=%u test_day=%u", year, month, day,
+        day, test_day);
+}
+
+/**
+ * Unit Test for the day of week based on epoch year and epoch day of week
+ * @param epoch_year - years after Christ birth (0..9999 AD)
+ * @param epoch_dow - day of week (1=Monday...7=Sunday)
+ * @param year - years after Christ birth (0..9999 AD)
+ * @param month - months (1=Jan...12=Dec)
+ * @param day - day of month (1-31)
+ * @param dow - day of week (1=Monday...7=Sunday)
+ */
+static void test_epoch_conversion_day(
+    uint16_t epoch_year,
+    uint8_t epoch_dow,
+    uint16_t year,
+    uint8_t month,
+    uint8_t day,
+    uint8_t dow)
+{
+    uint32_t days;
+    uint16_t test_dow;
+
+    /* conversions of day and date */
+    days = days_since_epoch(epoch_year, year, month, day);
+    test_dow = days_of_week(epoch_dow, days);
+    zassert_equal(
+        dow, test_dow, "date=%u/%u/%u dow=%u test_dow=%u", year, month, day,
+        dow, test_dow);
 }
 
 /**
@@ -45,13 +81,28 @@ ZTEST(days_tests, test_days_epoch_conversion)
 static void test_days_epoch_conversion(void)
 #endif
 {
-    const uint16_t epoch_year = 2000;
+    const uint16_t epoch_year = BACNET_EPOCH_YEAR;
+    const uint8_t epoch_day_of_week = BACNET_EPOCH_DOW;
 
     test_epoch_conversion_date(epoch_year, 2000, 1, 1);
     test_epoch_conversion_date(epoch_year, 2048, 2, 28);
     test_epoch_conversion_date(epoch_year, 2048, 2, 29);
     test_epoch_conversion_date(epoch_year, 2038, 6, 15);
     test_epoch_conversion_date(epoch_year, 9999, 12, 31);
+
+    test_epoch_conversion_day(
+        epoch_year, epoch_day_of_week, epoch_year, 1, 1, epoch_day_of_week);
+    /* some known day of week (1=Monday...7=Sunday) */
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 6, 1);
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 7, 2);
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 8, 3);
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 9, 4);
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 10, 5);
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 11, 6);
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 12, 7);
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2003, 1, 13, 1);
+    /* 50th wedding anniversary */
+    test_epoch_conversion_day(epoch_year, epoch_day_of_week, 2043, 6, 26, 5);
 }
 
 /**
@@ -135,6 +186,42 @@ static void test_days_date_is_valid(void)
 }
 
 /**
+ * Unit Test for the days, checking the date to see if it is a valid date
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(days_tests, test_days_since_epoch)
+#else
+static void test_days_since_epoch(void)
+#endif
+{
+    uint32_t days = 0;
+    uint16_t year = 0, test_year = 0;
+    uint8_t month = 0, test_month = 0;
+    uint8_t day = 0, test_day = 0;
+
+    days = days_since_epoch(BACNET_EPOCH_YEAR, BACNET_EPOCH_YEAR, 1, 1);
+    zassert_equal(days, 0, "days=%lu", (unsigned long)days);
+    days_since_epoch_to_date(BACNET_EPOCH_YEAR, days, &year, &month, &day);
+    zassert_equal(year, BACNET_EPOCH_YEAR, NULL);
+    zassert_equal(month, 1, NULL);
+    zassert_equal(day, 1, NULL);
+
+    for (year = BACNET_EPOCH_YEAR; year < (BACNET_EPOCH_YEAR + 0xFF); year++) {
+        for (month = 1; month <= 12; month++) {
+            for (day = 1; day <= days_per_month(year, month); day++) {
+                days = days_since_epoch(BACNET_EPOCH_YEAR, year, month, day);
+                days_since_epoch_to_date(
+                    BACNET_EPOCH_YEAR, days, &test_year, &test_month,
+                    &test_day);
+                zassert_equal(year, test_year, NULL);
+                zassert_equal(month, test_month, NULL);
+                zassert_equal(day, test_day, NULL);
+            }
+        }
+    }
+}
+
+/**
  * Unit Test for days apart, checking the dates to see how many days apart
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -162,6 +249,7 @@ void test_main(void)
 {
     ztest_test_suite(
         days_tests, ztest_unit_test(test_days_epoch_conversion),
+        ztest_unit_test(test_days_since_epoch),
         ztest_unit_test(test_days_of_year_to_md),
         ztest_unit_test(test_days_date_is_valid),
         ztest_unit_test(test_days_apart));

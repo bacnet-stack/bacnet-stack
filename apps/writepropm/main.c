@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <errno.h>
 #include <time.h> /* for time */
 #define PRINT_ENABLED 1
 /* BACnet Stack defines - first */

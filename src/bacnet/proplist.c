@@ -334,3 +334,215 @@ bool property_list_common(BACNET_PROPERTY_ID property)
 
     return status;
 }
+
+/* standard properties that are arrays
+   but not required to be supported in every object */
+static const int Properties_BACnetARRAY[] = {
+    /* unordered list of properties */
+    PROP_OBJECT_LIST,
+    PROP_STRUCTURED_OBJECT_LIST,
+    PROP_CONFIGURATION_FILES,
+    PROP_PROPERTY_LIST,
+    PROP_AUTHENTICATION_FACTORS,
+    PROP_ASSIGNED_ACCESS_RIGHTS,
+    PROP_ACTION,
+    PROP_ACTION_TEXT,
+    PROP_PRIORITY_ARRAY,
+    PROP_VALUE_SOURCE_ARRAY,
+    PROP_COMMAND_TIME_ARRAY,
+    PROP_ALARM_VALUES,
+    PROP_FAULT_VALUES,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_SUPPORTED_FORMATS,
+    PROP_SUPPORTED_FORMAT_CLASSES,
+    PROP_SUBORDINATE_LIST,
+    PROP_SUBORDINATE_ANNOTATIONS,
+    PROP_SUBORDINATE_TAGS,
+    PROP_SUBORDINATE_NODE_TYPES,
+    PROP_SUBORDINATE_RELATIONSHIPS,
+    PROP_GROUP_MEMBERS,
+    PROP_GROUP_MEMBER_NAMES,
+    PROP_EXECUTION_DELAY,
+    PROP_CONTROL_GROUPS,
+    PROP_BIT_TEXT,
+    PROP_PORT_FILTER,
+    PROP_NOTIFICATION_CLASS,
+    PROP_STATE_CHANGE_VALUES,
+    PROP_LINK_SPEEDS,
+    PROP_IP_DNS_SERVER,
+    PROP_IPV6_DNS_SERVER,
+    PROP_FLOOR_TEXT,
+    PROP_CAR_DOOR_TEXT,
+    PROP_ASSIGNED_LANDING_CALLS,
+    PROP_MAKING_CAR_CALL,
+    PROP_REGISTERED_CAR_CALL,
+    PROP_CAR_DOOR_STATUS,
+    PROP_CAR_DOOR_COMMAND,
+    PROP_LANDING_DOOR_STATUS,
+    PROP_STAGES,
+    PROP_STAGE_NAMES,
+    PROP_STATE_TEXT,
+    PROP_TARGET_REFERENCES,
+    PROP_MONITORED_OBJECTS,
+    PROP_SHED_LEVELS,
+    PROP_SHED_LEVEL_DESCRIPTIONS,
+    PROP_WEEKLY_SCHEDULE,
+    PROP_EXCEPTION_SCHEDULE,
+    PROP_TAGS,
+    PROP_ISSUER_CERTIFICATE_FILES,
+    PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
+    -1
+};
+
+/**
+ * Function that returns the list of Required properties
+ * of known standard objects.
+ *
+ * @param object_type - enumerated BACNET_OBJECT_TYPE
+ * @return returns a pointer to a '-1' terminated array of
+ * type 'int' that contain BACnet object properties for the given object
+ * type.
+ */
+const int *property_list_bacnet_array(void)
+{
+    return Properties_BACnetARRAY;
+}
+
+/**
+ * @brief Determine if the object property is a BACnetARRAY property
+ * @param object_type - object-type to be checked
+ * @param object_property - object-property to be checked
+ * @return true if the property is a BACnetARRAY property
+ */
+bool property_list_bacnet_array_member(
+    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
+{
+    /* exceptions where property is an BACnetARRAY only in specific objects */
+    switch (object_type) {
+        case OBJECT_GLOBAL_GROUP:
+            switch (object_property) {
+                case PROP_PRESENT_VALUE:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_CHANNEL:
+            switch (object_property) {
+                case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+    if ((object_property >= PROP_PROPRIETARY_RANGE_MIN) &&
+        (object_property <= PROP_PROPRIETARY_RANGE_MAX)) {
+        /* all proprietary properties could be a BACnetARRAY */
+        return true;
+    }
+
+    return property_list_member(Properties_BACnetARRAY, object_property);
+}
+
+/* standard properties that are BACnetLIST */
+static const int Properties_BACnetLIST[] = {
+    /* unordered list of properties */
+    PROP_DATE_LIST,
+    PROP_VT_CLASSES_SUPPORTED,
+    PROP_ACTIVE_VT_SESSIONS,
+    PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_DEVICE_ADDRESS_BINDING,
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
+    PROP_RESTART_NOTIFICATION_RECIPIENTS,
+    PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_ACTIVE_COV_MULTIPLE_SUBSCRIPTIONS,
+    PROP_LIST_OF_GROUP_MEMBERS,
+    PROP_ACCEPTED_MODES,
+    PROP_LIFE_SAFETY_ALARM_VALUES,
+    PROP_ALARM_VALUES,
+    PROP_FAULT_VALUES,
+    PROP_MEMBER_OF,
+    PROP_ZONE_MEMBERS,
+    PROP_RECIPIENT_LIST,
+    PROP_LOG_BUFFER,
+    PROP_MASKED_ALARM_VALUES,
+    PROP_FAILED_ATTEMPT_EVENTS,
+    PROP_ACCESS_ALARM_EVENTS,
+    PROP_ACCESS_TRANSACTION_EVENTS,
+    PROP_CREDENTIALS_IN_ZONE,
+    PROP_ENTRY_POINTS,
+    PROP_EXIT_POINTS,
+    PROP_MEMBERS,
+    PROP_CREDENTIALS,
+    PROP_REASON_FOR_DISABLE,
+    PROP_AUTHORIZATION_EXEMPTIONS,
+    PROP_COVU_RECIPIENTS,
+    PROP_SUBSCRIBED_RECIPIENTS,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    PROP_MANUAL_SLAVE_ADDRESS_BINDING,
+    PROP_SLAVE_ADDRESS_BINDING,
+    PROP_VIRTUAL_MAC_ADDRESS_TABLE,
+    PROP_ROUTING_TABLE,
+    PROP_LANDING_CALLS,
+    PROP_FAULT_SIGNALS,
+    -1
+};
+
+/**
+ * Returns the list of BACnetLIST properties of known standard objects.
+ *
+ * @param object_type - enumerated BACNET_OBJECT_TYPE
+ * @return returns a pointer to a '-1' terminated array of
+ * type 'int' that contain BACnet object properties for the given object
+ * type.
+ */
+const int *property_list_bacnet_list(void)
+{
+    return Properties_BACnetLIST;
+}
+
+/**
+ * @brief Determine if the object property is a BACnetLIST property
+ * @param object_type - object-type to be checked
+ * @param object_property - object-property to be checked
+ * @return true if the property is a BACnetLIST property
+ */
+bool property_list_bacnet_list_member(
+    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
+{
+    /* exceptions where property is an BACnetLIST only in specific objects */
+    switch (object_type) {
+        case OBJECT_GROUP:
+            switch (object_property) {
+                case PROP_PRESENT_VALUE:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_SCHEDULE:
+        case OBJECT_TIMER:
+            switch (object_property) {
+                case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+    if ((object_property >= PROP_PROPRIETARY_RANGE_MIN) &&
+        (object_property <= PROP_PROPRIETARY_RANGE_MAX)) {
+        /* all proprietary properties could be a BACnetLIST */
+        return true;
+    }
+
+    return property_list_member(Properties_BACnetLIST, object_property);
+}

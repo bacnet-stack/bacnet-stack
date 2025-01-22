@@ -7,6 +7,8 @@
  */
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
 #include "bacnet/access_rule.h"
 #include "bacnet/bacdcode.h"
 
@@ -64,35 +66,6 @@ int bacapp_encode_access_rule(uint8_t *apdu, const BACNET_ACCESS_RULE *rule)
         }
     }
     len = encode_context_boolean(apdu, 4, rule->enable);
-    apdu_len += len;
-
-    return apdu_len;
-}
-
-/**
- * @brief Encode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for encoding, or NULL for length
- * @param tag_number  Tag number
- * @param rule  Pointer to the data to be encoded
- * @return number of bytes encoded
- */
-int bacapp_encode_context_access_rule(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_ACCESS_RULE *rule)
-{
-    int len;
-    int apdu_len = 0;
-
-    len = encode_opening_tag(apdu, tag_number);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = bacapp_encode_access_rule(apdu, rule);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_closing_tag(apdu, tag_number);
     apdu_len += len;
 
     return apdu_len;
@@ -207,52 +180,109 @@ int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *data)
 }
 
 /**
- * @brief Decode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for decoding.
- * @param apdu_size The size of the buffer for decoding.
- * @param tag_number  Tag number
- * @param data  Pointer to the data to be stored
- * @return number of bytes decoded or BACNET_STATUS_ERROR on error
+ * @brief Parse a string into a BACnetAccessRule value
+ * @param value [out] The BACnetAccessRule value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
  */
-int bacnet_access_rule_context_decode(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_ACCESS_RULE *data)
+bool bacnet_access_rule_from_ascii(BACNET_ACCESS_RULE *value, const char *argv)
 {
-    int len = 0;
-    int apdu_len = 0;
+    int count = 0;
+    unsigned long device_instance1 = 0, instance1 = 0, property1 = 0;
+    unsigned long device_instance2 = 0, instance2 = 0;
+    unsigned int object_type1 = 0, object_type2 = 0;
 
-    if (!bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+    if (!value || !argv) {
+        return false;
     }
-    apdu_len += len;
-    len =
-        bacnet_access_rule_decode(&apdu[apdu_len], apdu_size - apdu_len, data);
-    if (len <= 0) {
-        return BACNET_STATUS_ERROR;
+    /* BACnetDeviceObjectPropertyReference or OPTIONAL=ALWAYS */
+    /* BACnetDeviceObjectReference or OPTIONAL=ALL */
+    if (strcmp(argv, "always,all") == 0) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_ALWAYS;
+        value->location_specifier = LOCATION_SPECIFIER_ALL;
+        return true;
     }
-    apdu_len += len;
-    if (!bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+    count = sscanf(
+        argv, "%7lu:%4u:%7lu:%7lu,%7lu:%4u:%7lu", &device_instance1,
+        &object_type1, &instance1, &property1, &device_instance2, &object_type2,
+        &instance2);
+    if (count == 7) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_SPECIFIED;
+        value->time_range.deviceIdentifier.type = OBJECT_DEVICE;
+        value->time_range.deviceIdentifier.instance = device_instance1;
+        value->time_range.objectIdentifier.type = object_type1;
+        value->time_range.objectIdentifier.instance = instance1;
+        value->time_range.propertyIdentifier = property1;
+        value->location_specifier = LOCATION_SPECIFIER_SPECIFIED;
+        value->location.deviceIdentifier.type = OBJECT_DEVICE;
+        value->location.deviceIdentifier.instance = instance1;
+        value->location.objectIdentifier.type = object_type2;
+        value->location.objectIdentifier.instance = instance2;
+        return true;
     }
-    apdu_len += len;
+    count = sscanf(
+        argv, "%7lu:%4u:%7lu:%7lu,all", &device_instance1, &object_type1,
+        &instance1, &property1);
+    if (count == 5) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_SPECIFIED;
+        value->time_range.deviceIdentifier.type = OBJECT_DEVICE;
+        value->time_range.deviceIdentifier.instance = device_instance1;
+        value->time_range.objectIdentifier.type = object_type1;
+        value->time_range.objectIdentifier.instance = instance1;
+        value->time_range.propertyIdentifier = property1;
+        value->location_specifier = LOCATION_SPECIFIER_ALL;
+        return true;
+    }
+    count = sscanf(
+        argv, "always,%7lu:%4u:%7lu", &device_instance2, &object_type2,
+        &instance2);
+    if (count == 3) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_ALWAYS;
+        value->location_specifier = LOCATION_SPECIFIER_SPECIFIED;
+        value->location.deviceIdentifier.type = OBJECT_DEVICE;
+        value->location.deviceIdentifier.instance = device_instance2;
+        value->location.objectIdentifier.type = object_type2;
+        value->location.objectIdentifier.instance = instance2;
+        return true;
+    }
 
-    return apdu_len;
+    return false;
 }
 
 /**
- * @brief Decode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for decoding.
- * @param tag_number  Tag number
- * @param data  Pointer to the data to be stored
- * @return number of bytes decoded or BACNET_STATUS_ERROR on error
- * @deprecated Use bacnet_access_rule_context_decode() instead
+ * @brief Compare two BACnetAccessRule values
+ * @param value1 [in] The first BACnetAccessRule value
+ * @param value2 [in] The second BACnetAccessRule value
+ * @return True if the values are the same, else False
  */
-int bacapp_decode_context_access_rule(
-    const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *data)
+bool bacnet_access_rule_same(
+    const BACNET_ACCESS_RULE *value1, const BACNET_ACCESS_RULE *value2)
 {
-    return bacnet_access_rule_context_decode(apdu, MAX_APDU, tag_number, data);
+    bool status;
+
+    if (value1->time_range_specifier != value2->time_range_specifier) {
+        return false;
+    }
+    if (value1->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
+        status = bacnet_device_object_property_reference_same(
+            &value1->time_range, &value2->time_range);
+        if (!status) {
+            return false;
+        }
+    }
+    if (value1->location_specifier != value2->location_specifier) {
+        return false;
+    }
+    if (value1->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
+        status = bacnet_device_object_reference_same(
+            &value1->location, &value2->location);
+        if (!status) {
+            return false;
+        }
+    }
+    if (value1->enable != value2->enable) {
+        return false;
+    }
+
+    return true;
 }

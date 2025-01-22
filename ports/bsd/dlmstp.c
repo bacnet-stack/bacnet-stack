@@ -1,11 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- * Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Provides BSD-specific DataLink functions for MS/TP.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Nikola Jelic 2011 <nikola.jelic@euroicc.com>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -27,12 +27,8 @@
 /* port specific */
 #include "rs485.h"
 
-/** @file bsd/dlmstp.c  Provides BSD-specific DataLink functions for MS/TP.
- */
-
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
-
 /* packet queues */
 static DLMSTP_PACKET Receive_Packet;
 /* mechanism to wait for a packet */

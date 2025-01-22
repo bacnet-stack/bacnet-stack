@@ -1,12 +1,8 @@
 /* @file
- * @brief test BACnet integer encode/decode APIs
- * @date June 2022
  * @brief tests sRGB to and from from CIE xy and brightness API
- *
- * @section LICENSE
- * Copyright (c) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @date June 2022
+ * @author Steve Karg <Steve Karg <skarg@users.sourceforge.net>
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>

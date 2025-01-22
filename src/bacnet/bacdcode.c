@@ -1246,7 +1246,7 @@ int bacnet_boolean_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param boolean_value - decoded Boolean Value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_boolean_application_decode(
@@ -1256,9 +1256,12 @@ int bacnet_boolean_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_BOOLEAN) {
+    if (len > 0) {
+        if (tag.application && (tag.number == BACNET_APPLICATION_TAG_BOOLEAN)) {
             apdu_len = len;
             if (boolean_value) {
                 *boolean_value = decode_boolean(tag.len_value_type);
@@ -1291,7 +1294,7 @@ int bacnet_boolean_application_decode(
  * @param tag_value - context tag number expected
  * @param boolean_value - decoded Boolean Value, if decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_boolean_context_decode(
@@ -1304,9 +1307,12 @@ int bacnet_boolean_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             if (apdu_len < apdu_size) {
                 if (boolean_value) {
@@ -1521,7 +1527,7 @@ int bacnet_bitstring_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_bitstring_application_decode(
@@ -1531,9 +1537,13 @@ int bacnet_bitstring_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_BIT_STRING) {
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_BIT_STRING)) {
             apdu_len = len;
             len = bacnet_bitstring_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -1561,7 +1571,7 @@ int bacnet_bitstring_application_decode(
  * @param tag_value - context tag number expected
  * @param value - decoded value, if decoded
  *
- * @return  number of bytes decoded, or zero if tag number mismatch, or
+ * @return  number of bytes decoded, or zero if tag mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_bitstring_context_decode(
@@ -1574,9 +1584,12 @@ int bacnet_bitstring_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_bitstring_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -1851,7 +1864,7 @@ int bacnet_object_id_application_encode(
  * @param object_type - decoded object type, if decoded
  * @param object_instance - decoded object instance, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_object_id_application_decode(
@@ -1864,9 +1877,13 @@ int bacnet_object_id_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_OBJECT_ID) {
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_OBJECT_ID)) {
             apdu_len = len;
             len = bacnet_object_id_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -1895,7 +1912,7 @@ int bacnet_object_id_application_decode(
  * @param object_type - decoded object type, if decoded
  * @param object_instance - decoded object instance, if decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_object_id_context_decode(
@@ -1909,9 +1926,12 @@ int bacnet_object_id_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_object_id_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -1927,6 +1947,27 @@ int bacnet_object_id_context_decode(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Compare two object identifiers for equality.
+ * @param value1 - first object identifier
+ * @param value2 - second object identifier
+ * @return true if the object identifiers are the same, false otherwise
+ */
+bool bacnet_object_id_same(
+    BACNET_OBJECT_TYPE object_type1,
+    uint32_t instance1,
+    BACNET_OBJECT_TYPE object_type2,
+    uint32_t instance2)
+{
+    bool status = false;
+
+    if ((object_type1 == object_type2) && (instance1 == instance2)) {
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -2258,7 +2299,7 @@ int bacnet_octet_string_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded, or NULL for length
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_octet_string_application_decode(
@@ -2268,9 +2309,13 @@ int bacnet_octet_string_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_OCTET_STRING) {
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_OCTET_STRING)) {
             apdu_len = len;
             len = bacnet_octet_string_decode(
                 &apdu[len], apdu_size - apdu_len, tag.len_value_type, value);
@@ -2297,7 +2342,7 @@ int bacnet_octet_string_application_decode(
  * @param tag_value - context tag number expected
  * @param value - the value decoded, or NULL for length
  *
- * @return  number of bytes decoded, or zero if tag number mismatch, or
+ * @return  number of bytes decoded, or zero if tag mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_octet_string_context_decode(
@@ -2310,9 +2355,12 @@ int bacnet_octet_string_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_octet_string_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -2487,6 +2535,8 @@ int bacnet_character_string_decode(
                 string_value = (const char *)&apdu[1];
                 (void)characterstring_init(
                     char_string, encoding, string_value, len_value - 1);
+            } else {
+                (void)characterstring_init(char_string, encoding, NULL, 0);
             }
             len = (int)len_value;
         }
@@ -2551,7 +2601,7 @@ int bacnet_character_string_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_character_string_application_decode(
@@ -2561,9 +2611,13 @@ int bacnet_character_string_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
             apdu_len = len;
             len = bacnet_character_string_decode(
                 &apdu[len], apdu_size - apdu_len, tag.len_value_type, value);
@@ -2590,7 +2644,7 @@ int bacnet_character_string_application_decode(
  * @param tag_value - context tag number expected
  * @param value - the value decoded, if decoded
  *
- * @return  number of bytes decoded, or zero if tag number mismatch, or
+ * @return  number of bytes decoded, or zero if tag mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_character_string_context_decode(
@@ -2603,9 +2657,12 @@ int bacnet_character_string_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_character_string_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -2756,7 +2813,7 @@ int bacnet_unsigned_decode(
  * @param tag_value - context tag number expected
  * @param value - the value decoded, if decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_unsigned_context_decode(
@@ -2769,9 +2826,12 @@ int bacnet_unsigned_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_unsigned_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -2826,7 +2886,7 @@ int bacnet_unsigned_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_unsigned_application_decode(
@@ -2836,9 +2896,13 @@ int bacnet_unsigned_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
             apdu_len = len;
             len = bacnet_unsigned_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -3090,7 +3154,7 @@ int bacnet_enumerated_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_enumerated_application_decode(
@@ -3101,9 +3165,13 @@ int bacnet_enumerated_application_decode(
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_ENUMERATED) {
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_ENUMERATED)) {
             apdu_len = len;
             /* note: enumerated is encoded as UNSIGNED INT */
             len = bacnet_unsigned_decode(
@@ -3139,7 +3207,7 @@ int bacnet_enumerated_application_decode(
  * @param tag_value - context tag number expected
  * @param value - the enumerated value decoded
  *
- * @return  number of bytes decoded, or zero if tag number mismatch, or
+ * @return  number of bytes decoded, or zero if tag mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_enumerated_context_decode(
@@ -3149,9 +3217,12 @@ int bacnet_enumerated_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_enumerated_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -3316,7 +3387,7 @@ int bacnet_signed_decode(
  * @param tag_value - context tag number expected
  * @param value - the signed value decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or error (-1) if malformed
  */
 int bacnet_signed_context_decode(
@@ -3326,9 +3397,12 @@ int bacnet_signed_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_signed_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -3382,7 +3456,7 @@ int bacnet_signed_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_signed_application_decode(
@@ -3392,9 +3466,13 @@ int bacnet_signed_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_SIGNED_INT) {
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_SIGNED_INT)) {
             apdu_len = len;
             len = bacnet_signed_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -3627,7 +3705,7 @@ int bacnet_real_decode(
  * @param tag_value - context tag number expected
  * @param value - the value decoded, if decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or error (-1) if malformed
  */
 int bacnet_real_context_decode(
@@ -3637,9 +3715,12 @@ int bacnet_real_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_real_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -3693,7 +3774,7 @@ int bacnet_real_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_real_application_decode(
@@ -3703,9 +3784,12 @@ int bacnet_real_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_REAL) {
+    if (len > 0) {
+        if (tag.application && (tag.number == BACNET_APPLICATION_TAG_REAL)) {
             apdu_len = len;
             len = bacnet_real_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -3838,7 +3922,7 @@ int bacnet_double_decode(
  * @param tag_value - context tag number expected
  * @param value - the value decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or error (-1) if malformed
  */
 int bacnet_double_context_decode(
@@ -3848,9 +3932,12 @@ int bacnet_double_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_double_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -3904,7 +3991,7 @@ int bacnet_double_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_double_application_decode(
@@ -3914,9 +4001,12 @@ int bacnet_double_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_DOUBLE) {
+    if (len > 0) {
+        if (tag.application && (tag.number == BACNET_APPLICATION_TAG_DOUBLE)) {
             apdu_len = len;
             len = bacnet_double_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -4081,7 +4171,7 @@ int bacnet_time_decode(
  * @param tag_value - context tag number expected
  * @param value - the value decoded, if decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or error (-1) if malformed
  */
 int bacnet_time_context_decode(
@@ -4094,9 +4184,12 @@ int bacnet_time_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_time_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -4150,7 +4243,7 @@ int bacnet_time_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_time_application_decode(
@@ -4160,9 +4253,12 @@ int bacnet_time_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_TIME) {
+    if (len > 0) {
+        if (tag.application && (tag.number == BACNET_APPLICATION_TAG_TIME)) {
             apdu_len = len;
             len = bacnet_time_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -4462,7 +4558,7 @@ int bacnet_date_decode(
  * @param tag_value - context tag number expected
  * @param value - the value decoded, if decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
+ * @return  number of bytes decoded, zero if tag mismatch,
  * or error (-1) if malformed
  */
 int bacnet_date_context_decode(
@@ -4475,9 +4571,12 @@ int bacnet_date_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.context) {
-        if (tag.number == tag_value) {
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
             len = bacnet_date_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -4531,7 +4630,7 @@ int bacnet_date_application_encode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
+ * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_date_application_decode(
@@ -4541,9 +4640,12 @@ int bacnet_date_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
-        if (tag.number == BACNET_APPLICATION_TAG_DATE) {
+    if (len > 0) {
+        if (tag.application && (tag.number == BACNET_APPLICATION_TAG_DATE)) {
             apdu_len = len;
             len = bacnet_date_decode(
                 &apdu[len], apdu_size - apdu_len, tag.len_value_type, value);
@@ -4702,4 +4804,87 @@ int bacnet_array_encode(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Decode a BACnetARRAY property value and call a function for each
+ * element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to be decoded
+ *    0 for the array size
+ *    1 to n for individual array members
+ *    BACNET_ARRAY_ALL for the full array to be read.
+ * @param decode_function [in] function to decode one property array element and
+ * determine the length
+ * @param write_function [in] function to write one property array element with
+ * the encoded value
+ * @param array_size [in] number of elements in the array
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ * @return BACNET_ERROR_CODE value
+ */
+BACNET_ERROR_CODE bacnet_array_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_array_property_element_write_function write_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    int len = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    size_t apdu_len;
+    BACNET_ARRAY_INDEX index;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+
+    if (array_index == 0) {
+        /* Array element zero is the number of objects in the list */
+        len = bacnet_unsigned_application_decode(
+            apdu, apdu_size, &unsigned_value);
+        if (len > 0) {
+            error_code =
+                write_function(object_instance, array_index, apdu, apdu_size);
+        } else if (len == 0) {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        } else {
+            error_code = ERROR_CODE_ABORT_OTHER;
+        }
+    } else if (array_index == BACNET_ARRAY_ALL) {
+        /* verify decoding of all elements */
+        apdu_len = 0;
+        for (index = 1; index <= array_size; index++) {
+            len = decode_function(
+                object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+            if (len > 0) {
+                apdu_len += len;
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                break;
+            }
+        }
+        if (error_code == ERROR_CODE_SUCCESS) {
+            /* write each element */
+            apdu_len = 0;
+            for (index = 1; index <= array_size; index++) {
+                len = decode_function(
+                    object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+                error_code = write_function(
+                    object_instance, index, &apdu[apdu_len], len);
+                if (error_code != ERROR_CODE_SUCCESS) {
+                    break;
+                }
+                apdu_len += len;
+            }
+        }
+    } else if (array_index <= array_size) {
+        /* index was specified; write a single array element */
+        error_code =
+            write_function(object_instance, array_index, apdu, apdu_size);
+    } else {
+        /* array_index was specified out of range */
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
 }

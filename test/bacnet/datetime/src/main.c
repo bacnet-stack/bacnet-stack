@@ -22,8 +22,6 @@
 
 /* define our epic beginnings */
 #define BACNET_EPOCH_YEAR 1900
-/* 1/1/1900 is a Monday */
-#define BACNET_EPOCH_DOW BACNET_WEEKDAY_MONDAY
 
 /**
  * @addtogroup bacnet_tests
@@ -423,35 +421,6 @@ static void testDateEpochConversion(void)
         BACNET_EPOCH_YEAR + 0xFF - 1, 12, 31, 23, 59, 59, 0);
 }
 
-static void testDateEpoch(void)
-{
-    uint32_t days = 0;
-    uint16_t year = 0, test_year = 0;
-    uint8_t month = 0, test_month = 0;
-    uint8_t day = 0, test_day = 0;
-
-    days = days_since_epoch(BACNET_EPOCH_YEAR, BACNET_EPOCH_YEAR, 1, 1);
-    zassert_equal(days, 1, "days=%lu", (unsigned long)days);
-    days_since_epoch_to_date(BACNET_EPOCH_YEAR, days, &year, &month, &day);
-    zassert_equal(year, BACNET_EPOCH_YEAR, NULL);
-    zassert_equal(month, 1, NULL);
-    zassert_equal(day, 1, NULL);
-
-    for (year = BACNET_EPOCH_YEAR; year < (BACNET_EPOCH_YEAR + 0xFF); year++) {
-        for (month = 1; month <= 12; month++) {
-            for (day = 1; day <= days_per_month(year, month); day++) {
-                days = days_since_epoch(BACNET_EPOCH_YEAR, year, month, day);
-                days_since_epoch_to_date(
-                    BACNET_EPOCH_YEAR, days, &test_year, &test_month,
-                    &test_day);
-                zassert_equal(year, test_year, NULL);
-                zassert_equal(month, test_month, NULL);
-                zassert_equal(day, test_day, NULL);
-            }
-        }
-    }
-}
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacnet_datetime, testBACnetDayOfWeek)
 #else
@@ -641,11 +610,6 @@ ZTEST_SUITE(bacnet_datetime, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-#if 0
-     ztest_unit_test(testDateEpoch),
-     ztest_unit_test(testBACnetDateTimeSeconds),
-     ztest_unit_test(testDayOfYear),
-#endif
     ztest_test_suite(
         bacnet_datetime, ztest_unit_test(testBACnetDate),
         ztest_unit_test(testBACnetTime), ztest_unit_test(testBACnetDateTime),
@@ -654,7 +618,7 @@ void test_main(void)
         ztest_unit_test(testBACnetDateTimeAdd),
         ztest_unit_test(testBACnetDateTimeWildcard),
         ztest_unit_test(testDatetimeCodec),
-        ztest_unit_test(testWildcardDateTime), ztest_unit_test(testDateEpoch),
+        ztest_unit_test(testWildcardDateTime),
         ztest_unit_test(testBACnetDateTimeSeconds),
         ztest_unit_test(testDayOfYear),
         ztest_unit_test(testDatetimeConvertUTC));

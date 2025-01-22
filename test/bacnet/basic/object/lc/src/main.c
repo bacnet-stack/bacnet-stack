@@ -56,7 +56,7 @@ Load_Control_WriteProperty_Request_Shed_Level(int instance, unsigned level)
 static void Load_Control_WriteProperty_Enable(int instance, bool enable)
 {
     bool status = false;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
@@ -80,7 +80,7 @@ static void
 Load_Control_WriteProperty_Shed_Duration(int instance, unsigned duration)
 {
     bool status = false;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
@@ -103,7 +103,7 @@ static void
 Load_Control_WriteProperty_Duty_Window(int instance, unsigned duration)
 {
     bool status = false;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
@@ -126,7 +126,7 @@ static void Load_Control_WriteProperty_Start_Time_Wildcards(int instance)
 {
     int len = 0;
     bool status = false;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
@@ -158,7 +158,7 @@ static void Load_Control_WriteProperty_Start_Time(
 {
     int len = 0;
     bool status = false;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;

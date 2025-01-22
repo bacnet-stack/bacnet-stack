@@ -268,7 +268,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned int priority = 0;
     uint8_t level = ANALOG_LEVEL_NULL;
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     Analog_Value_Init();
     if (!Analog_Value_Valid_Instance(wp_data->object_instance)) {
