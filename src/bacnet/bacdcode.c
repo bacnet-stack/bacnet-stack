@@ -4423,11 +4423,12 @@ int encode_bacnet_date(uint8_t *apdu, const BACNET_DATE *bdate)
  * @param apdu  buffer to be encoded, or NULL for length
  * @param bdate The value to be encoded.
  *
- * @return the number of apdu bytes consumed.
+ * @return the number of apdu bytes consumed, or zero if errors occur.
  */
 int encode_application_date(uint8_t *apdu, const BACNET_DATE *bdate)
 {
     int len = 0;
+    int data_len = 0;
     uint8_t *apdu_offset = NULL;
 
     /* length of Date value is 4 octets, as per 20.2.12 */
@@ -4435,7 +4436,12 @@ int encode_application_date(uint8_t *apdu, const BACNET_DATE *bdate)
     if (apdu) {
         apdu_offset = &apdu[len];
     }
-    len += encode_bacnet_date(apdu_offset, bdate);
+    data_len = encode_bacnet_date(apdu_offset, bdate);
+    if (data_len < 0) {
+        return 0;
+    } else {
+        len += data_len;
+    }
 
     return len;
 }
@@ -4449,12 +4455,13 @@ int encode_application_date(uint8_t *apdu, const BACNET_DATE *bdate)
  * @param tag_number  Tag number to be used
  * @param bdate The value to be encoded.
  *
- * @return the number of apdu bytes consumed.
+ * @return the number of apdu bytes consumed, or zero if errors occur.
  */
 int encode_context_date(
     uint8_t *apdu, uint8_t tag_number, const BACNET_DATE *bdate)
 {
     int len = 0; /* return value */
+    int data_len = 0;
     uint8_t *apdu_offset = NULL;
 
     /* length of date is 4 octets, as per 20.2.12 */
@@ -4462,7 +4469,12 @@ int encode_context_date(
     if (apdu) {
         apdu_offset = &apdu[len];
     }
-    len += encode_bacnet_date(apdu_offset, bdate);
+    data_len = encode_bacnet_date(apdu_offset, bdate);
+    if (data_len < 0) {
+        return 0;
+    } else {
+        len += data_len;
+    }
 
     return len;
 }
