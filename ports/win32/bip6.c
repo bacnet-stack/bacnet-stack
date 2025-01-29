@@ -147,6 +147,7 @@ void bip6_set_interface(char *ifname)
             debug_fprintf(
                 stderr, "BIP6: IPv6 link local addresses needs a scope ID!\n");
         }
+        BIP6_Socket_Scope_Id = if_nametoindex(ifname);
         /* Allow us to use the same socket for sending and receiving */
         /* This makes sure that the src port is correct when sending */
         sockopt = 1;
@@ -176,26 +177,7 @@ void bip6_set_interface(char *ifname)
                 WSAGetLastError(), PrintError(WSAGetLastError()));
             continue;
         }
-        /* subscribe to a multicast address */
-        memcpy(
-            &broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0],
-            IP6_ADDRESS_MAX);
-        memcpy(
-            &join_request.ipv6mr_multiaddr, &broadcast_address,
-            sizeof(struct in6_addr));
-        /* Let system not choose the interface */
-        BIP6_Socket_Scope_Id = if_nametoindex(ifname);
-        join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
-        RetVal = setsockopt(
-            BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&join_request,
-            sizeof(join_request));
-        if (RetVal < 0) {
-            fprintf(
-                stderr,
-                "BIP6: setsockopt(IPV6_JOIN_GROUP) failed "
-                "with error %d: %s\n",
-                WSAGetLastError(), PrintError(WSAGetLastError()));
-        }
+        bip6_join_group();
         /* bind() associates a local address and port combination
            with the socket just created. This is most useful when
            the application is a server that has a well-known port
@@ -505,7 +487,7 @@ void bip6_join_group(void)
     struct ipv6_mreq join_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket == INVALID_SOCKET) {
+    if (BIP6_Socket < 0) {
         return;
     }
     /* join a multicast group */
@@ -518,10 +500,10 @@ void bip6_join_group(void)
     /* Let system not choose the interface */
     join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&join_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
         sizeof(join_request));
     if (status < 0) {
-        debug_fprintf(
+        fprintf(
             stderr,
             "BIP6: setsockopt(IPV6_JOIN_GROUP) failed "
             "with error %d: %s\n",
@@ -538,7 +520,7 @@ void bip6_leave_group(void)
     struct ipv6_mreq leave_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket == INVALID_SOCKET) {
+    if (BIP6_Socket < 0) {
         return;
     }
     /* leave a multicast address */
@@ -549,10 +531,10 @@ void bip6_leave_group(void)
         &leave_request.ipv6mr_multiaddr, &broadcast_address,
         sizeof(struct in6_addr));
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, (char *)&leave_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        debug_fprintf(
+        fprintf(
             stderr,
             "BIP6: setsockopt(IPV6_LEAVE_GROUP) failed "
             "with error %d: %s\n",

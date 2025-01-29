@@ -418,7 +418,7 @@ void bip6_join_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
         sizeof(join_request));
     if (status < 0) {
-        debug_perror("BIP6: setsockopt(IPV6_JOIN_GROUP)");
+        perror("BIP: setsockopt(IPV6_JOIN_GROUP)");
     }
 }
 
@@ -445,7 +445,7 @@ void bip6_leave_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        debug_perror("BIP6: setsockopt(IPV6_LEAVE_GROUP)");
+        perror("BIP: setsockopt(IPV6_LEAVE_GROUP)");
     }
 }
 
@@ -470,8 +470,6 @@ bool bip6_init(char *ifname)
 {
     int status = 0; /* return from socket lib calls */
     struct sockaddr_in6 server = { 0 };
-    struct in6_addr broadcast_address;
-    struct ipv6_mreq join_request;
     int sockopt = 0;
 
     if (ifname) {
@@ -516,22 +514,7 @@ bool bip6_init(char *ifname)
         BIP6_Socket = -1;
         return false;
     }
-    /* subscribe to a multicast address */
-    memcpy(
-        &broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0],
-        IP6_ADDRESS_MAX);
-    memcpy(
-        &join_request.ipv6mr_multiaddr, &broadcast_address,
-        sizeof(struct in6_addr));
-    /* Let system not choose the interface */
-    join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
-    status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
-        sizeof(join_request));
-    if (status < 0) {
-        perror("BIP: setsockopt(IPV6_JOIN_GROUP)");
-    }
-
+    bip6_join_group();
     /* bind the socket to the local port number and IP address */
     server.sin6_family = AF_INET6;
 #if 0
