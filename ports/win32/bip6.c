@@ -78,8 +78,6 @@ void bip6_set_interface(char *ifname)
     int i, RetVal;
     struct addrinfo Hints, *AddrInfo, *AI;
     struct sockaddr_in6 *sin;
-    struct in6_addr broadcast_address = { 0 };
-    struct ipv6_mreq join_request = { 0 };
     SOCKET ServSock[FD_SETSIZE] = { 0 };
     char port[6] = "";
     int sockopt = 0;
@@ -488,7 +486,7 @@ void bip6_join_group(void)
     struct ipv6_mreq join_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return;
     }
     /* join a multicast group */
@@ -501,7 +499,7 @@ void bip6_join_group(void)
     /* Let system not choose the interface */
     join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&join_request,
         sizeof(join_request));
     if (status < 0) {
         fprintf(
@@ -521,7 +519,7 @@ void bip6_leave_group(void)
     struct ipv6_mreq leave_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return;
     }
     /* leave a multicast address */
@@ -532,7 +530,7 @@ void bip6_leave_group(void)
         &leave_request.ipv6mr_multiaddr, &broadcast_address,
         sizeof(struct in6_addr));
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, (char *)&leave_request,
         sizeof(leave_request));
     if (status < 0) {
         fprintf(
