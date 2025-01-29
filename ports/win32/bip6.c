@@ -78,8 +78,6 @@ void bip6_set_interface(char *ifname)
     int i, RetVal;
     struct addrinfo Hints, *AddrInfo, *AI;
     struct sockaddr_in6 *sin;
-    struct in6_addr broadcast_address = { 0 };
-    struct ipv6_mreq join_request = { 0 };
     SOCKET ServSock[FD_SETSIZE] = { 0 };
     char port[6] = "";
     int sockopt = 0;
