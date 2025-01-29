@@ -110,7 +110,7 @@ void bip6_set_interface(char *ifname)
     bool found = false;
 
     if (getifaddrs(&ifa) == -1) {
-        perror("BIP6: getifaddrs failed");
+        debug_perror("BIP6: getifaddrs failed");
         exit(1);
     }
     ifa_tmp = ifa;
@@ -421,7 +421,7 @@ void bip6_join_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
         sizeof(join_request));
     if (status < 0) {
-        perror("BIP: setsockopt(IPV6_JOIN_GROUP)");
+        debug_perror("BIP6: setsockopt(IPV6_JOIN_GROUP)");
     }
 }
 
@@ -448,7 +448,7 @@ void bip6_leave_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        perror("BIP: setsockopt(IPV6_LEAVE_GROUP)");
+        debug_perror("BIP6: setsockopt(IPV6_LEAVE_GROUP)");
     }
 }
 
@@ -518,7 +518,7 @@ bool bip6_init(char *ifname)
     debug_print_ipv6("Binding->", &server.sin6_addr);
     status = bind(BIP6_Socket, (const void *)&server, sizeof(server));
     if (status < 0) {
-        perror("BIP: bind");
+        debug_perror("BIP6: bind");
         close(BIP6_Socket);
         BIP6_Socket = -1;
         return false;

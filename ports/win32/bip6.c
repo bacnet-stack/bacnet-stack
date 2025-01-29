@@ -100,7 +100,7 @@ void bip6_set_interface(char *ifname)
     }
     RetVal = getaddrinfo(ifname, &port[0], &Hints, &AddrInfo);
     if (RetVal != 0) {
-        fprintf(
+        debug_fprintf(
             stderr, "BIP6: getaddrinfo failed with error %d: %s\n", RetVal,
             gai_strerror(RetVal));
         WSACleanup();
@@ -115,7 +115,7 @@ void bip6_set_interface(char *ifname)
     for (i = 0, AI = AddrInfo; AI != NULL; AI = AI->ai_next) {
         /* Highly unlikely, but check anyway. */
         if (i == FD_SETSIZE) {
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "BIP6: getaddrinfo returned more addresses than we could "
                 "use.\n");
@@ -135,7 +135,7 @@ void bip6_set_interface(char *ifname)
         }
         BIP6_Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
         if (BIP6_Socket == INVALID_SOCKET) {
-            fprintf(
+            debug_fprintf(
                 stderr, "BIP6: socket() failed with error %d: %s\n",
                 WSAGetLastError(), PrintError(WSAGetLastError()));
             continue;
@@ -144,7 +144,7 @@ void bip6_set_interface(char *ifname)
         if ((AI->ai_family == AF_INET6) &&
             IN6_IS_ADDR_LINKLOCAL(&sin->sin6_addr) &&
             (sin->sin6_scope_id == 0)) {
-            fprintf(
+            debug_fprintf(
                 stderr, "BIP6: IPv6 link local addresses needs a scope ID!\n");
         }
         BIP6_Socket_Scope_Id = if_nametoindex(ifname);
@@ -157,7 +157,7 @@ void bip6_set_interface(char *ifname)
         if (RetVal < 0) {
             closesocket(BIP6_Socket);
             BIP6_Socket = INVALID_SOCKET;
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "BIP6: setsockopt(SO_REUSEADDR) failed with error %d: %s\n",
                 WSAGetLastError(), PrintError(WSAGetLastError()));
@@ -170,7 +170,7 @@ void bip6_set_interface(char *ifname)
         if (RetVal < 0) {
             closesocket(BIP6_Socket);
             BIP6_Socket = INVALID_SOCKET;
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "BIP6: setsockopt(SO_BROADCAST) failed "
                 "with error %d: %s\n",
@@ -183,7 +183,7 @@ void bip6_set_interface(char *ifname)
            the application is a server that has a well-known port
            that clients know about in advance. */
         if (bind(BIP6_Socket, AI->ai_addr, AI->ai_addrlen) == SOCKET_ERROR) {
-            fprintf(
+            debug_fprintf(
                 stderr, "BIP6: bind() failed with error %d: %s\n",
                 WSAGetLastError(), PrintError(WSAGetLastError()));
             closesocket(ServSock[i]);
@@ -210,7 +210,8 @@ void bip6_set_interface(char *ifname)
     }
     freeaddrinfo(AddrInfo);
     if (BIP6_Socket == INVALID_SOCKET) {
-        fprintf(stderr, "BIP6: AF_INET6 address not found getaddrinfo()\n");
+        debug_fprintf(
+            stderr, "BIP6: AF_INET6 address not found getaddrinfo()\n");
     }
 }
 
@@ -502,7 +503,7 @@ void bip6_join_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&join_request,
         sizeof(join_request));
     if (status < 0) {
-        fprintf(
+        debug_fprintf(
             stderr,
             "BIP6: setsockopt(IPV6_JOIN_GROUP) failed "
             "with error %d: %s\n",
@@ -533,7 +534,7 @@ void bip6_leave_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, (char *)&leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        fprintf(
+        debug_fprintf(
             stderr,
             "BIP6: setsockopt(IPV6_LEAVE_GROUP) failed "
             "with error %d: %s\n",
@@ -567,7 +568,7 @@ bool bip6_init(char *ifname)
 
     /* Ask for Winsock version 2.2. */
     if ((RetVal = WSAStartup(MAKEWORD(2, 2), &wd)) != 0) {
-        fprintf(
+        debug_fprintf(
             stderr, "BIP6: WSAStartup failed with error %d: %s\n", RetVal,
             PrintError(RetVal));
         WSACleanup();
@@ -587,7 +588,8 @@ bool bip6_init(char *ifname)
             BIP6_MULTICAST_GROUP_ID);
     }
     if (BIP6_Socket == INVALID_SOCKET) {
-        fprintf(stderr, "BIP6: Fatal error: unable to serve on any address.\n");
+        debug_fprintf(
+            stderr, "BIP6: Fatal error: unable to serve on any address.\n");
         WSACleanup();
         exit(1);
     }
