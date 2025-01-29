@@ -13,6 +13,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/config.h"
 #include "bacnet/datalink/bip6.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #include "bacport.h"
