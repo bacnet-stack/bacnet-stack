@@ -78,15 +78,6 @@ static int write_property_multiple_decode(
                             (long)wp_data->array_index);
                         if (device_write_property) {
                             if (device_write_property(wp_data) == false) {
-                                /* Workaround BTL Specified Test 9.23.2.X5 */
-                                if ((wp_data->error_class ==
-                                     ERROR_CLASS_PROPERTY) &&
-                                    (wp_data->error_code ==
-                                     ERROR_CODE_INVALID_DATA_TYPE)) {
-                                    wp_data->error_class = ERROR_CLASS_SERVICES;
-                                    wp_data->error_code =
-                                        ERROR_CODE_INVALID_ARRAY_INDEX;
-                                }
                                 return BACNET_STATUS_ERROR;
                             }
                         }
