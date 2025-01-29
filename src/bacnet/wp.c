@@ -311,6 +311,14 @@ bool write_property_type_valid(
     /* assume success */
     bool valid = true;
 
+    fprintf(stderr, "write_property_type_valid: %d\n", value->tag);
+    fprintf(stderr, "write_property_type_valid: %d\n", expected_tag);
+    fprintf(stderr, "write_property_type_valid wp_data application_data_len: %d\n", wp_data->application_data_len);
+
+    if(value == NULL) {
+        fprintf(stderr, "write_property_type_valid: value is NULL\n");
+    }
+
     if (value && (value->tag != expected_tag)) {
         valid = false;
         if (wp_data) {
