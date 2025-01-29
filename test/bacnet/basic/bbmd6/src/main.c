@@ -97,6 +97,14 @@ int bip6_send_mpdu(
     return 0;
 }
 
+/**
+ * @brief Leave a multicast group
+ */
+void bip6_leave_group(void)
+{
+    return;
+}
+
 /** Return the Object Instance number for our (single) Device Object.
  * This is a key function, widely invoked by the handler code, since
  * it provides "our" (ie, local) address.
