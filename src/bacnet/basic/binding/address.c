@@ -76,7 +76,7 @@ static struct Address_Cache_Entry {
  */
 void address_protected_entry_index_set(uint32_t top_protected_entry_index)
 {
-    if (top_protected_entry_index <= (MAX_ADDRESS_CACHE - 1)) {
+    if (top_protected_entry_index < MAX_ADDRESS_CACHE) {
         Top_Protected_Entry = top_protected_entry_index;
     }
 }
@@ -976,7 +976,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 /**
  * Scan the cache and eliminate any expired entries. Should be called
  * periodically to ensure the cache is managed correctly. If this function
- * is never called at all the whole cache is effectivly rendered static and
+ * is never called at all the whole cache is effectively rendered static and
  * entries never expire unless explicitly deleted.
  *
  * @param uSeconds  Approximate number of seconds since last call to this

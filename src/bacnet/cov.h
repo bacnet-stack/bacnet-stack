@@ -32,7 +32,7 @@ typedef struct BACnet_Subscribe_COV_Data {
     bool issueConfirmedNotifications; /* optional */
     uint32_t lifetime; /* seconds, optional */
     bool covSubscribeToProperty; /* true to use per-property subscription */
-    BACNET_PROPERTY_REFERENCE monitoredProperty;
+    struct BACnetPropertyReference monitoredProperty;
     bool covIncrementPresent; /* true if present */
     float covIncrement; /* optional */
     BACNET_ERROR_CLASS error_class;

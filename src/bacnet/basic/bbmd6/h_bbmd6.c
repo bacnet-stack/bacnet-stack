@@ -765,9 +765,11 @@ int bvlc6_bbmd_disabled_handler(
                 break;
             case BVLC6_ORIGINAL_BROADCAST_NPDU:
                 PRINTF("BIP6: Received Original-Broadcast-NPDU.\n");
-                if (bbmd6_address_match_self(addr)) {
-                    /* ignore messages from my IPv6 address */
-                    PRINTF("BIP6: Original-Broadcast-NPDU is me!\n");
+                if (Remote_BBMD.port) {
+                    PRINTF("BIP6: Ignore Original-Broadcast-NPDU when "
+                           "registered as a foreign device.\n");
+                } else if (bbmd6_address_match_self(addr)) {
+                    PRINTF("BIP6: Ignore Original-Broadcast-NPDU from self!\n");
                 } else {
                     function_len = bvlc6_decode_original_broadcast(
                         pdu, pdu_len, &vmac_src, NULL, 0, &npdu_len);
@@ -995,6 +997,11 @@ int bvlc6_bbmd_enabled_handler(
                 break;
             case BVLC6_ORIGINAL_BROADCAST_NPDU:
                 PRINTF("BIP6: Received Original-Broadcast-NPDU.\n");
+                if (Remote_BBMD.port) {
+                    PRINTF("BIP6: Ignore Original-Broadcast-NPDU when "
+                           "registered as a foreign device.\n");
+                    break;
+                }
                 function_len = bvlc6_decode_original_broadcast(
                     pdu, pdu_len, &vmac_src, NULL, 0, &npdu_len);
                 if (function_len) {
