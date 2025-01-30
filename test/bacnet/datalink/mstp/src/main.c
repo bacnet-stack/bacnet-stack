@@ -149,6 +149,55 @@ static void Timer_Silence_Reset(void *pArg)
     SilenceTime = 0;
 }
 
+/* track the last good header time in milliseconds */
+uint32_t Good_Header_Time = 0;
+/**
+ * @brief MS/TP state machine calls this to get the good header time
+ * @param pArg pointer to the port specific context data
+ * @return amount of time in milliseconds
+ */
+static uint32_t Good_Header_Timer(void *pArg)
+{
+    (void)pArg;
+    return Good_Header_Time;
+}
+
+/**
+ * @brief MS/TP state machine calls this to reset the good header time
+ * @param pArg pointer to the port specific context data
+ */
+void Good_Header_Timer_Reset(void *pArg)
+{
+    (void)pArg;
+    Good_Header_Time = 0;
+}
+
+/* track the internal baud rate */
+static uint32_t Baud_Rate_Internal = 0;
+/**
+ * @brief Get the current baud rate
+ * @param pArg pointer to the port specific context data
+ * @return The current baud rate
+ */
+uint32_t Baud_Rate(void *pArg)
+{
+    (void)pArg;
+    return Baud_Rate_Internal;
+}
+
+/**
+ * @brief Set the current baud rate
+ * @param pArg pointer to the port specific context data
+ * @param baud the new baud rate
+ * @return true if the baud rate was set
+ */
+bool Baud_Rate_Set(void *pArg, uint32_t baud)
+{
+    (void)pArg;
+    Baud_Rate_Internal = baud;
+    return true;
+}
+
 /**
  * @brief MS/TP state machine calls this to send a frame
  * @param mstp_port port specific context data
@@ -648,6 +697,9 @@ static void testZeroConfigNode_Init(struct mstp_port_struct_t *mstp_port)
     mstp_port->SilenceTimer = Timer_Silence;
     mstp_port->SilenceTimerReset = Timer_Silence_Reset;
 
+    mstp_port->CheckAutoBaud = false;
+    mstp_port->SlaveNodeEnabled = false;
+
     /* configure for Zero Config */
     mstp_port->ZeroConfigEnabled = true;
     mstp_port->This_Station = 255;
@@ -1126,6 +1178,96 @@ static void testZeroConfigNodeFSM(void)
         next_station);
 }
 
+static void testAutoBaudNode_Init(struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+
+    mstp_port->InputBuffer = &RxBuffer[0];
+    mstp_port->InputBufferSize = sizeof(RxBuffer);
+    mstp_port->OutputBuffer = &TxBuffer[0];
+    mstp_port->OutputBufferSize = sizeof(TxBuffer);
+
+    mstp_port->Nmax_info_frames = 1;
+    mstp_port->Nmax_master = 127;
+
+    mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
+    mstp_port->Treply_delay = DEFAULT_Treply_delay;
+    mstp_port->Treply_timeout = DEFAULT_Treply_timeout;
+    mstp_port->Tusage_timeout = DEFAULT_Tusage_timeout;
+
+    mstp_port->SilenceTimer = Timer_Silence;
+    mstp_port->SilenceTimerReset = Timer_Silence_Reset;
+
+    mstp_port->CheckAutoBaud = true;
+    mstp_port->SlaveNodeEnabled = false;
+    mstp_port->ZeroConfigEnabled = false;
+    mstp_port->This_Station = 255;
+
+    mstp_port->BaudRate = Baud_Rate;
+    mstp_port->BaudRateSet = Baud_Rate_Set;
+    mstp_port->GoodHeaderTimer = Good_Header_Timer;
+    mstp_port->GoodHeaderTimerReset = Good_Header_Timer_Reset;
+
+    MSTP_Init(mstp_port);
+    zassert_true(mstp_port->master_state == MSTP_MASTER_STATE_INITIALIZE, NULL);
+    zassert_true(mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_INIT, NULL);
+    zassert_true(mstp_port->Tframe_abort == DEFAULT_Tframe_abort, NULL);
+    zassert_true(mstp_port->Treply_delay == DEFAULT_Treply_delay, NULL);
+    zassert_true(mstp_port->Treply_timeout == DEFAULT_Treply_timeout, NULL);
+    zassert_true(mstp_port->Tusage_timeout == DEFAULT_Tusage_timeout, NULL);
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_IDLE, NULL);
+    zassert_true(mstp_port->GoodFrames == 0, NULL);
+    zassert_true(mstp_port->BaudRateIndex == 0, NULL);
+    zassert_true(mstp_port->BaudRate(NULL) != 0, NULL);
+    zassert_true(mstp_port->GoodHeaderTimer(NULL) == 0, NULL);
+}
+
+static void
+testAutoBaudNode_Idle_ValidFrame(struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+
+    if (!mstp_port->CheckAutoBaud) {
+        return;
+    }
+    Good_Header_Time = 0;
+    SilenceTime = 0;
+    mstp_port->SourceAddress = 0;
+    mstp_port->DestinationAddress = 1;
+    mstp_port->ReceivedValidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+    zassert_true(mstp_port->BaudRateIndex == 0, NULL);
+    zassert_true(mstp_port->GoodFrames > 0, NULL);
+    if (mstp_port->GoodFrames >= 4) {
+        zassert_true(mstp_port->CheckAutoBaud == 0, NULL);
+        zassert_true(
+            mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_USE, NULL);
+    } else {
+        zassert_true(
+            mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_IDLE, NULL);
+    }
+}
+
+static void testAutoBaudNodeFSM(void)
+{
+    struct mstp_port_struct_t MSTP_Port = { 0 }; /* port data */
+
+    /* test case: got at least valid frames, use the baud rate  */
+    testAutoBaudNode_Init(&MSTP_Port);
+    testAutoBaudNode_Idle_ValidFrame(&MSTP_Port);
+    testAutoBaudNode_Idle_ValidFrame(&MSTP_Port);
+    testAutoBaudNode_Idle_ValidFrame(&MSTP_Port);
+    testAutoBaudNode_Idle_ValidFrame(&MSTP_Port);
+    testAutoBaudNode_Idle_ValidFrame(&MSTP_Port);
+    testAutoBaudNode_Idle_ValidFrame(&MSTP_Port);
+
+    /* test case: get a valid frame, followed by timeout  */
+}
+
 /**
  * @}
  */
@@ -1135,7 +1277,8 @@ void test_main(void)
     ztest_test_suite(
         crc_tests, ztest_unit_test(testReceiveNodeFSM),
         ztest_unit_test(testMasterNodeFSM), ztest_unit_test(testSlaveNodeFSM),
-        ztest_unit_test(testZeroConfigNodeFSM));
+        ztest_unit_test(testZeroConfigNodeFSM),
+        ztest_unit_test(testAutoBaudNodeFSM));
 
     ztest_run_test_suite(crc_tests);
 }

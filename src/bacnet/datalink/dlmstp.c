@@ -417,7 +417,7 @@ uint16_t dlmstp_receive(
             MSTP_Slave_Node_FSM(MSTP_Port);
         } else if (
             (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) ||
-            MSTP_Port->ZeroConfigEnabled) {
+            MSTP_Port->ZeroConfigEnabled || MSTP_Port->CheckAutoBaud) {
             while (MSTP_Master_Node_FSM(MSTP_Port)) {
                 /* do nothing while some states fast transition */
             };
@@ -696,6 +696,39 @@ bool dlmstp_zero_config_enabled_set(bool flag)
         return false;
     }
     MSTP_Port->ZeroConfigEnabled = flag;
+
+    return true;
+}
+
+/**
+ * @brief Get the MSTP port AutoBaudEnabled status
+ * @return true if the MSTP port has AutoBaudEnabled
+ */
+bool dlmstp_check_auto_baud(void)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    return MSTP_Port->CheckAutoBaud;
+}
+
+/**
+ * @brief Set the MSTP port AutoBaudEnabled flag
+ * @param flag - true if the MSTP port has AutoBaudEnabled
+ * @return true if the MSTP port AutoBaudEnabled was set
+ * @note This flag is used to enable the Zero Configuration state machine
+ * for the MSTP port.  The Zero Configuration state machine is used to
+ * automatically assign a MAC address to the MSTP port.
+ */
+bool dlmstp_check_auto_baud_set(bool flag)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    MSTP_Port->CheckAutoBaud = flag;
+    if (flag) {
+        MSTP_Port->Auto_Baud_State = MSTP_AUTO_BAUD_STATE_INIT;
+    }
 
     return true;
 }
@@ -994,6 +1027,10 @@ bool dlmstp_init(char *ifname)
     if (MSTP_Port) {
         MSTP_Port->SilenceTimer = dlmstp_silence_milliseconds;
         MSTP_Port->SilenceTimerReset = dlmstp_silence_reset;
+        MSTP_Port->GoodHeaderTimer = dlmstp_good_header_milliseconds;
+        MSTP_Port->GoodHeaderTimerReset = dlmstp_good_header_reset;
+        MSTP_Port->BaudRate = dlmstp_baud_rate;
+        MSTP_Port->BaudRateSet = dlmstp_set_baud_rate;
         user = (struct dlmstp_user_data_t *)MSTP_Port->UserData;
         if (user && !user->Initialized) {
             Ringbuf_Initialize(

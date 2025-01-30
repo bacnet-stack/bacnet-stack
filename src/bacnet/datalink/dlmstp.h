@@ -192,6 +192,10 @@ bool dlmstp_zero_config_enabled(void);
 BACNET_STACK_EXPORT
 bool dlmstp_zero_config_enabled_set(bool flag);
 BACNET_STACK_EXPORT
+bool dlmstp_check_auto_baud(void);
+BACNET_STACK_EXPORT
+bool dlmstp_check_auto_baud_set(bool flag);
+BACNET_STACK_EXPORT
 uint8_t dlmstp_zero_config_preferred_station(void);
 BACNET_STACK_EXPORT
 bool dlmstp_zero_config_preferred_station_set(uint8_t station);

@@ -90,6 +90,14 @@ typedef enum MSTP_Zero_Config_State {
     MSTP_ZERO_CONFIG_STATE_USE = 5
 } MSTP_ZERO_CONFIG_STATE;
 
+
+/* MSTP auto-baud FSM states */
+typedef enum MSTP_Auto_Baud_State {
+    MSTP_AUTO_BAUD_STATE_INIT = 0,
+    MSTP_AUTO_BAUD_STATE_IDLE = 1,
+    MSTP_AUTO_BAUD_STATE_USE = 2
+} MSTP_AUTO_BAUD_STATE;
+
 /* The time without a DataAvailable or ReceiveError event before declaration */
 /* of loss of token: 500 milliseconds. */
 #define Tno_token 500

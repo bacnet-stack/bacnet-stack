@@ -102,6 +102,7 @@ int main(void)
     MSTP_Port.ZeroConfigEnabled = true;
     MSTP_Port.Zero_Config_Preferred_Station = 0;
     MSTP_Port.SlaveNodeEnabled = false;
+    MSTP_Port.CheckAutoBaud = false;
     /* user data */
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;

@@ -213,6 +213,25 @@ struct mstp_port_struct_t {
        turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
     uint8_t Tturnaround_timeout;
 
+    /* orderly transition tracking for auto-baud node startup */
+    MSTP_AUTO_BAUD_STATE Auto_Baud_State;
+    /* A Boolean flag set to TRUE if this node is checking frames for
+       automatic baud rate detection */
+    unsigned CheckAutoBaud : 1;
+    /* The number of elapsed seconds since the last received
+       header frame with good CRC. */
+    uint32_t (*GoodHeaderTimer)(void *pArg);
+    void (*GoodHeaderTimerReset)(void *pArg);
+    /* The number of header frames received with good CRC since
+       initialization at the current trial baudrate. */
+    uint8_t GoodFrames;
+    /** Get the current baud rate */
+    uint32_t (*BaudRate)(void *pArg);
+    /** Set the current baud rate */
+    bool (*BaudRateSet)(void *pArg, uint32_t baud);
+    /* The zero-based index in TestBaudrates of the next baudrate to try. */
+    unsigned BaudRateIndex;
+
     /*Platform-specific port data */
     void *UserData;
 };
@@ -264,6 +283,12 @@ unsigned MSTP_Zero_Config_Station_Increment(unsigned station);
 
 BACNET_STACK_EXPORT
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);
+
+BACNET_STACK_EXPORT
+uint32_t MSTP_Auto_Baud_Rate(unsigned baud_rate_index);
+
+BACNET_STACK_EXPORT
+void MSTP_Auto_Baud_FSM(struct mstp_port_struct_t *mstp_port);
 
 /* functions used by the MS/TP state machine to put or get data */
 /* FIXME: developer must implement these in their DLMSTP module */
