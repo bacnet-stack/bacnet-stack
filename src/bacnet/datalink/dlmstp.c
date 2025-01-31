@@ -1004,7 +1004,6 @@ uint32_t dlmstp_good_header_milliseconds(void *arg)
     uint32_t milliseconds = 0, now = 0;
     struct mstp_port_struct_t *port = arg;
     struct dlmstp_user_data_t *user = NULL;
-    struct dlmstp_rs485_driver *driver = NULL;
 
     if (port) {
         user = port->UserData;

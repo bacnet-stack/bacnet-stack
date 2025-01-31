@@ -62,9 +62,12 @@ void mstimer_callback(
     unsigned long milliseconds);
 BACNET_STACK_EXPORT
 void mstimer_callback_handler(void);
+
 /* HAL implementation */
 BACNET_STACK_EXPORT
 unsigned long mstimer_now(void);
+BACNET_STACK_EXPORT
+void mstimer_now_set(unsigned long milliseconds);
 BACNET_STACK_EXPORT
 void mstimer_init(void);
 
