@@ -418,7 +418,7 @@ void bip6_join_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
         sizeof(join_request));
     if (status < 0) {
-        perror("BIP: setsockopt(IPV6_JOIN_GROUP)");
+        debug_perror("BIP: setsockopt(IPV6_JOIN_GROUP)");
     }
 }
 
@@ -445,7 +445,7 @@ void bip6_leave_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        perror("BIP: setsockopt(IPV6_LEAVE_GROUP)");
+        debug_perror("BIP6: setsockopt(IPV6_LEAVE_GROUP)\r\n");
     }
 }
 
