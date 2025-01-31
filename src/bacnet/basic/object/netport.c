@@ -129,16 +129,20 @@ static const int Network_Port_Properties_Required[] = {
     PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
     PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
     PROP_NETWORK_TYPE,      PROP_PROTOCOL_LEVEL,
-    PROP_NETWORK_NUMBER,    PROP_NETWORK_NUMBER_QUALITY,
-    PROP_CHANGES_PENDING,   PROP_APDU_LENGTH,
-    PROP_LINK_SPEED,        -1
+    PROP_CHANGES_PENDING,   -1
 };
 
-static const int Ethernet_Port_Properties_Optional[] = { PROP_MAC_ADDRESS, -1 };
+static const int Ethernet_Port_Properties_Optional[] = {
+    PROP_MAC_ADDRESS, PROP_APDU_LENGTH, PROP_NETWORK_TYPE, PROP_LINK_SPEED, -1
+};
 
 static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
                                                      PROP_MAX_MASTER,
-                                                     PROP_MAX_INFO_FRAMES, -1 };
+                                                     PROP_MAX_INFO_FRAMES,
+                                                     PROP_APDU_LENGTH,
+                                                     PROP_LINK_SPEED,
+                                                     PROP_NETWORK_NUMBER,
+                                                     -1 };
 
 static const int BIP_Port_Properties_Optional[] = {
     PROP_MAC_ADDRESS,
@@ -147,6 +151,9 @@ static const int BIP_Port_Properties_Optional[] = {
     PROP_BACNET_IP_UDP_PORT,
     PROP_IP_SUBNET_MASK,
     PROP_IP_DEFAULT_GATEWAY,
+    PROP_NETWORK_NUMBER,
+    PROP_LINK_SPEED,
+    PROP_APDU_LENGTH,
     PROP_IP_DNS_SERVER,
     PROP_IP_DHCP_ENABLE,
 #if defined(BACDL_BIP) && (BBMD_ENABLED)
@@ -168,6 +175,9 @@ static const int BIP6_Port_Properties_Optional[] = {
     PROP_IPV6_PREFIX_LENGTH,
     PROP_BACNET_IPV6_UDP_PORT,
     PROP_IPV6_DEFAULT_GATEWAY,
+    PROP_NETWORK_NUMBER,
+    PROP_LINK_SPEED,
+    PROP_APDU_LENGTH,
     PROP_BACNET_IPV6_MULTICAST_ADDRESS,
     PROP_IPV6_DNS_SERVER,
     PROP_IPV6_AUTO_ADDRESSING_ENABLE,
