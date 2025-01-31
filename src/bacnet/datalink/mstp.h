@@ -218,7 +218,7 @@ struct mstp_port_struct_t {
     /* A Boolean flag set to TRUE if this node is checking frames for
        automatic baud rate detection */
     unsigned CheckAutoBaud : 1;
-    /* The number of elapsed seconds since the last received
+    /* The number of elapsed milliseconds since the last received
        header frame with good CRC. */
     uint32_t (*GoodHeaderTimer)(void *pArg);
     void (*GoodHeaderTimerReset)(void *pArg);
@@ -226,9 +226,9 @@ struct mstp_port_struct_t {
        initialization at the current trial baudrate. */
     uint8_t GoodFrames;
     /** Get the current baud rate */
-    uint32_t (*BaudRate)(void *pArg);
+    uint32_t (*BaudRate)(void);
     /** Set the current baud rate */
-    bool (*BaudRateSet)(void *pArg, uint32_t baud);
+    void (*BaudRateSet)(uint32_t baud);
     /* The zero-based index in TestBaudrates of the next baudrate to try. */
     unsigned BaudRateIndex;
 

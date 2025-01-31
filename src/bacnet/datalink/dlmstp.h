@@ -102,6 +102,7 @@ struct dlmstp_user_data_t {
     dlmstp_hook_frame_rx_start_cb Preamble_Callback;
     dlmstp_hook_frame_rx_complete_cb Valid_Frame_Rx_Callback;
     dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
+    uint32_t Good_Header_Milliseconds;
     /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
     RING_BUFFER PDU_Queue;
     struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
@@ -214,6 +215,11 @@ BACNET_STACK_EXPORT
 uint32_t dlmstp_silence_milliseconds(void *arg);
 BACNET_STACK_EXPORT
 void dlmstp_silence_reset(void *arg);
+
+BACNET_STACK_EXPORT
+uint32_t dlmstp_good_header_milliseconds(void *arg);
+BACNET_STACK_EXPORT
+void dlmstp_good_header_milliseconds_reset(void *arg);
 
 /* Set the callback function to be called on every valid received frame */
 /* This is not necessary for normal usage, but is helpful if the caller */

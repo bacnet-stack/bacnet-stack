@@ -1392,23 +1392,6 @@ unsigned MSTP_Zero_Config_Station_Increment(unsigned station)
 }
 
 /**
- * @brief Set the Zero Configuration baud rate for auto-baud
- * @param station the current station address in the range of min..max
- * @return the next station address
- */
-uint32_t MSTP_Auto_Baud_Rate(unsigned baud_rate_index)
-{
-    const uint32_t TestBaudrates[6] = {
-        115200, 76800, 57600, 38400, 19200, 9600
-    };
-    unsigned index;
-
-    index = baud_rate_index % ARRAY_SIZE(TestBaudrates);
-
-    return TestBaudrates[index];
-}
-
-/**
  * @brief The ZERO_CONFIGURATION_INIT state is entered when
  *  ZeroConfigurationMode is TRUE
  * @param mstp_port the context of the MSTP port
@@ -1680,6 +1663,23 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
 }
 
 /**
+ * @brief Set the Zero Configuration baud rate for auto-baud
+ * @param station the current station address in the range of min..max
+ * @return the next station address
+ */
+uint32_t MSTP_Auto_Baud_Rate(unsigned baud_rate_index)
+{
+    const uint32_t TestBaudrates[6] = {
+        115200, 76800, 57600, 38400, 19200, 9600
+    };
+    unsigned index;
+
+    index = baud_rate_index % ARRAY_SIZE(TestBaudrates);
+
+    return TestBaudrates[index];
+}
+
+/**
  * @brief The MSTP_AUTO_BAUD_STATE_INIT state is entered when
  *  CheckAutoBaud is TRUE
  * @param mstp_port the context of the MSTP port
@@ -1695,7 +1695,7 @@ static void MSTP_Auto_Baud_State_Init(struct mstp_port_struct_t *mstp_port)
     mstp_port->BaudRateIndex = 0;
     mstp_port->GoodHeaderTimerReset((void *)mstp_port);
     baud = MSTP_Auto_Baud_Rate(mstp_port->BaudRateIndex);
-    mstp_port->BaudRateSet(mstp_port, baud);
+    mstp_port->BaudRateSet(baud);
     mstp_port->Auto_Baud_State = MSTP_AUTO_BAUD_STATE_IDLE;
 }
 
@@ -1712,22 +1712,23 @@ static void MSTP_Auto_Baud_State_Idle(struct mstp_port_struct_t *mstp_port)
         return;
     }
     if (mstp_port->ReceivedValidFrame) {
+        /* IdleValidFrame */
         mstp_port->GoodFrames++;
         if (mstp_port->GoodFrames >= 4) {
-            /* this is good baudrate */
+            /* GoodBaudRate */
             mstp_port->CheckAutoBaud = false;
             mstp_port->Auto_Baud_State = MSTP_AUTO_BAUD_STATE_USE;
         }
         mstp_port->ReceivedValidFrame = false;
     } else if (mstp_port->ReceivedInvalidFrame) {
-        /* InvalidFrame */
+        /* IdleInvalidFrame */
         mstp_port->GoodFrames = 0;
         mstp_port->ReceivedInvalidFrame = false;
     } else if (mstp_port->GoodHeaderTimer((void *)mstp_port) >= 5000UL) {
-        /* change to the next baudrate */
+        /* IdleTimeout */
         mstp_port->BaudRateIndex++;
         baud = MSTP_Auto_Baud_Rate(mstp_port->BaudRateIndex);
-        mstp_port->BaudRateSet(mstp_port, baud);
+        mstp_port->BaudRateSet(baud);
         mstp_port->GoodFrames = 0;
         mstp_port->GoodHeaderTimerReset((void *)mstp_port);
     }
