@@ -90,7 +90,6 @@ typedef enum MSTP_Zero_Config_State {
     MSTP_ZERO_CONFIG_STATE_USE = 5
 } MSTP_ZERO_CONFIG_STATE;
 
-
 /* MSTP auto-baud FSM states */
 typedef enum MSTP_Auto_Baud_State {
     MSTP_AUTO_BAUD_STATE_INIT = 0,
