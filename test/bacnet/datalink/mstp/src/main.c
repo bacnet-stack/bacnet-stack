@@ -1276,8 +1276,7 @@ testAutoBaudNode_Idle_InvalidFrame(struct mstp_port_struct_t *mstp_port)
     zassert_true(mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_IDLE, NULL);
 }
 
-static void
-testAutoBaudNode_Idle_Timeout(struct mstp_port_struct_t *mstp_port)
+static void testAutoBaudNode_Idle_Timeout(struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now;
     uint32_t baud;
