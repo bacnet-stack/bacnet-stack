@@ -132,10 +132,9 @@ static const int Network_Port_Properties_Required[] = {
     PROP_CHANGES_PENDING,   -1
 };
 
-static const int Ethernet_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-                                                         PROP_APDU_LENGTH,
-                                                         PROP_NETWORK_TYPE,
-                                                         PROP_LINK_SPEED, -1 };
+static const int Ethernet_Port_Properties_Optional[] = {
+    PROP_MAC_ADDRESS, PROP_APDU_LENGTH, PROP_NETWORK_TYPE, PROP_LINK_SPEED, -1
+};
 
 static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
                                                      PROP_MAX_MASTER,
