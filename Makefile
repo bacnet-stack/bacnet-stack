@@ -70,6 +70,10 @@ apps:
 lib:
 	$(MAKE) -s -C apps $@
 
+.PHONY: library
+library:
+	$(MAKE) -s LEGACY=true -C apps lib
+
 CMAKE_BUILD_DIR=build
 .PHONY: cmake
 cmake:
