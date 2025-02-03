@@ -1432,8 +1432,8 @@ static void MSTP_Zero_Config_State_Idle(struct mstp_port_struct_t *mstp_port)
         return;
     }
     if (mstp_port->ReceivedValidFrame) {
+        /* IdleValidFrame */
         /* next state will clear the frame flags */
-        /* MonitorPFM */
         mstp_port->Poll_Count = 0;
         mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
     } else if (mstp_port->ReceivedInvalidFrame) {
@@ -1484,7 +1484,7 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
             }
         }
         if (src == mstp_port->Zero_Config_Station) {
-            /* AddressInUse */
+            /* LurkAddressInUse */
             /* monitor PFM from the next address */
             mstp_port->Zero_Config_Station = MSTP_Zero_Config_Station_Increment(
                 mstp_port->Zero_Config_Station);
@@ -1495,23 +1495,23 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
             /* calculate this node poll count priority number */
             count = Nmin_poll + mstp_port->Npoll_slot;
             if (mstp_port->Poll_Count == count) {
-                /* PollResponse */
+                /* LurkPollResponse */
                 MSTP_Create_And_Send_Frame(
                     mstp_port, FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, src,
                     mstp_port->Zero_Config_Station, NULL, 0);
                 mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_CLAIM;
             } else {
-                /* CountFrame */
+                /* LurkCountFrame */
                 mstp_port->Poll_Count++;
             }
         }
     } else if (mstp_port->ReceivedInvalidFrame) {
-        /* InvalidFrame */
+        /* LurkInvalidFrame */
         mstp_port->ReceivedInvalidFrame = false;
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
-            /* LurkingTimeout */
+            /* LurkTimeout */
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
         }
     }
@@ -1663,9 +1663,11 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
 }
 
 /**
- * @brief Set the Zero Configuration baud rate for auto-baud
- * @param station the current station address in the range of min..max
- * @return the next station address
+ * @brief Get the baud rate for auto-baud at a given index
+ * @param baud_rate_index the index of the baud rate
+ * @return the baud rate at the index
+ * @note A modulo operation keeps the index within the bounds of the array of
+ *  baud rates.
  */
 uint32_t MSTP_Auto_Baud_Rate(unsigned baud_rate_index)
 {
