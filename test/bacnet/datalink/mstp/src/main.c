@@ -1203,8 +1203,8 @@ static void testAutoBaudNode_Init(struct mstp_port_struct_t *mstp_port)
     mstp_port->Auto_Baud_State = MSTP_AUTO_BAUD_STATE_INIT;
     mstp_port->BaudRate = Baud_Rate;
     mstp_port->BaudRateSet = Baud_Rate_Set;
-    mstp_port->GoodHeaderTimer = Good_Header_Timer;
-    mstp_port->GoodHeaderTimerReset = Good_Header_Timer_Reset;
+    mstp_port->ValidFrameTimer = Good_Header_Timer;
+    mstp_port->ValidFrameTimerReset = Good_Header_Timer_Reset;
 
     MSTP_Init(mstp_port);
     zassert_true(mstp_port->master_state == MSTP_MASTER_STATE_INITIALIZE, NULL);
@@ -1216,10 +1216,10 @@ static void testAutoBaudNode_Init(struct mstp_port_struct_t *mstp_port)
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_IDLE, NULL);
-    zassert_true(mstp_port->GoodFrames == 0, NULL);
+    zassert_true(mstp_port->ValidFrames == 0, NULL);
     zassert_true(mstp_port->BaudRateIndex == 0, NULL);
     zassert_true(mstp_port->BaudRate() != 0, NULL);
-    zassert_true(mstp_port->GoodHeaderTimer(NULL) == 0, NULL);
+    zassert_true(mstp_port->ValidFrameTimer(NULL) == 0, NULL);
 }
 
 static void
@@ -1241,8 +1241,8 @@ testAutoBaudNode_Idle_ValidFrame(struct mstp_port_struct_t *mstp_port)
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
     zassert_true(mstp_port->BaudRateIndex == 0, NULL);
-    zassert_true(mstp_port->GoodFrames > 0, NULL);
-    if (mstp_port->GoodFrames >= 4) {
+    zassert_true(mstp_port->ValidFrames > 0, NULL);
+    if (mstp_port->ValidFrames >= 4) {
         zassert_true(mstp_port->CheckAutoBaud == 0, NULL);
         zassert_true(
             mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_USE, NULL);
@@ -1271,7 +1271,7 @@ testAutoBaudNode_Idle_InvalidFrame(struct mstp_port_struct_t *mstp_port)
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
     zassert_true(mstp_port->BaudRateIndex == 0, NULL);
-    zassert_true(mstp_port->GoodFrames == 0, NULL);
+    zassert_true(mstp_port->ValidFrames == 0, NULL);
     zassert_true(mstp_port->CheckAutoBaud, NULL);
     zassert_true(mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_IDLE, NULL);
 }
@@ -1285,7 +1285,7 @@ static void testAutoBaudNode_Idle_Timeout(struct mstp_port_struct_t *mstp_port)
         return;
     }
     Good_Header_Time = 5000UL;
-    zassert_true(mstp_port->GoodHeaderTimer(NULL) == 5000UL, NULL);
+    zassert_true(mstp_port->ValidFrameTimer(NULL) == 5000UL, NULL);
     SilenceTime = 0;
     mstp_port->SourceAddress = 0;
     mstp_port->DestinationAddress = 1;
@@ -1297,10 +1297,10 @@ static void testAutoBaudNode_Idle_Timeout(struct mstp_port_struct_t *mstp_port)
     zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
     baud = MSTP_Auto_Baud_Rate(mstp_port->BaudRateIndex);
     zassert_true(mstp_port->BaudRate() == baud, NULL);
-    zassert_true(mstp_port->GoodFrames == 0, NULL);
+    zassert_true(mstp_port->ValidFrames == 0, NULL);
     zassert_true(mstp_port->CheckAutoBaud, NULL);
     zassert_true(mstp_port->Auto_Baud_State == MSTP_AUTO_BAUD_STATE_IDLE, NULL);
-    zassert_true(mstp_port->GoodHeaderTimer(NULL) == 0, NULL);
+    zassert_true(mstp_port->ValidFrameTimer(NULL) == 0, NULL);
 }
 
 static void testAutoBaudNodeFSM(void)

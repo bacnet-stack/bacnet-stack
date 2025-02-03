@@ -995,11 +995,11 @@ uint32_t dlmstp_silence_milliseconds(void *arg)
 }
 
 /**
- * @brief Return the good header time in milliseconds
+ * @brief Return the valid frame time in milliseconds
  * @param arg - pointer to MSTP port structure
- * @return good header time in milliseconds
+ * @return valid frame time in milliseconds
  */
-uint32_t dlmstp_good_header_milliseconds(void *arg)
+uint32_t dlmstp_valid_frame_milliseconds(void *arg)
 {
     uint32_t milliseconds = 0, now = 0;
     struct mstp_port_struct_t *port = arg;
@@ -1010,18 +1010,18 @@ uint32_t dlmstp_good_header_milliseconds(void *arg)
     }
     if (user) {
         now = mstimer_now();
-        milliseconds = now - user->Good_Header_Milliseconds;
+        milliseconds = now - user->Valid_Frame_Milliseconds;
     }
 
     return milliseconds;
 }
 
 /**
- * @brief Reset the good header timer
+ * @brief Reset the valid frame timer
  * @param arg - pointer to MSTP port structure
- * @return good header time in milliseconds
+ * @return valid frame time in milliseconds
  */
-void dlmstp_good_header_milliseconds_reset(void *arg)
+void dlmstp_valid_frame_milliseconds_reset(void *arg)
 {
     struct mstp_port_struct_t *port = arg;
     struct dlmstp_user_data_t *user = NULL;
@@ -1030,7 +1030,7 @@ void dlmstp_good_header_milliseconds_reset(void *arg)
         user = port->UserData;
     }
     if (user) {
-        user->Good_Header_Milliseconds = mstimer_now();
+        user->Valid_Frame_Milliseconds = mstimer_now();
     }
 }
 
@@ -1067,8 +1067,8 @@ bool dlmstp_init(char *ifname)
     if (MSTP_Port) {
         MSTP_Port->SilenceTimer = dlmstp_silence_milliseconds;
         MSTP_Port->SilenceTimerReset = dlmstp_silence_reset;
-        MSTP_Port->GoodHeaderTimer = dlmstp_good_header_milliseconds;
-        MSTP_Port->GoodHeaderTimerReset = dlmstp_good_header_milliseconds_reset;
+        MSTP_Port->ValidFrameTimer = dlmstp_valid_frame_milliseconds;
+        MSTP_Port->ValidFrameTimerReset = dlmstp_valid_frame_milliseconds_reset;
         MSTP_Port->BaudRate = dlmstp_baud_rate;
         MSTP_Port->BaudRateSet = dlmstp_set_baud_rate;
         user = (struct dlmstp_user_data_t *)MSTP_Port->UserData;

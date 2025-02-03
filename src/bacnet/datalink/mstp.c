@@ -1691,9 +1691,9 @@ static void MSTP_Auto_Baud_State_Init(struct mstp_port_struct_t *mstp_port)
     if (!mstp_port) {
         return;
     }
-    mstp_port->GoodFrames = 0;
+    mstp_port->ValidFrames = 0;
     mstp_port->BaudRateIndex = 0;
-    mstp_port->GoodHeaderTimerReset((void *)mstp_port);
+    mstp_port->ValidFrameTimerReset((void *)mstp_port);
     baud = MSTP_Auto_Baud_Rate(mstp_port->BaudRateIndex);
     mstp_port->BaudRateSet(baud);
     mstp_port->Auto_Baud_State = MSTP_AUTO_BAUD_STATE_IDLE;
@@ -1713,8 +1713,8 @@ static void MSTP_Auto_Baud_State_Idle(struct mstp_port_struct_t *mstp_port)
     }
     if (mstp_port->ReceivedValidFrame) {
         /* IdleValidFrame */
-        mstp_port->GoodFrames++;
-        if (mstp_port->GoodFrames >= 4) {
+        mstp_port->ValidFrames++;
+        if (mstp_port->ValidFrames >= 4) {
             /* GoodBaudRate */
             mstp_port->CheckAutoBaud = false;
             mstp_port->Auto_Baud_State = MSTP_AUTO_BAUD_STATE_USE;
@@ -1722,15 +1722,15 @@ static void MSTP_Auto_Baud_State_Idle(struct mstp_port_struct_t *mstp_port)
         mstp_port->ReceivedValidFrame = false;
     } else if (mstp_port->ReceivedInvalidFrame) {
         /* IdleInvalidFrame */
-        mstp_port->GoodFrames = 0;
+        mstp_port->ValidFrames = 0;
         mstp_port->ReceivedInvalidFrame = false;
-    } else if (mstp_port->GoodHeaderTimer((void *)mstp_port) >= 5000UL) {
+    } else if (mstp_port->ValidFrameTimer((void *)mstp_port) >= 5000UL) {
         /* IdleTimeout */
         mstp_port->BaudRateIndex++;
         baud = MSTP_Auto_Baud_Rate(mstp_port->BaudRateIndex);
         mstp_port->BaudRateSet(baud);
-        mstp_port->GoodFrames = 0;
-        mstp_port->GoodHeaderTimerReset((void *)mstp_port);
+        mstp_port->ValidFrames = 0;
+        mstp_port->ValidFrameTimerReset((void *)mstp_port);
     }
 }
 
