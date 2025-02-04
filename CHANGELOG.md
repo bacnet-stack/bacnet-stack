@@ -30,6 +30,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added an optional MS/TP automatic baudrate detection option into
+  the core MS/TP state machine. (#900)
 * Added linked list of lighting-command notification callbacks. (#893)
 * Added bvlc6.sh script to enable foreign-device-registration for
   client tools. (#889)
@@ -40,6 +42,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed legacy make build recipe for library. 'make library' now builds.
+* Fixed IPv6 handler to ignore original-broadcast when registered as
+  a foreign-device (#898)
 * Fixed spelling errors detected by code-spell utility. (#895)
 * Fixed cppcheck preprocessorErrorDirective. Suppressed new cppcheck
   warnings until fixed. (#895)
@@ -94,6 +99,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed date encoding when year is out of range to use wildcard.
+  Updated APDU encoding pattern for date and time. (#897)
 * Change the basic CharacterString Value object by adding CreateObject and
   DeleteObject service support. (#888) (#886)
 * Changed some debug.c module functions to macros to be able to use them
