@@ -1352,7 +1352,7 @@ void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port)
     }
     /* 1. Generate 16 random bytes = 128 bits */
     for (i = 0; i < MSTP_UUID_SIZE; i++) {
-        mstp_port->UUID[i] = rand() % 255;
+        mstp_port->UUID[i] = rand() % 256;
     }
     /* 2. Adjust certain bits according to RFC 4122 section 4.4.
        This just means do the following

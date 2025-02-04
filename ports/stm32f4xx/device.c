@@ -474,7 +474,7 @@ void Device_UUID_Init(void)
 
     /* 1. Generate 16 random bytes = 128 bits */
     for (i = 0; i < sizeof(Device_UUID); i++) {
-        Device_UUID[i] = rand() % 255;
+        Device_UUID[i] = rand() % 256;
     }
     /* 2. Adjust certain bits according to RFC 4122 section 4.4.
        This just means do the following
