@@ -42,6 +42,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed usage of 8-bit modulo operator off-by-one maximums. (#901)
 * Fixed legacy make build recipe for library. 'make library' now builds.
 * Fixed IPv6 handler to ignore original-broadcast when registered as
   a foreign-device (#898)
