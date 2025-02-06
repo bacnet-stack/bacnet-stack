@@ -880,6 +880,52 @@ void Multistate_Value_Write_Present_Value_Callback_Set(
 }
 
 /**
+ * @brief Determines a object write-enabled flag state
+ * @param object_instance - object-instance number of the object
+ * @return  write-enabled status flag
+ */
+bool Multistate_Value_Write_Enabled(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Write_Enabled;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Multistate_Value_Write_Enable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = true;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, clears the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Multistate_Value_Write_Disable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = false;
+    }
+}
+
+/**
  * @brief Creates a new object and adds it to the object list
  * @param  object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
