@@ -876,6 +876,52 @@ void Multistate_Input_Write_Present_Value_Callback_Set(
 }
 
 /**
+ * @brief Determines a object write-enabled flag state
+ * @param object_instance - object-instance number of the object
+ * @return  write-enabled status flag
+ */
+bool Multistate_Input_Write_Enabled(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Write_Enabled;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Multistate_Input_Write_Enable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = true;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, clears the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Multistate_Input_Write_Disable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = false;
+    }
+}
+
+/**
  * @brief Creates a new object and adds it to the object list
  * @param  object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -905,6 +951,7 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
+            pObject->Write_Enabled = false;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
