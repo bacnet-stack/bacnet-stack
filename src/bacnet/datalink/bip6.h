@@ -39,6 +39,10 @@ bool bip6_init(char *ifname);
 BACNET_STACK_EXPORT
 void bip6_cleanup(void);
 BACNET_STACK_EXPORT
+void bip6_join_group(void);
+BACNET_STACK_EXPORT
+void bip6_leave_group(void);
+BACNET_STACK_EXPORT
 void bip6_get_broadcast_address(BACNET_ADDRESS *my_address);
 BACNET_STACK_EXPORT
 void bip6_get_my_address(BACNET_ADDRESS *my_address);

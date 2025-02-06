@@ -17,6 +17,14 @@ bool bip6_init(char *ifname)
     return ztest_get_return_value();
 }
 
+void bip6_join_group(void)
+{
+}
+
+void bip6_leave_group(void)
+{
+}
+
 void bip6_cleanup(void)
 {
 }
