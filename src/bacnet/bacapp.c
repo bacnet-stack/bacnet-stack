@@ -1697,6 +1697,7 @@ int bacapp_decode_application_tag_value(
 
 /**
  * @brief Decodes a well-known, possibly complex property value
+ *  or array property.
  *  Used to reverse operations in bacapp_encode_application_data.
  * @note This function is called repeatedly to decode array or lists one
  * element at a time.
@@ -1707,12 +1708,13 @@ int bacapp_decode_application_tag_value(
  * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
  * @note number of bytes can be 0 for empty lists, etc.
  */
-int bacapp_decode_known_property(
+int bacapp_decode_known_array_property(
     const uint8_t *apdu,
     int apdu_size,
     BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_OBJECT_TYPE object_type,
-    BACNET_PROPERTY_ID property)
+    BACNET_PROPERTY_ID property,
+    uint32_t array_index)
 {
     int apdu_len = 0;
     int tag;
@@ -1722,6 +1724,11 @@ int bacapp_decode_known_property(
             value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
         }
         apdu_len = 0;
+    } else if  (array_index == 0) {
+        /* Array index 0 is the size of the array and always unsigned int */
+        value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+        apdu_len = bacnet_unsigned_application_decode(
+            apdu, apdu_size, &value->type.Unsigned_Int);
     } else if (property == PROP_PRIORITY_ARRAY) {
         /* BACnetPriorityValue */
         /* special case to reduce complexity - mostly encoded as application
@@ -1742,6 +1749,29 @@ int bacapp_decode_known_property(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Decodes a well-known, possibly complex property value
+ *  Used to reverse operations in bacapp_encode_application_data.
+ * @note This function is called repeatedly to decode array or lists one
+ * element at a time.
+ * @param apdu - buffer of data to be decoded
+ * @param max_apdu_len - number of bytes in the buffer
+ * @param value - stores the decoded property value
+ * @param property - context property identifier
+ * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
+ * @note number of bytes can be 0 for empty lists, etc.
+ */
+int bacapp_decode_known_property(
+    const uint8_t *apdu,
+    int apdu_size,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID property)
+{
+    return bacapp_decode_known_array_property(
+        apdu, apdu_size, value, object_type, property, BACNET_ARRAY_ALL);
 }
 
 #if defined(BACAPP_COMPLEX_TYPES)

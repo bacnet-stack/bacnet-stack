@@ -325,6 +325,14 @@ int bacapp_decode_known_property(
     BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID property);
+BACNET_STACK_EXPORT
+int bacapp_decode_known_array_property(
+    const uint8_t *apdu,
+    int apdu_size,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID property,
+    uint32_t array_index);
 
 BACNET_STACK_EXPORT
 int bacapp_known_property_tag(
