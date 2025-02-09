@@ -234,9 +234,9 @@ static void bacnet_read_property_ack_process(
         apdu_len = rp_data->application_data_len;
         while (apdu_len) {
             bacapp_value_list_init(value, 1);
-            len = bacapp_decode_known_property(
+            len = bacapp_decode_known_array_property(
                 apdu, (unsigned)apdu_len, value, rp_data->object_type,
-                rp_data->object_property);
+                rp_data->object_property, rp_data->array_index);
             if (len > 0) {
                 if ((len < apdu_len) &&
                     (rp_data->array_index == BACNET_ARRAY_ALL)) {
