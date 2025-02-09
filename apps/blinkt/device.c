@@ -1329,11 +1329,9 @@ static int Read_Property_Common(
     } else if (rpdata->object_property == PROP_OBJECT_NAME) {
         characterstring_init_ansi(&char_string, "");
         if (pObject->Object_Name) {
-            (void)pObject->Object_Name(
-                rpdata->object_instance, &char_string);
+            (void)pObject->Object_Name(rpdata->object_instance, &char_string);
         }
-        apdu_len =
-            encode_application_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
 #if (BACNET_PROTOCOL_REVISION >= 14)
     } else if (rpdata->object_property == PROP_PROPERTY_LIST) {
         Device_Objects_Property_List(

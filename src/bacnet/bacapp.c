@@ -1724,7 +1724,7 @@ int bacapp_decode_known_array_property(
             value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
         }
         apdu_len = 0;
-    } else if  (array_index == 0) {
+    } else if (array_index == 0) {
         /* Array index 0 is the size of the array and always unsigned int */
         value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
         apdu_len = bacnet_unsigned_application_decode(

@@ -290,8 +290,8 @@ int property_list_common_encode(
                 &apdu[0], rpdata->object_type, rpdata->object_instance);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(
-                &apdu[0], rpdata->object_type);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         default:
             break;

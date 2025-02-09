@@ -52,8 +52,8 @@ bool bacnet_object_property_write_test(
             wp_data->array_index = 0;
             status = write_property(wp_data);
             if (!status) {
-                zassert_not_equal(wp_data->error_code,
-                    ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
+                zassert_not_equal(
+                    wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
                     "property=%s array_index=0: error code=%s.\n",
                     bactext_property_name(wp_data->object_property),
                     bactext_error_code_name(wp_data->error_code));

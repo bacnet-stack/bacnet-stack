@@ -434,8 +434,7 @@ bool write_property_empty_string_valid(
  * @return true if the property is an array and the request uses array
  *  indices.
  */
-bool write_property_bacnet_array_valid(
-    BACNET_WRITE_PROPERTY_DATA *data)
+bool write_property_bacnet_array_valid(BACNET_WRITE_PROPERTY_DATA *data)
 {
     bool is_array;
 

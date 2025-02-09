@@ -76,8 +76,7 @@ int rp_decode_service_request(
     const uint8_t *apdu, unsigned apdu_len, BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
-bool read_property_bacnet_array_valid(
-    BACNET_READ_PROPERTY_DATA *data);
+bool read_property_bacnet_array_valid(BACNET_READ_PROPERTY_DATA *data);
 
 /* method to encode the ack without extra buffer */
 BACNET_STACK_EXPORT
