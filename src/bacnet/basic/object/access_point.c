@@ -319,6 +319,14 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OUT_OF_SERVICE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Access_Point_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
+            }
+            break;
         default:
             if (property_lists_member(
                     Properties_Required, Properties_Optional,
