@@ -281,31 +281,17 @@ int property_list_common_encode(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                /* Device Object exception: requested instance
-                   may not match our instance if a wildcard */
-                if (rpdata->object_type == OBJECT_DEVICE) {
-                    rpdata->object_instance = device_instance_number;
-                }
-                apdu_len = encode_application_object_id(
-                    &apdu[0], rpdata->object_type, rpdata->object_instance);
+            /* Device Object exception: requested instance
+                may not match our instance if a wildcard */
+            if (rpdata->object_type == OBJECT_DEVICE) {
+                rpdata->object_instance = device_instance_number;
             }
+            apdu_len = encode_application_object_id(
+                &apdu[0], rpdata->object_type, rpdata->object_instance);
             break;
         case PROP_OBJECT_TYPE:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                apdu_len = encode_application_enumerated(
-                    &apdu[0], rpdata->object_type);
-            }
+            apdu_len = encode_application_enumerated(
+                &apdu[0], rpdata->object_type);
             break;
         default:
             break;
@@ -393,6 +379,8 @@ static const int Properties_BACnetARRAY[] = {
     PROP_TAGS,
     PROP_ISSUER_CERTIFICATE_FILES,
     PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
+    PROP_NEGATIVE_ACCESS_RULES,
+    PROP_POSITIVE_ACCESS_RULES,
     -1
 };
 

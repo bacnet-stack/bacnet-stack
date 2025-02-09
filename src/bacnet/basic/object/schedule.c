@@ -408,13 +408,6 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
 
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_WEEKLY_SCHEDULE) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
-
     return apdu_len;
 }
 
@@ -424,16 +417,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    bool is_array;
 
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        wp_data->object_type, wp_data->object_property);
-    if (!is_array && (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
