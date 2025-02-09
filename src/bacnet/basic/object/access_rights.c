@@ -204,7 +204,6 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned object_index = 0;
     BACNET_UNSIGNED_INTEGER count;
     uint8_t *apdu = NULL;
-    bool is_array = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -287,7 +286,6 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    bool is_array = false;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     unsigned object_index = 0;

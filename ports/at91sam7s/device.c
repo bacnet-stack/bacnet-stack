@@ -789,7 +789,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value - false=error */
-    bool is_array = false;
     int len = 0;
     uint8_t encoding = 0;
     size_t length = 0;
