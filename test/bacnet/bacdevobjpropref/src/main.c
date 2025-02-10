@@ -29,7 +29,12 @@ static void testDevObjPropRef(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
     int len = 0;
     int test_len = 0;
     int null_len = 0;
+    bool status;
 
+    status = bacnet_device_object_property_reference_copy(&test_data, data);
+    zassert_true(status, NULL);
+    status = bacnet_device_object_property_reference_same(&test_data, data);
+    zassert_true(status, NULL);
     /* encode */
     null_len = bacapp_encode_device_obj_property_ref(NULL, data);
     len = bacapp_encode_device_obj_property_ref(apdu, data);
@@ -138,9 +143,16 @@ static void testDevIdRef(void)
     int len;
     int test_len;
     int null_len;
+    bool status;
 
     data.deviceIdentifier.instance = 0x4343;
     data.deviceIdentifier.type = OBJECT_DEVICE;
+
+    status = bacnet_device_object_reference_copy(&test_data, &data);
+    zassert_true(status, NULL);
+    status = bacnet_device_object_reference_same(&test_data, &data);
+    zassert_true(status, NULL);
+
     null_len = bacapp_encode_device_obj_ref(NULL, &data);
     len = bacapp_encode_device_obj_ref(apdu, &data);
     zassert_equal(null_len, len, NULL);
@@ -175,11 +187,18 @@ static void testObjPropRef(void)
     int len;
     int test_len;
     int null_len;
+    bool status;
 
     data.object_identifier.instance = 12345;
     data.object_identifier.type = OBJECT_ANALOG_VALUE;
     data.property_identifier = PROP_PRESENT_VALUE;
     data.property_array_index = BACNET_ARRAY_ALL;
+
+    status = bacnet_object_property_reference_copy(&test_data, &data);
+    zassert_true(status, NULL);
+    status = bacnet_object_property_reference_same(&test_data, &data);
+    zassert_true(status, NULL);
+
     null_len = bacapp_encode_obj_property_ref(NULL, &data);
     len = bacapp_encode_obj_property_ref(apdu, &data);
     zassert_equal(null_len, len, NULL);
