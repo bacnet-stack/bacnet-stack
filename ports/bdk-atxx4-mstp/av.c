@@ -157,7 +157,7 @@ bool Analog_Value_Object_Name(
 /* return apdu len, or -1 on error */
 int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = 0; /* return value */    bool is_array = false;
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     float real_value = 1.414F;
     BACNET_CHARACTER_STRING char_string = { 0 };
