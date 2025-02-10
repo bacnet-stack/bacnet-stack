@@ -219,7 +219,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
-    BACNET_POLARITY polarity = POLARITY_NORMAL;
     uint8_t *apdu;
 
     apdu = rpdata->application_data;
@@ -260,10 +259,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OUT_OF_SERVICE:
             apdu_len = encode_application_boolean(&apdu[0], false);
-            break;
-        case PROP_POLARITY:
-            /* FIXME: figure out the polarity */
-            apdu_len = encode_application_enumerated(&apdu[0], polarity);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -337,7 +332,6 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_OBJECT_TYPE:
         case PROP_STATUS_FLAGS:
         case PROP_EVENT_STATE:
-        case PROP_POLARITY:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;

@@ -121,11 +121,6 @@ BACNET_STACK_EXPORT
 bool Binary_Value_Active_Text_Set(uint32_t instance, const char *new_name);
 
 BACNET_STACK_EXPORT
-BACNET_POLARITY Binary_Value_Polarity(uint32_t instance);
-BACNET_STACK_EXPORT
-bool Binary_Value_Polarity_Set(
-    uint32_t object_instance, BACNET_POLARITY polarity);
-BACNET_STACK_EXPORT
 uint32_t Binary_Value_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Binary_Value_Delete(uint32_t object_instance);

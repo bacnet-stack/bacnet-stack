@@ -123,7 +123,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
-    BACNET_POLARITY polarity = POLARITY_NORMAL;
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -168,10 +167,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OUT_OF_SERVICE:
             apdu_len = encode_application_boolean(&apdu[0], false);
-            break;
-        case PROP_POLARITY:
-            /* FIXME: figure out the polarity */
-            apdu_len = encode_application_enumerated(&apdu[0], polarity);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
