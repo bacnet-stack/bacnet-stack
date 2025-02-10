@@ -48,16 +48,16 @@ bool bacnet_object_property_write_test(
             wp_data->object_type, wp_data->object_property);
         is_list = property_list_bacnet_list_member(
             wp_data->object_type, wp_data->object_property);
-        if (!is_array && !is_list) {
+        if (is_array) {
             wp_data->array_index = 0;
             status = write_property(wp_data);
-            zassert_equal(status, false, NULL);
-            zassert_equal(wp_data->error_class, ERROR_CLASS_PROPERTY, NULL);
-            zassert_equal(
-                wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
-                "property=%s error_code=%s",
-                bactext_property_name(wp_data->object_property),
-                bactext_error_code_name(wp_data->error_code));
+            if (!status) {
+                zassert_not_equal(
+                    wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
+                    "property=%s array_index=0: error code=%s.\n",
+                    bactext_property_name(wp_data->object_property),
+                    bactext_error_code_name(wp_data->error_code));
+            }
         }
     }
 
@@ -174,21 +174,13 @@ int bacnet_object_property_read_test(
         rpdata->object_type, rpdata->object_property);
     is_list = property_list_bacnet_list_member(
         rpdata->object_type, rpdata->object_property);
-    if (!is_array && !is_list) {
+    if (is_array) {
+        /* test an array index that must be implemented */
         rpdata->array_index = 0;
         read_len = read_property(rpdata);
-        zassert_equal(
-            read_len, BACNET_STATUS_ERROR, "property '%s': is not an array!\n",
-            bactext_property_name(rpdata->object_property));
-        zassert_equal(read_len, BACNET_STATUS_ERROR, NULL);
-        zassert_equal(
-            rpdata->error_class, ERROR_CLASS_PROPERTY,
-            "property '%s': error class is %s\n",
-            bactext_property_name(rpdata->object_property),
-            bactext_error_class_name(rpdata->error_class));
-        zassert_equal(
-            rpdata->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
-            "property '%s': error code is %s\n",
+        zassert_not_equal(
+            read_len, BACNET_STATUS_ERROR,
+            "property '%s' array_index=0: error code is %s.\n",
             bactext_property_name(rpdata->object_property),
             bactext_error_code_name(rpdata->error_code));
     }

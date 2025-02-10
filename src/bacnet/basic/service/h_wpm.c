@@ -72,6 +72,9 @@ static int write_property_multiple_decode(
                             (unsigned long)wp_data->object_property,
                             (unsigned long)wp_data->priority,
                             (long)wp_data->array_index);
+                        if (!write_property_bacnet_array_valid(wp_data)) {
+                            return BACNET_STATUS_ERROR;
+                        }
                         if (device_write_property) {
                             if (device_write_property(wp_data) == false) {
                                 /* Workaround BTL Specified Test 9.23.2.X5 */
