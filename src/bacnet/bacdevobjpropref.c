@@ -874,7 +874,7 @@ bool bacnet_object_property_reference_same(
  * @brief Copy the complex data from src to dest
  * @param dest - destination structure
  * @param src - source structure
- * @return true if the values are the same
+ * @return true if the values are copied
  */
 bool bacnet_object_property_reference_copy(
     BACNET_OBJECT_PROPERTY_REFERENCE *dest,
