@@ -325,7 +325,7 @@ const char *Structured_View_Node_Subtype(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Description) {
+        if (pObject->Node_Subtype) {
             name = pObject->Node_Subtype;
         } else {
             name = "";
@@ -350,7 +350,7 @@ bool Structured_View_Node_Subtype_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Description = new_name;
+        pObject->Node_Subtype = new_name;
     }
 
     return status;
@@ -469,8 +469,8 @@ bool Structured_View_Represents_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        pObject->Represents = *represents;
+        status = bacnet_device_object_reference_copy(
+            &pObject->Represents, represents);
     }
 
     return status;

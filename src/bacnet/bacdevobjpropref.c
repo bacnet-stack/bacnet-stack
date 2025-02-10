@@ -287,6 +287,31 @@ bool bacnet_device_object_property_reference_same(
 }
 
 /**
+ * @brief Copy the complex data of src into dest
+ * @param dest - destination structure
+ * @param src - source structure
+ * @return true if the values are the copied
+ */
+bool bacnet_device_object_property_reference_copy(
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *dest,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *src)
+{
+    bool status = false;
+
+    if (dest && src) {
+        dest->arrayIndex = src->arrayIndex;
+        dest->deviceIdentifier.instance = src->deviceIdentifier.instance;
+        dest->deviceIdentifier.type = src->deviceIdentifier.type;
+        dest->objectIdentifier.instance = src->objectIdentifier.instance;
+        dest->objectIdentifier.type = src->objectIdentifier.type;
+        dest->propertyIdentifier = src->propertyIdentifier;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * Decode a property reference of a device object.
  *
  * BACnetDeviceObjectPropertyReference ::= SEQUENCE {
@@ -546,6 +571,29 @@ bool bacnet_device_object_reference_same(
             (value1->objectIdentifier.type == value2->objectIdentifier.type)) {
             status = true;
         }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Copy the complex data from src into dest
+ * @param dest - destination structure
+ * @param src - source structure
+ * @return true if the values are copied
+ */
+bool bacnet_device_object_reference_copy(
+    BACNET_DEVICE_OBJECT_REFERENCE *dest,
+    const BACNET_DEVICE_OBJECT_REFERENCE *src)
+{
+    bool status = false;
+
+    if (dest && src) {
+        dest->deviceIdentifier.instance = src->deviceIdentifier.instance;
+        dest->deviceIdentifier.type = src->deviceIdentifier.type;
+        dest->objectIdentifier.instance = src->objectIdentifier.instance;
+        dest->objectIdentifier.type = src->objectIdentifier.type;
+        status = true;
     }
 
     return status;
@@ -817,6 +865,28 @@ bool bacnet_object_property_reference_same(
              value2->object_identifier.type)) {
             status = true;
         }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Copy the complex data from src to dest
+ * @param dest - destination structure
+ * @param src - source structure
+ * @return true if the values are the same
+ */
+bool bacnet_object_property_reference_copy(
+    BACNET_OBJECT_PROPERTY_REFERENCE *dest,
+    const BACNET_OBJECT_PROPERTY_REFERENCE *src)
+{
+    bool status = false;
+
+    if (src && dest) {
+        dest->property_identifier = src->property_identifier;
+        dest->object_identifier.instance = src->object_identifier.instance;
+        dest->object_identifier.type = src->object_identifier.type;
+        status = true;
     }
 
     return status;
