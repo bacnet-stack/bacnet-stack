@@ -213,6 +213,7 @@ void bacnet_object_properties_read_write_test(
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
+    BACNET_PROPERTY_ID property;
     int len = 0;
     bool status = false;
 
@@ -222,6 +223,32 @@ void bacnet_object_properties_read_write_test(
     rpdata.object_type = object_type;
     rpdata.object_instance = object_instance;
     property_list(&pRequired, &pOptional, &pProprietary);
+    /* detect properties that are not in the property lists */
+    for (property = 0; property < MAX_BACNET_PROPERTY_ID; property++) {
+        if (property_lists_member(
+                pRequired, pOptional, pProprietary, property)) {
+            continue;
+        }
+        if ((property == PROP_ALL) || (property == PROP_REQUIRED) ||
+            (property == PROP_OPTIONAL)) {
+            continue;
+        }
+        rpdata.object_property = property;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = read_property(&rpdata);
+        zassert_equal(
+            len, BACNET_STATUS_ERROR,
+            "property '%s' array_index=ALL: Missing in property list.\n",
+            bactext_property_name(rpdata.object_property));
+        /* shrink the number space and skip proprietary range values */
+        if (property == PROP_RESERVED_RANGE_MAX) {
+            property = PROP_RESERVED_RANGE_MIN2 - 1;
+        }
+        /* shrink the number space to known values */
+        if (property == PROP_RESERVED_RANGE_LAST) {
+            break;
+        }
+    }
     while ((*pRequired) != -1) {
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;
