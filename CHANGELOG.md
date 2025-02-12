@@ -30,6 +30,11 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added unit test while reading all object properties to flag properties
+  not in the property-list. (#910)
+* Added enumeration for last-property used in unit testing. (#910)
+* Added missing reliability property in the basic multistate output
+  object example. (#910)
 * Added an optional MS/TP automatic baudrate detection option into
   the core MS/TP state machine. (#900)
 * Added linked list of lighting-command notification callbacks. (#893)
@@ -42,7 +47,18 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed usage of 8-bit modulo operator off-by-one maximums. (#901)
+* Fixed structured view object subtype get and set. (#909)
+* Fixed bacrp and bacrpm apps when reading the array index zero of
+  arrays by adding a BACnet application decoder that understands that
+  array index zero is supposed to be an unsigned integer tagged value. (#908)
+* Fixed index zero reading for basic objects BACnetARRAY property values by
+  removing BACnetARRAY index validation in all the basic and example objects
+  and moving the BACnetARRAY index validation into the common ReadProperty,
+  ReadPropertyMultiple, WriteProperty, and WritePropertyMultiple
+  handlers. (#908)
+* Fixed multi-state-input and multi-state-value basic objects usage of the
+  Write_Enabled flag by adding an API to get/set the flag. (#903)
+ * Fixed usage of 8-bit modulo operator off-by-one maximums. (#901)
 * Fixed legacy make build recipe for library. 'make library' now builds.
 * Fixed IPv6 handler to ignore original-broadcast when registered as
   a foreign-device (#898)
@@ -112,6 +128,10 @@ The git repositories are hosted at the following sites:
   Renamed debug_aprintf to debug_printf_stdout for clarity.
   Converted most debug_fprintf usage to debug_print to reduce text
   bloat in AVR build. (#885)
+
+### Removed
+
+* Removed polarity property in binary value object as it is not standard. (#910)
 
 ## [1.4.0] - 2024-11-04
 
