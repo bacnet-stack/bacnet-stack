@@ -568,17 +568,15 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_FAILED_CONNECTION_REQUESTS;
 
-    // count (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 0;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // context (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 1;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // all context
+    if (property_list_bacnet_array_member(
+            rpdata.object_type, rpdata.object_property)) {
+        object_value.array_index = rpdata.array_index = 0;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+        object_value.array_index = rpdata.array_index = 1;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+    }
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);
@@ -618,15 +616,17 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_HUB_FUNCTION_CONNECTION_STATUS;
 
-    // count (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 0;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
+    if (property_list_bacnet_array_member(
+            rpdata.object_type, rpdata.object_property)) {
+        object_value.array_index = rpdata.array_index = 0;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
 
-    // context (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 1;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
+        // context (error: property is not BacArray)
+        object_value.array_index = rpdata.array_index = 1;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+    }
 
     len = bacapp_snprintf_value(NULL, 0, &object_value);
     zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
@@ -707,17 +707,15 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS;
 
-    // count (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 0;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // context (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 1;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // all context
+    if (property_list_bacnet_array_member(
+            rpdata.object_type, rpdata.object_property)) {
+        object_value.array_index = rpdata.array_index = 0;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+        object_value.array_index = rpdata.array_index = 1;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+    }
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);

@@ -55,6 +55,7 @@ void handler_write_property(
     BACNET_WRITE_PROPERTY_DATA wp_data;
     int len = 0;
     bool bcontinue = true;
+    bool success;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
@@ -103,7 +104,11 @@ void handler_write_property(
             bcontinue = false;
         }
         if (bcontinue) {
-            if (Device_Write_Property(&wp_data)) {
+            success = write_property_bacnet_array_valid(&wp_data);
+            if (!success) {
+                success = Device_Write_Property(&wp_data);
+            }
+            if (success) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);

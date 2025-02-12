@@ -325,7 +325,7 @@ const char *Structured_View_Node_Subtype(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Description) {
+        if (pObject->Node_Subtype) {
             name = pObject->Node_Subtype;
         } else {
             name = "";
@@ -350,7 +350,7 @@ bool Structured_View_Node_Subtype_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Description = new_name;
+        pObject->Node_Subtype = new_name;
     }
 
     return status;
@@ -469,8 +469,8 @@ bool Structured_View_Represents_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        pObject->Represents = *represents;
+        status = bacnet_device_object_reference_copy(
+            &pObject->Represents, represents);
     }
 
     return status;
@@ -660,7 +660,6 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint32_t count = 0;
     uint8_t *apdu = NULL;
     uint16_t apdu_max = 0;
-    bool is_array = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -773,15 +772,6 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-    }
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        rpdata->object_type, rpdata->object_property);
-    if ((apdu_len >= 0) && (!is_array) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

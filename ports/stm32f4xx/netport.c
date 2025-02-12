@@ -66,12 +66,6 @@ static const int Network_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
 
-/* standard properties that are arrays for this object,
-   but not necessary supported in this object */
-static const int Network_Port_Properties_Array[] = { PROP_LINK_SPEEDS,
-    PROP_IP_DNS_SERVER, PROP_IPV6_DNS_SERVER, PROP_EVENT_MESSAGE_TEXTS,
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG, PROP_TAGS, -1 };
-
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -697,14 +691,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if (!property_list_member(
-            Network_Port_Properties_Array, wp_data->object_property) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     /* FIXME: len < application_data_len: more data? */

@@ -48,16 +48,16 @@ bool bacnet_object_property_write_test(
             wp_data->object_type, wp_data->object_property);
         is_list = property_list_bacnet_list_member(
             wp_data->object_type, wp_data->object_property);
-        if (!is_array && !is_list) {
+        if (is_array) {
             wp_data->array_index = 0;
             status = write_property(wp_data);
-            zassert_equal(status, false, NULL);
-            zassert_equal(wp_data->error_class, ERROR_CLASS_PROPERTY, NULL);
-            zassert_equal(
-                wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
-                "property=%s error_code=%s",
-                bactext_property_name(wp_data->object_property),
-                bactext_error_code_name(wp_data->error_code));
+            if (!status) {
+                zassert_not_equal(
+                    wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
+                    "property=%s array_index=0: error code=%s.\n",
+                    bactext_property_name(wp_data->object_property),
+                    bactext_error_code_name(wp_data->error_code));
+            }
         }
     }
 
@@ -174,21 +174,13 @@ int bacnet_object_property_read_test(
         rpdata->object_type, rpdata->object_property);
     is_list = property_list_bacnet_list_member(
         rpdata->object_type, rpdata->object_property);
-    if (!is_array && !is_list) {
+    if (is_array) {
+        /* test an array index that must be implemented */
         rpdata->array_index = 0;
         read_len = read_property(rpdata);
-        zassert_equal(
-            read_len, BACNET_STATUS_ERROR, "property '%s': is not an array!\n",
-            bactext_property_name(rpdata->object_property));
-        zassert_equal(read_len, BACNET_STATUS_ERROR, NULL);
-        zassert_equal(
-            rpdata->error_class, ERROR_CLASS_PROPERTY,
-            "property '%s': error class is %s\n",
-            bactext_property_name(rpdata->object_property),
-            bactext_error_class_name(rpdata->error_class));
-        zassert_equal(
-            rpdata->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
-            "property '%s': error code is %s\n",
+        zassert_not_equal(
+            read_len, BACNET_STATUS_ERROR,
+            "property '%s' array_index=0: error code is %s.\n",
             bactext_property_name(rpdata->object_property),
             bactext_error_code_name(rpdata->error_code));
     }
@@ -221,6 +213,7 @@ void bacnet_object_properties_read_write_test(
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
+    BACNET_PROPERTY_ID property;
     int len = 0;
     bool status = false;
 
@@ -230,6 +223,32 @@ void bacnet_object_properties_read_write_test(
     rpdata.object_type = object_type;
     rpdata.object_instance = object_instance;
     property_list(&pRequired, &pOptional, &pProprietary);
+    /* detect properties that are not in the property lists */
+    for (property = 0; property < MAX_BACNET_PROPERTY_ID; property++) {
+        if (property_lists_member(
+                pRequired, pOptional, pProprietary, property)) {
+            continue;
+        }
+        if ((property == PROP_ALL) || (property == PROP_REQUIRED) ||
+            (property == PROP_OPTIONAL)) {
+            continue;
+        }
+        rpdata.object_property = property;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = read_property(&rpdata);
+        zassert_equal(
+            len, BACNET_STATUS_ERROR,
+            "property '%s' array_index=ALL: Missing in property list.\n",
+            bactext_property_name(rpdata.object_property));
+        /* shrink the number space and skip proprietary range values */
+        if (property == PROP_RESERVED_RANGE_MAX) {
+            property = PROP_RESERVED_RANGE_MIN2 - 1;
+        }
+        /* shrink the number space to known values */
+        if (property == PROP_RESERVED_RANGE_LAST) {
+            break;
+        }
+    }
     while ((*pRequired) != -1) {
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;
