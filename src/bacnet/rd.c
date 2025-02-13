@@ -42,6 +42,7 @@ int reinitialize_device_encode(
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
+    size_t length;
 
     /* reinitialized-state-of-device [0] ENUMERATED */
     len = encode_context_enumerated(apdu, 0, state);
@@ -51,8 +52,13 @@ int reinitialize_device_encode(
     }
     /* password [1] CharacterString (SIZE (1..20)) OPTIONAL */
     if (password) {
-        if ((password->length >= 1) &&
-            (characterstring_utf8_length(password) <= 20)) {
+        if (characterstring_encoding(password) == CHARACTER_UTF8) {
+            /* UTF-8 code points can be up to 4 bytes long */
+            length = characterstring_utf8_length(password);
+        } else {
+            length = characterstring_length(password);
+        }
+        if ((length >= 1) && (length <= 20)) {
             len = encode_context_character_string(apdu, 1, password);
             apdu_len += len;
         }
