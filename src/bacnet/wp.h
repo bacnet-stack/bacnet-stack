@@ -94,6 +94,8 @@ bool write_property_empty_string_valid(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max);
+BACNET_STACK_EXPORT
+bool write_property_bacnet_array_valid(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 bool write_property_unsigned_decode(

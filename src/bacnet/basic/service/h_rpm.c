@@ -147,6 +147,8 @@ static int RPM_Encode_Property(
         (rpmdata->object_property == PROP_OPTIONAL)) {
         /* special properties only get ERROR encoding */
         len = BACNET_STATUS_ERROR;
+    } else if (!read_property_bacnet_array_valid(&rpdata)) {
+        len = BACNET_STATUS_ERROR;
     } else {
         len = Device_Read_Property(&rpdata);
     }

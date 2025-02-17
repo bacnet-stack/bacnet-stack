@@ -568,6 +568,8 @@ typedef enum {
     PROP_HIGH_END_TRIM = 4194335,
     PROP_LOW_END_TRIM = 4194336,
     PROP_TRIM_FADE_TIME = 4194337,
+    /* update this value which is used in testing */
+    PROP_RESERVED_RANGE_LAST = 4194337,
     /* Enumerated values 4194303-16777215 are reserved
        for definition by ASHRAE.  */
     /* do the max range inside of enum so that

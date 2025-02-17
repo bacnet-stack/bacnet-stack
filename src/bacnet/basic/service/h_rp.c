@@ -124,7 +124,11 @@ void handler_read_property(
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
             rpdata.application_data_len =
                 sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
-            len = Device_Read_Property(&rpdata);
+            if (!read_property_bacnet_array_valid(&rpdata)) {
+                len = BACNET_STATUS_ERROR;
+            } else {
+                len = Device_Read_Property(&rpdata);
+            }
             if (len >= 0) {
                 apdu_len += len;
                 len = rp_ack_encode_apdu_object_property_end(

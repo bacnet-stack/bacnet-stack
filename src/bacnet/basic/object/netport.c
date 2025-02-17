@@ -130,23 +130,49 @@ static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = {
     /* unordered list of required properties */
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
-    PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
-    PROP_NETWORK_TYPE,      PROP_PROTOCOL_LEVEL,
-    PROP_NETWORK_NUMBER,    PROP_NETWORK_NUMBER_QUALITY,
-    PROP_CHANGES_PENDING,   PROP_APDU_LENGTH,
-    PROP_LINK_SPEED,        -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_NETWORK_TYPE,
+    PROP_PROTOCOL_LEVEL,
+    PROP_CHANGES_PENDING,
+#if (BACNET_PROTOCOL_REVISION < 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int Ethernet_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, -1
+    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int MSTP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
     -1
 };
 
@@ -171,6 +197,12 @@ static const int BIP_Port_Properties_Optional[] = {
 #if defined(BACDL_BIP) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
 #endif
     -1
 };
@@ -199,6 +231,12 @@ static const int BIP6_Port_Properties_Optional[] = {
 #if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
 #endif
     -1
 };
@@ -3240,35 +3278,6 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
- * Determine if the object property is a BACnetARRAY datatype
- * @param  object_property [in] BACnet object property
- * @return true if the object property is a BACnetARRAY datatype
- */
-static bool
-Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
-{
-    bool status = false;
-
-    switch (object_property) {
-        case PROP_EVENT_TIME_STAMPS:
-        case PROP_EVENT_MESSAGE_TEXTS:
-        case PROP_EVENT_MESSAGE_TEXTS_CONFIG:
-        case PROP_PROPERTY_LIST:
-        case PROP_TAGS:
-        case PROP_LINK_SPEEDS:
-        case PROP_IP_DNS_SERVER:
-        case PROP_IPV6_DNS_SERVER:
-        case PROP_ISSUER_CERTIFICATE_FILES:
-            status = true;
-            break;
-        default:
-            break;
-    }
-
-    return status;
-}
-
-/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -3807,14 +3816,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             (void)apdu_size;
             break;
     }
-    /*  only array properties can have optional array indices */
-    if ((apdu_len >= 0) &&
-        (!Network_Port_BACnetArray_Property(rpdata->object_property)) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -3852,18 +3853,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_LINK_SPEEDS) &&
-        (wp_data->object_property != PROP_IP_DNS_SERVER) &&
-        (wp_data->object_property != PROP_IPV6_DNS_SERVER) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS_CONFIG) &&
-        (wp_data->object_property != PROP_TAGS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     /* FIXME: len < application_data_len: more data? */
@@ -4006,7 +3995,6 @@ bool Network_Port_Read_Range(
     bool status = false;
 
     switch (pRequest->object_property) {
-        /* required properties */
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
         case PROP_OBJECT_TYPE:
@@ -4020,7 +4008,6 @@ bool Network_Port_Read_Range(
         case PROP_CHANGES_PENDING:
         case PROP_APDU_LENGTH:
         case PROP_LINK_SPEED:
-        /* optional properties */
         case PROP_MAC_ADDRESS:
 #if defined(BACDL_MSTP)
         case PROP_MAX_MASTER:
