@@ -173,15 +173,14 @@ static const int MSTP_Port_Properties_Optional[] = {
 };
 
 static const int BIP_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IP_MODE,
     PROP_IP_ADDRESS,
     PROP_BACNET_IP_UDP_PORT,
     PROP_IP_SUBNET_MASK,
     PROP_IP_DEFAULT_GATEWAY,
-    PROP_NETWORK_NUMBER,
-    PROP_LINK_SPEED,
-    PROP_APDU_LENGTH,
     PROP_IP_DNS_SERVER,
     PROP_IP_DHCP_ENABLE,
 #if defined(BACDL_BIP) && (BBMD_ENABLED)
@@ -203,15 +202,14 @@ static const int BIP_Port_Properties_Optional[] = {
 };
 
 static const int BIP6_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IPV6_MODE,
     PROP_IPV6_ADDRESS,
     PROP_IPV6_PREFIX_LENGTH,
     PROP_BACNET_IPV6_UDP_PORT,
     PROP_IPV6_DEFAULT_GATEWAY,
-    PROP_NETWORK_NUMBER,
-    PROP_LINK_SPEED,
-    PROP_APDU_LENGTH,
     PROP_BACNET_IPV6_MULTICAST_ADDRESS,
     PROP_IPV6_DNS_SERVER,
     PROP_IPV6_AUTO_ADDRESSING_ENABLE,
@@ -397,6 +395,47 @@ const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
     }
 
     return NULL;
+}
+
+/**
+ * @brief For a given object instance-number, returns the ASCII description
+ * @param  object_instance - object-instance number of the object
+ * @return ASCII C string object name, or NULL if not found or not set.
+ */
+const char *Network_Port_Description(uint32_t instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        return Object_List[index].Description;
+    }
+
+    return NULL;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ * Note that the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be written
+ *         Expecting a pointer to a static ANSI C string for zero copy.
+ *
+ * @return  true if object-name was set
+ */
+bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Description = new_name;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -844,7 +883,7 @@ bool Network_Port_MAC_Address_Set(
 }
 
 /**
- * For a given object instance-number, gets the BACnet Network Number.
+ * For a given object instance-number, gets the APDU length.
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -864,7 +903,7 @@ uint16_t Network_Port_APDU_Length(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the BACnet Network Number
+ * For a given object instance-number, sets the APDU length
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - APDU length 0..65535
@@ -1138,9 +1177,9 @@ bool Network_Port_IP_Address(
  *
  * @param  object_instance - object-instance number of the object
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1157,6 +1196,7 @@ bool Network_Port_IP_Address_Set(
             Object_List[index].Network.IPv4.IP_Address[1] = b;
             Object_List[index].Network.IPv4.IP_Address[2] = c;
             Object_List[index].Network.IPv4.IP_Address[3] = d;
+            status = true;
         }
     }
 
@@ -1283,9 +1323,9 @@ bool Network_Port_IP_Gateway(
  *
  * @param  object_instance - object-instance number of the object
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1302,6 +1342,7 @@ bool Network_Port_IP_Gateway_Set(
             Object_List[index].Network.IPv4.IP_Gateway[1] = b;
             Object_List[index].Network.IPv4.IP_Gateway[2] = c;
             Object_List[index].Network.IPv4.IP_Gateway[3] = d;
+            status = true;
         }
     }
 
@@ -1356,7 +1397,7 @@ bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
 }
 
 /**
- * For a given object instance-number, loads the subnet-mask-address into
+ * For a given object instance-number and dns_index, loads the ip-address into
  * an octet string.
  * Note: depends on Network_Type being set for this object
  *
@@ -1424,9 +1465,9 @@ static int Network_Port_IP_DNS_Server_Encode(
  * @param  object_instance - object-instance number of the object
  * @param  index - 0=primary, 1=secondary, 3=tertierary
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1449,6 +1490,7 @@ bool Network_Port_IP_DNS_Server_Set(
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][1] = b;
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][2] = c;
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][3] = d;
+                status = true;
             }
         }
     }
@@ -2979,6 +3021,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
             snprintf(
                 &Object_List[index].Network.IPv6.Zone_Index[0], ZONE_INDEX_SIZE,
                 "%s", zone_index);
+            status = true;
         }
     }
 
@@ -3326,6 +3369,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_NETWORK_NUMBER_QUALITY:
             apdu_len = encode_application_enumerated(
                 &apdu[0], Network_Port_Quality(rpdata->object_instance));
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string,
+                Network_Port_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_MAC_ADDRESS:
             Network_Port_MAC_Address(rpdata->object_instance, &octet_string);
@@ -3745,7 +3795,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * ReadRange service handler for the BACnet/IP BDT.
  *
  * @param  apdu - place to encode the data
- * @param  apdu - BACNET_READ_RANGE_DATA data
+ * @param  pRequest - BACNET_READ_RANGE_DATA data
  *
  * @return number of bytes encoded
  */
@@ -3760,7 +3810,7 @@ int Network_Port_Read_Range_BDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  * ReadRange service handler for the BACnet/IP FDT.
  *
  * @param  apdu - place to encode the data
- * @param  apdu - BACNET_READ_RANGE_DATA data
+ * @param  pRequest - BACNET_READ_RANGE_DATA data
  *
  * @return number of bytes encoded
  */
@@ -3871,7 +3921,7 @@ void Network_Port_Changes_Activate(void)
 }
 
 /**
- * @brief Activate any of the changes pending for all network port objects
+ * @brief Discard any of the changes pending for all network port objects
  */
 void Network_Port_Changes_Discard(void)
 {
