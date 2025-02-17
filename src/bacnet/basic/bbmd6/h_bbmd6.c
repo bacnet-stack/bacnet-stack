@@ -32,7 +32,7 @@
 #endif
 #endif
 
-static bool BVLC6_Debug;
+static bool BVLC6_Debug = false;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
@@ -627,6 +627,46 @@ static void bbmd6_address_resolution_handler(
 }
 
 /**
+ * Handler for Forwarded-Address-Resolution
+ *
+ * @param addr - BACnet/IPv6 source address any NAK or reply back to.
+ * @param pdu - The received NPDU+APDU buffer.
+ * @param pdu_len - How many bytes in NPDU+APDU buffer.
+ */
+static void bbmd6_forwarded_address_resolution_handler(
+    const BACNET_IP6_ADDRESS *addr, const uint8_t *pdu, uint16_t pdu_len)
+{
+    int function_len = 0;
+    uint32_t vmac_src = 0;
+    uint32_t vmac_target = 0;
+    uint32_t vmac_me = 0;
+    BACNET_IP6_ADDRESS bip6_address = {
+        0,
+    };
+
+    if (addr && pdu) {
+        PRINTF("BIP6: Received Forwarded-Address-Resolution.\n");
+        if (bbmd6_address_match_self(addr)) {
+            /* ignore messages from my IPv6 address */
+        } else {
+            function_len = bvlc6_decode_forwarded_address_resolution(
+                pdu, pdu_len, &vmac_src, &vmac_target, &bip6_address);
+            if (function_len) {
+                bbmd6_add_vmac(vmac_src, addr);
+                vmac_me = Device_Object_Instance_Number();
+                if (vmac_target == vmac_me) {
+                    /* The Address-Resolution-ACK message is unicast
+                       to the B/IPv6 node that originally initiated
+                       the Address-Resolution message. */
+                    bvlc6_send_address_resolution_ack(
+                        &bip6_address, vmac_me, vmac_src);
+                }
+            }
+        }
+    }
+}
+
+/**
  * Handler for Address-Resolution-ACK
  *
  * @param addr - BACnet/IPv6 source address any NAK or reply back to.
@@ -824,6 +864,7 @@ int bvlc6_bbmd_disabled_handler(
                    the message was not received from a BBMD which is in
                    the receiving BBMD's BDT, no BVLC-Result shall be
                    returned and the message shall be discarded. */
+                bbmd6_forwarded_address_resolution_handler(addr, pdu, pdu_len);
                 break;
             case BVLC6_ADDRESS_RESOLUTION:
                 /* Upon receipt of a BVLL Address-Resolution message
