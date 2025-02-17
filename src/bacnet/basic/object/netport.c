@@ -103,6 +103,7 @@ struct mstp_port {
 struct object_data {
     uint32_t Instance_Number;
     const char *Object_Name;
+    const char *Description;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changes_Pending : 1;
