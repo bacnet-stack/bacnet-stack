@@ -40,7 +40,7 @@ BACNET_STACK_EXPORT
 const char *Network_Port_Object_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-char *Network_Port_Description(uint32_t instance);
+const char *Network_Port_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Description_Set(uint32_t instance, const char *new_name);
 
