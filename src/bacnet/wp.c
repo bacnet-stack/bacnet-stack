@@ -320,7 +320,7 @@ bool write_property_type_valid(
             fprintf(stderr, "write_property_type_valid: value tag is NULL\n");
             valid = false;
         }
-        if (wp_data) {
+        if (wp_data && valid) {
             fprintf(stderr, "write_property_type_valid: ERROR\n");
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
