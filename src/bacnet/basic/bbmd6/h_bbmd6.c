@@ -626,7 +626,9 @@ static void bbmd6_forwarded_address_resolution_handler(
     uint32_t vmac_src = 0;
     uint32_t vmac_target = 0;
     uint32_t vmac_me = 0;
-    BACNET_IP6_ADDRESS bip6_address = { 0, };
+    BACNET_IP6_ADDRESS bip6_address = {
+        0,
+    };
 
     if (addr && pdu) {
         PRINTF("BIP6: Received Forwarded-Address-Resolution.\n");
@@ -642,7 +644,8 @@ static void bbmd6_forwarded_address_resolution_handler(
                     /* The Address-Resolution-ACK message is unicast
                        to the B/IPv6 node that originally initiated
                        the Address-Resolution message. */
-                    bvlc6_send_address_resolution_ack(&bip6_address, vmac_me, vmac_src);
+                    bvlc6_send_address_resolution_ack(
+                        &bip6_address, vmac_me, vmac_src);
                 }
             }
         }
