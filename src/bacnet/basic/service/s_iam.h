@@ -39,6 +39,8 @@ int iam_encode_pdu(
 BACNET_STACK_EXPORT
 void Send_I_Am(uint8_t *buffer);
 BACNET_STACK_EXPORT
+void Send_I_Am_Broadcast(uint8_t *buffer);
+BACNET_STACK_EXPORT
 int iam_unicast_encode_pdu(
     uint8_t *buffer,
     const BACNET_ADDRESS *src,
