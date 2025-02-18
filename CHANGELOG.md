@@ -47,6 +47,14 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the NDPU encoding for confirmed COV notifications (#917)
+* Fixed the ReinitializeDevice and DeviceCommunicationControl
+  password length checking for non-UTF8 passwords. (#914)
+* Changed link-speed, network-number, network-number-quality,
+  and apdu-length properties of the network port object to be
+  optional when protocol-revision is 24 or greater. (#913)
+* Fixed error-code returned when an object does not support WriteProperty
+  but has properties that are known. (#912)
 * Fixed structured view object subtype get and set. (#909)
 * Fixed bacrp and bacrpm apps when reading the array index zero of
   arrays by adding a BACnet application decoder that understands that
@@ -60,6 +68,7 @@ The git repositories are hosted at the following sites:
   Write_Enabled flag by adding an API to get/set the flag. (#903)
  * Fixed usage of 8-bit modulo operator off-by-one maximums. (#901)
 * Fixed legacy make build recipe for library. 'make library' now builds.
+* Fixed IPv6 to leave multicast when registering as foreign device. (#899)
 * Fixed IPv6 handler to ignore original-broadcast when registered as
   a foreign-device (#898)
 * Fixed spelling errors detected by code-spell utility. (#895)
