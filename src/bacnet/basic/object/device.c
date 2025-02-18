@@ -668,6 +668,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     bool status = false;
     bool password_success = false;
     unsigned i;
+    size_t length;
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to
@@ -676,7 +677,12 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
     if (Reinit_Password && strlen(Reinit_Password) > 0) {
-        if (characterstring_utf8_length(&rd_data->password) > 20) {
+        if (characterstring_encoding(&rd_data->password) == CHARACTER_UTF8) {
+            length = characterstring_utf8_length(&rd_data->password);
+        } else {
+            length = characterstring_length(&rd_data->password);
+        }
+        if (length > 20) {
             rd_data->error_class = ERROR_CLASS_SERVICES;
             rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
         } else if (characterstring_ansi_same(
@@ -2017,8 +2023,17 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Device_Write_Property_Store(wp_data);
                 }
             } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                if (Device_Objects_Property_List_Member(
+                        wp_data->object_type, wp_data->object_instance,
+                        wp_data->object_property)) {
+                    /* this property is not writable */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else {
+                    /* this property is not supported */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                }
             }
         } else {
             wp_data->error_class = ERROR_CLASS_OBJECT;

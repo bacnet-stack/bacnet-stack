@@ -130,23 +130,49 @@ static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = {
     /* unordered list of required properties */
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
-    PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
-    PROP_NETWORK_TYPE,      PROP_PROTOCOL_LEVEL,
-    PROP_NETWORK_NUMBER,    PROP_NETWORK_NUMBER_QUALITY,
-    PROP_CHANGES_PENDING,   PROP_APDU_LENGTH,
-    PROP_LINK_SPEED,        -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_NETWORK_TYPE,
+    PROP_PROTOCOL_LEVEL,
+    PROP_CHANGES_PENDING,
+#if (BACNET_PROTOCOL_REVISION < 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int Ethernet_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, -1
+    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int MSTP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
     -1
 };
 
@@ -171,6 +197,12 @@ static const int BIP_Port_Properties_Optional[] = {
 #if defined(BACDL_BIP) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
 #endif
     -1
 };
@@ -199,6 +231,12 @@ static const int BIP6_Port_Properties_Optional[] = {
 #if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
 #endif
     -1
 };
@@ -3957,7 +3995,6 @@ bool Network_Port_Read_Range(
     bool status = false;
 
     switch (pRequest->object_property) {
-        /* required properties */
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
         case PROP_OBJECT_TYPE:
@@ -3971,7 +4008,6 @@ bool Network_Port_Read_Range(
         case PROP_CHANGES_PENDING:
         case PROP_APDU_LENGTH:
         case PROP_LINK_SPEED:
-        /* optional properties */
         case PROP_MAC_ADDRESS:
 #if defined(BACDL_MSTP)
         case PROP_MAX_MASTER:
