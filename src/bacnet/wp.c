@@ -312,7 +312,7 @@ bool write_property_type_valid(
     bool valid = true;
 
     if (value && (value->tag != expected_tag)) {
-        if(value->tag != BACNET_APPLICATION_TAG_NULL) {
+        if (value->tag != BACNET_APPLICATION_TAG_NULL) {
             valid = false;
         }
         if (wp_data && valid) {
