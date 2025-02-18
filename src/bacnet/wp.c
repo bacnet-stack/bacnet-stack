@@ -315,7 +315,7 @@ bool write_property_type_valid(
         if (value->tag != BACNET_APPLICATION_TAG_NULL) {
             valid = false;
         }
-        if (wp_data && valid) {
+        if (wp_data && !valid) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
