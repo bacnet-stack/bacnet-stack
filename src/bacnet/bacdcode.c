@@ -1355,6 +1355,38 @@ int encode_context_null(uint8_t *apdu, uint8_t tag_number)
 }
 
 /**
+ * @brief Decode the NULL value when application encoded
+ * From clause 20.2.2 Encoding of a Null Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ *
+ * @return number of bytes decoded, zero if tag mismatch,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
+ */
+int bacnet_null_application_decode(const uint8_t *apdu, uint32_t apdu_size)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    int len = 0;
+    BACNET_TAG tag = { 0 };
+
+    if (apdu_size == 0) {
+        return 0;
+    }
+    len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if (len > 0) {
+        if (tag.application && (tag.number == BACNET_APPLICATION_TAG_NULL)) {
+            apdu_len = len;
+        } else {
+            apdu_len = 0;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Reverse the bits of the given byte.
  *
  * @param in_byte  Byte to reverse.

@@ -137,6 +137,8 @@ BACNET_STACK_EXPORT
 int encode_application_null(uint8_t *apdu);
 BACNET_STACK_EXPORT
 int encode_context_null(uint8_t *apdu, uint8_t tag_number);
+BACNET_STACK_EXPORT
+int bacnet_null_application_decode(const uint8_t *apdu, uint32_t apdu_size);
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
 BACNET_STACK_EXPORT
