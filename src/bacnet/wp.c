@@ -311,17 +311,11 @@ bool write_property_type_valid(
     /* assume success */
     bool valid = true;
 
-    fprintf(stderr, "write_property_type_valid: %d\n", value->tag);
-    fprintf(stderr, "write_property_type_valid: %d\n", expected_tag);
-    fprintf(stderr, "write_property_type_valid wp_data application_data_len: %d\n", wp_data->application_data_len);
-
     if (value && (value->tag != expected_tag)) {
         if(value->tag != BACNET_APPLICATION_TAG_NULL) {
-            fprintf(stderr, "write_property_type_valid: value tag is NULL\n");
             valid = false;
         }
         if (wp_data && valid) {
-            fprintf(stderr, "write_property_type_valid: ERROR\n");
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
