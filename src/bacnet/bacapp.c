@@ -2185,7 +2185,7 @@ static int bacapp_snprintf_enumerated(
             ret_val = bacapp_snprintf_property_identifier(str, str_len, value);
             break;
         case PROP_OBJECT_TYPE:
-            if (value <= BACNET_OBJECT_TYPE_LAST) {
+            if (value <= BACNET_OBJECT_TYPE_RESERVED_MIN) {
                 ret_val = bacapp_snprintf(
                     str, str_len, "%s", bactext_object_type_name(value));
             } else if (value <= BACNET_OBJECT_TYPE_RESERVED_MAX) {
@@ -2375,7 +2375,7 @@ static int bacapp_snprintf_object_id(
 
     slen = bacapp_snprintf(str, str_len, "(");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    if (object_id->type <= BACNET_OBJECT_TYPE_LAST) {
+    if (object_id->type <= BACNET_OBJECT_TYPE_RESERVED_MIN) {
         slen = bacapp_snprintf(
             str, str_len, "%s, ", bactext_object_type_name(object_id->type));
     } else if (object_id->type < BACNET_OBJECT_TYPE_RESERVED_MAX) {

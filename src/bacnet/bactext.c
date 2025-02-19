@@ -147,6 +147,8 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     { BACNET_APPLICATION_TAG_ACTION_COMMAND, "BACnetActionCommand" },
     { BACNET_APPLICATION_TAG_SCALE, "BACnetScale" },
     { BACNET_APPLICATION_TAG_SHED_LEVEL, "BACnetShedLevel" },
+    { BACNET_APPLICATION_TAG_ACCESS_RULE, "BACnetAccessRule" },
+    { BACNET_APPLICATION_TAG_CHANNEL_VALUE, "BACnetChannelValue" },
     { 0, NULL }
 };
 
@@ -789,6 +791,18 @@ INDTEXT_DATA bacnet_property_names[] = {
     { PROP_HIGH_END_TRIM, "high-end-trim" },
     { PROP_LOW_END_TRIM, "low-end-trim" },
     { PROP_TRIM_FADE_TIME, "trim-fade-time" },
+    { PROP_DEVICE_ADDRESS_PROXY_ENABLE, "device-address-proxy-enable" },
+    { PROP_DEVICE_ADDRESS_PROXY_TABLE, "device-address-proxy-table" },
+    { PROP_DEVICE_ADDRESS_PROXY_TIMEOUT, "device-address-proxy-timeout" },
+    { PROP_DEFAULT_ON_VALUE, "default-on-value" },
+    { PROP_LAST_ON_VALUE, "last-on-value" },
+    { PROP_AUTHORIZATION_CACHE, "authorization-cache" },
+    { PROP_AUTHORIZATION_GROUPS, "authorization-groups" },
+    { PROP_AUTHORIZATION_POLICY, "authorization-policy" },
+    { PROP_AUTHORIZATION_SCOPE, "authorization-scope" },
+    { PROP_AUTHORIZATION_SERVER, "authorization-server" },
+    { PROP_AUTHORIZATION_STATUS, "authorization-status" },
+    { PROP_MAX_PROXIED_I_AMS_PER_SECOND, "max-proxied-i-ams-per-second" },
     { 0, NULL }
 };
 
@@ -1269,6 +1283,21 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
     { UNITS_SITE_UNIT8, "site-unit8" },
     { UNITS_SITE_UNIT9, "site-unit9" },
     { UNITS_SITE_UNIT10, "site-unit10" },
+    { UNITS_GRAINS_OF_WATER_PER_POUND_DRY_AIR,
+      "grains-of-water-per-pound-dry-air" },
+    { UNITS_DEGREE_HOURS_CELSIUS, "degree-hours-celsius" },
+    { UNITS_DEGREE_HOURS_FAHRENHEIT, "degree-hours-fahrenheit" },
+    { UNITS_DEGREE_MINUTES_CELSIUS, "degree-minutes-celsius" },
+    { UNITS_DEGREE_MINUTES_FAHRENHEIT, "degree-minutes-fahrenheit" },
+    { UNITS_DEGREE_SECONDS_CELSIUS, "degree-seconds-celsius" },
+    { UNITS_DEGREE_SECONDS_FAHRENHEIT, "degree-seconds-fahrenheit" },
+    { UNITS_MICROSECONDS, "microseconds" },
+    { UNITS_NANOSECONDS, "nanoseconds" },
+    { UNITS_PICOSECONDS, "picoseconds" },
+    { UNITS_PARTICLES_PER_CUBIC_FOOT, "particles-per-cubic-foot" },
+    { UNITS_PARTICLES_PER_CUBIC_METER, "particles-per-cubic-meter" },
+    { UNITS_PICOCURIES_PER_LITER, "picocuries-per-liter" },
+    { UNITS_BECQUERELS_PER_CUBIC_METER, "becquerels-per-cubic-meter" },
     { 0, NULL }
     /* Enumerated values 0-255 and 47808-49999 are reserved for definition by
        ASHRAE. Enumerated values 256-47807 and 50000-65535 may be used by others
@@ -1349,14 +1378,14 @@ INDTEXT_DATA bacnet_abort_reason_names[] = {
     { ABORT_REASON_OUT_OF_RESOURCES, "out-of-resources" },
     { ABORT_REASON_TSM_TIMEOUT, "tsm-timeout" },
     { ABORT_REASON_APDU_TOO_LONG, "apdu-too-long" },
-    { ABORT_REASON_PROPRIETARY_FIRST, "Proprietary" },
+    { ABORT_REASON_PROPRIETARY_MIN, "Proprietary" },
     { 0, NULL }
 };
 
 const char *bactext_abort_reason_name(unsigned index)
 {
     return indtext_by_index_split_default(
-        bacnet_abort_reason_names, index, ABORT_REASON_PROPRIETARY_FIRST,
+        bacnet_abort_reason_names, index, ABORT_REASON_PROPRIETARY_MIN,
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
@@ -1741,8 +1770,9 @@ INDTEXT_DATA bacnet_event_state_names[] = {
     { EVENT_STATE_NORMAL, "normal" },
     { EVENT_STATE_FAULT, "fault" },
     { EVENT_STATE_OFFNORMAL, "offnormal" },
-    { EVENT_STATE_HIGH_LIMIT, "high limit" },
-    { EVENT_STATE_LOW_LIMIT, "low limit" },
+    { EVENT_STATE_HIGH_LIMIT, "high-limit" },
+    { EVENT_STATE_LOW_LIMIT, "low-limit" },
+    { EVENT_STATE_LIFE_SAFETY_ALARM, "life-safety-alarm" },
     { 0, NULL }
 };
 
@@ -1977,12 +2007,23 @@ INDTEXT_DATA life_safety_state_names[] = {
     { LIFE_SAFETY_STATE_GENERAL_ALARM, "general-alarm" },
     { LIFE_SAFETY_STATE_SUPERVISORY, "supervisory" },
     { LIFE_SAFETY_STATE_TEST_SUPERVISORY, "test-supervisory" },
+    { LIFE_SAFETY_STATE_NON_DEFAULT_MODE, "non-default-mode" },
+    { LIFE_SAFETY_STATE_OEO_UNAVAILABLE, "oeo-unavailable" },
+    { LIFE_SAFETY_STATE_OEO_ALARM, "oeo-alarm" },
+    { LIFE_SAFETY_STATE_OEO_PHASE1_RECALL, "oeo-phase1-recall" },
+    { LIFE_SAFETY_STATE_OEO_EVACUATE, "oeo-evacuate" },
+    { LIFE_SAFETY_STATE_OEO_UNAFFECTED, "oeo-unaffected" },
+    { LIFE_SAFETY_STATE_TEST_OEO_UNAVAILABLE, "test-oeo-unavailable" },
+    { LIFE_SAFETY_STATE_TEST_OEO_ALARM, "test-oeo-alarm" },
+    { LIFE_SAFETY_STATE_TEST_OEO_PHASE1_RECALL, "test-oeo-phase1-recall" },
+    { LIFE_SAFETY_STATE_TEST_OEO_EVACUATE, "test-oeo-evacuate" },
+    { LIFE_SAFETY_STATE_TEST_OEO_UNAFFECTED, "test-oeo-unaffected" },
     { 0, NULL }
 };
 
 const char *bactext_life_safety_state_name(unsigned index)
 {
-    if (index < MAX_LIFE_SAFETY_STATE) {
+    if (index < LIFE_SAFETY_STATE_RESERVED_MIN) {
         return indtext_by_index_default(
             life_safety_state_names, index, ASHRAE_Reserved_String);
     } else {
@@ -2019,10 +2060,10 @@ INDTEXT_DATA lighting_transition[] = {
 
 const char *bactext_lighting_transition(unsigned index)
 {
-    if (index < BACNET_LIGHTING_TRANSITION_PROPRIETARY_FIRST) {
+    if (index < BACNET_LIGHTING_TRANSITION_PROPRIETARY_MIN) {
         return indtext_by_index_default(
             lighting_transition, index, ASHRAE_Reserved_String);
-    } else if (index <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST) {
+    } else if (index <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_MAX) {
         return Vendor_Proprietary_String;
     } else {
         return "Invalid BACnetLightingTransition";
@@ -2046,10 +2087,10 @@ INDTEXT_DATA bacnet_lighting_operation_names[] = {
 
 const char *bactext_lighting_operation_name(unsigned index)
 {
-    if (index < BACNET_LIGHTS_PROPRIETARY_FIRST) {
+    if (index < BACNET_LIGHTS_PROPRIETARY_MIN) {
         return indtext_by_index_default(
             bacnet_lighting_operation_names, index, ASHRAE_Reserved_String);
-    } else if (index <= BACNET_LIGHTS_PROPRIETARY_LAST) {
+    } else if (index <= BACNET_LIGHTS_PROPRIETARY_MAX) {
         return Vendor_Proprietary_String;
     } else {
         return "Invalid BACnetLightingOperation";
@@ -2070,6 +2111,7 @@ INDTEXT_DATA bacnet_binary_lighting_pv_names[] = {
     { BINARY_LIGHTING_PV_WARN_OFF, "warn-off" },
     { BINARY_LIGHTING_PV_WARN_RELINQUISH, "warn-relinquish" },
     { BINARY_LIGHTING_PV_STOP, "stop" },
+    { BINARY_LIGHTING_PV_TOGGLE, "toggle" },
     { 0, NULL }
 };
 
