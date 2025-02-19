@@ -281,6 +281,17 @@ bool Device_Objects_Property_List_Member(
     return found;
 }
 
+/**
+ * @brief Returns the list of required, optional, and proprietary properties
+ *       for the Device object.
+ * @param pRequired [out] Pointer to the list of required properties
+ * @param pOptional [out] Pointer to the list of optional properties
+ * @param pProprietary [out] Pointer to the list of proprietary properties
+ * @note The lists are terminated with -1.
+ * @note The lists are not allocated, so do not free them.
+ * @note The lists are static, so do not modify them.
+ * @ingroup ObjIntf
+ */
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
