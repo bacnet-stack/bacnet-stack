@@ -282,13 +282,28 @@ BACNET_BINARY_PV Binary_Input_Present_Value(uint32_t object_instance)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - binary value
  */
 static void Binary_Input_Present_Value_COV_Detect(
     struct object_data *pObject, BACNET_BINARY_PV value)
 {
     if (pObject) {
         if (Binary_Present_Value(pObject->Present_Value) != value) {
+            pObject->Change_Of_Value = true;
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, checks the out-of-service for COV
+ * @param  pObject - specific object with valid data
+ * @param  value - out-of-service value
+ */
+static void
+Binary_Input_Out_Of_Service_COV_Detect(struct object_data *pObject, bool value)
+{
+    if (pObject) {
+        if (pObject->Out_Of_Service != value) {
             pObject->Change_Of_Value = true;
         }
     }
@@ -326,10 +341,8 @@ void Binary_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        if (pObject->Out_Of_Service != value) {
-            pObject->Out_Of_Service = value;
-            pObject->Change_Of_Value = true;
-        }
+        Binary_Input_Out_Of_Service_COV_Detect(pObject, value);
+        pObject->Out_Of_Service = value;
     }
 
     return;
@@ -520,7 +533,7 @@ bool Binary_Input_Present_Value_Set(
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
+ * @param  value - binary present-value
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
@@ -561,6 +574,43 @@ static bool Binary_Input_Present_Value_Write(
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the out-of-service flag
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - boolean out-of-service value
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Binary_Input_Out_Of_Service_Write(
+    uint32_t object_instance,
+    bool value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Binary_Input_Object(object_instance);
+    if (pObject) {
+        if (pObject->Write_Enabled) {
+            Binary_Input_Out_Of_Service_COV_Detect(pObject, value);
+            pObject->Out_Of_Service = value;
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         }
     } else {
         *error_class = ERROR_CLASS_OBJECT;
@@ -1081,8 +1131,9 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Binary_Input_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Boolean);
+                status = Binary_Input_Out_Of_Service_Write(
+                    wp_data->object_instance, value.type.Boolean,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         case PROP_POLARITY:
