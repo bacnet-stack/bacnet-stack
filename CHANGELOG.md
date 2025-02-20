@@ -47,6 +47,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed out-of-service writability to be consistent with present-value
+  in objects using Write_Enabled flag (#921)
 * Fixed the NDPU encoding for confirmed COV notifications (#917)
 * Fixed the ReinitializeDevice and DeviceCommunicationControl
   password length checking for non-UTF8 passwords. (#914)
