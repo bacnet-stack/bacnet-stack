@@ -131,11 +131,11 @@
 /* Addendum 135-2020cp Addition of Authentication and Authorization */
 /* ANSI/ASHRAE 135-2024 */
 #define MAX_ASHRAE_OBJECT_TYPE 65
-#define MAX_BACNET_SERVICES_SUPPORTED 49
+#define MAX_BACNET_SERVICES_SUPPORTED 50
 #elif (BACNET_PROTOCOL_REVISION == 30)
 /* Addendum 135-2020cm BACnet Energy Services Interface */
 #define MAX_ASHRAE_OBJECT_TYPE 65
-#define MAX_BACNET_SERVICES_SUPPORTED 49
+#define MAX_BACNET_SERVICES_SUPPORTED 50
 #else
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif
