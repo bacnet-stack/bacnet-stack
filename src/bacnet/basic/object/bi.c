@@ -591,7 +591,7 @@ static bool Binary_Input_Present_Value_Write(
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
- * @return  true if values are within range and present-value is set.
+ * @return  true if value is set, or false if not set or error occurred
  */
 static bool Binary_Input_Out_Of_Service_Write(
     uint32_t object_instance,

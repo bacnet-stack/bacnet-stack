@@ -301,10 +301,10 @@ void BitString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - new value
- * @param  error_class - the BACnet error class
- * @param  error_code - BACnet Error code
+ * @param  error_class - BACnet error class
+ * @param  error_code - BACnet error code
  *
- * @return  true if values are within range and present-value is set.
+ * @return  true if value is set, or false if not set or error occurred
  */
 static bool BitString_Value_Out_Of_Service_Write(
     uint32_t object_instance,
