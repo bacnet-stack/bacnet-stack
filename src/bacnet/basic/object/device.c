@@ -1260,7 +1260,10 @@ bool Device_Object_Name_Copy(
 
     pObject = Device_Objects_Find_Functions(object_type);
     if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-        found = pObject->Object_Name(object_instance, object_name);
+        if(pObject->Object_Valid_Instance && pObject->Object_Valid_Instance(object_instance))
+        {
+            found = pObject->Object_Name(object_instance, object_name);
+        }
     }
 
     return found;
