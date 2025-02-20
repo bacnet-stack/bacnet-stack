@@ -1254,9 +1254,6 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        fprintf(stderr, "+++++ [%s %d %s] tukej\r\n",
-                __FILE__, __LINE__, __func__
-               );
         return false;
     }
     /*  only array properties can have array options */
