@@ -1241,13 +1241,22 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /* decode the some of the request */
+#if defined(BACAPP_COMPLEX_TYPES)
+    len = bacapp_decode_known_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property);
+#else
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
+#endif
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        fprintf(stderr, "+++++ [%s %d %s] tukej\r\n",
+                __FILE__, __LINE__, __func__
+               );
         return false;
     }
     /*  only array properties can have array options */
