@@ -47,7 +47,6 @@ struct object_data {
     bool Out_Of_Service : 1;
     bool Blink_Warn_Enable : 1;
     bool Egress_Active : 1;
-    bool Changed : 1;
     bool Polarity : 1;
 };
 /* Key List for storing the object data sorted by instance number  */
@@ -472,7 +471,6 @@ static void Present_Value_Relinquish_Handler(uint32_t object_instance)
             value = Priority_Array_Value(pObject, current_priority);
         }
         if (pObject->Feedback_Value != value) {
-            pObject->Changed = true;
             if ((!pObject->Out_Of_Service) &&
                 (Binary_Lighting_Output_Write_Value_Callback)) {
                 Binary_Lighting_Output_Write_Value_Callback(
