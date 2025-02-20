@@ -317,7 +317,7 @@ uint32_t Multistate_Input_Present_Value(uint32_t object_instance)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - multistate value
  */
 static void Multistate_Input_Present_Value_COV_Detect(
     struct object_data *pObject, uint32_t value)

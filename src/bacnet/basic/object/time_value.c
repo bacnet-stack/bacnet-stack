@@ -171,7 +171,7 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - time value
  */
 static void Time_Value_Present_Value_COV_Detect(
     struct object_data *pObject, const BACNET_TIME *value)

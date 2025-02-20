@@ -317,7 +317,7 @@ uint32_t Multistate_Value_Present_Value(uint32_t object_instance)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - multistate value
  */
 static void Multistate_Value_Present_Value_COV_Detect(
     struct object_data *pObject, uint32_t value)
@@ -359,7 +359,7 @@ bool Multistate_Value_Present_Value_Set(
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
+ * @param  value - multistate value
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
