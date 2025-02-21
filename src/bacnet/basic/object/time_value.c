@@ -171,7 +171,7 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - time value
  */
 static void Time_Value_Present_Value_COV_Detect(
     struct object_data *pObject, const BACNET_TIME *value)
@@ -240,7 +240,13 @@ static bool Time_Value_Present_Value_Write(
             datetime_copy_time(&old_value, &pObject->Present_Value);
             Time_Value_Present_Value_COV_Detect(pObject, value);
             datetime_copy_time(&pObject->Present_Value, value);
-            if (Time_Value_Write_Present_Value_Callback) {
+            if (pObject->Out_Of_Service) {
+                /* The physical point that the object represents
+                    is not in service. This means that changes to the
+                    Present_Value property are decoupled from the
+                    physical point when the value of Out_Of_Service
+                    is true. */
+            } else if (Time_Value_Write_Present_Value_Callback) {
                 Time_Value_Write_Present_Value_Callback(
                     object_instance, &old_value, value);
             }
@@ -292,8 +298,47 @@ bool Time_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        if (pObject->Out_Of_Service != value) {
+            pObject->Change_Of_Value = true;
+        }
         pObject->Out_Of_Service = value;
         status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the out-of-service flag
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - indicator of 'Out-of-service'
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if value is set, or false if not or error occurred
+ */
+static bool Time_Value_Out_Of_Service_Write(
+    uint32_t object_instance,
+    bool value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->Write_Enabled) {
+            Time_Value_Out_Of_Service_Set(object_instance, value);
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;
@@ -619,8 +664,9 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Time_Value_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Boolean);
+                status = Time_Value_Out_Of_Service_Write(
+                    wp_data->object_instance, value.type.Boolean,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         default:
