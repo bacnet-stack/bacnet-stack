@@ -927,8 +927,14 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /* decode the some of the request */
+#if defined(BACAPP_COMPLEX_TYPES)
+    len = bacapp_decode_known_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property);
+#else
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
+#endif
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
