@@ -25,6 +25,11 @@ option(
   ON)
 
 option(
+  BACNET_BUILD_BACMINI_APP
+  "compile the bacmini app"
+  ON)
+
+  option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
@@ -911,6 +916,22 @@ if(BACNET_STACK_BUILD_APPS)
     add_executable(piface apps/piface/main.c apps/piface/device.c)
     target_link_libraries(piface PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_PIFACE_APP)
+
+  if(BACNET_BUILD_BACMINI_APP)
+    add_executable(bacmini
+      apps/server-basic/main.c
+      src/bacnet/basic/server/bacnet_basic.c
+      src/bacnet/basic/server/bacnet_device.c
+      src/bacnet/basic/server/bacnet_port.c
+      src/bacnet/basic/server/bacnet_port_ipv4.c
+      src/bacnet/basic/server/bacnet_port_ipv6.c
+    )
+    target_link_libraries(bacmini PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacmini PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif(BACNET_BUILD_BACMINI_APP)
 
   if(BACNET_BUILD_BACPOLL_APP)
     add_executable(bacpoll
