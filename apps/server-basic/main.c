@@ -23,6 +23,8 @@
 #include "bacnet/basic/server/bacnet_port.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/ai.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/dlenv.h"
 
 static const char *Device_Name = "BACnet Smart Sensor (B-SS)";
 /* object instances */
@@ -39,11 +41,11 @@ static void BACnet_Smart_Sensor_Init_Handler(void *context)
 {
     (void)context;
     /* initialize child objects for this basic sample */
-    Device_Object_Name_ANSI_Init(Device_Name);
     Analog_Input_Create(Sensor_Instance);
     Analog_Input_Name_Set(Sensor_Instance, "Sensor");
     Analog_Input_Present_Value_Set(Sensor_Instance, 25.0f);
-    printf("BACnet Device ID: %u", Device_Object_Instance_Number());
+    debug_printf_stdout(
+        "BACnet Device ID: %u\n", Device_Object_Instance_Number());
     /* start the seconds cyclic timer */
     mstimer_set(&Sensor_Update_Timer, 1000);
     srand(0);
@@ -72,20 +74,41 @@ static void BACnet_Smart_Sensor_Task_Handler(void *context)
     }
 }
 
-int main(void)
+/** Main function of server demo.
+ *
+ * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
+ *      datalink_receive, npdu_handler,
+ *      dcc_timer_seconds, datalink_maintenance_timer,
+ *      handler_cov_task, tsm_timer_milliseconds
+ *
+ * @param argc [in] Arg count.
+ * @param argv [in] Takes one argument: the Device Instance #.
+ * @return 0 on success.
+ */
+int main(int argc, char *argv[])
 {
-    printf("BACnet Device: %s", Device_Name);
-    printf("BACnet Stack Version " BACNET_VERSION_TEXT);
-    printf("BACnet Stack Max APDU: %d", MAX_APDU);
+    if (argc > 1) {
+        /* allow the device ID to be set */
+        Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
+    }
+
+    if (argc > 2) {
+        /* allow the device name to be set */
+        Device_Name = argv[2];
+    }
+    Device_Object_Name_ANSI_Init(Device_Name);
+    debug_printf_stdout("BACnet Device: %s\n", Device_Name);
+    debug_printf_stdout("BACnet Stack Version %s\n", BACNET_VERSION_TEXT);
+    debug_printf_stdout("BACnet Stack Max APDU: %d\n", MAX_APDU);
     bacnet_basic_init_callback_set(BACnet_Smart_Sensor_Init_Handler, NULL);
     bacnet_basic_task_callback_set(BACnet_Smart_Sensor_Task_Handler, NULL);
     bacnet_basic_init();
-    for (;;) {
-        if (bacnet_port_init()) {
-            break;
-        }
+    if (bacnet_port_init()) {
+        /* OS based apps use DLENV for environment variables */
+        dlenv_init();
+        atexit(datalink_cleanup);
     }
-    printf("Server: initialized");
+    debug_printf_stdout("Server: initialized\n");
     for (;;) {
         bacnet_basic_task();
         bacnet_port_task();
