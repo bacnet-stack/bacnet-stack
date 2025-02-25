@@ -494,13 +494,6 @@ bool Binary_Value_Present_Value_Backup_Set(
     struct object_data *const pObject = Binary_Value_Object(object_instance);
     if (pObject) {
         if (value <= MAX_BINARY_PV) {
-            if (pObject->Polarity != POLARITY_NORMAL) {
-                if (value == BINARY_INACTIVE) {
-                    value = BINARY_ACTIVE;
-                } else {
-                    value = BINARY_INACTIVE;
-                }
-            }
             pObject->Present_Value_Backup = Binary_Present_Value_Boolean(value);
             status = true;
         }
