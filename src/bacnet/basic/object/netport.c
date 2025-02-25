@@ -3414,6 +3414,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(
                 &apdu[0], Network_Port_APDU_Length(rpdata->object_instance));
             break;
+#if defined(BACDL_MSTP)
         case PROP_MAX_MASTER:
             apdu_len = encode_application_unsigned(
                 &apdu[0],
@@ -3424,6 +3425,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0],
                 Network_Port_MSTP_Max_Info_Frames(rpdata->object_instance));
             break;
+#endif
         case PROP_BACNET_IP_MODE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], Network_Port_BIP_Mode(rpdata->object_instance));
@@ -3857,6 +3859,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
+#if defined(BACDL_MSTP)
         case PROP_MAX_MASTER:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
@@ -3892,6 +3895,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
+#endif
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
 #if defined(BACAPP_HOST_N_PORT)
@@ -3900,9 +3904,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = Network_Port_FD_BBMD_Address_Write(
                     wp_data->object_instance, &value.type.Host_Address,
                     &wp_data->error_class, &wp_data->error_code);
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
 #else
             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -3917,9 +3918,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = Network_Port_FD_Subscription_Lifetime_Write(
                     wp_data->object_instance, value.type.Unsigned_Int,
                     &wp_data->error_class, &wp_data->error_code);
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
 #else
             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -3994,69 +3992,47 @@ bool Network_Port_Read_Range(
     /* return value */
     bool status = false;
 
-    switch (pRequest->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_NETWORK_TYPE:
-        case PROP_PROTOCOL_LEVEL:
-        case PROP_NETWORK_NUMBER:
-        case PROP_NETWORK_NUMBER_QUALITY:
-        case PROP_CHANGES_PENDING:
-        case PROP_APDU_LENGTH:
-        case PROP_LINK_SPEED:
-        case PROP_MAC_ADDRESS:
-#if defined(BACDL_MSTP)
-        case PROP_MAX_MASTER:
-        case PROP_MAX_INFO_FRAMES:
-#endif
-#if defined(BACDL_BIP)
-        case PROP_BACNET_IP_MODE:
-        case PROP_IP_ADDRESS:
-        case PROP_BACNET_IP_UDP_PORT:
-        case PROP_IP_SUBNET_MASK:
-        case PROP_IP_DEFAULT_GATEWAY:
-        case PROP_IP_DNS_SERVER:
-#endif
+    if (Property_List_Member(
+            pRequest->object_instance, pRequest->object_property)) {
+        if (property_list_bacnet_list_member(
+                OBJECT_NETWORK_PORT, pRequest->object_property)) {
+            switch (pRequest->object_property) {
+                case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
 #if defined(BACDL_BIP) && BBMD_ENABLED
-        case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
+                    pInfo->RequestTypes = RR_BY_POSITION;
+                    pInfo->Handler = Network_Port_Read_Range_BDT;
+                    status = true;
+#else
+                    (void)pInfo;
+                    pRequest->error_class = ERROR_CLASS_PROPERTY;
+                    pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                    (void)pInfo;
 #endif
-            (void)pInfo;
+                    break;
+                case PROP_BBMD_FOREIGN_DEVICE_TABLE:
+#if defined(BACDL_BIP) && BBMD_ENABLED
+                    pInfo->RequestTypes = RR_BY_POSITION;
+                    pInfo->Handler = Network_Port_Read_Range_FDT;
+                    status = true;
+#else
+                    (void)pInfo;
+                    pRequest->error_class = ERROR_CLASS_PROPERTY;
+                    pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                    (void)pInfo;
+#endif
+                    break;
+                default:
+                    pRequest->error_class = ERROR_CLASS_PROPERTY;
+                    pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                    break;
+            }
+        } else {
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
-            break;
-        case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            pInfo->RequestTypes = RR_BY_POSITION;
-            pInfo->Handler = Network_Port_Read_Range_BDT;
-            status = true;
-#else
-            (void)pInfo;
-            pRequest->error_class = ERROR_CLASS_PROPERTY;
-            pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            (void)pInfo;
-#endif
-            break;
-        case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            pInfo->RequestTypes = RR_BY_POSITION;
-            pInfo->Handler = Network_Port_Read_Range_FDT;
-            status = true;
-#else
-            (void)pInfo;
-            pRequest->error_class = ERROR_CLASS_PROPERTY;
-            pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            (void)pInfo;
-#endif
-            break;
-        default:
-            (void)pInfo;
-            pRequest->error_class = ERROR_CLASS_PROPERTY;
-            pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            break;
+        }
+    } else {
+        pRequest->error_class = ERROR_CLASS_PROPERTY;
+        pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
     }
 
     return status;
