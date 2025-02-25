@@ -13,4 +13,3 @@ cd $mirror_tree
 git clone --bare $mirror_source .
 git push --mirror $mirror_dest
 cd -
-
