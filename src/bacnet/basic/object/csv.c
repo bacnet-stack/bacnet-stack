@@ -474,35 +474,17 @@ bool CharacterString_Value_Description_Set(
         }
     }
 
-    return name;
-}
-
-/**
- * @brief For a given object instance-number, sets the description
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- * @return  true if object-name was set
- */
-bool CharacterString_Value_Description_Set(
-    uint32_t object_instance, const char *new_name)
-{
-    bool status = false; /* return value */
-    struct characterstring_object *pObject;
-
-    pObject = CharacterString_Value_Object(object_instance);
-    if (pObject) {
-        status = true;
-        pObject->Description = new_name;
-    }
-
     return status;
 }
 
 /**
- * @brief Get the object name
+ * For a given object instance-number, return the object text.
+ *
  * @param  object_instance - object-instance number of the object
- * @param  object_name - holds the object-name to be retrieved
- * @return  true if object-name was retrieved
+ * @param  object_name - Pointer to the BACnet string object that shall take the
+ * object name
+ *
+ * @return True on success, false otherwise.
  */
 bool CharacterString_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
@@ -510,7 +492,6 @@ bool CharacterString_Value_Object_Name(
     struct characterstring_object *pObject =
         CharacterString_Value_Object(object_instance);
     bool status = false;
-    struct characterstring_object *pObject;
 
     if (!object_name) {
         return false;
