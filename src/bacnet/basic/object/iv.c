@@ -369,8 +369,7 @@ bool Integer_Value_Description_Set(
 const char *Integer_Value_Description_ANSI(uint32_t object_instance)
 {
     const char *name = NULL;
-    struct integer_object *pObject =
-        Integer_Value_Object(object_instance);
+    struct integer_object *pObject = Integer_Value_Object(object_instance);
     if (pObject) {
         name = (char *)pObject->Description.value;
     }
