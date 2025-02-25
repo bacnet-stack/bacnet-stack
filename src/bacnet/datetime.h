@@ -311,17 +311,52 @@ int bacnet_daterange_context_decode(
     uint8_t tag_number,
     BACNET_DATE_RANGE *value);
 
-/* implementation agnostic functions - create your own! */
+/* implementation agnostic functions for clocks - create your own! */
 BACNET_STACK_EXPORT
 bool datetime_local(
     BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);
-
+/* UTC Offset API */
+BACNET_STACK_EXPORT
+int16_t datetime_utc_offset_minutes(void);
+BACNET_STACK_EXPORT
+bool datetime_utc_offset_minutes_set(int16_t minutes);
+/* Daylight Savings Time API */
+BACNET_STACK_EXPORT
+bool datetime_dst_enabled(void);
+BACNET_STACK_EXPORT
+void datetime_dst_enabled_set(bool flag);
+BACNET_STACK_EXPORT
+bool datetime_dst_ordinal_range(
+    uint8_t *start_month,
+    uint8_t *start_week,
+    uint8_t *start_day,
+    uint8_t *end_month,
+    uint8_t *end_week,
+    uint8_t *end_day);
+BACNET_STACK_EXPORT
+bool datetime_dst_ordinal_range_set(
+    uint8_t start_month,
+    uint8_t start_week,
+    BACNET_WEEKDAY start_day,
+    uint8_t end_month,
+    uint8_t end_week,
+    BACNET_WEEKDAY end_day);
+BACNET_STACK_EXPORT
+bool datetime_dst_date_range(
+    uint8_t *start_month,
+    uint8_t *start_day,
+    uint8_t *end_month,
+    uint8_t *end_day);
+BACNET_STACK_EXPORT
+bool datetime_dst_date_range_set(
+    uint8_t start_month, uint8_t start_day, uint8_t end_month, uint8_t end_day);
+/* BACnet TimeSynchronization service handler API */
 BACNET_STACK_EXPORT
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);
-
+/* Initialization for integration with a clock */
 BACNET_STACK_EXPORT
 void datetime_init(void);
 

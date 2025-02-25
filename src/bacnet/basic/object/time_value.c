@@ -60,17 +60,6 @@ static const int Time_Value_Properties_Optional[] = { PROP_DESCRIPTION,
 
 static const int Time_Value_Properties_Proprietary[] = { -1 };
 
-/* standard properties that are arrays for this object,
-   but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { PROP_PRIORITY_ARRAY,
-                                              PROP_EVENT_TIME_STAMPS,
-                                              PROP_EVENT_MESSAGE_TEXTS,
-                                              PROP_EVENT_MESSAGE_TEXTS_CONFIG,
-                                              PROP_VALUE_SOURCE_ARRAY,
-                                              PROP_COMMAND_TIME_ARRAY,
-                                              PROP_TAGS,
-                                              -1 };
-
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -182,7 +171,7 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - time value
  */
 static void Time_Value_Present_Value_COV_Detect(
     struct object_data *pObject, const BACNET_TIME *value)
@@ -251,7 +240,13 @@ static bool Time_Value_Present_Value_Write(
             datetime_copy_time(&old_value, &pObject->Present_Value);
             Time_Value_Present_Value_COV_Detect(pObject, value);
             datetime_copy_time(&pObject->Present_Value, value);
-            if (Time_Value_Write_Present_Value_Callback) {
+            if (pObject->Out_Of_Service) {
+                /* The physical point that the object represents
+                    is not in service. This means that changes to the
+                    Present_Value property are decoupled from the
+                    physical point when the value of Out_Of_Service
+                    is true. */
+            } else if (Time_Value_Write_Present_Value_Callback) {
                 Time_Value_Write_Present_Value_Callback(
                     object_instance, &old_value, value);
             }
@@ -303,8 +298,47 @@ bool Time_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        if (pObject->Out_Of_Service != value) {
+            pObject->Change_Of_Value = true;
+        }
         pObject->Out_Of_Service = value;
         status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the out-of-service flag
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - indicator of 'Out-of-service'
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if value is set, or false if not or error occurred
+ */
+static bool Time_Value_Out_Of_Service_Write(
+    uint32_t object_instance,
+    bool value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->Write_Enabled) {
+            Time_Value_Out_Of_Service_Set(object_instance, value);
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;
@@ -426,16 +460,6 @@ bool Time_Value_Description_Set(uint32_t object_instance, const char *new_name)
     }
 
     return status;
-}
-
-/**
- * @brief Determine if the object property is a BACnetARRAY property
- * @param object_property - object-property to be checked
- * @return true if the property is a BACnetARRAY property
- */
-static bool BACnetARRAY_Property(int object_property)
-{
-    return property_list_member(BACnetARRAY_Properties, object_property);
 }
 
 bool Time_Value_Change_Of_Value(uint32_t object_instance)
@@ -591,13 +615,6 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (!BACnetARRAY_Property(rpdata->object_property)) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -614,7 +631,7 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int len = 0;
 
     /* decode the some of the request */
@@ -625,13 +642,6 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((!BACnetARRAY_Property(wp_data->object_property)) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
@@ -654,8 +664,9 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Time_Value_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Boolean);
+                status = Time_Value_Out_Of_Service_Write(
+                    wp_data->object_instance, value.type.Boolean,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         default:

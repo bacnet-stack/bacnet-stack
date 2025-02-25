@@ -21,14 +21,13 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
+/* basic objects and services */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/keylist.h"
 /* me! */
 #include "bacnet/basic/object/iv.h"
-#include "bacnet/basic/sys/keylist.h"
-#include "bacnet/basic/sys/debug.h"
-
-#define PRINTF debug_perror
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List = NULL;
@@ -367,9 +366,10 @@ bool Integer_Value_Description_Set(
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Integer_Value_Description_ANSI(uint32_t object_instance)
+const char *Integer_Value_Description_ANSI(uint32_t object_instance)
 {
-    char *name = NULL;
+    const char *name = NULL;
+    struct integer_object *pObject;
 
     struct integer_object *pObject;
     pObject = Integer_Value_Object(object_instance);
@@ -546,14 +546,6 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -571,7 +563,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -581,14 +573,6 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {

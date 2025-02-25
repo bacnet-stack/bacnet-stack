@@ -28,6 +28,9 @@ BACNET_STACK_EXPORT
 void handler_ucov_notification_add(BACNET_COV_NOTIFICATION *callback);
 
 BACNET_STACK_EXPORT
+void handler_ucov_data_print(BACNET_COV_DATA *cov_data);
+
+BACNET_STACK_EXPORT
 void handler_ucov_notification(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src);
 

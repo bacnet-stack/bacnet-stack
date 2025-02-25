@@ -84,10 +84,13 @@ static SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
  */
 void Schedule_Init(void)
 {
-    unsigned i, j, e;
+    unsigned i, j;
     BACNET_DATE start_date = { 0 }, end_date = { 0 };
-    BACNET_SPECIAL_EVENT *event;
     SCHEDULE_DESCR *psched;
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    unsigned e;
+    BACNET_SPECIAL_EVENT *event;
+#endif
 
     /* whole year, change as necessary */
     datetime_set_date(&start_date, 0, 1, 1);
@@ -405,13 +408,6 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
 
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_WEEKLY_SCHEDULE) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
-
     return apdu_len;
 }
 
@@ -420,7 +416,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned object_index;
     bool status = false; /* return value */
     int len;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -432,12 +428,10 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-
     object_index = Schedule_Instance_To_Index(wp_data->object_instance);
     if (object_index >= MAX_SCHEDULES) {
         return false;
     }
-
     switch ((int)wp_data->object_property) {
         case PROP_OUT_OF_SERVICE:
             status = write_property_type_valid(

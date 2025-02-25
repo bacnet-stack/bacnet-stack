@@ -9,30 +9,8 @@
 #include <string.h>
 #include <ctype.h>
 #include "bacnet/bacdef.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/indtext.h"
-
-/**
- * @brief Compare two strings, case insensitive
- * @param a - first string
- * @param b - second string
- * @return 0 if the strings are equal, non-zero if not
- * @note The stricmp() function is not included C standard.
- */
-int indtext_stricmp(const char *a, const char *b)
-{
-    int twin_a, twin_b;
-
-    do {
-        twin_a = *(const unsigned char *)a;
-        twin_b = *(const unsigned char *)b;
-        twin_a = tolower(toupper(twin_a));
-        twin_b = tolower(toupper(twin_b));
-        a++;
-        b++;
-    } while ((twin_a == twin_b) && (twin_a != '\0'));
-
-    return twin_a - twin_b;
-}
 
 /**
  * @brief Search a list of strings to find a matching string
@@ -80,7 +58,7 @@ bool indtext_by_istring(
 
     if (data_list && search_name) {
         while (data_list->pString) {
-            if (indtext_stricmp(data_list->pString, search_name) == 0) {
+            if (bacnet_stricmp(data_list->pString, search_name) == 0) {
                 index = data_list->index;
                 found = true;
                 break;

@@ -32,7 +32,7 @@ ZTEST_DMEM enum {
 	TEST_PHASE_FRAMEWORK
 } phase = TEST_PHASE_FRAMEWORK;
 
-static ZTEST_BMEM int test_status;
+static ZTEST_BMEM int test_status = 0;
 
 /**
  * @brief Try to shorten a filename by removing the current directory

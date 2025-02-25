@@ -85,6 +85,7 @@ list(APPEND testdirs
   bacnet/bacreal
   bacnet/bacstr
   bacnet/bactimevalue
+  bacnet/channel_value
   bacnet/cov
   bacnet/create_object
   bacnet/datetime
@@ -108,14 +109,16 @@ list(APPEND testdirs
   bacnet/reject
   bacnet/rp
   bacnet/rpm
+  bacnet/secure_connect
   bacnet/specialevent
   bacnet/timestamp
   bacnet/timesync
+  bacnet/weeklyschedule
   bacnet/whohas
   bacnet/whois
   bacnet/wp
   bacnet/wpm
-  bacnet/weeklyschedule
+  bacnet/write_group
   )
 
 # bacnet/basic/*
@@ -168,6 +171,8 @@ list(APPEND testdirs
   # basic/sys
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
+  bacnet/basic/sys/dst
+  bacnet/basic/sys/lighting_command
   bacnet/basic/sys/fifo
   bacnet/basic/sys/filename
   bacnet/basic/sys/keylist
@@ -183,7 +188,44 @@ list(APPEND testdirs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
   bacnet/datalink/mstp
+  bacnet/datalink/dlmstp
+  bacnet/datalink/bvlc-sc
   )
+
+if(BACDL_BSC)
+message(STATUS "Added BACnet/SC websocket dependent tests")
+list(APPEND testdirs
+  bacnet/datalink/bsc-datalink
+  bacnet/datalink/bsc-node
+  bacnet/datalink/bsc-socket
+  bacnet/datalink/hub-sc
+  bacnet/datalink/websockets
+)
+endif()
+
+# ports tests
+if(ZEPHYR_BASE)
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined.")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Added ports specific tests for linux")
+
+  list(APPEND testdirs
+  ports/linux/bsc_event
+  )
+
+elseif(WIN32)
+  message(STATUS "Added ports specific tests for win32")
+
+  list(APPEND testdirs
+  ports/win32/bsc_event
+  )
+
+elseif(APPLE)
+  message(STATUS "Added ports specific tests for APPLE")
+  list(APPEND testdirs
+  ports/bsd/bsc_event
+  )
+endif()
 
 enable_testing()
 foreach(testdir IN ITEMS ${testdirs})

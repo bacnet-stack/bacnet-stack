@@ -98,9 +98,12 @@ int main(void)
     MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
     MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
-    /* user data */
+    /* choose from non-volatile configuration for zero-config or slave mode */
     MSTP_Port.ZeroConfigEnabled = true;
+    MSTP_Port.Zero_Config_Preferred_Station = 0;
     MSTP_Port.SlaveNodeEnabled = false;
+    MSTP_Port.CheckAutoBaud = false;
+    /* user data */
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
     dlmstp_init((char *)&MSTP_Port);
@@ -111,8 +114,10 @@ int main(void)
         /* FIXME: get the address from hardware DIP or from EEPROM */
         dlmstp_set_mac_address(1);
     }
-    /* FIXME: get the baud rate from hardware DIP or from EEPROM */
-    dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
+    if (!MSTP_Port.CheckAutoBaud) {
+        /* FIXME: get the baud rate from hardware DIP or from EEPROM */
+        dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
+    }
     /* initialize application layer*/
     bacnet_init();
     for (;;) {

@@ -32,7 +32,7 @@
 #endif
 
 /* print with flush by default */
-#define PRINTF debug_aprintf
+#define PRINTF debug_printf_stdout
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;

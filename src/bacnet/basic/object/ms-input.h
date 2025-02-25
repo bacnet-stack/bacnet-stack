@@ -71,6 +71,13 @@ void Multistate_Input_Write_Present_Value_Callback_Set(
     multistate_input_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
+bool Multistate_Input_Write_Enabled(uint32_t instance);
+BACNET_STACK_EXPORT
+void Multistate_Input_Write_Enable(uint32_t instance);
+BACNET_STACK_EXPORT
+void Multistate_Input_Write_Disable(uint32_t instance);
+
+BACNET_STACK_EXPORT
 bool Multistate_Input_Change_Of_Value(uint32_t instance);
 BACNET_STACK_EXPORT
 void Multistate_Input_Change_Of_Value_Clear(uint32_t instance);

@@ -3,17 +3,12 @@
  * @brief AddListElement and RemoveListElement service initiation
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date January 2023
- * @section LICENSE
- *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -113,15 +108,12 @@ uint8_t Send_List_Element_Request_Data(
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                debug_perror(
-                    "%s service: Failed to Send %i/%i (%s)!\n",
-                    bactext_confirmed_service_name(service), bytes_sent,
-                    pdu_len, strerror(errno));
+                debug_perror("ListElement: Failed to Send");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_perror(
+            debug_printf_stderr(
                 "%s service: Failed to Send "
                 "(exceeds destination maximum APDU)!\n",
                 bactext_confirmed_service_name(service));
@@ -259,7 +251,7 @@ uint8_t Send_Remove_List_Element_Request(
     int apdu_len = 0, len = 0;
 
     while (object_value) {
-        debug_perror(
+        debug_printf_stderr(
             "RemoveListElement service: "
             "%s tag=%d\n",
             (object_value->context_specific ? "context" : "application"),

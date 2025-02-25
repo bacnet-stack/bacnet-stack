@@ -327,7 +327,7 @@ bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_mpdu(
     const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -371,12 +371,12 @@ int bip6_send_mpdu(
  * @param pdu - the bytes of data to send
  * @param pdu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_pdu(
-    const BACNET_ADDRESS *dest,
-    const BACNET_NPDU_DATA *npdu_data,
-    const uint8_t *pdu,
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
     unsigned pdu_len)
 {
     return bvlc6_send_pdu(dest, npdu_data, pdu, pdu_len);
@@ -487,7 +487,7 @@ void bip6_join_group(void)
     struct ipv6_mreq join_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return;
     }
     /* join a multicast group */
@@ -500,10 +500,10 @@ void bip6_join_group(void)
     /* Let system not choose the interface */
     join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&join_request,
         sizeof(join_request));
     if (status < 0) {
-        fprintf(
+        debug_fprintf(
             stderr,
             "BIP6: setsockopt(IPV6_JOIN_GROUP) failed "
             "with error %d: %s\n",
@@ -520,7 +520,7 @@ void bip6_leave_group(void)
     struct ipv6_mreq leave_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return;
     }
     /* leave a multicast address */
@@ -531,10 +531,10 @@ void bip6_leave_group(void)
         &leave_request.ipv6mr_multiaddr, &broadcast_address,
         sizeof(struct in6_addr));
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, (char *)&leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        fprintf(
+        debug_fprintf(
             stderr,
             "BIP6: setsockopt(IPV6_LEAVE_GROUP) failed "
             "with error %d: %s\n",

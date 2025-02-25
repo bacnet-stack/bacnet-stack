@@ -1,15 +1,16 @@
-/**************************************************************************
- *
- * Copyright (C) 2016 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Initializes BACnet/IP interface (Linux).
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <errno.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/config.h"
 #include "bacnet/datalink/bip6.h"
@@ -70,7 +71,7 @@ static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
 }
 
 /**
- * @brief Enabled debug printing of BACnet/IPv4
+ * @brief Enabled debug printing of BACnet/IPv6
  */
 void bip6_debug_enable(void)
 {
@@ -110,7 +111,7 @@ int bip6_set_interface(char *ifname)
                 stdout, "BIP6: found interface: %s\n", ifa_tmp->ifa_name);
         }
         if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6) &&
-            (strcasecmp(ifa_tmp->ifa_name, ifname) == 0)) {
+            (bacnet_stricmp(ifa_tmp->ifa_name, ifname) == 0)) {
             sin = (struct sockaddr_in6 *)ifa_tmp->ifa_addr;
             bvlc6_address_set(
                 &BIP6_Addr, ntohs(sin->sin6_addr.s6_addr16[0]),
@@ -237,7 +238,7 @@ bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_mpdu(
     const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -281,7 +282,7 @@ int bip6_send_mpdu(
  * @param pdu - the bytes of data to send
  * @param pdu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_pdu(
     BACNET_ADDRESS *dest,
@@ -418,7 +419,7 @@ void bip6_join_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
         sizeof(join_request));
     if (status < 0) {
-        debug_perror("BIP: setsockopt(IPV6_JOIN_GROUP)");
+        debug_perror("BIP6: setsockopt(IPV6_JOIN_GROUP)");
     }
 }
 
@@ -445,7 +446,7 @@ void bip6_leave_group(void)
         BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        debug_perror("BIP6: setsockopt(IPV6_LEAVE_GROUP)\r\n");
+        debug_perror("BIP6: setsockopt(IPV6_LEAVE_GROUP)");
     }
 }
 

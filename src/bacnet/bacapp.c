@@ -17,11 +17,13 @@
 #include <wchar.h>
 #include <wctype.h>
 #endif
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/access_rule.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/datetime.h"
@@ -29,9 +31,11 @@
 #include "bacnet/bacaction.h"
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
+#include "bacnet/secure_connect.h"
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
+#include "bacnet/channel_value.h"
 #include "bacnet/basic/sys/platform.h"
 
 #if defined(BACAPP_SCALE)
@@ -383,6 +387,12 @@ int bacapp_encode_application_data(
                 /* Empty data list */
                 apdu_len = 0; /* EMPTY */
                 break;
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                apdu_len =
+                    bacapp_encode_timestamp(apdu, &value->type.Time_Stamp);
+                break;
+#endif
 #if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 apdu_len = bacapp_encode_datetime(apdu, &value->type.Date_Time);
@@ -503,6 +513,38 @@ int bacapp_encode_application_data(
                     bacnet_shed_level_encode(apdu, &value->type.Shed_Level);
                 break;
 #endif
+#if defined(BACAPP_ACCESS_RULE)
+            case BACNET_APPLICATION_TAG_ACCESS_RULE:
+                /* BACnetAccessRule */
+                apdu_len =
+                    bacapp_encode_access_rule(apdu, &value->type.Access_Rule);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                /* BACnetChannelValue */
+                apdu_len = bacnet_channel_value_type_encode(
+                    apdu, &value->type.Channel_Value);
+                break;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                apdu_len = bacapp_encode_SCFailedConnectionRequest(
+                    apdu, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubFunctionConnection(
+                    apdu, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCDirectConnection(
+                    apdu, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubConnection(
+                    apdu, &value->type.SC_Hub_Status);
+                break;
+#endif
             default:
                 break;
         }
@@ -519,6 +561,7 @@ int bacapp_encode_application_data(
  * @param len_value_type  Count of bytes of given tag
  * @param value  Pointer to the application value structure,
  *               used to store the decoded value to.
+ * @note Decodes only the 13 primitive application data types!
  *
  * @return Number of octets consumed (could be zero).
  * Parameter value->tag set to MAX_BACNET_APPLICATION_TAG when
@@ -919,6 +962,11 @@ int bacapp_encode_context_data_value(
             case BACNET_APPLICATION_TAG_ACTION_COMMAND:
             case BACNET_APPLICATION_TAG_SCALE:
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
+            case BACNET_APPLICATION_TAG_ACCESS_RULE:
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
                 /* complex data is enclosed in open/close tags */
                 len = encode_opening_tag(apdu, context_tag_number);
                 apdu_len += len;
@@ -1212,6 +1260,9 @@ int bacapp_known_property_tag(
                 (object_type == OBJECT_DATETIME_VALUE)) {
                 /* Properties using BACnetDateTime */
                 return BACNET_APPLICATION_TAG_DATETIME;
+            } else if (object_type == OBJECT_CHANNEL) {
+                /* Properties using BACnetChannelValue */
+                return BACNET_APPLICATION_TAG_CHANNEL_VALUE;
             }
             /* note: primitive application tagged present-values return '-1' */
             return -1;
@@ -1291,6 +1342,23 @@ int bacapp_known_property_tag(
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
             /* BACnetFDTEntry */
             return BACNET_APPLICATION_TAG_FDT_ENTRY;
+        case PROP_POSITIVE_ACCESS_RULES:
+        case PROP_NEGATIVE_ACCESS_RULES:
+            /* BACnetAccessRule */
+            return BACNET_APPLICATION_TAG_ACCESS_RULE;
+
+        case PROP_SC_FAILED_CONNECTION_REQUESTS:
+            return BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST;
+
+        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS;
+
+        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS;
+
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS;
 
         default:
             return -1;
@@ -1460,16 +1528,16 @@ int bacapp_decode_application_tag_value(
         case BACNET_APPLICATION_TAG_EMPTYLIST:
             apdu_len = 0;
             break;
-#if defined(BACAPP_DATETIME)
-        case BACNET_APPLICATION_TAG_DATETIME:
-            apdu_len =
-                bacnet_datetime_decode(apdu, apdu_size, &value->type.Date_Time);
-            break;
-#endif
 #if defined(BACAPP_TIMESTAMP)
         case BACNET_APPLICATION_TAG_TIMESTAMP:
             apdu_len = bacnet_timestamp_decode(
                 apdu, apdu_size, &value->type.Time_Stamp);
+            break;
+#endif
+#if defined(BACAPP_DATETIME)
+        case BACNET_APPLICATION_TAG_DATETIME:
+            apdu_len =
+                bacnet_datetime_decode(apdu, apdu_size, &value->type.Date_Time);
             break;
 #endif
 #if defined(BACAPP_DATERANGE)
@@ -1588,8 +1656,96 @@ int bacapp_decode_application_tag_value(
                 apdu, apdu_size, &value->type.Shed_Level);
             break;
 #endif
+#if defined(BACAPP_ACCESS_RULE)
+        case BACNET_APPLICATION_TAG_ACCESS_RULE:
+            /* BACnetAccessRule */
+            apdu_len = bacnet_access_rule_decode(
+                apdu, apdu_size, &value->type.Access_Rule);
+            break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+        case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+            /* BACnetChannelValue */
+            apdu_len = bacnet_channel_value_decode(
+                apdu, apdu_size, &value->type.Channel_Value);
+            break;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
+        case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+            apdu_len = bacapp_decode_SCFailedConnectionRequest(
+                apdu, apdu_size, &value->type.SC_Failed_Req);
+            break;
+        case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            apdu_len = bacapp_decode_SCHubFunctionConnection(
+                apdu, apdu_size, &value->type.SC_Hub_Function_Status);
+            break;
+        case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+            apdu_len = bacapp_decode_SCDirectConnection(
+                apdu, apdu_size, &value->type.SC_Direct_Status);
+            break;
+        case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+            apdu_len = bacapp_decode_SCHubConnection(
+                apdu, apdu_size, &value->type.SC_Hub_Status);
+            break;
+#endif
         default:
             break;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a well-known, possibly complex property value
+ *  or array property.
+ *  Used to reverse operations in bacapp_encode_application_data.
+ * @note This function is called repeatedly to decode array or lists one
+ * element at a time.
+ * @param apdu - buffer of data to be decoded
+ * @param max_apdu_len - number of bytes in the buffer
+ * @param value - stores the decoded property value
+ * @param property - context property identifier
+ * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
+ * @note number of bytes can be 0 for empty lists, etc.
+ */
+int bacapp_decode_known_array_property(
+    const uint8_t *apdu,
+    int apdu_size,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID property,
+    uint32_t array_index)
+{
+    int apdu_len = 0;
+    int tag;
+
+    if (bacnet_is_closing_tag(apdu, apdu_size)) {
+        if (value) {
+            value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+        }
+        apdu_len = 0;
+    } else if (array_index == 0) {
+        /* Array index 0 is the size of the array and always unsigned int */
+        value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+        apdu_len = bacnet_unsigned_application_decode(
+            apdu, apdu_size, &value->type.Unsigned_Int);
+    } else if (property == PROP_PRIORITY_ARRAY) {
+        /* BACnetPriorityValue */
+        /* special case to reduce complexity - mostly encoded as application
+           tagged values, but sometimes encoded as abstract syntax or complex
+           data values */
+        apdu_len =
+            decode_priority_array_value(apdu, apdu_size, value, object_type);
+    } else {
+        /* Complex or primitive value?
+        Lookup the complex values using their object type and property */
+        tag = bacapp_known_property_tag(object_type, property);
+        if (tag != -1) {
+            apdu_len = bacapp_decode_application_tag_value(
+                apdu, apdu_size, tag, value);
+        } else {
+            apdu_len = bacapp_decode_application_data(apdu, apdu_size, value);
+        }
     }
 
     return apdu_len;
@@ -1614,34 +1770,8 @@ int bacapp_decode_known_property(
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID property)
 {
-    int apdu_len = 0;
-    int tag;
-
-    if (bacnet_is_closing_tag(apdu, apdu_size)) {
-        if (value) {
-            value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
-        }
-        apdu_len = 0;
-    } else if (property == PROP_PRIORITY_ARRAY) {
-        /* BACnetPriorityValue */
-        /* special case to reduce complexity - mostly encoded as application
-           tagged values, but sometimes encoded as abstract syntax or complex
-           data values */
-        apdu_len =
-            decode_priority_array_value(apdu, apdu_size, value, object_type);
-    } else {
-        /* Complex or primitive value?
-        Lookup the complex values using their object type and property */
-        tag = bacapp_known_property_tag(object_type, property);
-        if (tag != -1) {
-            apdu_len = bacapp_decode_application_tag_value(
-                apdu, apdu_size, tag, value);
-        } else {
-            apdu_len = bacapp_decode_application_data(apdu, apdu_size, value);
-        }
-    }
-
-    return apdu_len;
+    return bacapp_decode_known_array_property(
+        apdu, apdu_size, value, object_type, property, BACNET_ARRAY_ALL);
 }
 
 #if defined(BACAPP_COMPLEX_TYPES)
@@ -1944,6 +2074,7 @@ static int bacapp_snprintf_property_identifier(
     return ret_val;
 }
 
+#if defined(BACAPP_NULL)
 /**
  * @brief Print an null value to a string for EPICS
  * @param str - destination string, or NULL for length only
@@ -1954,6 +2085,7 @@ static int bacapp_snprintf_null(char *str, size_t str_len)
 {
     return bacapp_snprintf(str, str_len, "Null");
 }
+#endif
 
 #if defined(BACAPP_BOOLEAN)
 /**
@@ -2498,6 +2630,300 @@ static int bacapp_snprintf_object_property_reference(
 }
 #endif
 
+#if defined(BACAPP_ACCESS_RULE)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+static int bacapp_snprintf_access_rule(
+    char *str, size_t str_len, const BACNET_ACCESS_RULE *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    /*  specified (0), always (1) */
+    if (value->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
+        slen = bacapp_snprintf(str, str_len, "specified, ");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf_device_object_property_reference(
+            str, str_len, &value->time_range);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    } else {
+        slen = bacapp_snprintf(str, str_len, "always, ");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    /* specified (0), all (1) */
+    if (value->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
+        slen = bacapp_snprintf(str, str_len, "specified, ");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf_device_object_reference(
+            str, str_len, &value->location);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    } else {
+        slen = bacapp_snprintf(str, str_len, "all");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_COLOR_COMMAND)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+static int bacapp_snprintf_color_command(
+    char *str, size_t str_len, const BACNET_COLOR_COMMAND *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "(");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(
+        str, str_len, "%s", bactext_color_operation_name(value->operation));
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ")");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    /* FIXME: add the Color Command optional values */
+
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_CHANNEL_VALUE)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+static int bacapp_snprintf_channel_value(
+    char *str, size_t str_len, const BACNET_CHANNEL_VALUE *value)
+{
+    int ret_val = 0;
+
+    switch (value->tag) {
+        case BACNET_APPLICATION_TAG_NULL:
+            ret_val = bacapp_snprintf_null(str, str_len);
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+#if defined(CHANNEL_BOOLEAN)
+            ret_val =
+                bacapp_snprintf_boolean(str, str_len, value->type.Boolean);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+#if defined(CHANNEL_UNSIGNED)
+            ret_val = bacapp_snprintf_unsigned_integer(
+                str, str_len, value->type.Unsigned_Int);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+#if defined(CHANNEL_SIGNED)
+            ret_val = bacapp_snprintf_signed_integer(
+                str, str_len, value->type.Signed_Int);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_REAL:
+#if defined(CHANNEL_REAL)
+            ret_val = bacapp_snprintf_real(str, str_len, value->type.Real);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_DOUBLE:
+#if defined(CHANNEL_DOUBLE)
+            ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+#if defined(CHANNEL_ENUMERATED)
+            ret_val = bacapp_snprintf_enumerated(
+                str, str_len, OBJECT_COMMAND, PROP_ACTION,
+                value->type.Enumerated);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+#if defined(CHANNEL_LIGHTING_COMMAND)
+            ret_val = lighting_command_to_ascii(
+                &value->type.Lighting_Command, str, str_len);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+#if defined(CHANNEL_COLOR_COMMAND)
+            ret_val = bacapp_snprintf_color_command(
+                str, str_len, &value->type.Color_Command);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_XY_COLOR:
+#if defined(CHANNEL_XY_COLOR)
+            ret_val = xy_color_to_ascii(&value->type.XY_Color, str, str_len);
+#endif
+            break;
+        default:
+            break;
+    }
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_CHANNEL)
+/**
+ * @brief For a given application value, copy to the channel value
+ * @param  cvalue - BACNET_CHANNEL_VALUE value
+ * @param  value - BACNET_APPLICATION_DATA_VALUE value
+ * @return  true if values are able to be copied
+ */
+bool bacapp_channel_value_copy(
+    BACNET_CHANNEL_VALUE *cvalue, const BACNET_APPLICATION_DATA_VALUE *value)
+{
+    bool status = false;
+
+    if (!value || !cvalue) {
+        return false;
+    }
+    switch (value->tag) {
+#if defined(BACAPP_NULL)
+        case BACNET_APPLICATION_TAG_NULL:
+            cvalue->tag = value->tag;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_BOOLEAN) && defined(CHANNEL_BOOLEAN)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            cvalue->tag = value->tag;
+            cvalue->type.Boolean = value->type.Boolean;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_UNSIGNED) && defined(CHANNEL_UNSIGNED)
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            cvalue->tag = value->tag;
+            cvalue->type.Unsigned_Int = value->type.Unsigned_Int;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_SIGNED) && defined(CHANNEL_SIGNED)
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            cvalue->tag = value->tag;
+            cvalue->type.Signed_Int = value->type.Signed_Int;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_REAL) && defined(CHANNEL_REAL)
+        case BACNET_APPLICATION_TAG_REAL:
+            cvalue->tag = value->tag;
+            cvalue->type.Real = value->type.Real;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_DOUBLE) && defined(CHANNEL_DOUBLE)
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            cvalue->tag = value->tag;
+            cvalue->type.Double = value->type.Double;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_OCTET_STRING) && defined(CHANNEL_OCTET_STRING)
+        case BACNET_APPLICATION_TAG_OCTET_STRING:
+            cvalue->tag = value->tag;
+            octetstring_copy(
+                &cvalue->type.Octet_String, &value->type.Octet_String);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_CHARACTER_STRING) && defined(CHANNEL_CHARACTER_STRING)
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            cvalue->tag = value->tag;
+            characterstring_copy(
+                &cvalue->type.Character_String, &value->type.Character_String);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_BIT_STRING) && defined(CHANNEL_BIT_STRING)
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+            cvalue->tag = value->tag;
+            bitstring_copy(&cvalue->type.Bit_String, &value->type.Bit_String);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_ENUMERATED) && defined(CHANNEL_ENUMERATED)
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            cvalue->tag = value->tag;
+            cvalue->type.Enumerated = value->type.Enumerated;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_DATE) && defined(CHANNEL_DATE)
+        case BACNET_APPLICATION_TAG_DATE:
+            cvalue->tag = value->tag;
+            datetime_date_copy(&cvalue->type.Date, &value->type.Date);
+            apdu_len = encode_application_date(apdu, &value->type.Date);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_TIME) && defined(CHANNEL_TIME)
+        case BACNET_APPLICATION_TAG_TIME:
+            cvalue->tag = value->tag;
+            datetime_time_copy(&cvalue->type.Time, &value->type.Time);
+            break;
+#endif
+#if defined(BACAPP_OBJECT_ID) && defined(CHANNEL_OBJECT_ID)
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            cvalue->tag = value->tag;
+            cvalue->type.Object_Id.type = value->type.Object_Id.type;
+            cvalue->type.Object_Id.instance = value->type.Object_Id.instance;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND) && defined(CHANNEL_LIGHTING_COMMAND)
+        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+            cvalue->tag = value->tag;
+            lighting_command_copy(
+                &cvalue->type.Lighting_Command, &value->type.Lighting_Command);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND) && defined(CHANNEL_COLOR_COMMAND)
+        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+            cvalue->tag = value->tag;
+            color_command_copy(
+                &cvalue->type.Color_Command, &value->type.Color_Command);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND) && defined(CHANNEL_XY_COLOR)
+        case BACNET_APPLICATION_TAG_XY_COLOR:
+            cvalue->tag = value->tag;
+            xy_color_copy(&cvalue->type.XY_Color, &value->type.XY_Color);
+            status = true;
+            break;
+#endif
+        default:
+            break;
+    }
+
+    return status;
+}
+#endif
+
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 /**
  * @brief Print a weekly schedule value to a string for EPICS
@@ -2517,7 +2943,7 @@ static int bacapp_snprintf_weeklyschedule(
     int ret_val = 0;
     int wi, ti;
     BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
-    BACNET_APPLICATION_DATA_VALUE dummyDataValue;
+    BACNET_APPLICATION_DATA_VALUE dummyDataValue = { 0 };
 
     const char *weekdaynames[7] = { "Mon", "Tue", "Wed", "Thu",
                                     "Fri", "Sat", "Sun" };
@@ -2971,17 +3397,19 @@ int bacapp_snprintf_value(
     char *str, size_t str_len, const BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     size_t len = 0, i = 0;
-    const char *char_str;
     const BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
     int slen = 0;
+#if defined(BACAPP_CHARACTER_STRING)
+    const char *char_str;
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Wide character (decoded from multi-byte character). */
     wchar_t wc;
     /* Wide character length in bytes. */
     int wclen;
+#endif
 #endif
 
     if (object_value && object_value->value) {
@@ -3168,16 +3596,8 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
-                slen = bacapp_snprintf(str, str_len, "(");
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = bacapp_snprintf(
-                    str, str_len, "%s",
-                    bactext_color_operation_name(
-                        value->type.Color_Command.operation));
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                /* FIXME: add the Lighting Command optional values */
-                slen = bacapp_snprintf(str, str_len, ")");
-                ret_val += slen;
+                ret_val = bacapp_snprintf_color_command(
+                    str, str_len, &value->type.Color_Command);
                 break;
 #endif
 #if defined(BACAPP_WEEKLY_SCHEDULE)
@@ -3212,6 +3632,28 @@ int bacapp_snprintf_value(
                 ret_val = bacapp_snprintf_object_property_reference(
                     str, str_len, &value->type.Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                ret_val = bacapp_snprintf_SCFailedConnectionRequest(
+                    str, str_len, &value->type.SC_Failed_Req);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubFunctionConnection(
+                    str, str_len, &value->type.SC_Hub_Function_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCDirectConnection(
+                    str, str_len, &value->type.SC_Direct_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubConnection(
+                    str, str_len, &value->type.SC_Hub_Status);
+                break;
+
 #endif
 #if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
@@ -3276,6 +3718,18 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
                 ret_val = bacapp_snprintf_shed_level(
                     str, str_len, &value->type.Shed_Level);
+                break;
+#endif
+#if defined(BACAPP_ACCESS_RULE)
+            case BACNET_APPLICATION_TAG_ACCESS_RULE:
+                ret_val = bacapp_snprintf_access_rule(
+                    str, str_len, &value->type.Access_Rule);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                ret_val = bacapp_snprintf_channel_value(
+                    str, str_len, &value->type.Channel_Value);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:
@@ -3649,6 +4103,117 @@ bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
 }
 #endif
 
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
+/**
+ * @brief Parse a string into a BACnetDeviceObjectPropertyReference value
+ * @param value [out] The BACnetObjectPropertyReference value
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ */
+static bool device_object_property_reference_from_ascii(
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value, const char *argv)
+{
+    bool status = false;
+    unsigned long object_type, object_instance;
+    unsigned long property_id;
+    long array_index;
+    unsigned long device_type, device_instance;
+    int count;
+
+    if (!value || !argv) {
+        return false;
+    }
+    /* analog-output:4194303,present-value,-1,device:4194303 */
+    count = sscanf(
+        argv, "%4lu:%7lu,%lu,%ld,%4lu:%7lu", &object_type, &object_instance,
+        &property_id, &array_index, &device_type, &device_instance);
+    if (count == 6) {
+        value->objectIdentifier.type = object_type;
+        value->objectIdentifier.instance = object_instance;
+        value->propertyIdentifier = property_id;
+        if (array_index < 0) {
+            value->arrayIndex = BACNET_ARRAY_ALL;
+        } else {
+            value->arrayIndex = array_index;
+        }
+        value->arrayIndex = array_index;
+        value->deviceIdentifier.type = device_type;
+        value->deviceIdentifier.instance = device_instance;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
+/**
+ * @brief Parse a string into a BACnetDeviceObjectReference value
+ * @param value [out] The BACnetObjectPropertyReference value
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ */
+static bool device_object_reference_from_ascii(
+    BACNET_DEVICE_OBJECT_REFERENCE *value, const char *argv)
+{
+    bool status = false;
+    unsigned long object_type, object_instance;
+    unsigned long device_type, device_instance;
+    int count;
+
+    if (!value || !argv) {
+        return false;
+    }
+    /* analog-output:4194303,device:4194303 */
+    count = sscanf(
+        argv, "%4lu:%7lu,%4lu:%7lu", &object_type, &object_instance,
+        &device_type, &device_instance);
+    if (count == 4) {
+        value->objectIdentifier.type = object_type;
+        value->objectIdentifier.instance = object_instance;
+        value->deviceIdentifier.type = device_type;
+        value->deviceIdentifier.instance = device_instance;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+/**
+ * @brief Parse a string into a BACnetObjectPropertyReference value
+ * @param value [out] The BACnetObjectPropertyReference value
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ */
+static bool object_property_reference_from_ascii(
+    BACNET_OBJECT_PROPERTY_REFERENCE *value, const char *argv)
+{
+    bool status = false;
+    unsigned long object_type, object_instance;
+    unsigned long property_id;
+    long array_index;
+    int count;
+
+    if (!value || !argv) {
+        return false;
+    }
+    /* analog-output:4194303,present-value,-1,device:4194303 */
+    count = sscanf(
+        argv, "%4lu:%7lu,%lu,%ld", &object_type, &object_instance, &property_id,
+        &array_index);
+    if (count == 4) {
+        value->object_identifier.type = object_type;
+        value->object_identifier.instance = object_instance;
+        value->property_identifier = property_id;
+        value->property_array_index = array_index;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
 /* used to load the app data struct with the proper data
    converted from a command line argument.
    "argv" is not const to allow using strtok internally. It MAY be modified. */
@@ -3657,8 +4222,12 @@ bool bacapp_parse_application_data(
     char *argv,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
+#if defined(BACAPP_TIME)
     int hour, min, sec, hundredths;
+#endif
+#if defined(BACAPP_DATE)
     int year, month, day, wday;
+#endif
     int object_type = 0;
     uint32_t instance = 0;
     bool status = false;
@@ -3673,12 +4242,12 @@ bool bacapp_parse_application_data(
         switch (tag_number) {
 #if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                if (strcasecmp(argv, "true") == 0 ||
-                    strcasecmp(argv, "active") == 0) {
+                if (bacnet_stricmp(argv, "true") == 0 ||
+                    bacnet_stricmp(argv, "active") == 0) {
                     value->type.Boolean = true;
                 } else if (
-                    strcasecmp(argv, "false") == 0 ||
-                    strcasecmp(argv, "inactive") == 0) {
+                    bacnet_stricmp(argv, "false") == 0 ||
+                    bacnet_stricmp(argv, "inactive") == 0) {
                     value->type.Boolean = false;
                 } else {
                     status = strtol_checked(argv, &long_value);
@@ -3812,6 +4381,13 @@ bool bacapp_parse_application_data(
                 }
                 break;
 #endif
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                /* BACnetTimeStamp */
+                status =
+                    bacapp_timestamp_init_ascii(&value->type.Time_Stamp, argv);
+                break;
+#endif
 #if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 /* BACnetDateTime */
@@ -3857,6 +4433,24 @@ bool bacapp_parse_application_data(
                     host_n_port_from_ascii(&value->type.Host_Address, argv);
                 break;
 #endif
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                status = device_object_property_reference_from_ascii(
+                    &value->type.Device_Object_Property_Reference, argv);
+                break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
+                status = device_object_reference_from_ascii(
+                    &value->type.Device_Object_Reference, argv);
+                break;
+#endif
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+                status = object_property_reference_from_ascii(
+                    &value->type.Object_Property_Reference, argv);
+                break;
+#endif
 #if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
                 status = bacnet_destination_from_ascii(
@@ -3889,6 +4483,17 @@ bool bacapp_parse_application_data(
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
                 status =
                     bacnet_shed_level_from_ascii(&value->type.Shed_Level, argv);
+                break;
+#endif
+#if defined(BACAPP_ACCESS_RULE)
+            case BACNET_APPLICATION_TAG_ACCESS_RULE:
+                bacnet_access_rule_from_ascii(&value->type.Access_Rule, argv);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                bacnet_channel_value_from_ascii(
+                    &value->type.Channel_Value, argv);
                 break;
 #endif
             default:
@@ -4441,6 +5046,19 @@ bool bacapp_same_value(
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
                 status = bacnet_shed_level_same(
                     &value->type.Shed_Level, &test_value->type.Shed_Level);
+                break;
+#endif
+#if defined(BACAPP_ACCESS_RULE)
+            case BACNET_APPLICATION_TAG_ACCESS_RULE:
+                status = bacnet_access_rule_same(
+                    &value->type.Access_Rule, &test_value->type.Access_Rule);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                status = bacnet_channel_value_same(
+                    &value->type.Channel_Value,
+                    &test_value->type.Channel_Value);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:
