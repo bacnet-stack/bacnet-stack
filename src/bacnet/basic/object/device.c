@@ -1440,16 +1440,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-        case PROP_SERIAL_NUMBER:
-            characterstring_init_ansi(&char_string, Serial_Number);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
-        case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, BACnet_Version);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
             characterstring_init_ansi(
                 &char_string, Application_Software_Version);
