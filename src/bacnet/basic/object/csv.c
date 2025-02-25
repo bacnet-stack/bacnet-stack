@@ -51,7 +51,7 @@ typedef struct characterstring_object {
     /* Here is our Present Value */
     BACNET_CHARACTER_STRING Present_Value_Backup;
     BACNET_CHARACTER_STRING Present_Value;
-    BACNET_CHARACTER_STRING Name;
+    BACNET_CHARACTER_STRING Object_Name;
     BACNET_CHARACTER_STRING Description;
 } CHARACTERSTRING_VALUE_DESCR;
 
