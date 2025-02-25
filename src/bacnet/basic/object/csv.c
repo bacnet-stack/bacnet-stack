@@ -109,7 +109,7 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
                 return BACNET_MAX_INSTANCE;
             }
 
-            characterstring_init_ansi(&pObject->Name, "");
+            characterstring_init_ansi(&pObject->Ovject_Name, "");
             characterstring_init_ansi(&pObject->Description, "");
             characterstring_init_ansi(&pObject->Present_Value, "");
             characterstring_init_ansi(&pObject->Present_Value_Backup, "");
@@ -517,7 +517,7 @@ bool CharacterString_Value_Object_Name(
     }
 
     if (pObject) {
-        *object_name = pObject->Name;
+        *object_name = pObject->Ovject_Name;
         status = true;
     }
 
@@ -539,9 +539,9 @@ bool CharacterString_Value_Name_Set(
 
     if (pObject) {
         if (new_name) {
-            status = characterstring_init_ansi(&pObject->Name, new_name);
+            status = characterstring_init_ansi(&pObject->Ovject_Name, new_name);
         } else {
-            status = characterstring_init_ansi(&pObject->Name, "");
+            status = characterstring_init_ansi(&pObject->Ovject_Name, "");
         }
     }
 
@@ -560,7 +560,7 @@ const char *CharacterString_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = pObject->Object_Name.value;
     }
 
     return name;
