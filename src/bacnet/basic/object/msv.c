@@ -397,7 +397,6 @@ static bool Multistate_Value_Present_Value_Write(
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject;
     uint32_t old_value = 1;
     unsigned max_states = Multistate_Value_Max_States(object_instance);
     struct object_data *pObject = Multistate_Value_Object(object_instance);
