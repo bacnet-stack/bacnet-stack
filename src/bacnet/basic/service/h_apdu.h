@@ -162,6 +162,33 @@ void apdu_handler(
     uint8_t *apdu, /* APDU data */
     uint16_t pdu_len); /* for confirmed messages */
 
+#if BACNET_SEGMENTATION_ENABLED
+BACNET_STACK_EXPORT
+uint16_t apdu_segment_timeout(void);
+
+BACNET_STACK_EXPORT
+void apdu_segment_timeout_set(uint16_t milliseconds);
+
+BACNET_STACK_EXPORT
+int apdu_encode_fixed_header(
+    uint8_t *apdu, BACNET_APDU_FIXED_HEADER *fixed_pdu_header);
+
+BACNET_STACK_EXPORT
+void apdu_init_fixed_header(
+    BACNET_APDU_FIXED_HEADER *fixed_pdu_header,
+    uint8_t pdu_type,
+    uint8_t invoke_id,
+    uint8_t service,
+    int max_apdu);
+
+BACNET_STACK_EXPORT
+void max_segments_accepted_set(uint8_t maxSegments);
+
+BACNET_STACK_EXPORT
+uint8_t max_segments_accepted_get(void);
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

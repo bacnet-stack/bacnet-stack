@@ -84,9 +84,18 @@ uint8_t Send_Get_Event_Information(
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
+#if BACNET_SEGMENTATION_ENABLED
+    uint8_t segmentation = 0;
+    uint16_t maxsegments = 0;
+#endif
 
     /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
+    status = address_get_by_device(
+        device_id, &max_apdu, &dest
+#if BACNET_SEGMENTATION_ENABLED
+        ,&segmentation, &maxsegments
+#endif
+    );
     if (status) {
         invoke_id = Send_Get_Event_Information_Address(
             &dest, max_apdu, lastReceivedObjectIdentifier);

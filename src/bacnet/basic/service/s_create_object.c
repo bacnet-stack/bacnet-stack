@@ -56,12 +56,21 @@ uint8_t Send_Create_Object_Request_Data(
     BACNET_CREATE_OBJECT_DATA data = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
     uint8_t service = SERVICE_CONFIRMED_CREATE_OBJECT;
+#if BACNET_SEGMENTATION_ENABLED
+    uint8_t segmentation = 0;
+    uint16_t maxsegments = 0;
+#endif
 
     if (!dcc_communication_enabled()) {
         return 0;
     }
     /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
+    status = address_get_by_device(
+        device_id, &max_apdu, &dest
+#if BACNET_SEGMENTATION_ENABLED
+        ,&segmentation, &maxsegments
+#endif
+    );
     /* is there a tsm available? */
     if (status) {
         invoke_id = tsm_next_free_invokeID();
