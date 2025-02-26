@@ -38,12 +38,12 @@ void handler_who_is(
     len = whois_decode_service_request(
         service_request, service_len, &low_limit, &high_limit);
     if (len == 0) {
-        Send_I_Am(&Handler_Transmit_Buffer[0]);
+        Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
         if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
             (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
-            Send_I_Am(&Handler_Transmit_Buffer[0]);
+            Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
         }
     }
 
@@ -131,7 +131,7 @@ static void check_who_is_for_routing(
             if (is_unicast) {
                 Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
             } else {
-                Send_I_Am(&Handler_Transmit_Buffer[0]);
+                Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
             }
         }
     }
