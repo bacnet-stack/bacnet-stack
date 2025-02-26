@@ -45,6 +45,9 @@ static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
             debug_fprintf(stdout, "BIP6: %s %s\n", str, addstr);
         }
     }
+#else
+    (void)str;
+    (void)addr;
 #endif
 }
 
