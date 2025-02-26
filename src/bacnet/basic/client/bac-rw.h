@@ -46,22 +46,16 @@ typedef void (*bacnet_read_write_device_callback_t)(
 extern "C" {
 #endif /* __cplusplus */
 
-BACNET_STACK_EXPORT
 void bacnet_read_write_init(void);
-BACNET_STACK_EXPORT
 void bacnet_read_write_task(void);
-BACNET_STACK_EXPORT
 bool bacnet_read_write_idle(void);
-BACNET_STACK_EXPORT
 bool bacnet_read_write_busy(void);
-BACNET_STACK_EXPORT
 bool bacnet_read_property_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
     uint32_t array_index);
-BACNET_STACK_EXPORT
 bool bacnet_write_property_real_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -70,7 +64,6 @@ bool bacnet_write_property_real_queue(
     float value,
     uint8_t priority,
     uint32_t array_index);
-BACNET_STACK_EXPORT
 bool bacnet_write_property_null_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -78,7 +71,6 @@ bool bacnet_write_property_null_queue(
     BACNET_PROPERTY_ID object_property,
     uint8_t priority,
     uint32_t array_index);
-BACNET_STACK_EXPORT
 bool bacnet_write_property_enumerated_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -87,7 +79,6 @@ bool bacnet_write_property_enumerated_queue(
     unsigned int value,
     uint8_t priority,
     uint32_t array_index);
-BACNET_STACK_EXPORT
 bool bacnet_write_property_unsigned_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -96,7 +87,6 @@ bool bacnet_write_property_unsigned_queue(
     unsigned int value,
     uint8_t priority,
     uint32_t array_index);
-BACNET_STACK_EXPORT
 bool bacnet_write_property_signed_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -105,7 +95,6 @@ bool bacnet_write_property_signed_queue(
     signed int value,
     uint8_t priority,
     uint32_t array_index);
-BACNET_STACK_EXPORT
 bool bacnet_write_property_boolean_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -114,15 +103,11 @@ bool bacnet_write_property_boolean_queue(
     bool value,
     uint8_t priority,
     uint32_t array_index);
-BACNET_STACK_EXPORT
 void bacnet_read_write_value_callback_set(
     bacnet_read_write_value_callback_t callback);
-BACNET_STACK_EXPORT
 void bacnet_read_write_device_callback_set(
     bacnet_read_write_device_callback_t callback);
-BACNET_STACK_EXPORT
 void bacnet_read_write_vendor_id_filter_set(uint16_t vendor_id);
-BACNET_STACK_EXPORT
 uint16_t bacnet_read_write_vendor_id_filter(void);
 
 #ifdef __cplusplus
