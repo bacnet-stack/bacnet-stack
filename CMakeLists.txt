@@ -35,11 +35,6 @@ option(
   OFF)
 
 option(
-  BACDL_ALL
-  "compile with all datalink support"
-  OFF)
-
-option(
   BACNET_BUILD_BACPOLL_APP
   "compile the bacpoll app"
   ON)
@@ -79,7 +74,6 @@ option(
   "compile with secure-connect support"
   OFF)
 
-
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
         BACDL_ARCNET OR
@@ -90,37 +84,46 @@ if(NOT (BACDL_ETHERNET OR
       add_definitions(-DBACDL_NONE)
 endif()
 
+option(
+  UCI
+  "build with uci"
+  OFF)
+
 set(BACNET_PROTOCOL_REVISION 24)
 set(BUILD_SHARED_LIBS 1)
-# set(BACDL_ALL ON)
-# set(BACDL_ARCNET ON)
 set(BACDL_BIP ON)
 set(BACDL_BIP6 ON)
 set(BACDL_MSTP ON)
-# set(BACDL_ETHERNET ON)
-if(APPLE)
-#  set(BACDL_MSTP OFF)
-#  set(BACDL_ARCNET OFF)
-#  set(BACDL_ETHERNET OFF)
-set(BACDL_BIP6 OFF)
-#  set(BACDL_ALL OFF)
-elseif(WIN32)
-#  set(BACDL_ETHERNET OFF)
-set(BACDL_BIP6 OFF)
-#  set(BACDL_ALL OFF)
-else()
-#  set(BACDL_MSTP ON)
-endif()
+#if(APPLE)
+##  set(BACDL_MSTP OFF)
+##  set(BACDL_ARCNET OFF)
+##  set(BACDL_ETHERNET OFF)
+#set(BACDL_BIP6 OFF)
+##  set(BACDL_ALL OFF)
+#elseif(WIN32)
+##  set(BACDL_ETHERNET OFF)
+#set(BACDL_BIP6 OFF)
+##  set(BACDL_ALL OFF)
+#else()
+##  set(BACDL_MSTP ON)
+#endif()
 
-set(BAC_ROUTING OFF)
-set(BACNET_STACK_BUILD_APPS OFF)
-#set(BACNET_VENDOR_NAME "@Schneider Electric@" CACHE STRINGi "Vendor ID")
-# set(OPT2 "Default" CACHE STRING "Helpstring")
-# set(CMAKE_INSTALL_PREFIX "/usr/")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
+
+# Build types
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(STATUS "Maximum optimization for speed")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+    message(STATUS "Maximum optimization for speed, debug info included")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
+    message(STATUS "Maximum optimization for size")
+else ()
+    message(STATUS "Minimal optimization, debug info included")
+    add_compile_definitions(DEBUG_ENABLED=1)
+endif ()
 
 option(
   BACNET_STACK_DEPRECATED_DISABLE
@@ -681,11 +684,6 @@ if(BUILD_SHARED_LIBS)
     PROPERTIES
       C_VISIBILITY_PRESET hidden)
 endif()
-
-if(APPLE)
-  unset(BACDL_MSTP)
-endif()
-
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
@@ -716,10 +714,9 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
-  # $<$<BOOL:${BACDL_ALL}>:BACDL_ALL>
-  #  $<$<NOT:$<BOOL:${BAC_ROUTING}>>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
+  BACNET_NETWORK_PORT_IP_DHCP_ENABLED=1
   BACDL_MULTIPLE=1
   DEBUG_ENABLED=0
   PRINT_ENABLED=0)
