@@ -164,6 +164,7 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
         return false;
     }
 
+#if !defined(__APPLE__)
     /* Bind to device so we don't get routing loops between our
        different ports. */
     status = setsockopt(
@@ -173,6 +174,7 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
         close(ip_data->socket);
         return false;
     }
+#endif
 
     /* bind the socket to the local port number */
     sin.sin_family = AF_INET;
