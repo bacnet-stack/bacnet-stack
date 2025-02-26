@@ -105,7 +105,7 @@ void handler_write_property(
         }
         if (bcontinue) {
             success = write_property_bacnet_array_valid(&wp_data);
-            if (!success) {
+            if (success) {
                 success = Device_Write_Property(&wp_data);
             }
             if (success) {
