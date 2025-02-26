@@ -34,6 +34,7 @@
     fprintf(stderr, __VA_ARGS__)
 #endif
 #else
+#undef PRINT
 #define PRINT(...)
 #endif
 
