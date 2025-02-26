@@ -516,68 +516,126 @@ bool bvlc_broadcast_distribution_table_entry_forward_address(
  *        broadcast-mask [1] OCTET STRING
  *    }
  *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param bdt_head - one BACnetBDTEntry
+ * @return length of the APDU buffer
+ */
+int bvlc_broadcast_distribution_table_entry_encode(
+    uint8_t *apdu,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_OCTET_STRING octet_string;
+
+    if (bdt_entry) {
+        /* bbmd-address [0] BACnetHostNPort - opening */
+        len = encode_opening_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /*  host [0] BACnetHostAddress - opening */
+        len = encode_opening_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* CHOICE - ip-address [1] OCTET STRING */
+        octetstring_init(
+            &octet_string, &bdt_entry->dest_address.address[0], IP_ADDRESS_MAX);
+        len = encode_context_octet_string(apdu, 1, &octet_string);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /*  host [0] BACnetHostAddress - closing */
+        len = encode_closing_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* port [1] Unsigned16 */
+        len = encode_context_unsigned(apdu, 1, bdt_entry->dest_address.port);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* bbmd-address [0] BACnetHostNPort - closing */
+        len = encode_closing_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* broadcast-mask [1] OCTET STRING */
+        octetstring_init(
+            &octet_string, &bdt_entry->broadcast_mask.address[0],
+            IP_ADDRESS_MAX);
+        len = encode_context_octet_string(apdu, 1, &octet_string);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the Broadcast-Distribution-Table for Network Port object
+ *
+ *    BACnetLIST of BACnetBDTEntry
+ *
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer size
  * @param bdt_head - head of the BDT linked list
  * @return length of the APDU buffer
  */
-int bvlc_broadcast_distribution_table_encode(
-    uint8_t *apdu,
-    uint16_t apdu_size,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+int bvlc_broadcast_distribution_table_list_encode(
+    uint8_t *apdu, const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
 {
     int len = 0;
     int apdu_len = 0;
-    int entry_size = 0;
-    BACNET_OCTET_STRING octet_string;
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry;
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry;
 
     bdt_entry = bdt_head;
     while (bdt_entry) {
         if (bdt_entry->valid) {
-            /* bbmd-address [0] BACnetHostNPort - opening */
-            len = encode_opening_tag(&apdu[apdu_len], 0);
-            apdu_len += len;
-            /*  host [0] BACnetHostAddress - opening */
-            len = encode_opening_tag(&apdu[apdu_len], 0);
-            apdu_len += len;
-            /* CHOICE - ip-address [1] OCTET STRING */
-            octetstring_init(
-                &octet_string, &bdt_entry->dest_address.address[0],
-                IP_ADDRESS_MAX);
             len =
-                encode_context_octet_string(&apdu[apdu_len], 1, &octet_string);
+                bvlc_broadcast_distribution_table_entry_encode(apdu, bdt_entry);
             apdu_len += len;
-            /*  host [0] BACnetHostAddress - closing */
-            len = encode_closing_tag(&apdu[apdu_len], 0);
-            apdu_len += len;
-            /* port [1] Unsigned16 */
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 1, bdt_entry->dest_address.port);
-            apdu_len += len;
-            /* bbmd-address [0] BACnetHostNPort - closing */
-            len = encode_closing_tag(&apdu[apdu_len], 0);
-            apdu_len += len;
-            /* broadcast-mask [1] OCTET STRING */
-            octetstring_init(
-                &octet_string, &bdt_entry->broadcast_mask.address[0],
-                IP_ADDRESS_MAX);
-            len =
-                encode_context_octet_string(&apdu[apdu_len], 1, &octet_string);
-            apdu_len += len;
-        }
-        if (!entry_size) {
-            entry_size = apdu_len;
+            if (apdu) {
+                apdu += len;
+            }
+        } else {
+            len = 0;
         }
         /* next entry */
         bdt_entry = bdt_entry->next;
-        if ((apdu_len + entry_size) > apdu_size) {
-            /* check for available space */
-            break;
-        }
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Encode the Broadcast-Distribution-Table for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param bdt_head - head of the BDT linked list
+ * @return length of the APDU buffer, or BACNET_STATUS_ERROR on error
+ */
+int bvlc_broadcast_distribution_table_encode(
+    uint8_t *apdu,
+    uint16_t apdu_size,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+{
+    int len = 0;
+
+    len = bvlc_broadcast_distribution_table_list_encode(NULL, bdt_head);
+    if (len <= apdu_size) {
+        len = bvlc_broadcast_distribution_table_list_encode(apdu, bdt_head);
+    } else {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -1116,6 +1174,86 @@ int bvlc_decode_register_foreign_device(
  *        remaining-time-to-live [2] Unsigned16 -- remaining time in seconds
  *    }
  *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param fdt_head - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc_foreign_device_table_entry_encode(
+    uint8_t *apdu, const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+
+    if (fdt_entry && fdt_entry->valid) {
+        /* bacnetip-address [0] OCTET STRING */
+        len = bvlc_encode_address(
+            octetstring_value(&octet_string),
+            octetstring_capacity(&octet_string), &fdt_entry->dest_address);
+        octetstring_truncate(&octet_string, len);
+        len = encode_context_octet_string(apdu, 0, &octet_string);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* time-to-live [1] Unsigned16 */
+        len = encode_context_unsigned(apdu, 1, fdt_entry->ttl_seconds);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* remaining-time-to-live [2] Unsigned16 */
+        len =
+            encode_context_unsigned(apdu, 2, fdt_entry->ttl_seconds_remaining);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the Foreign_Device-Table for Network Port object
+ *
+ *    BACnetLIST of BACnetFDTEntry
+ *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param fdt_head - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc_foreign_device_table_list_encode(
+    uint8_t *apdu, const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
+{
+    int len = 0;
+    int apdu_len = 0;
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry;
+
+    fdt_entry = fdt_head;
+    while (fdt_entry) {
+        if (fdt_entry->valid) {
+            len = bvlc_foreign_device_table_entry_encode(apdu, fdt_entry);
+            apdu_len += len;
+            if (apdu) {
+                apdu += len;
+            }
+        }
+        /* next entry */
+        fdt_entry = fdt_entry->next;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the Foreign_Device-Table for Network Port object
+ *
+ *    BACnetLIST of BACnetFDTEntry
+ *
+ *    BACnetFDTEntry ::= SEQUENCE {
+ *        bacnetip-address [0] OCTET STRING, -- 6-octet B/IP registrant address
+ *        time-to-live [1] Unsigned16, -- time to live in seconds
+ *        remaining-time-to-live [2] Unsigned16 -- remaining time in seconds
+ *    }
+ *
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer size
  * @param fdt_head - head of the BDT linked list
@@ -1124,46 +1262,18 @@ int bvlc_decode_register_foreign_device(
 int bvlc_foreign_device_table_encode(
     uint8_t *apdu,
     uint16_t apdu_size,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
 {
     int len = 0;
-    int apdu_len = 0;
-    int entry_size = 0;
-    BACNET_OCTET_STRING octet_string = { 0 };
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry;
 
-    fdt_entry = fdt_head;
-    while (fdt_entry) {
-        if (fdt_entry->valid) {
-            /* bacnetip-address [0] OCTET STRING */
-            len = bvlc_encode_address(
-                octetstring_value(&octet_string),
-                octetstring_capacity(&octet_string), &fdt_entry->dest_address);
-            octetstring_truncate(&octet_string, len);
-            len =
-                encode_context_octet_string(&apdu[apdu_len], 0, &octet_string);
-            apdu_len += len;
-            /* time-to-live [1] Unsigned16 */
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 1, fdt_entry->ttl_seconds);
-            apdu_len += len;
-            /* remaining-time-to-live [2] Unsigned16 */
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 2, fdt_entry->ttl_seconds_remaining);
-            apdu_len += len;
-        }
-        if (!entry_size) {
-            entry_size = apdu_len;
-        }
-        /* next entry */
-        fdt_entry = fdt_entry->next;
-        if ((apdu_len + entry_size) > apdu_size) {
-            /* check for available space */
-            break;
-        }
+    len = bvlc_foreign_device_table_list_encode(NULL, fdt_head);
+    if (len <= apdu_size) {
+        len = bvlc_foreign_device_table_list_encode(apdu, fdt_head);
+    } else {
+        len = BACNET_STATUS_ERROR;
     }
 
-    return apdu_len;
+    return len;
 }
 
 /**

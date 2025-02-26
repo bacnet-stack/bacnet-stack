@@ -520,6 +520,30 @@ bool bvlc6_address_different(
     return status;
 }
 
+/**
+ * @brief Set the IPv6 address and port number
+ * @param addr - B/IPv6 address that be set
+ * @param address - B/IPv6 address bytes
+ * @param port - B/IPv6 address port
+ * @return true if the address is set
+ */
+bool bvlc6_address_n_port_set(
+    BACNET_IP6_ADDRESS *addr, uint8_t *address, uint16_t port)
+{
+    bool status = false;
+    unsigned i;
+
+    if (addr) {
+        for (i = 0; i < IP6_ADDRESS_MAX; i += 2) {
+            addr->address[i] = address[i];
+        }
+        addr->port = port;
+        status = true;
+    }
+
+    return status;
+}
+
 /** Set a BVLC Address from 16-bit group chunks
  *
  * Data link layer addressing between B/IPv6 nodes consists of a 128-bit
