@@ -100,7 +100,7 @@ int bip6_set_interface(char *ifname)
 
     if (getifaddrs(&ifa) == -1) {
         debug_perror("BIP6: getifaddrs failed");
-        exit(1);
+        return 1;
     }
     ifa_tmp = ifa;
     debug_fprintf_bip6(stdout, "BIP6: seeking interface: %s\n", ifname);

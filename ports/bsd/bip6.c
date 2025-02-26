@@ -104,7 +104,7 @@ static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
  *
  * @param ifname - C string for name or text address
  */
-void bip6_set_interface(char *ifname)
+int bip6_set_interface(char *ifname)
 {
     struct ifaddrs *ifa, *ifa_tmp;
     struct sockaddr_in6 *sin;
@@ -112,7 +112,7 @@ void bip6_set_interface(char *ifname)
 
     if (getifaddrs(&ifa) == -1) {
         debug_perror("BIP6: getifaddrs failed");
-        exit(1);
+        return 1;
     }
     ifa_tmp = ifa;
     if (BIP6_Debug) {
@@ -141,9 +141,12 @@ void bip6_set_interface(char *ifname)
         ifa_tmp = ifa_tmp->ifa_next;
     }
     if (!found) {
-        debug_fprintf_bip6(stdout, "BIP6: unable to set interface: %s\n", ifname);
-        exit(1);
+        debug_fprintf_bip6(
+            stderr, "BIP6: unable to set interface: %s\n", ifname);
+        return 1;
     }
+
+    return 0;
 }
 
 /**

@@ -73,7 +73,7 @@ static LPSTR PrintError(int ErrorCode)
 }
 
 /* on Windows, ifname is the IPv6 address of the interface */
-void bip6_set_interface(char *ifname)
+int bip6_set_interface(char *ifname)
 {
     int i, RetVal;
     struct addrinfo Hints, *AddrInfo, *AI;
@@ -104,7 +104,7 @@ void bip6_set_interface(char *ifname)
             stderr, "BIP6: getaddrinfo failed with error %d: %s\n", RetVal,
             gai_strerror(RetVal));
         WSACleanup();
-        return;
+        return 1;
     }
     if (BIP6_Debug) {
         debug_fprintf(stderr, "BIP6: getaddrinfo() succeeded!\n");
@@ -212,7 +212,10 @@ void bip6_set_interface(char *ifname)
     if (BIP6_Socket == INVALID_SOCKET) {
         debug_fprintf(
             stderr, "BIP6: AF_INET6 address not found getaddrinfo()\n");
+        return 1;
     }
+
+    return 0;
 }
 
 /**
