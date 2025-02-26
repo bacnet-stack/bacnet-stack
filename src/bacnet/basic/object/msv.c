@@ -398,11 +398,11 @@ static bool Multistate_Value_Present_Value_Write(
 {
     bool status = false;
     uint32_t old_value = 1;
-    unsigned max_states = Multistate_Value_Max_States(object_instance);
     struct object_data *pObject = Multistate_Value_Object(object_instance);
 
     if (pObject) {
-        max_states = state_name_count(pObject->State_Text);
+        unsigned max_states = state_name_count(pObject->State_Text);
+
         if ((value >= 1) && (value <= max_states)) {
             if (pObject->Write_Enabled) {
                 status = true;
