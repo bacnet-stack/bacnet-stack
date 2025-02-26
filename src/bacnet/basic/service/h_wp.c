@@ -155,7 +155,7 @@ void handler_write_property(
 #if BACNET_PROTOCOL_REVISION >= 21
             success = handler_write_property_special_null(&wp_data);
 #endif
-            if (!success) {
+            if (success) {
                 if (write_property_bacnet_array_valid(&wp_data)) {
                     success = Device_Write_Property(&wp_data);
                 }
