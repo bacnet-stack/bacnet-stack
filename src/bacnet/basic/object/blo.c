@@ -59,23 +59,28 @@ static binary_lighting_output_blink_warn_callback
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_PRESENT_VALUE,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_BLINK_WARN_ENABLE,
-                                           PROP_EGRESS_TIME,
-                                           PROP_EGRESS_ACTIVE,
-                                           PROP_PRIORITY_ARRAY,
-                                           PROP_RELINQUISH_DEFAULT,
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_OUT_OF_SERVICE,
+    PROP_BLINK_WARN_ENABLE,
+    PROP_EGRESS_TIME,
+    PROP_EGRESS_ACTIVE,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
 #if (BACNET_PROTOCOL_REVISION >= 17)
-                                           PROP_CURRENT_COMMAND_PRIORITY,
+    PROP_CURRENT_COMMAND_PRIORITY,
 #endif
-                                           -1 };
-static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
-                                           PROP_FEEDBACK_VALUE, -1 };
+    -1
+};
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, PROP_RELIABILITY, PROP_FEEDBACK_VALUE, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 

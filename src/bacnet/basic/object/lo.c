@@ -64,6 +64,7 @@ static lighting_command_tracking_value_callback
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -87,14 +88,17 @@ static const int Properties_Required[] = {
 #endif
     -1
 };
-static const int Properties_Optional[] = { PROP_DESCRIPTION,
-                                           PROP_TRANSITION,
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
+    PROP_TRANSITION,
 #if (BACNET_PROTOCOL_REVISION >= 24)
-                                           PROP_COLOR_OVERRIDE,
-                                           PROP_COLOR_REFERENCE,
-                                           PROP_OVERRIDE_COLOR_REFERENCE,
+    PROP_COLOR_OVERRIDE,
+    PROP_COLOR_REFERENCE,
+    PROP_OVERRIDE_COLOR_REFERENCE,
 #endif
-                                           -1 };
+    -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
