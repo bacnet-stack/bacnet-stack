@@ -3361,13 +3361,11 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
-    unsigned int index = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-    index = Network_Port_Instance_To_Index(rpdata->object_instance);
     if (!Property_List_Member(
             rpdata->object_instance, rpdata->object_property)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
