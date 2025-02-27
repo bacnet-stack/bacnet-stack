@@ -30,6 +30,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added Send_I_Am_Broadcast() function to Who-Is handler so that
+  other Send_I_Am() will honor DCC Disable-Initiatiation. (#918)
+* Added simple script to aid in mirror the Github repository with Sourceforge.
 * Added unit test while reading all object properties to flag properties
   not in the property-list. (#910)
 * Added enumeration for last-property used in unit testing. (#910)
@@ -47,6 +50,14 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the basic multi-state output priority-array datatype encoding. (#932)
+* Fixed windows build of bacpoll and bacdiscover by removing DLL export
+  in basic client headers (#930)
+* Fixed Device_Write_Property_Object_Name() to return WRITE_ACCESS_DENIED
+  in case where an object name is not writable using BACnet protocol. (#927)
+* Fixed WriteProperty writing to object properties when the array-index
+  is valid (#931)
+* Fixed Who-Has object instance by checking for valid instance. (#922)
 * Fixed out-of-service writability to be consistent with present-value
   in objects using Write_Enabled flag (#921)
 * Fixed the NDPU encoding for confirmed COV notifications (#917)
