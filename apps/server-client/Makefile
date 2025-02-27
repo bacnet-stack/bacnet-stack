@@ -3,7 +3,6 @@
 # Executable file name - BACnet Server-Client Polling Application
 TARGET = bacpoll
 # BACnet objects that are used with this app
-# BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 BACNET_CLIENT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/client
 SRC = main.c \

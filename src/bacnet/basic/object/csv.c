@@ -125,7 +125,7 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return true if the object is deleted
  */
-bool Characterstring_Value_Delete(uint32_t object_instance)
+bool CharacterString_Value_Delete(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject = NULL;
@@ -142,7 +142,7 @@ bool Characterstring_Value_Delete(uint32_t object_instance)
 /**
  * @brief Cleans up the object list and its data
  */
-void Characterstring_Value_Cleanup(void)
+void CharacterString_Value_Cleanup(void)
 {
     struct object_data *pObject = NULL;
 
