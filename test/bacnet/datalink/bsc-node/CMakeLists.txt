@@ -60,13 +60,15 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${PORTS_DIR}/linux/bsc-event.c
     ${PORTS_DIR}/linux/mstimer-init.c
     ${PORTS_DIR}/linux/datetime-init.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
     ${SRC_DIR}/bacnet/basic/object/sc_netport.c

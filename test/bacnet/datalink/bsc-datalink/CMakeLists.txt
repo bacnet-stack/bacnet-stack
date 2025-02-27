@@ -74,6 +74,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-datalink.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
