@@ -39,32 +39,18 @@
 #include "bacnet/basic/object/schedule.h"
 #include "bacnet/basic/object/structured_view.h"
 #include "bacnet/basic/object/trendlog.h"
-#if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
-#endif /* defined(INTRINSIC_REPORTING) */
 #include "bacnet/basic/object/bacfile.h"
-#if (BACNET_PROTOCOL_REVISION >= 10)
 #include "bacnet/basic/object/bitstring_value.h"
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/object/iv.h"
-#include "bacnet/basic/object/osv.h"
-#include "bacnet/basic/object/piv.h"
 #include "bacnet/basic/object/time_value.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 14)
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/lo.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 16)
 #include "bacnet/basic/object/blo.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 24)
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
-#endif
 #include "bacnet/basic/object/device.h"
 
 #ifdef CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION
@@ -144,6 +130,42 @@
 #define CONFIG_BACNET_BASIC_OBJECT_FILE
 #define CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
+#endif
+
+#if (BACNET_PROTOCOL_REVISION < 14)
+#ifdef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
+#undef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
+#warning "Channel configured, but BACnet Protocol Revision < 14"
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT
+#undef CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT
+#warning "Lighting Output configured, but BACnet Protocol Revision < 14"
+#endif
+#endif
+
+#if (BACNET_PROTOCOL_REVISION < 16)
+#ifdef CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT
+#undef CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT
+#warning "Binary Lighting Output configured, but BACnet Protocol Revision < 16"
+#endif
+#endif
+
+#if (BACNET_PROTOCOL_REVISION < 17)
+#ifdef CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
+#undef CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
+#warning "Network Port is configured, but BACnet Protocol Revision < 17"
+#endif
+#endif
+
+#if (BACNET_PROTOCOL_REVISION < 24)
+#ifdef CONFIG_BACNET_BASIC_OBJECT_COLOR
+#undef CONFIG_BACNET_BASIC_OBJECT_COLOR
+#warning "Color configured, but BACnet Protocol Revision < 24"
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_COLOR_TEMPERATURE
+#undef CONFIG_BACNET_BASIC_OBJECT_COLOR_TEMPERATURE
+#warning "Color Temperature configured, but BACnet Protocol Revision < 24"
+#endif
 #endif
 
 static object_functions_t Object_Table[] = {
@@ -366,7 +388,6 @@ static object_functions_t Object_Table[] = {
       NULL /* Timer */ },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT)
-#if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT,
       Network_Port_Init,
       Network_Port_Count,
@@ -387,9 +408,6 @@ static object_functions_t Object_Table[] = {
       NULL /* Create */,
       NULL /* Delete */,
       NULL /* Timer */ },
-#else
-#warning "Network Port is configured, but BACnet Protocol Revision < 17"
-#endif
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CALENDAR)
     { OBJECT_CALENDAR,
@@ -502,7 +520,6 @@ static object_functions_t Object_Table[] = {
       Load_Control_Delete,
       Load_Control_Timer },
 #endif
-#if (BACNET_PROTOCOL_REVISION >= 14)
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT)
     { OBJECT_LIGHTING_OUTPUT,
       Lighting_Output_Init,
@@ -524,7 +541,6 @@ static object_functions_t Object_Table[] = {
       Lighting_Output_Create,
       Lighting_Output_Delete,
       Lighting_Output_Timer },
-#endif
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CHANNEL)
     { OBJECT_CHANNEL,
@@ -548,7 +564,6 @@ static object_functions_t Object_Table[] = {
       Channel_Delete,
       NULL /* Timer */ },
 #endif
-#if (BACNET_PROTOCOL_REVISION >= 16)
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT)
     { OBJECT_BINARY_LIGHTING_OUTPUT,
       Binary_Lighting_Output_Init,
@@ -571,8 +586,6 @@ static object_functions_t Object_Table[] = {
       Binary_Lighting_Output_Delete,
       Binary_Lighting_Output_Timer },
 #endif
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 24)
 #if defined(CONFIG_BACNET_BASIC_OBJECT_COLOR)
     { OBJECT_COLOR,
       Color_Init,
@@ -616,7 +629,6 @@ static object_functions_t Object_Table[] = {
       Color_Temperature_Create,
       Color_Temperature_Delete,
       Color_Temperature_Timer },
-#endif
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_FILE)
     { OBJECT_FILE,
@@ -662,7 +674,6 @@ static object_functions_t Object_Table[] = {
       Structured_View_Delete,
       NULL /* Timer */ },
 #endif
-#if (BACNET_PROTOCOL_REVISION >= 10)
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE)
     { OBJECT_BITSTRING_VALUE,
       BitString_Value_Init,
@@ -706,7 +717,6 @@ static object_functions_t Object_Table[] = {
       CharacterString_Value_Create,
       CharacterString_Value_Delete,
       NULL /* Timer */ },
-#endif
 #endif
     {
         MAX_BACNET_OBJECT_TYPE,

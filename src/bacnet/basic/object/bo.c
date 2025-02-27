@@ -987,6 +987,13 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+    if (!property_lists_member(
+            Properties_Required, Properties_Optional, Properties_Proprietary,
+            rpdata->object_property)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+        return BACNET_STATUS_ERROR;
+    }
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
@@ -1073,7 +1080,6 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-#if (BACNET_PROTOCOL_REVISION >= 17)
         case PROP_CURRENT_COMMAND_PRIORITY:
             i = Binary_Output_Present_Value_Priority(rpdata->object_instance);
             if ((i >= BACNET_MIN_PRIORITY) && (i <= BACNET_MAX_PRIORITY)) {
@@ -1082,7 +1088,6 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = encode_application_null(&apdu[0]);
             }
             break;
-#endif
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;

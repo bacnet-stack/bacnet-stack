@@ -59,28 +59,25 @@ static binary_lighting_output_blink_warn_callback
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
-static const int Binary_Lighting_Output_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_OUT_OF_SERVICE,
-    PROP_BLINK_WARN_ENABLE,
-    PROP_EGRESS_TIME,
-    PROP_EGRESS_ACTIVE,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_PRESENT_VALUE,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_BLINK_WARN_ENABLE,
+                                           PROP_EGRESS_TIME,
+                                           PROP_EGRESS_ACTIVE,
+                                           PROP_PRIORITY_ARRAY,
+                                           PROP_RELINQUISH_DEFAULT,
 #if (BACNET_PROTOCOL_REVISION >= 17)
-    PROP_CURRENT_COMMAND_PRIORITY,
+                                           PROP_CURRENT_COMMAND_PRIORITY,
 #endif
-    -1
-};
-static const int Binary_Lighting_Output_Properties_Optional[] = {
-    PROP_DESCRIPTION, PROP_RELIABILITY, PROP_FEEDBACK_VALUE, -1
-};
+                                           -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
+                                           PROP_FEEDBACK_VALUE, -1 };
 
-static const int Binary_Lighting_Output_Properties_Proprietary[] = { -1 };
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -97,13 +94,13 @@ void Binary_Lighting_Output_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = Binary_Lighting_Output_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = Binary_Lighting_Output_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Binary_Lighting_Output_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
@@ -1263,6 +1260,13 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+    if (!property_lists_member(
+            Properties_Required, Properties_Optional, Properties_Proprietary,
+            rpdata->object_property)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+        return BACNET_STATUS_ERROR;
+    }
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
@@ -1338,7 +1342,6 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], lighting_value);
             break;
-#if (BACNET_PROTOCOL_REVISION >= 17)
         case PROP_CURRENT_COMMAND_PRIORITY:
             i = Binary_Lighting_Output_Present_Value_Priority(
                 rpdata->object_instance);
@@ -1348,7 +1351,6 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = encode_application_null(&apdu[0]);
             }
             break;
-#endif
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
                 &char_string,
@@ -1424,30 +1426,16 @@ bool Binary_Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_TRACKING_VALUE:
-        case PROP_IN_PROGRESS:
-        case PROP_STATUS_FLAGS:
-        case PROP_BLINK_WARN_ENABLE:
-        case PROP_EGRESS_TIME:
-        case PROP_EGRESS_ACTIVE:
-        case PROP_PRIORITY_ARRAY:
-        case PROP_RELINQUISH_DEFAULT:
-        case PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY:
-#if (BACNET_PROTOCOL_REVISION >= 17)
-        case PROP_CURRENT_COMMAND_PRIORITY:
-#endif
-        case PROP_DESCRIPTION:
-        case PROP_RELIABILITY:
-        case PROP_FEEDBACK_VALUE:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
