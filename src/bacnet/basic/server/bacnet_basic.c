@@ -92,7 +92,7 @@ static void bacnet_task_callback_handler(void)
 
 /**
  * @brief Set the callback for the BACnet WriteProperty Store
- * @param callback [in] The callback function to call after a succesful
+ * @param callback [in] The callback function to call after a successful
  *  WriteProperty with the data in BACnet binary encoded format (small!)
  */
 void bacnet_basic_store_callback_set(bacnet_basic_store_callback callback)
