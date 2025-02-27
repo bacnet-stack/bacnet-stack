@@ -684,8 +684,13 @@ bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
     bool found = false;
 
     pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-        found = pObject->Object_Name(object_instance, object_name);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Name) {
+                found = pObject->Object_Name(object_instance, object_name);
+            }
+        }
     }
 
     return found;
@@ -1168,8 +1173,8 @@ static bool Device_Write_Property_Object_Name(
         if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
             if ((object_type == wp_data->object_type) &&
                 (object_instance == wp_data->object_instance)) {
-                /* writing same name to same object */
-                status = true;
+                /* writing same name to same object - but is it writable? */
+                status = Object_Write_Property(wp_data);
             } else {
                 /* name already exists in some object */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
