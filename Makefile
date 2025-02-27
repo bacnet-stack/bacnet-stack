@@ -202,6 +202,10 @@ netnumis:
 server:
 	$(MAKE) -s -C apps $@
 
+.PHONY: server-basic
+server-basic:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
+
 .PHONY: server-client
 server-client:
 	$(MAKE) LEGACY=true -s -C apps $@
