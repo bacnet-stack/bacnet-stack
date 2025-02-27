@@ -91,29 +91,17 @@ int iam_encode_pdu(
     return pdu_len;
 }
 
-/** Broadcast an I Am message.
- * @ingroup DMDDB
- *
+/**
+ * @brief Send an I-Am broadcast message in response to Who-Is message
  * @param buffer [in] The buffer to use for building and sending the message.
  */
-void Send_I_Am(uint8_t *buffer)
+void Send_I_Am_Broadcast(uint8_t *buffer)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-#if 0
-    /* note: there is discussion in the BACnet committee
-       that we should allow a device to reply with I-Am
-       so that dynamic binding always work.  If the DCC
-       initiator loses the MAC address and routing info,
-       they can never re-enable DCC because they can't
-       find the device with WhoIs/I-Am */
-    /* are we are forbidden to send? */
-    if (!dcc_communication_enabled())
-        return 0;
-#endif
     /* encode the data */
     pdu_len = iam_encode_pdu(buffer, &dest, &npdu_data);
     /* send data */
@@ -121,6 +109,23 @@ void Send_I_Am(uint8_t *buffer)
     if (bytes_sent <= 0) {
         debug_perror("Failed to Send I-Am Reply");
     }
+}
+
+/**
+ * @brief Send an I-Am broadcast message NOT in response to Who-Is message
+ * @param buffer [in] The buffer to use for building and sending the message.
+ */
+void Send_I_Am(uint8_t *buffer)
+{
+    /* This function is sending a broadcast I-Am
+       that is not in response to a Who-Is.
+       This is common at device power up. */
+    if (dcc_communication_initiation_disabled()) {
+        /* we are forbidden to send */
+        debug_print("I-Am: Communication Disabled!\n");
+        return;
+    }
+    Send_I_Am_Broadcast(buffer);
 }
 
 /** Encode an I Am message to be unicast directly back to the src.
@@ -177,17 +182,6 @@ void Send_I_Am_Unicast(uint8_t *buffer, const BACNET_ADDRESS *src)
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-#if 0
-    /* note: there is discussion in the BACnet committee
-       that we should allow a device to reply with I-Am
-       so that dynamic binding always work.  If the DCC
-       initiator loses the MAC address and routing info,
-       they can never re-enable DCC because they can't
-       find the device with WhoIs/I-Am */
-    /* are we are forbidden to send? */
-    if (!dcc_communication_enabled())
-        return 0;
-#endif
     /* encode the data */
     pdu_len = iam_unicast_encode_pdu(buffer, src, &dest, &npdu_data);
     /* send data */

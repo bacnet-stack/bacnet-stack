@@ -289,7 +289,7 @@ static int Multistate_Output_Priority_Array_Encode(
             apdu_len = encode_application_null(apdu);
         } else {
             value = pObject->Priority_Array[priority];
-            apdu_len = encode_application_enumerated(apdu, value);
+            apdu_len = encode_application_unsigned(apdu, value);
         }
     }
 
