@@ -824,10 +824,10 @@ bool Network_Port_Quality_Set(
  * Note: depends on Network_Type being set for this object
  *
  * @param  object_instance - object-instance number of the object
- * @param  mac_address - holds the mac-address retrieved
- * @param  mac_size - size of the mac-address buffer
+ * @param  mac_address - holds the mac-address retrieved, or NULL for length
+ * @param  mac_size - size of the mac-address buffer, or 0 for length
  *
- * @return the length of the mac-address retrieved, or zero if not found
+ * @return the length of the mac-address, or zero if not found
  */
 uint8_t Network_Port_MAC_Address_Value(
     uint32_t object_instance, uint8_t *mac_address, size_t mac_size)
@@ -870,10 +870,8 @@ uint8_t Network_Port_MAC_Address_Value(
                 break;
         }
         if (mac_len > 0) {
-            if (mac_size >= mac_len) {
+            if ((mac_address) && (mac_size >= mac_len)) {
                 memcpy(mac_address, mac, mac_len);
-            } else {
-                mac_len = 0;
             }
         }
     }
@@ -936,7 +934,15 @@ bool Network_Port_MAC_Address_Set(
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
-                /* no need to set - created from IP address and UPD Port */
+                if (mac_len >= 6) {
+                    memcpy(
+                        &Object_List[index].Network.IPv4.IP_Address,
+                        &mac_src[0], 4);
+                    /* convert from network-byte-order to host-byte-order */
+                    decode_unsigned16(
+                        &mac_src[4], &Object_List[index].Network.IPv4.Port);
+                    status = true;
+                }
                 break;
             case PORT_TYPE_BIP6:
                 mac_dest = &Object_List[index].Network.IPv6.MAC_Address[0];
@@ -3145,7 +3151,6 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
     return status;
 }
 
-#if (BBMD_CLIENT_ENABLED) && defined(BACAPP_HOST_N_PORT)
 /**
  * @brief Write the FD BBMD Address
  * @param object_instance [in] BACnet network port object instance number
@@ -3221,7 +3226,6 @@ static bool Network_Port_FD_BBMD_Address_Write(
 
     return status;
 }
-#endif
 
 /**
  * @brief Write the FD Subscription Lifetime
@@ -3850,17 +3854,12 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_FD_BBMD_ADDRESS:
-#if defined(BACAPP_HOST_N_PORT)
             if (write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_HOST_N_PORT)) {
                 status = Network_Port_FD_BBMD_Address_Write(
                     wp_data->object_instance, &value.type.Host_Address,
                     &wp_data->error_class, &wp_data->error_code);
             }
-#else
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-#endif
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             if (write_property_type_valid(
@@ -3944,28 +3943,14 @@ bool Network_Port_Read_Range(
                 OBJECT_NETWORK_PORT, pRequest->object_property)) {
             switch (pRequest->object_property) {
                 case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
-#if defined(BACDL_BIP) && BBMD_ENABLED
                     pInfo->RequestTypes = RR_BY_POSITION;
                     pInfo->Handler = Network_Port_Read_Range_BDT;
                     status = true;
-#else
-                    (void)pInfo;
-                    pRequest->error_class = ERROR_CLASS_PROPERTY;
-                    pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-                    (void)pInfo;
-#endif
                     break;
                 case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-#if defined(BACDL_BIP) && BBMD_ENABLED
                     pInfo->RequestTypes = RR_BY_POSITION;
                     pInfo->Handler = Network_Port_Read_Range_FDT;
                     status = true;
-#else
-                    (void)pInfo;
-                    pRequest->error_class = ERROR_CLASS_PROPERTY;
-                    pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-                    (void)pInfo;
-#endif
                     break;
                 default:
                     pRequest->error_class = ERROR_CLASS_PROPERTY;

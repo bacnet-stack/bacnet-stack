@@ -32,7 +32,11 @@ static void test_network_port(void)
     unsigned port = 0;
     bool status = false;
     unsigned count = 0;
-    uint8_t address[16];
+    uint8_t address[16] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+    };
+    uint8_t test_address[16] = { 0 };
+    uint8_t mac_len;
     uint8_t ip_prefix;
     uint32_t object_instance = 0;
     uint8_t port_type[] = { PORT_TYPE_ETHERNET,   PORT_TYPE_ARCNET,
@@ -83,6 +87,19 @@ static void test_network_port(void)
         zassert_true(status, NULL);
         status = Network_Port_MAC_Address_Set(object_instance, NULL, 0);
         zassert_false(status, NULL);
+        mac_len = Network_Port_MAC_Address_Value(object_instance, NULL, 0);
+        if (mac_len > 0) {
+            /* test for ports that have a MAC address */
+            zassert_not_equal(mac_len, 0, NULL);
+            status =
+                Network_Port_MAC_Address_Set(object_instance, address, mac_len);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_MAC_Address_Value(
+                    object_instance, test_address, sizeof(test_address)),
+                mac_len, NULL);
+            zassert_mem_equal(test_address, address, mac_len, NULL);
+        }
         status = Network_Port_APDU_Length_Set(object_instance, MAX_APDU);
         zassert_true(status, NULL);
         status = Network_Port_Link_Speed_Set(object_instance, 0);
