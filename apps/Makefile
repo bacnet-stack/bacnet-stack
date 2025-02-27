@@ -184,9 +184,14 @@ ifeq (${LEGACY},true)
 BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
+ifeq (${NOTIFY},false)
+# disable intrinsic reporting
+else
+BACNET_DEFINES += -DINTRINSIC_REPORTING
+endif
+
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
-BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
@@ -217,7 +222,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object server-discover apdu writegroup
+	delete-object server-discover apdu writegroup server-basic
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -404,6 +409,10 @@ scov: $(BACNET_LIB_TARGET)
 
 .PHONY: server
 server: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: server-basic
+server-basic: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: server-client
