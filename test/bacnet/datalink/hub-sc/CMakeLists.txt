@@ -141,6 +141,8 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
     ${SRC_DIR}/bacnet/basic/object/sc_netport.c
@@ -238,6 +240,8 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
     ${SRC_DIR}/bacnet/basic/object/sc_netport.c
