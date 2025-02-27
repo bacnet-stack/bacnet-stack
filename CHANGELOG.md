@@ -30,6 +30,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added bacnet-basic from zephyr project to create basis for bacmini
+  apps/server-basic example. (#933)
 * Added Send_I_Am_Broadcast() function to Who-Is handler so that
   other Send_I_Am() will honor DCC Disable-Initiatiation. (#918)
 * Added simple script to aid in mirror the Github repository with Sourceforge.
