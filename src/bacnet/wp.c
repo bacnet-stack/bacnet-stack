@@ -505,14 +505,17 @@ bool write_property_unsigned_decode(
   of an object instance
  * @return true if the write shall be considered successful
  */
-bool write_property_special_null(
+bool write_property_relinquish_bypass(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_member_of_object member_of_object)
 {
-    bool status = false;
+    bool bypass = false;
     bool has_priority_array = false;
     int len = 0;
 
+    if (!wp_data) {
+        return false;
+    }
     len = bacnet_null_application_decode(
         wp_data->application_data, wp_data->application_data_len);
     if ((len > 0) && (len == wp_data->application_data_len)) {
@@ -524,19 +527,20 @@ bool write_property_special_null(
                 wp_data->object_type, wp_data->object_instance,
                 PROP_PRIORITY_ARRAY);
         }
-        if ((has_priority_array || (wp_data->object_type == OBJECT_CHANNEL)) &&
-            (wp_data->object_property != PROP_PRESENT_VALUE)) {
-            /* this property is not commandable,
-                so it "shall not be changed, and
-                the write shall be considered successful." */
-            status = true;
+        if (has_priority_array || (wp_data->object_type == OBJECT_CHANNEL)) {
+            if (wp_data->object_property != PROP_PRESENT_VALUE) {
+                /* this property is not commandable,
+                   so it "shall not be changed, and
+                   the write shall be considered successful." */
+                bypass = true;
+            }
         } else {
             /* this object is not commandable, so any property
                written with a NULL "shall not be changed, and
                the write shall be considered successful." */
-            status = true;
+            bypass = true;
         }
     }
 
-    return status;
+    return bypass;
 }

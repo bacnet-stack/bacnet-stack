@@ -117,7 +117,7 @@ bool write_property_unsigned_decode(
     BACNET_UNSIGNED_INTEGER maximum);
 
 BACNET_STACK_EXPORT
-bool write_property_special_null(
+bool write_property_relinquish_bypass(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_member_of_object member_of_object);
 

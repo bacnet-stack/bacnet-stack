@@ -44,12 +44,12 @@
  * @return true if the write shall be considered successful
  */
 static bool
-handler_write_property_special_null(BACNET_WRITE_PROPERTY_DATA *wp_data)
+handler_write_property_relinquish_bypass(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false;
 
 #if BACNET_PROTOCOL_REVISION >= 21
-    status = write_property_special_null(
+    status = write_property_relinquish_bypass(
         wp_data, Device_Objects_Property_List_Member);
 #endif
 
@@ -132,9 +132,10 @@ void handler_write_property(
             bcontinue = false;
         }
         if (bcontinue) {
-            success = handler_write_property_special_null(&wp_data);
+            success = handler_write_property_relinquish_bypass(&wp_data);
             if (success) {
                 /* this object property is not commandable,
+                   and therefore, not able to be relinquished,
                    so it "shall not be changed, and
                    the write shall be considered successful." */
             } else {
