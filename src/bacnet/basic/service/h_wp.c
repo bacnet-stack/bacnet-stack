@@ -28,7 +28,6 @@
 
 /** @file h_wp.c  Handles Write Property requests. */
 
-#if BACNET_PROTOCOL_REVISION >= 21
 /**
  * @brief Handler for a WriteProperty Service request when the
  *  property is a NULL type and the property is not commandable
@@ -44,37 +43,18 @@
  * @param wp_data [in] The WriteProperty data structure
  * @return true if the write shall be considered successful
  */
-bool handler_write_property_special_null(BACNET_WRITE_PROPERTY_DATA *wp_data)
+static bool
+handler_write_property_special_null(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false;
-    int len = 0;
 
-    len = bacnet_null_application_decode(
-        wp_data->application_data, wp_data->application_data_len);
-    if ((len > 0) && (len == wp_data->application_data_len)) {
-        /* single NULL */
-        /* check to see if this object property is commandable.
-           Does the property list contain a priority-array? */
-        if (Device_Objects_Property_List_Member(
-                wp_data->object_type, wp_data->object_instance,
-                PROP_PRIORITY_ARRAY)) {
-            if (wp_data->object_property != PROP_PRESENT_VALUE) {
-                /* this property is not commandable,
-                   so it "shall not be changed, and
-                   the write shall be considered successful." */
-                status = true;
-            }
-        } else {
-            /* this object is not commandable, so any property
-               written with a NULL "shall not be changed, and
-               the write shall be considered successful." */
-            status = true;
-        }
-    }
+#if BACNET_PROTOCOL_REVISION >= 21
+    status = write_property_special_null(
+        wp_data, Device_Objects_Property_List_Member);
+#endif
 
     return status;
 }
-#endif
 
 /** Handler for a WriteProperty Service request.
  * @ingroup DSWP
@@ -152,10 +132,12 @@ void handler_write_property(
             bcontinue = false;
         }
         if (bcontinue) {
-#if BACNET_PROTOCOL_REVISION >= 21
             success = handler_write_property_special_null(&wp_data);
-#endif
             if (success) {
+                /* this object property is not commandable,
+                   so it "shall not be changed, and
+                   the write shall be considered successful." */
+            } else {
                 if (write_property_bacnet_array_valid(&wp_data)) {
                     success = Device_Write_Property(&wp_data);
                 }
