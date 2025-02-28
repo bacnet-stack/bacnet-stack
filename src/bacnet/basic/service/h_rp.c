@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -28,6 +27,7 @@
 #endif
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
 /** @file h_rp.c  Handles Read Property requests. */
@@ -77,28 +77,19 @@ void handler_read_property(
     if (npdu_len <= 0) {
         /* If 0 or negative, there were problems with the data or encoding. */
         len = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-        fprintf(stderr, "RP: npdu_encode_pdu error.  Sending Abort!\n");
-#endif
+        debug_print("RP: npdu_encode_pdu error.  Sending Abort!\n");
+    } else if (service_len == 0) {
+        len = BACNET_STATUS_REJECT;
+        rpdata.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        debug_print("RP: Missing Required Parameter. Sending Reject!\n");
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-        fprintf(stderr, "RP: Segmented message.  Sending Abort!\n");
-#endif
+        debug_print("RP: Segmented message.  Sending Abort!\n");
     } else {
         len = rp_decode_service_request(service_request, service_len, &rpdata);
-#if PRINT_ENABLED
         if (len <= 0) {
-            fprintf(stderr, "RP: Unable to decode Request!\n");
-        }
-#endif
-        if (len < 0) {
-            /* bad decoding - skip to error/reject/abort handling */
-            error = true;
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Bad Encoding.\n");
-#endif
+            debug_print("RP: Unable to decode Request!\n");
         } else {
             /* When the object-type in the Object Identifier parameter
                contains the value DEVICE and the instance in the 'Object
@@ -133,7 +124,11 @@ void handler_read_property(
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
             rpdata.application_data_len =
                 sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
-            len = Device_Read_Property(&rpdata);
+            if (!read_property_bacnet_array_valid(&rpdata)) {
+                len = BACNET_STATUS_ERROR;
+            } else {
+                len = Device_Read_Property(&rpdata);
+            }
             if (len >= 0) {
                 apdu_len += len;
                 len = rp_ack_encode_apdu_object_property_end(
@@ -147,65 +142,49 @@ void handler_read_property(
                     rpdata.error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     len = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-                    fprintf(stderr, "RP: Message too large.\n");
-#endif
+                    debug_print("RP: Message too large.\n");
                 } else {
-#if PRINT_ENABLED
-                    fprintf(stderr, "RP: Sending Ack!\n");
-#endif
+                    debug_print("RP: Sending Ack!\n");
                     error = false;
                 }
             } else {
-#if PRINT_ENABLED
-                fprintf(stderr, "RP: Device_Read_Property: ");
+                debug_print("RP: Device_Read_Property: ");
                 if (len == BACNET_STATUS_ABORT) {
-                    fprintf(stderr, "Abort!\n");
+                    debug_print("Abort!\n");
                 } else if (len == BACNET_STATUS_ERROR) {
-                    fprintf(stderr, "Error!\n");
+                    debug_print("Error!\n");
                 } else if (len == BACNET_STATUS_REJECT) {
-                    fprintf(stderr, "Reject!\n");
+                    debug_print("Reject!\n");
                 } else {
-                    fprintf(stderr, "Unknown Len=%d\n", len);
+                    debug_print("Unknown Len!\n");
                 }
-#endif
             }
         }
     }
-
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(rpdata.error_code), true);
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Abort!\n");
-#endif
+            debug_print("RP: Sending Abort!\n");
         } else if (len == BACNET_STATUS_ERROR) {
             apdu_len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_READ_PROPERTY, rpdata.error_class,
                 rpdata.error_code);
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Error!\n");
-#endif
+            debug_print("RP: Sending Error!\n");
         } else if (len == BACNET_STATUS_REJECT) {
             apdu_len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(rpdata.error_code));
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Reject!\n");
-#endif
+            debug_print("RP: Sending Reject!\n");
         }
     }
-
     pdu_len = npdu_len + apdu_len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
-#endif
+        debug_perror("RP: Failed to send PDU");
     }
 
     return;

@@ -171,7 +171,7 @@ int bacnet_weeklyschedule_context_decode(
 bool bacnet_weeklyschedule_same(
     const BACNET_WEEKLY_SCHEDULE *value1, const BACNET_WEEKLY_SCHEDULE *value2)
 {
-    BACNET_APPLICATION_DATA_VALUE adv1, adv2;
+    BACNET_APPLICATION_DATA_VALUE adv1 = { 0 }, adv2 = { 0 };
     const BACNET_DAILY_SCHEDULE *ds1, *ds2;
     const BACNET_TIME_VALUE *tv1, *tv2;
     int wi, ti;

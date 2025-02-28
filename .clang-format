@@ -10,7 +10,7 @@ AllowShortLoopsOnASingleLine: false
 AlignEscapedNewlines: Left
 AlignArrayOfStructures: None
 PointerAlignment: Right
-InsertBraces: true
+# InsertBraces: true
 BreakBeforeBraces: Linux
 BreakBeforeBinaryOperators: None
 KeepEmptyLinesAtTheStartOfBlocks: false

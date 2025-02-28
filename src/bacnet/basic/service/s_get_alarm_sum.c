@@ -1,25 +1,16 @@
 /**
  * @file
+ * @brief Get Alarm Summary Request
  * @author Daniel Blazevic <daniel.blazevic@gmail.com>
  * @date 2014
- * @brief Get Alarm Summary Request
- *
- * @section LICENSE
- *
- * Copyright (C) 2014 Daniel Blazevic <daniel.blazevic@gmail.com>
- *
- * SPDX-License-Identifier: MIT
- *
- * @section DESCRIPTION
- *
- * The Get Alarm Summary Request is used by a client BACnet-user to
- * obtain a summary of "active alarms." The term "active alarm" refers to
- * BACnet standard objects that have an Event_State property whose value is
- * not equal to NORMAL and a Notify_Type property whose value is ALARM.
+ * @copyright SPDX-License-Identifier: MIT
+ * @details The Get Alarm Summary Request is used by a client BACnet-user to
+ *  obtain a summary of "active alarms." The term "active alarm" refers to
+ *  BACnet standard objects that have an Event_State property whose value is
+ *  not equal to NORMAL and a Notify_Type property whose value is ALARM.
  */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -30,6 +21,7 @@
 #include "bacnet/get_alarm_sum.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
@@ -41,9 +33,7 @@ uint8_t Send_Get_Alarm_Summary_Address(BACNET_ADDRESS *dest, uint16_t max_apdu)
     uint8_t invoke_id = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
 
     /* is there a tsm available? */
     invoke_id = tsm_next_free_invokeID();
@@ -63,27 +53,18 @@ uint8_t Send_Get_Alarm_Summary_Address(BACNET_ADDRESS *dest, uint16_t max_apdu)
             tsm_set_confirmed_unsegmented_transaction(
                 invoke_id, dest, &npdu_data, &Handler_Transmit_Buffer[0],
                 (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(
-                    dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+            bytes_sent = datalink_send_pdu(
+                dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                fprintf(
-                    stderr, "Failed to Send Get Alarm Summary Request (%s)!\n",
-                    strerror(errno));
+                debug_perror("Failed to Send Get Alarm Summary Request");
             }
-#endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send Get Alarm Summary Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

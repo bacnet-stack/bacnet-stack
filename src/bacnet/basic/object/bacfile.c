@@ -33,10 +33,10 @@
 #define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
 #endif
 struct object_data {
-    const char *Object_Name;
+    char *Object_Name;
     char *Pathname;
-    BACNET_DATE_TIME Modification_Date;
     char *File_Type;
+    BACNET_DATE_TIME Modification_Date;
     bool File_Access_Stream : 1;
     bool Read_Only : 1;
     bool Archive : 1;
@@ -131,9 +131,7 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Pathname) {
-            free(pObject->Pathname);
-        }
+        free(pObject->Pathname);
         pObject->Pathname = bacfile_strdup(pathname);
     }
 }
@@ -154,9 +152,11 @@ uint32_t bacfile_pathname_instance(const char *pathname)
     count = Keylist_Count(Object_List);
     while (count) {
         pObject = Keylist_Data_Index(Object_List, index);
-        if (strcmp(pathname, pObject->Pathname) == 0) {
-            Keylist_Index_Key(Object_List, index, &key);
-            break;
+        if (pObject->Pathname) {
+            if (strcmp(pathname, pObject->Pathname) == 0) {
+                Keylist_Index_Key(Object_List, index, &key);
+                break;
+            }
         }
         count--;
         index++;
@@ -205,7 +205,7 @@ bool bacfile_object_name(
  *
  * @return  true if object-name was set
  */
-bool bacfile_object_name_set(uint32_t object_instance, char *new_name)
+bool bacfile_object_name_set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -213,7 +213,8 @@ bool bacfile_object_name_set(uint32_t object_instance, char *new_name)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Object_Name = new_name;
+        free(pObject->Object_Name);
+        pObject->Object_Name = bacfile_strdup(new_name);
     }
 
     return status;
@@ -438,14 +439,8 @@ void bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->File_Type) {
-            if (strcmp(pObject->File_Type, mime_type) != 0) {
-                free(pObject->File_Type);
-                pObject->File_Type = bacfile_strdup(mime_type);
-            }
-        } else {
-            pObject->File_Type = bacfile_strdup(mime_type);
-        }
+        free(pObject->File_Type);
+        pObject->File_Type = bacfile_strdup(mime_type);
     }
 }
 
@@ -681,17 +676,11 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!bacfile_valid_instance(wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        return false;
-    }
-    /*  only array properties can have array options */
-    if (wp_data->array_index != BACNET_ARRAY_ALL) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     /* decode the some of the request */
@@ -1019,6 +1008,7 @@ uint32_t bacfile_create(uint32_t object_instance)
         if (pObject) {
             pObject->Object_Name = NULL;
             pObject->Pathname = NULL;
+            pObject->File_Type = NULL;
             /* April Fool's Day */
             datetime_set_values(
                 &pObject->Modification_Date, 2006, 4, 1, 7, 0, 3, 1);
@@ -1069,6 +1059,9 @@ void bacfile_cleanup(void)
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
+                free(pObject->Pathname);
+                free(pObject->File_Type);
+                free(pObject->Object_Name);
                 free(pObject);
             }
         } while (pObject);

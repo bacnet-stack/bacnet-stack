@@ -185,7 +185,9 @@ typedef uint32_t BACNET_ARRAY_INDEX;
    Ethernet = 6 bytes
    BACnet/IPv4 = 6 bytes
    LonTalk = 7 bytes
-   BACnet/IPv6 = 3 bytes (VMAC) */
+   BACnet/IPv6 = 3 bytes (VMAC)
+   BACnet/SC = 6 bytes (VMAC)
+   */
 #define MAX_MAC_LEN 7
 
 struct BACnet_Device_Address {

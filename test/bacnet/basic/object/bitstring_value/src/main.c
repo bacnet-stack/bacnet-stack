@@ -93,16 +93,6 @@ static void test_BitString_Value_Object(void)
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(wpdata.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
-    /* WP to property using priority array */
-    wpdata.object_property = PROP_PRESENT_VALUE;
-    value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
-    wpdata.array_index = 0;
-    wpdata.application_data_len =
-        bacapp_encode_application_data(wpdata.application_data, &value);
-    status = BitString_Value_Write_Property(&wpdata);
-    zassert_false(status, NULL);
-    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
-    zassert_equal(wpdata.error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, NULL);
     /* no application data */
     wpdata.application_data_len = 0;
     status = BitString_Value_Write_Property(&wpdata);

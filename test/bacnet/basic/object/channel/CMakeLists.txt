@@ -27,6 +27,7 @@ add_compile_definitions(
 
 include_directories(
     ${SRC_DIR}
+    ${TST_DIR}/bacnet/basic/object/test
     ${TST_DIR}/ztest/include
     )
 
@@ -34,6 +35,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/object/channel.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
@@ -47,19 +49,25 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bactimevalue.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/property.c
+    ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
+    ${SRC_DIR}/bacnet/secure_connect.c
     # Test and test library files
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c

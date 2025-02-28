@@ -25,7 +25,7 @@
 #define INFO 2
 #define DEBUG 3
 
-#define DEBUG_LEVEL 3
+/* #define DEBUG_LEVEL 3 */
 #ifdef DEBUG_LEVEL
 #if defined(PRINT)
 #undef PRINT
@@ -34,6 +34,7 @@
     fprintf(stderr, __VA_ARGS__)
 #endif
 #else
+#undef PRINT
 #define PRINT(...)
 #endif
 

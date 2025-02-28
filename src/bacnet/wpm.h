@@ -101,11 +101,11 @@ void wpm_write_access_data_link_array(
  * parameter, and execution of the service shall continue until all of the
  * specified properties have been written to or a property is encountered that
  * for some reason cannot be modified as requested.
- * Some implementors may wish to restrict write access to certain properties
+ * Some implementers may wish to restrict write access to certain properties
  * of certain objects. In such cases, an attempt to modify a restricted property
  * shall result in the return of an error of 'Error Class' PROPERTY and 'Error
  * Code' WRITE_ACCESS_DENIED. Note that these restricted properties may be
  * accessible through the use of Virtual Terminal services or other means at the
- * discretion of the implementor.
+ * discretion of the implementer.
  */
 #endif

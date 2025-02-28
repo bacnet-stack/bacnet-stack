@@ -164,6 +164,8 @@ struct mstp_port_struct_t {
     /* the MAC address that this node is testing for MAC addresses
        that are not in-use.*/
     uint8_t Zero_Config_Station;
+    /* the MAC address that this node prefers to use.*/
+    uint8_t Zero_Config_Preferred_Station;
     /* Used to count the number of received poll-for-master frames
        This is used in the detection of addresses not in-use. */
     uint8_t Poll_Count;
@@ -210,6 +212,24 @@ struct mstp_port_struct_t {
        40 bits is 4 octets including a start and stop bit with each octet.
        turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
     uint8_t Tturnaround_timeout;
+
+    /* orderly transition tracking for auto-baud node startup */
+    MSTP_AUTO_BAUD_STATE Auto_Baud_State;
+    /* A Boolean flag set to TRUE if this node is checking frames for
+       automatic baud rate detection */
+    unsigned CheckAutoBaud : 1;
+    /* The number of elapsed milliseconds since the last received valid frame */
+    uint32_t (*ValidFrameTimer)(void *pArg);
+    void (*ValidFrameTimerReset)(void *pArg);
+    /* The number of header frames received with good CRC since
+       initialization at the current trial baudrate. */
+    uint8_t ValidFrames;
+    /** Get the current baud rate */
+    uint32_t (*BaudRate)(void);
+    /** Set the current baud rate */
+    void (*BaudRateSet)(uint32_t baud);
+    /* The zero-based index in TestBaudrates of the next baudrate to try. */
+    unsigned BaudRateIndex;
 
     /*Platform-specific port data */
     void *UserData;
@@ -262,6 +282,12 @@ unsigned MSTP_Zero_Config_Station_Increment(unsigned station);
 
 BACNET_STACK_EXPORT
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);
+
+BACNET_STACK_EXPORT
+uint32_t MSTP_Auto_Baud_Rate(unsigned baud_rate_index);
+
+BACNET_STACK_EXPORT
+void MSTP_Auto_Baud_FSM(struct mstp_port_struct_t *mstp_port);
 
 /* functions used by the MS/TP state machine to put or get data */
 /* FIXME: developer must implement these in their DLMSTP module */

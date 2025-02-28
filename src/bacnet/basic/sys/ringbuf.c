@@ -375,6 +375,23 @@ bool Ringbuf_Data_Put(RING_BUFFER *b, const volatile uint8_t *data_element)
 }
 
 /**
+ * Gets the data size of each element in the ring buffer
+ *
+ * @param  b - pointer to RING_BUFFER structure
+ * @return size of each element in the ring buffer
+ */
+unsigned Ringbuf_Data_Size(RING_BUFFER const *b)
+{
+    unsigned size = 0;
+
+    if (b) {
+        size = b->element_size;
+    }
+
+    return size;
+}
+
+/**
  * Test that the parameter is a power of two.
  *
  * @param x unsigned integer value to be tested
@@ -395,8 +412,8 @@ static bool isPowerOfTwo(unsigned int x)
  * @param  buffer - pointer to a data buffer that is used to store the ring data
  * @param  element_size - size of one element in the data block
  * @param  element_count - number elements in the data block
- *
  * @return  true if ring buffer was initialized
+ * @deprecated  Use Ringbuf_Initialize() instead
  */
 bool Ringbuf_Init(
     RING_BUFFER *b,
@@ -418,4 +435,30 @@ bool Ringbuf_Init(
     }
 
     return status;
+}
+
+/**
+ * Configures the ring buffer data buffer.  Note that the element_count
+ * parameter must be a power of two.
+ *
+ * @param  b - pointer to RING_BUFFER structure
+ * @param  buffer - pointer to a data buffer that is used to store the ring data
+ * @param  buffer_size - size of the data buffer
+ * @param  element_size - size of one element in the data block
+ * @param  element_count - number elements in the data block
+ *
+ * @return  true if ring buffer was initialized
+ */
+bool Ringbuf_Initialize(
+    RING_BUFFER *b,
+    volatile uint8_t *buffer,
+    unsigned buffer_size,
+    unsigned element_size,
+    unsigned element_count)
+{
+    if ((element_size * element_count) <= buffer_size) {
+        return Ringbuf_Init(b, buffer, element_size, element_count);
+    }
+
+    return false;
 }

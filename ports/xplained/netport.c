@@ -658,7 +658,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!Network_Port_Valid_Instance(wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -672,18 +672,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_LINK_SPEEDS) &&
-        (wp_data->object_property != PROP_IP_DNS_SERVER) &&
-        (wp_data->object_property != PROP_IPV6_DNS_SERVER) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS_CONFIG) &&
-        (wp_data->object_property != PROP_TAGS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     /* FIXME: len < application_data_len: more data? */

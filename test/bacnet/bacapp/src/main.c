@@ -73,7 +73,9 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     /* BACnetScale */
     BACNET_APPLICATION_TAG_SCALE,
     /* BACnetShedLevel */
-    BACNET_APPLICATION_TAG_SHED_LEVEL
+    BACNET_APPLICATION_TAG_SHED_LEVEL,
+    /* BACnetAccessRule */
+    BACNET_APPLICATION_TAG_ACCESS_RULE
 };
 
 /**
@@ -568,7 +570,7 @@ static void testBACnetApplicationData_Safe(void)
     BACNET_APPLICATION_DATA_VALUE input_value[13];
     uint32_t len_segment[13];
     uint32_t single_length_segment;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     for (i = 0; i < 13; i++) {
         input_value[i].tag = (BACNET_APPLICATION_TAG)i;

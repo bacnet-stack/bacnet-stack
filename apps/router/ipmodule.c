@@ -22,6 +22,8 @@ uint8_t test_packet[] = { 0x81, 0x0a, 0x00, 0x16, /* BVLC header */
                           0x00, 0x02, 0x19, 0x55 }; /* APDU */
 #endif
 
+/* BUG with optimize Os */
+/* *** bit out of range 0 - FD_SETSIZE on fd_set ***: terminated */
 void *dl_ip_thread(void *pArgs)
 {
     MSGBOX_ID msgboxid;
@@ -162,6 +164,7 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
         return false;
     }
 
+#if !defined(__APPLE__)
     /* Bind to device so we don't get routing loops between our
        different ports. */
     status = setsockopt(
@@ -171,6 +174,7 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
         close(ip_data->socket);
         return false;
     }
+#endif
 
     /* bind the socket to the local port number */
     sin.sin_family = AF_INET;
@@ -258,7 +262,7 @@ int dl_ip_recv(
     struct timeval select_timeout;
     struct sockaddr_in sin = { 0 };
     socklen_t sin_len = sizeof(sin);
-
+    int ret;
     /* make sure the socket is open */
     if (data->socket < 0) {
         return 0;
@@ -282,7 +286,7 @@ int dl_ip_recv(
     sin.sin_addr.s_addr = 0x7E1D40A;
     sin.sin_port = 0xC0BA;
 #else
-    int ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
+    ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
     /* see if there is a packet for us */
     if (ret > 0) {
         received_bytes = recvfrom(

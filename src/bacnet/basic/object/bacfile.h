@@ -32,7 +32,7 @@ BACNET_STACK_EXPORT
 bool bacfile_object_name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool bacfile_object_name_set(uint32_t object_instance, char *new_name);
+bool bacfile_object_name_set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *bacfile_name_ansi(uint32_t object_instance);
 
