@@ -1426,7 +1426,6 @@ int bvlc6_decode_delete_foreign_device(
     if (pdu && (pdu_len >= length)) {
         if (vmac_src) {
             decode_unsigned24(&pdu[offset], vmac_src);
-            bytes_consumed = 3;
         }
         offset += 3;
         if (bip6_address) {
@@ -1731,8 +1730,6 @@ int bvlc6_broadcast_distribution_table_list_encode(
             if (apdu) {
                 apdu += len;
             }
-        } else {
-            len = 0;
         }
         /* next entry */
         bdt_entry = bdt_entry->next;

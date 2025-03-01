@@ -604,8 +604,6 @@ int bvlc_broadcast_distribution_table_list_encode(
             if (apdu) {
                 apdu += len;
             }
-        } else {
-            len = 0;
         }
         /* next entry */
         bdt_entry = bdt_entry->next;
