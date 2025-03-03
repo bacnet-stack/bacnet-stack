@@ -9942,8 +9942,8 @@ static void test_simple(void)
     memset(&server_vmac, 0x2, sizeof(server_vmac));
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x4, sizeof(server_vmac));
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10073,8 +10073,8 @@ static void test_duplicated_vmac_on_server(void)
     memset(&client_uuid2, 0x4, sizeof(server_uuid));
     memset(&client_vmac2, 0x5, sizeof(server_vmac));
 
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10177,8 +10177,8 @@ static void test_duplicated_vmac_on_server2(void)
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x2, sizeof(server_vmac));
 
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10274,8 +10274,8 @@ static void test_duplicated_uuid_on_server(void)
     memset(&client_uuid2, 0x3, sizeof(server_uuid));
     memset(&client_vmac2, 0x5, sizeof(server_vmac));
 
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10372,8 +10372,8 @@ static void test_bad_params(void)
     memset(&server_vmac, 0x2, sizeof(server_vmac));
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x4, sizeof(server_vmac));
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     init_sock_ev(&srv_ev);
@@ -10528,8 +10528,8 @@ static void test_error_case1(void)
     memset(&server_vmac, 0x2, sizeof(server_vmac));
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x4, sizeof(server_vmac));
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(

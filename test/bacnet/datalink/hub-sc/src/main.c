@@ -1540,19 +1540,19 @@ static void test_hub_connector_url(bool primary)
     memset(npdu, 0x11, sizeof(npdu));
 
     if (primary) {
-        sprintf(
-            primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-            BACNET_WEBSOCKET_SERVER_PORT);
-        sprintf(
-            secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-            BACNET_WEBSOCKET_SERVER_PORT2);
+        snprintf(
+            primary_url, sizeof(primary_url), "wss://%s:%d",
+            BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+        snprintf(
+            secondary_url, sizeof(secondary_url), "wss://%s:%d",
+            BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
     } else {
-        sprintf(
-            primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-            BACNET_WEBSOCKET_SERVER_PORT2);
-        sprintf(
-            secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-            BACNET_WEBSOCKET_SERVER_PORT);
+        snprintf(
+            primary_url, sizeof(primary_url), "wss://%s:%d",
+            BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
+        snprintf(
+            secondary_url, sizeof(secondary_url), "wss://%s:%d",
+            BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
     }
 
     init_hubc_ev(&hubc);
@@ -1701,12 +1701,12 @@ static void test_hub_connector_bad_primary_url(void)
     memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
     memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
 
-    sprintf(
-        primary_url, "wsssdsdfsdf://sdsdf%s:sdfsdf%d",
+    snprintf(
+        primary_url, sizeof(primary_url), "wsssdsdfsdf://sdsdf%s:sdfsdf%d",
         BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
-    sprintf(
-        secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -1780,12 +1780,12 @@ static void test_hub_bad_params(void)
     memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
     memset(&hubc_uuid2, 0x5, sizeof(hubc_uuid));
     memset(&hubc_vmac2, 0x6, sizeof(hubc_vmac));
-    sprintf(
-        primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT);
-    sprintf(
-        secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT2);
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
 
     init_hubc_ev(&hubc);
 
@@ -1824,12 +1824,13 @@ static void test_hub_bad_params(void)
         hub_connector_event, &hubc_uuid, &hubc_h);
     zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
 
-    sprintf(
-        primary_url, "wsssdsdfsdf://sdsdf%s:sdfsdf%d",
+    snprintf(
+        primary_url, sizeof(primary_url), "wsssdsdfsdf://sdsdf%s:sdfsdf%d",
         BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
-    sprintf(
-        secondary_url, "wss23413r234://sdfsdfsdf%s:r234%2d",
-        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
+    snprintf(
+        secondary_url, sizeof(secondary_url),
+        "wss23413r234://sdfsdfsdf%s:r234%2d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT2);
     ret = bsc_hub_connector_start(
         ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), CLIENT_KEY,
         sizeof(CLIENT_KEY), &hubc_uuid, &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
@@ -1841,13 +1842,13 @@ static void test_hub_bad_params(void)
         hub_connector_event, &hubc_uuid, &hubc_h);
     zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
 
-    sprintf(
-        primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
 
-    sprintf(
-        secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT2);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
 
     ret = bsc_hub_connector_start(
         ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), CLIENT_KEY,
@@ -1941,12 +1942,12 @@ static void test_hub_connector_reconnect(void)
     memset(&hubc_uuid, 0x5, sizeof(hubc_uuid));
     memset(&hubc_vmac, 0x6, sizeof(hubc_vmac));
 
-    sprintf(
-        primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT);
-    sprintf(
-        secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT2);
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -2093,12 +2094,12 @@ static void test_hub_connector_duplicated_vmac(void)
     memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
     memset(&hubc_vmac, 0x2, sizeof(hubc_vmac));
 
-    sprintf(
-        primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT);
-    sprintf(
-        secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT2);
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -2248,12 +2249,12 @@ static void test_hub_function_duplicated_uuid(void)
     memset(&hubc_uuid2, 0x3, sizeof(hubc_uuid2));
     memset(&hubc_vmac2, 0x6, sizeof(hubc_vmac2));
 
-    sprintf(
-        primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT);
-    sprintf(
-        secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT2);
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
