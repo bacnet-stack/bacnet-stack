@@ -261,9 +261,8 @@ bool read_config(const char *filepath)
                     fd = socket(AF_INET, SOCK_DGRAM, 0);
                     if (fd) {
                         struct ifreq ifr;
-                        strncpy(
-                            ifr.ifr_name, current->iface,
-                            sizeof(ifr.ifr_name) - 1);
+                        snprintf(
+                            ifr.ifr_name, sizeof(ifr.ifr_name), "%s", iface);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
@@ -468,9 +467,9 @@ bool parse_cmd(int argc, char *argv[])
                     fd = socket(AF_INET, SOCK_DGRAM, 0);
                     if (fd) {
                         struct ifreq ifr;
-                        strncpy(
-                            ifr.ifr_name, current->iface,
-                            sizeof(ifr.ifr_name) - 1);
+                        snprintf(
+                            ifr.ifr_name, sizeof(ifr.ifr_name), "%s",
+                            current->iface);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
