@@ -115,9 +115,9 @@ static int arcnet_bind(const char *interface_name)
             ARCNET_Socket_Address.sa_data, '\0',
             sizeof(ARCNET_Socket_Address.sa_data));
         /* Strcpy the interface name into the address */
-        strncpy(
-            ARCNET_Socket_Address.sa_data, interface_name,
-            sizeof(ARCNET_Socket_Address.sa_data) - 1);
+        snprintf(
+            ARCNET_Socket_Address.sa_data,
+            sizeof(ARCNET_Socket_Address.sa_data), "%s", interface_name);
         fprintf(
             stderr, "arcnet: binding \"%s\"\n", ARCNET_Socket_Address.sa_data);
         if (bind(
@@ -140,7 +140,7 @@ static int arcnet_bind(const char *interface_name)
             exit(-1);
         }
     }
-    strncpy(ifr.ifr_name, interface_name, sizeof(ifr.ifr_name));
+    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", interface_name);
     rv = ioctl(sock_fd, SIOCGIFHWADDR, &ifr);
     if (rv != -1) { /* worked okay */
         ARCNET_MAC_Address = ifr.ifr_hwaddr.sa_data[0];
@@ -153,9 +153,9 @@ static int arcnet_bind(const char *interface_name)
         ARCNET_Socket_Address.sa_data, '\0',
         sizeof(ARCNET_Socket_Address.sa_data));
     /* Strcpy the interface name into the address */
-    strncpy(
-        ARCNET_Socket_Address.sa_data, interface_name,
-        sizeof(ARCNET_Socket_Address.sa_data) - 1);
+    snprintf(
+        ARCNET_Socket_Address.sa_data, sizeof(ARCNET_Socket_Address.sa_data),
+        "%s", interface_name);
     fprintf(
         stderr, "arcnet: MAC=%02Xh iface=\"%s\"\n", ARCNET_MAC_Address,
         ARCNET_Socket_Address.sa_data);

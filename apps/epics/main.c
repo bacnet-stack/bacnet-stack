@@ -422,8 +422,9 @@ static bool PrettyPrintPropertyValue(
         /* eg, property == PROP_LOCAL_DATE
          * VTS needs (3-Aug-2011,4) or (8/3/11,4), so we'll use the
          * clearer, international form. */
-        strncpy(short_month, bactext_month_name(value->type.Date.month), 3);
-        short_month[3] = 0;
+        snprintf(
+            short_month, sizeof(short_month), "%s",
+            bactext_month_name(value->type.Date.month));
         fprintf(
             stream, "(%u-%3s-%u, %u)", (unsigned)value->type.Date.day,
             short_month, (unsigned)value->type.Date.year,

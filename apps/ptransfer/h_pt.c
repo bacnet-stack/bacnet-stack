@@ -137,9 +137,9 @@ static void ProcessPT(BACNET_PRIVATE_TRANSFER_DATA *data)
             decode_character_string(
                 &data->serviceParameters[iLen], len_value_type, &bsTemp);
             /* Only copy as much as we can accept */
-            strncpy(
-                (char *)MyData[(int8_t)cBlockNumber].sMyString,
-                characterstring_value(&bsTemp), MY_MAX_STR);
+            snprintf(
+                (char *)MyData[(int8_t)cBlockNumber].sMyString, MY_MAX_STR,
+                "%s", characterstring_value(&bsTemp));
             /* Make sure it is nul terminated */
             MyData[(int8_t)cBlockNumber].sMyString[MY_MAX_STR] = '\0';
             /* Signal success */

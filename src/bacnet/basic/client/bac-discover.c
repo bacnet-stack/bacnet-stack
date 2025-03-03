@@ -467,16 +467,16 @@ bool bacnet_discover_property_name(
             device_id, object_type, object_instance, object_property, &value);
         if (status && value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             if (characterstring_valid(&value.type.Character_String)) {
-                strncpy(
-                    buffer, characterstring_value(&value.type.Character_String),
-                    buffer_len - 1);
+                snprintf(
+                    buffer, buffer_len, "%s",
+                    characterstring_value(&value.type.Character_String));
             } else {
                 status = false;
             }
         }
     }
     if (!status) {
-        strncpy(buffer, default_string, buffer_len);
+        snprintf(buffer, buffer_len, "%s", default_string);
     }
 
     return status;

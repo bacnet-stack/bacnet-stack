@@ -466,7 +466,8 @@ static char *ifname_default(void)
     if (BIP_Interface_Name[0] != 0) {
         return BIP_Interface_Name;
     }
-    strncpy(BIP_Interface_Name, "en0", sizeof(BIP_Interface_Name));
+    snprintf(BIP_Interface_Name,  sizeof(BIP_Interface_Name), "%s", "en0");
+
     return BIP_Interface_Name;
 }
 

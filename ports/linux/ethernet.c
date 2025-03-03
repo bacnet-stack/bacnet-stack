@@ -120,7 +120,8 @@ static int ethernet_bind(struct sockaddr *eth_addr, const char *interface_name)
     /* Clear the memory before copying */
     memset(eth_addr->sa_data, '\0', sizeof(eth_addr->sa_data));
     /* Strcpy the interface name into the address */
-    strncpy(eth_addr->sa_data, interface_name, sizeof(eth_addr->sa_data) - 1);
+    snprintf(
+        eth_addr->sa_data, sizeof(eth_addr->sa_data), "%s", interface_name);
     fprintf(stderr, "ethernet: binding \"%s\"\n", eth_addr->sa_data);
     /* Attempt to bind the socket to the interface */
     if (bind(sock_fd, eth_addr, sizeof(struct sockaddr)) != 0) {
