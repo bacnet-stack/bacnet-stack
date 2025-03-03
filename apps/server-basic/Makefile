@@ -1,7 +1,7 @@
 #Makefile to build BACnet Application using GCC compiler
 
 # Executable file name
-TARGET = bacmini
+TARGET = bacbasic
 # BACnet objects supporting CreateObject that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 BACNET_SERVER_DIR = $(BACNET_SRC_DIR)/bacnet/basic/server
