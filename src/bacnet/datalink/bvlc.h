@@ -322,10 +322,19 @@ int bvlc_broadcast_distribution_table_decode(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
 
 BACNET_STACK_EXPORT
+int bvlc_broadcast_distribution_table_entry_encode(
+    uint8_t *apdu,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+
+int bvlc_broadcast_distribution_table_list_encode(
+    uint8_t *apdu,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+BACNET_STACK_EXPORT
 int bvlc_broadcast_distribution_table_encode(
     uint8_t *apdu,
     uint16_t apdu_size,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
 
 BACNET_STACK_EXPORT
 int bvlc_encode_write_broadcast_distribution_table(
@@ -416,10 +425,16 @@ int bvlc_decode_foreign_device_table_entry(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
 
 BACNET_STACK_EXPORT
+int bvlc_foreign_device_table_entry_encode(
+    uint8_t *apdu, const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
+BACNET_STACK_EXPORT
+int bvlc_foreign_device_table_list_encode(
+    uint8_t *apdu, const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
+BACNET_STACK_EXPORT
 int bvlc_foreign_device_table_encode(
     uint8_t *apdu,
     uint16_t apdu_size,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
 
 BACNET_STACK_EXPORT
 int bvlc_encode_read_foreign_device_table(uint8_t *pdu, uint16_t pdu_size);

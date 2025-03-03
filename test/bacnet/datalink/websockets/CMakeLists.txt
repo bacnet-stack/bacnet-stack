@@ -81,6 +81,7 @@ elseif(WIN32)
     ${PORTS_DIR}/win32/websocket-srv.c
     ${PORTS_DIR}/win32/websocket-global.c
     ${PORTS_DIR}/win32/bsc-event.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

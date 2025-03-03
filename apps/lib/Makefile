@@ -42,25 +42,19 @@ PORT_ARCNET_SRC = \
 
 PORT_MSTP_SRC = \
 	$(BACNET_PORT_DIR)/rs485.c \
-	$(BACNET_PORT_DIR)/dlmstp.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/cobs.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
+	$(BACNET_PORT_DIR)/dlmstp.c
 
 PORT_ETHERNET_SRC = \
 	$(BACNET_PORT_DIR)/ethernet.c
 
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c
 
 PORT_BIP6_SRC = \
 	$(BACNET_PORT_DIR)/bip6.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c
 
 PORT_BSC_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
@@ -134,6 +128,12 @@ BACNET_PORT_SRC += \
 
 BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/cobs.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c
 
 BACNET_BASIC_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \

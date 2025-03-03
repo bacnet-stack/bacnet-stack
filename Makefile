@@ -64,11 +64,11 @@ bsc:
 
 .PHONY: apps
 apps:
-	$(MAKE) -s -C apps all
+	$(MAKE) -s LEGACY=true -C apps all
 
 .PHONY: lib
 lib:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s LEGACY=true -C apps $@
 
 .PHONY: library
 library:
