@@ -26,6 +26,11 @@ static uint16_t Timeout_Milliseconds = 3000;
 /* Number of APDU Retries */
 static uint8_t Number_Of_Retries = 3;
 static uint8_t Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
+#if BACNET_SEGMENTATION_ENABLED
+/* APDU Segment Timeout in Milliseconds */
+static uint16_t Segment_Timeout_Milliseconds = 5000;
+static uint8_t max_segments;
+#endif
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
@@ -511,6 +516,22 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
                 status = true;
                 break;
         }
+    } 
+    /* ToDo: Below code is added. It should be handled in new stack. US: HV-7872*/
+    else if (dcc_communication_initiation_disabled()) {
+        switch (service_choice) {
+            case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+            case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+            /* WhoIs will be processed and I-Am initiated as response. */
+            case SERVICE_UNCONFIRMED_WHO_IS:
+            case SERVICE_UNCONFIRMED_WHO_HAS:
+            case SERVICE_CONFIRMED_AUDIT_NOTIFICATION:
+            case SERVICE_UNCONFIRMED_AUDIT_NOTIFICATION:
+                break;
+            default:
+                status = true;
+                break;
+        }
     }
 
     return status;
@@ -552,6 +573,108 @@ static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
     return status;
 }
 
+/* Invoke special handler for confirmed service */
+void invoke_confirmed_service_service_request(
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data,
+    uint8_t service_choice,
+    uint8_t *service_request,
+    uint32_t service_request_len)
+{
+    if (apdu_confirmed_dcc_disabled(service_choice)) {
+        /* When network communications are completely disabled,
+            only DeviceCommunicationControl and ReinitializeDevice
+            APDUs shall be processed and no messages shall be
+            initiated. */
+        return;
+    }
+    if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
+        (Confirmed_Function[service_choice])) {
+        Confirmed_Function[service_choice](
+            service_request, service_request_len, src, service_data);
+    } else if (Unrecognized_Service_Handler) {
+        Unrecognized_Service_Handler(
+            service_request, service_request_len, src, service_data);
+    }
+}
+
+#if BACNET_SEGMENTATION_ENABLED
+/** Handler for messages with segmentation :
+   - store new packet if sequence number is ok
+   - NACK packet if sequence number is not ok
+   - call the final functions with reassembled data when last packet ok is
+   received
+*/
+void apdu_handler_confirmed_service_segment(
+    BACNET_ADDRESS *src,
+    uint8_t *apdu, /* APDU data */
+    uint32_t apdu_len)
+{
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    uint8_t internal_service_id = 0;
+    uint8_t service_choice = 0;
+    uint8_t *service_request = NULL;
+    uint16_t service_request_len = 0;
+    uint32_t len = 0; /* counts where we are in PDU */
+    bool segment_ok;
+
+    len = apdu_decode_confirmed_service_request(
+        &apdu[0], /* APDU data */
+        apdu_len, &service_data, &service_choice, &service_request,
+        &service_request_len);
+
+    if (len == 0) {
+        /* service data unable to be decoded - simply drop */
+        return;
+    }
+    /* new segment : memorize it */
+    segment_ok = tsm_set_segmented_confirmed_service_received(
+        src, &service_data, &internal_service_id, &service_request,
+        &service_request_len);
+    /* last segment  */
+    if (segment_ok && !service_data.more_follows) {
+        /* Clear peer informations */
+        tsm_clear_peer_id(internal_service_id);
+        /* Invoke service handler */
+        invoke_confirmed_service_service_request(
+            src, &service_data, service_choice, service_request,
+            service_request_len);
+        /* We must free invoke_id, and associated data */
+        tsm_free_invoke_id_check(internal_service_id, NULL, true);
+    }
+}
+#endif
+
+/* Handler for normal message without segmentation, or segmented complete
+ * message reassembled all-in-one */
+void apdu_handler_confirmed_service(
+    BACNET_ADDRESS *src,
+    uint8_t *apdu, /* APDU data */
+    uint32_t apdu_len)
+{
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    uint8_t service_choice = 0;
+    uint8_t *service_request = NULL;
+    uint16_t service_request_len = 0;
+    uint32_t len = 0; /* counts where we are in PDU */
+
+    len = apdu_decode_confirmed_service_request(
+        &apdu[0], /* APDU data */
+        apdu_len, &service_data, &service_choice, &service_request,
+        &service_request_len);
+
+#if BACNET_SEGMENTATION_ENABLED
+    /* Check for unexpected request is received in active TSM state */
+    if (check_unexpected_pdu_received(src,&service_data))
+    {
+        return;
+    }
+#endif
+    invoke_confirmed_service_service_request(
+        src, &service_data, service_choice, service_request,
+        service_request_len);
+}
+
 /** Process the APDU header and invoke the appropriate service handler
  * to manage the received request.
  * Almost all requests and ACKs invoke this function.
@@ -567,11 +690,16 @@ void apdu_handler(
     uint16_t apdu_len)
 {
     BACNET_PDU_TYPE pdu_type;
-    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
     int len = 0; /* counts where we are in PDU */
+#if BACNET_SEGMENTATION_ENABLED
+    uint8_t sequence_number = 0;
+    uint8_t actual_window_size = 0;
+    bool nak = false;
+    uint8_t peer_id = 0;
+#endif
 #if !BACNET_SVC_SERVER
     uint8_t invoke_id = 0;
     BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
@@ -590,27 +718,14 @@ void apdu_handler(
     pdu_type = apdu[0] & 0xF0;
     switch (pdu_type) {
         case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-            len = apdu_decode_confirmed_service_request(
-                apdu, apdu_len, &service_data, &service_choice,
-                &service_request, &service_request_len);
-            if (len == 0) {
-                /* service data unable to be decoded - simply drop */
-                break;
-            }
-            if (apdu_confirmed_dcc_disabled(service_choice)) {
-                /* When network communications are completely disabled,
-                    only DeviceCommunicationControl and ReinitializeDevice
-                    APDUs shall be processed and no messages shall be
-                    initiated. */
-                break;
-            }
-            if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
-                (Confirmed_Function[service_choice])) {
-                Confirmed_Function[service_choice](
-                    service_request, service_request_len, src, &service_data);
-            } else if (Unrecognized_Service_Handler) {
-                Unrecognized_Service_Handler(
-                    service_request, service_request_len, src, &service_data);
+            /* segmented_message_reception ? */
+#if BACNET_SEGMENTATION_ENABLED
+            if (apdu[0] & BIT(3)) {
+                apdu_handler_confirmed_service_segment(src, apdu, apdu_len);
+            } else 
+#endif
+            {
+                apdu_handler_confirmed_service(src, apdu, apdu_len);
             }
             break;
         case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
@@ -685,9 +800,24 @@ void apdu_handler(
             }
             break;
         case PDU_TYPE_SEGMENT_ACK:
+#if! BACNET_SEGMENTATION_ENABLED
             /* FIXME: what about a denial of service attack here?
                 we could check src to see if that matched the tsm */
             tsm_free_invoke_id(invoke_id);
+#else
+            if (apdu_len < 4) {
+                break;
+            }
+            server = apdu[0] & 0x01;
+            nak = apdu[0] & 0x02;
+            invoke_id = apdu[1];
+            sequence_number = apdu[2];
+            actual_window_size = apdu[3];
+            /* we care because we support segmented message sending */
+            tsm_segmentack_received(
+                invoke_id, sequence_number, actual_window_size, nak, server,
+                src);
+#endif
             break;
         case PDU_TYPE_ERROR:
             if (apdu_len < 3) {
@@ -714,7 +844,13 @@ void apdu_handler(
                         (BACNET_ERROR_CODE)error_code);
                 }
             }
+#if BACNET_SEGMENTATION_ENABLED
+            /*Release the data*/
+            peer_id = tsm_get_peer_id(src, invoke_id);
+            tsm_free_invoke_id_check(peer_id, src, true);
+#else
             tsm_free_invoke_id(invoke_id);
+#endif
             break;
         case PDU_TYPE_REJECT:
             if (apdu_len < 3) {
@@ -725,7 +861,13 @@ void apdu_handler(
             if (Reject_Function) {
                 Reject_Function(src, invoke_id, reason);
             }
+#if BACNET_SEGMENTATION_ENABLED
+            /*Release the data*/
+            peer_id = tsm_get_peer_id(src, invoke_id);
+            tsm_free_invoke_id_check(peer_id, src, true);
+#else
             tsm_free_invoke_id(invoke_id);
+#endif
             break;
         case PDU_TYPE_ABORT:
             if (apdu_len < 3) {
@@ -734,13 +876,167 @@ void apdu_handler(
             server = apdu[0] & 0x01;
             invoke_id = apdu[1];
             reason = apdu[2];
-            if (Abort_Function) {
-                Abort_Function(src, invoke_id, reason, server);
+            if (!server) {
+                /*AbortPDU_Received*/
+                if (Abort_Function) {
+                    Abort_Function(src, invoke_id, reason, server);
+                }
             }
+#if BACNET_SEGMENTATION_ENABLED
+            else {
+                /*SendAbort*/
+                abort_pdu_send(invoke_id, src, reason, server);
+            }
+            /*Release the data*/
+            peer_id = tsm_get_peer_id(src, invoke_id);
+            tsm_free_invoke_id_check(peer_id, src, true);
+#else
             tsm_free_invoke_id(invoke_id);
+#endif
             break;
 #endif
         default:
             break;
     }
 }
+
+#if BACNET_SEGMENTATION_ENABLED
+/*Return the APDU segment timeout*/
+uint16_t apdu_segment_timeout(void)
+{
+    return Segment_Timeout_Milliseconds;
+}
+
+/*Set the APDU segment timeout*/
+void apdu_segment_timeout_set(uint16_t milliseconds)
+{
+    Segment_Timeout_Milliseconds = milliseconds;
+}
+
+/** Process the APDU header and invoke the appropriate service handler
+ * to manage the received request.
+ * Almost all requests and ACKs invoke this function.
+ * @ingroup MISCHNDLR
+ *
+ * @param apdu [in] The apdu portion of the response, to be sent
+ * @param fixed_pdu_header [in] The apdu header for the response
+ * @return apdu_length[out] The length of the apdu header
+ */
+int apdu_encode_fixed_header(
+    uint8_t *apdu, BACNET_APDU_FIXED_HEADER *fixed_pdu_header)
+{
+    int apdu_len = 0;
+    switch (fixed_pdu_header->pdu_type) {
+        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
+            apdu[apdu_len++] = fixed_pdu_header->pdu_type
+                /* flag 'SA' if we accept many segments */
+                | (fixed_pdu_header->service_data.request_data
+                           .segmented_response_accepted
+                       ? 0x02
+                       : 0x00)
+                /* flag 'MOR' if we more segments are coming */
+                | (fixed_pdu_header->service_data.request_data.more_follows
+                       ? 0x04
+                       : 0x00)
+                /* flag 'SEG' if we more segments are coming */
+                | (fixed_pdu_header->service_data.request_data.segmented_message
+                       ? 0x08
+                       : 0x00);
+            apdu[apdu_len++] = encode_max_segs_max_apdu(
+                fixed_pdu_header->service_data.request_data.max_segs,
+                fixed_pdu_header->service_data.request_data.max_resp);
+            apdu[apdu_len++] =
+                fixed_pdu_header->service_data.request_data.invoke_id;
+            /* extra data for segmented messages sending */
+            if (fixed_pdu_header->service_data.request_data.segmented_message) {
+                /* packet sequence number */
+                apdu[apdu_len++] =
+                    fixed_pdu_header->service_data.request_data.sequence_number;
+                /* window size proposal */
+                apdu[apdu_len++] = fixed_pdu_header->service_data.request_data
+                                       .proposed_window_number;
+            }
+            /* service choice */
+            apdu[apdu_len++] = fixed_pdu_header->service_choice;
+            break;
+        case PDU_TYPE_COMPLEX_ACK:
+            apdu[apdu_len++] = fixed_pdu_header->pdu_type
+                /* flag 'MOR' if we more segments are coming */
+                | (fixed_pdu_header->service_data.ack_data.more_follows ? 0x04
+                                                                        : 0x00)
+                /* flag 'SEG' if we more segments are coming */
+                | (fixed_pdu_header->service_data.ack_data.segmented_message
+                       ? 0x08
+                       : 0x00);
+            apdu[apdu_len++] =
+                fixed_pdu_header->service_data.ack_data.invoke_id;
+            /* extra data for segmented messages sending */
+            if (fixed_pdu_header->service_data.ack_data.segmented_message) {
+                /* packet sequence number */
+                apdu[apdu_len++] =
+                    fixed_pdu_header->service_data.ack_data.sequence_number;
+                /* window size proposal */
+                apdu[apdu_len++] = fixed_pdu_header->service_data.ack_data
+                                       .proposed_window_number;
+            }
+            /* service choice */
+            apdu[apdu_len++] = fixed_pdu_header->service_choice;
+            break;
+        default:
+            break;
+    }
+    return apdu_len;
+}
+
+/** Handler to assign the header fields to the response
+ * The response can be segmented/unsegmented
+ *
+ * @param fixed_pdu_header [in] The apdu header of the response, to be sent.
+ * @param pdu_type [in] The pdu_type of the response.
+ * @param invoke_id [in] The invoike_id of the response
+ * @param service[in] The service choice for which the response has to be
+ * processed
+ * @param max_apdu[in]  The maximum apdu length
+ */
+void apdu_init_fixed_header(
+    BACNET_APDU_FIXED_HEADER *fixed_pdu_header,
+    uint8_t pdu_type,
+    uint8_t invoke_id,
+    uint8_t service,
+    int max_apdu)
+{
+    fixed_pdu_header->pdu_type = pdu_type;
+
+    fixed_pdu_header->service_data.common_data.invoke_id = invoke_id;
+    fixed_pdu_header->service_data.common_data.more_follows = false;
+    fixed_pdu_header->service_data.common_data.proposed_window_number = 0;
+    fixed_pdu_header->service_data.common_data.sequence_number = 0;
+    fixed_pdu_header->service_data.common_data.segmented_message = false;
+    switch (pdu_type) {
+        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
+            fixed_pdu_header->service_data.request_data.max_segs =
+                MAX_SEGMENTS_ACCEPTED;
+            /* allow to specify a lower APDU size : support arbitrary reduction
+             * of APDU packets between peers */
+            fixed_pdu_header->service_data.request_data.max_resp =
+                max_apdu < MAX_APDU ? max_apdu : MAX_APDU;
+            fixed_pdu_header->service_data.request_data
+                .segmented_response_accepted = MAX_SEGMENTS_ACCEPTED > 1;
+            break;
+        case PDU_TYPE_COMPLEX_ACK:
+        default:
+            break;
+    }
+    fixed_pdu_header->service_choice = service;
+}
+
+void max_segments_accepted_set(uint8_t maxSegments)
+{ 
+    max_segments = maxSegments;
+}
+
+uint8_t max_segments_accepted_get(void)
+{
+   return max_segments;
+}
+#endif
