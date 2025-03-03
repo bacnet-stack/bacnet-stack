@@ -285,17 +285,57 @@ static void testWriteProperty(void)
     testWritePropertyTag(&value);
 }
 
-/**
- * @}
- */
+static bool Is_Property_Member;
+bool test_write_property_member_of_object(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property)
+{
+    (void)object_type;
+    (void)object_instance;
+    (void)object_property;
+    return Is_Property_Member;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyNull)
+#else
+static void testWritePropertyNull(void)
+#endif
+{
+    bool bypass = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+
+    bypass = write_property_relinquish_bypass(NULL, NULL);
+    zassert_equal(bypass, false, NULL);
+    wp_data.object_type = OBJECT_ANALOG_OUTPUT;
+    wp_data.object_instance = 0;
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    wp_data.application_data_len =
+        encode_application_null(&wp_data.application_data[0]);
+    Is_Property_Member = true;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, false, NULL);
+    Is_Property_Member = false;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, true, NULL);
+    wp_data.object_property = PROP_OUT_OF_SERVICE;
+    Is_Property_Member = true;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, true, NULL);
+}
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(wp_tests, ztest_unit_test(testWriteProperty));
-
+    ztest_test_suite(
+        wp_tests, ztest_unit_test(testWriteProperty),
+        ztest_unit_test(testWritePropertyNull));
     ztest_run_test_suite(wp_tests);
 }
 #endif
