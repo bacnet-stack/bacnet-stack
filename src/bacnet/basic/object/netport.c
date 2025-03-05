@@ -1099,9 +1099,6 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = value;
-        if (value == false) {
-            Network_Port_Changes_Pending_Discard(object_instance);
-        }
         status = true;
     }
 
