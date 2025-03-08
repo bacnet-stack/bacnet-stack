@@ -1,20 +1,24 @@
-
 /**
  * @file
- * @brief Mini BACnet server example for prototyping
+ * @brief Mini BACnet server example for prototyping 
+ * 
+ * This example provides a minimal BACnet server for prototyping 
+ * with the following default BACnet objects:
+ * - Two Read-Only Points: (AV-0), (BV-0)
+ * - Two Commandable (Writable) Points: (AO-0), (BO-0)
+ * 
  * If no arguments are provided, it defaults to:
  * - Device ID: 260001
  * - Device Name: "MiniServer"
  *
- * ## Usage
+ * Usage on Linux
  * $ ./bacmini 54321 MiniDevice
+ *
  * Where:
  * - 54321 is the BACnet Device Instance ID
  * - "MiniDevice" is the BACnet Device Name
- *
- * @author Ben Bartling
+ * 
  * @date 2025
- * @copyright SPDX-License-Identifier: MIT
  */
 
 #include <stddef.h>
@@ -49,6 +53,7 @@
 #include "bacnet/basic/service/h_whois.h"
 #include "bacnet/basic/service/h_wp.h"
 #include "bacnet/basic/service/s_iam.h"
+#include "bacnet/basic/sys/platform.h"
 
 /* Buffers */
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
@@ -72,10 +77,10 @@ static TestValue test_values[] = {
 static size_t test_index = 0;
 
 /* BACnet Object Instances */
-uint32_t av_instance;
-uint32_t bv_instance;
-uint32_t ao_instance;
-uint32_t bo_instance;
+static uint32_t av_instance;
+static uint32_t bv_instance;
+static uint32_t ao_instance;
+static uint32_t bo_instance;
 
 /* Custom Object Table */
 static object_functions_t My_Object_Table[] = {
@@ -179,17 +184,23 @@ static object_functions_t My_Object_Table[] = {
 /**
  * @brief Function to update AV-0 and BV-0 values.
  */
-void process_task(void) {
+static void process_task(void) {
+  static size_t test_index = 0;
+
   TestValue next_value = test_values[test_index];
-  test_index = (test_index + 1) % (sizeof(test_values) / sizeof(TestValue));
+  test_index = (test_index + 1) % ARRAY_SIZE(test_values);
 
-  Analog_Value_Present_Value_Set(av_instance, next_value.analog_value,
-                                 BACNET_NO_PRIORITY);
-  printf("AV-0 updated to: %.1f\n", next_value.analog_value);
+  if (!Analog_Value_Out_Of_Service(av_instance)) {
+    Analog_Value_Present_Value_Set(av_instance, next_value.analog_value,
+                                   BACNET_NO_PRIORITY);
+    printf("AV-0 updated to: %.1f\n", next_value.analog_value);
+  }
 
-  Binary_Value_Present_Value_Set(
-      bv_instance, strcmp(next_value.binary_state, "active") == 0 ? 1 : 0);
-  printf("BV-0 updated to: %s\n", next_value.binary_state);
+  if (!Binary_Value_Out_Of_Service(bv_instance)) {
+    Binary_Value_Present_Value_Set(
+        bv_instance, strcmp(next_value.binary_state, "active") == 0 ? 1 : 0);
+    printf("BV-0 updated to: %s\n", next_value.binary_state);
+  }
 }
 
 /**
