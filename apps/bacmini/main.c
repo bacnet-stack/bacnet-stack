@@ -1,12 +1,12 @@
 /**
  * @file
- * @brief Mini BACnet server example for prototyping 
- * 
- * This example provides a minimal BACnet server for prototyping 
+ * @brief Mini BACnet server example for prototyping
+ *
+ * This example provides a minimal BACnet server for prototyping
  * with the following default BACnet objects:
  * - Two Read-Only Points: (AV-0), (BV-0)
  * - Two Commandable (Writable) Points: (AO-0), (BO-0)
- * 
+ *
  * If no arguments are provided, it defaults to:
  * - Device ID: 260001
  * - Device Name: "MiniServer"
@@ -17,7 +17,7 @@
  * Where:
  * - 54321 is the BACnet Device Instance ID
  * - "MiniDevice" is the BACnet Device Name
- * 
+ *
  * @date 2025
  */
 
@@ -73,8 +73,6 @@ static TestValue test_values[] = {
     {"active", 3.0},
     {"inactive", 4.0},
 };
-
-static size_t test_index = 0;
 
 /* BACnet Object Instances */
 static uint32_t av_instance;
