@@ -23,6 +23,10 @@ The git repositories are hosted at the following sites:
 ## [1.4.1] - Unreleased
 
 ### Security
+* Secured BACnet/SC URL handling by changing all the sprintf
+  to snprintf which ensures null string endings. (#936)
+* Secured win32 port of localtime by using secure OS API functions
+  when compiled with MSVC. (#936)
 * Secured SubscribeCOVProperty decoder. Changed datatype of monitoredProperty
   in struct BACnet_Subscribe_COV_Data. (#892)
 * Secured the BACnet Who-Request decoder by changing deprecated decode
@@ -30,8 +34,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
-* Added bacnet-basic from zephyr project to create basis for bacmini
-  apps/server-basic example. (#933)
+* Added bacmini example app with minimal analog and binary objects. (#934)
+* Added bacnet-basic from zephyr project to create basis for apps/server-basic
+  bacbasic example. (#933)
 * Added Send_I_Am_Broadcast() function to Who-Is handler so that
   other Send_I_Am() will honor DCC Disable-Initiatiation. (#918)
 * Added simple script to aid in mirror the Github repository with Sourceforge.
@@ -52,6 +57,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed WriteProperty error code for PROP_FD_BBMD_ADDRESS and
+  PROP_FD_SUBSCRIPTION_LIFETIME properties. (#925)
+* Fixed dead-code warning after enabling all datalinks for basic
+  network port object using the property list as the R/W checking
+  for the port type. (#925)
 * Fixed the basic multi-state output priority-array datatype encoding. (#932)
 * Fixed windows build of bacpoll and bacdiscover by removing DLL export
   in basic client headers (#930)
