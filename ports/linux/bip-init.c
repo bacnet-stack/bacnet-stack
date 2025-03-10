@@ -475,7 +475,7 @@ get_local_ifr_ioctl(const char *ifname, struct ifreq *ifr, int request)
     int fd;
     int rv; /* return value */
 
-    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
+    snprintf(ifr->ifr_name, sizeof(ifr->ifr_name), "%s", ifname);
     ifr->ifr_name[sizeof(ifr->ifr_name) - 1] = 0;
 
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);

@@ -51,6 +51,8 @@ int gettimeofday(struct timeval *tp, void *tzp)
 {
     static int tzflag = 0;
     struct timezone *tz;
+    long tz_seconds = 0;
+    int tz_hours = 0;
     /* start calendar time in microseconds */
     static LONGLONG usec_timer = 0;
     LONGLONG usec_elapsed = 0;
@@ -86,8 +88,10 @@ int gettimeofday(struct timeval *tp, void *tzp)
             tzflag++;
         }
         tz = tzp;
-        tz->tz_minuteswest = _timezone / 60;
-        tz->tz_dsttime = _daylight;
+        (void)_get_timezone(&tz_seconds);
+        tz->tz_minuteswest = tz_seconds / 60;
+        (void)_get_daylight(&tz_hours);
+        tz->tz_dsttime = tz_hours;
     }
 
     return 0;
@@ -125,15 +129,18 @@ bool datetime_local(
     bool *dst_active)
 {
     bool status = false;
-    struct tm *tblock = NULL;
+    struct tm *tblock;
 #if defined(_MSC_VER)
-    time_t tTemp;
+    struct tm newtime = { 0 };
+    __time64_t long_time = 0;
 #else
     struct timeval tv;
 #endif
+
 #if defined(_MSC_VER)
-    time(&tTemp);
-    tblock = (struct tm *)localtime(&tTemp);
+    _time64(&long_time);
+    (void)localtime_s(&newtime, &long_time);
+    tblock = &newtime;
 #else
     if (gettimeofday(&tv, NULL) == 0) {
         tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
@@ -181,7 +188,7 @@ bool datetime_local(
             /* timezone is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
                 local standard time */
-            *utc_offset_minutes = timezone / 60;
+            *utc_offset_minutes = (int16_t)(timezone / 60);
         }
     }
 

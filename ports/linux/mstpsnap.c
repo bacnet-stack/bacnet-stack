@@ -116,8 +116,7 @@ static int network_init(const char *name, int protocol)
     struct ifreq ifr;
 
     memset(&ifr, 0, sizeof(ifr));
-    strncpy(ifr.ifr_name, name, strlen(name));
-
+    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", name);
     if (ioctl(sockfd, SIOCGIFINDEX, &ifr) == -1) {
         perror("Unable to get interface index");
         return -1;
