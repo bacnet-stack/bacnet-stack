@@ -424,12 +424,18 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint8_t ft_hour = TmpNotify.Recipient_List[idx].FromTime.hour;
                 uint8_t ft_min = TmpNotify.Recipient_List[idx].FromTime.min;
                 uint8_t ft_sec = TmpNotify.Recipient_List[idx].FromTime.sec;
+                uint8_t ft_hundredths =
+                    TmpNotify.Recipient_List[idx].FromTime.hundredths;
                 uint8_t tt_hour = TmpNotify.Recipient_List[idx].ToTime.hour;
                 uint8_t tt_min = TmpNotify.Recipient_List[idx].ToTime.min;
                 uint8_t tt_sec = TmpNotify.Recipient_List[idx].ToTime.sec;
+                uint8_t tt_hundredths =
+                    TmpNotify.Recipient_List[idx].ToTime.hundredths;
 
-                if ((ft_hour > 23 || ft_min > 59 || ft_sec > 59) ||
-                    (tt_hour > 23 || tt_min > 59 || tt_sec > 59)) {
+                if ((ft_hour > 23 || ft_min > 59 || ft_sec > 59 ||
+                     ft_hundredths > 100) ||
+                    (tt_hour > 23 || tt_min > 59 || tt_sec > 59 ||
+                     tt_hundredths > 100)) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     status = false;
