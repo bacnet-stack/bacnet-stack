@@ -512,7 +512,7 @@ bool write_property_relinquish_bypass(
     bool bypass = false;
     bool has_priority_array = false;
     int len = 0;
-
+    fprintf(stderr, "write_property_relinquish_bypass\n");
     if (!wp_data) {
         return false;
     }
