@@ -81,7 +81,7 @@ static int write_property_multiple_decode(
 
                         fprintf(stderr, "&&&& null_status: %d\n", null_status);
                         /* this calls the write_property function of the individual objects */
-                        if (device_write_property) {
+                        if (device_write_property && !null_status) {
                             fprintf(stderr, "#### device_write_property true\n");
                             if (device_write_property(wp_data) == false) {
                                 return BACNET_STATUS_ERROR;
