@@ -106,7 +106,7 @@ int wpm_decode_object_property(
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     int len = 0, i = 0, imax = 0;
-
+    fprintf(stderr, "wpm_decode_object_property\n");
     if ((apdu) && (apdu_len) && (wp_data)) {
         wp_data->array_index = BACNET_ARRAY_ALL;
         wp_data->priority = BACNET_MAX_PRIORITY;

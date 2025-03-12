@@ -135,7 +135,7 @@ void handler_write_property_multiple(
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
-
+    fprintf(stderr, "### handler_write_property_multiple\n");
     if (service_len == 0) {
         wp_data.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
         len = BACNET_STATUS_REJECT;

@@ -108,7 +108,7 @@ void handler_write_property(
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
-
+    fprintf(stderr, "### handler_write_property\n");
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
