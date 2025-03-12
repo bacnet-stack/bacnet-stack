@@ -75,9 +75,13 @@ static int write_property_multiple_decode(
                         if (!write_property_bacnet_array_valid(wp_data)) {
                             return BACNET_STATUS_ERROR;
                         }
+                        bool null_status = handler_write_property_relinquish_bypass(wp_data);
+
+                        fprintf(stderr, "### null_status: %d\n", null_status);
+
                         if (device_write_property) {
                             fprintf(stderr, "### device_write_property true\n");
-                            if (device_write_property(wp_data) == false) {
+                            if (device_write_property(wp_data) == false) { // this calls the write_property function of the individual objects
                                 return BACNET_STATUS_ERROR;
                             }
                         }

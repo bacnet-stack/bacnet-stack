@@ -134,6 +134,7 @@ int wpm_decode_object_property(
         if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
             len--;
             imax = bacnet_enclosed_data_length(&apdu[len], apdu_len - len);
+            fprintf(stderr, "### imax=%d\n", imax);
             len++;
             if (imax != BACNET_STATUS_ERROR) {
                 /* copy application data, check max length */
