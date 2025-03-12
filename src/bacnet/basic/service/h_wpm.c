@@ -46,7 +46,7 @@ static int write_property_multiple_decode(
     int len = 0;
     int offset = 0;
     uint8_t tag_number = 0;
-    bool null_status = false;
+    bool status = false;
 
     /* decode service request */
     do {
@@ -76,13 +76,11 @@ static int write_property_multiple_decode(
                         if (!write_property_bacnet_array_valid(wp_data)) {
                             return BACNET_STATUS_ERROR;
                         }
-                        null_status = write_property_relinquish_bypass(
+
+                        status = write_property_relinquish_bypass(
                             wp_data, Device_Objects_Property_List_Member);
 
-                        fprintf(stderr, "&&&& null_status: %d\n", null_status);
-                        /* this calls the write_property function of the individual objects */
-                        if (device_write_property && !null_status) {
-                            fprintf(stderr, "#### device_write_property true\n");
+                        if (device_write_property && !status) {
                             if (device_write_property(wp_data) == false) {
                                 return BACNET_STATUS_ERROR;
                             }
@@ -142,7 +140,7 @@ void handler_write_property_multiple(
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
-    fprintf(stderr, "### handler_write_property_multiple\n");
+
     if (service_len == 0) {
         wp_data.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
         len = BACNET_STATUS_REJECT;

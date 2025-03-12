@@ -106,7 +106,7 @@ int wpm_decode_object_property(
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     int len = 0, i = 0, imax = 0;
-    fprintf(stderr, "@@@@ wpm_decode_object_property\n");
+
     if ((apdu) && (apdu_len) && (wp_data)) {
         wp_data->array_index = BACNET_ARRAY_ALL;
         wp_data->priority = BACNET_MAX_PRIORITY;
@@ -134,7 +134,6 @@ int wpm_decode_object_property(
         if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
             len--;
             imax = bacnet_enclosed_data_length(&apdu[len], apdu_len - len);
-            fprintf(stderr, "### imax=%d\n", imax);
             len++;
             if (imax != BACNET_STATUS_ERROR) {
                 /* copy application data, check max length */

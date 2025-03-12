@@ -136,7 +136,7 @@ void handler_write_property(
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
-    fprintf(stderr, "### handler_write_property\n");
+
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
@@ -180,9 +180,8 @@ void handler_write_property(
             bcontinue = false;
         }
         if (bcontinue) {
-            fprintf(stderr, "### handler_write_property: Device_Write_Property\n");
 #if BACNET_PROTOCOL_REVISION >= 21
-            fprintf(stderr, "### handler_write_property: handler_write_property_special_null\n");
+
             success = handler_write_property_relinquish_bypass(&wp_data);
 #endif
             if (!success) {

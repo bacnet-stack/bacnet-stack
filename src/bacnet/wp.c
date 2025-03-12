@@ -311,7 +311,7 @@ bool write_property_type_valid(
 {
     /* assume success */
     bool valid = true;
-    fprintf(stderr, "write_property_type_valid\n");
+
     if (value && (value->tag != expected_tag)) {
         valid = false;
         if (wp_data) {
@@ -512,7 +512,7 @@ bool write_property_relinquish_bypass(
     bool bypass = false;
     bool has_priority_array = false;
     int len = 0;
-    fprintf(stderr, "write_property_relinquish_bypass\n");
+
     if (!wp_data) {
         return false;
     }
