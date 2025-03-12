@@ -180,7 +180,9 @@ void handler_write_property(
             bcontinue = false;
         }
         if (bcontinue) {
+            fprintf(stderr, "### handler_write_property: Device_Write_Property\n");
 #if BACNET_PROTOCOL_REVISION >= 21
+            fprintf(stderr, "### handler_write_property: handler_write_property_special_null\n");
             success = handler_write_property_relinquish_bypass(&wp_data);
 #endif
             if (!success) {

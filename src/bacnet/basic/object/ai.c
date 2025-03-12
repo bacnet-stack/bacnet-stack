@@ -1261,7 +1261,6 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Analog_Input_Present_Value_Set(
                         wp_data->object_instance, value.type.Real);
                 } else {
-                    fprintf(stderr, "### AI present-value out of service\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                     status = false;
@@ -1269,6 +1268,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
+            fprintf(stderr, "### AI out-of-service set\n");
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
