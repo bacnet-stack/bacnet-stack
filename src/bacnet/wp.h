@@ -121,7 +121,6 @@ bool write_property_relinquish_bypass(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_member_of_object member_of_object);
 
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
