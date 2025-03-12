@@ -75,7 +75,8 @@ static int write_property_multiple_decode(
                         if (!write_property_bacnet_array_valid(wp_data)) {
                             return BACNET_STATUS_ERROR;
                         }
-                        bool null_status = handler_write_property_relinquish_bypass(wp_data);
+                        bool null_status = write_property_relinquish_bypass(
+                            wp_data, Device_Objects_Property_List_Member);
 
                         fprintf(stderr, "### null_status: %d\n", null_status);
 
