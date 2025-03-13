@@ -214,6 +214,10 @@ server-client:
 server-discover:
 	$(MAKE) LEGACY=true -s -C apps $@
 
+.PHONY: server-mini
+server-mini:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
+
 .PHONY: sc-hub
 sc-hub:
 	$(MAKE) BACDL=bsc -s -C apps $@
