@@ -389,6 +389,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/osv.h
   src/bacnet/basic/object/piv.c
   src/bacnet/basic/object/piv.h
+  src/bacnet/basic/object/program.c
+  src/bacnet/basic/object/program.h
   src/bacnet/basic/object/schedule.c
   src/bacnet/basic/object/schedule.h
   src/bacnet/basic/object/structured_view.c
