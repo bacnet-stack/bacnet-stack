@@ -82,11 +82,27 @@ static uint32_t bo_instance;
 
 /* Custom Object Table */
 static object_functions_t My_Object_Table[] = {
-    { OBJECT_DEVICE, NULL, Device_Count, Device_Index_To_Instance,
-      Device_Valid_Object_Instance_Number, Device_Object_Name,
-      Device_Read_Property_Local, Device_Write_Property_Local,
-      Device_Property_Lists, DeviceGetRRInfo, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL },
+    /* device object required for all devices */
+    { OBJECT_DEVICE,
+      NULL,
+      Device_Count,
+      Device_Index_To_Instance,
+      Device_Valid_Object_Instance_Number,
+      Device_Object_Name,
+      Device_Read_Property_Local,
+      Device_Write_Property_Local,
+      Device_Property_Lists,
+      DeviceGetRRInfo,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL },
 
     /* Analog Value (Read-Only) */
     { OBJECT_ANALOG_VALUE,
@@ -176,8 +192,26 @@ static object_functions_t My_Object_Table[] = {
       Binary_Value_Delete,
       NULL },
 
-    { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+    { MAX_BACNET_OBJECT_TYPE,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      NULL }
 };
 
 /**
