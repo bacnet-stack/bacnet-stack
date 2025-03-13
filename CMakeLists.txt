@@ -925,7 +925,7 @@ if(BACNET_STACK_BUILD_APPS)
   endif(BACNET_BUILD_PIFACE_APP)
 
   if(BACNET_BUILD_SERVER_MINI_APP)
-    add_executable(bacmini apps/bacmini/main.c)
+    add_executable(bacmini apps/server-mini/main.c)
     target_link_libraries(bacmini PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_SERVER_MINI_APP)
 
