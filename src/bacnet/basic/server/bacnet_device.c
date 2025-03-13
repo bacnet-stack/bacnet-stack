@@ -46,6 +46,7 @@
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/time_value.h"
 #include "bacnet/basic/object/channel.h"
+#include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lo.h"
 #include "bacnet/basic/object/blo.h"
 #include "bacnet/basic/object/netport.h"
@@ -102,6 +103,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
+    defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE))
 #define CONFIG_BACNET_BASIC_OBJECT_ALL
 #endif
@@ -130,6 +132,8 @@
 #define CONFIG_BACNET_BASIC_OBJECT_FILE
 #define CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_PROGRAM
+#define CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE
 #endif
 
 #if (BACNET_PROTOCOL_REVISION < 14)
@@ -717,6 +721,28 @@ static object_functions_t Object_Table[] = {
       CharacterString_Value_Create,
       CharacterString_Value_Delete,
       NULL /* Timer */ },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM)
+    { OBJECT_BITSTRING_VALUE,
+      Program_Init,
+      Program_Count,
+      Program_Index_To_Instance,
+      Program_Valid_Instance,
+      Program_Object_Name,
+      Program_Read_Property,
+      Program_Write_Property,
+      Program_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Program_Create,
+      Program_Delete,
+      Program_Timer },
 #endif
     {
         MAX_BACNET_OBJECT_TYPE,

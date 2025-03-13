@@ -160,6 +160,7 @@ list(APPEND testdirs
   bacnet/basic/object/mso
   bacnet/basic/object/msv
   bacnet/basic/object/netport
+  bacnet/basic/object/program
   bacnet/basic/object/nc
   bacnet/basic/object/objects
   bacnet/basic/object/osv

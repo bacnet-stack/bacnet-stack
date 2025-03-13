@@ -1,24 +1,21 @@
-#Makefile to build BACnet Application using GCC compiler
+# Makefile to build the bacmini application using GCC compiler
 
 # Executable file name
-TARGET = bacbasic
-# BACnet objects supporting CreateObject that are used with this app
+TARGET = bacmini
+# No additional BACnet dependencies for now
+SRC = main.c
+
+# BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
-BACNET_SERVER_DIR = $(BACNET_SRC_DIR)/bacnet/basic/server
 SRC = main.c \
-	$(BACNET_SERVER_DIR)/bacnet_basic.c \
-	$(BACNET_SERVER_DIR)/bacnet_device.c \
-	$(BACNET_SERVER_DIR)/bacnet_port.c \
-	$(BACNET_SERVER_DIR)/bacnet_port_ipv4.c \
-	$(BACNET_SERVER_DIR)/bacnet_port_ipv6.c \
+	$(BACNET_OBJECT_DIR)/device.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \
-	$(BACNET_OBJECT_DIR)/bacfile.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bitstring_value.c \
-	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
+	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \
 	$(BACNET_OBJECT_DIR)/calendar.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
@@ -34,12 +31,24 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/ms-input.c \
 	$(BACNET_OBJECT_DIR)/mso.c \
 	$(BACNET_OBJECT_DIR)/msv.c \
+	$(BACNET_OBJECT_DIR)/osv.c \
+	$(BACNET_OBJECT_DIR)/piv.c \
 	$(BACNET_OBJECT_DIR)/nc.c  \
 	$(BACNET_OBJECT_DIR)/netport.c  \
-	$(BACNET_OBJECT_DIR)/osv.c \
 	$(BACNET_OBJECT_DIR)/program.c  \
+	$(BACNET_OBJECT_DIR)/time_value.c \
+	$(BACNET_OBJECT_DIR)/trendlog.c \
+	$(BACNET_OBJECT_DIR)/schedule.c \
 	$(BACNET_OBJECT_DIR)/structured_view.c \
-	$(BACNET_OBJECT_DIR)/time_value.c
+	$(BACNET_OBJECT_DIR)/access_credential.c \
+	$(BACNET_OBJECT_DIR)/access_door.c \
+	$(BACNET_OBJECT_DIR)/access_point.c \
+	$(BACNET_OBJECT_DIR)/access_rights.c \
+	$(BACNET_OBJECT_DIR)/access_user.c \
+	$(BACNET_OBJECT_DIR)/access_zone.c \
+	$(BACNET_OBJECT_DIR)/credential_data_input.c \
+	$(BACNET_OBJECT_DIR)/acc.c \
+	$(BACNET_OBJECT_DIR)/bacfile.c
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
