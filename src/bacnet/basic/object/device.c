@@ -37,6 +37,7 @@
 #include "bacnet/basic/object/bv.h"
 #include "bacnet/basic/object/calendar.h"
 #include "bacnet/basic/object/command.h"
+#include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/lsp.h"
 #include "bacnet/basic/object/lsz.h"
@@ -64,6 +65,7 @@
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
+#include "bacnet/basic/object/program.h"
 
 /* external prototypes */
 extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -215,13 +217,13 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         Integer_Value_Create, Integer_Value_Delete, NULL /* Timer */ },
 #endif
-        { OBJECT_COMMAND, Command_Init, Command_Count, Command_Index_To_Instance,
-            Command_Valid_Instance, Command_Object_Name, Command_Read_Property,
-            Command_Write_Property, Command_Property_Lists,
-            NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-            NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
-            NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-            NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_COMMAND, Command_Init, Command_Count, Command_Index_To_Instance,
+        Command_Valid_Instance, Command_Object_Name, Command_Read_Property,
+        Command_Write_Property, Command_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
     #if defined(INTRINSIC_REPORTING)
     { OBJECT_NOTIFICATION_CLASS, Notification_Class_Init,
         Notification_Class_Count, Notification_Class_Index_To_Instance,
@@ -376,6 +378,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_PROGRAM, Program_Init, Program_Count,
+        Program_Index_To_Instance, Program_Valid_Instance,
+        Program_Object_Name, Program_Read_Property,
+        Program_Write_Property, Program_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Program_Create, Program_Delete, Program_Timer },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,

@@ -30,6 +30,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/msv.c \
 	$(BACNET_OBJECT_DIR)/osv.c \
 	$(BACNET_OBJECT_DIR)/piv.c \
+	$(BACNET_OBJECT_DIR)/program.c \
 	$(BACNET_OBJECT_DIR)/nc.c  \
 	$(BACNET_OBJECT_DIR)/netport.c  \
 	$(BACNET_OBJECT_DIR)/time_value.c \

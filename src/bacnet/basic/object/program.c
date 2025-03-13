@@ -984,6 +984,24 @@ void Program_Unload_Set(uint32_t object_instance, void (*unload)(void *context))
 }
 
 /**
+ * @brief Updates the object program operation
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Program_Timer(uint32_t object_instance, uint16_t milliseconds)
+{
+    struct object_data *pObject;
+
+    (void)milliseconds;
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->Run) {
+            pObject->Run(pObject->Context);
+        }
+    }
+}
+
+/**
  * @brief Creates a Integer Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
