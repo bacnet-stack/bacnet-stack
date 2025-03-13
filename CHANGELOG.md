@@ -150,6 +150,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the folder for bacmini application to server-mini, and fixed
+  for Makefile and CMake builds. (#941)
 * Changed date encoding when year is out of range to use wildcard.
   Updated APDU encoding pattern for date and time. (#897)
 * Change the basic CharacterString Value object by adding CreateObject and
