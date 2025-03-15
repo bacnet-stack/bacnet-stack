@@ -435,6 +435,24 @@ BACNET_RELIABILITY Analog_Value_Reliability(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Value_Object_Fault(const struct analog_value_descr *pObject)
+{
+    bool fault = false;
+
+    if (pObject) {
+        if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
+            fault = true;
+        }
+    }
+
+    return fault;
+}
+
+/**
  * @brief For a given object instance-number, sets the reliability
  * @param  object_instance - object-instance number of the object
  * @param  value - reliability property value
@@ -444,15 +462,34 @@ bool Analog_Value_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value)
 {
     bool status = false;
+    bool fault = false;
     struct analog_value_descr *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
+        fault = Analog_Value_Object_Fault(pObject);
         pObject->Reliability = value;
+        if (fault != Analog_Value_Object_Fault(pObject)) {
+            pObject->Changed = true;
+        }
         status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Value_Fault(uint32_t object_instance)
+{
+    struct analog_value_descr *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+
+    return Analog_Value_Object_Fault(pObject);
 }
 
 /**
@@ -702,6 +739,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     float real_value = (float)1.414;
     uint8_t *apdu = NULL;
     ANALOG_VALUE_DESCR *CurrentAV;
+    bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
 #endif
@@ -748,13 +786,11 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_IN_ALARM,
                 (CurrentAV->Event_State != EVENT_STATE_NORMAL));
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_FAULT,
-                (CurrentAV->Reliability != RELIABILITY_NO_FAULT_DETECTED));
+            state = Analog_Value_Fault(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, state);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                CurrentAV->Out_Of_Service);
+            state = Analog_Value_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
