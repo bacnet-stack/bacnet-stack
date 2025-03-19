@@ -46,6 +46,7 @@ static int write_property_multiple_decode(
     int len = 0;
     int offset = 0;
     uint8_t tag_number = 0;
+    bool status = false;
 
     /* decode service request */
     do {
@@ -75,7 +76,11 @@ static int write_property_multiple_decode(
                         if (!write_property_bacnet_array_valid(wp_data)) {
                             return BACNET_STATUS_ERROR;
                         }
-                        if (device_write_property) {
+
+                        status = write_property_relinquish_bypass(
+                            wp_data, Device_Objects_Property_List_Member);
+
+                        if (device_write_property && !status) {
                             if (device_write_property(wp_data) == false) {
                                 return BACNET_STATUS_ERROR;
                             }

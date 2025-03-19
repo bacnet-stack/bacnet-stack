@@ -28,6 +28,34 @@
 
 /** @file h_wp.c  Handles Write Property requests. */
 
+/**
+ * @brief Handler for a WriteProperty Service request when the
+ *  property is a NULL type and the property is not commandable
+ *
+ *      15.9.2 WriteProperty Service Procedure
+ *
+ *      If an attempt is made to relinquish a property that is
+ *      not commandable and for which Null is not a supported
+ *      datatype, if no other error conditions exist,
+ *      the property shall not be changed, and the write shall
+ *      be considered successful.
+ *
+ * @param wp_data [in] The WriteProperty data structure
+ * @return true if the write shall be considered successful
+ */
+static bool
+handler_write_property_relinquish_bypass(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false;
+
+#if BACNET_PROTOCOL_REVISION >= 21
+    status = write_property_relinquish_bypass(
+        wp_data, Device_Objects_Property_List_Member);
+#endif
+
+    return status;
+}
+
 #if BACNET_PROTOCOL_REVISION >= 21
 /**
  * @brief Handler for a WriteProperty Service request when the
@@ -153,7 +181,8 @@ void handler_write_property(
         }
         if (bcontinue) {
 #if BACNET_PROTOCOL_REVISION >= 21
-            success = handler_write_property_special_null(&wp_data);
+
+            success = handler_write_property_relinquish_bypass(&wp_data);
 #endif
             if (!success) {
                 if (write_property_bacnet_array_valid(&wp_data)) {
