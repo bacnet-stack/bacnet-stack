@@ -346,6 +346,7 @@ bool Multistate_Value_Present_Value_Set(
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         max_states = state_name_count(pObject->State_Text);
+        fprintf(stderr, "Multistate_Value_Present_Value_Set value=%u and max_states=%u\n", value, max_states);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
