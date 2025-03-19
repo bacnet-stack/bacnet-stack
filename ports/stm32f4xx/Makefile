@@ -53,6 +53,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_whois.c \
 	$(BACNET_BASIC)/service/h_wp.c \
 	$(BACNET_BASIC)/service/h_noserv.c \
+	$(BACNET_BASIC)/service/h_cov.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
 	$(BACNET_BASIC)/sys/debug.c \
