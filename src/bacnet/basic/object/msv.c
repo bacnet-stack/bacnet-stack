@@ -349,6 +349,9 @@ bool Multistate_Value_Present_Value_Set(
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
+            if (pObject->Change_Of_Value) {
+                cov_change_detected_notify();
+            }
             status = true;
         }
     }
@@ -411,10 +414,10 @@ static bool Multistate_Value_Present_Value_Write(
                 pObject->Present_Value = value;
                 if (pObject->Out_Of_Service) {
                     /* The physical point that the object represents
-                        is not in service. This means that changes to the
-                        Present_Value property are decoupled from the
-                        physical point when the value of Out_Of_Service
-                        is true. */
+                       is not in service. This means that changes to the
+                       Present_Value property are decoupled from the
+                       physical point when the value of Out_Of_Service
+                       is true. */
                     if (value > max_states || value == 0) {
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -424,6 +427,9 @@ static bool Multistate_Value_Present_Value_Write(
                 } else if (Multistate_Value_Write_Present_Value_Callback) {
                     Multistate_Value_Write_Present_Value_Callback(
                         object_instance, old_value, value);
+                }
+                if (pObject->Change_Of_Value) {
+                    cov_change_detected_notify();
                 }
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -482,6 +488,7 @@ void Multistate_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
                 pObject->Present_Value = pObject->Present_Value_Backup;
                 pObject->Write_Enabled = false;
             }
+            cov_change_detected_notify();
         }
     }
 
@@ -498,7 +505,7 @@ void Multistate_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
  *
  * @return  true if value is set, false if not or error occurred
  */
-static bool Multistate_Value_Out_Of_Service_Write(
+bool Multistate_Value_Out_Of_Service_Write(
     uint32_t object_instance,
     bool value,
     BACNET_ERROR_CLASS *error_class,
@@ -913,9 +920,8 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                status = Multistate_Value_Out_Of_Service_Write(
-                    wp_data->object_instance, value.type.Boolean,
-                    &wp_data->error_class, &wp_data->error_code);
+                Multistate_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         default:

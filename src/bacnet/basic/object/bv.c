@@ -301,6 +301,9 @@ void Binary_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
             pObject->Change_Of_Value = true;
         }
         pObject->Out_Of_Service = value;
+        if (pObject->Change_Of_Value) {
+            cov_change_detected_notify();
+        }
     }
 
     return;
@@ -474,6 +477,9 @@ bool Binary_Value_Present_Value_Set(
         if (value <= MAX_BINARY_PV) {
             Binary_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = Binary_Present_Value_Boolean(value);
+            if (pObject->Change_Of_Value) {
+                cov_change_detected_notify();
+            }
             status = true;
         }
     }
@@ -539,6 +545,9 @@ static bool Binary_Value_Present_Value_Write(
                     Binary_Value_Write_Present_Value_Callback(
                         object_instance, old_value, value);
                 }
+                if (pObject->Change_Of_Value) {
+                    cov_change_detected_notify();
+                }
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -566,7 +575,7 @@ static bool Binary_Value_Present_Value_Write(
  *
  * @return  true if flag is set, false if errors occurred
  */
-static bool Binary_Value_Out_Of_Service_Write(
+bool Binary_Value_Out_Of_Service_Write(
     uint32_t object_instance,
     bool value,
     BACNET_ERROR_CLASS *error_class,
@@ -1067,9 +1076,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                status = Binary_Value_Out_Of_Service_Write(
-                    wp_data->object_instance, value.type.Boolean,
-                    &wp_data->error_class, &wp_data->error_code);
+                Binary_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
 #if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)

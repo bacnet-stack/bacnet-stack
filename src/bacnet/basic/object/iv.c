@@ -217,6 +217,9 @@ bool Integer_Value_Present_Value_Set(
     if (pObject) {
         Integer_Value_COV_Detect(pObject, value);
         pObject->Present_Value = value;
+        if (pObject->Changed) {
+            cov_change_detected_notify();
+        }
         status = true;
     }
 
@@ -458,6 +461,8 @@ void Integer_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
             }
+            pObject->Changed = true;
+            cov_change_detected_notify();
         }
     }
 }

@@ -54,6 +54,7 @@ static const int Properties_Proprietary[] = {
     -1
 };
 /* clang-format on */
+static void Analog_Input_Object_Changed_Set(struct analog_input_descr *pObject);
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -198,8 +199,8 @@ Analog_Input_COV_Detect(struct analog_input_descr *pObject, float value)
             cov_delta = value - prior_value;
         }
         if (cov_delta >= cov_increment) {
-            pObject->Changed = true;
-            pObject->Prior_Value = value;
+            pObject->Prior_Value = pObject->Present_Value;
+            Analog_Input_Object_Changed_Set(pObject);
         }
     }
 }
@@ -624,6 +625,12 @@ bool Analog_Input_Out_Of_Service(uint32_t object_instance)
     return value;
 }
 
+static void Analog_Input_Object_Changed_Set(struct analog_input_descr *pObject)
+{
+    pObject->Changed = true;
+    cov_change_detected_notify();
+}
+
 /**
  * @brief For a given object instance-number, sets the out-of-service property
  * value
@@ -638,7 +645,6 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
-            pObject->Changed = true;
             /* Lets backup Present_Value when going Out_Of_Service  or restore
              * when going out of Out_Of_Service */
             if ((pObject->Out_Of_Service = value)) {
@@ -646,6 +652,7 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
             }
+            Analog_Input_Object_Changed_Set(pObject);
         }
     }
 }

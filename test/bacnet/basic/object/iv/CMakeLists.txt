@@ -66,6 +66,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     # Test and test library files
+    ./src/stubs.c
     ./src/main.c
     ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${ZTST_DIR}/ztest_mock.c
