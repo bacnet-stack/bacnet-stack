@@ -349,7 +349,7 @@ bool Multistate_Value_Present_Value_Set(
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
-            if(pObject->Change_Of_Value) {
+            if (pObject->Change_Of_Value) {
                 cov_change_detected_notify();
             }
             status = true;
@@ -426,9 +426,9 @@ static bool Multistate_Value_Present_Value_Write(
 
                 } else if (Multistate_Value_Write_Present_Value_Callback) {
                     Multistate_Value_Write_Present_Value_Callback(
-                            object_instance, old_value, value);
+                        object_instance, old_value, value);
                 }
-                if(pObject->Change_Of_Value) {
+                if (pObject->Change_Of_Value) {
                     cov_change_detected_notify();
                 }
             } else {

@@ -287,7 +287,7 @@ bool CharacterString_Value_Present_Value_Set(
             !characterstring_same(&pObject->Present_Value, present_value);
 
         status = characterstring_copy(&pObject->Present_Value, present_value);
-        if(pObject->Changed) {
+        if (pObject->Changed) {
             cov_change_detected_notify();
         }
     }
