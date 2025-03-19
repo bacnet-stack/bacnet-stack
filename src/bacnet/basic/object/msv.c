@@ -505,7 +505,7 @@ void Multistate_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
  *
  * @return  true if value is set, false if not or error occurred
  */
-static bool Multistate_Value_Out_Of_Service_Write(
+bool Multistate_Value_Out_Of_Service_Write(
     uint32_t object_instance,
     bool value,
     BACNET_ERROR_CLASS *error_class,
