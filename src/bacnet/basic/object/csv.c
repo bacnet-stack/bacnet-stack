@@ -287,6 +287,9 @@ bool CharacterString_Value_Present_Value_Set(
             !characterstring_same(&pObject->Present_Value, present_value);
 
         status = characterstring_copy(&pObject->Present_Value, present_value);
+        if(pObject->Changed) {
+            cov_change_detected_notify();
+        }
     }
 
     return status;
@@ -361,6 +364,7 @@ void CharacterString_Value_Out_Of_Service_Set(
                 characterstring_copy(
                     &pObject->Present_Value, &pObject->Present_Value_Backup);
             }
+            cov_change_detected_notify();
         }
     }
 
