@@ -346,7 +346,6 @@ bool Multistate_Value_Present_Value_Set(
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         max_states = state_name_count(pObject->State_Text);
-        fprintf(stderr, "Multistate_Value_Present_Value_Set value=%u and max_states=%u\n", value, max_states);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
@@ -401,7 +400,7 @@ static bool Multistate_Value_Present_Value_Write(
     struct object_data *pObject;
     uint32_t old_value = 1;
     uint32_t count = 0;
-
+    // do some check for the value as it is being updated to what is coming in
     count = Multistate_Value_Max_States(object_instance);
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
@@ -409,6 +408,7 @@ static bool Multistate_Value_Present_Value_Write(
             if (pObject->Write_Enabled) {
                 status = true;
                 old_value = pObject->Present_Value;
+                fprintf(stderr, "Multistate_Value_Present_Value_Write old_value=%u\n", old_value);
                 Multistate_Value_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = value;
                 if (pObject->Out_Of_Service) {
@@ -419,6 +419,7 @@ static bool Multistate_Value_Present_Value_Write(
                         is true. */
                     fprintf(stderr, "Multistate_Value_Present_Value_Write value=%u and count=%u\n", value, count);
                     if (value > count || value == 0) {
+                        pObject->Present_Value = old_value;
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         status = false;
