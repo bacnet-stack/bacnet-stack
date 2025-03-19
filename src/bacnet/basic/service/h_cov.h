@@ -37,6 +37,12 @@ BACNET_STACK_EXPORT
 void handler_cov_init(void);
 BACNET_STACK_EXPORT
 int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu);
+BACNET_STACK_EXPORT
+void cov_change_detected_notify(void);
+BACNET_STACK_EXPORT
+void cov_change_detected_reset(void);
+BACNET_STACK_EXPORT
+int cov_change_detected_get(void);
 
 #ifdef __cplusplus
 }

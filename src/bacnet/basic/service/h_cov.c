@@ -66,6 +66,8 @@ static BACNET_COV_SUBSCRIPTION COV_Subscriptions[MAX_COV_SUBCRIPTIONS];
 #endif
 static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 
+static int cov_change_detected = 0;
+
 /**
  * Gets the address from the list of COV addresses
  *
@@ -379,11 +381,20 @@ static bool cov_list_subscribe(
                     COV_Subscriptions[index].dest_index = MAX_COV_ADDRESSES;
                     cov_address_remove_unused();
                 } else {
+                    const BACNET_OBJECT_TYPE object_type =
+                        (BACNET_OBJECT_TYPE)COV_Subscriptions[index]
+                            .monitoredObjectIdentifier.type;
+                    const uint32_t object_instance =
+                        COV_Subscriptions[index]
+                            .monitoredObjectIdentifier.instance;
+
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
                     COV_Subscriptions[index].flag.issueConfirmedNotifications =
                         cov_data->issueConfirmedNotifications;
                     COV_Subscriptions[index].lifetime = cov_data->lifetime;
-                    COV_Subscriptions[index].flag.send_requested = true;
+                    if (Device_COV(object_type, object_instance)) {
+                        cov_change_detected_notify();
+                    }
                 }
                 if (COV_Subscriptions[index].invokeID) {
                     tsm_free_invoke_id(COV_Subscriptions[index].invokeID);
@@ -420,7 +431,11 @@ static bool cov_list_subscribe(
                 cov_data->issueConfirmedNotifications;
             COV_Subscriptions[index].invokeID = 0;
             COV_Subscriptions[index].lifetime = cov_data->lifetime;
-            COV_Subscriptions[index].flag.send_requested = true;
+            if (Device_COV(
+                    cov_data->monitoredObjectIdentifier.type,
+                    cov_data->monitoredObjectIdentifier.instance)) {
+                cov_change_detected_notify();
+            }
         }
     } else if (!existing_entry) {
         if (first_invalid_index < 0) {
@@ -646,7 +661,10 @@ bool handler_cov_fsm(const bool reset)
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
 #if PRINT_ENABLED
-                    fprintf(stderr, "COVtask: Marking...\n");
+                    fprintf(
+                        stderr,
+                        "COVtask: Marking index = %d; instance = %u...\n",
+                        index, object_instance);
 #endif
                 }
             }
@@ -712,13 +730,21 @@ bool handler_cov_fsm(const bool reset)
                     object_instance = COV_Subscriptions[index]
                                           .monitoredObjectIdentifier.instance;
 #if PRINT_ENABLED
-                    fprintf(stderr, "COVtask: Sending...\n");
+                    fprintf(
+                        stderr,
+                        "COVtask: Sending... index = %d; instance = %u\n",
+                        index,
+                        COV_Subscriptions[index]
+                            .monitoredObjectIdentifier.instance);
 #endif
                     /* configure the linked list for the two properties */
                     bacapp_property_value_list_init(
                         &value_list[0], MAX_COV_PROPERTIES);
                     status = Device_Encode_Value_List(
                         object_type, object_instance, &value_list[0]);
+                    fprintf(
+                        stderr, "[%s %d %s]: status = %d\r\n", __FILE__,
+                        __LINE__, __func__, status);
                     if (status) {
                         status = cov_send_request(
                             &COV_Subscriptions[index], &value_list[0]);
@@ -745,6 +771,21 @@ bool handler_cov_fsm(const bool reset)
 void handler_cov_task(void)
 {
     handler_cov_fsm(false);
+}
+
+void cov_change_detected_notify(void)
+{
+    cov_change_detected++;
+}
+
+void cov_change_detected_reset(void)
+{
+    cov_change_detected = 0;
+}
+
+int cov_change_detected_get(void)
+{
+    return cov_change_detected;
 }
 
 static bool cov_subscribe(
