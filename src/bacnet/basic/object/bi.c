@@ -353,7 +353,7 @@ void Binary_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
                 pObject->Present_Value = pObject->Present_Value_Backup;
                 pObject->Write_Enabled = false;
             }
-            if(pObject->Change_Of_Value) {
+            if (pObject->Change_Of_Value) {
                 cov_change_detected_notify();
             }
         }
@@ -536,7 +536,7 @@ bool Binary_Input_Present_Value_Set(
             }
             Binary_Input_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = Binary_Present_Value_Boolean(value);
-            if(pObject->Change_Of_Value) {
+            if (pObject->Change_Of_Value) {
                 cov_change_detected_notify();
             }
             status = true;
@@ -612,7 +612,7 @@ static bool Binary_Input_Present_Value_Write(
                     Binary_Input_Write_Present_Value_Callback(
                         object_instance, old_value, value);
                 }
-                if(pObject->Change_Of_Value) {
+                if (pObject->Change_Of_Value) {
                     cov_change_detected_notify();
                 }
                 status = true;

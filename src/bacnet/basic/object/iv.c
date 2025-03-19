@@ -217,7 +217,7 @@ bool Integer_Value_Present_Value_Set(
     if (pObject) {
         Integer_Value_COV_Detect(pObject, value);
         pObject->Present_Value = value;
-        if(pObject->Changed) {
+        if (pObject->Changed) {
             cov_change_detected_notify();
         }
         status = true;
