@@ -1319,6 +1319,9 @@ int bacapp_known_property_tag(
             /* FIXME: BACnetAddressBinding */
             return -1;
 
+        case PROP_LOG_BUFFER:
+            /* BACnetLogRecord */
+            return BACNET_APPLICATION_TAG_LOG_RECORD;
         case PROP_ACTION:
             /* BACnetActionCommand */
             return BACNET_APPLICATION_TAG_ACTION_COMMAND;

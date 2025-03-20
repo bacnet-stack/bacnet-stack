@@ -173,15 +173,19 @@ static void print_help(const char *filename)
     printf("count:\n"
            "This integer parameter is the number of elements to read.\n");
     printf("\n");
-    printf("Example:\n"
-           "If you want read the Log_Buffer of Trend Log 2\n"
-           "in Device 123, from starting position 1 and read 10 entries,\n"
+    printf("Examples:\n"
+           "If you want read the Log_Buffer of Trend Log 2 in Device 123,"
+           "from starting position 1 and read 10 entries,\n"
            "you could send the following commands:\n");
     printf("%s 123 trend-log 2 log-buffer 1 1 10\n", filename);
-    printf("%s 123 trend-log 2 log-buffer 2 1 10\n", filename);
-    printf("%s 123 trend-log 2 log-buffer 3 1/1/2014 00:00:01 10\n", filename);
     printf("%s 123 20 2 131 1 1 10\n", filename);
+    printf("from starting sequence 1 and read 10 entries,\n"
+           "you could send the following commands:\n");
+    printf("%s 123 trend-log 2 log-buffer 2 1 10\n", filename);
     printf("%s 123 20 2 131 2 1 10\n", filename);
+    printf("from starting date/time 1/1/2014 00:00:01 and read 10 entries,\n"
+           "you could send the following commands:\n");
+    printf("%s 123 trend-log 2 log-buffer 3 1/1/2014 00:00:01 10\n", filename);
     printf("%s 123 20 2 131 3 1/1/2014 00:00:01 10\n", filename);
 }
 
@@ -221,7 +225,7 @@ int main(int argc, char *argv[])
             return 0;
         }
     }
-    if (argc < 5) {
+    if (argc < 6) {
         print_usage(filename);
         return 0;
     }
@@ -247,7 +251,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     if (Target_Object_Range_Type == 1) {
-        if (argc < 7) {
+        if (argc < 8) {
             print_usage(filename);
             return 0;
         }
@@ -257,7 +261,7 @@ int main(int argc, char *argv[])
         RR_Request.Range.RefIndex = Target_Object_Index;
         RR_Request.Count = Target_Object_Count;
     } else if (Target_Object_Range_Type == 2) {
-        if (argc < 7) {
+        if (argc < 8) {
             print_usage(filename);
             return 0;
         }
@@ -267,7 +271,7 @@ int main(int argc, char *argv[])
         RR_Request.Range.RefSeqNum = Target_Object_Index;
         RR_Request.Count = Target_Object_Count;
     } else if (Target_Object_Range_Type == 3) {
-        if (argc < 8) {
+        if (argc < 9) {
             print_usage(filename);
             return 0;
         }
