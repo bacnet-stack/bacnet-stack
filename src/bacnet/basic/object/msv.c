@@ -400,7 +400,7 @@ static bool Multistate_Value_Present_Value_Write(
     struct object_data *pObject;
     uint32_t old_value = 1;
     uint32_t count = 0;
-    // do some check for the value as it is being updated to what is coming in
+
     count = Multistate_Value_Max_States(object_instance);
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
