@@ -408,7 +408,6 @@ static bool Multistate_Value_Present_Value_Write(
             if (pObject->Write_Enabled) {
                 status = true;
                 old_value = pObject->Present_Value;
-                fprintf(stderr, "Multistate_Value_Present_Value_Write old_value=%u\n", old_value);
                 Multistate_Value_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = value;
                 if (pObject->Out_Of_Service) {
@@ -417,7 +416,6 @@ static bool Multistate_Value_Present_Value_Write(
                         Present_Value property are decoupled from the
                         physical point when the value of Out_Of_Service
                         is true. */
-                    fprintf(stderr, "Multistate_Value_Present_Value_Write value=%u and count=%u\n", value, count);
                     if (value > count || value == 0) {
                         pObject->Present_Value = old_value;
                         *error_class = ERROR_CLASS_PROPERTY;
@@ -896,7 +894,6 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_OUT_OF_SERVICE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            fprintf(stderr, "Multistate_Value_Write_Property: PROP_OUT_OF_SERVICE status=%d\n", status);
             if (status) {
                 Multistate_Value_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
