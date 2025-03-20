@@ -414,12 +414,12 @@ static bool Multistate_Value_Present_Value_Write(
                 pObject->Present_Value = value;
                 if (pObject->Out_Of_Service) {
                     /* The physical point that the object represents
-                        is not in service. This means that changes to the
-                        Present_Value property are decoupled from the
-                        physical point when the value of Out_Of_Service
-                        is true. */
+                       is not in service. This means that changes to the
+                       Present_Value property are decoupled from the
+                       physical point when the value of Out_Of_Service
+                       is true. */
                     if (value > max_states || value == 0) {
-                        Object->Present_Value = old_value;
+                        pObject->Present_Value = old_value;
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         status = false;
