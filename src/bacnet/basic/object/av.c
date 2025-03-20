@@ -57,6 +57,8 @@ static const int Analog_Value_Properties_Proprietary[] = {
 };
 /* clang-format on */
 
+static void Analog_Value_Object_Changed_Set(struct analog_value_descr *pObject);
+
 /**
  * Initialize the pointers for the required, the optional and the properitary
  * value properties.
@@ -200,8 +202,8 @@ Analog_Value_COV_Detect(struct analog_value_descr *pObject, float value)
             cov_delta = value - prior_value;
         }
         if (cov_delta >= cov_increment) {
-            pObject->Changed = true;
             pObject->Prior_Value = value;
+            Analog_Value_Object_Changed_Set(pObject);
         }
     }
 }
@@ -635,6 +637,12 @@ bool Analog_Value_Out_Of_Service(uint32_t object_instance)
     return value;
 }
 
+static void Analog_Value_Object_Changed_Set(struct analog_value_descr *pObject)
+{
+    pObject->Changed = true;
+    cov_change_detected_notify();
+}
+
 /**
  * @brief For a given object instance-number, sets the out-of-service property
  * value
@@ -649,7 +657,6 @@ void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
-            pObject->Changed = true;
             /* Lets backup Present_Value when going Out_Of_Service  or restore
              * when going out of Out_Of_Service */
             if ((pObject->Out_Of_Service = value)) {
@@ -657,6 +664,7 @@ void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
             }
+            Analog_Value_Object_Changed_Set(pObject);
         }
     }
 }
@@ -893,14 +901,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -916,7 +916,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     ANALOG_VALUE_DESCR *CurrentAV;
 
     /* Valid data? */
@@ -940,14 +940,6 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     CurrentAV = Analog_Value_Object(wp_data->object_instance);
@@ -990,10 +982,6 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                     status = false;
                 }
-            } else {
-                status = false;
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -1841,9 +1829,9 @@ int Analog_Value_Event_Information(
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
         IsNotAckedTransitions =
             (pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
              false);
     } else {

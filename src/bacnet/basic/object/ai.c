@@ -54,6 +54,7 @@ static const int Properties_Proprietary[] = {
     -1
 };
 /* clang-format on */
+static void Analog_Input_Object_Changed_Set(struct analog_input_descr *pObject);
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -198,8 +199,8 @@ Analog_Input_COV_Detect(struct analog_input_descr *pObject, float value)
             cov_delta = value - prior_value;
         }
         if (cov_delta >= cov_increment) {
-            pObject->Changed = true;
-            pObject->Prior_Value = value;
+            pObject->Prior_Value = pObject->Present_Value;
+            Analog_Input_Object_Changed_Set(pObject);
         }
     }
 }
@@ -624,6 +625,12 @@ bool Analog_Input_Out_Of_Service(uint32_t object_instance)
     return value;
 }
 
+static void Analog_Input_Object_Changed_Set(struct analog_input_descr *pObject)
+{
+    pObject->Changed = true;
+    cov_change_detected_notify();
+}
+
 /**
  * @brief For a given object instance-number, sets the out-of-service property
  * value
@@ -638,7 +645,6 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
-            pObject->Changed = true;
             /* Lets backup Present_Value when going Out_Of_Service  or restore
              * when going out of Out_Of_Service */
             if ((pObject->Out_Of_Service = value)) {
@@ -646,6 +652,7 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
             }
+            Analog_Input_Object_Changed_Set(pObject);
         }
     }
 }
@@ -1207,14 +1214,6 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -1230,7 +1229,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct analog_input_descr *pObject;
 
     /* Valid data? */
@@ -1254,13 +1253,6 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     pObject = Analog_Input_Object(wp_data->object_instance);
@@ -1773,9 +1765,9 @@ int Analog_Input_Event_Information(
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
         IsNotAckedTransitions =
             (pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
              false);
     } else {

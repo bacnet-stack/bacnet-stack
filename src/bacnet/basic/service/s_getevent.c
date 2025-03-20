@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 bowe
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send a GetEventInformation request.
+ * @author Boris Weitsch <bow2@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -23,8 +22,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_getevent.c  Send a GetEventInformation request. */
+#include "bacnet/basic/sys/debug.h"
 
 /** Send a GetEventInformation request to a remote network for a specific
  * device, a range, or any device.
@@ -36,9 +34,7 @@ uint8_t Send_GetEvent(
 {
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     uint8_t invoke_id = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -57,28 +53,18 @@ uint8_t Send_GetEvent(
             &Handler_Transmit_Buffer[pdu_len], invoke_id,
             lastReceivedObjectIdentifier);
         pdu_len += len;
-#if PRINT_ENABLED
-        bytes_sent =
-#endif
-            datalink_send_pdu(
-                target_address, &npdu_data, &Handler_Transmit_Buffer[0],
-                pdu_len);
-#if PRINT_ENABLED
+        bytes_sent = datalink_send_pdu(
+            target_address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
         if (bytes_sent <= 0) {
-            fprintf(
-                stderr, "Failed to Send GetEventInformation Request (%s)!\n",
-                strerror(errno));
+            debug_perror("Failed to Send GetEventInformation Request");
         }
-#endif
     } else {
         tsm_free_invoke_id(invoke_id);
         invoke_id = 0;
-#if PRINT_ENABLED
-        fprintf(
+        debug_fprintf(
             stderr,
             "Failed to Send GetEventInformation Request "
             "(exceeds destination maximum APDU)!\n");
-#endif
     }
     return invoke_id;
 }

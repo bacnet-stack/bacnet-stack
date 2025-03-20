@@ -20,14 +20,43 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.4.0] - 2024-09-05
+## [1.4.0] - 2024-11-04
 
 ### Security
 
 * Secured BACnetAccessRule encoding and decoding and added unit testing.
+  Fixed BACnetAccessRule application integration into Access Rights object.
+  Improved unit testing and code coverage. (#790)
+* Secured Active-COV-Subscriptions property encoding. (#763)
+* Secured COV handling after refactor to using local buffer. (#802)
 
 ### Added
 
+* Added BACnet Secure Connect datalink. Added BACnet/SC hub application. (#818)
+* Added WriteGroup service to blinkt app demo. (#843)
+* Added blinkt and piface build in gcc pipeline to prevent bit rot. (#842)
+* Added missing MS/TP zero configuration preferred address API and usage. (#840)
+* Added unit testing for FIFO peek feature. (#839)
+* Added IPv6 Zone Index function to return ASCII. (#838)
+* Added network port callbacks for pending changes activate and discard. (#836)
+* Added WriteProperty setter for BACnet Unsigned Integer values. (#834)
+* Added linker specific code for Darwin for compiling mstpcrc. (#833)
+* Added WriteGroup service and Channel object interfaces. (#829)
+* Added common property test for BACnetARRAY. (#828)
+* Added code to parse BACnetAccessRule from ASCII command line. (#827)
+* Added a common BACnetARRAY write property iterator function. (#826)
+* Added cmake build artificats to gitignore.
+* Added some optional properties into the object property lists up to
+  protocol-revision 22. (#789)
+* Added serial-number property to basic device object example. (#789)
+* Added optional description property to basic network port object
+  example. (#788)
+* Added ucix_get_list and ucix_set_list function. (#780)
+* Added uci include and lib for cmake. (#779)
+* Added BACnet Ethernet support for MacOS X via pcap library. (#775)
+* Added local tool aptfile to use with apt based development
+  installation. (#772)
+* Added MS/TP support for MacOS X. (#764)
 * Added pre-commit clang-format 17 format check in pipeline. Formatted
   entire code base except external/ folders. (#755)
 * Added RP and RPM error code indications in callbacks in bac-rw.c
@@ -46,6 +75,21 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the lint apt install in quality pipeline to be consistent (#837)
+* Changed apps/epics by enabling BACnetARRAY checking. (#823)
+* Changed  BACnet Ethernet and IPv6 on win32 by switching from
+  WinPcap to npcap.  Included npcap SDK in cmake and libs for
+  IPv6 in cmake. (#774)
+* Changed pipeline gcc.yml to reduce known warnings from legacy
+  API by adding LEGACY flag to make bip-apps with GNU99. (#795)
+* Changed ATmega168 example for ATmega328 on Arduino Uno R3 with DFR0259
+  RS485 shield. Added ADC interface from BDK port and mapped to some AV
+  objects. Removed MS/TP MAC address DIP switch GPIO and moved MS/TP
+  configuration to AV objects. Added AV units property. Added some
+  Uno R3 Digital Inputs and outputs mapped to some BV. Added AVR EEPROM
+  from BDK port and mapped some non-volatile data
+  including MAC address and max manager and baud rate,
+  device ID and names and description and location. (#784)
 * Changed the datalink abstraction to enable selecting multiple datalinks
   using BACDL_MULTIPLE and one or more other BACDL defines. (#717)
 * Moved west manifest, zephyr folder, and ports/zephyr folders to
@@ -65,11 +109,57 @@ The git repositories are hosted at the following sites:
   easily applied. (#714)
 * Changed bacapp_snprintf_value() to be const correct. After that
   we got a warning that the 4th function call argument is an uninitialized
-  value [core.CallAndMessage] in bacapp_snprintf_weeklyschedule().
-  Fixed the warning by setting array_index to zero. (#714)
+  value in bacapp_snprintf_weeklyschedule(). Fixed the warning by setting
+  array_index to zero. (#714)
 
 ### Fixed
 
+* Fixed MS/TP zero-config preferred-station setting to not filter getter. (#844)
+* Fixed MS/TP module flush stderr compile error from leftover. (#844)
+* Fixed device object compile errors and added IPv6 recipes for blinkt
+  and piface (#841)
+* Fixed BACnet basic file object to have dynamic name, mime-type, path. (#835)
+* Fixed MS/TP Slave Node FSM to enable receiving DNER frames. (#832)
+* Fixed BACnetLightingCommand decode options by setting them. (#830)
+* Fixed jquery.js used for syntax highlighting in PERL documentation. (#817)
+* Fixed EXC_BAD_ACCESS in datalink_set() strcasecmp(). (#816)
+* Fixed BACNET_APPLICATION_DATA_VALUE declarations to be initialized so
+  that the next pointer is NULL by default. (#814)
+* Fixed mstpcap utility by setting This-Station to the MS/TP promiscuous
+  mode address 255. Fixed MS/TP receive filter for valid data frames which
+  was missing. Fixed MS/TP zero-config duplicate node detection. Reset
+  silence during MS/TP capture after writing packet to prevent endless
+  packets when stream is interrupted. (#812)
+* Fixed the Linux MSTP turnaround delay implementation. (#809)
+* Fixed app/router compiled with optimize Os when the program exits with
+  bit out of range 0 - FD_SETSIZE on fd_set. Solution disables optimize
+  for size by static set optimize 2 for GCC. Fixes (#793) (#808)
+* Fixed app/router-ipv6 duplicate symbol by using Device_Object_Instance_Number
+  from device-client.c module. Fixes (#778). (#806) (#807)
+* Fixed bsd/bip6.c:35:16: error: variadic macros are a C99 feature (#805)
+* Fixed MS/TP FSM TS (this station) filter that was removed for zero-config
+  permiscuous feature. (#803)
+* Fixed app router-ipv6 cmake (#800)
+* Fixed app router cmake (#799)
+* Fixed IP_DHCP_Enable property being present in Network Port object
+  by adding compiler define. (#796)
+* Fixed app/router in cmake recipe. (#794)
+* Fixed mismatched comments in netport.c module. (#792)
+* Fixed app/server when compiled with BAC_ROUTING. (#783)
+* Fixed a warning emitted from arm-none-eabi-gcc in hostnport.c (#785)
+* Fixed duplicated C file in CMakeLists.txt (#781)
+* Fixed cmake dependencies to build readbdt, readfdt and router-ipv6
+  if BACDL_BIP=OFF. (#777)
+* Fixed compiler warning in ports/bsd/rs485.c module. (#771)
+* Fixed UTF-8 passwords for DeviceCommunicationControl to hold up to
+  20 UTF-8 characters. (#767)
+* Fixed "types-limits" compiler warnings. (#766)
+* Fixed variable data type for boolean in RPM structure. Fixed RPM error
+  handling to use callback. Fixed bacrpm app example when not enough
+  command line parameters are used. Fixed empty-list EPICS printing.
+  Fixed RPM-Ack processing for end of list-of-results. Added minimal
+  handling for segmentation-not-supported during RPM of object
+  properties. (#765)
 * Fixed the order of operations in SubscribeCOV so the dest_index gets written
   to the correct slot instead of an initial MAX_COV_SUBSCRIPTIONS-1. (#761)
 * Fixed some spelling typos in comments. (#762)
@@ -86,6 +176,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACDL_ETHERNET build in the pipeline for MacOS Linux and Windows. (#822)
+* Added apps/router to ports/bsd by sharing API with ports/linux. (#821)
+* Added missing router-mstp in cmake (#820)
 * Added shield option explanation to ports/stm32f4xx/README.md (#749)
 * Added API for intrinsic reporting properties in Binary Value and Binary
   Input objects (#742)

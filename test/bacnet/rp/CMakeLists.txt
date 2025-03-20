@@ -38,6 +38,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     # Test and test library files
     ./src/main.c

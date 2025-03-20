@@ -29,6 +29,7 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_CHARACTERSTRING_VALUE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* list of the required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
@@ -50,7 +51,7 @@ typedef struct characterstring_object {
     /* Here is our Present Value */
     BACNET_CHARACTER_STRING Present_Value_Backup;
     BACNET_CHARACTER_STRING Present_Value;
-    BACNET_CHARACTER_STRING Name;
+    BACNET_CHARACTER_STRING Object_Name;
     BACNET_CHARACTER_STRING Description;
 } CHARACTERSTRING_VALUE_DESCR;
 
@@ -103,13 +104,12 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
         if (pObject) {
             /* add to list */
             int index = Keylist_Data_Add(Object_List, object_instance, pObject);
-
             if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
 
-            characterstring_init_ansi(&pObject->Name, "");
+            characterstring_init_ansi(&pObject->Object_Name, "");
             characterstring_init_ansi(&pObject->Description, "");
             characterstring_init_ansi(&pObject->Present_Value, "");
             characterstring_init_ansi(&pObject->Present_Value_Backup, "");
@@ -246,7 +246,7 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
  *
  * @param  object_instance - object-instance number of the object
  * @param  present_value - Pointer to the new BACnet string value,
- *                       taking the value.
+ *                         taking the value.
  *
  * @return  true if values are within range and present-value
  *          is returned.
@@ -287,6 +287,9 @@ bool CharacterString_Value_Present_Value_Set(
             !characterstring_same(&pObject->Present_Value, present_value);
 
         status = characterstring_copy(&pObject->Present_Value, present_value);
+        if (pObject->Changed) {
+            cov_change_detected_notify();
+        }
     }
 
     return status;
@@ -343,8 +346,8 @@ bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @param  true/false
  */
-static void
-CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
+void CharacterString_Value_Out_Of_Service_Set(
+    uint32_t object_instance, bool value)
 {
     struct characterstring_object *pObject =
         CharacterString_Value_Object(object_instance);
@@ -361,6 +364,7 @@ CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
                 characterstring_copy(
                     &pObject->Present_Value, &pObject->Present_Value_Backup);
             }
+            cov_change_detected_notify();
         }
     }
 
@@ -426,11 +430,9 @@ bool CharacterString_Value_Encode_Value_List(
 }
 
 /**
- * For a given object instance-number, return the description.
- *
+ * @brief For a given object instance-number, returns the description
  * @param  object_instance - object-instance number of the object
- *
- * @return  C-string pointer to the description.
+ * @return description text or NULL if not found
  */
 bool CharacterString_Value_Description(
     uint32_t object_instance, BACNET_CHARACTER_STRING *description)
@@ -500,7 +502,7 @@ bool CharacterString_Value_Object_Name(
     }
 
     if (pObject) {
-        *object_name = pObject->Name;
+        *object_name = pObject->Object_Name;
         status = true;
     }
 
@@ -508,14 +510,10 @@ bool CharacterString_Value_Object_Name(
 }
 
 /**
- * For a given object instance-number, set the object text.
- *
- * Note: the object name must be unique within this device
- *
+ * @brief For a given object instance-number, sets the object-name
  * @param  object_instance - object-instance number of the object
- * @param  new_name - C-String pointer to the text, representing the object name
- *
- * @return True on success, false otherwise.
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
  */
 bool CharacterString_Value_Name_Set(
     uint32_t object_instance, const char *new_name)
@@ -526,13 +524,31 @@ bool CharacterString_Value_Name_Set(
 
     if (pObject) {
         if (new_name) {
-            status = characterstring_init_ansi(&pObject->Name, new_name);
+            status = characterstring_init_ansi(&pObject->Object_Name, new_name);
         } else {
-            status = characterstring_init_ansi(&pObject->Name, "");
+            status = characterstring_init_ansi(&pObject->Object_Name, "");
         }
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *CharacterString_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct characterstring_object *pObject;
+
+    pObject = CharacterString_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name.value;
+    }
+
+    return name;
 }
 
 /**
@@ -559,7 +575,6 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-
     pObject = CharacterString_Value_Object(rpdata->object_instance);
     /* Valid object? */
     if (!pObject) {
@@ -567,9 +582,7 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return BACNET_STATUS_ERROR;
     }
-
     apdu = rpdata->application_data;
-
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -634,13 +647,6 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -657,8 +663,9 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+
     struct characterstring_object *pObject = NULL;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (wp_data == NULL) {
         return false;
@@ -714,20 +721,16 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-#if (CHARACTERSTRING_INTRINSIC_REPORTING)
-        case PROP_EVENT_STATE:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
-#endif
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

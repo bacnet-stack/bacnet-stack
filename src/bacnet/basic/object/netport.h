@@ -17,6 +17,20 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+/**
+ * @brief API for a network port object when changes need to be activated
+ * @param object_instance [in] Object instance number
+ * @return true if successful, else false
+ */
+typedef void (*bacnet_network_port_activate_changes)(uint32_t object_instance);
+
+/**
+ * @brief API for a network port object when changes need to be discarded
+ * @param object_instance [in] Object instance number
+ * @return true if successful, else false
+ */
+typedef void (*bacnet_network_port_discard_changes)(uint32_t object_instance);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -308,6 +322,8 @@ BACNET_STACK_EXPORT
 bool Network_Port_IPv6_Zone_Index(
     uint32_t object_instance, BACNET_CHARACTER_STRING *zone_index);
 BACNET_STACK_EXPORT
+const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance);
+BACNET_STACK_EXPORT
 bool Network_Port_IPv6_Gateway_Zone_Index_Set(
     uint32_t object_instance, char *zone_index);
 
@@ -329,7 +345,13 @@ bool Network_Port_Changes_Pending_Set(uint32_t instance, bool flag);
 BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Activate(uint32_t instance);
 BACNET_STACK_EXPORT
+void Network_Port_Changes_Pending_Activate_Callback_Set(
+    uint32_t instance, bacnet_network_port_activate_changes callback);
+BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Discard(uint32_t instance);
+BACNET_STACK_EXPORT
+void Network_Port_Changes_Pending_Discard_Callback_Set(
+    uint32_t instance, bacnet_network_port_discard_changes callback);
 
 BACNET_STACK_EXPORT
 bool Network_Port_Valid_Instance(uint32_t object_instance);

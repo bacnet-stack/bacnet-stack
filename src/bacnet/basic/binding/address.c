@@ -76,7 +76,7 @@ static struct Address_Cache_Entry {
  */
 void address_protected_entry_index_set(uint32_t top_protected_entry_index)
 {
-    if (top_protected_entry_index <= (MAX_ADDRESS_CACHE - 1)) {
+    if (top_protected_entry_index < MAX_ADDRESS_CACHE) {
         Top_Protected_Entry = top_protected_entry_index;
     }
 }

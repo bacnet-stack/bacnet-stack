@@ -32,6 +32,31 @@
 typedef int (*bacnet_array_property_element_encode_function)(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
 
+/**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu or BACNET_STATUS_ERROR
+ */
+typedef int (*bacnet_array_property_element_decode_function)(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size);
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+typedef BACNET_ERROR_CODE (*bacnet_array_property_element_write_function)(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len);
+
 typedef struct BACnetTag {
     uint8_t number;
     bool application : 1;
@@ -137,6 +162,8 @@ BACNET_STACK_EXPORT
 int encode_application_null(uint8_t *apdu);
 BACNET_STACK_EXPORT
 int encode_context_null(uint8_t *apdu, uint8_t tag_number);
+BACNET_STACK_EXPORT
+int bacnet_null_application_decode(const uint8_t *apdu, uint32_t apdu_size);
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
 BACNET_STACK_EXPORT
@@ -315,6 +342,12 @@ int bacnet_object_id_context_decode(
     uint8_t tag_value,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *instance);
+BACNET_STACK_EXPORT
+bool bacnet_object_id_same(
+    BACNET_OBJECT_TYPE object_type1,
+    uint32_t instance1,
+    BACNET_OBJECT_TYPE object_type2,
+    uint32_t instance2);
 
 BACNET_STACK_EXPORT
 int encode_octet_string(uint8_t *apdu, const BACNET_OCTET_STRING *octet_string);
@@ -604,6 +637,16 @@ int bacnet_array_encode(
     BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *apdu,
     int max_apdu);
+
+BACNET_STACK_EXPORT
+BACNET_ERROR_CODE bacnet_array_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_array_property_element_write_function write_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size);
 
 /* from clause 20.2.1.2 Tag Number */
 /* true if extended tag numbering is used */

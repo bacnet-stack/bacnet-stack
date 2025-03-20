@@ -65,3 +65,7 @@ void handler_get_alarm_summary_set(
     (void)object_type;
     (void)pFunction;
 }
+
+void cov_change_detected_notify(void)
+{
+}

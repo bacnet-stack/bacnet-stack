@@ -11,7 +11,7 @@ all: test
 
 BUILD_DIR=build
 
-CTEST_OPTIONS := --quiet --output-on-failure
+CTEST_OPTIONS := --output-on-failure
 CTEST_OPTIONS += --output-junit test-results.xml
 
 # determine the compile environment name

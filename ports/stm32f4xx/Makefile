@@ -3,15 +3,15 @@
 #+-------------------------------------------------------------------------------------------------+
 TARGET=bacnet
 
-BACNET_DIR = ../..
+BACNET_DIR = $(realpath ../..)
 BACNET_SRC := $(BACNET_DIR)/src
 BACNET_CORE := $(BACNET_SRC)/bacnet
 BACNET_BASIC := $(BACNET_CORE)/basic
 BACNET_INCLUDE := $(BACNET_SRC)
-PLATFORM_DIR = .
-LIBRARY_STM32 = ./external/STM32F4xx_StdPeriph_Driver/src
-LIBRARY_STM32_INCLUDES = ./external/STM32F4xx_StdPeriph_Driver/inc
-LIBRARY_CMSIS = ./external/CMSIS
+PLATFORM_DIR = $(realpath .)
+LIBRARY_STM32 = $(realpath ./external/STM32F4xx_StdPeriph_Driver/src)
+LIBRARY_STM32_INCLUDES = $(realpath ./external/STM32F4xx_StdPeriph_Driver/inc)
+LIBRARY_CMSIS = $(realpath ./external/CMSIS)
 
 CSTACK_TOOL := $(BACNET_DIR)/tools/avstack/avstack.pl
 MEMAP_TOOL := $(BACNET_DIR)/tools/memap/memap.py
@@ -48,13 +48,18 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \
+	$(BACNET_BASIC)/service/h_ts.c \
 	$(BACNET_BASIC)/service/h_whohas.c \
 	$(BACNET_BASIC)/service/h_whois.c \
 	$(BACNET_BASIC)/service/h_wp.c \
 	$(BACNET_BASIC)/service/h_noserv.c \
+	$(BACNET_BASIC)/service/h_cov.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
 	$(BACNET_BASIC)/sys/debug.c \
+	$(BACNET_BASIC)/sys/datetime_mstimer.c \
+	$(BACNET_BASIC)/sys/days.c \
+	$(BACNET_BASIC)/sys/dst.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
 	$(BACNET_BASIC)/sys/keylist.c \
@@ -92,6 +97,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/timestamp.c \
+	$(BACNET_CORE)/timesync.c \
 	$(BACNET_CORE)/weeklyschedule.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \

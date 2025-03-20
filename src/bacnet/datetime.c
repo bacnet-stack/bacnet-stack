@@ -141,21 +141,12 @@ uint32_t
 datetime_ymd_to_days_since_epoch(uint16_t year, uint8_t month, uint8_t day)
 {
     uint32_t days = 0; /* return value */
-    uint16_t years = 0; /* loop counter for years */
 
     if (datetime_ymd_is_valid(year, month, day)) {
-        for (years = BACNET_DATE_YEAR_EPOCH; years < year; years++) {
-            days += 365;
-            if (days_is_leap_year(years)) {
-                days++;
-            }
-        }
-        days += datetime_ymd_day_of_year(year, month, day);
-        /* 'days since' is one less */
-        days -= 1;
+        days = days_since_epoch(BACNET_DATE_YEAR_EPOCH, year, month, day);
     }
 
-    return (days);
+    return days;
 }
 
 /**
@@ -248,11 +239,9 @@ void datetime_days_since_epoch_into_date(uint32_t days, BACNET_DATE *bdate)
  */
 uint8_t datetime_day_of_week(uint16_t year, uint8_t month, uint8_t day)
 {
-    uint8_t dow = (uint8_t)BACNET_DAY_OF_WEEK_EPOCH;
-
-    dow += (datetime_ymd_to_days_since_epoch(year, month, day) % 7);
-
-    return dow;
+    return days_of_week(
+        BACNET_DAY_OF_WEEK_EPOCH,
+        datetime_ymd_to_days_since_epoch(year, month, day));
 }
 
 /**
