@@ -30,7 +30,7 @@ static void test_bacnet_log_record_datum(BACNET_LOG_RECORD *value)
     apdu_len = bacnet_log_record_encode(apdu, sizeof(apdu), value);
     zassert_equal(apdu_len, null_len, NULL);
     null_len = bacnet_log_record_decode(apdu, apdu_len, NULL);
-    zassert_equal(test_len, null_len, "datum=%u", value->tag);
+    zassert_equal(apdu_len, null_len, NULL);
     test_len = bacnet_log_record_decode(apdu, apdu_len, &test_value);
     zassert_equal(apdu_len, test_len, "datum=%u", value->tag);
     zassert_true(bacnet_log_record_same(value, &test_value), NULL);
@@ -40,7 +40,7 @@ static void test_bacnet_log_record_datum(BACNET_LOG_RECORD *value)
     apdu_len = bacnet_log_record_encode(apdu, sizeof(apdu), value);
     zassert_equal(apdu_len, null_len, NULL);
     null_len = bacnet_log_record_decode(apdu, apdu_len, NULL);
-    zassert_equal(test_len, null_len, "datum=%u", value->tag);
+    zassert_equal(apdu_len, null_len, NULL);
     test_len = bacnet_log_record_decode(apdu, apdu_len, &test_value);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_true(bacnet_log_record_same(value, &test_value), NULL);
@@ -50,7 +50,7 @@ static void test_bacnet_log_record_datum(BACNET_LOG_RECORD *value)
     apdu_len = bacnet_log_record_encode(apdu, sizeof(apdu), value);
     zassert_equal(apdu_len, null_len, NULL);
     null_len = bacnet_log_record_decode(apdu, apdu_len, NULL);
-    zassert_equal(test_len, null_len, "datum=%u", value->tag);
+    zassert_equal(apdu_len, null_len, NULL);
     test_len = bacnet_log_record_decode(apdu, apdu_len, &test_value);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_true(bacnet_log_record_same(value, &test_value), NULL);
@@ -99,14 +99,15 @@ static void test_bacnet_log_record(void)
     status = bacnet_log_record_datum_from_ascii(&value, "-1234");
     zassert_true(status, NULL);
     zassert_equal(value.tag, BACNET_LOG_DATUM_SIGNED, NULL);
-    zassert_equal(value.log_datum.integer_value, 1234, NULL);
+    zassert_equal(value.log_datum.integer_value, -1234, NULL);
     test_bacnet_log_record_datum(&value);
 
     /* value type = REAL */
     status = bacnet_log_record_datum_from_ascii(&value, "3.14159");
     zassert_true(status, NULL);
     zassert_equal(value.tag, BACNET_LOG_DATUM_REAL, NULL);
-    zassert_false(islessgreater(value.log_datum.real_value, 3.14159), NULL);
+    status = islessgreater(value.log_datum.real_value, 3.14159f);
+    zassert_false(status, NULL);
     test_bacnet_log_record_datum(&value);
 
     /* value type = ENUMERATED */

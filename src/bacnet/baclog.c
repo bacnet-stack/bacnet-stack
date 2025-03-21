@@ -222,6 +222,7 @@ int bacnet_log_record_datum32_decode(
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     int32_t signed_value = 0;
     BACNET_BIT_STRING bit_string = { 0 };
+    bool boolean_value = false;
     unsigned i;
 
     if (!apdu) {
@@ -248,8 +249,10 @@ int bacnet_log_record_datum32_decode(
             break;
         case BACNET_LOG_DATUM_BOOLEAN:
             /* boolean-value [1] BOOLEAN */
+            len = bacnet_boolean_context_value_decode(
+                apdu, apdu_size, &boolean_value);
             if (value) {
-                value->log_datum.boolean_value = decode_boolean(len_value_type);
+                value->log_datum.boolean_value = boolean_value;
             }
             break;
         case BACNET_LOG_DATUM_REAL:
@@ -599,7 +602,10 @@ int bacnet_log_record_decode(
                 &value->status_flags, 7, true);
         }
     } else if (len == 0) {
-        value->status_flags = 0;
+        if (value) {
+            /* no status flags */
+            value->status_flags = 0;
+        }
     } else if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
@@ -618,6 +624,9 @@ bool bacnet_log_record_same(
 {
     int diff;
 
+    if (!value1 || !value2) {
+        return false;
+    }
     if (value1->tag != value2->tag) {
         return false;
     }

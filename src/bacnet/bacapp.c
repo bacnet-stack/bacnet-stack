@@ -1165,6 +1165,8 @@ static int decode_priority_array_value(
         }
         apdu_len += len;
     } else
+#else
+    (void)object_type;
 #endif
     {
         apdu_len = bacapp_decode_application_data(apdu, apdu_size, value);
@@ -1367,6 +1369,8 @@ int bacapp_known_property_tag(
             return -1;
     }
 #else
+    (void)object_type;
+    (void)property;
     return -1;
 #endif
 }
