@@ -23,6 +23,7 @@
 #include "bacnet/access_rule.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
+#include "bacnet/baclog.h"
 #include "bacnet/bacreal.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
@@ -525,6 +526,13 @@ int bacapp_encode_application_data(
                 /* BACnetChannelValue */
                 apdu_len = bacnet_channel_value_type_encode(
                     apdu, &value->type.Channel_Value);
+                break;
+#endif
+#if defined(BACAPP_LOG_RECORD)
+            case BACNET_APPLICATION_TAG_LOG_RECORD:
+                /* BACnetLogRecord */
+                apdu_len = bacnet_log_record_value_encode(
+                    apdu, &value->type.Log_Record);
                 break;
 #endif
 #if defined(BACAPP_SECURE_CONNECT)
@@ -1677,6 +1685,13 @@ int bacapp_decode_application_tag_value(
                 apdu, apdu_size, &value->type.Channel_Value);
             break;
 #endif
+#if defined(BACAPP_LOG_RECORD)
+        case BACNET_APPLICATION_TAG_LOG_RECORD:
+            /* BACnetLogRecord */
+            apdu_len = bacnet_log_record_decode(
+                apdu, apdu_size, &value->type.Log_Record);
+            break;
+#endif
 #if defined(BACAPP_SECURE_CONNECT)
         case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
             apdu_len = bacapp_decode_SCFailedConnectionRequest(
@@ -2168,6 +2183,42 @@ static int bacapp_snprintf_double(char *str, size_t str_len, double value)
 }
 #endif
 
+#if defined(BACAPP_BIT_STRING)
+/**
+ * @brief Print a bit string value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - bit string value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_bit_string(
+    char *str, size_t str_len, const BACNET_BIT_STRING *value)
+{
+    int ret_val = 0;
+    int len = 0;
+    int slen = 0;
+    int i = 0;
+
+    len = bitstring_bits_used(value);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    for (i = 0; i < len; i++) {
+        bool bit;
+        bit = bitstring_bit(value, (uint8_t)i);
+        slen = bacapp_snprintf(str, str_len, "%s", bit ? "true" : "false");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        if (i < (len - 1)) {
+            slen = bacapp_snprintf(str, str_len, ",");
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        }
+    }
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
 #if defined(BACAPP_ENUMERATED)
 /**
  * @brief Print an enumerated value to a string for EPICS
@@ -2318,6 +2369,44 @@ bacapp_snprintf_date(char *str, size_t str_len, const BACNET_DATE *bdate)
 }
 #endif
 
+#if defined(BACAPP_LOG_RECORD)
+/**
+ * @brief Print a date value to a string as numeric
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param bdate - date value to print
+ * @return number of characters written
+ * @note Numeric will be in the format: yyyy-mm-dd
+ */
+static int bacapp_snprintf_date_numeric(
+    char *str, size_t str_len, const BACNET_DATE *bdate)
+{
+    int ret_val = 0;
+    int slen = 0;
+
+    if (bdate->year == 2155) {
+        slen = bacapp_snprintf(str, str_len, "****-");
+    } else {
+        slen = bacapp_snprintf(str, str_len, "%04u-", (unsigned)bdate->year);
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (bdate->month == 255) {
+        slen = bacapp_snprintf(str, str_len, "**-");
+    } else {
+        slen = bacapp_snprintf(str, str_len, "%02u-", (unsigned)bdate->month);
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (bdate->day == 255) {
+        slen = bacapp_snprintf(str, str_len, "**");
+    } else {
+        slen = bacapp_snprintf(str, str_len, "%02u", (unsigned)bdate->day);
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
 #if defined(BACAPP_TIME)
 /**
  * @brief Print a time value to a string for EPICS
@@ -2418,6 +2507,34 @@ static int bacapp_snprintf_datetime(
     slen = bacapp_snprintf(str, str_len, "{");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf_date(str, str_len, &value->date);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "-");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf_time(str, str_len, &value->time);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf(str, str_len, "}");
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_LOG_RECORD)
+/**
+ * @brief Print a value to a string as numeric
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_datetime_numeric(
+    char *str, size_t str_len, const BACNET_DATE_TIME *value)
+{
+    int ret_val = 0;
+    int slen = 0;
+
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf_date_numeric(str, str_len, &value->date);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, "-");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -2928,6 +3045,86 @@ bool bacapp_channel_value_copy(
     }
 
     return status;
+}
+#endif
+
+#if defined(BACAPP_LOG_RECORD)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+static int bacapp_snprintf_log_record(
+    char *str, size_t str_len, const BACNET_LOG_RECORD *value)
+{
+    int ret_val = 0, slen;
+    BACNET_BIT_STRING bitstring;
+
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf_datetime_numeric(str, str_len, &value->timestamp);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (value->tag < BACNET_LOG_DATUM_MAX) {
+        slen = bacapp_snprintf(
+            str, str_len, ", %s:", bactext_log_datum_name(value->tag));
+    } else {
+        slen =
+            bacapp_snprintf(str, str_len, ", <tag=%u>:", (unsigned)value->tag);
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    switch (value->tag) {
+        case BACNET_LOG_DATUM_STATUS:
+            bitstring_init(&bitstring);
+            bitstring_set_bits_used(&bitstring, 1, 4);
+            bitstring_set_octet(&bitstring, 0, value->log_datum.log_status);
+            slen = bacapp_snprintf_bit_string(str, str_len, &bitstring);
+            break;
+        case BACNET_LOG_DATUM_BOOLEAN:
+            slen = bacapp_snprintf_boolean(
+                str, str_len, value->log_datum.boolean_value);
+            break;
+        case BACNET_LOG_DATUM_REAL:
+            slen =
+                bacapp_snprintf_real(str, str_len, value->log_datum.real_value);
+            break;
+        case BACNET_LOG_DATUM_ENUMERATED:
+            slen = bacapp_snprintf(
+                str, str_len, "%lu",
+                (unsigned long)value->log_datum.enumerated_value);
+            break;
+        case BACNET_LOG_DATUM_UNSIGNED:
+            slen = bacapp_snprintf_unsigned_integer(
+                str, str_len, value->log_datum.unsigned_value);
+            break;
+        case BACNET_LOG_DATUM_SIGNED:
+            slen = bacapp_snprintf_signed_integer(
+                str, str_len, value->log_datum.integer_value);
+            break;
+        case BACNET_LOG_DATUM_NULL:
+            slen = bacapp_snprintf_null(str, str_len);
+            break;
+        case BACNET_LOG_DATUM_FAILURE:
+            slen = bacapp_snprintf(
+                str, str_len, "%s,%s",
+                bactext_error_class_name(value->log_datum.failure.error_class),
+                bactext_error_code_name(value->log_datum.failure.error_code));
+            break;
+        case BACNET_LOG_DATUM_TIME_CHANGE:
+            slen = bacapp_snprintf_real(
+                str, str_len, value->log_datum.time_change);
+            break;
+        default:
+            slen = 0;
+            break;
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    /* FIXME: optional status flags */
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
 }
 #endif
 
@@ -3527,22 +3724,8 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_BIT_STRING)
             case BACNET_APPLICATION_TAG_BIT_STRING:
-                len = bitstring_bits_used(&value->type.Bit_String);
-                slen = bacapp_snprintf(str, str_len, "{");
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                for (i = 0; i < len; i++) {
-                    bool bit;
-                    bit = bitstring_bit(&value->type.Bit_String, (uint8_t)i);
-                    slen = bacapp_snprintf(
-                        str, str_len, "%s", bit ? "true" : "false");
-                    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                    if (i < (len - 1)) {
-                        slen = bacapp_snprintf(str, str_len, ",");
-                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                    }
-                }
-                slen = bacapp_snprintf(str, str_len, "}");
-                ret_val += slen;
+                ret_val = bacapp_snprintf_bit_string(
+                    str, str_len, &value->type.Bit_String);
                 break;
 #endif
 #if defined(BACAPP_ENUMERATED)
@@ -3737,6 +3920,12 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
                 ret_val = bacapp_snprintf_channel_value(
                     str, str_len, &value->type.Channel_Value);
+                break;
+#endif
+#if defined(BACAPP_LOG_RECORD)
+            case BACNET_APPLICATION_TAG_LOG_RECORD:
+                ret_val = bacapp_snprintf_log_record(
+                    str, str_len, &value->type.Log_Record);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:
@@ -4503,6 +4692,12 @@ bool bacapp_parse_application_data(
                     &value->type.Channel_Value, argv);
                 break;
 #endif
+#if defined(BACAPP_LOG_RECORD)
+            case BACNET_APPLICATION_TAG_LOG_RECORD:
+                status = bacnet_log_record_datum_from_ascii(
+                    &value->type.Log_Record, argv);
+                break;
+#endif
             default:
                 break;
         }
@@ -5066,6 +5261,12 @@ bool bacapp_same_value(
                 status = bacnet_channel_value_same(
                     &value->type.Channel_Value,
                     &test_value->type.Channel_Value);
+                break;
+#endif
+#if defined(BACAPP_LOG_RECORD)
+            case BACNET_APPLICATION_TAG_LOG_RECORD:
+                status = bacnet_log_record_same(
+                    &value->type.Log_Record, &test_value->type.Log_Record);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:

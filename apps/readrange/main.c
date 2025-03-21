@@ -118,7 +118,7 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_RANGE, handler_read_range_ack);
 
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_READ_RANGE, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }

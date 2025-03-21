@@ -54,7 +54,7 @@ int bacnet_log_record_value_encode(
         case BACNET_LOG_DATUM_STATUS:
             /* log-status [0] BACnetLogStatus */
             bitstring_init(&bitstring);
-            bitstring_set_bits_used(&bitstring, 1, 5);
+            bitstring_set_bits_used(&bitstring, 1, 4);
             bitstring_set_octet(&bitstring, 0, value->log_datum.log_status);
             len = encode_context_bitstring(apdu, value->tag, &bitstring);
             break;
@@ -449,10 +449,12 @@ bool bacnet_log_record_datum_bitstring_same(
     const struct bacnet_log_datum_bitstring *value1,
     const struct bacnet_log_datum_bitstring *value2)
 {
+    unsigned i;
+
     if (value1->bits_used != value2->bits_used) {
         return false;
     }
-    for (unsigned i = 0; i < BACNET_LOG_DATUM_BITSTRING_BYTES_MAX; i++) {
+    for (i = 0; i < BACNET_LOG_DATUM_BITSTRING_BYTES_MAX; i++) {
         if (value1->value[i] != value2->value[i]) {
             return false;
         }
@@ -685,11 +687,13 @@ static bool log_datum_bitstring_copy(
     struct bacnet_log_datum_bitstring *dest,
     const struct bacnet_log_datum_bitstring *src)
 {
+    unsigned i;
+
     if (!dest || !src) {
         return false;
     }
     dest->bits_used = src->bits_used;
-    for (unsigned i = 0; i < BACNET_LOG_DATUM_BITSTRING_BYTES_MAX; i++) {
+    for (i = 0; i < BACNET_LOG_DATUM_BITSTRING_BYTES_MAX; i++) {
         dest->value[i] = src->value[i];
     }
     return true;
