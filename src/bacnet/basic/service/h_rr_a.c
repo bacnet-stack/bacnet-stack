@@ -60,9 +60,9 @@ static void PrintReadRangeData(BACNET_READ_RANGE_DATA *data)
         application_data_len = data->application_data_len;
         /* loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_known_property(
+            len = bacapp_decode_known_array_property(
                 application_data, (uint8_t)application_data_len, &value,
-                data->object_type, data->object_property);
+                data->object_type, data->object_property, data->array_index);
             if (len < 0) {
                 /* error decoding */
                 break;

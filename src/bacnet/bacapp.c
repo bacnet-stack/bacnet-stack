@@ -968,6 +968,7 @@ int bacapp_encode_context_data_value(
             case BACNET_APPLICATION_TAG_BDT_ENTRY:
             case BACNET_APPLICATION_TAG_FDT_ENTRY:
             case BACNET_APPLICATION_TAG_ACTION_COMMAND:
+            case BACNET_APPLICATION_TAG_LOG_RECORD:
             case BACNET_APPLICATION_TAG_SCALE:
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
