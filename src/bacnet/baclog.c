@@ -168,9 +168,6 @@ int bacnet_log_record_value_encode(
                 value->status_flags, STATUS_FLAG_OUT_OF_SERVICE));
         len = encode_context_bitstring(apdu, 2, &bitstring);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
     }
 
     return apdu_len;
