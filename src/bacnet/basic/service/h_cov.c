@@ -381,13 +381,6 @@ static bool cov_list_subscribe(
                     COV_Subscriptions[index].dest_index = MAX_COV_ADDRESSES;
                     cov_address_remove_unused();
                 } else {
-                    const BACNET_OBJECT_TYPE object_type =
-                        (BACNET_OBJECT_TYPE)COV_Subscriptions[index]
-                            .monitoredObjectIdentifier.type;
-                    const uint32_t object_instance =
-                        COV_Subscriptions[index]
-                            .monitoredObjectIdentifier.instance;
-
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
                     COV_Subscriptions[index].flag.issueConfirmedNotifications =
                         cov_data->issueConfirmedNotifications;
