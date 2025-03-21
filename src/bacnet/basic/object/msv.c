@@ -419,6 +419,7 @@ static bool Multistate_Value_Present_Value_Write(
                        physical point when the value of Out_Of_Service
                        is true. */
                     if (value > max_states || value == 0) {
+                        pObject->Present_Value = old_value;
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         status = false;
