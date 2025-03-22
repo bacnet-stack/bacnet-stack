@@ -54,7 +54,7 @@ int bacnet_log_record_value_encode(
         case BACNET_LOG_DATUM_STATUS:
             /* log-status [0] BACnetLogStatus */
             bitstring_init(&bitstring);
-            bitstring_set_bits_used(&bitstring, 1, 4);
+            bitstring_set_bits_used(&bitstring, 1, 8 - 3);
             bitstring_set_octet(&bitstring, 0, value->log_datum.log_status);
             len = encode_context_bitstring(apdu, value->tag, &bitstring);
             break;
@@ -230,15 +230,15 @@ int bacnet_log_record_datum32_decode(
     }
     switch (tag_data_type) {
         case BACNET_LOG_DATUM_STATUS:
-            /* log-status [0] BACnetLogStatus */
-            len = bacnet_enumerated_decode(
-                apdu, apdu_size, len_value_type, &enum_value);
+            /* log-status [0] BACnetLogStatus BIT STRING */
+            len = bacnet_bitstring_decode(
+                apdu, apdu_size, len_value_type, &bit_string);
             if (len > 0) {
-                if (enum_value > UINT8_MAX) {
+                if (bit_string.bits_used > 3) {
                     return BACNET_STATUS_ERROR;
                 }
                 if (value) {
-                    value->log_datum.log_status = (uint8_t)enum_value;
+                    value->log_datum.log_status = bit_string.value[0];
                 }
             } else {
                 return BACNET_STATUS_ERROR;

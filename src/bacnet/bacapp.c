@@ -3078,7 +3078,7 @@ static int bacapp_snprintf_log_record(
     switch (value->tag) {
         case BACNET_LOG_DATUM_STATUS:
             bitstring_init(&bitstring);
-            bitstring_set_bits_used(&bitstring, 1, 4);
+            bitstring_set_bits_used(&bitstring, 1, 8 - 3);
             bitstring_set_octet(&bitstring, 0, value->log_datum.log_status);
             slen = bacapp_snprintf_bit_string(str, str_len, &bitstring);
             break;
