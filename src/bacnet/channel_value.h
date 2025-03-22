@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet single precision REAL encode and decode functions
+ * @brief BACnet Channel Value data type
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2012
  * @copyright SPDX-License-Identifier: MIT
@@ -13,7 +13,6 @@
 #include <stddef.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/lighting.h"
 #include "bacnet/lighting.h"
 
 /* BACNET_CHANNEL_VALUE decodes WriteProperty service requests
