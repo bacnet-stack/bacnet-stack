@@ -381,20 +381,12 @@ static bool cov_list_subscribe(
                     COV_Subscriptions[index].dest_index = MAX_COV_ADDRESSES;
                     cov_address_remove_unused();
                 } else {
-                    const BACNET_OBJECT_TYPE object_type =
-                        (BACNET_OBJECT_TYPE)COV_Subscriptions[index]
-                            .monitoredObjectIdentifier.type;
-                    const uint32_t object_instance =
-                        COV_Subscriptions[index]
-                            .monitoredObjectIdentifier.instance;
-
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
                     COV_Subscriptions[index].flag.issueConfirmedNotifications =
                         cov_data->issueConfirmedNotifications;
                     COV_Subscriptions[index].lifetime = cov_data->lifetime;
-                    if (Device_COV(object_type, object_instance)) {
-                        cov_change_detected_notify();
-                    }
+                    COV_Subscriptions[index].flag.send_requested = true;
+                    cov_change_detected_notify();
                 }
                 if (COV_Subscriptions[index].invokeID) {
                     tsm_free_invoke_id(COV_Subscriptions[index].invokeID);
@@ -431,11 +423,8 @@ static bool cov_list_subscribe(
                 cov_data->issueConfirmedNotifications;
             COV_Subscriptions[index].invokeID = 0;
             COV_Subscriptions[index].lifetime = cov_data->lifetime;
-            if (Device_COV(
-                    cov_data->monitoredObjectIdentifier.type,
-                    cov_data->monitoredObjectIdentifier.instance)) {
-                cov_change_detected_notify();
-            }
+            COV_Subscriptions[index].flag.send_requested = true;
+            cov_change_detected_notify();
         }
     } else if (!existing_entry) {
         if (first_invalid_index < 0) {
