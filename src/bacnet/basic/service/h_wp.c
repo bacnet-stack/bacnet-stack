@@ -186,6 +186,7 @@ void handler_write_property(
 #endif
             if (!success) {
                 if (write_property_bacnet_array_valid(&wp_data)) {
+                    fprintf(stderr, "WP: BACnetArray not supported!\n");
                     success = Device_Write_Property(&wp_data);
                 }
             }
@@ -193,6 +194,7 @@ void handler_write_property(
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
+                fprintf(stderr, "WP: Sending Simple Ack!\n");
                 debug_print("WP: Sending Simple Ack!\n");
             } else {
                 len = bacerror_encode_apdu(
@@ -200,6 +202,7 @@ void handler_write_property(
                     SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
                     wp_data.error_code);
                 debug_print("WP: Sending Error!\n");
+                fprintf(stderr, "WP: Sending Error!\n");
             }
         }
     }
