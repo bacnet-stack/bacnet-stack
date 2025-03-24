@@ -763,6 +763,9 @@ void bip_cleanup(void)
         close(BIP_Broadcast_Socket);
     }
     BIP_Broadcast_Socket = -1;
+    /* these were set non-zero during interface configuration */
+    BIP_Address.s_addr = 0;
+    BIP_Broadcast_Addr.s_addr = 0;
 
     return;
 }
