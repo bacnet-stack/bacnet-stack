@@ -136,6 +136,7 @@ void handler_write_property(
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
+    bool valid_id = false;
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
@@ -184,6 +185,10 @@ void handler_write_property(
 
             success = handler_write_property_relinquish_bypass(&wp_data);
 #endif
+            valid_id = Device_Valid_Object_Id(wp_data.object_type,
+                wp_data.object_instance);
+            fprintf(stderr, "WP: Valid Object Id: %d\n", valid_id);
+
             if (!success) {
                 if (write_property_bacnet_array_valid(&wp_data)) {
                     fprintf(stderr, "WP: BACnetArray not supported!\n");
