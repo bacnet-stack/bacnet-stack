@@ -205,19 +205,16 @@ void handler_write_property(
                 fprintf(stderr, "WP: Sending Simple Ack!\n");
                 debug_print("WP: Sending Simple Ack!\n");
             } else if (!valid_id) {
-                Device_Write_Property(&wp_data);
+           //     Device_Write_Property(&wp_data);
 
-                len = encode_simple_ack(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-                // wp_data.error_class = ERROR_CLASS_OBJECT;
-                // wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                wp_data.error_class = ERROR_CLASS_OBJECT;
+                wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 //     // apdu len encode error abort_encode_apdu
-                 fprintf(stderr, "WP: ERROR!\n");
-                // len = abort_encode_apdu(
-                //     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                //     ABORT_REASON_OTHER, true);
-                //     debug_print("WP: Bad Encoding. Sending Abort!\n");
+                fprintf(stderr, "WP: ERROR!\n");
+                len = bacerror_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
+                    wp_data.error_code);
             } else {
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
