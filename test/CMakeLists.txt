@@ -81,6 +81,7 @@ list(APPEND testdirs
   bacnet/bacdest
   bacnet/bacerror
   bacnet/bacint
+  bacnet/baclog
   bacnet/bacpropstates
   bacnet/bacreal
   bacnet/bacstr
