@@ -45,16 +45,18 @@ static void PrintReadRangeData(BACNET_READ_RANGE_DATA *data)
             /* Enumerated values 0-511 and 4194304+ are reserved
                for definition by ASHRAE.*/
             debug_printf_stdout(
-                "    %s: ", bactext_property_name(data->object_property));
+                "    %s", bactext_property_name(data->object_property));
         } else {
             /* Enumerated values 512-4194303 may be used
                 by others subject to the procedures and
                 constraints described in Clause 23. */
             debug_printf_stdout(
-                "    proprietary %u: ", (unsigned)data->object_property);
+                "    proprietary %u", (unsigned)data->object_property);
         }
-        if (data->array_index != BACNET_ARRAY_ALL) {
-            debug_printf_stdout("[%d]", data->array_index);
+        if (data->array_index == BACNET_ARRAY_ALL) {
+            debug_printf_stdout(": ");
+        } else {
+            debug_printf_stdout("[%lu]: ", (unsigned long)data->array_index);
         }
         application_data = data->application_data;
         application_data_len = data->application_data_len;

@@ -391,15 +391,16 @@ int rr_decode_service_request(
 
 /*
  * ReadRange-ACK ::= SEQUENCE {
- *     objectIdentifier    [0] BACnetObjectIdentifier,
- *     propertyIdentifier  [1] BACnetPropertyIdentifier,
- *     propertyArrayIndex  [2] Unsigned OPTIONAL,  -- used only with
- * array datatype resultFlags         [3] BACnetResultFlags, itemCount [4]
- * Unsigned, itemData            [5] SEQUENCE OF ABSTRACT-SYNTAX.&TYPE,
- *     firstSequenceNumber [6] Unsigned32 OPTIONAL -- used only if 'Item
- * Count' > 0 and the request was either of
- *                                                  -- type 'By Sequence
- * Number' or 'By Time'
+ *      objectIdentifier    [0] BACnetObjectIdentifier,
+ *      propertyIdentifier  [1] BACnetPropertyIdentifier,
+ *      propertyArrayIndex  [2] Unsigned OPTIONAL,
+ *      -- used only with array datatype
+ *      resultFlags         [3] BACnetResultFlags,
+ *      itemCount           [4] Unsigned,
+ *      itemData            [5] SEQUENCE OF ABSTRACT-SYNTAX.&TYPE,
+ *      firstSequenceNumber [6] Unsigned32 OPTIONAL
+ *      -- used only if 'Item Count' > 0 and
+ *      -- the request was either of type 'By Sequence Number' or 'By Time'
  * }
  */
 
@@ -592,7 +593,7 @@ int rr_ack_decode_service_request(
             return -1;
         }
         if (len < apdu_len) { /* Still something left to look at? */
-            /* Tag 6: Item count */
+            /* Tag 6: FirstSequence */
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             if (tag_number != 6) {
