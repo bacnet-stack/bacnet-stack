@@ -182,25 +182,37 @@ void handler_write_property(
         }
         if (bcontinue) {
 #if BACNET_PROTOCOL_REVISION >= 21
-            success = handler_write_property_relinquish_bypass(&wp_data);
+
             valid_id = Device_Valid_Object_Id(wp_data.object_type,
-                wp_data.object_instance);
+                    wp_data.object_instance);
+            success = handler_write_property_relinquish_bypass(&wp_data);
+
 #endif
 
             fprintf(stderr, "WP: Valid Object Id: %d\n", valid_id);
-
+            fprintf(stderr, "WP: Relinquish Bypass: %d\n", success);
             if (!success) {
                 if (write_property_bacnet_array_valid(&wp_data)) {
                     fprintf(stderr, "WP: BACnetArray not supported!\n");
                     success = Device_Write_Property(&wp_data);
                 }
             }
+            /* maybe have a check for valid in the error condition to send out the proper messages*/
             if (success && valid_id) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
                 fprintf(stderr, "WP: Sending Simple Ack!\n");
                 debug_print("WP: Sending Simple Ack!\n");
+            } else if (success && !valid_id) {
+                wp_data.error_class = ERROR_CLASS_OBJECT;
+                wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                    // apdu len encode error abort_encode_apdu
+                fprintf(stderr, "WP: ERROR!\n");
+                len = abort_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    ABORT_REASON_OTHER, true);
+                    debug_print("WP: Bad Encoding. Sending Abort!\n");
             } else {
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
