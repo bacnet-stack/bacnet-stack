@@ -34,6 +34,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACnet BACnet Testing Laboratories Implementation Guidelines
 * Added bacmini example app with minimal analog and binary objects. (#934)
 * Added bacnet-basic from zephyr project to create basis for apps/server-basic
   bacbasic example. (#933)
@@ -57,6 +58,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed ReadRange app to read and pretty-print a Trend Log log-buffer (#947)
+* Fixed bip cleanup to enable initializing interfaces after cleanup. (#949)
+* Fixed configure script and removed aptfile duplicity. (#946)
+* Fixed the COV for Analog Input and Analog Value objects when
+  fault is detected in Reliability property. (#943)
 * Fixed WriteProperty error code for PROP_FD_BBMD_ADDRESS and
   PROP_FD_SUBSCRIPTION_LIFETIME properties. (#925)
 * Fixed dead-code warning after enabling all datalinks for basic
