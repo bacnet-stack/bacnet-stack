@@ -920,6 +920,9 @@ void bip_cleanup(void)
         BIP_Initialized = false;
         WSACleanup();
     }
+    /* these were set non-zero during interface configuration */
+    BIP_Address.s_addr = 0;
+    BIP_Broadcast_Addr.s_addr = 0;
 
     return;
 }
