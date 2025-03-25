@@ -2029,8 +2029,10 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     pObject = Device_Objects_Find_Functions(wp_data->object_type);
     if (pObject != NULL) {
+        fprintf(stderr, "pObject not NULL\n");
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
+            fprintf(stderr, "Object_Valid_Instance\n");
             if (pObject->Object_Write_Property) {
 #if (BACNET_PROTOCOL_REVISION >= 14)
                 if (wp_data->object_property == PROP_PROPERTY_LIST) {
@@ -2062,10 +2064,12 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
         } else {
+            fprintf(stderr, "Object_Valid_Instance failed\n");
             wp_data->error_class = ERROR_CLASS_OBJECT;
             wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         }
     } else {
+        fprintf(stderr, "pObject NULL\n");
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
