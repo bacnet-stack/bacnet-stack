@@ -205,7 +205,7 @@ void handler_write_property(
                 fprintf(stderr, "WP: Sending Simple Ack!\n");
                 debug_print("WP: Sending Simple Ack!\n");
             } else if (!valid_id) {
-                write_property_bacnet_array_valid(&wp_data);
+                Device_Write_Property(&wp_data);
                 // wp_data.error_class = ERROR_CLASS_OBJECT;
                 // wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 //     // apdu len encode error abort_encode_apdu
