@@ -23,6 +23,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
+    BACAPP_MINIMAL=1
     )
 
 include_directories(
@@ -32,7 +33,7 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-    ${SRC_DIR}/bacnet/delete_object.c
+    ${SRC_DIR}/bacnet/baclog.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/bacaction.c
@@ -54,7 +55,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/timestamp.c
-    ${SRC_DIR}/bacnet/memcopy.c
+    ${SRC_DIR}/bacnet/timesync.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/bactimevalue.c
     ${SRC_DIR}/bacnet/dailyschedule.c
@@ -62,7 +63,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
-# Test and test library files
+    # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
