@@ -206,9 +206,7 @@ void handler_write_property(
                 debug_print("WP: Sending Simple Ack!\n");
             } else if (!valid_id) {
                 Device_Write_Property(&wp_data);
-                len = encode_simple_ack(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+
                 // wp_data.error_class = ERROR_CLASS_OBJECT;
                 // wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 //     // apdu len encode error abort_encode_apdu
