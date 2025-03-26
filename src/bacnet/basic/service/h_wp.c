@@ -187,7 +187,7 @@ void handler_write_property(
             valid_id = Device_Valid_Object_Id(
                 wp_data.object_type, wp_data.object_instance);
 
-            if(!valid_id) {
+            if (!valid_id) {
                 object_invalid = true;
             }
 
