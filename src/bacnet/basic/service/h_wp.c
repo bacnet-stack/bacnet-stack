@@ -183,8 +183,8 @@ void handler_write_property(
         if (bcontinue) {
 #if BACNET_PROTOCOL_REVISION >= 21
 
-            valid_id = Device_Valid_Object_Id(wp_data.object_type,
-                    wp_data.object_instance);
+            valid_id = Device_Valid_Object_Id(
+                    wp_data.object_type, wp_data.object_instance);
             success = handler_write_property_relinquish_bypass(&wp_data);
 #endif
             if (!success) {
