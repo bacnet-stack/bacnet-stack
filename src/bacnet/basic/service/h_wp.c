@@ -189,27 +189,19 @@ void handler_write_property(
 
 #endif
 
-            fprintf(stderr, "WP: Valid Object Id: %d\n", valid_id);
-            fprintf(stderr, "WP: Relinquish Bypass: %d\n", success);
             if (!success) {
                 if (write_property_bacnet_array_valid(&wp_data)) {
-                    fprintf(stderr, "WP: BACnetArray not supported!\n");
                     success = Device_Write_Property(&wp_data);
                 }
             }
-            fprintf(stderr, "WP: Device Write Property: %d\n", success);
-            /* maybe have a check for valid in the error condition to send out the proper messages*/
+
             if (success && valid_id) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "WP: Sending Simple Ack!\n");
                 debug_print("WP: Sending Simple Ack!\n");
-
             } else {
-
                 if (!valid_id) {
-                    fprintf(stderr, "WP: Invalid Object Id!\n");
                     wp_data.error_class = ERROR_CLASS_OBJECT;
                     wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 }
@@ -219,7 +211,6 @@ void handler_write_property(
                     SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
                     wp_data.error_code);
                 debug_print("WP: Sending Error!\n");
-                fprintf(stderr, "WP: Sending Error!\n");
             }
         }
     }

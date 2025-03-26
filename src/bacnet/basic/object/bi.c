@@ -1158,15 +1158,14 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    fprintf(stderr, "WriteProperty BI\n");
+
     if (!(pObject = Binary_Input_Object(wp_data->object_instance))) {
 #if (!BINARY_INPUT_INTRINSIC_REPORTING)
         (void)pObject;
 #endif
-        fprintf(stderr, "UNKNOWN OBJECT INSTANCE\n");
         return BACNET_STATUS_ERROR;
     }
-    fprintf(stderr, "INSTANCE %u \n", wp_data->object_instance);
+
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -1275,7 +1274,6 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
-                fprintf(stderr, "UKNOWN PROP");
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             }
