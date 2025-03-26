@@ -186,15 +186,12 @@ void handler_write_property(
             valid_id = Device_Valid_Object_Id(wp_data.object_type,
                     wp_data.object_instance);
             success = handler_write_property_relinquish_bypass(&wp_data);
-
 #endif
-
             if (!success) {
                 if (write_property_bacnet_array_valid(&wp_data)) {
                     success = Device_Write_Property(&wp_data);
                 }
             }
-
             if (success && valid_id) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
@@ -205,7 +202,6 @@ void handler_write_property(
                     wp_data.error_class = ERROR_CLASS_OBJECT;
                     wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 }
-
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
