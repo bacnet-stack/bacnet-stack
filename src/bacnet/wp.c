@@ -315,6 +315,7 @@ bool write_property_type_valid(
     if (value && (value->tag != expected_tag)) {
         valid = false;
         if (wp_data) {
+            fprintf(stderr, "WP: Invalid tag!\n");
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }

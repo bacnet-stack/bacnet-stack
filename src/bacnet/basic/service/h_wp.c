@@ -197,6 +197,7 @@ void handler_write_property(
                     success = Device_Write_Property(&wp_data);
                 }
             }
+            fprintf(stderr, "WP: Device Write Property: %d\n", success);
             /* maybe have a check for valid in the error condition to send out the proper messages*/
             if (success && valid_id) {
                 len = encode_simple_ack(
