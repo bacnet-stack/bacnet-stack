@@ -199,7 +199,7 @@ Analog_Input_COV_Detect(struct analog_input_descr *pObject, float value)
             cov_delta = value - prior_value;
         }
         if (cov_delta >= cov_increment) {
-            pObject->Prior_Value = pObject->Present_Value;
+            pObject->Prior_Value = value;
             Analog_Input_Object_Changed_Set(pObject);
         }
     }
