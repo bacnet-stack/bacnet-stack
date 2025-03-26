@@ -511,7 +511,10 @@ static const int Device_Properties_Optional[] = {
 #endif
     PROP_DESCRIPTION, PROP_LOCAL_TIME, PROP_UTC_OFFSET, PROP_LOCAL_DATE,
     PROP_DAYLIGHT_SAVINGS_STATUS, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS,
-    PROP_SERIAL_NUMBER, PROP_TIME_OF_DEVICE_RESTART,
+    PROP_SERIAL_NUMBER,
+#if (BACNET_DEVICE_RESTART_PROCEDURE)
+    PROP_TIME_OF_DEVICE_RESTART,
+#endif
 #if defined(BACNET_TIME_MASTER)
     PROP_TIME_SYNCHRONIZATION_RECIPIENTS, PROP_TIME_SYNCHRONIZATION_INTERVAL,
     PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET,
@@ -594,7 +597,9 @@ static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
+#if (BACNET_DEVICE_RESTART_PROCEDURE)
 static BACNET_TIMESTAMP Time_Of_Device_Restart;
+#endif
 static BACNET_TIME Local_Time; /* rely on OS, if there is one */
 static BACNET_DATE Local_Date; /* rely on OS, if there is one */
 /* NOTE: BACnet UTC Offset is inverse of common practice.
@@ -1589,10 +1594,12 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+#if (BACNET_DEVICE_RESTART_PROCEDURE)
         case PROP_TIME_OF_DEVICE_RESTART:
             apdu_len =
                 bacapp_encode_timestamp(&apdu[0], &Time_Of_Device_Restart);
             break;
+#endif
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1907,6 +1914,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
+#if (BACNET_DEVICE_RESTART_PROCEDURE)
         case PROP_TIME_OF_DEVICE_RESTART:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
@@ -1915,6 +1923,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     &Time_Of_Device_Restart, &value.type.Time_Stamp);
             }
             break;
+#endif
         default:
             if (property_lists_member(
                     Device_Properties_Required, Device_Properties_Optional,
