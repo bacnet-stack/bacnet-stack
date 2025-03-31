@@ -34,6 +34,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACNET_IP_BROADCAST_USE_INADDR_ANY ifdef option for apps/router
+  network interface port binding. (#953)
+* Added null parsing to weekly-schedule writes. (#954)
 * Added BACnet BACnet Testing Laboratories Implementation Guidelines
 * Added bacmini example app with minimal analog and binary objects. (#934)
 * Added bacnet-basic from zephyr project to create basis for apps/server-basic
