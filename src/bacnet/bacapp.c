@@ -4046,7 +4046,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
      Format:
 
      (1; Mon: [02:00:00.00 FALSE, 07:35:00.00 active, 07:40:00.00 inactive];
-     Tue: [02:00:00.00 inactive]; ...)
+     Tue: [02:00:00.00 inactive, 06:00:00.00 null]; ...)
 
      - the first number is the inner tag (e.g. 1 = boolean, 4 = real, 9 = enum)
      - Day name prefix is optional and ignored.
@@ -4054,6 +4054,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
      - There can be a full week, or only one entry - when using array index to
      modify a single day
      - time-value array can be empty: []
+     - null value overrides the tag for that particular BACNET_TIME_VALUE
     */
 
     value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
@@ -4124,7 +4125,13 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                 /* Parse value */
                 if (false ==
                     bacapp_parse_application_data(inner_tag, v, &dummy_value)) {
-                    return false;
+                    /* Schedules can be set to active, inactive, or null to
+                     * revert to default value */
+                    if (bacnet_stricmp(v, "null") == 0) {
+                        dummy_value.tag = BACNET_APPLICATION_TAG_NULL;
+                    } else {
+                        return false;
+                    }
                 }
                 if (BACNET_STATUS_OK !=
                     bacnet_application_to_primitive_data_value(
