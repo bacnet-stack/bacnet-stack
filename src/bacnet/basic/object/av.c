@@ -32,6 +32,9 @@
 static OS_Keylist Object_List;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_ANALOG_VALUE;
+/* callback for present value writes */
+static analog_value_write_present_value_callback
+    Analog_Value_Write_Present_Value_Callback;
 
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -922,6 +925,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    float old_value = 0.0f;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     ANALOG_VALUE_DESCR *CurrentAV;
 
@@ -962,13 +966,20 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                        object. */
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                } else if (Analog_Value_Present_Value_Set(
+                } else {
+                    old_value = Analog_Value_Present_Value(wp_data->object_instance);
+                    if (Analog_Value_Present_Value_Set(
                                wp_data->object_instance, value.type.Real,
                                wp_data->priority)) {
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        status = true;
+                        if (Analog_Value_Write_Present_Value_Callback) {
+                            Analog_Value_Write_Present_Value_Callback(
+                                wp_data->object_instance, old_value, value.type.Real);
+                        }
+                    } else {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
                 }
             }
             break;
@@ -1099,6 +1110,16 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/**
+ * @brief Sets a callback used when present-value is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Analog_Value_Write_Present_Value_Callback_Set(
+    analog_value_write_present_value_callback cb)
+{
+    Analog_Value_Write_Present_Value_Callback = cb;
 }
 
 /**

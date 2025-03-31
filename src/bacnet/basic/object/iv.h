@@ -20,6 +20,17 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * @brief Callback for gateway write present value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - integer preset-value prior to write
+ * @param  value - integer preset-value of the write
+ */
+typedef void (*integer_value_write_present_value_callback)(
+    uint32_t object_instance,
+    int32_t old_value,
+    int32_t value);
+
 BACNET_STACK_EXPORT
 void Integer_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary);
@@ -45,6 +56,10 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
 bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void Integer_Value_Write_Present_Value_Callback_Set(
+    integer_value_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
 bool Integer_Value_Present_Value_Set(
