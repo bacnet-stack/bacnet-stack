@@ -564,7 +564,8 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->priority);
                 if (Integer_Value_Write_Present_Value_Callback) {
                     Integer_Value_Write_Present_Value_Callback(
-                        wp_data->object_instance, old_value, value.type.Signed_Int);
+                        wp_data->object_instance, old_value, 
+                        Integer_Value_Present_Value(wp_data->object_instance));
                 }
             }
             break;

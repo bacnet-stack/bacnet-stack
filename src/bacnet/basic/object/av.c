@@ -974,7 +974,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         status = true;
                         if (Analog_Value_Write_Present_Value_Callback) {
                             Analog_Value_Write_Present_Value_Callback(
-                                wp_data->object_instance, old_value, value.type.Real);
+                                wp_data->object_instance, old_value, 
+                                Analog_Value_Present_Value(wp_data->object_instance));
                         }
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
