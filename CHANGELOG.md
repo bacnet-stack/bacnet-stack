@@ -34,6 +34,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added write present value callbacks for Analog Value and Integer Value
+  basic object examples. (#956)
 * Added BACNET_IP_BROADCAST_USE_INADDR_ANY ifdef option for apps/router
   network interface port binding. (#953)
 * Added null parsing to weekly-schedule writes. (#954)
