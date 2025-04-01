@@ -40,6 +40,8 @@
 static bool BVLC_Debug = false;
 /** result from a client request */
 static uint16_t BVLC_Result_Code = BVLC_RESULT_INVALID;
+/** result from a register BBMD client request */
+static uint16_t BVLC_BBMD_Result_Code = BVLC_RESULT_INVALID;
 /** incoming function */
 static uint8_t BVLC_Function_Code = BVLC_INVALID;
 /** Global IP address for NAT handling */
@@ -705,6 +707,14 @@ int bvlc_bbmd_disabled_handler(
                     debug_print_unsigned(
                         "Received Result Code =", BVLC_Result_Code);
                 }
+                switch(result_code) {
+                    case BVLC_RESULT_SUCCESSFUL_COMPLETION:
+                    case BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK:
+                        BVLC_BBMD_Result_Code = result_code;
+                        break;
+                    default:
+                        break;
+                };
                 break;
             case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
                 result_code =
@@ -1310,6 +1320,28 @@ uint16_t bvlc_get_last_result(void)
 void bvlc_set_last_result(uint16_t result_code)
 {
     BVLC_Result_Code = result_code;
+}
+
+/**
+ * Returns the last BVLL Result we received, either as the result of a BBMD
+ * request we sent, or (if not a BBMD or Client), from trying to register
+ * as a foreign device.
+ *
+ * @return BVLC_RESULT_SUCCESSFUL_COMPLETION on success,
+ * BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK if registration failed.
+ */
+uint16_t bvlc_get_last_bbmd_result(void)
+{
+    return BVLC_BBMD_Result_Code;
+}
+
+/**
+ * Sets the last BVLL Result we received
+ * @param result code
+ */
+void bvlc_set_last_bbmd_result(const uint16_t result_code)
+{
+    BVLC_BBMD_Result_Code = result_code;
 }
 
 /**

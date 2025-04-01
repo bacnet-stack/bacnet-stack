@@ -45,6 +45,8 @@ static int printf_stderr(const char *format, ...)
 #define PRINTF printf_stderr
 /** result from a client request */
 static uint16_t BVLC6_Result_Code = BVLC6_RESULT_INVALID;
+/** result from a client register as foreign device request */
+static uint16_t BVLC6_BBMD_Result_Code = BVLC6_RESULT_INVALID;
 /** incoming function */
 static uint8_t BVLC6_Function_Code = BVLC6_RESULT;
 
@@ -730,7 +732,15 @@ int bvlc6_bbmd_disabled_handler(
                     bbmd6_add_vmac(vmac_src, addr);
                     bvlc6_vmac_address_set(src, vmac_src);
                     PRINTF(
-                        "BIP6: Received Result Code=%d\n", BVLC6_Result_Code);
+                            "BIP6: Received Result Code=%d\n", BVLC6_Result_Code);
+                    switch(result_code) {
+                        case BVLC6_RESULT_SUCCESSFUL_COMPLETION:
+                        case BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK:
+                            BVLC6_BBMD_Result_Code = result_code;
+                            break;
+                        default:
+                            break;
+                    };
                 }
                 break;
             case BVLC6_REGISTER_FOREIGN_DEVICE:
@@ -1159,6 +1169,29 @@ uint16_t bvlc6_get_last_result(void)
 void bvlc6_set_last_result(const uint16_t result_code)
 {
     BVLC6_Result_Code = result_code;
+}
+
+/** Returns the last BVLL Result we received, either as the result of a BBMD
+ * register as foreign device request we sent.
+ *
+ * @return BVLC6_RESULT_SUCCESSFUL_COMPLETION on success,
+ * BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK if registration failed.
+ */
+uint16_t bvlc6_get_last_bbmd_result(void)
+{
+    return BVLC6_BBMD_Result_Code;
+}
+
+/** Sets the BVLL Result to a requested value.
+ * request we sent, or (if not a BBMD or Client), from trying to register
+ * as a foreign device.
+ *
+ * @return void
+ * @param result_code - result code to be put in BVLC6_Result_Code
+ */
+void bvlc6_set_last_bbmd_result(const uint16_t result_code)
+{
+    BVLC6_BBMD_Result_Code = result_code;
 }
 
 /** Returns the current BVLL Function Code we are processing.
