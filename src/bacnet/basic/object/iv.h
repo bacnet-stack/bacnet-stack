@@ -27,9 +27,7 @@ extern "C" {
  * @param  value - integer preset-value of the write
  */
 typedef void (*integer_value_write_present_value_callback)(
-    uint32_t object_instance,
-    int32_t old_value,
-    int32_t value);
+    uint32_t object_instance, int32_t old_value, int32_t value);
 
 BACNET_STACK_EXPORT
 void Integer_Value_Property_Lists(

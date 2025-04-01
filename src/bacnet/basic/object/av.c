@@ -967,15 +967,17 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else {
-                    old_value = Analog_Value_Present_Value(wp_data->object_instance);
+                    old_value =
+                        Analog_Value_Present_Value(wp_data->object_instance);
                     if (Analog_Value_Present_Value_Set(
-                               wp_data->object_instance, value.type.Real,
-                               wp_data->priority)) {
+                            wp_data->object_instance, value.type.Real,
+                            wp_data->priority)) {
                         status = true;
                         if (Analog_Value_Write_Present_Value_Callback) {
                             Analog_Value_Write_Present_Value_Callback(
-                                wp_data->object_instance, old_value, 
-                                Analog_Value_Present_Value(wp_data->object_instance));
+                                wp_data->object_instance, old_value,
+                                Analog_Value_Present_Value(
+                                    wp_data->object_instance));
                         }
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;

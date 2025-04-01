@@ -558,13 +558,14 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
-                old_value = Integer_Value_Present_Value(wp_data->object_instance);
+                old_value =
+                    Integer_Value_Present_Value(wp_data->object_instance);
                 Integer_Value_Present_Value_Set(
                     wp_data->object_instance, value.type.Signed_Int,
                     wp_data->priority);
                 if (Integer_Value_Write_Present_Value_Callback) {
                     Integer_Value_Write_Present_Value_Callback(
-                        wp_data->object_instance, old_value, 
+                        wp_data->object_instance, old_value,
                         Integer_Value_Present_Value(wp_data->object_instance));
                 }
             }
