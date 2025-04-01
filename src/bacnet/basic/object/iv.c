@@ -32,6 +32,9 @@
 static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_INTEGER_VALUE;
+/* callback for present value writes */
+static integer_value_write_present_value_callback
+    Integer_Value_Write_Present_Value_Callback;
 
 struct integer_object {
     bool Out_Of_Service : 1;
@@ -537,6 +540,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    int32_t old_value = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
@@ -554,9 +558,16 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
+                old_value =
+                    Integer_Value_Present_Value(wp_data->object_instance);
                 Integer_Value_Present_Value_Set(
                     wp_data->object_instance, value.type.Signed_Int,
                     wp_data->priority);
+                if (Integer_Value_Write_Present_Value_Callback) {
+                    Integer_Value_Write_Present_Value_Callback(
+                        wp_data->object_instance, old_value,
+                        Integer_Value_Present_Value(wp_data->object_instance));
+                }
             }
             break;
         case PROP_COV_INCREMENT:
@@ -591,6 +602,16 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/**
+ * @brief Sets a callback used when present-value is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Integer_Value_Write_Present_Value_Callback_Set(
+    integer_value_write_present_value_callback cb)
+{
+    Integer_Value_Write_Present_Value_Callback = cb;
 }
 
 /**
