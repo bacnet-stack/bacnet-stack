@@ -44,14 +44,13 @@ typedef struct BACnet_Read_Range_Data {
 /** Defines to indicate which type of read range request it is.
    Not really a bit map but we do it like this to allow quick
    checking of request against capabilities for the property */
-
 #define RR_BY_POSITION 1
 #define RR_BY_SEQUENCE 2
 #define RR_BY_TIME 4
-#define RR_READ_ALL \
-    8 /**< Read all of array - so don't send any range in the request */
-#define RR_ARRAY_OF_LISTS \
-    16 /**< For info functionality indicates array of lists if set */
+/**< Read all of the list, and don't encode OPTIONAL range in the request */
+#define RR_READ_ALL 8
+/**< For info functionality indicates array of lists if set */
+#define RR_ARRAY_OF_LISTS 16
 
 /** Bit String Enumerations */
 typedef enum {
