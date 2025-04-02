@@ -405,69 +405,133 @@ int rr_decode_service_request(
  */
 
 /**
+ * @brief Encode ReadRange-ACK service APDU
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param data  Pointer to the data to encode.
+ * @return number of bytes encoded, or zero on error.
+ */
+int readrange_ack_encode(uint8_t *apdu, const BACNET_READ_RANGE_DATA *data)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+    int len = 0;
+
+    if (!data) {
+        return 0;
+    }
+    len = encode_context_object_id(
+        apdu, 0, data->object_type, data->object_instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(apdu, 1, data->object_property);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* context 2 array index is optional */
+    if (data->array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 2, data->array_index);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* Context 3 BACnet Result Flags */
+    len = encode_context_bitstring(apdu, 3, &data->ResultFlags);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* Context 4 Item Count */
+    len = encode_context_unsigned(apdu, 4, data->ItemCount);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* Context 5 Property list - reading the standard it looks like an
+     * empty list still requires an opening and closing tag as the
+     * tagged parameter is not optional
+     */
+    len = encode_opening_tag(apdu, 5);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if (data->ItemCount != 0) {
+        for (len = 0; len < data->application_data_len; len++) {
+            if (apdu) {
+                apdu[len] = data->application_data[len];
+            }
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    len = encode_closing_tag(apdu, 5);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if ((data->ItemCount != 0) && (data->RequestType != RR_BY_POSITION) &&
+        (data->RequestType != RR_READ_ALL)) {
+        /* Context 6 Sequence number of first item */
+        len = encode_context_unsigned(apdu, 6, data->FirstSequence);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the ReadRange-ACK service
+ * @param apdu  Pointer to the buffer for encoding into, or NULL for length
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data to be encoded
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t readrange_ack_service_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_RANGE_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = readrange_ack_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = readrange_ack_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
  * Build a ReadRange response packet
  *
  * @param apdu  Pointer to the buffer.
- * @param invoke_id  ID invoked.
- * @param rrdata  Pointer to the read range data structure used for
- * encoding.
- *
- * @return The count of encoded bytes.
+ * @param invoke_id original invoke id for request
+ * @param data  Pointer to the property data to be encoded
+ * @return number of bytes encoded
  */
 int rr_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *rrdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *data)
 {
-    int imax = 0;
-    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
+    int len = 0;
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id; /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_RANGE; /* service choice */
-        apdu_len = 3;
-        /* service ack follows */
-        apdu_len += encode_context_object_id(
-            &apdu[apdu_len], 0, rrdata->object_type, rrdata->object_instance);
-        apdu_len += encode_context_enumerated(
-            &apdu[apdu_len], 1, rrdata->object_property);
-        /* context 2 array index is optional */
-        if (rrdata->array_index != BACNET_ARRAY_ALL) {
-            apdu_len += encode_context_unsigned(
-                &apdu[apdu_len], 2, rrdata->array_index);
-        }
-        /* Context 3 BACnet Result Flags */
-        apdu_len +=
-            encode_context_bitstring(&apdu[apdu_len], 3, &rrdata->ResultFlags);
-        /* Context 4 Item Count */
-        apdu_len +=
-            encode_context_unsigned(&apdu[apdu_len], 4, rrdata->ItemCount);
-        /* Context 5 Property list - reading the standard it looks like an
-         * empty list still requires an opening and closing tag as the
-         * tagged parameter is not optional
-         */
-        apdu_len += encode_opening_tag(&apdu[apdu_len], 5);
-        if (rrdata->ItemCount != 0) {
-            imax = rrdata->application_data_len;
-            if (imax > (MAX_APDU - apdu_len - 2 /*closing*/)) {
-                imax = (MAX_APDU - apdu_len - 2);
-            }
-            for (len = 0; len < imax; len++) {
-                apdu[apdu_len++] = rrdata->application_data[len];
-            }
-        }
-        apdu_len += encode_closing_tag(&apdu[apdu_len], 5);
-
-        if ((rrdata->ItemCount != 0) &&
-            (rrdata->RequestType != RR_BY_POSITION) &&
-            (rrdata->RequestType != RR_READ_ALL)) {
-            /* Context 6 Sequence number of first item */
-            if (apdu_len < (MAX_APDU - 4)) {
-                apdu_len += encode_context_unsigned(
-                    &apdu[apdu_len], 6, rrdata->FirstSequence);
-            }
-        }
     }
+    len = 3;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = readrange_ack_encode(apdu, data);
+    apdu_len += len;
 
     return apdu_len;
 }
