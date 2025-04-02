@@ -134,6 +134,11 @@ int rr_decode_service_request(
 BACNET_STACK_EXPORT
 int rr_ack_encode_apdu(
     uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *rrdata);
+BACNET_STACK_EXPORT
+int readrange_ack_encode(uint8_t *apdu, const BACNET_READ_RANGE_DATA *data);
+BACNET_STACK_EXPORT
+size_t readrange_ack_service_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_RANGE_DATA *data);
 
 BACNET_STACK_EXPORT
 int rr_ack_decode_service_request(

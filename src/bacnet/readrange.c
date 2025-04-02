@@ -519,66 +519,28 @@ size_t readrange_ack_service_encode(
  * Build a ReadRange response packet
  *
  * @param apdu  Pointer to the buffer.
- * @param invoke_id  ID invoked.
- * @param rrdata  Pointer to the read range data structure used for
- * encoding.
- *
- * @return The count of encoded bytes.
+ * @param invoke_id original invoke id for request
+ * @param data  Pointer to the property data to be encoded
+ * @return number of bytes encoded
  */
 int rr_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *rrdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *data)
 {
-    int imax = 0;
-    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
+    int len = 0;
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id; /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_RANGE; /* service choice */
-        apdu_len = 3;
-        /* service ack follows */
-        apdu_len += encode_context_object_id(
-            &apdu[apdu_len], 0, rrdata->object_type, rrdata->object_instance);
-        apdu_len += encode_context_enumerated(
-            &apdu[apdu_len], 1, rrdata->object_property);
-        /* context 2 array index is optional */
-        if (rrdata->array_index != BACNET_ARRAY_ALL) {
-            apdu_len += encode_context_unsigned(
-                &apdu[apdu_len], 2, rrdata->array_index);
-        }
-        /* Context 3 BACnet Result Flags */
-        apdu_len +=
-            encode_context_bitstring(&apdu[apdu_len], 3, &rrdata->ResultFlags);
-        /* Context 4 Item Count */
-        apdu_len +=
-            encode_context_unsigned(&apdu[apdu_len], 4, rrdata->ItemCount);
-        /* Context 5 Property list - reading the standard it looks like an
-         * empty list still requires an opening and closing tag as the
-         * tagged parameter is not optional
-         */
-        apdu_len += encode_opening_tag(&apdu[apdu_len], 5);
-        if (rrdata->ItemCount != 0) {
-            imax = rrdata->application_data_len;
-            if (imax > (MAX_APDU - apdu_len - 2 /*closing*/)) {
-                imax = (MAX_APDU - apdu_len - 2);
-            }
-            for (len = 0; len < imax; len++) {
-                apdu[apdu_len++] = rrdata->application_data[len];
-            }
-        }
-        apdu_len += encode_closing_tag(&apdu[apdu_len], 5);
-
-        if ((rrdata->ItemCount != 0) &&
-            (rrdata->RequestType != RR_BY_POSITION) &&
-            (rrdata->RequestType != RR_READ_ALL)) {
-            /* Context 6 Sequence number of first item */
-            if (apdu_len < (MAX_APDU - 4)) {
-                apdu_len += encode_context_unsigned(
-                    &apdu[apdu_len], 6, rrdata->FirstSequence);
-            }
-        }
     }
+    len = 3;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = readrange_ack_encode(apdu, data);
+    apdu_len += len;
 
     return apdu_len;
 }
