@@ -16,6 +16,50 @@
 #include "lighting_command.h"
 
 /**
+ * @brief call the lighting command tracking value callbacks
+ * @param data - dimmer data
+ * @param old_value - value prior to write
+ * @param value - value of the write
+ */
+static void lighting_command_tracking_value_handler(
+    struct bacnet_lighting_command_data *data, float old_value, float value)
+{
+    struct lighting_command_notification *head;
+
+    head = &data->Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(data->Key, old_value, value);
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Add a Lighting Command notification callback
+ * @param cb - notification callback to be added
+ */
+void lighting_command_notification_add(
+    struct bacnet_lighting_command_data *data,
+    struct lighting_command_notification *notification)
+{
+    struct lighting_command_notification *head;
+
+    head = &data->Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available free node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
  * @brief Callback for tracking value updates
  * @param  data - dimmer data
  * @param  old_value - value prior to write
@@ -24,27 +68,20 @@
 static void lighting_command_tracking_value_notify(
     struct bacnet_lighting_command_data *data, float old_value, float value)
 {
-    if (data->Tracking_Value_Callback) {
-        if (!data->Out_Of_Service) {
-            /* clamp value within trim values, if non-zero */
-            if (isless(value, 1.0f)) {
-                /* jump target to OFF if below normalized min */
-                value = 0.0f;
-            } else if (isgreater(value, data->High_Trim_Value)) {
-                value = data->High_Trim_Value;
-            } else if (isless(value, data->Low_Trim_Value)) {
-                value = data->Low_Trim_Value;
-            }
-            data->Tracking_Value_Callback(data->Key, old_value, value);
-        } else {
-            debug_printf(
-                "Lighting-Command[%lu]-Out-of-Service\n",
-                (unsigned long)data->Key);
+    if (!data->Out_Of_Service) {
+        /* clamp value within trim values, if non-zero */
+        if (isless(value, 1.0f)) {
+            /* jump target to OFF if below normalized min */
+            value = 0.0f;
+        } else if (isgreater(value, data->High_Trim_Value)) {
+            value = data->High_Trim_Value;
+        } else if (isless(value, data->Low_Trim_Value)) {
+            value = data->Low_Trim_Value;
         }
+        lighting_command_tracking_value_handler(data, old_value, value);
     } else {
         debug_printf(
-            "Lighting-Command[%lu]-Tracking-Value=%f\n",
-            (unsigned long)data->Key, (double)value);
+            "Lighting-Command[%lu]-Out-of-Service\n", (unsigned long)data->Key);
     }
 }
 
@@ -643,5 +680,6 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Blink.Interval = 0;
     data->Blink.Duration = 0;
     data->Blink.State = false;
-    data->Tracking_Value_Callback = NULL;
+    data->Notification_Head.next = NULL;
+    data->Notification_Head.callback = NULL;
 }

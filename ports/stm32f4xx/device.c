@@ -220,6 +220,46 @@ void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
     return;
 }
 
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+bool Device_Objects_Property_List_Member(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property)
+{
+    bool found = false;
+    struct special_property_list_t property_list = { 0 };
+
+    Device_Objects_Property_List(object_type, object_instance, &property_list);
+    found = property_list_member(property_list.Required.pList, object_property);
+    if (!found) {
+        found =
+            property_list_member(property_list.Optional.pList, object_property);
+    }
+    if (!found) {
+        found = property_list_member(
+            property_list.Proprietary.pList, object_property);
+    }
+
+    return found;
+}
+
+/**
+ * @brief Returns the list of required, optional, and proprietary properties
+ *       for the Device object.
+ * @param pRequired [out] Pointer to the list of required properties
+ * @param pOptional [out] Pointer to the list of optional properties
+ * @param pProprietary [out] Pointer to the list of proprietary properties
+ * @note The lists are terminated with -1.
+ * @note The lists are not allocated, so do not free them.
+ * @note The lists are static, so do not modify them.
+ * @ingroup ObjIntf
+ */
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -474,7 +514,7 @@ void Device_UUID_Init(void)
 
     /* 1. Generate 16 random bytes = 128 bits */
     for (i = 0; i < sizeof(Device_UUID); i++) {
-        Device_UUID[i] = rand() % 255;
+        Device_UUID[i] = rand() % 256;
     }
     /* 2. Adjust certain bits according to RFC 4122 section 4.4.
        This just means do the following
@@ -684,8 +724,13 @@ bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
     bool found = false;
 
     pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-        found = pObject->Object_Name(object_instance, object_name);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Name) {
+                found = pObject->Object_Name(object_instance, object_name);
+            }
+        }
     }
 
     return found;
@@ -857,13 +902,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -893,47 +931,26 @@ static int Read_Property_Common(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                /* Device Object exception: requested instance
-                   may not match our instance if a wildcard */
-                if (rpdata->object_type == OBJECT_DEVICE) {
-                    rpdata->object_instance = Object_Instance_Number;
-                }
-                apdu_len = encode_application_object_id(
-                    &apdu[0], rpdata->object_type, rpdata->object_instance);
+            /* Device Object exception: requested instance
+                may not match our instance if a wildcard */
+            if (rpdata->object_type == OBJECT_DEVICE) {
+                rpdata->object_instance = Object_Instance_Number;
             }
+            apdu_len = encode_application_object_id(
+                &apdu[0], rpdata->object_type, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                characterstring_init_ansi(&char_string, "");
-                if (pObject->Object_Name) {
-                    (void)pObject->Object_Name(
-                        rpdata->object_instance, &char_string);
-                }
-                apdu_len =
-                    encode_application_character_string(&apdu[0], &char_string);
+            characterstring_init_ansi(&char_string, "");
+            if (pObject->Object_Name) {
+                (void)pObject->Object_Name(
+                    rpdata->object_instance, &char_string);
             }
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                apdu_len = encode_application_enumerated(
-                    &apdu[0], rpdata->object_type);
-            }
+            apdu_len = encode_application_enumerated(
+                &apdu[0], rpdata->object_type);
             break;
 #if (BACNET_PROTOCOL_REVISION >= 14)
         case PROP_PROPERTY_LIST:
@@ -1005,13 +1022,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch ((int)wp_data->object_property) {
@@ -1179,12 +1189,6 @@ static bool Device_Write_Property_Object_Name(
     if (!wp_data) {
         return false;
     }
-    if (wp_data->array_index != BACNET_ARRAY_ALL) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     apdu = wp_data->application_data;
     apdu_size = wp_data->application_data_len;
     len = bacnet_character_string_application_decode(apdu, apdu_size, &value);
@@ -1209,8 +1213,8 @@ static bool Device_Write_Property_Object_Name(
         if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
             if ((object_type == wp_data->object_type) &&
                 (object_instance == wp_data->object_instance)) {
-                /* writing same name to same object */
-                status = true;
+                /* writing same name to same object - but is it writable? */
+                status = Object_Write_Property(wp_data);
             } else {
                 /* name already exists in some object */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;

@@ -64,11 +64,15 @@ bsc:
 
 .PHONY: apps
 apps:
-	$(MAKE) -s -C apps all
+	$(MAKE) -s LEGACY=true -C apps all
 
 .PHONY: lib
 lib:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s LEGACY=true -C apps $@
+
+.PHONY: library
+library:
+	$(MAKE) -s LEGACY=true -C apps lib
 
 CMAKE_BUILD_DIR=build
 .PHONY: cmake
@@ -198,6 +202,10 @@ netnumis:
 server:
 	$(MAKE) -s -C apps $@
 
+.PHONY: server-basic
+server-basic:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
+
 .PHONY: server-client
 server-client:
 	$(MAKE) LEGACY=true -s -C apps $@
@@ -205,6 +213,10 @@ server-client:
 .PHONY: server-discover
 server-discover:
 	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: server-mini
+server-mini:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
 .PHONY: sc-hub
 sc-hub:
@@ -410,12 +422,16 @@ CPPCHECK_OPTIONS += --suppress=duplicateCondition
 CPPCHECK_OPTIONS += --suppress=funcArgNamesDifferent
 CPPCHECK_OPTIONS += --suppress=unusedStructMember
 CPPCHECK_OPTIONS += --suppress=uselessAssignmentPtrArg
-CPPCHECK_OPTIONS += --addon=cert.py
 CPPCHECK_OPTIONS += --suppress=cert-MSC30-c
 CPPCHECK_OPTIONS += --suppress=cert-STR05-C
 CPPCHECK_OPTIONS += --suppress=cert-API01-C
 CPPCHECK_OPTIONS += --suppress=cert-MSC24-C
 CPPCHECK_OPTIONS += --suppress=cert-INT31-c
+# new in cppcheck 2.13
+CPPCHECK_OPTIONS += --suppress=constParameterCallback
+CPPCHECK_OPTIONS += --suppress=constParameterPointer
+CPPCHECK_OPTIONS += --suppress=constVariablePointer
+# suppress the deprecated warning for the BACnet stack
 CPPCHECK_OPTIONS += -DBACNET_STACK_DEPRECATED
 #CPPCHECK_OPTIONS += -I./src
 #CPPCHECK_OPTIONS += --enable=information --check-config

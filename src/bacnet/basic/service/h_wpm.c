@@ -1,15 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Handles WritePropertyMultiple-Request service
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -27,9 +26,6 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
-
-/** @file h_wpm.c  Handles Write Property Multiple requests. */
-#define PRINTF debug_perror
 
 /** Decoding for an object property.
  *
@@ -68,7 +64,7 @@ static int write_property_multiple_decode(
                         &apdu[offset], apdu_len - offset, wp_data);
                     if (len > 0) {
                         offset += len;
-                        PRINTF(
+                        debug_printf_stderr(
                             "WPM: type=%lu instance=%lu property=%lu "
                             "priority=%lu index=%ld\n",
                             (unsigned long)wp_data->object_type,
@@ -76,6 +72,9 @@ static int write_property_multiple_decode(
                             (unsigned long)wp_data->object_property,
                             (unsigned long)wp_data->priority,
                             (long)wp_data->array_index);
+                        if (!write_property_bacnet_array_valid(wp_data)) {
+                            return BACNET_STATUS_ERROR;
+                        }
                         if (device_write_property) {
                             if (device_write_property(wp_data) == false) {
                                 /* Workaround BTL Specified Test 9.23.2.X5 */
@@ -91,7 +90,7 @@ static int write_property_multiple_decode(
                             }
                         }
                     } else {
-                        PRINTF("WPM: Bad Encoding!\n");
+                        debug_printf_stderr("WPM: Bad Encoding!\n");
                         return len;
                     }
                     /* Closing tag 1 - List of Properties */
@@ -106,7 +105,7 @@ static int write_property_multiple_decode(
                 } while (tag_number != 1);
             }
         } else {
-            PRINTF("WPM: Bad Encoding!\n");
+            debug_printf_stderr("WPM: Bad Encoding!\n");
             return len;
         }
     } while (offset < apdu_len);
@@ -146,10 +145,16 @@ void handler_write_property_multiple(
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
 
-    if (service_data->segmented_message) {
+    if (service_len == 0) {
+        wp_data.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        len = BACNET_STATUS_REJECT;
+        debug_print("WPM: Missing Required Parameter. "
+                    "Sending Reject!\n");
+    } else if (service_data->segmented_message) {
         wp_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
         len = BACNET_STATUS_ABORT;
-        PRINTF("WPM: Segmented message.  Sending Abort!\n");
+        debug_print("WPM: Segmented message. "
+                    "Sending Abort!\n");
     } else {
         /* first time - detect malformed request before writing any data */
         len = write_property_multiple_decode(
@@ -161,36 +166,36 @@ void handler_write_property_multiple(
     }
     /* encode the confirmed reply */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     npdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (len > 0) {
         apdu_len = wpm_ack_encode_apdu_init(
             &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id);
-        PRINTF("WPM: Sending Ack!\n");
+        debug_print("WPM: Sending Ack!\n");
     } else {
         /* handle any errors */
         if (len == BACNET_STATUS_ABORT) {
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(wp_data.error_code), true);
-            PRINTF("WPM: Sending Abort!\n");
+            debug_print("WPM: Sending Abort!\n");
         } else if (len == BACNET_STATUS_ERROR) {
             apdu_len = wpm_error_ack_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 &wp_data);
-            PRINTF("WPM: Sending Error!\n");
+            debug_print("WPM: Sending Error!\n");
         } else if (len == BACNET_STATUS_REJECT) {
             apdu_len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(wp_data.error_code));
-            PRINTF("WPM: Sending Reject!\n");
+            debug_print("WPM: Sending Reject!\n");
         }
     }
     pdu_len = npdu_len + apdu_len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        PRINTF("Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("WPM: Failed to send PDU");
     }
 }

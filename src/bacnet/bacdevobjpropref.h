@@ -163,16 +163,28 @@ BACNET_STACK_EXPORT
 bool bacnet_device_object_property_reference_same(
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value1,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value2);
+BACNET_STACK_EXPORT
+bool bacnet_device_object_property_reference_copy(
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *dest,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *src);
 
 BACNET_STACK_EXPORT
 bool bacnet_device_object_reference_same(
     const BACNET_DEVICE_OBJECT_REFERENCE *value1,
     const BACNET_DEVICE_OBJECT_REFERENCE *value2);
+BACNET_STACK_EXPORT
+bool bacnet_device_object_reference_copy(
+    BACNET_DEVICE_OBJECT_REFERENCE *dest,
+    const BACNET_DEVICE_OBJECT_REFERENCE *src);
 
 BACNET_STACK_EXPORT
 bool bacnet_object_property_reference_same(
     const BACNET_OBJECT_PROPERTY_REFERENCE *value1,
     const BACNET_OBJECT_PROPERTY_REFERENCE *value2);
+BACNET_STACK_EXPORT
+bool bacnet_object_property_reference_copy(
+    BACNET_OBJECT_PROPERTY_REFERENCE *dest,
+    const BACNET_OBJECT_PROPERTY_REFERENCE *src);
 
 BACNET_STACK_EXPORT
 int bacnet_property_reference_encode(
@@ -186,6 +198,10 @@ BACNET_STACK_EXPORT
 bool bacnet_property_reference_same(
     const struct BACnetPropertyReference *value1,
     const struct BACnetPropertyReference *value2);
+BACNET_STACK_EXPORT
+void bacnet_property_reference_copy(
+    struct BACnetPropertyReference *dest,
+    const struct BACnetPropertyReference *src);
 BACNET_STACK_EXPORT
 int bacnet_property_reference_decode(
     const uint8_t *apdu,

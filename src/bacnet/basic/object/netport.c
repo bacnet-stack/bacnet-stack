@@ -20,16 +20,14 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/datalink/bvlc.h"
+#include "bacnet/datalink/bvlc6.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
 #include <bacnet/basic/object/netport_internal.h>
-
-#if defined(BACDL_BIP6)
-#include "bacnet/datalink/bvlc6.h"
-#endif
 
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
@@ -43,9 +41,7 @@ struct bacnet_ipv4_port {
     uint8_t IP_DNS_Server[BIP_DNS_MAX][4];
     uint16_t Port;
     BACNET_IP_MODE Mode;
-#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     bool IP_DHCP_Enable;
-#endif
     uint32_t IP_DHCP_Lease_Seconds;
     uint32_t IP_DHCP_Lease_Seconds_Remaining;
     uint8_t IP_DHCP_Server[4];
@@ -130,23 +126,49 @@ static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = {
     /* unordered list of required properties */
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
-    PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
-    PROP_NETWORK_TYPE,      PROP_PROTOCOL_LEVEL,
-    PROP_NETWORK_NUMBER,    PROP_NETWORK_NUMBER_QUALITY,
-    PROP_CHANGES_PENDING,   PROP_APDU_LENGTH,
-    PROP_LINK_SPEED,        -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_NETWORK_TYPE,
+    PROP_PROTOCOL_LEVEL,
+    PROP_CHANGES_PENDING,
+#if (BACNET_PROTOCOL_REVISION < 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int Ethernet_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, -1
+    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int MSTP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
     -1
 };
 
@@ -171,6 +193,12 @@ static const int BIP_Port_Properties_Optional[] = {
 #if defined(BACDL_BIP) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
 #endif
     -1
 };
@@ -199,6 +227,12 @@ static const int BIP6_Port_Properties_Optional[] = {
 #if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
 #endif
     -1
 };
@@ -790,10 +824,10 @@ bool Network_Port_Quality_Set(
  * Note: depends on Network_Type being set for this object
  *
  * @param  object_instance - object-instance number of the object
- * @param  mac_address - holds the mac-address retrieved
- * @param  mac_size - size of the mac-address buffer
+ * @param  mac_address - holds the mac-address retrieved, or NULL for length
+ * @param  mac_size - size of the mac-address buffer, or 0 for length
  *
- * @return the length of the mac-address retrieved, or zero if not found
+ * @return the length of the mac-address, or zero if not found
  */
 uint8_t Network_Port_MAC_Address_Value(
     uint32_t object_instance, uint8_t *mac_address, size_t mac_size)
@@ -836,10 +870,8 @@ uint8_t Network_Port_MAC_Address_Value(
                 break;
         }
         if (mac_len > 0) {
-            if (mac_size >= mac_len) {
+            if ((mac_address) && (mac_size >= mac_len)) {
                 memcpy(mac_address, mac, mac_len);
-            } else {
-                mac_len = 0;
             }
         }
     }
@@ -902,7 +934,15 @@ bool Network_Port_MAC_Address_Set(
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
-                /* no need to set - created from IP address and UPD Port */
+                if (mac_len >= 6) {
+                    memcpy(
+                        &Object_List[index].Network.IPv4.IP_Address,
+                        &mac_src[0], 4);
+                    /* convert from network-byte-order to host-byte-order */
+                    decode_unsigned16(
+                        &mac_src[4], &Object_List[index].Network.IPv4.Port);
+                    status = true;
+                }
                 break;
             case PORT_TYPE_BIP6:
                 mac_dest = &Object_List[index].Network.IPv6.MAC_Address[0];
@@ -1430,7 +1470,6 @@ bool Network_Port_IP_Gateway_Set(
     return status;
 }
 
-#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, returns the IP_DHCP_Enable
  * property value
@@ -1453,9 +1492,7 @@ bool Network_Port_IP_DHCP_Enable(uint32_t object_instance)
 
     return dhcp_enable;
 }
-#endif
 
-#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, sets the IP_DHCP_Enable property value
  *
@@ -1479,7 +1516,6 @@ bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
 
     return status;
 }
-#endif
 
 /**
  * For a given object instance-number and dns_index, loads the ip-address into
@@ -1698,11 +1734,17 @@ bool Network_Port_BBMD_Accept_FD_Registrations(uint32_t object_instance)
     bool flag = false;
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
+    struct bacnet_ipv6_port *ipv6 = NULL;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        ipv4 = &Object_List[index].Network.IPv4;
-        flag = ipv4->BBMD_Accept_FD_Registrations;
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            ipv4 = &Object_List[index].Network.IPv4;
+            flag = ipv4->BBMD_Accept_FD_Registrations;
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            ipv6 = &Object_List[index].Network.IPv6;
+            flag = ipv6->BBMD_Accept_FD_Registrations;
+        }
     }
 
     return flag;
@@ -1723,15 +1765,25 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
     bool status = false;
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
+    struct bacnet_ipv6_port *ipv6 = NULL;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        ipv4 = &Object_List[index].Network.IPv4;
-        if (flag != ipv4->BBMD_Accept_FD_Registrations) {
-            ipv4->BBMD_Accept_FD_Registrations = flag;
-            Object_List[index].Changes_Pending = true;
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            ipv4 = &Object_List[index].Network.IPv4;
+            if (flag != ipv4->BBMD_Accept_FD_Registrations) {
+                ipv4->BBMD_Accept_FD_Registrations = flag;
+                Object_List[index].Changes_Pending = true;
+            }
+            status = true;
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            ipv6 = &Object_List[index].Network.IPv6;
+            if (flag != ipv6->BBMD_Accept_FD_Registrations) {
+                ipv6->BBMD_Accept_FD_Registrations = flag;
+                Object_List[index].Changes_Pending = true;
+            }
+            status = true;
         }
-        status = true;
     }
 
     return status;
@@ -1758,6 +1810,37 @@ void *Network_Port_BBMD_BD_Table(uint32_t object_instance)
     }
 
     return bdt_head;
+}
+
+/**
+ * @brief For a given object instance-number, encodes the BBMD-BD-Table property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param apdu - buffer to encode the property value into, or NULL for length
+ * @return number of bytes encoded
+ */
+static int BBMD_Broadcast_Distribution_Table_Encode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+    struct bacnet_ipv6_port *ipv6 = NULL;
+    int apdu_len = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            ipv4 = &Object_List[index].Network.IPv4;
+            apdu_len = bvlc_broadcast_distribution_table_encode(
+                apdu, apdu_size, ipv4->BBMD_BD_Table);
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            ipv6 = &Object_List[index].Network.IPv6;
+            apdu_len = bvlc6_broadcast_distribution_table_encode(
+                apdu, apdu_size, ipv6->BBMD_BD_Table);
+        }
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -1840,40 +1923,36 @@ bool Network_Port_BBMD_FD_Table_Set(uint32_t object_instance, void *fdt_head)
     return status;
 }
 
-#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
 /**
- * For a given object instance-number, gets the ip-address and port
- * Note: depends on Network_Type being set for this object
- *
- * @param  object_instance - object-instance number of the object
- * @param  addr - holds the ip-address and port retrieved
- *
- * @return  true if ip-address and port were retrieved
+ * @brief For a given object instance-number, encodes the BBMD-BD-Table property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param apdu - buffer to encode the property value into, or NULL for length
+ * @return number of bytes encoded
  */
-static bool Network_Port_Remote_BBMD_IP_Address_And_Port(
-    uint32_t object_instance, BACNET_IP_ADDRESS *addr)
+static int BBMD_Foreign_Device_Table_Encode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    unsigned index = 0; /* offset from instance lookup */
-    bool status = false;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+    struct bacnet_ipv6_port *ipv6 = NULL;
+    int apdu_len = 0;
 
-    if (addr) {
-        index = Network_Port_Instance_To_Index(object_instance);
-        if (index < BACNET_NETWORK_PORTS_MAX) {
-            if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-                bvlc_address_set(
-                    addr, Object_List[index].Network.IPv4.BBMD_IP_Address[0],
-                    Object_List[index].Network.IPv4.BBMD_IP_Address[1],
-                    Object_List[index].Network.IPv4.BBMD_IP_Address[2],
-                    Object_List[index].Network.IPv4.BBMD_IP_Address[3]);
-                addr->port = Object_List[index].Network.IPv4.BBMD_Port;
-                status = true;
-            }
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            ipv4 = &Object_List[index].Network.IPv4;
+            apdu_len = bvlc_foreign_device_table_encode(
+                apdu, apdu_size, ipv4->BBMD_FD_Table);
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            ipv6 = &Object_List[index].Network.IPv6;
+            apdu_len = bvlc6_foreign_device_table_encode(
+                apdu, apdu_size, ipv6->BBMD_FD_Table);
         }
     }
 
-    return status;
+    return apdu_len;
 }
-#endif
 
 /**
  * For a given object instance-number, loads the ip-address into
@@ -2059,12 +2138,36 @@ bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
     return status;
 }
 
-/* IPv6 BBMD related getters and setters */
-#if defined(BACDL_BIP6)
+/**
+ * @brief Get the foreign device subscription lifetime
+ * @param object_instance [in] BACnet network port object instance number
+ * @return foreign device subscription lifetime
+ */
+static uint16_t Foreign_Device_Subscription_Lifetime(uint32_t object_instance)
+{
+    uint16_t value = 0;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        switch (Object_List[index].Network_Type) {
+            case PORT_TYPE_BIP:
+                value = Object_List[index].Network.IPv4.BBMD_Lifetime;
+                break;
+            case PORT_TYPE_BIP6:
+                value = Object_List[index].Network.IPv6.BBMD_Lifetime;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return value;
+}
 
 /**
- * For a given object instance-number, returns the BBMD-Accept-FD-Registrations
- * property value
+ * For a given object instance-number, returns the
+ * BBMD-Accept-FD-Registrations property value
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -2219,7 +2322,6 @@ bool Network_Port_BBMD_IP6_FD_Table_Set(
     return status;
 }
 
-#if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
 /**
  * For a given object instance-number, gets the ip-address and port
  * Note: depends on Network_Type being set for this object
@@ -2229,29 +2331,37 @@ bool Network_Port_BBMD_IP6_FD_Table_Set(
  *
  * @return  true if ip-address and port were retrieved
  */
-static bool Network_Port_Remote_BBMD_IP6_Address_And_Port(
-    uint32_t object_instance, BACNET_IP6_ADDRESS *addr)
+static int Foreign_Device_BBMD_Address_Encode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
     unsigned index = 0; /* offset from instance lookup */
-    bool status = false;
+    BACNET_IP_ADDRESS ip4_address;
+    BACNET_IP6_ADDRESS ip6_address;
+    int apdu_len = 0;
 
-    if (addr) {
-        index = Network_Port_Instance_To_Index(object_instance);
-        if (index < BACNET_NETWORK_PORTS_MAX) {
-            if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
-                memcpy(
-                    addr->address,
-                    Object_List[index].Network.IPv6.BBMD_IP_Address,
-                    sizeof(addr->address));
-                addr->port = Object_List[index].Network.IPv6.BBMD_Port;
-                status = true;
-            }
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            bvlc_address_set(
+                &ip4_address,
+                Object_List[index].Network.IPv4.BBMD_IP_Address[0],
+                Object_List[index].Network.IPv4.BBMD_IP_Address[1],
+                Object_List[index].Network.IPv4.BBMD_IP_Address[2],
+                Object_List[index].Network.IPv4.BBMD_IP_Address[3]);
+            ip4_address.port = Object_List[index].Network.IPv4.BBMD_Port;
+            apdu_len = bvlc_foreign_device_bbmd_host_address_encode(
+                apdu, apdu_size, &ip4_address);
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            bvlc6_address_n_port_set(
+                &ip6_address, Object_List[index].Network.IPv6.BBMD_IP_Address,
+                Object_List[index].Network.IPv6.BBMD_Port);
+            apdu_len = bvlc6_foreign_device_bbmd_host_address_encode(
+                apdu, apdu_size, &ip6_address);
         }
     }
 
-    return status;
+    return apdu_len;
 }
-#endif
 
 /**
  * For a given object instance-number, loads the ip-address into
@@ -2420,7 +2530,6 @@ bool Network_Port_Remote_BBMD_BIP6_Lifetime_Set(
 
     return status;
 }
-#endif
 
 /**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
@@ -2524,6 +2633,7 @@ bool Network_Port_IPv6_Address_Set(
             for (i = 0; i < IPV6_ADDR_SIZE; i++) {
                 Object_List[index].Network.IPv6.IP_Address[i] = ip_address[i];
             }
+            status = true;
         }
     }
 
@@ -2531,8 +2641,9 @@ bool Network_Port_IPv6_Address_Set(
 }
 
 /**
- * For a given object instance-number, gets the BACnet/IP Subnet prefix value
- * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ * For a given object instance-number, gets the BACnet/IP Subnet prefix
+ * value Note: depends on Network_Type being set to PORT_TYPE_BIP for this
+ * object
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -2554,8 +2665,9 @@ uint8_t Network_Port_IPv6_Subnet_Prefix(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the BACnet/IP Subnet prefix value
- * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ * For a given object instance-number, sets the BACnet/IP Subnet prefix
+ * value Note: depends on Network_Type being set to PORT_TYPE_BIP for this
+ * object
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - BACnet/IP Subnet prefix value 1..128
@@ -2635,6 +2747,7 @@ bool Network_Port_IPv6_Gateway_Set(
             for (i = 0; i < IPV6_ADDR_SIZE; i++) {
                 Object_List[index].Network.IPv6.IP_Gateway[i] = ip_address[i];
             }
+            status = true;
         }
     }
 
@@ -2728,6 +2841,7 @@ bool Network_Port_IPv6_DNS_Server_Set(
                 Object_List[index].Network.IPv6.IP_DNS_Server[dns_index][i] =
                     ip_address[i];
             }
+            status = true;
         }
     }
 
@@ -2787,6 +2901,7 @@ bool Network_Port_IPv6_Multicast_Address_Set(
                 Object_List[index].Network.IPv6.IP_Multicast_Address[i] =
                     ip_address[i];
             }
+            status = true;
         }
     }
 
@@ -2845,6 +2960,7 @@ bool Network_Port_IPv6_DHCP_Server_Set(
                 Object_List[index].Network.IPv6.IP_DHCP_Server[i] =
                     ip_address[i];
             }
+            status = true;
         }
     }
 
@@ -2953,8 +3069,8 @@ const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, returns the BACnet IPv6 Auto Addressing
- * Enable property value
+ * For a given object instance-number, returns the BACnet IPv6 Auto
+ * Addressing Enable property value
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -3035,7 +3151,6 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
     return status;
 }
 
-#if (BBMD_CLIENT_ENABLED) && defined(BACAPP_HOST_N_PORT)
 /**
  * @brief Write the FD BBMD Address
  * @param object_instance [in] BACnet network port object instance number
@@ -3061,7 +3176,6 @@ static bool Network_Port_FD_BBMD_Address_Write(
         return status;
     }
     switch (Network_Port_Type(object_instance)) {
-#if defined(BACDL_BIP)
         case PORT_TYPE_BIP:
             if (Network_Port_BIP_Mode(object_instance) !=
                 BACNET_IP_MODE_FOREIGN) {
@@ -3084,8 +3198,6 @@ static bool Network_Port_FD_BBMD_Address_Write(
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
-#endif
-#if defined(BACDL_BIP6)
         case PORT_TYPE_BIP6:
             if (Network_Port_BIP6_Mode(object_instance) !=
                 BACNET_IP_MODE_FOREIGN) {
@@ -3106,7 +3218,6 @@ static bool Network_Port_FD_BBMD_Address_Write(
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
-#endif
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -3115,9 +3226,7 @@ static bool Network_Port_FD_BBMD_Address_Write(
 
     return status;
 }
-#endif
 
-#if (BBMD_CLIENT_ENABLED)
 /**
  * @brief Write the FD Subscription Lifetime
  * @param object_instance [in] BACnet network port object instance number
@@ -3145,7 +3254,6 @@ static bool Network_Port_FD_Subscription_Lifetime_Write(
     }
     lifetime = (uint16_t)value;
     switch (Network_Port_Type(object_instance)) {
-#if defined(BACDL_BIP)
         case PORT_TYPE_BIP:
             if (Network_Port_BIP_Mode(object_instance) ==
                 BACNET_IP_MODE_FOREIGN) {
@@ -3160,8 +3268,6 @@ static bool Network_Port_FD_Subscription_Lifetime_Write(
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
-#endif
-#if defined(BACDL_BIP6)
         case PORT_TYPE_BIP6:
             if (Network_Port_BIP6_Mode(object_instance) ==
                 BACNET_IP_MODE_FOREIGN) {
@@ -3176,7 +3282,6 @@ static bool Network_Port_FD_Subscription_Lifetime_Write(
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
-#endif
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -3185,7 +3290,6 @@ static bool Network_Port_FD_Subscription_Lifetime_Write(
 
     return status;
 }
-#endif
 
 /**
  * For a given object instance-number, gets the MS/TP Max_Info_Frames value
@@ -3240,35 +3344,6 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
- * Determine if the object property is a BACnetARRAY datatype
- * @param  object_property [in] BACnet object property
- * @return true if the object property is a BACnetARRAY datatype
- */
-static bool
-Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
-{
-    bool status = false;
-
-    switch (object_property) {
-        case PROP_EVENT_TIME_STAMPS:
-        case PROP_EVENT_MESSAGE_TEXTS:
-        case PROP_EVENT_MESSAGE_TEXTS_CONFIG:
-        case PROP_PROPERTY_LIST:
-        case PROP_TAGS:
-        case PROP_LINK_SPEEDS:
-        case PROP_IP_DNS_SERVER:
-        case PROP_IPV6_DNS_SERVER:
-        case PROP_ISSUER_CERTIFICATE_FILES:
-            status = true;
-            break;
-        default:
-            break;
-    }
-
-    return status;
-}
-
-/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -3285,39 +3360,14 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
-#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-    BACNET_IP_ADDRESS ip_address = { 0 };
-#endif
-#if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
-    BACNET_IP6_ADDRESS ip6_address;
-#endif
     uint8_t *apdu = NULL;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-
-    uint8_t network_type = PORT_TYPE_NON_BACNET;
-    unsigned int index = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-
-#if (!BBMD_CLIENT_ENABLED)
-    (void)network_type;
-#endif
-
-    if ((index = Network_Port_Instance_To_Index(rpdata->object_instance)) <
-        BACNET_NETWORK_PORTS_MAX) {
-        network_type = Object_List[index].Network_Type;
-    }
-
-    Network_Port_Property_List(
-        rpdata->object_instance, &pRequired, &pOptional, &pProprietary);
-    if ((!property_list_member(pRequired, rpdata->object_property)) &&
-        (!property_list_member(pOptional, rpdata->object_property)) &&
-        (!property_list_member(pProprietary, rpdata->object_property))) {
+    if (!Property_List_Member(
+            rpdata->object_instance, rpdata->object_property)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return BACNET_STATUS_ERROR;
@@ -3435,12 +3485,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             Network_Port_IP_Gateway(rpdata->object_instance, &octet_string);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
-#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
         case PROP_IP_DHCP_ENABLE:
             apdu_len = encode_application_boolean(
                 &apdu[0], Network_Port_IP_DHCP_Enable(rpdata->object_instance));
             break;
-#endif
         case PROP_IP_DNS_SERVER:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
@@ -3455,9 +3503,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
-#if (defined(BACDL_BIP) || defined(BACDL_BIP6)) && \
-    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-#if (BBMD_ENABLED)
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
             apdu_len = encode_application_boolean(
                 &apdu[0],
@@ -3465,107 +3510,24 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
-            switch (network_type) {
-#if defined(BACDL_BIP)
-                case PORT_TYPE_BIP:
-                    apdu_len = bvlc_broadcast_distribution_table_encode(
-                        &apdu[0], rpdata->application_data_len,
-                        Network_Port_BBMD_BD_Table(rpdata->object_instance));
-                    break;
-#endif
-#if defined(BACDL_BIP6)
-                case PORT_TYPE_BIP6:
-                    apdu_len = bvlc6_broadcast_distribution_table_encode(
-                        &apdu[0], rpdata->application_data_len,
-                        Network_Port_BBMD_IP6_BD_Table(
-                            rpdata->object_instance));
-                    break;
-#endif
-                default:
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                    break;
-            }
+            /* BACnetLIST */
+            apdu_len = BBMD_Broadcast_Distribution_Table_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-            switch (network_type) {
-#if defined(BACDL_BIP)
-                case PORT_TYPE_BIP:
-                    apdu_len = bvlc_foreign_device_table_encode(
-                        &apdu[0], rpdata->application_data_len,
-                        Network_Port_BBMD_FD_Table(rpdata->object_instance));
-                    break;
-#endif
-#if defined(BACDL_BIP6)
-                case PORT_TYPE_BIP6:
-                    apdu_len = bvlc6_foreign_device_table_encode(
-                        &apdu[0], rpdata->application_data_len,
-                        Network_Port_BBMD_IP6_FD_Table(
-                            rpdata->object_instance));
-                    break;
-#endif
-                default:
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                    break;
-            }
+            /* BACnetLIST */
+            apdu_len = BBMD_Foreign_Device_Table_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
-#endif /* BBMD_ENABLED */
-#if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
-            switch (network_type) {
-#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-                case PORT_TYPE_BIP:
-                    Network_Port_Remote_BBMD_IP_Address_And_Port(
-                        rpdata->object_instance, &ip_address);
-                    apdu_len = bvlc_foreign_device_bbmd_host_address_encode(
-                        &apdu[0], apdu_size, &ip_address);
-                    break;
-#endif
-#if defined(BACDL_BIP6)
-                case PORT_TYPE_BIP6:
-                    Network_Port_Remote_BBMD_IP6_Address_And_Port(
-                        rpdata->object_instance, &ip6_address);
-                    apdu_len = bvlc6_foreign_device_bbmd_host_address_encode(
-                        &apdu[0], apdu_size, &ip6_address);
-                    break;
-#endif
-                default:
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                    break;
-            }
+            apdu_len = Foreign_Device_BBMD_Address_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
-            switch (network_type) {
-#if defined(BACDL_BIP)
-                case PORT_TYPE_BIP:
-                    apdu_len = encode_application_unsigned(
-                        &apdu[0],
-                        Network_Port_Remote_BBMD_BIP_Lifetime(
-                            rpdata->object_instance));
-                    break;
-#endif
-#if defined(BACDL_BIP6)
-                case PORT_TYPE_BIP6:
-                    apdu_len = encode_application_unsigned(
-                        &apdu[0],
-                        Network_Port_Remote_BBMD_BIP6_Lifetime(
-                            rpdata->object_instance));
-                    break;
-#endif
-                default:
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                    break;
-            }
+            apdu_len = encode_application_unsigned(
+                apdu,
+                Foreign_Device_Subscription_Lifetime(rpdata->object_instance));
             break;
-#endif
-#endif
         case PROP_BACNET_IPV6_MODE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], Network_Port_BIP6_Mode(rpdata->object_instance));
@@ -3807,14 +3769,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             (void)apdu_size;
             break;
     }
-    /*  only array properties can have optional array indices */
-    if ((apdu_len >= 0) &&
-        (!Network_Port_BACnetArray_Property(rpdata->object_property)) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -3839,6 +3793,12 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
+    if (!Property_List_Member(
+            wp_data->object_instance, wp_data->object_property)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+        return false;
+    }
     /* decode the some of the request */
 #if defined(BACAPP_COMPLEX_TYPES)
     len = bacapp_decode_known_property(
@@ -3852,18 +3812,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_LINK_SPEEDS) &&
-        (wp_data->object_property != PROP_IP_DNS_SERVER) &&
-        (wp_data->object_property != PROP_IPV6_DNS_SERVER) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS_CONFIG) &&
-        (wp_data->object_property != PROP_TAGS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     /* FIXME: len < application_data_len: more data? */
@@ -3903,39 +3851,21 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-#if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
-#if defined(BACAPP_HOST_N_PORT)
             if (write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_HOST_N_PORT)) {
                 status = Network_Port_FD_BBMD_Address_Write(
                     wp_data->object_instance, &value.type.Host_Address,
                     &wp_data->error_class, &wp_data->error_code);
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-#else
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-#endif
             break;
-#endif
         case PROP_FD_SUBSCRIPTION_LIFETIME:
-#if (BBMD_CLIENT_ENABLED)
             if (write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
                 status = Network_Port_FD_Subscription_Lifetime_Write(
                     wp_data->object_instance, value.type.Unsigned_Int,
                     &wp_data->error_class, &wp_data->error_code);
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-#else
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-#endif
             break;
         default:
             if (Property_List_Member(
@@ -4005,71 +3935,33 @@ bool Network_Port_Read_Range(
     /* return value */
     bool status = false;
 
-    switch (pRequest->object_property) {
-        /* required properties */
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_NETWORK_TYPE:
-        case PROP_PROTOCOL_LEVEL:
-        case PROP_NETWORK_NUMBER:
-        case PROP_NETWORK_NUMBER_QUALITY:
-        case PROP_CHANGES_PENDING:
-        case PROP_APDU_LENGTH:
-        case PROP_LINK_SPEED:
-        /* optional properties */
-        case PROP_MAC_ADDRESS:
-#if defined(BACDL_MSTP)
-        case PROP_MAX_MASTER:
-        case PROP_MAX_INFO_FRAMES:
-#endif
-#if defined(BACDL_BIP)
-        case PROP_BACNET_IP_MODE:
-        case PROP_IP_ADDRESS:
-        case PROP_BACNET_IP_UDP_PORT:
-        case PROP_IP_SUBNET_MASK:
-        case PROP_IP_DEFAULT_GATEWAY:
-        case PROP_IP_DNS_SERVER:
-#endif
-#if defined(BACDL_BIP) && BBMD_ENABLED
-        case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
-#endif
-            (void)pInfo;
+    if (Property_List_Member(
+            pRequest->object_instance, pRequest->object_property)) {
+        if (property_list_bacnet_list_member(
+                OBJECT_NETWORK_PORT, pRequest->object_property)) {
+            switch (pRequest->object_property) {
+                case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
+                    pInfo->RequestTypes = RR_BY_POSITION;
+                    pInfo->Handler = Network_Port_Read_Range_BDT;
+                    status = true;
+                    break;
+                case PROP_BBMD_FOREIGN_DEVICE_TABLE:
+                    pInfo->RequestTypes = RR_BY_POSITION;
+                    pInfo->Handler = Network_Port_Read_Range_FDT;
+                    status = true;
+                    break;
+                default:
+                    pRequest->error_class = ERROR_CLASS_PROPERTY;
+                    pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                    break;
+            }
+        } else {
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
-            break;
-        case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            pInfo->RequestTypes = RR_BY_POSITION;
-            pInfo->Handler = Network_Port_Read_Range_BDT;
-            status = true;
-#else
-            (void)pInfo;
-            pRequest->error_class = ERROR_CLASS_PROPERTY;
-            pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            (void)pInfo;
-#endif
-            break;
-        case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            pInfo->RequestTypes = RR_BY_POSITION;
-            pInfo->Handler = Network_Port_Read_Range_FDT;
-            status = true;
-#else
-            (void)pInfo;
-            pRequest->error_class = ERROR_CLASS_PROPERTY;
-            pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            (void)pInfo;
-#endif
-            break;
-        default:
-            (void)pInfo;
-            pRequest->error_class = ERROR_CLASS_PROPERTY;
-            pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            break;
+        }
+    } else {
+        pRequest->error_class = ERROR_CLASS_PROPERTY;
+        pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
     }
 
     return status;

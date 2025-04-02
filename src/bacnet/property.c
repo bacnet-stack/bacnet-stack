@@ -2011,13 +2011,22 @@ static const int Multistate_Value_Properties_Optional[] = {
 
 static const int Network_Port_Properties_Required[] = {
     /* unordered list of properties */
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
-    PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
-    PROP_NETWORK_TYPE,      PROP_PROTOCOL_LEVEL,
-    PROP_NETWORK_NUMBER,    PROP_NETWORK_NUMBER_QUALITY,
-    PROP_CHANGES_PENDING,   PROP_APDU_LENGTH,
-    PROP_LINK_SPEED,        -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_NETWORK_TYPE,
+    PROP_PROTOCOL_LEVEL,
+    PROP_CHANGES_PENDING,
+#if (BACNET_PROTOCOL_REVISION < 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int Network_Port_Properties_Optional[] = {
@@ -2082,6 +2091,12 @@ static const int Network_Port_Properties_Optional[] = {
     PROP_TAGS,
     PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
     -1
 };
 
@@ -3317,8 +3332,6 @@ bool property_list_writable_member(
                 (object_property == PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
                 (object_property == PROP_SECURITY_TIME_WINDOW) ||
                 (object_property == PROP_PACKET_REORDER_TIME) ||
-                (object_property == PROP_LAST_KEY_SERVER) ||
-                (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
                 (object_property == PROP_LAST_KEY_SERVER) ||
                 (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
                 (object_property == PROP_DO_NOT_HIDE)) {

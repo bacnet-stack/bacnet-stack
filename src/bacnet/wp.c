@@ -11,6 +11,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
+#include "bacnet/proplist.h"
 #include "bacnet/wp.h"
 
 /** @file wp.c  Encode/Decode BACnet Write Property APDUs  */
@@ -427,6 +428,29 @@ bool write_property_empty_string_valid(
 }
 
 /**
+ * @brief simple validation of BACnetARRAY for Write Property
+ * @param data - #BACNET_WRITE_PROPERTY_DATA data, including
+ *  requested data and space for the reply, or error response.
+ * @return true if the property is an array and the request uses array
+ *  indices.
+ */
+bool write_property_bacnet_array_valid(BACNET_WRITE_PROPERTY_DATA *data)
+{
+    bool is_array;
+
+    /*  only array properties can have array options */
+    is_array = property_list_bacnet_array_member(
+        data->object_type, data->object_property);
+    if (!is_array && (data->array_index != BACNET_ARRAY_ALL)) {
+        data->error_class = ERROR_CLASS_PROPERTY;
+        data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * @brief Helper to decode a WriteProperty unsigned integer and set a property
  * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data including any
  *  error response.
@@ -462,4 +486,61 @@ bool write_property_unsigned_decode(
     }
 
     return status;
+}
+
+/**
+ * @brief Handler for a WriteProperty Service request when the
+ *  property is a NULL type and the property is not commandable
+ *
+ *      15.9.2 WriteProperty Service Procedure
+ *
+ *      If an attempt is made to relinquish a property that is
+ *      not commandable and for which Null is not a supported
+ *      datatype, if no other error conditions exist,
+ *      the property shall not be changed, and the write shall
+ *      be considered successful.
+ *
+ * @param wp_data [in] The WriteProperty data structure
+ * @param member_of_object [in] Function to check if a property is a member
+  of an object instance
+ * @return true if the write shall be considered successful
+ */
+bool write_property_relinquish_bypass(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    write_property_member_of_object member_of_object)
+{
+    bool bypass = false;
+    bool has_priority_array = false;
+    int len = 0;
+
+    if (!wp_data) {
+        return false;
+    }
+    len = bacnet_null_application_decode(
+        wp_data->application_data, wp_data->application_data_len);
+    if ((len > 0) && (len == wp_data->application_data_len)) {
+        /* single NULL */
+        /* check to see if this object property is commandable.
+           Does the property list contain a priority-array? */
+        if (member_of_object) {
+            has_priority_array = member_of_object(
+                wp_data->object_type, wp_data->object_instance,
+                PROP_PRIORITY_ARRAY);
+        }
+        if (has_priority_array || (wp_data->object_type == OBJECT_CHANNEL)) {
+            if (wp_data->object_property != PROP_PRESENT_VALUE) {
+                /* this property is not commandable,
+                   so it "shall not be changed, and
+                   the write shall be considered successful." */
+                bypass = true;
+            }
+        } else {
+            /* this object is not commandable, so any property
+               written with a NULL "shall not be changed, and
+               the write shall be considered successful." */
+            bypass = true;
+        }
+    }
+
+    return bypass;
 }

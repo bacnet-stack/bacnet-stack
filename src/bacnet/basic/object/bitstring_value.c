@@ -263,6 +263,21 @@ bool BitString_Value_Out_Of_Service(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object instance-number, checks the out-of-service for COV
+ * @param  pObject - specific object with valid data
+ * @param  value - out-of-service value
+ */
+static void BitString_Value_Out_Of_Service_COV_Detect(
+    struct object_data *pObject, bool value)
+{
+    if (pObject) {
+        if (pObject->Out_Of_Service != value) {
+            pObject->Change_Of_Value = true;
+        }
+    }
+}
+
+/**
  * @brief For a given object instance-number, set the out of service value.
  * @param  object_instance - object-instance number of the object
  * @param  true/false
@@ -273,13 +288,49 @@ void BitString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = BitString_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Out_Of_Service != value) {
-            pObject->Change_Of_Value = true;
-        }
+        BitString_Value_Out_Of_Service_COV_Detect(pObject, value);
         pObject->Out_Of_Service = value;
     }
 
     return;
+}
+
+/**
+ * For a given object instance-number, sets the out of service flag
+ * from WriteProperty service
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - new value
+ * @param  error_class - BACnet error class
+ * @param  error_code - BACnet error code
+ *
+ * @return  true if value is set, or false if not set or error occurred
+ */
+static bool BitString_Value_Out_Of_Service_Write(
+    uint32_t object_instance,
+    bool value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = BitString_Value_Object(object_instance);
+    if (pObject) {
+        if (pObject->Write_Enabled) {
+            BitString_Value_Out_Of_Service_COV_Detect(pObject, value);
+            pObject->Out_Of_Service = value;
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
 }
 
 /**
@@ -552,7 +603,6 @@ int BitString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     bool state = false;
-    bool is_array = false;
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -611,15 +661,6 @@ int BitString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        rpdata->object_type, rpdata->object_property);
-    if ((apdu_len >= 0) && (!is_array) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -654,14 +695,6 @@ bool BitString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -677,8 +710,9 @@ bool BitString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                BitString_Value_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Boolean);
+                status = BitString_Value_Out_Of_Service_Write(
+                    wp_data->object_instance, value.type.Boolean,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         default:

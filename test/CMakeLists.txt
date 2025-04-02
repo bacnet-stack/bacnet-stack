@@ -82,6 +82,7 @@ list(APPEND testdirs
   bacnet/bacdest
   bacnet/bacerror
   bacnet/bacint
+  bacnet/baclog
   bacnet/bacpropstates
   bacnet/bacreal
   bacnet/bacstr
@@ -162,6 +163,7 @@ list(APPEND testdirs
   bacnet/basic/object/mso
   bacnet/basic/object/msv
   bacnet/basic/object/netport
+  bacnet/basic/object/program
   bacnet/basic/object/nc
   bacnet/basic/object/objects
   bacnet/basic/object/osv

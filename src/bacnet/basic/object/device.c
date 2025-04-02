@@ -37,6 +37,7 @@
 #include "bacnet/basic/object/bv.h"
 #include "bacnet/basic/object/calendar.h"
 #include "bacnet/basic/object/command.h"
+#include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/lsp.h"
 #include "bacnet/basic/object/lsz.h"
@@ -52,28 +53,19 @@
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
 #endif /* defined(BACFILE) */
-#if (BACNET_PROTOCOL_REVISION >= 10)
 #include "bacnet/basic/object/bitstring_value.h"
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/osv.h"
 #include "bacnet/basic/object/piv.h"
 #include "bacnet/basic/object/time_value.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 14)
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/lo.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 16)
 #include "bacnet/basic/object/blo.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
-#endif
-#if (BACNET_PROTOCOL_REVISION >= 24)
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
-#endif
+#include "bacnet/basic/object/program.h"
 
 /* external prototypes */
 extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -187,7 +179,8 @@ static object_functions_t My_Object_Table[] = {
         CharacterString_Value_Change_Of_Value,
         CharacterString_Value_Change_Of_Value_Clear,
         NULL /* Intrinsic Reporting */, NULL /* Add_List_Element */,
-        NULL /* Remove_List_Element */, NULL /* Create */, NULL /* Delete */,
+        NULL /* Remove_List_Element */, CharacterString_Value_Create,
+        CharacterString_Value_Delete,
         NULL /* Timer */ },
     { OBJECT_OCTETSTRING_VALUE, OctetString_Value_Init, OctetString_Value_Count,
         OctetString_Value_Index_To_Instance, OctetString_Value_Valid_Instance,
@@ -215,6 +208,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_INTEGER_VALUE, Integer_Value_Init, Integer_Value_Count,
+        Integer_Value_Index_To_Instance, Integer_Value_Valid_Instance,
+        Integer_Value_Object_Name, Integer_Value_Read_Property,
+        Integer_Value_Write_Property, Integer_Value_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Integer_Value_Create, Integer_Value_Delete, NULL /* Timer */ },
 #endif
     { OBJECT_COMMAND, Command_Init, Command_Count, Command_Index_To_Instance,
         Command_Valid_Instance, Command_Object_Name, Command_Read_Property,
@@ -223,15 +224,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
-    { OBJECT_INTEGER_VALUE, Integer_Value_Init, Integer_Value_Count,
-        Integer_Value_Index_To_Instance, Integer_Value_Valid_Instance,
-        Integer_Value_Object_Name, Integer_Value_Read_Property,
-        Integer_Value_Write_Property, Integer_Value_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
-        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
-#if defined(INTRINSIC_REPORTING)
+    #if defined(INTRINSIC_REPORTING)
     { OBJECT_NOTIFICATION_CLASS, Notification_Class_Init,
         Notification_Class_Count, Notification_Class_Index_To_Instance,
         Notification_Class_Valid_Instance, Notification_Class_Object_Name,
@@ -385,6 +378,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_PROGRAM, Program_Init, Program_Count,
+        Program_Index_To_Instance, Program_Valid_Instance,
+        Program_Object_Name, Program_Read_Property,
+        Program_Write_Property, Program_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Program_Create, Program_Delete, Program_Timer },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -668,6 +669,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     bool status = false;
     bool password_success = false;
     unsigned i;
+    size_t length;
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to
@@ -676,7 +678,12 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
     if (Reinit_Password && strlen(Reinit_Password) > 0) {
-        if (characterstring_utf8_length(&rd_data->password) > 20) {
+        if (characterstring_encoding(&rd_data->password) == CHARACTER_UTF8) {
+            length = characterstring_utf8_length(&rd_data->password);
+        } else {
+            length = characterstring_length(&rd_data->password);
+        }
+        if (length > 20) {
             rd_data->error_class = ERROR_CLASS_SERVICES;
             rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
         } else if (characterstring_ansi_same(
@@ -1253,8 +1260,13 @@ bool Device_Object_Name_Copy(
     bool found = false;
 
     pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-        found = pObject->Object_Name(object_instance, object_name);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Name) {
+                found = pObject->Object_Name(object_instance, object_name);
+            }
+        }
     }
 
     return found;
@@ -1576,13 +1588,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -1612,20 +1617,11 @@ static int Read_Property_Common(
     if (property_list_common(rpdata->object_property)) {
         apdu_len = property_list_common_encode(rpdata, Object_Instance_Number);
     } else if (rpdata->object_property == PROP_OBJECT_NAME) {
-        /*  only array properties can have array options */
-        if (rpdata->array_index != BACNET_ARRAY_ALL) {
-            rpdata->error_class = ERROR_CLASS_PROPERTY;
-            rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-            apdu_len = BACNET_STATUS_ERROR;
-        } else {
-            characterstring_init_ansi(&char_string, "");
-            if (pObject->Object_Name) {
-                (void)pObject->Object_Name(
-                    rpdata->object_instance, &char_string);
-            }
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+        characterstring_init_ansi(&char_string, "");
+        if (pObject->Object_Name) {
+            (void)pObject->Object_Name(rpdata->object_instance, &char_string);
         }
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
 #if (BACNET_PROTOCOL_REVISION >= 14)
     } else if (rpdata->object_property == PROP_PROPERTY_LIST) {
         Device_Objects_Property_List(
@@ -1696,13 +1692,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     /* FIXME: len < application_data_len: more data? */
@@ -1942,12 +1931,6 @@ static bool Device_Write_Property_Object_Name(
     if (!wp_data) {
         return false;
     }
-    if (wp_data->array_index != BACNET_ARRAY_ALL) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     apdu = wp_data->application_data;
     apdu_size = wp_data->application_data_len;
     len = bacnet_character_string_application_decode(apdu, apdu_size, &value);
@@ -1972,8 +1955,8 @@ static bool Device_Write_Property_Object_Name(
         if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
             if ((object_type == wp_data->object_type) &&
                 (object_instance == wp_data->object_instance)) {
-                /* writing same name to same object */
-                status = true;
+                /* writing same name to same object - but is it writable? */
+                status = Object_Write_Property(wp_data);
             } else {
                 /* name already exists in some object */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -2046,8 +2029,17 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Device_Write_Property_Store(wp_data);
                 }
             } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                if (Device_Objects_Property_List_Member(
+                        wp_data->object_type, wp_data->object_instance,
+                        wp_data->object_property)) {
+                    /* this property is not writable */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else {
+                    /* this property is not supported */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                }
             }
         } else {
             wp_data->error_class = ERROR_CLASS_OBJECT;

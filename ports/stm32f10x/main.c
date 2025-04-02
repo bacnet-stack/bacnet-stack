@@ -129,6 +129,7 @@ static void mstp_configure(void)
     /* user data */
     MSTP_Port.ZeroConfigEnabled = true;
     MSTP_Port.SlaveNodeEnabled = false;
+    MSTP_Port.CheckAutoBaud = false;
     MSTP_Zero_Config_UUID_Init(&MSTP_Port);
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;

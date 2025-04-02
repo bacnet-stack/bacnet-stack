@@ -20,19 +20,21 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
+/* basic objects and services */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/keylist.h"
 /* me! */
 #include "bacnet/basic/object/iv.h"
-#include "bacnet/basic/sys/keylist.h"
-#include "bacnet/basic/sys/debug.h"
-
-#define PRINTF debug_perror
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_INTEGER_VALUE;
+/* callback for present value writes */
+static integer_value_write_present_value_callback
+    Integer_Value_Write_Present_Value_Callback;
 
 struct integer_object {
     bool Out_Of_Service : 1;
@@ -521,14 +523,6 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -546,6 +540,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    int32_t old_value = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
@@ -558,22 +553,21 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
+                old_value =
+                    Integer_Value_Present_Value(wp_data->object_instance);
                 Integer_Value_Present_Value_Set(
                     wp_data->object_instance, value.type.Signed_Int,
                     wp_data->priority);
+                if (Integer_Value_Write_Present_Value_Callback) {
+                    Integer_Value_Write_Present_Value_Callback(
+                        wp_data->object_instance, old_value,
+                        Integer_Value_Present_Value(wp_data->object_instance));
+                }
             }
             break;
         case PROP_COV_INCREMENT:
@@ -608,6 +602,16 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/**
+ * @brief Sets a callback used when present-value is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Integer_Value_Write_Present_Value_Callback_Set(
+    integer_value_write_present_value_callback cb)
+{
+    Integer_Value_Write_Present_Value_Callback = cb;
 }
 
 /**

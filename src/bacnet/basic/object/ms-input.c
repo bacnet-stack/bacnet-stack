@@ -317,7 +317,7 @@ uint32_t Multistate_Input_Present_Value(uint32_t object_instance)
 /**
  * @brief For a given object instance-number, checks the present-value for COV
  * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * @param  value - multistate value
  */
 static void Multistate_Input_Present_Value_COV_Detect(
     struct object_data *pObject, uint32_t value)
@@ -359,7 +359,7 @@ bool Multistate_Input_Present_Value_Set(
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
+ * @param  value - state value 1..N
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
@@ -372,12 +372,14 @@ static bool Multistate_Input_Present_Value_Write(
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject;
     uint32_t old_value = 1;
+    unsigned max_states;
+    struct object_data *pObject;
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        if (value <= UINT32_MAX) {
+        max_states = state_name_count(pObject->State_Text);
+        if ((value >= 1) && (value <= max_states)) {
             if (pObject->Write_Enabled) {
                 old_value = pObject->Present_Value;
                 Multistate_Input_Present_Value_COV_Detect(pObject, value);
@@ -439,11 +441,49 @@ void Multistate_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
+        if (pObject->Out_Of_Service != value) {
+            pObject->Change_Of_Value = true;
+        }
         pObject->Out_Of_Service = value;
-        pObject->Change_Of_Value = true;
     }
 
     return;
+}
+
+/**
+ * For a given object instance-number, sets the out-of-service state
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - out-of-service state
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if value is set, false if error occurred
+ */
+static bool Multistate_Input_Out_Of_Service_Write(
+    uint32_t object_instance,
+    bool value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        if (pObject->Write_Enabled) {
+            Multistate_Input_Out_Of_Service_Set(object_instance, value);
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
 }
 
 /**
@@ -790,13 +830,6 @@ int Multistate_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -824,13 +857,6 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_STATE_TEXT) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -845,8 +871,9 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Multistate_Input_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Boolean);
+                status = Multistate_Input_Out_Of_Service_Write(
+                    wp_data->object_instance, value.type.Boolean,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         default:
@@ -873,6 +900,52 @@ void Multistate_Input_Write_Present_Value_Callback_Set(
     multistate_input_write_present_value_callback cb)
 {
     Multistate_Input_Write_Present_Value_Callback = cb;
+}
+
+/**
+ * @brief Determines a object write-enabled flag state
+ * @param object_instance - object-instance number of the object
+ * @return  write-enabled status flag
+ */
+bool Multistate_Input_Write_Enabled(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Write_Enabled;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Multistate_Input_Write_Enable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = true;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, clears the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Multistate_Input_Write_Disable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = false;
+    }
 }
 
 /**
@@ -905,6 +978,7 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
+            pObject->Write_Enabled = false;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {

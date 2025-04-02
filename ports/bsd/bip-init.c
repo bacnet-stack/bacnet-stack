@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Initializes BACnet/IP interface (BSD/MAC OS X)
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <ifaddrs.h>
@@ -14,8 +14,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
-
-/** @file bsd/bip-init.c @brief Initializes BACnet/IP interface (BSD/MAC OS X). */
 
 /* unix sockets */
 static int BIP_Socket = -1;
@@ -257,7 +255,7 @@ uint8_t bip_get_subnet_prefix(void)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip_send_mpdu(
     const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -409,7 +407,7 @@ uint16_t bip_receive(
  * @param mtu - the bytes of data to send
  * @param mtu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip_send_pdu(
     BACNET_ADDRESS *dest,
@@ -468,7 +466,8 @@ static char *ifname_default(void)
     if (BIP_Interface_Name[0] != 0) {
         return BIP_Interface_Name;
     }
-    strncpy(BIP_Interface_Name, "en0", sizeof(BIP_Interface_Name));
+    snprintf(BIP_Interface_Name,  sizeof(BIP_Interface_Name), "%s", "en0");
+
     return BIP_Interface_Name;
 }
 
@@ -764,6 +763,9 @@ void bip_cleanup(void)
         close(BIP_Broadcast_Socket);
     }
     BIP_Broadcast_Socket = -1;
+    /* these were set non-zero during interface configuration */
+    BIP_Address.s_addr = 0;
+    BIP_Broadcast_Addr.s_addr = 0;
 
     return;
 }

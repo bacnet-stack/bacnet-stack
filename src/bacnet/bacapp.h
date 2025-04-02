@@ -19,6 +19,7 @@
 #include "bacnet/bacaction.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
+#include "bacnet/baclog.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 #include "bacnet/lighting.h"
@@ -168,6 +169,9 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined(BACAPP_CHANNEL_VALUE)
         BACNET_CHANNEL_VALUE Channel_Value;
+#endif
+#if defined(BACAPP_LOG_RECORD)
+        BACNET_LOG_RECORD Log_Record;
 #endif
 #if defined(BACAPP_SECURE_CONNECT)
         BACNET_SC_FAILED_CONNECTION_REQUEST SC_Failed_Req;
@@ -325,6 +329,14 @@ int bacapp_decode_known_property(
     BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID property);
+BACNET_STACK_EXPORT
+int bacapp_decode_known_array_property(
+    const uint8_t *apdu,
+    int apdu_size,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID property,
+    uint32_t array_index);
 
 BACNET_STACK_EXPORT
 int bacapp_known_property_tag(

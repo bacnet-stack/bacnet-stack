@@ -297,13 +297,6 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACCESS_DOORS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -325,38 +318,25 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_ACCESS_DOORS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
-
     switch (wp_data->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_RELIABILITY:
         case PROP_OUT_OF_SERVICE:
-        case PROP_AUTHENTICATION_STATUS:
-        case PROP_ACTIVE_AUTHENTICATION_POLICY:
-        case PROP_NUMBER_OF_AUTHENTICATION_POLICIES:
-        case PROP_AUTHORIZATION_MODE:
-        case PROP_ACCESS_EVENT:
-        case PROP_ACCESS_EVENT_TAG:
-        case PROP_ACCESS_EVENT_TIME:
-        case PROP_ACCESS_EVENT_CREDENTIAL:
-        case PROP_ACCESS_DOORS:
-        case PROP_PRIORITY_FOR_WRITING:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Access_Point_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
+            }
             break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

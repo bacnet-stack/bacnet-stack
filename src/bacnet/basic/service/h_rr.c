@@ -1,15 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Handles ReadRange-Request service
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -18,14 +17,14 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/readrange.h"
 /* basic objects, services, TSM, and datalink */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
-
-/** @file h_rr.c  Handles Read Range requests. */
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
@@ -116,42 +115,39 @@ void handler_read_range(
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_ADDRESS my_address;
 
     data.error_class = ERROR_CLASS_OBJECT;
     data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_print("RR: Missing Required Parameter. Sending Reject!\n");
+    } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "RR: Segmented message.  Sending Abort!\n");
-#endif
+        debug_print("RR: Segmented message.  Sending Abort!\n");
     } else {
         memset(&data, 0, sizeof(data)); /* start with blank canvas */
         len = rr_decode_service_request(service_request, service_len, &data);
-#if PRINT_ENABLED
         if (len <= 0) {
-            fprintf(stderr, "RR: Unable to decode Request!\n");
+            debug_print("RR: Unable to decode Request!\n");
         }
-#endif
         if (len < 0) {
             /* bad decoding - send an abort */
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-            fprintf(stderr, "RR: Bad Encoding.  Sending Abort!\n");
-#endif
+            debug_print("RR: Bad Encoding.  Sending Abort!\n");
         } else {
             /* assume that there is an error */
             error = true;
@@ -166,9 +162,7 @@ void handler_read_range(
                 len = rr_ack_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     &data);
-#if PRINT_ENABLED
-                fprintf(stderr, "RR: Sending Ack!\n");
-#endif
+                debug_print("RR: Sending Ack!\n");
                 error = false;
             }
             if (error) {
@@ -179,33 +173,24 @@ void handler_read_range(
                         &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
                         ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-                    fprintf(stderr, "RR: Reply too big to fit into APDU!\n");
-#endif
+                    debug_print("RR: Reply too big to fit into APDU!\n");
                 } else {
                     len = bacerror_encode_apdu(
                         &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, SERVICE_CONFIRMED_READ_RANGE,
                         data.error_class, data.error_code);
-#if PRINT_ENABLED
-                    fprintf(stderr, "RR: Sending Error!\n");
-#endif
+                    debug_print("RR: Sending Error!\n");
                 }
             }
         }
     }
 
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("RR: Failed to send PDU");
     }
-#endif
 
     return;
 }

@@ -198,6 +198,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\nc.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\osv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\piv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\program.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c" />
