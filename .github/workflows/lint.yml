@@ -111,4 +111,4 @@ jobs:
         bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Run BACnet/SC Unit Test with Code Coverage
-      run: echo "make test-bsc"
+      run: make test-bsc
