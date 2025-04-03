@@ -1517,8 +1517,7 @@ int decode_bitstring(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - value to decode into
- *
+ * @param value - value to decode into, or NULL for length checking
  * @return  number of bytes decoded, or zero if errors occur
  */
 int bacnet_bitstring_decode(
@@ -1533,7 +1532,7 @@ int bacnet_bitstring_decode(
     uint32_t bytes_used;
 
     /* check to see if the APDU is long enough */
-    if (apdu && value && (len_value <= apdu_size)) {
+    if (apdu && (len_value <= apdu_size)) {
         /* Init/empty the string. */
         bitstring_init(value);
         if (len_value > 0) {
@@ -1544,7 +1543,8 @@ int bacnet_bitstring_decode(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        value, (uint8_t)i, byte_reverse_bits(apdu[len++]));
+                        value, (uint8_t)i, byte_reverse_bits(apdu[len]));
+                    len++;
                 }
                 /* Erase the remaining unused bits. */
                 unused_bits = (uint8_t)(apdu[0] & 0x07);

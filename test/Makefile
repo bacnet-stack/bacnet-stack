@@ -140,6 +140,8 @@ libwebsockets:
 	bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
 	sudo bash -c 'cd libwebsockets;cd build;make install'
 
+test-bsc: bsc-datalink bsc-node bsc-hub bsc-bvlc bsc-socket websockets
+
 .PHONY: clean
 clean:
 	-rm -rf $(BUILD_DIR)
