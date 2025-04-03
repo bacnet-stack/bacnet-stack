@@ -19,6 +19,7 @@ jobs:
         with:
           repository: warmcat/libwebsockets
           ref: v4.3-stable
+          path: libwebsockets
       - name: Create Build Environment
         run: |
           sudo apt-get update -qq

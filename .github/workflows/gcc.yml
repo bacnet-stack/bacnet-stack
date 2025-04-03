@@ -87,6 +87,7 @@ jobs:
       with:
         repository: warmcat/libwebsockets
         ref: v4.3-stable
+        path: libwebsockets
     - name: Create BACnet/SC Build Environment
       run: |
         sudo apt-get update -qq
@@ -100,6 +101,7 @@ jobs:
       run: |
         gcc --version
         pwd
+        ls -al
         make clean
         make sc-hub
 
@@ -113,6 +115,7 @@ jobs:
       with:
         repository: warmcat/libwebsockets
         ref: v4.3-stable
+        path: libwebsockets
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -126,6 +129,7 @@ jobs:
       run: |
         gcc --version
         pwd
+        ls -al
         make clean
         make LEGACY=true router
 
