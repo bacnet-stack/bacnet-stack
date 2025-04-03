@@ -80,7 +80,10 @@ jobs:
   bacnet-sc-hub:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout BACnet Stack
+      uses: actions/checkout@v4
+    - name: Checkout libwebsockets
+      uses: actions/checkout@v4
       with:
         repository: warmcat/libwebsockets
         ref: v4.3-stable
@@ -103,7 +106,10 @@ jobs:
   router:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout BACnet Stack
+      uses: actions/checkout@v4
+    - name: Checkout libwebsockets
+      uses: actions/checkout@v4
       with:
         repository: warmcat/libwebsockets
         ref: v4.3-stable
