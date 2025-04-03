@@ -88,11 +88,24 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq lcov
-        sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libcap-dev
-        sudo apt-get install -qq libuv1-dev
-        git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
-        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Run Unit Test with Code Coverage
       run: make test
+
+  unittest-secure-connect:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v4
+          with:
+            name: warmcat/libwebsockets
+            ref: v4.3-stable
+        - name: Create BACnet/SC Build Environment
+          run: |
+            sudo apt-get update -qq
+            sudo apt-get install -qq lcov
+            sudo apt-get install -qq libssl-dev
+            sudo apt-get install -qq libcap-dev
+            sudo apt-get install -qq libuv1-dev
+            bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+            sudo bash -c 'cd libwebsockets;cd build;make install'
+        - name: Run BACnet/SC Unit Test with Code Coverage
+          run: make test-bsc
