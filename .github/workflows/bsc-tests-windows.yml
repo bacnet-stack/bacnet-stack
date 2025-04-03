@@ -12,74 +12,76 @@ jobs:
   job_bsc_tests_windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Create Build Environment
-      run: |
-        rmdir 'C:\Program Files\OpenSSL' -Recurse -Force
-        rmdir 'C:\Strawberry' -Recurse -Force
-        copy c:\vcpkg\triplets\x64-windows.cmake c:\vcpkg\triplets\x64-windows-custom.cmake
-        "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows-custom.cmake
-        c:\vcpkg\vcpkg.exe install pthreads --triplet x64-windows-custom
-        c:\vcpkg\vcpkg.exe install libuv --triplet x64-windows-custom
-        c:\vcpkg\vcpkg.exe install openssl --triplet x64-windows-custom
-        c:\vcpkg\vcpkg.exe install libwebsockets --triplet x64-windows-custom
-        git clone --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
-        cd libwebsockets
-        mkdir build
-        cd build
-        cmake .. -DOPENSSL_ROOT_DIR=c:\vcpkg\installed\x64-windows-custom -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom -DCMAKE_INSTALL_PREFIX="./pkg" -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DLWS_WITH_LIBUV=1 -DLWS_HAVE_PTHREAD_H=1 -DLWS_EXT_PTHREAD_INCLUDE_DIR="C:\vcpkg\installed\x64-windows-custom\include" -DLWS_EXT_PTHREAD_LIBRARIES="C:\vcpkg\installed\x64-windows-custom\lib\pthreadVC3.lib"
-        cmake --build . --config RELEASE
-        cmake --install . --config RELEASE
-        Copy-Item -Path .\pkg\bin -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
-        Copy-Item -Path .\pkg\include -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
-        Copy-Item -Path .\pkg\lib -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
-        Copy-Item -Path .\pkg\share -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
-        cd ../../
-    - name: Setup MSBuild 
-      uses: microsoft/setup-msbuild@v2
-      with:
-        msbuild-architecture: x64
-    - name: Build and run bsc_event test
-      run: |
-        cd ./test/ports/win32/bsc_event
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
-        msbuild build/test_bsc_event.sln /Property:Configuration=Release
-        ./build/Release/test_bsc_event.exe
-    - name: Build and run bvlc-sc test
-      run: |
-        cd ./test/bacnet/datalink/bvlc-sc
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
-        msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
-        ./build/Release/test_bvlc-sc.exe
-    - name: Build and run websockets test
-      run: |
-        cd ./test/bacnet/datalink/websockets
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
-        msbuild build/test_websockets.sln /Property:Configuration=Release
-        ./build/Release/test_websockets.exe
-    - name: Build and run bsc-socket test
-      run: |
-        cd ./test/bacnet/datalink/bsc-socket
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
-        msbuild build/test_bsc-socket.sln /Property:Configuration=Release
-        ./build/Release/test_bsc-socket.exe
-    # (Link target) -> 
-    #  bacreal.obj : error LNK2019: unresolved external symbol big_endian referenced in function decode_double [D:\a\bacnet-stack-upstream\bacnet-stack-upstream\test\bacnet\datalink\hub-sc\build\test_hub-sc.vcxproj]
-    # - name: Build and run hub-sc test
-    #   run: |
-    #     cd ./test/bacnet/datalink/hub-sc
-    #     cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
-    #     msbuild build/test_hub-sc.sln /Property:Configuration=Release
-    #     ./build/Release/test_hub-sc.exe
-    - name: Build and run bsc-node test
-      run: |
-        cd ./test/bacnet/datalink/bsc-node
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
-        msbuild build/test_bsc-node.sln /Property:Configuration=Release
-        ./build/Release/test_bsc-node.exe
-    - name: Build and run bsc-datalink test
-      run: |
-        cd ./test/bacnet/datalink/bsc-datalink
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
-        msbuild build/test_bsc-datalink.sln /Property:Configuration=Release
-        ./build/Release/test_bsc-datalink.exe
+      - uses: actions/checkout@v4
+        with:
+          repository: warmcat/libwebsockets
+          ref: v4.3-stable
+      - name: Create Build Environment
+        run: |
+          rmdir 'C:\Program Files\OpenSSL' -Recurse -Force
+          rmdir 'C:\Strawberry' -Recurse -Force
+          copy c:\vcpkg\triplets\x64-windows.cmake c:\vcpkg\triplets\x64-windows-custom.cmake
+          "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows-custom.cmake
+          c:\vcpkg\vcpkg.exe install pthreads --triplet x64-windows-custom
+          c:\vcpkg\vcpkg.exe install libuv --triplet x64-windows-custom
+          c:\vcpkg\vcpkg.exe install openssl --triplet x64-windows-custom
+          c:\vcpkg\vcpkg.exe install libwebsockets --triplet x64-windows-custom
+          cd libwebsockets
+          mkdir build
+          cd build
+          cmake .. -DOPENSSL_ROOT_DIR=c:\vcpkg\installed\x64-windows-custom -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom -DCMAKE_INSTALL_PREFIX="./pkg" -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DLWS_WITH_LIBUV=1 -DLWS_HAVE_PTHREAD_H=1 -DLWS_EXT_PTHREAD_INCLUDE_DIR="C:\vcpkg\installed\x64-windows-custom\include" -DLWS_EXT_PTHREAD_LIBRARIES="C:\vcpkg\installed\x64-windows-custom\lib\pthreadVC3.lib"
+          cmake --build . --config RELEASE
+          cmake --install . --config RELEASE
+          Copy-Item -Path .\pkg\bin -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
+          Copy-Item -Path .\pkg\include -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
+          Copy-Item -Path .\pkg\lib -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
+          Copy-Item -Path .\pkg\share -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
+          cd ../../
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+      - name: Build and run bsc_event test
+        run: |
+          cd ./test/ports/win32/bsc_event
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+          msbuild build/test_bsc_event.sln /Property:Configuration=Release
+          ./build/Release/test_bsc_event.exe
+      - name: Build and run bvlc-sc test
+        run: |
+          cd ./test/bacnet/datalink/bvlc-sc
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+          msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
+          ./build/Release/test_bvlc-sc.exe
+      - name: Build and run websockets test
+        run: |
+          cd ./test/bacnet/datalink/websockets
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+          msbuild build/test_websockets.sln /Property:Configuration=Release
+          ./build/Release/test_websockets.exe
+      - name: Build and run bsc-socket test
+        run: |
+          cd ./test/bacnet/datalink/bsc-socket
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+          msbuild build/test_bsc-socket.sln /Property:Configuration=Release
+          ./build/Release/test_bsc-socket.exe
+      # (Link target) ->
+      #  bacreal.obj : error LNK2019: unresolved external symbol big_endian referenced in function decode_double [D:\a\bacnet-stack-upstream\bacnet-stack-upstream\test\bacnet\datalink\hub-sc\build\test_hub-sc.vcxproj]
+      # - name: Build and run hub-sc test
+      #   run: |
+      #     cd ./test/bacnet/datalink/hub-sc
+      #     cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+      #     msbuild build/test_hub-sc.sln /Property:Configuration=Release
+      #     ./build/Release/test_hub-sc.exe
+      - name: Build and run bsc-node test
+        run: |
+          cd ./test/bacnet/datalink/bsc-node
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+          msbuild build/test_bsc-node.sln /Property:Configuration=Release
+          ./build/Release/test_bsc-node.exe
+      - name: Build and run bsc-datalink test
+        run: |
+          cd ./test/bacnet/datalink/bsc-datalink
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+          msbuild build/test_bsc-datalink.sln /Property:Configuration=Release
+          ./build/Release/test_bsc-datalink.exe
