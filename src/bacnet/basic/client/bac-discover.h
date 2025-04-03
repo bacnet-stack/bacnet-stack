@@ -87,6 +87,8 @@ bool bacnet_discover_device_iterate(
 void bacnet_discover_task(void);
 void bacnet_discover_dnet_set(uint16_t dnet);
 uint16_t bacnet_discover_dnet(void);
+void bacnet_discover_dest_set(const BACNET_ADDRESS *dest);
+const BACNET_ADDRESS *bacnet_discover_dest(void);
 void bacnet_discover_vendor_id_set(uint16_t vendor_id);
 uint16_t bacnet_discover_vendor_id(void);
 void bacnet_discover_seconds_set(unsigned int seconds);
