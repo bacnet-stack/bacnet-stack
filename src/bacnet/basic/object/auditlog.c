@@ -1098,7 +1098,7 @@ int Audit_Log_Read_Range_By_Sequence(BACNET_READ_RANGE_DATA *pRequest)
     uint32_t uiIndex = 0; /* Current entry number */
     uint32_t uiFirst = 0; /* Entry number we started encoding from */
     uint32_t uiLast = 0; /* Entry number we finished encoding on */
-    uint32_t uiSequence = 0; /* Tracking sequenc number when encoding */
+    uint32_t uiSequence = 0; /* Tracking sequence number when encoding */
     uint32_t uiFirstSeq = 0; /* Sequence number for 1st record in log */
     uint32_t uiBegin = 0; /* Starting Sequence number for request */
     uint32_t uiEnd = 0; /* Ending Sequence number for request */
