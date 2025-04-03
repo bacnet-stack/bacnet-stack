@@ -27,6 +27,7 @@ jobs:
           sudo bash -c 'cd libwebsockets;cd build;make install'
       - name: Build and run bsc_event test
         run: |
+          pwd
           cd ./test/ports/linux/bsc_event
           mkdir build
           cd build
@@ -35,6 +36,7 @@ jobs:
           ./test_bsc_event
       - name: Build and run bvlc-sc test
         run: |
+          pwd
           cd ./test/bacnet/datalink/bvlc-sc
           mkdir build
           cd build
@@ -43,6 +45,7 @@ jobs:
           ./test_bvlc-sc
       - name: Build and run websockets test
         run: |
+          pwd
           cd ./test/bacnet/datalink/websockets
           mkdir build
           cd build
@@ -51,6 +54,7 @@ jobs:
           ./test_websockets
       - name: Build and run bsc-socket test
         run: |
+          pwd
           cd ./test/bacnet/datalink/bsc-socket
           mkdir build
           cd build
@@ -59,6 +63,7 @@ jobs:
           ./test_bsc-socket
       - name: Build and run hub-sc test
         run: |
+          pwd
           cd ./test/bacnet/datalink/hub-sc
           mkdir build
           cd build

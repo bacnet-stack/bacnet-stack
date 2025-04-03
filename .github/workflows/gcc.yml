@@ -96,6 +96,7 @@ jobs:
     - name: Build BACnet/SC Hub Demo
       run: |
         gcc --version
+        pwd
         make clean
         make sc-hub
 
@@ -118,6 +119,7 @@ jobs:
     - name: Build Router Demo
       run: |
         gcc --version
+        pwd
         make clean
         make LEGACY=true router
 
