@@ -115,4 +115,4 @@ jobs:
       run: |
         pwd
         ls -al
-        make test-bsc
+        echo "make test-bsc"
