@@ -708,7 +708,7 @@ int bacnet_audit_log_notification_decode(
 }
 
 /**
- * @brief Decode a context BACnetAuditLogNotification complext data.
+ * @brief Decode a context BACnetAuditLogNotification context data.
  * Check for an opening tag and a closing tag as well.
  *
  * @param apdu  Pointer to the buffer containing the encoded value
