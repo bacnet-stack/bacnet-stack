@@ -334,35 +334,12 @@ int main(int argc, char *argv[])
     }
     address_init();
     if (specific_address) {
-        bacnet_address_init(&dest, &mac, dnet, &adr);
-        if (adr.len && mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            memcpy(&dest.adr[0], &adr.adr[0], adr.len);
-            dest.len = adr.len;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-        } else if (mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            dest.len = 0;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = 0;
-            }
+        if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+            dest.net = dnet;
         } else {
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-            dest.mac_len = 0;
-            dest.len = 0;
+            dest.net = BACNET_BROADCAST_NETWORK;
         }
+        bacnet_address_init(&dest, &mac, dnet, &adr);
         address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
     }
     /* setup my info */
