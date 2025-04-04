@@ -159,7 +159,7 @@ static void testLogs(void)
     zassert_not_null(record, NULL);
     zassert_true(record->tag == AUDIT_LOG_DATUM_TAG_STATUS, NULL);
     zassert_true(
-        BIT_CHECK(record->datum.log_status, LOG_STATUS_LOG_DISABLED) == 0,
+        BIT_CHECK(record->log_datum.log_status, LOG_STATUS_LOG_DISABLED) == 0,
         NULL);
     Audit_Log_Record_Status_Insert(instance, LOG_STATUS_LOG_INTERRUPTED, true);
     record_count = Audit_Log_Record_Count(instance);
@@ -170,7 +170,8 @@ static void testLogs(void)
     zassert_not_null(record, NULL);
     zassert_true(record->tag == AUDIT_LOG_DATUM_TAG_STATUS, NULL);
     zassert_true(
-        BIT_CHECK(record->datum.log_status, LOG_STATUS_LOG_INTERRUPTED), NULL);
+        BIT_CHECK(record->log_datum.log_status, LOG_STATUS_LOG_INTERRUPTED),
+        NULL);
     Audit_Log_Record_Entry_Delete(instance, 1);
     record_count = Audit_Log_Record_Count(instance);
     zassert_true(record_count == 1, "record_count: %d", record_count);
@@ -180,7 +181,7 @@ static void testLogs(void)
     zassert_not_null(record, NULL);
     zassert_true(record->tag == AUDIT_LOG_DATUM_TAG_STATUS, NULL);
     zassert_true(
-        BIT_CHECK(record->datum.log_status, LOG_STATUS_LOG_DISABLED) == 0,
+        BIT_CHECK(record->log_datum.log_status, LOG_STATUS_LOG_DISABLED) == 0,
         NULL);
 
     Audit_Log_Cleanup();

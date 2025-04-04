@@ -32,47 +32,31 @@ int bacnet_audit_value_encode(uint8_t *apdu, const BACNET_AUDIT_VALUE *value)
         return 0;
     }
     switch (value->tag) {
-#if defined(BACAPP_NULL)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            apdu_len =
+                encode_application_boolean(apdu, value->type.boolean_value);
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            apdu_len =
+                encode_application_unsigned(apdu, value->type.unsigned_value);
+            break;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            apdu_len =
+                encode_application_signed(apdu, value->type.integer_value);
+            break;
+        case BACNET_APPLICATION_TAG_REAL:
+            apdu_len = encode_application_real(apdu, value->type.real_value);
+            break;
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            apdu_len = encode_application_enumerated(
+                apdu, value->type.enumerated_value);
+            break;
         case BACNET_APPLICATION_TAG_NULL:
+        default:
             if (apdu) {
                 apdu[0] = value->tag;
             }
             apdu_len++;
-            break;
-#endif
-#if defined(BACAPP_BOOLEAN)
-        case BACNET_APPLICATION_TAG_BOOLEAN:
-            apdu_len = encode_application_boolean(apdu, value->type.Boolean);
-            break;
-#endif
-#if defined(BACAPP_UNSIGNED)
-        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            apdu_len =
-                encode_application_unsigned(apdu, value->type.Unsigned_Int);
-            break;
-#endif
-#if defined(BACAPP_SIGNED)
-        case BACNET_APPLICATION_TAG_SIGNED_INT:
-            apdu_len = encode_application_signed(apdu, value->type.Signed_Int);
-            break;
-#endif
-#if defined(BACAPP_REAL)
-        case BACNET_APPLICATION_TAG_REAL:
-            apdu_len = encode_application_real(apdu, value->type.Real);
-            break;
-#endif
-#if defined(BACAPP_DOUBLE)
-        case BACNET_APPLICATION_TAG_DOUBLE:
-            apdu_len = encode_application_double(apdu, value->type.Double);
-            break;
-#endif
-#if defined(BACAPP_ENUMERATED)
-        case BACNET_APPLICATION_TAG_ENUMERATED:
-            apdu_len =
-                encode_application_enumerated(apdu, value->type.Enumerated);
-            break;
-#endif
-        default:
             break;
     }
 
@@ -122,6 +106,11 @@ int bacnet_audit_value_decode(
     int len = 0;
     int apdu_len = 0;
     BACNET_TAG tag = { 0 };
+    bool boolean_value = false;
+    float real_value = 0.0f;
+    uint32_t enumerated_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    int32_t integer_value = 0;
 
     if (!value) {
         return BACNET_STATUS_ERROR;
@@ -135,48 +124,54 @@ int bacnet_audit_value_decode(
             value->tag = tag.number;
         }
         switch (tag.number) {
-#if defined(BACAPP_NULL)
-            case BACNET_APPLICATION_TAG_NULL:
-                apdu_len = len;
-                break;
-#endif
-#if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 apdu_len = bacnet_boolean_application_decode(
-                    apdu, apdu_size, &value->type.Boolean);
+                    apdu, apdu_size, &boolean_value);
+                if (apdu_len > 0) {
+                    if (value) {
+                        value->type.boolean_value = boolean_value;
+                    }
+                }
                 break;
-#endif
-#if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 apdu_len = bacnet_unsigned_application_decode(
-                    apdu, apdu_size, &value->type.Unsigned_Int);
+                    apdu, apdu_size, &unsigned_value);
+                if (apdu_len > 0) {
+                    if (value) {
+                        value->type.unsigned_value = unsigned_value;
+                    }
+                }
                 break;
-#endif
-#if defined(BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 apdu_len = bacnet_signed_application_decode(
-                    apdu, apdu_size, &value->type.Signed_Int);
+                    apdu, apdu_size, &integer_value);
+                if (apdu_len > 0) {
+                    if (value) {
+                        value->type.integer_value = integer_value;
+                    }
+                }
                 break;
-#endif
-#if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
                 apdu_len = bacnet_real_application_decode(
-                    apdu, apdu_size, &value->type.Real);
+                    apdu, apdu_size, &real_value);
+                if (apdu_len > 0) {
+                    if (value) {
+                        value->type.real_value = real_value;
+                    }
+                }
                 break;
-#endif
-#if defined(BACAPP_DOUBLE)
-            case BACNET_APPLICATION_TAG_DOUBLE:
-                apdu_len = bacnet_double_application_decode(
-                    apdu, apdu_size, &value->type.Double);
-                break;
-#endif
-#if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 apdu_len = bacnet_enumerated_application_decode(
-                    apdu, apdu_size, &value->type.Enumerated);
+                    apdu, apdu_size, &enumerated_value);
+                if (apdu_len > 0) {
+                    if (value) {
+                        value->type.enumerated_value = enumerated_value;
+                    }
+                }
                 break;
-#endif
+            case BACNET_APPLICATION_TAG_NULL:
             default:
+                apdu_len = len;
                 break;
         }
     } else {
@@ -245,42 +240,29 @@ bool bacnet_audit_value_same(
     }
     if (value1->tag == value2->tag) {
         switch (value1->tag) {
-#if defined(BACAPP_NULL)
             case BACNET_APPLICATION_TAG_NULL:
                 status = true;
                 break;
-#endif
-#if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                status = value1->type.Boolean == value2->type.Boolean;
-                break;
-#endif
-#if defined(BACAPP_UNSIGNED)
-            case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                status = value1->type.Unsigned_Int == value2->type.Unsigned_Int;
-                break;
-#endif
-#if defined(BACAPP_SIGNED)
-            case BACNET_APPLICATION_TAG_SIGNED_INT:
-                status = value1->type.Signed_Int == value2->type.Signed_Int;
-                break;
-#endif
-#if defined(BACAPP_REAL)
-            case BACNET_APPLICATION_TAG_REAL:
-                status = !islessgreater(value1->type.Real, value2->type.Real);
-                break;
-#endif
-#if defined(BACAPP_DOUBLE)
-            case BACNET_APPLICATION_TAG_DOUBLE:
                 status =
-                    !islessgreater(value1->type.Double, value2->type.Double);
+                    value1->type.boolean_value == value2->type.boolean_value;
                 break;
-#endif
-#if defined(BACAPP_ENUMERATED)
+            case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+                status =
+                    value1->type.unsigned_value == value2->type.unsigned_value;
+                break;
+            case BACNET_APPLICATION_TAG_SIGNED_INT:
+                status =
+                    value1->type.integer_value == value2->type.integer_value;
+                break;
+            case BACNET_APPLICATION_TAG_REAL:
+                status = !islessgreater(
+                    value1->type.real_value, value2->type.real_value);
+                break;
             case BACNET_APPLICATION_TAG_ENUMERATED:
-                status = value1->type.Enumerated == value2->type.Enumerated;
+                status = value1->type.enumerated_value ==
+                    value2->type.enumerated_value;
                 break;
-#endif
             default:
                 break;
         }
@@ -888,7 +870,7 @@ int bacnet_audit_log_record_encode(
         return 0;
     }
     /* timestamp [0] BACnetDateTime */
-    len = bacapp_encode_context_datetime(apdu, 0, &value->time_stamp);
+    len = bacapp_encode_context_datetime(apdu, 0, &value->timestamp);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -903,7 +885,7 @@ int bacnet_audit_log_record_encode(
         case AUDIT_LOG_DATUM_TAG_STATUS:
             /* log-status [0] BACnetLogStatus */
             bitstring_bits_used_set(&log_status, LOG_STATUS_MAX);
-            bitstring_set_octet(&log_status, 0, value->datum.log_status);
+            bitstring_set_octet(&log_status, 0, value->log_datum.log_status);
             len = encode_context_bitstring(apdu, value->tag, &log_status);
             apdu_len += len;
             if (apdu) {
@@ -918,7 +900,7 @@ int bacnet_audit_log_record_encode(
                 apdu += len;
             }
             len = bacnet_audit_log_notification_encode(
-                apdu, &value->datum.notification);
+                apdu, &value->log_datum.notification);
             apdu_len += len;
             if (apdu) {
                 apdu += len;
@@ -931,8 +913,8 @@ int bacnet_audit_log_record_encode(
             break;
         case AUDIT_LOG_DATUM_TAG_TIME_CHANGE:
             /* time-change [2] REAL */
-            len =
-                encode_context_real(apdu, value->tag, value->datum.time_change);
+            len = encode_context_real(
+                apdu, value->tag, value->log_datum.time_change);
             apdu_len += len;
             if (apdu) {
                 apdu += len;
@@ -975,7 +957,7 @@ int bacnet_audit_log_record_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &bdatetime);
     if (len > 0) {
         if (value) {
-            datetime_copy(&value->time_stamp, &bdatetime);
+            datetime_copy(&value->timestamp, &bdatetime);
         }
         apdu_len += len;
     } else {
@@ -1003,7 +985,8 @@ int bacnet_audit_log_record_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.number, &log_status);
             if (len > 0) {
                 if (value) {
-                    value->datum.log_status = bitstring_octet(&log_status, 0);
+                    value->log_datum.log_status =
+                        bitstring_octet(&log_status, 0);
                 }
                 apdu_len += len;
             } else {
@@ -1018,7 +1001,7 @@ int bacnet_audit_log_record_decode(
             if (len > 0) {
                 if (value) {
                     memmove(
-                        &value->datum.notification, &notification,
+                        &value->log_datum.notification, &notification,
                         sizeof(BACNET_AUDIT_NOTIFICATION));
                 }
                 apdu_len += len;
@@ -1032,7 +1015,7 @@ int bacnet_audit_log_record_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.number, &real_value);
             if (len > 0) {
                 if (value) {
-                    value->datum.time_change = real_value;
+                    value->log_datum.time_change = real_value;
                 }
                 apdu_len += len;
             } else {
@@ -1075,7 +1058,7 @@ bool bacnet_audit_log_record_same(
     if (status) {
         status = false;
         /* does the timestamp match? */
-        if (datetime_compare(&value1->time_stamp, &value2->time_stamp) == 0) {
+        if (datetime_compare(&value1->timestamp, &value2->timestamp) == 0) {
             status = true;
         }
     }
@@ -1083,20 +1066,22 @@ bool bacnet_audit_log_record_same(
         status = false;
         switch (value1->tag) {
             case AUDIT_LOG_DATUM_TAG_STATUS:
-                if (value1->datum.log_status == value2->datum.log_status) {
+                if (value1->log_datum.log_status ==
+                    value2->log_datum.log_status) {
                     status = true;
                 }
                 break;
             case AUDIT_LOG_DATUM_TAG_NOTIFICATION:
                 if (bacnet_audit_log_notification_same(
-                        &value1->datum.notification,
-                        &value2->datum.notification)) {
+                        &value1->log_datum.notification,
+                        &value2->log_datum.notification)) {
                     status = true;
                 }
                 break;
             case AUDIT_LOG_DATUM_TAG_TIME_CHANGE:
                 if (!islessgreater(
-                        value1->datum.time_change, value2->datum.time_change)) {
+                        value1->log_datum.time_change,
+                        value2->log_datum.time_change)) {
                     status = true;
                 }
                 break;

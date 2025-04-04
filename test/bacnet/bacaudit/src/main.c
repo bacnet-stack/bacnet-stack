@@ -44,10 +44,15 @@ static void test_bacnet_audit_value(void)
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     test_len = bacnet_audit_value_decode(apdu, apdu_len, NULL);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    /* out of range tag */
+    value.tag = 255;
+    apdu_len = bacnet_audit_value_encode(apdu, &value);
+    test_len = bacnet_audit_value_decode(apdu, apdu_len, &value);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
 
     /* value type = boolean */
     value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
-    value.type.Boolean = true;
+    value.type.boolean_value = true;
     null_len = bacnet_audit_value_encode(NULL, &value);
     apdu_len = bacnet_audit_value_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -57,7 +62,7 @@ static void test_bacnet_audit_value(void)
 
     /* value type = unsigned */
     value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-    value.type.Unsigned_Int = 1234;
+    value.type.unsigned_value = 1234;
     null_len = bacnet_audit_value_encode(NULL, &value);
     apdu_len = bacnet_audit_value_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -67,7 +72,7 @@ static void test_bacnet_audit_value(void)
 
     /* value type = signed */
     value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
-    value.type.Signed_Int = -1234;
+    value.type.integer_value = -1234;
     null_len = bacnet_audit_value_encode(NULL, &value);
     apdu_len = bacnet_audit_value_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -77,29 +82,17 @@ static void test_bacnet_audit_value(void)
 
     /* value type = REAL */
     value.tag = BACNET_APPLICATION_TAG_REAL;
-    value.type.Real = 3.14159;
+    value.type.real_value = 3.14159f;
     null_len = bacnet_audit_value_encode(NULL, &value);
     apdu_len = bacnet_audit_value_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);
     test_len = bacnet_audit_value_decode(apdu, apdu_len, &test_value);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_true(bacnet_audit_value_same(&value, &test_value), NULL);
-
-    /* value type = DOUBLE */
-#if defined(BACAPP_DOUBLE)
-    value.tag = BACNET_APPLICATION_TAG_DOUBLE;
-    value.type.Double = 3.14159;
-    null_len = bacnet_audit_value_encode(NULL, &value);
-    apdu_len = bacnet_audit_value_encode(apdu, &value);
-    zassert_equal(apdu_len, null_len, NULL);
-    test_len = bacnet_audit_value_decode(apdu, apdu_len, &test_value);
-    zassert_equal(apdu_len, test_len, NULL);
-    zassert_true(bacnet_audit_value_same(&value, &test_value), NULL);
-#endif
 
     /* value type = ENUMERATED */
     value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
-    value.type.Enumerated = 1234;
+    value.type.enumerated_value = 1234;
     null_len = bacnet_audit_value_encode(NULL, &value);
     apdu_len = bacnet_audit_value_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -112,11 +105,11 @@ static void test_bacnet_audit_value(void)
     zassert_equal(null_len, 0, NULL);
     value.tag = 255;
     null_len = bacnet_audit_value_encode(NULL, &value);
-    zassert_equal(null_len, 0, NULL);
+    zassert_equal(null_len, 1, NULL);
 
     /* context encoded */
     value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
-    value.type.Boolean = true;
+    value.type.boolean_value = true;
     null_len = bacnet_audit_value_context_encode(NULL, tag_number, &value);
     apdu_len = bacnet_audit_value_context_encode(apdu, tag_number, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -175,8 +168,8 @@ static void test_bacnet_audit_log_record(void)
     BACNET_AUDIT_NOTIFICATION *notification = NULL;
 
     value.tag = AUDIT_LOG_DATUM_TAG_STATUS;
-    datetime_date_init_ascii(&value.time_stamp.date, "2024/11/30");
-    datetime_time_init_ascii(&value.time_stamp.time, "23:59:59.99");
+    datetime_date_init_ascii(&value.timestamp.date, "2024/11/30");
+    datetime_time_init_ascii(&value.timestamp.time, "23:59:59.99");
     null_len = bacnet_audit_log_record_encode(NULL, &value);
     apdu_len = bacnet_audit_log_record_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -202,7 +195,7 @@ static void test_bacnet_audit_log_record(void)
 
     /* record type = notification */
     value.tag = AUDIT_LOG_DATUM_TAG_NOTIFICATION;
-    notification = &value.datum.notification;
+    notification = &value.log_datum.notification;
 
     bacapp_timestamp_sequence_set(&notification->source_timestamp, 1234);
     bacapp_timestamp_sequence_set(&notification->target_timestamp, 5678);
@@ -226,9 +219,9 @@ static void test_bacnet_audit_log_record(void)
     notification->target_property.property_array_index = BACNET_ARRAY_ALL;
     notification->target_priority = 8;
     notification->target_value.tag = BACNET_APPLICATION_TAG_REAL;
-    notification->target_value.type.Real = 3.14159;
+    notification->target_value.type.real_value = 3.14159f;
     notification->current_value.tag = BACNET_APPLICATION_TAG_REAL;
-    notification->current_value.type.Real = 2.71828;
+    notification->current_value.type.real_value = 2.71828f;
     notification->result = ERROR_CODE_OTHER;
     null_len = bacnet_audit_log_record_encode(NULL, &value);
     apdu_len = bacnet_audit_log_record_encode(apdu, &value);
@@ -239,7 +232,7 @@ static void test_bacnet_audit_log_record(void)
 
     /* record type = time-change */
     value.tag = AUDIT_LOG_DATUM_TAG_TIME_CHANGE;
-    value.datum.time_change = 3.14159;
+    value.log_datum.time_change = 3.14159;
     null_len = bacnet_audit_log_record_encode(NULL, &value);
     apdu_len = bacnet_audit_log_record_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);

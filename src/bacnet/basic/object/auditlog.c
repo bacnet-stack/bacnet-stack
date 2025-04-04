@@ -820,26 +820,25 @@ void Audit_Log_Record_Status_Insert(
     if (!pObject) {
         return;
     }
-    datetime_local(
-        &record.time_stamp.date, &record.time_stamp.time, NULL, NULL);
+    datetime_local(&record.timestamp.date, &record.timestamp.time, NULL, NULL);
     record.tag = AUDIT_LOG_DATUM_TAG_STATUS;
-    record.datum.log_status = 0;
+    record.log_datum.log_status = 0;
     /* Note we set the bits in correct order so that we can place them directly
      * into the bitstring structure later on when we have to encode them */
     switch (log_status) {
         case LOG_STATUS_LOG_DISABLED:
             if (state) {
-                record.datum.log_status = 1 << LOG_STATUS_LOG_DISABLED;
+                record.log_datum.log_status = 1 << LOG_STATUS_LOG_DISABLED;
             }
             break;
         case LOG_STATUS_BUFFER_PURGED:
             if (state) {
-                record.datum.log_status = 1 << LOG_STATUS_BUFFER_PURGED;
+                record.log_datum.log_status = 1 << LOG_STATUS_BUFFER_PURGED;
             }
             break;
         case LOG_STATUS_LOG_INTERRUPTED:
             if (state) {
-                record.datum.log_status = 1 << LOG_STATUS_LOG_INTERRUPTED;
+                record.log_datum.log_status = 1 << LOG_STATUS_LOG_INTERRUPTED;
             }
             break;
         default:
@@ -875,13 +874,14 @@ static int Audit_Log_Record_Search(
         }
         if (entry->tag == record->tag) {
             if (entry->tag == AUDIT_LOG_DATUM_TAG_STATUS) {
-                if (entry->datum.log_status == record->datum.log_status) {
+                if (entry->log_datum.log_status ==
+                    record->log_datum.log_status) {
                     return i;
                 }
             } else if (entry->tag == AUDIT_LOG_DATUM_TAG_NOTIFICATION) {
                 if (bacnet_audit_log_notification_same(
-                        &entry->datum.notification,
-                        &record->datum.notification)) {
+                        &entry->log_datum.notification,
+                        &record->log_datum.notification)) {
                     return i;
                 }
             }
@@ -914,10 +914,10 @@ void Audit_Log_Record_Notification_Insert(
     /*  As records are added into the log, the Audit Log object will scan
         existing entries for a matching record. */
     datetime_local(
-        &seek_entry.time_stamp.date, &seek_entry.time_stamp.time, NULL, NULL);
+        &seek_entry.timestamp.date, &seek_entry.timestamp.time, NULL, NULL);
     seek_entry.tag = AUDIT_LOG_DATUM_TAG_NOTIFICATION;
     memcpy(
-        &seek_entry.datum.notification, notification,
+        &seek_entry.log_datum.notification, notification,
         sizeof(BACNET_AUDIT_NOTIFICATION));
     index = Audit_Log_Record_Search(object_instance, &seek_entry);
     if (index >= 0) {
@@ -1279,7 +1279,7 @@ int Audit_Log_Read_Range_By_Time(BACNET_READ_RANGE_DATA *pRequest)
             entry =
                 Audit_Log_Record_Entry(pRequest->object_instance, record_index);
             diff =
-                datetime_compare(&entry->time_stamp, &pRequest->Range.RefTime);
+                datetime_compare(&entry->timestamp, &pRequest->Range.RefTime);
             if (diff < 0) {
                 /* If datetime1 is before datetime2, returns negative.*/
                 break;
@@ -1323,7 +1323,7 @@ int Audit_Log_Read_Range_By_Time(BACNET_READ_RANGE_DATA *pRequest)
             entry =
                 Audit_Log_Record_Entry(pRequest->object_instance, record_index);
             diff =
-                datetime_compare(&entry->time_stamp, &pRequest->Range.RefTime);
+                datetime_compare(&entry->timestamp, &pRequest->Range.RefTime);
             if (diff > 0) {
                 /* If datetime1 is after datetime2, returns positive.*/
                 break;

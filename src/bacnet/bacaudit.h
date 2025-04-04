@@ -20,32 +20,24 @@
 #include "bacnet/bacdevobjpropref.h"
 
 /**
- * @brief Smaller version of BACnet_Application_Data_Value
- * @note This must be a separate struct to avoid recursive structure.
- * Keeping it small also helps keep the size small.
+ * @brief Container to hold the target value or current value
+ * @note This must be a separate struct from BACapp to avoid
+ *  recursive a recursive include.
+ * @note This is a union to save space. The application tag
+ * is used to determine which type is used.
+ *
+ *
  */
 typedef struct BACnet_Audit_Value {
     uint8_t tag; /* application tag data type */
     union {
         /* NULL - not needed as it is encoded in the tag alone */
-#if defined(BACAPP_BOOLEAN)
-        bool Boolean;
-#endif
-#if defined(BACAPP_UNSIGNED)
-        BACNET_UNSIGNED_INTEGER Unsigned_Int;
-#endif
-#if defined(BACAPP_SIGNED)
-        int32_t Signed_Int;
-#endif
-#if defined(BACAPP_REAL)
-        float Real;
-#endif
-#if defined(BACAPP_DOUBLE)
-        double Double;
-#endif
-#if defined(BACAPP_ENUMERATED)
-        uint32_t Enumerated;
-#endif
+        bool boolean_value;
+        float real_value;
+        uint32_t enumerated_value;
+        uint32_t unsigned_value;
+        int32_t integer_value;
+        /* note: use ifdef for values larger than 32-bits are supported */
     } type;
 } BACNET_AUDIT_VALUE;
 
@@ -183,9 +175,8 @@ typedef struct BACnetAuditNotification {
 } BACNET_AUDIT_NOTIFICATION;
 
 /**
- * @brief Datum types associated with a BACnet Log Record. We use these for
- * managing the log buffer but they are also the tag numbers to use when
- * encoding or decoding the log datum field.
+ * @brief Datum types associated with a BACnetAuditLogRecord.
+ *  The tag numbers are used when encoding or decoding the log_datum field.
  */
 #define AUDIT_LOG_DATUM_TAG_STATUS 0
 #define AUDIT_LOG_DATUM_TAG_NOTIFICATION 1
@@ -202,13 +193,13 @@ typedef struct BACnetAuditNotification {
  * }
  */
 typedef struct BACnetAuditLogRecord {
-    BACNET_DATE_TIME time_stamp;
+    BACNET_DATE_TIME timestamp;
     uint8_t tag;
     union {
         uint8_t log_status;
         BACNET_AUDIT_NOTIFICATION notification;
         float time_change;
-    } datum;
+    } log_datum;
 } BACNET_AUDIT_LOG_RECORD;
 
 #ifdef __cplusplus
