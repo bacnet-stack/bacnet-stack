@@ -1795,10 +1795,11 @@ typedef enum {
     STATUS_FLAG_OUT_OF_SERVICE = 3
 } BACNET_STATUS_FLAGS;
 
-typedef enum {
+typedef enum BACnetLogStatus {
     LOG_STATUS_LOG_DISABLED = 0,
     LOG_STATUS_BUFFER_PURGED = 1,
-    LOG_STATUS_LOG_INTERRUPTED = 2
+    LOG_STATUS_LOG_INTERRUPTED = 2,
+    LOG_STATUS_MAX = 3
 } BACNET_LOG_STATUS;
 
 typedef enum {
@@ -3024,7 +3025,8 @@ typedef enum BACnetAuditOperation {
     The enumerated values match the bit positions in
     BACnetAuditOperationFlags. */
     AUDIT_OPERATION_PROPRIETARY_MIN = 32,
-    AUDIT_OPERATION_PROPRIETARY_MAX = 63
+    AUDIT_OPERATION_PROPRIETARY_MAX = 63,
+    AUDIT_OPERATION_MAX = 64
 } BACNET_AUDIT_OPERATION;
 
 typedef enum BACnetSCHubConnectorState {
