@@ -707,7 +707,7 @@ int bvlc_bbmd_disabled_handler(
                     debug_print_unsigned(
                         "Received Result Code =", BVLC_Result_Code);
                 }
-                switch(result_code) {
+                switch (result_code) {
                     case BVLC_RESULT_SUCCESSFUL_COMPLETION:
                     case BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK:
                         BVLC_BBMD_Result_Code = result_code;

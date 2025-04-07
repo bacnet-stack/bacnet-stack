@@ -732,8 +732,8 @@ int bvlc6_bbmd_disabled_handler(
                     bbmd6_add_vmac(vmac_src, addr);
                     bvlc6_vmac_address_set(src, vmac_src);
                     PRINTF(
-                            "BIP6: Received Result Code=%d\n", BVLC6_Result_Code);
-                    switch(result_code) {
+                        "BIP6: Received Result Code=%d\n", BVLC6_Result_Code);
+                    switch (result_code) {
                         case BVLC6_RESULT_SUCCESSFUL_COMPLETION:
                         case BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK:
                             BVLC6_BBMD_Result_Code = result_code;
