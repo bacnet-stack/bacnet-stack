@@ -23,6 +23,8 @@ The git repositories are hosted at the following sites:
 ## [1.4.1] - Unreleased
 
 ### Security
+* Secured ReadRange service codecs. Added ReadRange unit testing.
+  Secured ReadRange-ACK handler to enable APDU size checking. (#957)
 * Secured BACnet/SC URL handling by changing all the sprintf
   to snprintf which ensures null string endings. (#936)
 * Secured win32 port of localtime by using secure OS API functions
@@ -63,6 +65,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed duplicate code by removal in apps/readprop. (#959)
 * Fixed ReadRange app to read and pretty-print a Trend Log log-buffer (#947)
 * Fixed bip cleanup to enable initializing interfaces after cleanup. (#949)
 * Fixed configure script and removed aptfile duplicity. (#946)
