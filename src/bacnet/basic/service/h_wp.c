@@ -136,6 +136,8 @@ void handler_write_property(
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
+    bool valid_id = false;
+    bool object_invalid = false;
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
@@ -182,6 +184,13 @@ void handler_write_property(
         if (bcontinue) {
 #if BACNET_PROTOCOL_REVISION >= 21
 
+            valid_id = Device_Valid_Object_Id(
+                wp_data.object_type, wp_data.object_instance);
+
+            if (!valid_id) {
+                object_invalid = true;
+            }
+
             success = handler_write_property_relinquish_bypass(&wp_data);
 #endif
             if (!success) {
@@ -189,12 +198,16 @@ void handler_write_property(
                     success = Device_Write_Property(&wp_data);
                 }
             }
-            if (success) {
+            if (success && !object_invalid) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
                 debug_print("WP: Sending Simple Ack!\n");
             } else {
+                if (object_invalid) {
+                    wp_data.error_class = ERROR_CLASS_OBJECT;
+                    wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                }
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
