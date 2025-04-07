@@ -334,10 +334,8 @@ int main(int argc, char *argv[])
     }
     address_init();
     if (specific_address) {
-        if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-            dest.net = dnet;
-        } else {
-            dest.net = BACNET_BROADCAST_NETWORK;
+        if ((dnet < 0) || (dnet > BACNET_BROADCAST_NETWORK)) {
+            dnet = BACNET_BROADCAST_NETWORK;
         }
         bacnet_address_init(&dest, &mac, dnet, &adr);
         address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
