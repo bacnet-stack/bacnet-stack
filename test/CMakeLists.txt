@@ -107,6 +107,7 @@ list(APPEND testdirs
   bacnet/property
   bacnet/ptransfer
   bacnet/rd
+  bacnet/readrange
   bacnet/reject
   bacnet/rp
   bacnet/rpm
