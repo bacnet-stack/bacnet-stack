@@ -47,11 +47,12 @@ struct object_data {
     bool Out_Of_Service : 1;
     bool Changed : 1;
     void *Context;
-    void (*Load)(void *context, const char *location);
-    void (*Run)(void *context);
-    void (*Halt)(void *context);
-    void (*Restart)(void *context);
-    void (*Unload)(void *context);
+    /* return 0 for success, negative on error */
+    int (*Load)(void *context, const char *location);
+    int (*Run)(void *context);
+    int (*Halt)(void *context);
+    int (*Restart)(void *context);
+    int (*Unload)(void *context);
 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -596,6 +597,53 @@ bool Program_Change_Set(
 }
 
 /**
+ * For a given object instance-number, writes the program change value
+ *
+ * Normally the value of the Program_Change property will be READY,
+ * meaning that the program is ready to accept a new
+ * request to change its operating state. If the Program_Change
+ * property is not READY, then it may not be written to and any
+ * attempt to write to the property shall return a Result(-).
+ * If it has one of the other enumerated values, then a previous
+ * request to change state has not yet been honored, so new requests
+ * cannot be accepted. When the request to change state is finally
+ * honored, then the Program_Change property value shall become
+ * READY and the new state shall be reflected in the Program_State property.
+ *
+ * @param object_instance - object-instance number of the object
+ * @param program_change - property value
+ * @param error_class - BACNET_ERROR_CLASS
+ * @param error_code - BACNET_ERROR_CODE
+ * @return true if the program change property value was written
+ */
+static bool Program_Change_Write(
+    uint32_t object_instance,
+    BACNET_PROGRAM_REQUEST program_change,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject = Object_Data(object_instance);
+
+    if (pObject) {
+        if (pObject->Program_Change == PROGRAM_REQUEST_READY) {
+            if (program_change <= PROGRAM_REQUEST_MAX) {
+                pObject->Program_Change = program_change;
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, returns the Reason_For_Halt
  *
  * @param object_instance - object-instance number of the object
@@ -865,12 +913,9 @@ bool Program_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                status = Program_Change_Set(
-                    wp_data->object_instance, value.type.Enumerated);
-                if (!status) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+                status = Program_Change_Write(
+                    wp_data->object_instance, value.type.Enumerated,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -917,7 +962,7 @@ void Program_Context_Set(uint32_t object_instance, void *context)
  * @param load [in] pointer to the Load function
  */
 void Program_Load_Set(
-    uint32_t object_instance, void (*load)(void *context, const char *location))
+    uint32_t object_instance, int (*load)(void *context, const char *location))
 {
     struct object_data *pObject = Object_Data(object_instance);
 
@@ -931,7 +976,7 @@ void Program_Load_Set(
  * @param object_instance [in] BACnet object instance number
  * @param run [in] pointer to the Run function
  */
-void Program_Run_Set(uint32_t object_instance, void (*run)(void *context))
+void Program_Run_Set(uint32_t object_instance, int (*run)(void *context))
 {
     struct object_data *pObject = Object_Data(object_instance);
 
@@ -945,7 +990,7 @@ void Program_Run_Set(uint32_t object_instance, void (*run)(void *context))
  * @param object_instance [in] BACnet object instance number
  * @param halt [in] pointer to the Halt function
  */
-void Program_Halt_Set(uint32_t object_instance, void (*halt)(void *context))
+void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
 {
     struct object_data *pObject = Object_Data(object_instance);
 
@@ -960,7 +1005,7 @@ void Program_Halt_Set(uint32_t object_instance, void (*halt)(void *context))
  * @param restart [in] pointer to the Restart function
  */
 void Program_Restart_Set(
-    uint32_t object_instance, void (*restart)(void *context))
+    uint32_t object_instance, int (*restart)(void *context))
 {
     struct object_data *pObject = Object_Data(object_instance);
 
@@ -974,7 +1019,7 @@ void Program_Restart_Set(
  * @param object_instance [in] BACnet object instance number
  * @param unload [in] pointer to the Unload function
  */
-void Program_Unload_Set(uint32_t object_instance, void (*unload)(void *context))
+void Program_Unload_Set(uint32_t object_instance, int (*unload)(void *context))
 {
     struct object_data *pObject = Object_Data(object_instance);
 
@@ -983,8 +1028,216 @@ void Program_Unload_Set(uint32_t object_instance, void (*unload)(void *context))
     }
 }
 
+static void Program_State_Idle_Handler(struct object_data *pObject)
+{
+    int err;
+
+    if (pObject->Program_Change == PROGRAM_REQUEST_LOAD) {
+        if (pObject->Load) {
+            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            if (err == 0) {
+                pObject->Program_State = PROGRAM_STATE_LOADING;
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
+            }
+        } else {
+            pObject->Program_State = PROGRAM_STATE_LOADING;
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+        }
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_RUN) {
+        if (pObject->Load) {
+            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            if (err == 0) {
+                pObject->Program_State = PROGRAM_STATE_RUNNING;
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_RUNNING;
+        }
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_RESTART) {
+        if (pObject->Restart) {
+            err = pObject->Restart(pObject->Context);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_RUNNING;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_RUNNING;
+        }
+    }
+}
+
+static void Program_State_Halted_Handler(struct object_data *pObject)
+{
+    int err;
+
+    if (pObject->Program_Change == PROGRAM_REQUEST_UNLOAD) {
+        if (pObject->Unload) {
+            err = pObject->Unload(pObject->Context);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_UNLOADING;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_UNLOADING;
+        }
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_LOAD) {
+        if (pObject->Load) {
+            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_LOADING;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_LOADING;
+        }
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_RUN) {
+        pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+        pObject->Program_State = PROGRAM_STATE_RUNNING;
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_RESTART) {
+        if (pObject->Restart) {
+            err = pObject->Restart(pObject->Context);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_RUNNING;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_RUNNING;
+        }
+    }
+}
+
+static void Program_State_Running_Handler(struct object_data *pObject)
+{
+    int err;
+
+    if (pObject->Program_Change == PROGRAM_REQUEST_UNLOAD) {
+        if (pObject->Unload) {
+            err = pObject->Unload(pObject->Context);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_UNLOADING;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_UNLOADING;
+        }
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_LOAD) {
+        if (pObject->Load) {
+            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_LOADING;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_LOADING;
+        }
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_HALT) {
+        if (pObject->Halt) {
+            err = pObject->Halt(pObject->Context);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_HALTED;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
+            }
+        }
+        pObject->Program_State = PROGRAM_STATE_HALTED;
+    } else if (pObject->Program_Change == PROGRAM_REQUEST_RESTART) {
+        if (pObject->Restart) {
+            err = pObject->Restart(pObject->Context);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+                pObject->Program_State = PROGRAM_STATE_RUNNING;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
+            }
+        } else {
+            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            pObject->Program_State = PROGRAM_STATE_RUNNING;
+        }
+    } else {
+        if (pObject->Run) {
+            err = pObject->Run(pObject->Context);
+            if (err == 0) {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
+            } else {
+                pObject->Reason_For_Halt = PROGRAM_ERROR_PROGRAM;
+                pObject->Program_State = PROGRAM_STATE_HALTED;
+            }
+        }
+    }
+}
+
 /**
  * @brief Updates the object program operation
+ *
+ * 12.22.5 Program_Change
+ *
+ * This property, of type BACnetProgramRequest, is used to request changes
+ * to the operating state of the process this object represents.
+ * The Program_Change property provides one means for changing
+ * the operating state of this process. The process may change its own
+ * state as a consequence of execution as well.
+ *
+ * The values that may be taken on by this property are:
+ *   READY ready for change request (the normal state)
+ *   LOAD request that the application program be loaded, if not already loaded
+ *   RUN request that the process begin executing, if not already running
+ *   HALT request that the process halt execution
+ *   RESTART request that the process restart at its initialization point
+ *   UNLOAD request that the process halt execution and unload
+ *
+ * Normally the value of the Program_Change property will be READY,
+ * meaning that the program is ready to accept a new
+ * request to change its operating state. If the Program_Change property
+ * is not READY, then it may not be written to and any
+ * attempt to write to the property shall return a Result(-).
+ * If it has one of the other enumerated values, then a previous request to
+ * change state has not yet been honored, so new requests cannot
+ * be accepted. When the request to change state is finally
+ * honored, then the Program_Change property value shall become READY
+ * and the new state shall be reflected in the Program_State property.
+ * Depending on the current Program_State, certain requested values for
+ * Program_Change may be invalid and would also return a Result(-)
+ * if an attempt were made to write them.
+ *
+ * It is important to note that program loading could be terminated
+ * either due to an error or a request to HALT that occurs
+ * during loading. In either case, it is possible to have Program_State=HALTED
+ * and yet not have a complete or operable program in place.
+ * In this case, a request to RESTART is taken to mean LOAD instead.
+ * If a complete program is loaded but HALTED for any reason,
+ * then RESTART simply reenters program execution at its
+ * initialization entry point.
+ *
+ * There may be BACnet devices
+ * that support Program objects but do not require "loading"
+ * of the application programs, as these applications may be built in.
+ * In these cases, loading is taken to mean "preparing for execution,"
+ * the specifics of which are a local matter.
+ *
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed
  */
@@ -995,9 +1248,30 @@ void Program_Timer(uint32_t object_instance, uint16_t milliseconds)
     (void)milliseconds;
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Run) {
-            pObject->Run(pObject->Context);
+        switch (pObject->Program_State) {
+            case PROGRAM_STATE_IDLE:
+                Program_State_Idle_Handler(pObject);
+                break;
+            case PROGRAM_STATE_LOADING:
+                pObject->Program_State = PROGRAM_STATE_HALTED;
+                break;
+            case PROGRAM_STATE_UNLOADING:
+                pObject->Program_State = PROGRAM_STATE_IDLE;
+                break;
+            case PROGRAM_STATE_HALTED:
+                Program_State_Halted_Handler(pObject);
+                break;
+            case PROGRAM_STATE_RUNNING:
+                Program_State_Running_Handler(pObject);
+                break;
+            case PROGRAM_STATE_WAITING:
+                Program_State_Running_Handler(pObject);
+                break;
+            default:
+                /* do nothing */
+                break;
         }
+        pObject->Program_Change = PROGRAM_REQUEST_READY;
     }
 }
 
