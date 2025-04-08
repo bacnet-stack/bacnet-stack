@@ -66,6 +66,12 @@ BACNET_STACK_EXPORT
 void bvlc6_set_last_result(const uint16_t result_code);
 
 BACNET_STACK_EXPORT
+uint16_t bvlc6_get_last_bbmd_result(void);
+
+BACNET_STACK_EXPORT
+void bvlc6_set_last_bbmd_result(const uint16_t result_code);
+
+BACNET_STACK_EXPORT
 uint8_t bvlc6_get_function_code(void);
 
 BACNET_STACK_EXPORT
