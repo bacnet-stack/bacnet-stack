@@ -1155,14 +1155,9 @@ static void Program_State_Running_Handler(struct object_data *pObject)
         }
     } else if (pObject->Program_Change == PROGRAM_REQUEST_HALT) {
         if (pObject->Halt) {
-            err = pObject->Halt(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Program_State = PROGRAM_STATE_HALTED;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
-            }
+            pObject->Halt(pObject->Context);
         }
+        pObject->Reason_For_Halt = PROGRAM_ERROR_PROGRAM;
         pObject->Program_State = PROGRAM_STATE_HALTED;
     } else if (pObject->Program_Change == PROGRAM_REQUEST_RESTART) {
         if (pObject->Restart) {
@@ -1183,7 +1178,7 @@ static void Program_State_Running_Handler(struct object_data *pObject)
             if (err == 0) {
                 pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
             } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_PROGRAM;
+                pObject->Reason_For_Halt = PROGRAM_ERROR_INTERNAL;
                 pObject->Program_State = PROGRAM_STATE_HALTED;
             }
         }
