@@ -266,6 +266,7 @@ int main(int argc, char *argv[])
                 if ((long_value >= 0) &&
                     (long_value <= BACNET_BROADCAST_NETWORK)) {
                     dnet = (uint16_t)long_value;
+                    specific_address = true;
                 }
             }
         } else if (strcmp(argv[argi], "--mac") == 0) {
