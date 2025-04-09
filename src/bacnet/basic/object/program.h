@@ -115,18 +115,16 @@ BACNET_STACK_EXPORT
 void Program_Context_Set(uint32_t object_instance, void *context);
 BACNET_STACK_EXPORT
 void Program_Load_Set(
-    uint32_t object_instance,
-    void (*load)(void *context, const char *location));
+    uint32_t object_instance, int (*load)(void *context, const char *location));
 BACNET_STACK_EXPORT
-void Program_Run_Set(uint32_t object_instance, void (*run)(void *context));
+void Program_Run_Set(uint32_t object_instance, int (*run)(void *context));
 BACNET_STACK_EXPORT
-void Program_Halt_Set(uint32_t object_instance, void (*halt)(void *context));
+void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context));
 BACNET_STACK_EXPORT
 void Program_Restart_Set(
-    uint32_t object_instance, void (*restart)(void *context));
+    uint32_t object_instance, int (*restart)(void *context));
 BACNET_STACK_EXPORT
-void Program_Unload_Set(
-    uint32_t object_instance, void (*unload)(void *context));
+void Program_Unload_Set(uint32_t object_instance, int (*unload)(void *context));
 
 #ifdef __cplusplus
 }
