@@ -174,7 +174,7 @@ static void bacnet_server_init(void)
  */
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [--dnet]\n", filename);
+    printf("Usage: %s [--dnet][--dadr][--mac]\n", filename);
     printf("       [--discover-seconds][--print-seconds][--print-summary]\n");
     printf("       [--version][--help]\n");
 }
@@ -191,10 +191,24 @@ static void print_help(const char *filename)
            "Number of seconds to wait before printing list of devices.\n");
     printf("--print-summary:\n"
            "Print only the list of devices.\n");
+    printf("\n");
     printf("--dnet N\n"
            "Optional BACnet network number N for directed requests.\n"
            "Valid range is from 0 to 65535 where 0 is the local connection\n"
            "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     (void)filename;
 }
 
@@ -214,7 +228,11 @@ int main(int argc, char *argv[])
     /* data from the command line */
     unsigned long print_seconds = 60;
     unsigned long discover_seconds = 60;
-    uint16_t dnet = 0;
+    uint16_t dnet = BACNET_BROADCAST_NETWORK;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    bool specific_address = false;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -245,8 +263,22 @@ int main(int argc, char *argv[])
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
                 long_value = strtol(argv[argi], NULL, 0);
-                if ((long_value >= 0) && (long_value <= UINT16_MAX)) {
+                if ((long_value >= 0) &&
+                    (long_value <= BACNET_BROADCAST_NETWORK)) {
                     dnet = (uint16_t)long_value;
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
+                    specific_address = true;
                 }
             }
         } else {
@@ -262,6 +294,9 @@ int main(int argc, char *argv[])
             BACNET_MAX_INSTANCE);
         return 1;
     }
+    if (specific_address) {
+        bacnet_address_init(&dest, &mac, dnet, &adr);
+    }
     Device_Set_Object_Instance_Number(device_id);
     debug_printf_stdout(
         "BACnet Server-Discovery Demo\n"
@@ -270,13 +305,13 @@ int main(int argc, char *argv[])
         "DNET: %u every %lu seconds\n"
         "Print Devices: every %lu seconds (0=none)\n"
         "Max APDU: %d\n",
-        BACnet_Version, Device_Object_Instance_Number(), dnet, discover_seconds,
-        print_seconds, MAX_APDU);
+        BACnet_Version, Device_Object_Instance_Number(), dest.net,
+        discover_seconds, print_seconds, MAX_APDU);
     dlenv_init();
     atexit(datalink_cleanup);
     bacnet_server_init();
     /* configure the discovery module */
-    bacnet_discover_dnet_set(dnet);
+    bacnet_discover_dest_set(&dest);
     bacnet_discover_seconds_set(discover_seconds);
     bacnet_discover_init();
     atexit(bacnet_discover_cleanup);
