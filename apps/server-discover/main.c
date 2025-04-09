@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
     /* data from the command line */
     unsigned long print_seconds = 60;
     unsigned long discover_seconds = 60;
-    long dnet = -1;
+    uint16_t dnet = BACNET_BROADCAST_NETWORK;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -263,20 +263,14 @@ int main(int argc, char *argv[])
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
                 long_value = strtol(argv[argi], NULL, 0);
-                if ((long_value >= 0) && (long_value <= UINT16_MAX)) {
+                if ((long_value >= 0) &&
+                    (long_value <= BACNET_BROADCAST_NETWORK)) {
                     dnet = (uint16_t)long_value;
                 }
             }
         } else if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
                 if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
-                    specific_address = true;
-                }
-            }
-        } else if (strcmp(argv[argi], "--dnet") == 0) {
-            if (++argi < argc) {
-                dnet = strtol(argv[argi], NULL, 0);
-                if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
                     specific_address = true;
                 }
             }
