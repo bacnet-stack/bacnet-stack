@@ -36,6 +36,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added the option to specify a target destination for
+  apps/server-discover. (#958)
+* Added Program object task state transitions from request and callbacks. (#960)
 * Added write present value callbacks for Analog Value and Integer Value
   basic object examples. (#956)
 * Added BACNET_IP_BROADCAST_USE_INADDR_ANY ifdef option for apps/router
@@ -65,6 +68,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MS/TP lost-token-counter that was lost during refactoring. (#962)
 * Fixed duplicate code by removal in apps/readprop. (#959)
 * Fixed ReadRange app to read and pretty-print a Trend Log log-buffer (#947)
 * Fixed bip cleanup to enable initializing interfaces after cleanup. (#949)
