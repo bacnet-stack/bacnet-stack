@@ -347,6 +347,7 @@ uint16_t dlmstp_receive(
     struct dlmstp_rs485_driver *driver;
     uint16_t i;
     uint32_t milliseconds;
+    MSTP_MASTER_STATE master_state;
 
     (void)timeout;
     if (!MSTP_Port) {
@@ -418,8 +419,15 @@ uint16_t dlmstp_receive(
         } else if (
             (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) ||
             MSTP_Port->ZeroConfigEnabled || MSTP_Port->CheckAutoBaud) {
+            master_state = MSTP_Port->master_state;
             while (MSTP_Master_Node_FSM(MSTP_Port)) {
-                /* do nothing while some states fast transition */
+                if (master_state != MSTP_Port->master_state) {
+                    /* state changed while some states fast transition */
+                    if (MSTP_Port->master_state == MSTP_MASTER_STATE_NO_TOKEN) {
+                        user->Statistics.lost_token_counter++;
+                    }
+                    master_state = MSTP_Port->master_state;
+                }
             };
         }
     }
