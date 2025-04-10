@@ -17,6 +17,7 @@
 
 #define DEBUG_BSC_SOCKET 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_BSC_SOCKET == 1
 #define DEBUG_PRINTF debug_printf
 #else

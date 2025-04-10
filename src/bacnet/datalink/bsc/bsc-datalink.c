@@ -24,6 +24,7 @@
 
 #define PRINTF debug_printf_stderr
 #define DEBUG_BSC_DATALINK 0
+#undef DEBUG_PRINTF
 #if DEBUG_BSC_DATALINK == 1
 #define DEBUG_PRINTF debug_printf
 #else

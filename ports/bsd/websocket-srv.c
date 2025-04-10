@@ -17,6 +17,7 @@
 
 #define DEBUG_WEBSOCKET_SERVER 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_WEBSOCKET_SERVER == 1
 #define DEBUG_PRINTF debug_printf
 #else

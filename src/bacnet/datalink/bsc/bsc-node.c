@@ -21,6 +21,7 @@
 
 #define DEBUG_BSC_NODE 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_BSC_NODE == 1
 #define DEBUG_PRINTF debug_printf
 #else
