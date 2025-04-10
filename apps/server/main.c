@@ -23,6 +23,7 @@
 #include "bacnet/iam.h"
 #include "bacnet/npdu.h"
 #include "bacnet/version.h"
+#include "bacnet/bacdef.h"
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/services.h"
@@ -374,6 +375,15 @@ int main(int argc, char *argv[])
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
     dlenv_init();
+
+#if BACNET_SEGMENTATION_ENABLED
+    Handler_Transmit_Buffer = (uint8_t *)malloc(MAX_PDU_SEND * sizeof(uint8_t));
+    Temp_Buf_rpm = (uint8_t *)malloc((MAX_PDU_SEND - MAX_NPDU) * sizeof(uint8_t));
+#else
+    Handler_Transmit_Buffer = (uint8_t *)malloc(MAX_PDU * sizeof(uint8_t));
+    Temp_Buf_rpm = (uint8_t *)malloc(MAX_APDU * sizeof(uint8_t));
+#endif
+
     atexit(datalink_cleanup);
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
