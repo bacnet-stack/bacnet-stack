@@ -22,7 +22,7 @@
 #if DEBUG_BSC_HUB_CONNECTOR == 1
 #define DEBUG_PRINTF debug_printf
 #else
-#undef DEBUG_PRINTF
+#undef DEBUG_ENABLED
 #define DEBUG_PRINTF debug_printf_disabled
 #endif
 
