@@ -300,6 +300,46 @@ static void flash_read(
     }
 }
 #endif
+
+/*---------------------------------------------------------------------------*/
+#if defined(UBASIC_SCRIPT_HAVE_BACNET)
+static void bacnet_create_object(
+    struct ubasic_data *data,
+    uint16_t object_type,
+    uint32_t instance,
+    char *object_name)
+{
+    if (data->bacnet_create_object) {
+        data->bacnet_create_object(object_type, instance, object_name);
+    }
+}
+static void bacnet_write_property(
+    struct ubasic_data *data,
+    uint16_t object_type,
+    uint32_t instance,
+    uint32_t property_id,
+    uint32_t value)
+{
+    if (data->bacnet_write_property) {
+        data->bacnet_write_property(object_type, instance, property_id, value);
+    }
+}
+static uint32_t bacnet_read_property(
+    struct ubasic_data *data,
+    uint16_t object_type,
+    uint32_t instance,
+    uint32_t property_id)
+{
+    uint32_t value = 0;
+
+    if (data->bacnet_read_property) {
+        value = data->bacnet_read_property(object_type, instance, property_id);
+    }
+
+    return value;
+}
+#endif
+
 /*---------------------------------------------------------------------------*/
 #if defined(UBASIC_SCRIPT_PRINT_TO_SERIAL)
 static void
@@ -989,6 +1029,9 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
 {
     VARIABLE_TYPE r;
     VARIABLE_TYPE i, j, k;
+#if defined(UBASIC_SCRIPT_HAVE_BACNET)
+    VARIABLE_TYPE v;
+#endif
 #if defined(VARIABLE_TYPE_ARRAY)
     uint8_t varnum;
 #endif
@@ -1333,7 +1376,53 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
             r = recall_statement(data);
             break;
 #endif
-
+#if defined(UBASIC_SCRIPT_HAVE_BACNET)
+        case TOKENIZER_BACNET_CREATE_OBJECT:
+            accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
+            accept(data, TOKENIZER_LEFTPAREN);
+            // object type
+            i = relation(data);
+            accept(data, TOKENIZER_COMMA);
+            // object instance
+            j = relation(data);
+            accept(data, TOKENIZER_COMMA);
+            // object name
+            s = sexpr(data);
+            bacnet_create_object(data, i, j, strptr(data, s));
+            accept(data, TOKENIZER_RIGHTPAREN);
+            break;
+        case TOKENIZER_BACNET_READ_PROPERTY:
+            accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
+            accept(data, TOKENIZER_LEFTPAREN);
+            // object type
+            i = relation(data);
+            accept(data, TOKENIZER_COMMA);
+            // object instance
+            j = relation(data);
+            accept(data, TOKENIZER_COMMA);
+            // property
+            k = relation(data);
+            r = bacnet_read_property(data, i, j, k);
+            accept(data, TOKENIZER_RIGHTPAREN);
+            break;
+        case TOKENIZER_BACNET_WRITE_PROPERTY:
+            accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
+            accept(data, TOKENIZER_LEFTPAREN);
+            // object type
+            i = relation(data);
+            accept(data, TOKENIZER_COMMA);
+            // object instance
+            j = relation(data);
+            accept(data, TOKENIZER_COMMA);
+            // property
+            k = relation(data);
+            accept(data, TOKENIZER_COMMA);
+            // value
+            v = relation(data);
+            bacnet_write_property(data, i, j, k, v);
+            accept(data, TOKENIZER_RIGHTPAREN);
+            break;
+#endif
         default:
             r = varfactor(data);
             break;

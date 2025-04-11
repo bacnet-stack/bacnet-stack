@@ -135,6 +135,11 @@ static const struct keyword_token keywords[] = {
     { "store", TOKENIZER_STORE },
     { "recall", TOKENIZER_RECALL },
 #endif
+#if defined(UBASIC_SCRIPT_HAVE_BACNET)
+    { "bacco", TOKENIZER_BACNET_CREATE_OBJECT },
+    { "bacrp", TOKENIZER_BACNET_READ_PROPERTY },
+    { "bacwp", TOKENIZER_BACNET_WRITE_PROPERTY },
+#endif
     { "clear", TOKENIZER_CLEAR },
     { NULL, TOKENIZER_ERROR }
 };

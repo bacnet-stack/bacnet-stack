@@ -192,6 +192,17 @@ struct ubasic_data {
 #if defined(UBASIC_SCRIPT_PRINT_TO_SERIAL)
     void (*serial_write)(const char *buffer, uint16_t n);
 #endif
+#if defined(UBASIC_SCRIPT_HAVE_BACNET)
+    void (*bacnet_create_object)(
+        uint16_t object_type, uint32_t instance, char *object_name);
+    void (*bacnet_write_property)(
+        uint16_t object_type,
+        uint32_t instance,
+        uint32_t property_id,
+        uint32_t value);
+    uint32_t (*bacnet_read_property)(
+        uint16_t object_type, uint32_t instance, uint32_t property_id);
+#endif
 };
 
 void ubasic_load_program(struct ubasic_data *data, const char *program);

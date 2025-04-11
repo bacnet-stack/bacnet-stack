@@ -58,6 +58,7 @@
 #undef UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL
 #undef UBASIC_SCRIPT_HAVE_ANALOG_READ
 #undef UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH
+#undef UBASIC_SCRIPT_HAVE_BACNET
 
 /**
  *
@@ -113,6 +114,9 @@
 
 /* support for analog inputs */
 #define UBASIC_SCRIPT_HAVE_ANALOG_READ
+
+/* support for BACnet objects and ReadProperty and WriteProperty (internal) */
+#define UBASIC_SCRIPT_HAVE_BACNET
 
 /* Demo scripts are huge. Do we need them? */
 #define UBASIC_SCRIPT_HAVE_DEMO_SCRIPTS
