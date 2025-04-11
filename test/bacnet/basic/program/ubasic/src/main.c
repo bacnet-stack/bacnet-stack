@@ -37,6 +37,22 @@ static void serial_write(const char *msg, uint16_t n)
 }
 
 /**
+ * @brief Generate a random number
+ * @param size Size of the random number in bits
+ * @return Random number size-bits wide
+ */
+static uint32_t random_uint32(uint8_t size)
+{
+    uint32_t r = 0;
+
+    for (int i = 0; i < size; i++) {
+        r |= (1 << i);
+    }
+
+    return r;
+}
+
+/**
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -59,28 +75,38 @@ static void test_ubasic_math(void)
         "dim r@(5);"
         "for i = 1 to 5;"
         "  r@(i) = ran;"
+        "  println 'r[' i ']=' r@(i);"
         "next i;"
         "dim u@(5);"
         "a = 0;"
         "for i = 1 to 5;"
         "  u = uniform;"
+        "  println 'u[' i ']=' u;"
         "  u@(i) = u;"
         "  a = avgw(u,a,5);"
         "next i;"
-        "x = 10 * uniform;"
+        "println 'uniform moving average = ' a;"
+        "x = 1000 * uniform;"
         "f = floor(x);"
         "c = ceil(x);"
         "r = round(x);"
         "w = pow(x,3);"
+        "println 'x=' x;"
+        "println 'floor(x)=' f;"
+        "println 'ceil(x)=' c;"
+        "println 'round(x)=' r;"
+        "println 'x^3=' w;"
         "end;";
 
-    VARIABLE_TYPE value = 0, xvalue = 0;
+    VARIABLE_TYPE value = 0, xvalue = 0, arrayvalue[5];
+    unsigned i;
     int32_t value_int = 0;
     int32_t value_frac = 0;
     int32_t value_math = 0;
 
     data.mstimer_now = tick_now;
     data.serial_write = serial_write;
+    data.random_uint32 = random_uint32;
     ubasic_load_program(&data, program);
     zassert_equal(data.status.bit.isRunning, 1, NULL);
     zassert_equal(data.status.bit.Error, 0, NULL);
@@ -100,7 +126,11 @@ static void test_ubasic_math(void)
     value_frac = fixedpt_fracpart_floor_toint(value, 2);
     zassert_equal(value_int, 4, "int=%d", value_int);
     zassert_equal(value_frac, 83, "frac=%d", value_frac);
-
+    for (i = 0; i < ARRAY_SIZE(arrayvalue); i++) {
+        arrayvalue[i] = ubasic_get_arrayvariable(&data, 'r', 1 + i);
+        value_int = fixedpt_toint(arrayvalue[i]);
+        zassert_equal(value_int, 1, "ran[%u]=%d", 1 + i, value_int);
+    }
     /* uniform random value */
     xvalue = ubasic_get_variable(&data, 'x');
     /* floor */

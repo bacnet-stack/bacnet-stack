@@ -377,6 +377,147 @@ void ubasic_clear_variables(struct ubasic_data *data)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static void
+ubasic_set_varnum(struct ubasic_data *data, uint8_t varnum, VARIABLE_TYPE value)
+{
+    if (varnum < MAX_VARNUM) {
+        data->variables[varnum] = value;
+    }
+}
+
+static VARIABLE_TYPE ubasic_get_varnum(struct ubasic_data *data, uint8_t varnum)
+{
+    if (varnum < MAX_VARNUM) {
+        return data->variables[varnum];
+    }
+    return 0;
+}
+
+#if defined(VARIABLE_TYPE_ARRAY)
+//
+// array additions: works only for VARIABLE_TYPE 32bit
+//  array storage:
+//    1st entry:   [ 31:16 , 15:0]
+//                  varnum   size
+//    entries 2 through size+1 are the array elements
+//  could work for 16bit values as well
+/*---------------------------------------------------------------------------*/
+static void ubasic_dim_arrayvarnum(
+    struct ubasic_data *data, uint8_t varnum, int16_t newsize)
+{
+    int16_t oldsize;
+    int16_t current_location;
+
+    if (varnum >= MAX_VARNUM) {
+        return;
+    }
+_attach_at_the_end:
+    current_location = data->arrayvariable[varnum];
+    if (current_location == -1) {
+        /* does the array fit in the available memory? */
+        if ((data->free_arrayptr + newsize + 1) < VARIABLE_TYPE_ARRAY) {
+            current_location = data->free_arrayptr;
+            data->arrayvariable[varnum] = current_location;
+            data->arrays_data[current_location] = (varnum << 16) | newsize;
+            data->free_arrayptr += newsize + 1;
+            return;
+        }
+        return; /* failed to allocate*/
+    } else {
+        oldsize = data->arrays_data[current_location];
+    }
+    /* if size of the array is the same as earlier allocated then do nothing */
+    if (oldsize == newsize) {
+        return;
+    }
+    /* if this is the last array in arrays_data, just modify the boundary */
+    if (current_location + oldsize + 1 == data->free_arrayptr) {
+        if ((data->free_arrayptr - current_location + newsize) <
+            VARIABLE_TYPE_ARRAY) {
+            data->arrays_data[current_location] = (varnum << 16) | newsize;
+            data->free_arrayptr += (newsize - oldsize);
+            data->arrays_data[data->free_arrayptr] = 0;
+            return;
+        }
+        /* failed to allocate memory */
+        data->arrayvariable[varnum] = -1;
+        return;
+    }
+    /* Array has been allocated before. It is not the last array */
+    /* Thus we have to go over all arrays above the current location, and shift
+     * them down */
+    data->arrayvariable[varnum] = -1;
+    int16_t next_location;
+    uint16_t mov_size, mov_varnum;
+    next_location = current_location + oldsize + 1;
+    do {
+        mov_varnum = (data->arrays_data[next_location] >> 16);
+        mov_size = data->arrays_data[next_location];
+
+        for (uint8_t i = 0; i <= mov_size; i++) {
+            data->arrays_data[current_location + i] =
+                data->arrays_data[next_location + i];
+            data->arrays_data[next_location + i] = 0;
+        }
+        data->arrayvariable[mov_varnum] = current_location;
+        next_location = next_location + mov_size + 1;
+        current_location = current_location + mov_size + 1;
+        data->arrays_data[current_location] = 0;
+    } while (data->arrays_data[next_location] > 0);
+    data->free_arrayptr = current_location;
+    /** now the array should be added to the end of the list:
+        if there is space do it! */
+    goto _attach_at_the_end;
+}
+
+static void ubasic_set_arrayvarnum(
+    struct ubasic_data *data, uint8_t varnum, uint16_t idx, VARIABLE_TYPE value)
+{
+    int16_t array;
+
+    if (varnum >= MAX_VARNUM) {
+        return;
+    }
+    array = data->arrayvariable[varnum];
+    if (array < 0) {
+        return;
+    }
+    if (array >= VARIABLE_TYPE_ARRAY) {
+        return;
+    }
+    uint16_t size = (uint16_t)data->arrays_data[array];
+    if ((size < idx) || (idx < 1)) {
+        return;
+    }
+
+    data->arrays_data[array + idx] = value;
+}
+
+static VARIABLE_TYPE
+ubasic_get_arrayvarnum(struct ubasic_data *data, uint8_t varnum, uint16_t idx)
+{
+    int16_t array;
+
+    if (varnum >= MAX_VARNUM) {
+        return -1;
+    }
+    array = data->arrayvariable[varnum];
+    if (array < 0) {
+        return -1;
+    }
+    if (array >= VARIABLE_TYPE_ARRAY) {
+        return -1;
+    }
+    uint16_t size = (uint16_t)data->arrays_data[array];
+    if ((size < idx) || (idx < 1)) {
+        return -1;
+    }
+    return (VARIABLE_TYPE)data->arrays_data[array + idx];
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
 void ubasic_load_program(struct ubasic_data *data, const char *program)
 {
     data->for_stack_ptr = data->gosub_stack_ptr = 0;
@@ -1174,7 +1315,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             j = fixedpt_toint(j);
 #endif
-            r = ubasic_get_arrayvariable(data, varnum, (uint16_t)j);
+            r = ubasic_get_arrayvarnum(data, varnum, (uint16_t)j);
             break;
 #endif
 
@@ -1908,8 +2049,7 @@ static void let_statement(struct ubasic_data *data)
 #endif
         accept(data, TOKENIZER_RIGHTPAREN);
         if (!accept(data, TOKENIZER_EQ)) {
-            ubasic_set_arrayvariable(
-                data, varnum, (uint16_t)idx, relation(data));
+            ubasic_set_arrayvarnum(data, varnum, (uint16_t)idx, relation(data));
         }
     }
 #endif
@@ -1935,7 +2075,7 @@ static void dim_statement(struct ubasic_data *data)
     size = fixedpt_toint(size);
 #endif
 
-    ubasic_dim_arrayvariable(data, varnum, size);
+    ubasic_dim_arrayvarnum(data, varnum, size);
 
     //   accept(data, TOKENIZER_RIGHTPAREN);
     accept_cr(tree);
@@ -2167,7 +2307,7 @@ static void serial_getline_completed(struct ubasic_data *data)
             }
 #if defined(VARIABLE_TYPE_ARRAY)
             else if (data->input_type == 2) {
-                ubasic_set_arrayvariable(
+                ubasic_set_arrayvarnum(
                     data, data->input_varnum, data->input_array_index, r);
             }
 #endif
@@ -2324,9 +2464,9 @@ static VARIABLE_TYPE recall_statement(struct ubasic_data *data)
         flash_read(data, data->varnum, 2, dataptr, datalen);
         if (rval > 0) {
             rval >>= 2;
-            ubasic_dim_arrayvariable(data, data->varnum, rval);
+            ubasic_dim_arrayvarnum(data, data->varnum, rval);
             for (uint8_t i = 0; i < rval; i++) {
-                ubasic_set_arrayvariable(data, data->varnum, i + 1, dummy_a[i]);
+                ubasic_set_arrayvarnum(data, data->varnum, i + 1, dummy_a[i]);
             }
         }
     }
@@ -2745,14 +2885,6 @@ uint8_t ubasic_finished(struct ubasic_data *data)
 
 /*---------------------------------------------------------------------------*/
 
-void ubasic_set_varnum(
-    struct ubasic_data *data, uint8_t varnum, VARIABLE_TYPE value)
-{
-    if (varnum < MAX_VARNUM) {
-        data->variables[varnum] = value;
-    }
-}
-
 void ubasic_set_variable(
     struct ubasic_data *data, char variable, VARIABLE_TYPE value)
 {
@@ -2763,16 +2895,6 @@ void ubasic_set_variable(
         uint8_t varnum = variable - 'a';
         ubasic_set_varnum(data, varnum, value);
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-VARIABLE_TYPE ubasic_get_varnum(struct ubasic_data *data, uint8_t varnum)
-{
-    if (varnum < MAX_VARNUM) {
-        return data->variables[varnum];
-    }
-    return 0;
 }
 
 VARIABLE_TYPE ubasic_get_variable(struct ubasic_data *data, char variable)
@@ -2841,125 +2963,64 @@ int16_t ubasic_get_stringvariable(struct ubasic_data *data, uint8_t varnum)
 #endif
 
 #if defined(VARIABLE_TYPE_ARRAY)
-//
-// array additions: works only for VARIABLE_TYPE 32bit
-//  array storage:
-//    1st entry:   [ 31:16 , 15:0]
-//                  varnum   size
-//    entries 2 through size+1 are the array elements
-//  could work for 16bit values as well
-/*---------------------------------------------------------------------------*/
+/**
+ * @brief DIM an array variable
+ * @param data - ubasic data structure
+ * @param variable - array variable 'a' through 'z'
+ * @param size - size of the array
+ */
 void ubasic_dim_arrayvariable(
-    struct ubasic_data *data, uint8_t varnum, int16_t newsize)
+    struct ubasic_data *data, char variable, int16_t size)
 {
-    int16_t oldsize;
-    int16_t current_location;
-
-    if (varnum >= MAX_VARNUM) {
-        return;
+    if (isupper(variable)) {
+        uint8_t varnum = variable - 'A';
+        ubasic_dim_arrayvarnum(data, varnum, size);
+    } else if (islower(variable)) {
+        uint8_t varnum = variable - 'a';
+        ubasic_dim_arrayvarnum(data, varnum, size);
     }
-_attach_at_the_end:
-    current_location = data->arrayvariable[varnum];
-    if (current_location == -1) {
-        /* does the array fit in the available memory? */
-        if ((data->free_arrayptr + newsize + 1) < VARIABLE_TYPE_ARRAY) {
-            current_location = data->free_arrayptr;
-            data->arrayvariable[varnum] = current_location;
-            data->arrays_data[current_location] = (varnum << 16) | newsize;
-            data->free_arrayptr += newsize + 1;
-            return;
-        }
-        return; /* failed to allocate*/
-    } else {
-        oldsize = data->arrays_data[current_location];
-    }
-    /* if size of the array is the same as earlier allocated then do nothing */
-    if (oldsize == newsize) {
-        return;
-    }
-    /* if this is the last array in arrays_data, just modify the boundary */
-    if (current_location + oldsize + 1 == data->free_arrayptr) {
-        if ((data->free_arrayptr - current_location + newsize) <
-            VARIABLE_TYPE_ARRAY) {
-            data->arrays_data[current_location] = (varnum << 16) | newsize;
-            data->free_arrayptr += (newsize - oldsize);
-            data->arrays_data[data->free_arrayptr] = 0;
-            return;
-        }
-        /* failed to allocate memory */
-        data->arrayvariable[varnum] = -1;
-        return;
-    }
-    /* Array has been allocated before. It is not the last array */
-    /* Thus we have to go over all arrays above the current location, and shift
-     * them down */
-    data->arrayvariable[varnum] = -1;
-    int16_t next_location;
-    uint16_t mov_size, mov_varnum;
-    next_location = current_location + oldsize + 1;
-    do {
-        mov_varnum = (data->arrays_data[next_location] >> 16);
-        mov_size = data->arrays_data[next_location];
-
-        for (uint8_t i = 0; i <= mov_size; i++) {
-            data->arrays_data[current_location + i] =
-                data->arrays_data[next_location + i];
-            data->arrays_data[next_location + i] = 0;
-        }
-        data->arrayvariable[mov_varnum] = current_location;
-        next_location = next_location + mov_size + 1;
-        current_location = current_location + mov_size + 1;
-        data->arrays_data[current_location] = 0;
-    } while (data->arrays_data[next_location] > 0);
-    data->free_arrayptr = current_location;
-    /** now the array should be added to the end of the list:
-        if there is space do it! */
-    goto _attach_at_the_end;
 }
 
+/**
+ * @brief Set the value of an array variable at specific index
+ * @param data - ubasic data structure
+ * @param variable - array variable 'a' through 'z'
+ * @param idx - index 1..N of the array
+ * @param value - value to set
+ */
 void ubasic_set_arrayvariable(
-    struct ubasic_data *data, uint8_t varnum, uint16_t idx, VARIABLE_TYPE value)
+    struct ubasic_data *data, char variable, uint16_t idx, VARIABLE_TYPE value)
 {
-    int16_t array;
-
-    if (varnum >= MAX_VARNUM) {
-        return;
+    if (isupper(variable)) {
+        uint8_t varnum = variable - 'A';
+        ubasic_set_arrayvarnum(data, varnum, idx, value);
+    } else if (islower(variable)) {
+        uint8_t varnum = variable - 'a';
+        ubasic_set_arrayvarnum(data, varnum, idx, value);
     }
-    array = data->arrayvariable[varnum];
-    if (array < 0) {
-        return;
-    }
-    if (array >= VARIABLE_TYPE_ARRAY) {
-        return;
-    }
-    uint16_t size = (uint16_t)data->arrays_data[array];
-    if ((size < idx) || (idx < 1)) {
-        return;
-    }
-
-    data->arrays_data[array + idx] = value;
 }
 
+/**
+ * @brief Get the value of an array variable at specific index
+ * @param data - ubasic data structure
+ * @param variable - array variable 'a' through 'z'
+ * @param idx - index 1..N of the array
+ * @param value - value to get
+ */
 VARIABLE_TYPE
-ubasic_get_arrayvariable(struct ubasic_data *data, uint8_t varnum, uint16_t idx)
+ubasic_get_arrayvariable(struct ubasic_data *data, char variable, uint16_t idx)
 {
-    int16_t array;
+    VARIABLE_TYPE value = 0;
 
-    if (varnum >= MAX_VARNUM) {
-        return -1;
+    if (isupper(variable)) {
+        uint8_t varnum = variable - 'A';
+        value = ubasic_get_arrayvarnum(data, varnum, idx);
+    } else if (islower(variable)) {
+        uint8_t varnum = variable - 'a';
+        value = ubasic_get_arrayvarnum(data, varnum, idx);
     }
-    array = data->arrayvariable[varnum];
-    if (array < 0) {
-        return -1;
-    }
-    if (array >= VARIABLE_TYPE_ARRAY) {
-        return -1;
-    }
-    uint16_t size = (uint16_t)data->arrays_data[array];
-    if ((size < idx) || (idx < 1)) {
-        return -1;
-    }
-    return (VARIABLE_TYPE)data->arrays_data[array + idx];
+
+    return value;
 }
 #endif
 /*---------------------------------------------------------------------------*/

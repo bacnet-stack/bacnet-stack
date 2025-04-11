@@ -205,24 +205,17 @@ uint8_t ubasic_getline(struct ubasic_data *data, int ch);
 int ubasic_printf(struct ubasic_data *data, const char *format, ...);
 int ubasic_getc(struct ubasic_data *data);
 
-VARIABLE_TYPE ubasic_get_varnum(struct ubasic_data *data, uint8_t varnum);
-void ubasic_set_varnum(
-    struct ubasic_data *data, uint8_t varum, VARIABLE_TYPE value);
-
 VARIABLE_TYPE ubasic_get_variable(struct ubasic_data *data, char variable);
 void ubasic_set_variable(
     struct ubasic_data *data, char variable, VARIABLE_TYPE value);
 
 #if defined(VARIABLE_TYPE_ARRAY)
 void ubasic_dim_arrayvariable(
-    struct ubasic_data *data, uint8_t varnum, int16_t size);
+    struct ubasic_data *data, char variable, int16_t size);
 void ubasic_set_arrayvariable(
-    struct ubasic_data *data,
-    uint8_t varnum,
-    uint16_t idx,
-    VARIABLE_TYPE value);
-VARIABLE_TYPE ubasic_get_arrayvariable(
-    struct ubasic_data *data, uint8_t varnum, uint16_t idx);
+    struct ubasic_data *data, char variable, uint16_t idx, VARIABLE_TYPE value);
+VARIABLE_TYPE
+ubasic_get_arrayvariable(struct ubasic_data *data, char variable, uint16_t idx);
 #endif
 
 #if defined(VARIABLE_TYPE_STRING)
