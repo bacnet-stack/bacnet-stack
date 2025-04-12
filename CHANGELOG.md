@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.4.1] - Unreleased
+## [1.4.1] - 2025-04-11
 
 ### Security
 * Secured ReadRange service codecs. Added ReadRange unit testing.
