@@ -18,6 +18,7 @@
 
 #define DEBUG_BSC_HUB_CONNECTOR 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_BSC_HUB_CONNECTOR == 1
 #define DEBUG_PRINTF debug_printf
 #else
