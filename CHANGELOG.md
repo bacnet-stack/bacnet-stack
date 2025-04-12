@@ -68,6 +68,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed debug printf warnings in BACnet/SC modules. (#963)
 * Fixed MS/TP lost-token-counter that was lost during refactoring. (#962)
 * Fixed duplicate code by removal in apps/readprop. (#959)
 * Fixed ReadRange app to read and pretty-print a Trend Log log-buffer (#947)
