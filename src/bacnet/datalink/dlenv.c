@@ -529,7 +529,6 @@ void dlenv_network_port_bip6_init(uint32_t instance)
  */
 static void bacnet_secure_connect_network_port_init(uint32_t instance)
 {
-    long seed;
 #ifdef BACDL_BSC
     BACNET_SC_UUID uuid = { 0 };
     BACNET_SC_VMAC_ADDRESS vmac = { 0 };
@@ -558,8 +557,7 @@ static void bacnet_secure_connect_network_port_init(uint32_t instance)
     if (getenv("BACNET_SC_DEBUG")) {
         dlenv_debug_enable();
     }
-    seed = (long)&instance;
-    srand((int)seed);
+    srand((unsigned int)instance);
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/BSC Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BSC);
