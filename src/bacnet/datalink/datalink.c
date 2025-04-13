@@ -7,6 +7,7 @@
  * @defgroup DataLink DataLink Network Layer
  * @ingroup DataLink
  */
+#include "bacnet/bacdef.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/bacstr.h"
 #if defined(BACDL_MULTIPLE) || defined FOR_DOXYGEN

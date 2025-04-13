@@ -132,6 +132,7 @@ BACNET_SRC ?= \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/cobs.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c
 
