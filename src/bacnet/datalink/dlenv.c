@@ -120,7 +120,8 @@ int dlenv_bbmd_result(void)
  */
 static int bbmd_register_as_foreign_device(void)
 {
-    int retval = 0;
+    int retval = -1;
+#if defined(BACDL_BIP) && BBMD_ENABLED
     bool bdt_entry_valid = false;
     uint16_t bdt_entry_port = 0;
     char *pEnv = NULL;
@@ -129,6 +130,7 @@ static int bbmd_register_as_foreign_device(void)
     unsigned entry_number = 0;
     long long_value = 0;
     int c;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_table = NULL;
 
     pEnv = getenv("BACNET_BBMD_PORT");
     if (pEnv) {
@@ -229,8 +231,9 @@ static int bbmd_register_as_foreign_device(void)
                             a[3]);
                     }
                 }
+                bdt_table = bvlc_bdt_list();
                 bvlc_broadcast_distribution_table_entry_append(
-                    bvlc_bdt_list(), &BBMD_Table_Entry);
+                    bdt_table, &BBMD_Table_Entry);
                 if (Datalink_Debug) {
                     fprintf(
                         stderr, "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n",
@@ -248,6 +251,7 @@ static int bbmd_register_as_foreign_device(void)
             }
         }
     }
+#endif
     BBMD_Result = retval;
 
     return retval;
@@ -269,7 +273,8 @@ static int bbmd_register_as_foreign_device(void)
  */
 static int bbmd6_register_as_foreign_device(void)
 {
-    int retval = 0;
+    int retval = -1;
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
     char *pEnv = NULL;
     long long_value = 0;
     BACNET_IP6_ADDRESS bip6_addr = { 0 };
@@ -296,9 +301,7 @@ static int bbmd6_register_as_foreign_device(void)
                 stderr, "Registering with BBMD6 at %s:0x%04x for %u seconds\n",
                 pEnv, (unsigned)bip6_port, (unsigned)BBMD_TTL_Seconds);
         }
-#if defined(BACDL_BIP6)
         retval = bvlc6_register_with_bbmd(&bip6_addr, BBMD_TTL_Seconds);
-#endif
         if (retval < 0) {
             fprintf(
                 stderr, "FAILED to Register with BBMD6 at %s:%u\n", pEnv,
@@ -306,6 +309,7 @@ static int bbmd6_register_as_foreign_device(void)
         }
         BBMD_Timer_Seconds = BBMD_TTL_Seconds;
     }
+#endif
     BBMD_Result = retval;
 
     return retval;
@@ -316,11 +320,20 @@ static int bbmd6_register_as_foreign_device(void)
  */
 static void dlenv_network_port_bip_init(uint32_t instance)
 {
+#if defined(BACDL_BIP)
     BACNET_IP_ADDRESS addr = { 0 };
     uint8_t prefix = 0;
     uint8_t addr0, addr1, addr2, addr3;
     char *pEnv = NULL;
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_table = NULL;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_table = NULL;
+#endif
 
+    Network_Port_Object_Instance_Number_Set(0, instance);
+    Network_Port_Name_Set(instance, "BACnet/IP Port");
+    Network_Port_Type_Set(instance, PORT_TYPE_BIP);
+
+#if defined(BACDL_BIP)
     if (getenv("BACNET_IP_DEBUG")) {
         bip_debug_enable();
         bvlc_debug_enable();
@@ -355,9 +368,6 @@ static void dlenv_network_port_bip_init(uint32_t instance)
             bvlc_set_global_address_for_nat(&addr);
         }
     }
-    Network_Port_Object_Instance_Number_Set(0, instance);
-    Network_Port_Name_Set(instance, "BACnet/IP Port");
-    Network_Port_Type_Set(instance, PORT_TYPE_BIP);
     bip_get_addr(&addr);
     prefix = bip_get_subnet_prefix();
     if (Datalink_Debug) {
@@ -373,14 +383,19 @@ static void dlenv_network_port_bip_init(uint32_t instance)
         addr.address[3]);
     Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
     Network_Port_Link_Speed_Set(instance, 0.0);
-    Network_Port_BBMD_BD_Table_Set(instance, bvlc_bdt_list());
-    Network_Port_BBMD_FD_Table_Set(instance, bvlc_fdt_list());
+#if BBMD_ENABLED
+    bdt_table = bvlc_bdt_list();
+    fdt_table = bvlc_fdt_list();
+#endif
+    Network_Port_BBMD_BD_Table_Set(instance, bdt_table);
+    Network_Port_BBMD_FD_Table_Set(instance, fdt_table);
     /* foreign device registration */
     bvlc_address_get(&BBMD_Address, &addr0, &addr1, &addr2, &addr3);
     Network_Port_Remote_BBMD_IP_Address_Set(
         instance, addr0, addr1, addr2, addr3);
     Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
     Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
+#endif
     /* common NP data */
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
     Network_Port_Out_Of_Service_Set(instance, false);
