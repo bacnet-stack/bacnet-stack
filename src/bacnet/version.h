@@ -15,7 +15,7 @@
 #define BACNET_VERSION(x, y, z) (((x) << 16) + ((y) << 8) + (z))
 #endif
 
-#define BACNET_VERSION_TEXT "1.4.0.16"
+#define BACNET_VERSION_TEXT "1.4.0.17"
 #define BACNET_VERSION_CODE BACNET_VERSION(1, 4, 0)
 #define BACNET_VERSION_MAJOR ((BACNET_VERSION_CODE >> 16) & 0xFF)
 #define BACNET_VERSION_MINOR ((BACNET_VERSION_CODE >> 8) & 0xFF)
