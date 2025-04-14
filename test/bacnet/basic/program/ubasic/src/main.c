@@ -126,7 +126,18 @@ static void test_ubasic_bacnet(void)
     zassert_equal(
         fixedpt_toint(value), 42, "bacnet read property value=%d",
         fixedpt_toint(value));
-    return;
+    zassert_equal(
+        Test_BACnet_Object_Type, 0, "bacnet object type=%d",
+        Test_BACnet_Object_Type);
+    zassert_equal(
+        Test_BACnet_Object_Instance, 1234, "bacnet object instance=%d",
+        Test_BACnet_Object_Instance);
+    zassert_equal(
+        Test_BACnet_Object_Property_ID, 85, "bacnet object property ID=%d",
+        Test_BACnet_Object_Property_ID);
+    zassert_equal(
+        strcmp(Test_BACnet_Object_Name, "Object1"), 0, "bacnet object name=%s",
+        Test_BACnet_Object_Name);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
