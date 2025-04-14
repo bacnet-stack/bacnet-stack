@@ -199,9 +199,9 @@ struct ubasic_data {
         uint16_t object_type,
         uint32_t instance,
         uint32_t property_id,
-        uint32_t value);
-    uint32_t (*bacnet_read_property)(
-        uint16_t object_type, uint32_t instance, uint32_t property_id);
+        VARIABLE_TYPE value);
+    VARIABLE_TYPE(*bacnet_read_property)
+    (uint16_t object_type, uint32_t instance, uint32_t property_id);
 #endif
 };
 

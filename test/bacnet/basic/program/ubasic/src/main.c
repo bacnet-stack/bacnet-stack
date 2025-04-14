@@ -8,6 +8,7 @@
  */
 #include <stdio.h>
 #include <zephyr/ztest.h>
+#include <bacnet/bacdef.h>
 #include <bacnet/basic/program/ubasic/ubasic.h>
 
 /**
@@ -52,9 +53,82 @@ static uint32_t random_uint32(uint8_t size)
     return r;
 }
 
+static uint16_t Test_BACnet_Object_Type;
+static uint32_t Test_BACnet_Object_Instance;
+static uint32_t Test_BACnet_Object_Property_ID;
+static VARIABLE_TYPE Test_BACnet_Object_Property_Value;
+static char *Test_BACnet_Object_Name;
+
+static void
+bacnet_create_object(uint16_t object_type, uint32_t instance, char *object_name)
+{
+    Test_BACnet_Object_Type = object_type;
+    Test_BACnet_Object_Instance = instance;
+    Test_BACnet_Object_Name = object_name;
+}
+
+static void bacnet_write_property(
+    uint16_t object_type,
+    uint32_t instance,
+    uint32_t property_id,
+    VARIABLE_TYPE value)
+{
+    Test_BACnet_Object_Type = object_type;
+    Test_BACnet_Object_Instance = instance;
+    Test_BACnet_Object_Property_ID = property_id;
+    Test_BACnet_Object_Property_Value = value;
+}
+
+static VARIABLE_TYPE bacnet_read_property(
+    uint16_t object_type, uint32_t instance, uint32_t property_id)
+{
+    Test_BACnet_Object_Type = object_type;
+    Test_BACnet_Object_Instance = instance;
+    Test_BACnet_Object_Property_ID = property_id;
+    return Test_BACnet_Object_Property_Value;
+}
+
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ubasic_tests, test_ubasic_bacnet)
+#else
+static void test_ubasic_bacnet(void)
+#endif
+{
+    struct ubasic_data data = { 0 };
+    const char *program =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+        "println 'Demo - BACnet';"
+        "bac_create(0, 1234, 'Object1');"
+        "bac_write(0, 1234, 85, 42);"
+        "a = bac_read(0, 1234, 85);"
+        "println 'bac_read 0, 1234, 85 = ' a;"
+        "end;";
+    VARIABLE_TYPE value = 0;
+    data.mstimer_now = tick_now;
+    data.serial_write = serial_write;
+    data.bacnet_create_object = bacnet_create_object;
+    data.bacnet_write_property = bacnet_write_property;
+    data.bacnet_read_property = bacnet_read_property;
+    ubasic_load_program(&data, program);
+    zassert_equal(data.status.bit.isRunning, 1, NULL);
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    while (!ubasic_finished(&data)) {
+        ubasic_run_program(&data);
+        tick_increment();
+    }
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    /* check the final value of the bacnet read property */
+    value = ubasic_get_variable(&data, 'a');
+    zassert_equal(
+        fixedpt_toint(value), 42, "bacnet read property value=%d",
+        fixedpt_toint(value));
+    return;
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(ubasic_tests, test_ubasic_math)
 #else
@@ -65,7 +139,7 @@ static void test_ubasic_math(void)
     const char *program =
         /* program listing with either \0, \n, or ';' at the end of each line.
            note: indentation is not required */
-        "println 'Demo 3 - Math';"
+        "println 'Demo - Math';"
         "for i = 1 to 2;"
         "  j = i + 0.25 + 1/2;"
         "  k = sqrt(2*j) + ln(4*i) + cos(i+j) + sin(j);"
@@ -168,7 +242,7 @@ static void test_ubasic(void)
     const char *program =
         /* program listing with either \0, \n, or ';' at the end of each line.
            note: indentation is not required */
-        "println 'Demo 1 - Warm-up';"
+        "println 'Demo - Flow';"
         "gosub l1;"
         "for i = 1 to 8;"
         "  for j = 1 to 9;"
@@ -211,7 +285,7 @@ void test_main(void)
 {
     ztest_test_suite(
         ubasic_tests, ztest_unit_test(test_ubasic),
-        ztest_unit_test(test_ubasic_math));
+        ztest_unit_test(test_ubasic_math), ztest_unit_test(test_ubasic_bacnet));
 
     ztest_run_test_suite(ubasic_tests);
 }

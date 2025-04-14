@@ -318,19 +318,19 @@ static void bacnet_write_property(
     uint16_t object_type,
     uint32_t instance,
     uint32_t property_id,
-    uint32_t value)
+    VARIABLE_TYPE value)
 {
     if (data->bacnet_write_property) {
         data->bacnet_write_property(object_type, instance, property_id, value);
     }
 }
-static uint32_t bacnet_read_property(
+static VARIABLE_TYPE bacnet_read_property(
     struct ubasic_data *data,
     uint16_t object_type,
     uint32_t instance,
     uint32_t property_id)
 {
-    uint32_t value = 0;
+    VARIABLE_TYPE value = 0;
 
     if (data->bacnet_read_property) {
         value = data->bacnet_read_property(object_type, instance, property_id);
@@ -1029,9 +1029,6 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
 {
     VARIABLE_TYPE r;
     VARIABLE_TYPE i, j, k;
-#if defined(UBASIC_SCRIPT_HAVE_BACNET)
-    VARIABLE_TYPE v;
-#endif
 #if defined(VARIABLE_TYPE_ARRAY)
     uint8_t varnum;
 #endif
@@ -1377,49 +1374,31 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
             break;
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_BACNET)
-        case TOKENIZER_BACNET_CREATE_OBJECT:
-            accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
-            accept(data, TOKENIZER_LEFTPAREN);
-            // object type
-            i = relation(data);
-            accept(data, TOKENIZER_COMMA);
-            // object instance
-            j = relation(data);
-            accept(data, TOKENIZER_COMMA);
-            // object name
-            s = sexpr(data);
-            bacnet_create_object(data, i, j, strptr(data, s));
-            accept(data, TOKENIZER_RIGHTPAREN);
-            break;
         case TOKENIZER_BACNET_READ_PROPERTY:
-            accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
+            accept(data, TOKENIZER_BACNET_READ_PROPERTY);
             accept(data, TOKENIZER_LEFTPAREN);
-            // object type
-            i = relation(data);
-            accept(data, TOKENIZER_COMMA);
-            // object instance
+            // first argument: object type 0..128
             j = relation(data);
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+            j = fixedpt_toint(j);
+#endif
+            accept(data, TOKENIZER_COMMA);
+            i = relation(data);
+            // second argument: instance 0..4194303
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+            i = fixedpt_toint(i);
+#endif
             accept(data, TOKENIZER_COMMA);
             // property
+            // second argument: property 0..4194303
             k = relation(data);
-            r = bacnet_read_property(data, i, j, k);
-            accept(data, TOKENIZER_RIGHTPAREN);
-            break;
-        case TOKENIZER_BACNET_WRITE_PROPERTY:
-            accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
-            accept(data, TOKENIZER_LEFTPAREN);
-            // object type
-            i = relation(data);
-            accept(data, TOKENIZER_COMMA);
-            // object instance
-            j = relation(data);
-            accept(data, TOKENIZER_COMMA);
-            // property
-            k = relation(data);
-            accept(data, TOKENIZER_COMMA);
-            // value
-            v = relation(data);
-            bacnet_write_property(data, i, j, k, v);
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+            k = fixedpt_toint(k);
+#endif
+            r = bacnet_read_property(data, j, i, k);
             accept(data, TOKENIZER_RIGHTPAREN);
             break;
 #endif
@@ -1814,7 +1793,7 @@ static void pinmode_statement(struct ubasic_data *data)
     return;
 }
 
-static void dwrite_statemet(struct ubasic_data *data)
+static void dwrite_statement(struct ubasic_data *data)
 {
     VARIABLE_TYPE j, r;
     struct tokenizer_data *tree = &data->tree;
@@ -1837,8 +1816,75 @@ static void dwrite_statemet(struct ubasic_data *data)
 
     return;
 }
-
 #endif /* UBASIC_SCRIPT_HAVE_ANALOG_READ */
+
+/*---------------------------------------------------------------------------*/
+#if defined(UBASIC_SCRIPT_HAVE_BACNET)
+static void bac_create_statement(struct ubasic_data *data)
+{
+    VARIABLE_TYPE id, t, s;
+    struct tokenizer_data *tree = &data->tree;
+
+    accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
+    accept(data, TOKENIZER_LEFTPAREN);
+    // first argument: object type 0..128
+    t = relation(data);
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    t = fixedpt_toint(t);
+#endif
+    accept(data, TOKENIZER_COMMA);
+    id = relation(data);
+    // second argument: instance 0..4194303
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    id = fixedpt_toint(id);
+#endif
+    accept(data, TOKENIZER_COMMA);
+    // object name
+    s = sexpr(data);
+    bacnet_create_object(data, t, id, strptr(data, s));
+    accept(data, TOKENIZER_RIGHTPAREN);
+    accept_cr(tree);
+}
+
+static void bac_write_statement(struct ubasic_data *data)
+{
+    VARIABLE_TYPE t, id, p, v;
+    struct tokenizer_data *tree = &data->tree;
+
+    accept(data, TOKENIZER_BACNET_WRITE_PROPERTY);
+    accept(data, TOKENIZER_LEFTPAREN);
+    // first argument: object type 0..128
+    t = relation(data);
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    t = fixedpt_toint(t);
+#endif
+    accept(data, TOKENIZER_COMMA);
+    id = relation(data);
+    // second argument: instance 0..4194303
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    id = fixedpt_toint(id);
+#endif
+    accept(data, TOKENIZER_COMMA);
+    // property
+    p = relation(data);
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    p = fixedpt_toint(p);
+#endif
+    accept(data, TOKENIZER_COMMA);
+    // value
+    v = relation(data);
+    bacnet_write_property(data, t, id, p, v);
+    accept(data, TOKENIZER_RIGHTPAREN);
+    accept_cr(tree);
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
 
 static void print_statement(struct ubasic_data *data, uint8_t println)
 {
@@ -2735,9 +2781,18 @@ static void statement(struct ubasic_data *data)
             break;
 
         case TOKENIZER_DWRITE:
-            dwrite_statemet(data);
+            dwrite_statement(data);
             break;
 #endif /* UBASIC_SCRIPT_HAVE_GPIO_CHANNELS */
+
+#if defined(UBASIC_SCRIPT_HAVE_BACNET)
+        case TOKENIZER_BACNET_CREATE_OBJECT:
+            bac_create_statement(data);
+            break;
+        case TOKENIZER_BACNET_WRITE_PROPERTY:
+            bac_write_statement(data);
+            break;
+#endif
 
 #if defined(UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH)
         case TOKENIZER_STORE:
