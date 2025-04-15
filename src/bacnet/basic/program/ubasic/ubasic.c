@@ -142,7 +142,7 @@ static void timer_tic(struct ubasic_data *data, uint8_t ch)
 static int32_t timer_toc(struct ubasic_data *data, uint8_t ch)
 {
     uint32_t elapsed;
-    if ((ch > UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS) || (!data->mstimer_now)) {
+    if ((ch >= UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS) || (!data->mstimer_now)) {
         return 0;
     }
     elapsed = mstimer_since(data->tic_toc_timer[ch], data->mstimer_now());
@@ -207,7 +207,7 @@ static int32_t mstimer_input_remaining(struct ubasic_data *data)
 
 /*---------------------------------------------------------------------------*/
 #if defined(UBASIC_SCRIPT_HAVE_GPIO_CHANNELS)
-static int8_t gpio_read(struct ubasic_data *data, uint8_t ch)
+static int32_t gpio_read(struct ubasic_data *data, uint8_t ch)
 {
     if (data->gpio_read) {
         return data->gpio_read(ch);
@@ -225,7 +225,7 @@ adc_config(struct ubasic_data *data, uint8_t sampletime, uint8_t nreads)
         data->adc_config(sampletime, nreads);
     }
 }
-static int16_t adc_read(struct ubasic_data *data, uint8_t channel)
+static int32_t adc_read(struct ubasic_data *data, uint8_t channel)
 {
     if (data->adc_read) {
         return data->adc_read(channel);
@@ -1294,12 +1294,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             j = fixedpt_toint(j);
 #endif
-            if (j < 1 || j > UBASIC_SCRIPT_HAVE_PWM_CHANNELS ||
-                !data->pwm_read) {
-                r = -1;
-            } else {
-                r = data->pwm_read(j - 1);
-            }
+            r = data->pwm_read(j);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             r = fixedpt_fromint(r);
@@ -1631,10 +1626,9 @@ static void pwm_statement(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     j = fixedpt_toint(j);
 #endif
-    if (j < 1 || j > 4) {
-        return;
+    if (j < 0) {
+        j = 0;
     }
-
     accept(data, TOKENIZER_COMMA);
 
     // second argument: value
@@ -1644,11 +1638,8 @@ static void pwm_statement(struct ubasic_data *data)
     r = fixedpt_toint(r);
 #endif
     accept(data, TOKENIZER_RIGHTPAREN);
-
-    if (j >= 1 && j <= UBASIC_SCRIPT_HAVE_PWM_CHANNELS) {
-        if (data->pwm_write) {
-            data->pwm_write(j - 1, r);
-        }
+    if (data->pwm_write) {
+        data->pwm_write(j, r);
     }
 
     accept_cr(tree);
@@ -1671,7 +1662,6 @@ static void pwmconf_statement(struct ubasic_data *data)
     if (j < 0) {
         j = 0;
     }
-
     accept(data, TOKENIZER_COMMA);
     r = relation(data);
     // second argument: period
@@ -1705,9 +1695,6 @@ static void areadconf_statement(struct ubasic_data *data)
 #endif
     if (j < 0) {
         j = 0;
-    }
-    if (j > 7) {
-        j = 7;
     }
     accept(data, TOKENIZER_COMMA);
     r = relation(data);
@@ -1792,7 +1779,6 @@ static void dwrite_statement(struct ubasic_data *data)
 static void bac_create_statement(struct ubasic_data *data)
 {
     VARIABLE_TYPE id, t, s;
-    char tmpstring[MAX_STRINGLEN];
     struct tokenizer_data *tree = &data->tree;
 
     accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
@@ -3052,7 +3038,7 @@ void ubasic_set_stringvariable(
         }
 
         data->stringvariables[svarnum] = svalue;
-        if (svalue > -1) {
+        if ((svalue >= 0) && (svalue < MAX_BUFFERLEN)) {
             *(data->stringstack + svalue) = svarnum + 1;
         }
 #if defined(UBASIC_DEBUG_STRINGVARIABLES)

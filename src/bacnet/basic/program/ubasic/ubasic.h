@@ -155,13 +155,13 @@ struct ubasic_data {
 // API for hardware drivers
 #if defined(UBASIC_SCRIPT_HAVE_PWM_CHANNELS)
     void (*pwm_config)(uint16_t psc, uint16_t per);
-    void (*pwm_write)(uint8_t ch, int16_t dutycycle);
-    int16_t (*pwm_read)(uint8_t ch);
+    void (*pwm_write)(uint8_t ch, int32_t dutycycle);
+    int32_t (*pwm_read)(uint8_t ch);
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_GPIO_CHANNELS)
     void (*gpio_config)(uint8_t ch, int8_t mode, uint8_t freq);
     void (*gpio_write)(uint8_t ch, uint8_t pin_state);
-    int8_t (*gpio_read)(uint8_t ch);
+    int32_t (*gpio_read)(uint8_t ch);
 #endif
 #if (                                              \
     defined(UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS) || \
@@ -171,7 +171,7 @@ struct ubasic_data {
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_ANALOG_READ)
     void (*adc_config)(uint8_t sampletime, uint8_t nreads);
-    int16_t (*adc_read)(uint8_t channel);
+    int32_t (*adc_read)(uint8_t channel);
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS)
     int8_t (*hw_event)(uint8_t bit);

@@ -251,7 +251,7 @@ static uint32_t random_uint32(uint8_t size)
 #endif
 
 #if defined(UBASIC_SCRIPT_HAVE_PWM_CHANNELS)
-static int16_t dutycycle_pwm_ch[UBASIC_SCRIPT_HAVE_PWM_CHANNELS];
+static int32_t dutycycle_pwm_ch[UBASIC_SCRIPT_HAVE_PWM_CHANNELS];
 
 /**
  * @brief Configure the PWM
@@ -269,7 +269,7 @@ static void pwm_config(uint16_t psc, uint16_t per)
  * @param ch Channel
  * @param dutycycle Duty cycle
  */
-static void pwm_write(uint8_t ch, int16_t dutycycle)
+static void pwm_write(uint8_t ch, int32_t dutycycle)
 {
     if (ch < UBASIC_SCRIPT_HAVE_PWM_CHANNELS) {
         dutycycle_pwm_ch[ch] = dutycycle;
@@ -281,7 +281,7 @@ static void pwm_write(uint8_t ch, int16_t dutycycle)
  * @param ch Channel
  * @return Duty cycle
  */
-static int16_t pwm_read(uint8_t ch)
+static int32_t pwm_read(uint8_t ch)
 {
     if (ch < UBASIC_SCRIPT_HAVE_PWM_CHANNELS) {
         return dutycycle_pwm_ch[ch];
@@ -307,9 +307,9 @@ static void adc_config(uint8_t sampletime, uint8_t nreads)
  * @param channel Channel
  * @return ADC value
  */
-static int16_t adc_read(uint8_t channel)
+static int32_t adc_read(uint8_t channel)
 {
-    return (int16_t)random_uint32(12);
+    return (int32_t)random_uint32(12);
 }
 #endif
 
@@ -359,7 +359,7 @@ static void gpio_write(uint8_t ch, uint8_t pin_state)
  * @param ch Channel
  * @return GPIO value
  */
-static int8_t gpio_read(uint8_t ch)
+static int32_t gpio_read(uint8_t ch)
 {
     return 0;
 }
