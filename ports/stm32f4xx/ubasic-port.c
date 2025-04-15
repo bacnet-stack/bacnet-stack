@@ -192,11 +192,11 @@ static void variable_write(
  * @param dataptr Pointer to store the data
  * @param datalen Pointer to store the data length
  */
-static void variable_read(
-    uint8_t Name, uint8_t vartype, uint8_t *dataptr, uint8_t *datalen)
+static void
+variable_read(uint8_t Name, uint8_t vartype, uint8_t *dataptr, uint8_t *datalen)
 {
     // Calculate the starting address based on variable name
-    uint8_t buffer[UBASIC_FLASH_PAGE_SIZE] = {0};
+    uint8_t buffer[UBASIC_FLASH_PAGE_SIZE] = { 0 };
     uint16_t start_address = Name * UBASIC_FLASH_PAGE_SIZE;
 
     // Read the data from EEPROM
@@ -366,6 +366,12 @@ static int32_t gpio_read(uint8_t ch)
 #endif
 
 #if defined(UBASIC_SCRIPT_HAVE_BACNET)
+/**
+ * @brief Create a BACnet object
+ * @param object_type Object type
+ * @param instance Object instance
+ * @param object_name Object name
+ */
 static void
 bacnet_create_object(uint16_t object_type, uint32_t instance, char *object_name)
 {
@@ -449,7 +455,13 @@ bacnet_create_object(uint16_t object_type, uint32_t instance, char *object_name)
     }
 }
 
-BACNET_WRITE_PROPERTY_DATA WP_Data;
+/**
+ * @brief Write a property to a BACnet object
+ * @param object_type Object type
+ * @param instance Object instance
+ * @param property_id Property ID
+ * @param value Property value
+ */
 static void bacnet_write_property(
     uint16_t object_type,
     uint32_t instance,
@@ -458,59 +470,80 @@ static void bacnet_write_property(
 {
     BACNET_BINARY_PV value_binary = BINARY_INACTIVE;
 
-    WP_Data.object_type = object_type;
-    WP_Data.object_instance = instance;
-    WP_Data.object_property = property_id;
-    WP_Data.array_index = BACNET_ARRAY_ALL;
-    WP_Data.priority = BACNET_NO_PRIORITY;
-    WP_Data.application_data_len = 0;
-    WP_Data.error_class = ERROR_CLASS_PROPERTY;
-    WP_Data.error_code = ERROR_CODE_UNKNOWN_PROPERTY;
     switch (object_type) {
         case OBJECT_ANALOG_INPUT:
+            if (property_id == PROP_PRESENT_VALUE) {
+                Analog_Input_Present_Value_Set(
+                    instance, fixedpt_tofloat(value));
+            }
+            break;
         case OBJECT_ANALOG_OUTPUT:
+            if (property_id == PROP_PRESENT_VALUE) {
+                Analog_Output_Present_Value_Set(
+                    instance, fixedpt_tofloat(value), BACNET_MAX_PRIORITY);
+            }
+            break;
         case OBJECT_ANALOG_VALUE:
             if (property_id == PROP_PRESENT_VALUE) {
-                WP_Data.application_data_len =
-                    bacnet_real_application_encode(
-                        &WP_Data.application_data[0],
-                        sizeof(WP_Data.application_data),
-                        fixedpt_tofloat(value));
+                Analog_Value_Present_Value_Set(
+                    instance, fixedpt_tofloat(value), BACNET_MAX_PRIORITY);
             }
             break;
         case OBJECT_BINARY_INPUT:
+            if (property_id == PROP_PRESENT_VALUE) {
+                if (fixedpt_toint(value) != 0) {
+                    value_binary = BINARY_ACTIVE;
+                }
+                Binary_Input_Present_Value_Set(instance, value_binary);
+            }
+            break;
         case OBJECT_BINARY_OUTPUT:
+            if (property_id == PROP_PRESENT_VALUE) {
+                if (fixedpt_toint(value) != 0) {
+                    value_binary = BINARY_ACTIVE;
+                }
+                Binary_Output_Present_Value_Set(
+                    instance, value_binary, BACNET_MAX_PRIORITY);
+            }
+            break;
         case OBJECT_BINARY_VALUE:
             if (property_id == PROP_PRESENT_VALUE) {
                 if (fixedpt_toint(value) != 0) {
                     value_binary = BINARY_ACTIVE;
                 }
-                WP_Data.application_data_len =
-                    bacnet_enumerated_application_encode(
-                        &WP_Data.application_data[0],
-                        sizeof(WP_Data.application_data),
-                        value_binary);
+                Binary_Value_Present_Value_Set(instance, value_binary);
             }
             break;
         case OBJECT_MULTI_STATE_INPUT:
+            if (property_id == PROP_PRESENT_VALUE) {
+                Multistate_Input_Present_Value_Set(
+                    instance, fixedpt_toint(value));
+            }
+            break;
         case OBJECT_MULTI_STATE_OUTPUT:
+            if (property_id == PROP_PRESENT_VALUE) {
+                Multistate_Output_Present_Value_Set(
+                    instance, fixedpt_toint(value), BACNET_MAX_PRIORITY);
+            }
+            break;
         case OBJECT_MULTI_STATE_VALUE:
             if (property_id == PROP_PRESENT_VALUE) {
-                WP_Data.application_data_len =
-                    bacnet_unsigned_application_encode(
-                        &WP_Data.application_data[0],
-                        sizeof(WP_Data.application_data),
-                        fixedpt_toint(value));
+                Multistate_Value_Present_Value_Set(
+                    instance, fixedpt_toint(value));
             }
             break;
         default:
             break;
     }
-    if (WP_Data.application_data_len > 0) {
-        Device_Write_Property(&WP_Data);
-    }
 }
 
+/**
+ * @brief Read a property from a BACnet object
+ * @param object_type Object type
+ * @param instance Object instance
+ * @param property_id Property ID
+ * @return Property value
+ */
 static VARIABLE_TYPE bacnet_read_property(
     uint16_t object_type, uint32_t instance, uint32_t property_id)
 {
@@ -540,40 +573,40 @@ static VARIABLE_TYPE bacnet_read_property(
         case OBJECT_BINARY_INPUT:
             if (property_id == PROP_PRESENT_VALUE) {
                 value_binary = Binary_Input_Present_Value(instance);
-                value = fixedpt_fromint(
-                    (value_binary == BINARY_ACTIVE) ? 1 : 0);
+                value =
+                    fixedpt_fromint((value_binary == BINARY_ACTIVE) ? 1 : 0);
             }
             break;
         case OBJECT_BINARY_OUTPUT:
             if (property_id == PROP_PRESENT_VALUE) {
                 value_binary = Binary_Output_Present_Value(instance);
-                value = fixedpt_fromint(
-                    (value_binary == BINARY_ACTIVE) ? 1 : 0);
+                value =
+                    fixedpt_fromint((value_binary == BINARY_ACTIVE) ? 1 : 0);
             }
             break;
         case OBJECT_BINARY_VALUE:
             if (property_id == PROP_PRESENT_VALUE) {
                 value_binary = Binary_Value_Present_Value(instance);
-                value = fixedpt_fromint(
-                    (value_binary == BINARY_ACTIVE) ? 1 : 0);
+                value =
+                    fixedpt_fromint((value_binary == BINARY_ACTIVE) ? 1 : 0);
             }
             break;
         case OBJECT_MULTI_STATE_INPUT:
             if (property_id == PROP_PRESENT_VALUE) {
-                value = fixedpt_fromint(
-                    Multistate_Input_Present_Value(instance));
+                value =
+                    fixedpt_fromint(Multistate_Input_Present_Value(instance));
             }
             break;
         case OBJECT_MULTI_STATE_OUTPUT:
             if (property_id == PROP_PRESENT_VALUE) {
-                value = fixedpt_fromint(
-                    Multistate_Output_Present_Value(instance));
+                value =
+                    fixedpt_fromint(Multistate_Output_Present_Value(instance));
             }
             break;
         case OBJECT_MULTI_STATE_VALUE:
             if (property_id == PROP_PRESENT_VALUE) {
-                value = fixedpt_fromint(
-                    Multistate_Value_Present_Value(instance));
+                value =
+                    fixedpt_fromint(Multistate_Value_Present_Value(instance));
             }
             break;
         default:

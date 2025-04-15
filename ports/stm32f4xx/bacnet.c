@@ -80,9 +80,9 @@ static int Program_Halt(void *context)
 {
     struct ubasic_data *data = (struct ubasic_data *)context;
 
-    ubasic_clear_variables(data);
-    return 0;
+    data->status.bit.isRunning = 0;
 
+    return 0;
 }
 
 /**
@@ -95,6 +95,8 @@ static int Program_Restart(void *context)
     struct ubasic_data *data = (struct ubasic_data *)context;
 
     ubasic_clear_variables(data);
+    ubasic_load_program(data, data->program_ptr);
+
     return 0;
 }
 
@@ -155,14 +157,39 @@ void bacnet_init(void)
         "goto startover;"
         "end;";
     const char *ubasic_program_3 =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+
         "println 'Demo - ADC';"
         ":startover;"
         "  a = aread(1);"
-        "  c = avgw(a, c, 10)"
+        "  c = avgw(a, c, 10);"
         "  println 'ADC-1 = ' c;"
         "  b = aread(2);"
-        "  d = avgw(b, d, 10)"
+        "  d = avgw(b, d, 10);"
         "  println 'ADC-2 = ' d;"
+        "  sleep (0.2);"
+        "goto startover;"
+        "end;";
+    const char *ubasic_program_4 =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+        "println 'Demo - BACnet & GPIO';"
+        "bac_create(0, 1, 'AI-1');"
+        "bac_create(0, 2, 'AI-2');"
+        "bac_create(4, 1, 'LED-1');"
+        "bac_create(4, 2, 'LED-2');"
+        ":startover;"
+        "  a = aread(1);"
+        "  c = avgw(a, c, 10);"
+        "  bac_write(0, 1, 85, c);"
+        "  b = aread(2);"
+        "  d = avgw(b, d, 10);"
+        "  bac_write(0, 2, 85, d);"
+        "  h = bac_read(4, 1, 85);"
+        "  dwrite(1, (h % 2));"
+        "  i = bac_read(4, 2, 85);"
+        "  dwrite(2, (i % 2));"
         "  sleep (0.2);"
         "goto startover;"
         "end;";
@@ -174,7 +201,7 @@ void bacnet_init(void)
     /* setup the uBASIC program and link to program object */
     data = &UBASIC_DATA;
     ubasic_port_init(data);
-    data->program_ptr = ubasic_program_2;
+    data->program_ptr = ubasic_program_4;
     Program_Create(UBASIC_Instance);
     Program_Context_Set(UBASIC_Instance, data);
     Program_Load_Set(UBASIC_Instance, Program_Load);
@@ -182,6 +209,7 @@ void bacnet_init(void)
     Program_Halt_Set(UBASIC_Instance, Program_Halt);
     Program_Restart_Set(UBASIC_Instance, Program_Restart);
     Program_Unload_Set(UBASIC_Instance, Program_Unload);
+    Program_Change_Set(UBASIC_Instance, PROGRAM_REQUEST_RUN);
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
@@ -199,15 +227,16 @@ void bacnet_init(void)
         SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     /* local time and date */
     apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        handler_timesync);
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
     handler_timesync_set_callback_set(datetime_timesync);
     datetime_init();
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
+    /* start the cyclic 10ms run timer for the program object */
     mstimer_set(&UBASIC_Timer, 10);
 }
 

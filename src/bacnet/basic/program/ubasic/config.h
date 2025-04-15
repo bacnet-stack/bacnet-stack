@@ -178,7 +178,6 @@
 #if defined(VARIABLE_TYPE_STRING)
 #define MAX_STRINGVARLEN 64
 #define MAX_BUFFERLEN 256
-#define GBGCHECK 100
 #define MAX_SVARNUM 26
 #endif
 

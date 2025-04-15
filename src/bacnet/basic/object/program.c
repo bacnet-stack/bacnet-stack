@@ -1032,6 +1032,10 @@ void Program_Unload_Set(uint32_t object_instance, int (*unload)(void *context))
     }
 }
 
+/**
+ * @brief Handle the IDLE state of the program
+ * @param pObject [in] pointer to the object data
+ */
 static void Program_State_Idle_Handler(struct object_data *pObject)
 {
     int err;
@@ -1078,6 +1082,10 @@ static void Program_State_Idle_Handler(struct object_data *pObject)
     }
 }
 
+/**
+ * @brief Handle the HALTED state of the program
+ * @param pObject [in] pointer to the object data
+ */
 static void Program_State_Halted_Handler(struct object_data *pObject)
 {
     int err;
@@ -1127,6 +1135,10 @@ static void Program_State_Halted_Handler(struct object_data *pObject)
     }
 }
 
+/**
+ * @brief Handle the RUNNING state of the program
+ * @param pObject [in] pointer to the object data
+ */
 static void Program_State_Running_Handler(struct object_data *pObject)
 {
     int err;

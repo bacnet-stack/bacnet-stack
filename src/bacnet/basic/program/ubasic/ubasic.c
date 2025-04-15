@@ -1294,7 +1294,11 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             j = fixedpt_toint(j);
 #endif
-            r = data->pwm_read(j);
+            if (data->pwm_read) {
+                r = data->pwm_read((uint8_t)j);
+            } else {
+                r = 0;
+            }
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             r = fixedpt_fromint(r);
@@ -1313,7 +1317,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             j = fixedpt_toint(j);
 #endif
-            r = adc_read(data, j);
+            r = adc_read(data, (uint8_t)j);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             r = fixedpt_fromint(r);
@@ -1345,7 +1349,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
         case TOKENIZER_DREAD:
             accept(data, TOKENIZER_LEFTPAREN);
             r = relation(data);
-            r = gpio_read(data, r);
+            r = gpio_read(data, (uint8_t)r);
             accept(data, TOKENIZER_RIGHTPAREN);
             break;
 #endif
@@ -1359,7 +1363,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
         case TOKENIZER_BACNET_READ_PROPERTY:
             accept(data, TOKENIZER_BACNET_READ_PROPERTY);
             accept(data, TOKENIZER_LEFTPAREN);
-            // first argument: object type 0..128
+            // first argument: object type 0..1023
             j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1380,7 +1384,8 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             k = fixedpt_toint(k);
 #endif
-            r = bacnet_read_property(data, j, i, k);
+            r = bacnet_read_property(
+                data, (uint16_t)j, (uint32_t)i, (uint32_t)k);
             accept(data, TOKENIZER_RIGHTPAREN);
             break;
 #endif
@@ -1617,21 +1622,15 @@ static void pwm_statement(struct ubasic_data *data)
     struct tokenizer_data *tree = &data->tree;
 
     accept(data, TOKENIZER_PWM);
-
     accept(data, TOKENIZER_LEFTPAREN);
-
     // first argument: channel
     j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     j = fixedpt_toint(j);
 #endif
-    if (j < 0) {
-        j = 0;
-    }
     accept(data, TOKENIZER_COMMA);
-
-    // second argument: value
+    // second argument: duty cycle
     r = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1639,7 +1638,7 @@ static void pwm_statement(struct ubasic_data *data)
 #endif
     accept(data, TOKENIZER_RIGHTPAREN);
     if (data->pwm_write) {
-        data->pwm_write(j, r);
+        data->pwm_write((uint8_t)j, (int32_t)r);
     }
 
     accept_cr(tree);
@@ -1659,9 +1658,6 @@ static void pwmconf_statement(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     j = fixedpt_toint(j);
 #endif
-    if (j < 0) {
-        j = 0;
-    }
     accept(data, TOKENIZER_COMMA);
     r = relation(data);
     // second argument: period
@@ -1670,9 +1666,8 @@ static void pwmconf_statement(struct ubasic_data *data)
     r = fixedpt_toint(r);
 #endif
     if (data->pwm_config) {
-        data->pwm_config(j, r);
+        data->pwm_config((uint16_t)j, (uint16_t)r);
     }
-    r = 0;
     accept(data, TOKENIZER_RIGHTPAREN);
     accept_cr(tree);
 }
@@ -1703,7 +1698,7 @@ static void areadconf_statement(struct ubasic_data *data)
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     r = fixedpt_toint(r);
 #endif
-    adc_config(data, j, r);
+    adc_config(data, (uint8_t)j, (uint8_t)r);
     accept(data, TOKENIZER_RIGHTPAREN);
     accept_cr(tree);
 }
@@ -1799,7 +1794,7 @@ static void bac_create_statement(struct ubasic_data *data)
     accept(data, TOKENIZER_COMMA);
     // object name
     s = sexpr(data);
-    bacnet_create_object(data, t, id, strptr(data, s));
+    bacnet_create_object(data, (uint16_t)t, (uint32_t)id, strptr(data, s));
     accept(data, TOKENIZER_RIGHTPAREN);
     accept_cr(tree);
 }
@@ -1834,7 +1829,8 @@ static void bac_write_statement(struct ubasic_data *data)
     accept(data, TOKENIZER_COMMA);
     // value
     v = relation(data);
-    bacnet_write_property(data, t, id, p, v);
+    bacnet_write_property(
+        data, (uint16_t)t, (uint32_t)id, (uint32_t)p, (int32_t)v);
     accept(data, TOKENIZER_RIGHTPAREN);
     accept_cr(tree);
 }
