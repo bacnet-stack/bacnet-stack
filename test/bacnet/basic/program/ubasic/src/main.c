@@ -26,8 +26,8 @@ static uint32_t tick_now(void)
     return Tick_Counter;
 }
 
-static int16_t ADC_Value[256];
-static int16_t adc_read(uint8_t channel)
+static int32_t ADC_Value[UINT8_MAX + 1];
+static int32_t adc_read(uint8_t channel)
 {
     return ADC_Value[channel];
 }
@@ -53,7 +53,7 @@ static void hw_event_clear(uint8_t bit)
         Event_Mask &= ~(1UL << bit);
     }
 }
-static uint8_t GPIO_Pin_State[256];
+static uint8_t GPIO_Pin_State[UINT8_MAX + 1];
 static void gpio_write(uint8_t ch, uint8_t pin_state)
 {
     GPIO_Pin_State[ch] = pin_state;
@@ -70,12 +70,12 @@ static void pwm_config(uint16_t psc, uint16_t per)
     (void)per;
 }
 
-static int16_t Duty_Cycle[256];
-static void pwm_write(uint8_t ch, int16_t dutycycle)
+static int32_t Duty_Cycle[UINT8_MAX + 1];
+static void pwm_write(uint8_t ch, int32_t dutycycle)
 {
     Duty_Cycle[ch] = dutycycle;
 }
-static int16_t pwm_read(uint8_t ch)
+static int32_t pwm_read(uint8_t ch)
 {
     return Duty_Cycle[ch];
 }
