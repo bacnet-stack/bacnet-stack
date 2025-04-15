@@ -130,7 +130,7 @@ static inline fixedpt fixedpt_div(fixedpt A, fixedpt B)
 }
 
 /*
- * Note: adding and substracting fixedpt numbers can be done by using
+ * Note: adding and subtracting fixedpt numbers can be done by using
  * the regular integer operators + and -.
  */
 

@@ -38,7 +38,7 @@
 // Undef it all
 //
 
-/* Storage and arithmetics */
+/* Storage and arithmetic */
 #undef VARIABLE_STORAGE_INT16
 #undef VARIABLE_STORAGE_INT32
 #undef VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8
@@ -97,7 +97,7 @@
 /* support for random number generator by micro-controller */
 #define UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR
 
-/* support for direct access to pin inputs and ooutputs */
+/* support for direct access to pin inputs and outputs */
 #define UBASIC_SCRIPT_HAVE_GPIO_CHANNELS
 
 /* support flags in BASIC that change on hardware events:
