@@ -2897,7 +2897,7 @@ uint8_t ubasic_waiting_for_input(struct ubasic_data *data)
 
 /**
  * @brief Append a character to a line of text, if there is space
- * @param buffer - buffer that recieves the appended character
+ * @param buffer - buffer that receives the appended character
  * @param buffer_len - sizeof the buffer
  * @param ch - character to append
  * @return 1 if character was appended, 0 if not
