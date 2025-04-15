@@ -20,15 +20,8 @@
 #include "bacnet/iam.h"
 /* BACnet objects */
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/ai.h"
-#include "bacnet/basic/object/ao.h"
-#include "bacnet/basic/object/av.h"
-#include "bacnet/basic/object/bi.h"
-#include "bacnet/basic/object/bo.h"
-#include "bacnet/basic/object/bv.h"
-#include "bacnet/basic/object/ms-input.h"
-#include "bacnet/basic/object/mso.h"
-#include "bacnet/basic/object/msv.h"
+#include "bacnet/basic/object/program.h"
+#include "bacnet/basic/program/ubasic/ubasic.h"
 /* me */
 #include "bacnet.h"
 
@@ -37,34 +30,86 @@ static struct mstimer DCC_Timer;
 #define DCC_CYCLE_SECONDS 1
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
+/* uBASIC-Plus program object */
+static struct ubasic_data UBASIC_DATA = { 0 };
+static struct mstimer UBASIC_Timer;
+static uint32_t UBASIC_Instance = 1;
 
-#ifndef BACNET_ANALOG_INPUTS_MAX
-#define BACNET_ANALOG_INPUTS_MAX 12
-#endif
-#ifndef BACNET_ANALOG_OUTPUTS_MAX
-#define BACNET_ANALOG_OUTPUTS_MAX 12
-#endif
-#ifndef BACNET_ANALOG_VALUES_MAX
-#define BACNET_ANALOG_VALUES_MAX 12
-#endif
-#ifndef BACNET_BINARY_INPUTS_MAX
-#define BACNET_BINARY_INPUTS_MAX 12
-#endif
-#ifndef BACNET_BINARY_OUTPUTS_MAX
-#define BACNET_BINARY_OUTPUTS_MAX 12
-#endif
-#ifndef BACNET_BINARY_VALUES_MAX
-#define BACNET_BINARY_VALUES_MAX 12
-#endif
-#ifndef BACNET_MULTISTATE_INPUTS_MAX
-#define BACNET_MULTISTATE_INPUTS_MAX 12
-#endif
-#ifndef BACNET_MULTISTATE_OUTPUTS_MAX
-#define BACNET_MULTISTATE_OUTPUTS_MAX 12
-#endif
-#ifndef BACNET_MULTISTATE_VALUES_MAX
-#define BACNET_MULTISTATE_VALUES_MAX 12
-#endif
+/**
+ * @brief Load the program into the uBASIC interpreter
+ * @param context Pointer to the uBASIC data structure
+ * @return 0 on success
+ */
+static int Program_Load(void *context)
+{
+    struct ubasic_data *data = (struct ubasic_data *)context;
+    const char *program = NULL;
+
+    if (data->status.bit.isRunning == 0) {
+        program = data->program_ptr;
+    }
+    ubasic_load_program(data, program);
+    return 0;
+}
+
+/**
+ * @brief Run the program in the uBASIC interpreter
+ * @param context Pointer to the uBASIC data structure
+ * @return 0 while the programm is running, non-zero when finished
+ *         or an error occurred
+ */
+static int Program_Run(void *context)
+{
+    struct ubasic_data *data = (struct ubasic_data *)context;
+    int result = 0;
+
+    result = ubasic_run_program(data);
+    if (result <= 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Halt the program in the uBASIC interpreter
+ * @param context Pointer to the uBASIC data structure
+ * @return 0 on success, non-zero on error
+ */
+static int Program_Halt(void *context)
+{
+    struct ubasic_data *data = (struct ubasic_data *)context;
+
+    ubasic_clear_variables(data);
+    return 0;
+
+}
+
+/**
+ * @brief Restart the program in the uBASIC interpreter
+ * @param context Pointer to the uBASIC data structure
+ * @return 0 on success, non-zero on error
+ */
+static int Program_Restart(void *context)
+{
+    struct ubasic_data *data = (struct ubasic_data *)context;
+
+    ubasic_clear_variables(data);
+    return 0;
+}
+
+/**
+ * @brief Unload the program in the uBASIC interpreter
+ * @param context Pointer to the uBASIC data structure
+ * @return 0 on success, non-zero on error
+ */
+static int Program_Unload(void *context)
+{
+    struct ubasic_data *data = (struct ubasic_data *)context;
+
+    ubasic_clear_variables(data);
+    return 0;
+}
 
 /**
  * @brief Initialize the BACnet device object, the service handlers, and timers
@@ -72,35 +117,71 @@ static uint32_t Device_ID = 0xFFFFFFFF;
 void bacnet_init(void)
 {
     uint32_t instance;
+    const char *ubasic_program_1 =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+        "println 'Demo - BACnet';"
+        "bac_create(0, 1, 'AI-1');"
+        "bac_create(0, 2, 'AI-2');"
+        "bac_create(1, 1, 'AO-1');"
+        "bac_create(1, 2, 'AO-2');"
+        "bac_create(2, 1, 'AV-1');"
+        "bac_create(2, 2, 'AV-2');"
+        "bac_create(4, 1, 'BO-1');"
+        "bac_create(4, 2, 'BO-2');"
+        "for i = 1 to 255;"
+        "  bac_write(0, 1, 85, i);"
+        "  bac_write(0, 2, 85, i);"
+        "  bac_write(1, 1, 85, i);"
+        "  bac_write(1, 2, 85, i);"
+        "  bac_write(2, 1, 85, i);"
+        "  bac_write(2, 2, 85, i);"
+        "  bac_write(4, 1, 85, i);"
+        "  bac_write(4, 2, 85, i);"
+        "  sleep (0.5);"
+        "next i;"
+        "end;";
+    const char *ubasic_program_2 =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+        "println 'Demo - GPIO';"
+        ":startover;"
+        "  dwrite(1, 1);"
+        "  dwrite(2, 1);"
+        "  sleep (0.5);"
+        "  dwrite(1, 0);"
+        "  dwrite(2, 0);"
+        "  sleep (0.5);"
+        "goto startover;"
+        "end;";
+    const char *ubasic_program_3 =
+        "println 'Demo - ADC';"
+        ":startover;"
+        "  a = aread(1);"
+        "  c = avgw(a, c, 10)"
+        "  println 'ADC-1 = ' c;"
+        "  b = aread(2);"
+        "  d = avgw(b, d, 10)"
+        "  println 'ADC-2 = ' d;"
+        "  sleep (0.2);"
+        "goto startover;"
+        "end;";
+    VARIABLE_TYPE value = 0;
+    struct ubasic_data *data;
+
     /* initialize objects */
     Device_Init(NULL);
-    for (instance = 1; instance <= BACNET_ANALOG_INPUTS_MAX; instance++) {
-        Analog_Input_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_ANALOG_OUTPUTS_MAX; instance++) {
-        Analog_Output_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_ANALOG_VALUES_MAX; instance++) {
-        Analog_Value_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_BINARY_INPUTS_MAX; instance++) {
-        Binary_Input_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_BINARY_OUTPUTS_MAX; instance++) {
-        Binary_Output_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_BINARY_VALUES_MAX; instance++) {
-        Binary_Value_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_MULTISTATE_INPUTS_MAX; instance++) {
-        Multistate_Input_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_MULTISTATE_OUTPUTS_MAX; instance++) {
-        Multistate_Output_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_MULTISTATE_VALUES_MAX; instance++) {
-        Multistate_Value_Create(instance);
-    }
+    /* setup the uBASIC program and link to program object */
+    data = &UBASIC_DATA;
+    ubasic_port_init(data);
+    data->program_ptr = ubasic_program_2;
+    Program_Create(UBASIC_Instance);
+    Program_Context_Set(UBASIC_Instance, data);
+    Program_Load_Set(UBASIC_Instance, Program_Load);
+    Program_Run_Set(UBASIC_Instance, Program_Run);
+    Program_Halt_Set(UBASIC_Instance, Program_Halt);
+    Program_Restart_Set(UBASIC_Instance, Program_Restart);
+    Program_Unload_Set(UBASIC_Instance, Program_Unload);
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
@@ -127,6 +208,7 @@ void bacnet_init(void)
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
+    mstimer_set(&UBASIC_Timer, 10);
 }
 
 /* local buffer for incoming PDUs to process */
@@ -153,6 +235,10 @@ void bacnet_task(void)
     if (mstimer_expired(&DCC_Timer)) {
         mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
+    }
+    if (mstimer_expired(&UBASIC_Timer)) {
+        mstimer_reset(&UBASIC_Timer);
+        Program_Timer(UBASIC_Instance, mstimer_interval(&UBASIC_Timer));
     }
     /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);

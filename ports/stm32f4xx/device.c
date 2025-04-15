@@ -33,6 +33,7 @@
 #include "bacnet/basic/object/ms-input.h"
 #include "bacnet/basic/object/mso.h"
 #include "bacnet/basic/object/msv.h"
+#include "bacnet/basic/object/program.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
@@ -93,6 +94,10 @@ static struct my_object_functions {
         Multistate_Value_Index_To_Instance, Multistate_Value_Valid_Instance,
         Multistate_Value_Object_Name, Multistate_Value_Read_Property,
         Multistate_Value_Write_Property, Multistate_Value_Property_Lists},
+    { OBJECT_PROGRAM, Program_Init, Program_Count,
+        Program_Index_To_Instance, Program_Valid_Instance,
+        Program_Object_Name, Program_Read_Property,
+        Program_Write_Property, Program_Property_Lists},
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,

@@ -626,6 +626,17 @@ static inline float fixedpt_tofloat(fixedpt A)
 }
 
 /**
+ * @brief Converts a fixedpt value to a float.
+ *
+ * @param A The fixedpt value to convert.
+ * @return The float representation of the fixedpt value.
+ */
+static inline fixedpt fixedpt_fromfloat(float F)
+{
+    return fixedpt_rconst(F);
+}
+
+/**
  * @brief Converts a fixedpt value to a double.
  *
  * @param A The fixedpt value to convert.

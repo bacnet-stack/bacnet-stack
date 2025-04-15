@@ -181,9 +181,9 @@ struct ubasic_data {
     uint32_t (*random_uint32)(uint8_t size);
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH)
-    void (*flash_write)(
+    void (*variable_write)(
         uint8_t Name, uint8_t Vartype, uint8_t datalen_bytes, uint8_t *dataptr);
-    void (*flash_read)(
+    void (*variable_read)(
         uint8_t Name, uint8_t Vartype, uint8_t *dataptr, uint8_t *datalen);
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL)
@@ -207,7 +207,7 @@ struct ubasic_data {
 
 void ubasic_load_program(struct ubasic_data *data, const char *program);
 void ubasic_clear_variables(struct ubasic_data *data);
-void ubasic_run_program(struct ubasic_data *data);
+int32_t ubasic_run_program(struct ubasic_data *data);
 uint8_t ubasic_execute_statement(struct ubasic_data *data, char *statement);
 uint8_t ubasic_finished(struct ubasic_data *data);
 
@@ -235,7 +235,7 @@ void ubasic_set_stringvariable(
     struct ubasic_data *data, uint8_t varnum, int16_t size);
 #endif
 
-/* API to interface and initialize the hardware drivers */
-void ubasic_hardware_init(struct ubasic_data *data);
+/* API to interface and initialize the ported hardware drivers */
+void ubasic_port_init(struct ubasic_data *data);
 
 #endif /* __UBASIC_H__ */

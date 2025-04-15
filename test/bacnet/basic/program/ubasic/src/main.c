@@ -26,6 +26,60 @@ static uint32_t tick_now(void)
     return Tick_Counter;
 }
 
+static int16_t ADC_Value[256];
+static int16_t adc_read(uint8_t channel)
+{
+    return ADC_Value[channel];
+}
+static void adc_config(uint8_t sampletime, uint8_t nreads)
+{
+    (void)sampletime;
+    (void)nreads;
+}
+static uint32_t Event_Mask;
+static int8_t hw_event(uint8_t bit)
+{
+    if (bit < 32) {
+        if (Event_Mask & (1UL << bit)) {
+            return 1; // Event is set
+        }
+    }
+
+    return 0; // Event is not set
+}
+static void hw_event_clear(uint8_t bit)
+{
+    if (bit < 32) {
+        Event_Mask &= ~(1UL << bit);
+    }
+}
+static uint8_t GPIO_Pin_State[256];
+static void gpio_write(uint8_t ch, uint8_t pin_state)
+{
+    GPIO_Pin_State[ch] = pin_state;
+}
+static void gpio_config(uint8_t ch, int8_t mode, uint8_t freq)
+{
+    (void)ch;
+    (void)mode;
+    (void)freq;
+}
+static void pwm_config(uint16_t psc, uint16_t per)
+{
+    (void)psc;
+    (void)per;
+}
+
+static int16_t Duty_Cycle[256];
+static void pwm_write(uint8_t ch, int16_t dutycycle)
+{
+    Duty_Cycle[ch] = dutycycle;
+}
+static int16_t pwm_read(uint8_t ch)
+{
+    return Duty_Cycle[ch];
+}
+
 /**
  * @brief Write a buffer to the serial port
  * @param msg Pointer to the buffer to write
@@ -53,18 +107,23 @@ static uint32_t random_uint32(uint8_t size)
     return r;
 }
 
-static uint16_t Test_BACnet_Object_Type;
-static uint32_t Test_BACnet_Object_Instance;
-static uint32_t Test_BACnet_Object_Property_ID;
-static VARIABLE_TYPE Test_BACnet_Object_Property_Value;
-static char *Test_BACnet_Object_Name;
+struct test_bacnet_object {
+    uint16_t object_type;
+    uint32_t object_instance;
+    uint32_t property_id;
+    VARIABLE_TYPE property_value;
+    char *object_name;
+};
+static struct test_bacnet_object Test_BACnet_Object[5];
 
 static void
 bacnet_create_object(uint16_t object_type, uint32_t instance, char *object_name)
 {
-    Test_BACnet_Object_Type = object_type;
-    Test_BACnet_Object_Instance = instance;
-    Test_BACnet_Object_Name = object_name;
+    if (instance < ARRAY_SIZE(Test_BACnet_Object)) {
+        Test_BACnet_Object[instance].object_type = object_type;
+        Test_BACnet_Object[instance].object_instance = instance;
+        Test_BACnet_Object[instance].object_name = strdup(object_name);
+    }
 }
 
 static void bacnet_write_property(
@@ -73,19 +132,94 @@ static void bacnet_write_property(
     uint32_t property_id,
     VARIABLE_TYPE value)
 {
-    Test_BACnet_Object_Type = object_type;
-    Test_BACnet_Object_Instance = instance;
-    Test_BACnet_Object_Property_ID = property_id;
-    Test_BACnet_Object_Property_Value = value;
+    if (instance < ARRAY_SIZE(Test_BACnet_Object)) {
+        Test_BACnet_Object[instance].object_type = object_type;
+        Test_BACnet_Object[instance].object_instance = instance;
+        Test_BACnet_Object[instance].property_id = property_id;
+        Test_BACnet_Object[instance].property_value = value;
+    }
 }
 
 static VARIABLE_TYPE bacnet_read_property(
     uint16_t object_type, uint32_t instance, uint32_t property_id)
 {
-    Test_BACnet_Object_Type = object_type;
-    Test_BACnet_Object_Instance = instance;
-    Test_BACnet_Object_Property_ID = property_id;
-    return Test_BACnet_Object_Property_Value;
+    if (instance < ARRAY_SIZE(Test_BACnet_Object)) {
+        if (Test_BACnet_Object[instance].object_type == object_type &&
+            Test_BACnet_Object[instance].property_id == property_id) {
+            return Test_BACnet_Object[instance].property_value;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Test
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ubasic_tests, test_ubasic_gpio)
+#else
+static void test_ubasic_gpio(void)
+#endif
+{
+    struct ubasic_data data = { 0 };
+    const char *program =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+        "println 'Demo - GPIO & ADC';"
+        "pinmode(0xc0,-1,0);"
+        "pinmode(0xc1,-1,0);"
+        "pinmode(0xc2,-1,0);"
+        "pinmode(0xc3,-1,0);"
+        "for j = 0 to 2;"
+        "  dwrite(0xc0,(j % 2));"
+        "  dwrite(0xc1,(j % 2));"
+        "  dwrite(0xc2,(j % 2));"
+        "  dwrite(0xc3,(j % 2));"
+        "  sleep(0.5);"
+        "next j;"
+        "aread_conf(7,16);"
+        "aread_conf(7,17);"
+        "a = 4096 / 2;"
+        "z = 4096 / 2;"
+        "s = 5;"
+        "for i = 1 to s;"
+        "  x = aread(16);"
+        "  y = aread(17);"
+        "  println 'VREF,TEMP=', x, y;"
+        "  a = avgw(x,a,s);"
+        "  z = avgw(y,z,s);"
+        "next i;"
+        "println 'average x y=', a, z;"
+        "end;";
+    VARIABLE_TYPE value = 0;
+    data.mstimer_now = tick_now;
+    data.serial_write = serial_write;
+    data.gpio_config = gpio_config;
+    data.gpio_write = gpio_write;
+    data.adc_config = adc_config;
+    data.adc_read = adc_read;
+    data.pwm_config = pwm_config;
+    data.pwm_write = pwm_write;
+    data.pwm_read = pwm_read;
+    data.hw_event = hw_event;
+    data.hw_event_clear = hw_event_clear;
+    ADC_Value[16] = 2048;
+    ADC_Value[17] = 2048;
+    ubasic_load_program(&data, program);
+    zassert_equal(data.status.bit.isRunning, 1, NULL);
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    while (!ubasic_finished(&data)) {
+        ubasic_run_program(&data);
+        tick_increment();
+    }
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    /* check the final value of the bacnet read property */
+    value = ubasic_get_variable(&data, 'a');
+    zassert_equal(
+        fixedpt_toint(value), 2048, "a value=%d", fixedpt_toint(value));
+    value = ubasic_get_variable(&data, 'z');
+    zassert_equal(
+        fixedpt_toint(value), 2048, "z value=%d", fixedpt_toint(value));
 }
 
 /**
@@ -102,10 +236,13 @@ static void test_ubasic_bacnet(void)
         /* program listing with either \0, \n, or ';' at the end of each line.
            note: indentation is not required */
         "println 'Demo - BACnet';"
-        "bac_create(0, 1234, 'Object1');"
-        "bac_write(0, 1234, 85, 42);"
-        "a = bac_read(0, 1234, 85);"
-        "println 'bac_read 0, 1234, 85 = ' a;"
+        "bac_create(0, 1, 'Object1');"
+        "bac_create(0, 2, 'Object2');"
+        "bac_create(0, 3, 'Object3');"
+        "bac_create(0, 4, 'Object4');"
+        "bac_write(0, 1, 85, 42);"
+        "a = bac_read(0, 1, 85);"
+        "println 'bac_read 0, 1, 85 = ' a;"
         "end;";
     VARIABLE_TYPE value = 0;
     data.mstimer_now = tick_now;
@@ -127,17 +264,23 @@ static void test_ubasic_bacnet(void)
         fixedpt_toint(value), 42, "bacnet read property value=%d",
         fixedpt_toint(value));
     zassert_equal(
-        Test_BACnet_Object_Type, 0, "bacnet object type=%d",
-        Test_BACnet_Object_Type);
+        Test_BACnet_Object[1].object_type, 0, "bacnet object type=%d",
+        Test_BACnet_Object[1].object_type);
     zassert_equal(
-        Test_BACnet_Object_Instance, 1234, "bacnet object instance=%d",
-        Test_BACnet_Object_Instance);
+        Test_BACnet_Object[1].object_instance, 1, "bacnet object instance=%d",
+        Test_BACnet_Object[1].object_instance);
     zassert_equal(
-        Test_BACnet_Object_Property_ID, 85, "bacnet object property ID=%d",
-        Test_BACnet_Object_Property_ID);
+        Test_BACnet_Object[1].property_id, 85, "bacnet object property ID=%d",
+        Test_BACnet_Object[1].property_id);
     zassert_equal(
-        strcmp(Test_BACnet_Object_Name, "Object1"), 0, "bacnet object name=%s",
-        Test_BACnet_Object_Name);
+        strcmp(Test_BACnet_Object[1].object_name, "Object1"), 0,
+        "bacnet object name=%s", Test_BACnet_Object[1].object_name);
+    zassert_equal(
+        strcmp(Test_BACnet_Object[2].object_name, "Object2"), 0,
+        "bacnet object name=%s", Test_BACnet_Object[2].object_name);
+    zassert_equal(
+        strcmp(Test_BACnet_Object[3].object_name, "Object3"), 0,
+        "bacnet object name=%s", Test_BACnet_Object[3].object_name);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -296,7 +439,8 @@ void test_main(void)
 {
     ztest_test_suite(
         ubasic_tests, ztest_unit_test(test_ubasic),
-        ztest_unit_test(test_ubasic_math), ztest_unit_test(test_ubasic_bacnet));
+        ztest_unit_test(test_ubasic_math), ztest_unit_test(test_ubasic_bacnet),
+        ztest_unit_test(test_ubasic_gpio));
 
     ztest_run_test_suite(ubasic_tests);
 }

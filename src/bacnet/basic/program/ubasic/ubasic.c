@@ -54,7 +54,7 @@ static char *strptr(struct ubasic_data *data, int16_t size)
 }
 #endif
 static VARIABLE_TYPE relation(struct ubasic_data *data);
-static void numbered_line_statement(struct ubasic_data *data);
+static void subsequent_statement(struct ubasic_data *data);
 static void statement(struct ubasic_data *data);
 #if defined(UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH)
 static VARIABLE_TYPE recall_statement(struct ubasic_data *data);
@@ -207,19 +207,6 @@ static int32_t mstimer_input_remaining(struct ubasic_data *data)
 
 /*---------------------------------------------------------------------------*/
 #if defined(UBASIC_SCRIPT_HAVE_GPIO_CHANNELS)
-static void
-gpio_config(struct ubasic_data *data, uint8_t ch, int8_t mode, uint8_t freq)
-{
-    if (data->gpio_config) {
-        data->gpio_config(ch, mode, freq);
-    }
-}
-static void gpio_write(struct ubasic_data *data, uint8_t ch, uint8_t pin_state)
-{
-    if (data->gpio_write) {
-        data->gpio_write(ch, pin_state);
-    }
-}
 static int8_t gpio_read(struct ubasic_data *data, uint8_t ch)
 {
     if (data->gpio_read) {
@@ -277,26 +264,26 @@ static uint32_t random_uint32(struct ubasic_data *data, uint8_t size)
 
 /*---------------------------------------------------------------------------*/
 #if defined(UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH)
-static void flash_write(
+static void variable_write(
     struct ubasic_data *data,
     uint8_t Name,
     uint8_t Vartype,
     uint8_t datalen_bytes,
     uint8_t *dataptr)
 {
-    if (data->flash_write) {
-        data->flash_write(Name, Vartype, datalen_bytes, dataptr);
+    if (data->variable_write) {
+        data->variable_write(Name, Vartype, datalen_bytes, dataptr);
     }
 }
-static void flash_read(
+static void variable_read(
     struct ubasic_data *data,
     uint8_t Name,
     uint8_t Vartype,
     uint8_t *dataptr,
     uint8_t *datalen)
 {
-    if (data->flash_read) {
-        data->flash_read(Name, Vartype, dataptr, datalen);
+    if (data->variable_read) {
+        data->variable_read(Name, Vartype, dataptr, datalen);
     }
 }
 #endif
@@ -1574,16 +1561,11 @@ static void gosub_statement(struct ubasic_data *data)
         // copy label
         tokenizer_label(tree, tmpstring, MAX_STRINGLEN);
         tokenizer_next(tree);
-
         // check for the end of line
         while (tokenizer_token(tree) == TOKENIZER_EOL) {
             tokenizer_next(tree);
         }
-        //     accept_cr(tree);
-
         if (data->gosub_stack_ptr < MAX_GOSUB_STACK_DEPTH) {
-            /*    tokenizer_line_number_inc();*/
-            // gosub_stack[gosub_stack_ptr] = tokenizer_line_number();
             data->gosub_stack[data->gosub_stack_ptr] =
                 tokenizer_save_offset(tree);
             data->gosub_stack_ptr++;
@@ -1748,46 +1730,30 @@ static void pinmode_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_PINMODE);
     accept(data, TOKENIZER_LEFTPAREN);
-
-    // channel - should be entered as 0x..
+    // channel
     i = relation(data);
-    if (i < 0xa0 || i > 0xff) {
-        return;
-    }
-
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    i = fixedpt_toint(i);
+#endif
     accept(data, TOKENIZER_COMMA);
-
     // mode
     j = relation(data);
-
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     j = fixedpt_toint(j);
 #endif
-
-    if (j < -2) {
-        j = -1;
-    }
-    if (j > 2) {
-        j = 0;
-    }
-
     accept(data, TOKENIZER_COMMA);
-
     // speed
     r = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     r = fixedpt_toint(r);
 #endif
-    if (r < 0 || r > 2) {
-        r = 0;
+    if (data->gpio_config) {
+        data->gpio_config((uint8_t)i, (int8_t)j, (int8_t)r);
     }
-
     accept(data, TOKENIZER_RIGHTPAREN);
-
-    gpio_config(data, (uint8_t)i, (int8_t)j, (int8_t)r);
-
     accept_cr(tree);
 
     return;
@@ -1801,17 +1767,20 @@ static void dwrite_statement(struct ubasic_data *data)
     accept(data, TOKENIZER_DWRITE);
     accept(data, TOKENIZER_LEFTPAREN);
     j = relation(data);
-    accept(data, TOKENIZER_COMMA);
-    r = relation(data);
-    if (r) {
-        r = 0x01;
-    }
-    accept(data, TOKENIZER_RIGHTPAREN);
-    gpio_write(data, j, r);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
-    r = fixedpt_fromint(r);
+    j = fixedpt_toint(j);
 #endif
+    accept(data, TOKENIZER_COMMA);
+    r = relation(data);
+#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    r = fixedpt_toint(r);
+#endif
+    if (data->gpio_write) {
+        data->gpio_write((uint8_t)j, (uint8_t)r);
+    }
+    accept(data, TOKENIZER_RIGHTPAREN);
     accept_cr(tree);
 
     return;
@@ -1823,6 +1792,7 @@ static void dwrite_statement(struct ubasic_data *data)
 static void bac_create_statement(struct ubasic_data *data)
 {
     VARIABLE_TYPE id, t, s;
+    char tmpstring[MAX_STRINGLEN];
     struct tokenizer_data *tree = &data->tree;
 
     accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
@@ -2568,7 +2538,7 @@ static VARIABLE_TYPE recall_statement(struct ubasic_data *data)
         accept(data, TOKENIZER_VARIABLE);
         dataptr = (uint8_t *)&data->variables[data->varnum];
         datalen = (uint8_t *)&rval;
-        flash_read(data, data->varnum, var_type, dataptr, datalen);
+        variable_read(data, data->varnum, var_type, dataptr, datalen);
         rval >>= 2;
     }
 #if defined(VARIABLE_TYPE_STRING)
@@ -2579,7 +2549,7 @@ static VARIABLE_TYPE recall_statement(struct ubasic_data *data)
         char dummy_s[MAX_STRINGLEN] = { 0 };
         dataptr = (uint8_t *)dummy_s;
         datalen = (uint8_t *)&rval;
-        flash_read(data, data->varnum, var_type, dataptr, datalen);
+        variable_read(data, data->varnum, var_type, dataptr, datalen);
         if (rval > 0) {
             ubasic_set_stringvariable(
                 data, data->varnum, scpy(data, (char *)dummy_s));
@@ -2596,7 +2566,7 @@ static VARIABLE_TYPE recall_statement(struct ubasic_data *data)
         VARIABLE_TYPE dummy_a[VARIABLE_TYPE_ARRAY + 1];
         dataptr = (uint8_t *)dummy_a;
         datalen = (uint8_t *)&rval;
-        flash_read(data, data->varnum, 2, dataptr, datalen);
+        variable_read(data, data->varnum, 2, dataptr, datalen);
         if (rval > 0) {
             rval >>= 2;
             ubasic_dim_arrayvarnum(data, data->varnum, rval);
@@ -2625,7 +2595,7 @@ static void store_statement(struct ubasic_data *data)
         data->varnum = tokenizer_variable_num(tree);
         accept(data, TOKENIZER_VARIABLE);
         dataptr = (uint8_t *)&data->variables[data->varnum];
-        flash_write(data, data->varnum, var_type, 4, dataptr);
+        variable_write(data, data->varnum, var_type, 4, dataptr);
     }
 #if defined(VARIABLE_TYPE_STRING)
     else if (tokenizer_token(tree) == TOKENIZER_STRINGVARIABLE) {
@@ -2634,7 +2604,7 @@ static void store_statement(struct ubasic_data *data)
         accept(data, TOKENIZER_STRINGVARIABLE);
         dataptr = (uint8_t *)strptr(data, data->stringvariables[data->varnum]);
         datalen = strlen((char *)dataptr);
-        flash_write(data, data->varnum, var_type, datalen, dataptr);
+        variable_write(data, data->varnum, var_type, datalen, dataptr);
     }
 #endif
 #if defined(VARIABLE_TYPE_ARRAY)
@@ -2646,7 +2616,7 @@ static void store_statement(struct ubasic_data *data)
             (data->arrays_data[data->arrayvariable[data->varnum]] & 0x0000ffff);
         dataptr =
             (uint8_t *)&data->arrays_data[data->arrayvariable[data->varnum]];
-        flash_write(data, data->varnum, var_type, datalen, dataptr);
+        variable_write(data, data->varnum, var_type, datalen, dataptr);
     }
 #endif
     accept(data, TOKENIZER_RIGHTPAREN);
@@ -2816,7 +2786,7 @@ static void statement(struct ubasic_data *data)
     }
 }
 /*---------------------------------------------------------------------------*/
-static void numbered_line_statement(struct ubasic_data *data)
+static void subsequent_statement(struct ubasic_data *data)
 {
     struct tokenizer_data *tree = &data->tree;
 
@@ -2847,24 +2817,33 @@ static bool ubasic_program_finished(struct ubasic_data *data)
 }
 
 /*---------------------------------------------------------------------------*/
-void ubasic_run_program(struct ubasic_data *data)
+/**
+ * @brief Run the program
+ * @param data - ubasic data structure
+ * @return zero if not running, -1 if error, >0 if running or waiting
+ */
+int32_t ubasic_run_program(struct ubasic_data *data)
 {
+    int32_t wait_msecs = 0;
+
     if (data->status.bit.isRunning == 0) {
-        return;
+        return 0;
     }
     if (data->status.bit.Error == 1) {
-        return;
+        return -1;
     }
 #if defined(UBASIC_SCRIPT_HAVE_SLEEP)
-    if (mstimer_sleeping(data) > 0) {
-        return;
+    wait_msecs = mstimer_sleeping(data);
+    if (wait_msecs > 0) {
+        return wait_msecs;
     }
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL)
     if (data->status.bit.WaitForSerialInput) {
         if (!ubasic_getline(data, ubasic_getc(data))) {
-            if (mstimer_input_remaining(data) > 0) {
-                return;
+            wait_msecs = mstimer_input_remaining(data);
+            if (wait_msecs > 0) {
+                return wait_msecs;
             }
         }
         serial_getline_completed(data);
@@ -2876,9 +2855,14 @@ void ubasic_run_program(struct ubasic_data *data)
     // end of string additions
 #endif
     if (ubasic_program_finished(data)) {
-        return;
+        if (data->status.bit.Error == 1) {
+            return -1;
+        }
+        return 0;
     }
-    numbered_line_statement(data);
+    subsequent_statement(data);
+
+    return 1;
 }
 
 /*---------------------------------------------------------------------------*/

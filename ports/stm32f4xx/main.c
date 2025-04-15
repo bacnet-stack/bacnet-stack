@@ -99,7 +99,7 @@ int main(void)
     MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
     /* choose from non-volatile configuration for zero-config or slave mode */
-    MSTP_Port.ZeroConfigEnabled = true;
+    MSTP_Port.ZeroConfigEnabled = false;
     MSTP_Port.Zero_Config_Preferred_Station = 0;
     MSTP_Port.SlaveNodeEnabled = false;
     MSTP_Port.CheckAutoBaud = false;

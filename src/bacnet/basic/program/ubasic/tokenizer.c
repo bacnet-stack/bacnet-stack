@@ -618,11 +618,6 @@ uint8_t tokenizer_variable_num(struct tokenizer_data *tree)
 }
 /*---------------------------------------------------------------------------*/
 
-// uint16_t tokenizer_line_number(void)
-// {
-//   return current_line;
-// }
-
 uint16_t tokenizer_save_offset(struct tokenizer_data *tree)
 {
     return (tree->ptr - tree->prog);
