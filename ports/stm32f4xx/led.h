@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief LED control for the STM32F4xx
+ * @author Steve Karg
+ * @date 2021
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #ifndef LED_H
 #define LED_H
 

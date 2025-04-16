@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief LED control for the STM32F4xx
+ * @author Steve Karg
+ * @date 2021
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdint.h>
 #include "stm32f4xx.h"
 #include "bacnet/basic/sys/mstimer.h"

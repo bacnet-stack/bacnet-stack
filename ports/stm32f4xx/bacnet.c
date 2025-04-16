@@ -1,15 +1,16 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief BACnet stack initialization and task processing
+ * @author Steve Karg
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdint.h>
 #include <stdbool.h>
 /* hardware layer includes */
 #include "bacnet/basic/sys/mstimer.h"
 #include "rs485.h"
+#include "program-ubasic.h"
 /* BACnet Stack includes */
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"
@@ -30,186 +31,15 @@ static struct mstimer DCC_Timer;
 #define DCC_CYCLE_SECONDS 1
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
-/* uBASIC-Plus program object */
-static struct ubasic_data UBASIC_DATA = { 0 };
-static struct mstimer UBASIC_Timer;
-static uint32_t UBASIC_Instance = 1;
-
-/**
- * @brief Load the program into the uBASIC interpreter
- * @param context Pointer to the uBASIC data structure
- * @return 0 on success
- */
-static int Program_Load(void *context)
-{
-    struct ubasic_data *data = (struct ubasic_data *)context;
-    const char *program = NULL;
-
-    if (data->status.bit.isRunning == 0) {
-        program = data->program_ptr;
-    }
-    ubasic_load_program(data, program);
-    return 0;
-}
-
-/**
- * @brief Run the program in the uBASIC interpreter
- * @param context Pointer to the uBASIC data structure
- * @return 0 while the programm is running, non-zero when finished
- *         or an error occurred
- */
-static int Program_Run(void *context)
-{
-    struct ubasic_data *data = (struct ubasic_data *)context;
-    int result = 0;
-
-    result = ubasic_run_program(data);
-    if (result <= 0) {
-        return -1;
-    }
-
-    return 0;
-}
-
-/**
- * @brief Halt the program in the uBASIC interpreter
- * @param context Pointer to the uBASIC data structure
- * @return 0 on success, non-zero on error
- */
-static int Program_Halt(void *context)
-{
-    struct ubasic_data *data = (struct ubasic_data *)context;
-
-    data->status.bit.isRunning = 0;
-
-    return 0;
-}
-
-/**
- * @brief Restart the program in the uBASIC interpreter
- * @param context Pointer to the uBASIC data structure
- * @return 0 on success, non-zero on error
- */
-static int Program_Restart(void *context)
-{
-    struct ubasic_data *data = (struct ubasic_data *)context;
-
-    ubasic_clear_variables(data);
-    ubasic_load_program(data, data->program_ptr);
-
-    return 0;
-}
-
-/**
- * @brief Unload the program in the uBASIC interpreter
- * @param context Pointer to the uBASIC data structure
- * @return 0 on success, non-zero on error
- */
-static int Program_Unload(void *context)
-{
-    struct ubasic_data *data = (struct ubasic_data *)context;
-
-    ubasic_clear_variables(data);
-    return 0;
-}
 
 /**
  * @brief Initialize the BACnet device object, the service handlers, and timers
  */
 void bacnet_init(void)
 {
-    uint32_t instance;
-    const char *ubasic_program_1 =
-        /* program listing with either \0, \n, or ';' at the end of each line.
-           note: indentation is not required */
-        "println 'Demo - BACnet';"
-        "bac_create(0, 1, 'AI-1');"
-        "bac_create(0, 2, 'AI-2');"
-        "bac_create(1, 1, 'AO-1');"
-        "bac_create(1, 2, 'AO-2');"
-        "bac_create(2, 1, 'AV-1');"
-        "bac_create(2, 2, 'AV-2');"
-        "bac_create(4, 1, 'BO-1');"
-        "bac_create(4, 2, 'BO-2');"
-        "for i = 1 to 255;"
-        "  bac_write(0, 1, 85, i);"
-        "  bac_write(0, 2, 85, i);"
-        "  bac_write(1, 1, 85, i);"
-        "  bac_write(1, 2, 85, i);"
-        "  bac_write(2, 1, 85, i);"
-        "  bac_write(2, 2, 85, i);"
-        "  bac_write(4, 1, 85, i);"
-        "  bac_write(4, 2, 85, i);"
-        "  sleep (0.5);"
-        "next i;"
-        "end;";
-    const char *ubasic_program_2 =
-        /* program listing with either \0, \n, or ';' at the end of each line.
-           note: indentation is not required */
-        "println 'Demo - GPIO';"
-        ":startover;"
-        "  dwrite(1, 1);"
-        "  dwrite(2, 1);"
-        "  sleep (0.5);"
-        "  dwrite(1, 0);"
-        "  dwrite(2, 0);"
-        "  sleep (0.5);"
-        "goto startover;"
-        "end;";
-    const char *ubasic_program_3 =
-        /* program listing with either \0, \n, or ';' at the end of each line.
-           note: indentation is not required */
-
-        "println 'Demo - ADC';"
-        ":startover;"
-        "  a = aread(1);"
-        "  c = avgw(a, c, 10);"
-        "  println 'ADC-1 = ' c;"
-        "  b = aread(2);"
-        "  d = avgw(b, d, 10);"
-        "  println 'ADC-2 = ' d;"
-        "  sleep (0.2);"
-        "goto startover;"
-        "end;";
-    const char *ubasic_program_4 =
-        /* program listing with either \0, \n, or ';' at the end of each line.
-           note: indentation is not required */
-        "println 'Demo - BACnet & GPIO';"
-        "bac_create(0, 1, 'AI-1');"
-        "bac_create(0, 2, 'AI-2');"
-        "bac_create(4, 1, 'LED-1');"
-        "bac_create(4, 2, 'LED-2');"
-        ":startover;"
-        "  a = aread(1);"
-        "  c = avgw(a, c, 10);"
-        "  bac_write(0, 1, 85, c);"
-        "  b = aread(2);"
-        "  d = avgw(b, d, 10);"
-        "  bac_write(0, 2, 85, d);"
-        "  h = bac_read(4, 1, 85);"
-        "  dwrite(1, (h % 2));"
-        "  i = bac_read(4, 2, 85);"
-        "  dwrite(2, (i % 2));"
-        "  sleep (0.2);"
-        "goto startover;"
-        "end;";
-    VARIABLE_TYPE value = 0;
-    struct ubasic_data *data;
-
     /* initialize objects */
     Device_Init(NULL);
-    /* setup the uBASIC program and link to program object */
-    data = &UBASIC_DATA;
-    ubasic_port_init(data);
-    data->program_ptr = ubasic_program_4;
-    Program_Create(UBASIC_Instance);
-    Program_Context_Set(UBASIC_Instance, data);
-    Program_Load_Set(UBASIC_Instance, Program_Load);
-    Program_Run_Set(UBASIC_Instance, Program_Run);
-    Program_Halt_Set(UBASIC_Instance, Program_Halt);
-    Program_Restart_Set(UBASIC_Instance, Program_Restart);
-    Program_Unload_Set(UBASIC_Instance, Program_Unload);
-    Program_Change_Set(UBASIC_Instance, PROGRAM_REQUEST_RUN);
+    Program_UBASIC_Init(BACNET_MAX_INSTANCE);
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
@@ -236,8 +66,6 @@ void bacnet_init(void)
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
-    /* start the cyclic 10ms run timer for the program object */
-    mstimer_set(&UBASIC_Timer, 10);
 }
 
 /* local buffer for incoming PDUs to process */
@@ -265,10 +93,7 @@ void bacnet_task(void)
         mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
     }
-    if (mstimer_expired(&UBASIC_Timer)) {
-        mstimer_reset(&UBASIC_Timer);
-        Program_Timer(UBASIC_Instance, mstimer_interval(&UBASIC_Timer));
-    }
+    Program_UBASIC_Task();
     /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
     if (pdu_len) {

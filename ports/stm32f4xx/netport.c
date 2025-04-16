@@ -1,17 +1,10 @@
 /**
  * @file
+ * @brief The Network Port object provides access to the configuration
+ * and properties of network ports of a device.
  * @author Steve Karg
  * @date 2016
- * @brief Network port objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Network Port object provides access to the configuration
- * and properties of network ports of a device.
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>

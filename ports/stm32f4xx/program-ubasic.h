@@ -1,21 +1,21 @@
 /**
  * @file
- * @brief BACnet stack initialization and task processing
+ * @brief uBASIC-Plus program object for BACnet
  * @author Steve Karg
- * @date 2021
+ * @date 2025
  * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_H
-#define BACNET_H
-
+#ifndef PROGRAM_UBASIC_H
+#define PROGRAM_UBASIC_H
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-void bacnet_init(void);
-void bacnet_task(void);
+void Program_UBASIC_Task(void);
+void Program_UBASIC_Init(uint32_t instance);
 
 #ifdef __cplusplus
 }

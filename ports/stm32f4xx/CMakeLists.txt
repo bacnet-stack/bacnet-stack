@@ -150,6 +150,8 @@ set(BACNET_PROJECT_SOURCE
     ${CMAKE_SOURCE_DIR}/led.c
     ${CMAKE_SOURCE_DIR}/mstimer-init.c
     ${CMAKE_SOURCE_DIR}/rs485.c
+
+    ${CMAKE_SOURCE_DIR}/program-ubasic.c
     ${CMAKE_SOURCE_DIR}/ubasic-port.c
 
     ${CMAKE_SOURCE_DIR}/device.c
