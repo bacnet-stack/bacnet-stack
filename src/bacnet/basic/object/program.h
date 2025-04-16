@@ -110,12 +110,13 @@ void Program_Cleanup(void);
 BACNET_STACK_EXPORT
 void Program_Init(void);
 
-/* API for the program requests */
+/* API for the program requests
+    note: return value is 0 for success, non-zero for failure
+*/
 BACNET_STACK_EXPORT
 void Program_Context_Set(uint32_t object_instance, void *context);
 BACNET_STACK_EXPORT
-void Program_Load_Set(
-    uint32_t object_instance, int (*load)(void *context, const char *location));
+void Program_Load_Set(uint32_t object_instance, int (*load)(void *context));
 BACNET_STACK_EXPORT
 void Program_Run_Set(uint32_t object_instance, int (*run)(void *context));
 BACNET_STACK_EXPORT

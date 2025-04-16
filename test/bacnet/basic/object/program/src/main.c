@@ -16,11 +16,10 @@
  * @{
  */
 
-static int Program_Load(void *context, const char *location)
+static int Program_Load(void *context)
 {
     /* Placeholder for load function */
     (void)context;
-    (void)location;
 
     return 0;
 }
