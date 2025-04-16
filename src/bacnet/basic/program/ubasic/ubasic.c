@@ -886,8 +886,8 @@ static int16_t sfactor(struct ubasic_data *data)
             accept(data, TOKENIZER_STRING);
             break;
 
-        case TOKENIZER_LEFT$:
-            accept(data, TOKENIZER_LEFT$);
+        case TOKENIZER_LEFT_STR:
+            accept(data, TOKENIZER_LEFT_STR);
             accept(data, TOKENIZER_LEFTPAREN);
             s = sexpr(data);
             accept(data, TOKENIZER_COMMA);
@@ -900,8 +900,8 @@ static int16_t sfactor(struct ubasic_data *data)
             accept(data, TOKENIZER_RIGHTPAREN);
             break;
 
-        case TOKENIZER_RIGHT$:
-            accept(data, TOKENIZER_RIGHT$);
+        case TOKENIZER_RIGHT_STR:
+            accept(data, TOKENIZER_RIGHT_STR);
             accept(data, TOKENIZER_LEFTPAREN);
             s = sexpr(data);
             accept(data, TOKENIZER_COMMA);
@@ -914,8 +914,8 @@ static int16_t sfactor(struct ubasic_data *data)
             accept(data, TOKENIZER_RIGHTPAREN);
             break;
 
-        case TOKENIZER_MID$:
-            accept(data, TOKENIZER_MID$);
+        case TOKENIZER_MID_STR:
+            accept(data, TOKENIZER_MID_STR);
             accept(data, TOKENIZER_LEFTPAREN);
             s = sexpr(data);
             accept(data, TOKENIZER_COMMA);
@@ -938,8 +938,8 @@ static int16_t sfactor(struct ubasic_data *data)
             accept(data, TOKENIZER_RIGHTPAREN);
             break;
 
-        case TOKENIZER_STR$:
-            accept(data, TOKENIZER_STR$);
+        case TOKENIZER_STR_STR:
+            accept(data, TOKENIZER_STR_STR);
             j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -948,8 +948,8 @@ static int16_t sfactor(struct ubasic_data *data)
             r = sstr(data, j);
             break;
 
-        case TOKENIZER_CHR$:
-            accept(data, TOKENIZER_CHR$);
+        case TOKENIZER_CHR_STR:
+            accept(data, TOKENIZER_CHR_STR);
             j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)

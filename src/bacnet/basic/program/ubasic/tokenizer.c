@@ -48,11 +48,11 @@ struct keyword_token {
 static const struct keyword_token keywords[] = {
 #if defined(VARIABLE_TYPE_STRING)
     // new string-related statements and functions
-    { "left$", TOKENIZER_LEFT$ },
-    { "right$", TOKENIZER_RIGHT$ },
-    { "mid$", TOKENIZER_MID$ },
-    { "str$", TOKENIZER_STR$ },
-    { "chr$", TOKENIZER_CHR$ },
+    { "left$", TOKENIZER_LEFT_STR },
+    { "right$", TOKENIZER_RIGHT_STR },
+    { "mid$", TOKENIZER_MID_STR },
+    { "str$", TOKENIZER_STR_STR },
+    { "chr$", TOKENIZER_CHR_STR },
     { "val", TOKENIZER_VAL },
     { "len", TOKENIZER_LEN },
     { "instr", TOKENIZER_INSTR },
@@ -416,9 +416,9 @@ int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
         } else if (token == TOKENIZER_STRING) {
             si = 1;
         } else if (
-            token >= TOKENIZER_STRINGVARIABLE && token <= TOKENIZER_CHR$) {
+            token >= TOKENIZER_STRINGVARIABLE && token <= TOKENIZER_CHR_STR) {
             si = 1;
-        } else if (token > TOKENIZER_CHR$) {
+        } else if (token > TOKENIZER_CHR_STR) {
             si = 0; // numeric function
         }
 

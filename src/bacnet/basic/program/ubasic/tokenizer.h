@@ -53,12 +53,12 @@ enum {
 #if defined(VARIABLE_TYPE_STRING)
     // string additions - must be here and in this order
     /*5*/ TOKENIZER_STRINGVARIABLE,
-    /*6*/ TOKENIZER_PRINT$,
-    /*7*/ TOKENIZER_LEFT$,
-    /*8*/ TOKENIZER_RIGHT$,
-    /*9*/ TOKENIZER_MID$,
-    /*10*/ TOKENIZER_STR$,
-    /*11*/ TOKENIZER_CHR$,
+    /*6*/ TOKENIZER_PRINT_STR,
+    /*7*/ TOKENIZER_LEFT_STR,
+    /*8*/ TOKENIZER_RIGHT_STR,
+    /*9*/ TOKENIZER_MID_STR,
+    /*10*/ TOKENIZER_STR_STR,
+    /*11*/ TOKENIZER_CHR_STR,
     /*12*/ TOKENIZER_VAL,
     /*13*/ TOKENIZER_LEN,
     /*14*/ TOKENIZER_INSTR,
