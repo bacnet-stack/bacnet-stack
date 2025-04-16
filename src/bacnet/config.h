@@ -129,7 +129,9 @@
 #if !defined(MAX_APDU)
 /* #define MAX_APDU 50 */
 /* #define MAX_APDU 1476 */
-#if defined(BACDL_BIP)
+#if defined(BACDL_MULTIPLE)
+#define MAX_APDU 1476
+#elif defined(BACDL_BIP)
 #define MAX_APDU 1476
 /* Enable this IP for testing readrange so you get the More Follows flag set */
 /* #define MAX_APDU 128 */
@@ -152,7 +154,6 @@
 #endif
 #endif
 
-#if defined(BACDL_BSC)
 #ifndef SC_NETPORT_BVLC_MAX
 #define SC_NETPORT_BVLC_MAX 1500
 #endif
@@ -170,7 +171,6 @@
 #endif
 #ifndef SC_NETPORT_RECONNECT_TIME
 #define SC_NETPORT_RECONNECT_TIME 2
-#endif
 #endif
 
 /* for confirmed messages, this is the number of transactions */
