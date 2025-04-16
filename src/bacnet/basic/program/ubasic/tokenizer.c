@@ -26,15 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
-/*
  * Modified to support simple string variables and functions by David Mitchell
  * November 2008.
  * Changes and additions are marked 'string additions' throughout
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  */
-
 #include "config.h"
 #include "tokenizer.h"
 
@@ -412,7 +409,7 @@ int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
             token == TOKENIZER_FLOAT) {
             si = 0; // number or numeric var
         } else if (token == TOKENIZER_PLUS) {
-            si = si;
+            /* do nothing */
         } else if (token == TOKENIZER_STRING) {
             si = 1;
         } else if (
