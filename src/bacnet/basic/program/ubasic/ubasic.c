@@ -422,14 +422,19 @@ static VARIABLE_TYPE ubasic_get_varnum(struct ubasic_data *data, uint8_t varnum)
 }
 
 #if defined(VARIABLE_TYPE_ARRAY)
-//
-// array additions: works only for VARIABLE_TYPE 32bit
-//  array storage:
-//    1st entry:   [ 31:16 , 15:0]
-//                  varnum   size
-//    entries 2 through size+1 are the array elements
-//  could work for 16bit values as well
-/*---------------------------------------------------------------------------*/
+/**
+ * @brief Allocate an array variable
+ * @param data Pointer to the ubasic data structure
+ * @param varnum The variable number
+ * @param newsize The new size of the array
+ * @note
+ *  array additions: works only for VARIABLE_TYPE 32bit
+ *  array storage:
+ *    1st entry:   [ 31:16 , 15:0]
+ *                  varnum   size
+ *    entries 2 through size+1 are the array elements
+ *  could work for 16bit values as well
+ */
 static void ubasic_dim_arrayvarnum(
     struct ubasic_data *data, uint8_t varnum, int16_t newsize)
 {
@@ -610,9 +615,11 @@ static void accept_cr(struct tokenizer_data *tree)
 /*---------------------------------------------------------------------------*/
 static uint8_t string_space_check(struct ubasic_data *data, uint16_t l)
 {
-    // returns true if not enough room for new string
+    /* returns true if not enough room for new string */
     uint8_t i;
-    i = ((MAX_BUFFERLEN - data->freebufptr) <= (l + 2)); // +2 to play it safe
+    i =
+        ((MAX_BUFFERLEN - data->freebufptr) <=
+         (l + 2)); /* +2 to play it safe */
     if (i) {
         data->status.bit.isRunning = 0;
         data->status.bit.Error = 1;
@@ -623,15 +630,15 @@ static uint8_t string_space_check(struct ubasic_data *data, uint16_t l)
 /*---------------------------------------------------------------------------*/
 static void clear_stringstack(struct ubasic_data *data)
 {
-    // if (!status.bit.stringstackModified )
-    // return;
+    /* if (!status.bit.stringstackModified ) */
+    /* return; */
 
     data->status.bit.stringstackModified = 0;
 
     int16_t bottom = 0;
     int16_t len = 0;
 
-    // find bottom of the stringstack skip allocated stringstack space
+    /* find bottom of the stringstack skip allocated stringstack space */
     while (*(data->stringstack + bottom) != 0) {
         bottom += strlen(strptr(data, bottom)) + 2;
         if (data->freebufptr == bottom) {
@@ -644,13 +651,13 @@ static void clear_stringstack(struct ubasic_data *data)
         len = strlen(strptr(data, top)) + 2;
 
         if (*(data->stringstack + top) > 0) {
-            // moving stuff down
+            /* moving stuff down */
             for (uint8_t i = 0; i <= len; i++) {
                 *(data->stringstack + bottom + i) =
                     *(data->stringstack + top + i);
             }
 
-            // update variable reference from top to bottom
+            /* update variable reference from top to bottom */
             data->stringvariables[*(data->stringstack + bottom) - 1] = bottom;
 
             bottom += len;
@@ -662,7 +669,7 @@ static void clear_stringstack(struct ubasic_data *data)
     return;
 }
 /*---------------------------------------------------------------------------*/
-// copy s1 at the end of stringstack and add a header
+/* copy s1 at the end of stringstack and add a header */
 static int16_t scpy(struct ubasic_data *data, char *s1)
 {
     if (!s1) {
@@ -691,8 +698,8 @@ static int16_t scpy(struct ubasic_data *data, char *s1)
 }
 
 /*---------------------------------------------------------------------------*/
-// return the concatenation of s1 and s2 in a string at the end
-// of the stringbuffer
+/* return the concatenation of s1 and s2 in a string at the end */
+/* of the stringbuffer */
 static int16_t sconcat(struct ubasic_data *data, char *s1, char *s2)
 {
     int16_t l1 = strlen(s1), l2 = strlen(s2);
@@ -702,18 +709,19 @@ static int16_t sconcat(struct ubasic_data *data, char *s1, char *s2)
     }
 
     int16_t rp = scpy(data, s1);
-    data->freebufptr -= 2; // last char in s1, will be overwritten by s2 header
+    data->freebufptr -=
+        2; /* last char in s1, will be overwritten by s2 header */
     int16_t fp = data->freebufptr;
     char dummy = *(data->stringstack + fp);
     scpy(data, s2);
-    *(data->stringstack + fp) = dummy; // overwrite s2 header
+    *(data->stringstack + fp) = dummy; /* overwrite s2 header */
     return (rp);
 }
 /*---------------------------------------------------------------------------*/
 static int16_t sleft(
     struct ubasic_data *data,
     char *s1,
-    int16_t l) // return the left l chars of s1
+    int16_t l) /* return the left l chars of s1 */
 {
     int16_t bp = data->freebufptr;
     int16_t rp = bp;
@@ -731,7 +739,7 @@ static int16_t sleft(
     if (strlen(s1) <= l) {
         return scpy(data, s1);
     } else {
-        // write header
+        /* write header */
         *(data->stringstack + bp) = 0;
         bp++;
         memcpy(data->stringstack + bp, s1, l);
@@ -746,7 +754,7 @@ static int16_t sleft(
 static int16_t sright(
     struct ubasic_data *data,
     char *s1,
-    int16_t l) // return the right l chars of s1
+    int16_t l) /* return the right l chars of s1 */
 {
     int16_t j = strlen(s1);
 
@@ -770,7 +778,7 @@ static int16_t smid(
     struct ubasic_data *data,
     char *s1,
     int16_t l1,
-    int16_t l2) // return the l2 chars of s1 starting at offset l1
+    int16_t l2) /* return the l2 chars of s1 starting at offset l1 */
 {
     int16_t bp = data->freebufptr;
     int16_t rp = bp;
@@ -806,7 +814,7 @@ static int16_t smid(
 /*---------------------------------------------------------------------------*/
 static int16_t sstr(
     struct ubasic_data *data,
-    VARIABLE_TYPE j) // return the integer j as a string
+    VARIABLE_TYPE j) /* return the integer j as a string */
 {
     int16_t bp = data->freebufptr;
     int16_t rp = bp;
@@ -829,7 +837,7 @@ static int16_t sstr(
 /*---------------------------------------------------------------------------*/
 static int16_t schr(
     struct ubasic_data *data,
-    VARIABLE_TYPE j) // return the character whose ASCII code is j
+    VARIABLE_TYPE j) /* return the character whose ASCII code is j */
 {
     int16_t bp = data->freebufptr;
     int16_t rp = bp;
@@ -853,8 +861,8 @@ static int16_t schr(
     return rp;
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t
-sinstr(uint16_t j, char *s, char *s1) // return the position of s1 in s (or 0)
+static uint8_t sinstr(
+    uint16_t j, char *s, char *s1) /* return the position of s1 in s (or 0) */
 {
     char *p;
     p = strstr(s + j, s1);
@@ -867,7 +875,7 @@ sinstr(uint16_t j, char *s, char *s1) // return the position of s1 in s (or 0)
 /*---------------------------------------------------------------------------*/
 static int16_t sfactor(struct ubasic_data *data)
 {
-    // string form of factor
+    /* string form of factor */
     int16_t r = 0, s = 0;
     char tmpstring[MAX_STRINGLEN];
     VARIABLE_TYPE i, j;
@@ -932,7 +940,7 @@ static int16_t sfactor(struct ubasic_data *data)
                 j = fixedpt_toint(j);
 #endif
             } else {
-                j = 999; // ensure we get all of it
+                j = 999; /* ensure we get all of it */
             }
             r = smid(data, strptr(data, s), i, j);
             accept(data, TOKENIZER_RIGHTPAREN);
@@ -971,7 +979,7 @@ static int16_t sfactor(struct ubasic_data *data)
 
 /*---------------------------------------------------------------------------*/
 
-static int16_t sexpr(struct ubasic_data *data) // string form of expr
+static int16_t sexpr(struct ubasic_data *data) /* string form of expr */
 {
     int16_t s1, s2;
     s1 = sfactor(data);
@@ -985,7 +993,8 @@ static int16_t sexpr(struct ubasic_data *data) // string form of expr
     return s1;
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t slogexpr(struct ubasic_data *data) // string logical expression
+static uint8_t
+slogexpr(struct ubasic_data *data) /* string logical expression */
 {
     int16_t s1, s2;
     uint8_t r = 0;
@@ -998,7 +1007,7 @@ static uint8_t slogexpr(struct ubasic_data *data) // string logical expression
     }
     return r;
 }
-// end of string additions
+/* end of string additions */
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -1168,13 +1177,13 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
         case TOKENIZER_AVERAGEW:
             accept(data, TOKENIZER_AVERAGEW);
             accept(data, TOKENIZER_LEFTPAREN);
-            // latest_reading
+            /* latest_reading */
             i = relation(data);
             accept(data, TOKENIZER_COMMA);
-            // previous_average
+            /* previous_average */
             j = relation(data);
             accept(data, TOKENIZER_COMMA);
-            // nsamples
+            /* nsamples */
             k = relation(data);
             r = fixedpt_averagew(i, j, k);
             accept(data, TOKENIZER_RIGHTPAREN);
@@ -1182,10 +1191,10 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
         case TOKENIZER_POWER:
             accept(data, TOKENIZER_POWER);
             accept(data, TOKENIZER_LEFTPAREN);
-            // argument:
+            /* argument: */
             i = relation(data);
             accept(data, TOKENIZER_COMMA);
-            // exponent
+            /* exponent */
             j = relation(data);
             r = fixedpt_pow(i, j);
             accept(data, TOKENIZER_RIGHTPAREN);
@@ -1288,7 +1297,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
         case TOKENIZER_PWM:
             accept(data, TOKENIZER_PWM);
             accept(data, TOKENIZER_LEFTPAREN);
-            // single argument: channel
+            /* single argument: channel */
             j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1311,7 +1320,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
         case TOKENIZER_AREAD:
             accept(data, TOKENIZER_AREAD);
             accept(data, TOKENIZER_LEFTPAREN);
-            // single argument: channel as hex value
+            /* single argument: channel as hex value */
             j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1363,7 +1372,7 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
         case TOKENIZER_BACNET_READ_PROPERTY:
             accept(data, TOKENIZER_BACNET_READ_PROPERTY);
             accept(data, TOKENIZER_LEFTPAREN);
-            // first argument: object type 0..1023
+            /* first argument: object type 0..1023 */
             j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1371,14 +1380,14 @@ static VARIABLE_TYPE factor(struct ubasic_data *data)
 #endif
             accept(data, TOKENIZER_COMMA);
             i = relation(data);
-            // second argument: instance 0..4194303
+            /* second argument: instance 0..4194303 */
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             i = fixedpt_toint(i);
 #endif
             accept(data, TOKENIZER_COMMA);
-            // property
-            // second argument: property 0..4194303
+            /* property */
+            /* second argument: property 0..4194303 */
             k = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1521,7 +1530,7 @@ static VARIABLE_TYPE relation(struct ubasic_data *data)
     return r1;
 }
 
-// TODO: error handling?
+/* TODO: error handling? */
 static uint8_t jump_label(struct ubasic_data *data, char *label)
 {
     char currLabel[MAX_LABEL_LEN] = { '\0' };
@@ -1558,10 +1567,10 @@ static void gosub_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_GOSUB);
     if (tokenizer_token(tree) == TOKENIZER_LABEL) {
-        // copy label
+        /* copy label */
         tokenizer_label(tree, tmpstring, MAX_STRINGLEN);
         tokenizer_next(tree);
-        // check for the end of line
+        /* check for the end of line */
         while (tokenizer_token(tree) == TOKENIZER_EOL) {
             tokenizer_next(tree);
         }
@@ -1586,7 +1595,7 @@ static void return_statement(struct ubasic_data *data)
     accept(data, TOKENIZER_RETURN);
     if (data->gosub_stack_ptr > 0) {
         data->gosub_stack_ptr--;
-        // jump_line(gosub_stack[gosub_stack_ptr]);
+        /* jump_line(gosub_stack[gosub_stack_ptr]); */
         tokenizer_jump_offset(tree, data->gosub_stack[data->gosub_stack_ptr]);
         return;
     }
@@ -1623,14 +1632,14 @@ static void pwm_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_PWM);
     accept(data, TOKENIZER_LEFTPAREN);
-    // first argument: channel
+    /* first argument: channel */
     j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     j = fixedpt_toint(j);
 #endif
     accept(data, TOKENIZER_COMMA);
-    // second argument: duty cycle
+    /* second argument: duty cycle */
     r = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1652,7 +1661,7 @@ static void pwmconf_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_PWMCONF);
     accept(data, TOKENIZER_LEFTPAREN);
-    // first argument: prescaler 0...
+    /* first argument: prescaler 0... */
     j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1660,7 +1669,7 @@ static void pwmconf_statement(struct ubasic_data *data)
 #endif
     accept(data, TOKENIZER_COMMA);
     r = relation(data);
-    // second argument: period
+    /* second argument: period */
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     r = fixedpt_toint(r);
@@ -1682,7 +1691,7 @@ static void areadconf_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_AREADCONF);
     accept(data, TOKENIZER_LEFTPAREN);
-    // first argument: sampletime 0...7 on STM32
+    /* first argument: sampletime 0...7 on STM32 */
     j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1693,7 +1702,7 @@ static void areadconf_statement(struct ubasic_data *data)
     }
     accept(data, TOKENIZER_COMMA);
     r = relation(data);
-    // second argument: number of analog sample to average from
+    /* second argument: number of analog sample to average from */
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     r = fixedpt_toint(r);
@@ -1712,21 +1721,21 @@ static void pinmode_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_PINMODE);
     accept(data, TOKENIZER_LEFTPAREN);
-    // channel
+    /* channel */
     i = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     i = fixedpt_toint(i);
 #endif
     accept(data, TOKENIZER_COMMA);
-    // mode
+    /* mode */
     j = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     j = fixedpt_toint(j);
 #endif
     accept(data, TOKENIZER_COMMA);
-    // speed
+    /* speed */
     r = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1778,7 +1787,7 @@ static void bac_create_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_BACNET_CREATE_OBJECT);
     accept(data, TOKENIZER_LEFTPAREN);
-    // first argument: object type 0..128
+    /* first argument: object type 0..128 */
     t = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1786,13 +1795,13 @@ static void bac_create_statement(struct ubasic_data *data)
 #endif
     accept(data, TOKENIZER_COMMA);
     id = relation(data);
-    // second argument: instance 0..4194303
+    /* second argument: instance 0..4194303 */
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     id = fixedpt_toint(id);
 #endif
     accept(data, TOKENIZER_COMMA);
-    // object name
+    /* object name */
     s = sexpr(data);
     bacnet_create_object(data, (uint16_t)t, (uint32_t)id, strptr(data, s));
     accept(data, TOKENIZER_RIGHTPAREN);
@@ -1806,7 +1815,7 @@ static void bac_write_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_BACNET_WRITE_PROPERTY);
     accept(data, TOKENIZER_LEFTPAREN);
-    // first argument: object type 0..128
+    /* first argument: object type 0..128 */
     t = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
@@ -1814,20 +1823,20 @@ static void bac_write_statement(struct ubasic_data *data)
 #endif
     accept(data, TOKENIZER_COMMA);
     id = relation(data);
-    // second argument: instance 0..4194303
+    /* second argument: instance 0..4194303 */
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     id = fixedpt_toint(id);
 #endif
     accept(data, TOKENIZER_COMMA);
-    // property
+    /* property */
     p = relation(data);
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
     p = fixedpt_toint(p);
 #endif
     accept(data, TOKENIZER_COMMA);
-    // value
+    /* value */
     v = relation(data);
     bacnet_write_property(
         data, (uint16_t)t, (uint32_t)id, (uint32_t)p, (int32_t)v);
@@ -1844,7 +1853,7 @@ static void print_statement(struct ubasic_data *data, uint8_t println)
     char tmpstring[MAX_STRINGLEN];
     struct tokenizer_data *tree = &data->tree;
 
-    // string additions
+    /* string additions */
     if (println) {
         accept(data, TOKENIZER_PRINTLN);
     } else {
@@ -1887,13 +1896,13 @@ static void print_statement(struct ubasic_data *data, uint8_t println)
 #endif
                 }
             }
-            // end of string additions
+            /* end of string additions */
         }
         serial_write_string(data, tmpstring);
     } while (tokenizer_token(tree) != TOKENIZER_EOL &&
              tokenizer_token(tree) != TOKENIZER_ENDOFINPUT);
 
-    // printf("\n");
+    /* printf("\n"); */
     if (println) {
         serial_write_string(data, "\n");
     }
@@ -1932,8 +1941,8 @@ static void if_statement(struct ubasic_data *data)
     }
 
     if (tokenizer_token(tree) == TOKENIZER_EOL) {
-        // Multi-line IF-Statement
-        // CR after then -> multiline IF-Statement
+        /* Multi-line IF-Statement */
+        /* CR after then -> multiline IF-Statement */
         if (data->if_stack_ptr < MAX_IF_STACK_DEPTH) {
             data->if_stack[data->if_stack_ptr] = r;
             data->if_stack_ptr++;
@@ -1948,9 +1957,9 @@ static void if_statement(struct ubasic_data *data)
             return;
         } else {
             else_cntr = endif_cntr =
-                0; // number of else/endif possible in current nesting
-            f_nt = f_sl =
-                0; // f_nt flag for additional next token, f_fs flag single line
+                0; /* number of else/endif possible in current nesting */
+            f_nt = f_sl = 0; /* f_nt flag for additional next token, f_fs flag
+                                single line */
 
             while (((tokenizer_token(tree) != TOKENIZER_ELSE &&
                      tokenizer_token(tree) != TOKENIZER_ENDIF) ||
@@ -1958,7 +1967,7 @@ static void if_statement(struct ubasic_data *data)
                    tokenizer_token(tree) != TOKENIZER_ENDOFINPUT) {
                 f_nt = 0;
 
-                // nested if
+                /* nested if */
                 if (tokenizer_token(tree) == TOKENIZER_IF) {
                     else_cntr += 1;
                     endif_cntr += 1;
@@ -2015,7 +2024,7 @@ static void if_statement(struct ubasic_data *data)
         }
         endif_statement(data);
     } else {
-        // Single-line IF-Statement
+        /* Single-line IF-Statement */
         if (r) {
             statement(data);
         } else {
@@ -2065,10 +2074,10 @@ static void else_statement(struct ubasic_data *data)
                 }
                 if (tokenizer_token(tree) == TOKENIZER_THEN) {
                     tokenizer_next(tree);
-                    // then followed by CR -> multi line
+                    /* then followed by CR -> multi line */
                     if (tokenizer_token(tree) == TOKENIZER_EOL) {
                         f_nt = 1;
-                    } else { // single line
+                    } else { /* single line */
                         endif_cntr--;
                         while (tokenizer_token(tree) != TOKENIZER_ENDIF &&
                                tokenizer_token(tree) != TOKENIZER_EOL &&
@@ -2114,7 +2123,7 @@ static void let_statement(struct ubasic_data *data)
         }
     }
 #if defined(VARIABLE_TYPE_STRING)
-    // string additions here
+    /* string additions here */
     else if (tokenizer_token(tree) == TOKENIZER_STRINGVARIABLE) {
         varnum = tokenizer_variable_num(tree);
         accept(data, TOKENIZER_STRINGVARIABLE);
@@ -2122,7 +2131,7 @@ static void let_statement(struct ubasic_data *data)
             ubasic_set_stringvariable(data, varnum, sexpr(data));
         }
     }
-    // end of string additions
+    /* end of string additions */
 #endif
 #if defined(VARIABLE_TYPE_ARRAY)
     else if (tokenizer_token(tree) == TOKENIZER_ARRAYVARIABLE) {
@@ -2154,7 +2163,7 @@ static void dim_statement(struct ubasic_data *data)
     uint8_t varnum = tokenizer_variable_num(tree);
     accept(data, TOKENIZER_ARRAYVARIABLE);
 
-    //   accept(data, TOKENIZER_LEFTPAREN);
+    /*   accept(data, TOKENIZER_LEFTPAREN); */
     size = relation(data);
 
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
@@ -2164,10 +2173,10 @@ static void dim_statement(struct ubasic_data *data)
 
     ubasic_dim_arrayvarnum(data, varnum, size);
 
-    //   accept(data, TOKENIZER_RIGHTPAREN);
+    /*   accept(data, TOKENIZER_RIGHTPAREN); */
     accept_cr(tree);
 
-    // end of array additions
+    /* end of array additions */
 }
 #endif
 
@@ -2189,7 +2198,7 @@ static void next_statement(struct ubasic_data *data)
              (value <= data->for_stack[data->for_stack_ptr - 1].to)) ||
             ((data->for_stack[data->for_stack_ptr - 1].step < 0) &&
              (value >= data->for_stack[data->for_stack_ptr - 1].to))) {
-            // jump_line(for_stack[for_stack_ptr - 1].line_after_for);
+            /* jump_line(for_stack[for_stack_ptr - 1].line_after_for); */
             tokenizer_jump_offset(
                 tree, data->for_stack[data->for_stack_ptr - 1].line_after_for);
         } else {
@@ -2233,7 +2242,7 @@ static void for_statement(struct ubasic_data *data)
     accept_cr(tree);
 
     if (data->for_stack_ptr < MAX_FOR_STACK_DEPTH) {
-        // for_stack[for_stack_ptr].line_after_for = tokenizer_line_number();
+        /* for_stack[for_stack_ptr].line_after_for = tokenizer_line_number(); */
         data->for_stack[data->for_stack_ptr].line_after_for =
             tokenizer_save_offset(tree);
         data->for_stack[data->for_stack_ptr].for_variable = for_variable;
@@ -2320,13 +2329,13 @@ static void input_statement_wait(struct ubasic_data *data)
         data->input_type = 0;
     }
 #if defined(VARIABLE_TYPE_STRING)
-    // string additions here
+    /* string additions here */
     else if (tokenizer_token(tree) == TOKENIZER_STRINGVARIABLE) {
         data->input_varnum = tokenizer_variable_num(tree);
         accept(data, TOKENIZER_STRINGVARIABLE);
         data->input_type = 1;
     }
-// end of string additions
+/* end of string additions */
 #endif
 #if defined(VARIABLE_TYPE_ARRAY)
     else if (tokenizer_token(tree) == TOKENIZER_ARRAYVARIABLE) {
@@ -2344,10 +2353,10 @@ static void input_statement_wait(struct ubasic_data *data)
     }
 #endif
 
-    // get next token:
-    //    CR
-    // or
-    //    , timeout
+    /* get next token: */
+    /*    CR */
+    /* or */
+    /*    , timeout */
     if (tokenizer_token(tree) == TOKENIZER_COMMA) {
         accept(data, TOKENIZER_COMMA);
         VARIABLE_TYPE r = relation(data);
@@ -2367,8 +2376,8 @@ static void input_statement_wait(struct ubasic_data *data)
 
 static void serial_getline_completed(struct ubasic_data *data)
 {
-    // process if something has been received.
-    // otherwise leave the variable content unchanged.
+    /* process if something has been received. */
+    /* otherwise leave the variable content unchanged. */
     if (strlen(data->statement) > 0) {
         if ((data->input_type == 0)
 #if defined(VARIABLE_TYPE_ARRAY)
@@ -2379,7 +2388,7 @@ static void serial_getline_completed(struct ubasic_data *data)
             if ((data->input_how == 1) || (data->input_how == 2)) {
                 r = atoi(data->statement);
             } else {
-                // process number
+                /* process number */
 #if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
                 r = str_fixedpt(
@@ -2419,7 +2428,7 @@ static void while_statement(struct ubasic_data *data)
     uint16_t while_offset;
     struct tokenizer_data *tree = &data->tree;
 
-    // this is where we jump to after 'endwhile'
+    /* this is where we jump to after 'endwhile' */
     while_offset = tokenizer_save_offset(tree);
     accept(data, TOKENIZER_WHILE);
     if (data->while_stack_ptr == MAX_WHILE_STACK_DEPTH) {
@@ -2427,13 +2436,13 @@ static void while_statement(struct ubasic_data *data)
         data->status.bit.isRunning = 0;
         data->status.bit.Error = 1;
     }
-    // this makes sure that the jump to the same while is ignored
+    /* this makes sure that the jump to the same while is ignored */
     if ((data->while_stack_ptr == 0) ||
         ((data->while_stack_ptr > 0) &&
          (data->while_stack[data->while_stack_ptr - 1].line_while !=
           while_offset))) {
         data->while_stack[data->while_stack_ptr].line_while = while_offset;
-        // we don't know it yet
+        /* we don't know it yet */
         data->while_stack[data->while_stack_ptr].line_after_endwhile = -1;
         data->while_stack_ptr++;
     }
@@ -2453,14 +2462,14 @@ static void while_statement(struct ubasic_data *data)
     }
 
     if (data->while_stack[data->while_stack_ptr - 1].line_after_endwhile > 0) {
-        // we have traversed while loop once to its end already.
-        // thus we know where the loop ends. we just use that to jump there.
+        /* we have traversed while loop once to its end already. */
+        /* thus we know where the loop ends. we just use that to jump there. */
         tokenizer_jump_offset(
             tree,
             data->while_stack[data->while_stack_ptr - 1].line_after_endwhile);
     } else {
-        // first time the loop is entered the condition is not satisfied,
-        // so we gobble the lines until we reach the matching endwhile
+        /* first time the loop is entered the condition is not satisfied, */
+        /* so we gobble the lines until we reach the matching endwhile */
         while_cntr = 0;
         while ((tokenizer_token(tree) != TOKENIZER_ENDWHILE || while_cntr) &&
                (tokenizer_token(tree) != TOKENIZER_ENDOFINPUT)) {
@@ -2486,7 +2495,7 @@ static void endwhile_statement(struct ubasic_data *data)
 
     accept(data, TOKENIZER_ENDWHILE);
     if (data->while_stack_ptr > 0) {
-        // jump_line(while_stack[while_stack_ptr-1]);
+        /* jump_line(while_stack[while_stack_ptr-1]); */
         if (data->while_stack[data->while_stack_ptr - 1].line_after_endwhile ==
             -1) {
             data->while_stack[data->while_stack_ptr - 1].line_after_endwhile =
@@ -2677,9 +2686,9 @@ static void statement(struct ubasic_data *data)
             accept(data, TOKENIZER_LET); /* Fall through: Nothing to do! */
         case TOKENIZER_VARIABLE:
 #if defined(VARIABLE_TYPE_STRING)
-        // string addition
+        /* string addition */
         case TOKENIZER_STRINGVARIABLE:
-            // end of string addition
+            /* end of string addition */
 #endif
 #if defined(VARIABLE_TYPE_ARRAY)
         case TOKENIZER_ARRAYVARIABLE:
@@ -2832,9 +2841,9 @@ int32_t ubasic_run_program(struct ubasic_data *data)
     }
 #endif
 #if defined(VARIABLE_TYPE_STRING)
-    // string additions
+    /* string additions */
     clear_stringstack(data);
-    // end of string additions
+    /* end of string additions */
 #endif
     if (ubasic_program_finished(data)) {
         if (data->status.bit.Error == 1) {
@@ -3020,15 +3029,15 @@ VARIABLE_TYPE ubasic_get_variable(struct ubasic_data *data, char variable)
 }
 
 #if defined(VARIABLE_TYPE_STRING)
-//
-// string additions
-//
+/* */
+/* string additions */
+/* */
 /*---------------------------------------------------------------------------*/
 void ubasic_set_stringvariable(
     struct ubasic_data *data, uint8_t svarnum, int16_t svalue)
 {
     if (svarnum < MAX_SVARNUM) {
-        // was it previously allocated?
+        /* was it previously allocated? */
         if (data->stringvariables[svarnum] > -1) {
             *(data->stringstack + data->stringvariables[svarnum]) = 0;
         }
@@ -3067,9 +3076,9 @@ int16_t ubasic_get_stringvariable(struct ubasic_data *data, uint8_t varnum)
 
     return (-1);
 }
-//
-// end of string additions
-//
+/* */
+/* end of string additions */
+/* */
 #endif
 
 #if defined(VARIABLE_TYPE_ARRAY)

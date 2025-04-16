@@ -44,7 +44,7 @@ struct keyword_token {
 
 static const struct keyword_token keywords[] = {
 #if defined(VARIABLE_TYPE_STRING)
-    // new string-related statements and functions
+    /* new string-related statements and functions */
     { "left$", TOKENIZER_LEFT_STR },
     { "right$", TOKENIZER_RIGHT_STR },
     { "mid$", TOKENIZER_MID_STR },
@@ -55,7 +55,7 @@ static const struct keyword_token keywords[] = {
     { "instr", TOKENIZER_INSTR },
     { "asc", TOKENIZER_ASC },
 #endif
-    // end of string additions
+    /* end of string additions */
     { "let ", TOKENIZER_LET },
     { "println ", TOKENIZER_PRINTLN },
     { "print ", TOKENIZER_PRINT },
@@ -224,7 +224,7 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
     const struct keyword_token *kt;
     uint8_t i, j;
 
-    // eat all whitespace
+    /* eat all whitespace */
     while (*tree->ptr == ' ' || *tree->ptr == '\t' || *tree->ptr == '\r') {
         tree->ptr++;
     }
@@ -236,7 +236,7 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
     uint8_t have_decdot = 0, i_dot = 0;
     if ((tree->ptr[0] == '0') &&
         ((tree->ptr[1] == 'x') || (tree->ptr[1] == 'X'))) {
-        // is it HEX
+        /* is it HEX */
         tree->nextptr = tree->ptr + 2;
         while (1) {
             if (*tree->nextptr >= '0' && *tree->nextptr <= '9') {
@@ -256,17 +256,15 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
     } else if (
         (tree->ptr[0] == '0') &&
         ((tree->ptr[1] == 'b') || (tree->ptr[1] == 'B'))) {
-        // is it BIN
+        /* is it BIN */
         tree->nextptr = tree->ptr + 2;
         while (*tree->nextptr == '0' || *tree->nextptr == '1') {
             tree->nextptr++;
         }
         return TOKENIZER_INT;
     } else if (isdigit(*tree->ptr) || (*tree->ptr == '.')) {
-        // is it
-        //    FLOAT (digits with at most one decimal point)
-        // or is it
-        //    DEC (digits without decimal point which ends in d,D,L,l)
+        /* is it FLOAT (digits with at most one decimal point) */
+        /* is it DEC (digits without decimal point which ends in d,D,L,l) */
         tree->nextptr = tree->ptr;
         have_decdot = 0;
         i_dot = 0;
@@ -395,7 +393,7 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
 #if defined(VARIABLE_TYPE_STRING)
 int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
 {
-    // return 1 (true) if next 'defining' token is string not integer
+    /* return 1 (true) if next 'defining' token is string not integer */
     const char *saveptr = tree->ptr;
     const char *savenextptr = tree->nextptr;
     uint8_t token = tree->current_token;
@@ -407,7 +405,7 @@ int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
         } else if (
             token == TOKENIZER_NUMBER || token == TOKENIZER_VARIABLE ||
             token == TOKENIZER_FLOAT) {
-            si = 0; // number or numeric var
+            si = 0; /* number or numeric var */
         } else if (token == TOKENIZER_PLUS) {
             /* do nothing */
         } else if (token == TOKENIZER_STRING) {
@@ -416,7 +414,7 @@ int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
             token >= TOKENIZER_STRINGVARIABLE && token <= TOKENIZER_CHR_STR) {
             si = 1;
         } else if (token > TOKENIZER_CHR_STR) {
-            si = 0; // numeric function
+            si = 0; /* numeric function */
         }
 
         token = tokenizer_next_token(tree);
@@ -489,13 +487,13 @@ VARIABLE_TYPE tokenizer_int(struct tokenizer_data *tree)
             }
             if ((*c >= 'a') && (*c <= 'f')) {
                 rval <<= 4;
-                rval += (*c - 87); // 87 = 'a' - 10
+                rval += (*c - 87); /* 87 = 'a' - 10 */
                 c++;
                 continue;
             }
             if ((*c >= 'A') && (*c <= 'F')) {
                 rval <<= 4;
-                rval += (*c - 55); // 55 = 'A' - 10
+                rval += (*c - 55); /* 55 = 'A' - 10 */
                 c++;
                 continue;
             }

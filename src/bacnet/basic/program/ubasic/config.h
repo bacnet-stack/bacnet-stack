@@ -34,9 +34,7 @@
 #include <ctype.h>
 #include <stdio.h>
 
-//
-// Undef it all
-//
+/* Undef it all */
 
 /* Storage and arithmetic */
 #undef VARIABLE_STORAGE_INT16

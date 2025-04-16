@@ -147,17 +147,17 @@ str_fixedpt(const char *p, uint8_t plen, uint8_t decimal_places)
 
     fixedpt rval = fixedpt_fromint(atoi(p));
 
-    // find '.': the number is float because it has at least one
-    // digit past decimal point
+    /* find '.': the number is float because it has at least one */
+    /* digit past decimal point */
     const char *s = p;
     while ((*s != '.') && ((s - p) < plen)) {
         s++;
     }
     s++;
 
-    // are there any digits left past decimal point
+    /* are there any digits left past decimal point */
     if ((s - p) < plen) {
-        // pick up not more then 'decimal_places':
+        /* pick up not more then 'decimal_places': */
         uint16_t f = 0, fpow10 = 1;
         uint8_t idec = 0;
         while (((s - p) < plen) && isdigit(*s) && (idec < decimal_places)) {
@@ -379,7 +379,11 @@ static inline fixedpt fixedpt_exp(fixedpt fp)
     return (fixedpt_mul(k, xp));
 }
 
-/* Returns the natural logarithm of the given fixedpt number. */
+/**
+ * @brief Returns the natural logarithm of the given fixedpt number.
+ * @param x The number.
+ * @return the natural logarithm of the given fixedpt number.
+ */
 static inline fixedpt fixedpt_ln(fixedpt x)
 {
     fixedpt log2, xi;
@@ -420,13 +424,23 @@ static inline fixedpt fixedpt_ln(fixedpt x)
         fixedpt_mul(LN2, (log2 << FIXEDPT_FBITS)) + f - fixedpt_mul(s, f - R));
 }
 
-/* Returns the logarithm of the given base of the given fixedpt number */
+/**
+ * @brief Returns the logarithm of the given base of the given fixedpt number
+ * @param x The number.
+ * @param base The base.
+ * @return the logarithm of the given base of the given fixedpt number
+ */
 static inline fixedpt fixedpt_log(fixedpt x, fixedpt base)
 {
     return (fixedpt_div(fixedpt_ln(x), fixedpt_ln(base)));
 }
 
-/* Return the power value (n^exp) of the given fixedpt numbers */
+/**
+ * @brief Return the power value (n^exp) of the given fixedpt numbers
+ * @param n The base.
+ * @param exp The exponent.
+ * @return The power value.
+ */
 static inline fixedpt fixedpt_pow(fixedpt n, fixedpt exp)
 {
     if (exp == 0) {
@@ -440,8 +454,17 @@ static inline fixedpt fixedpt_pow(fixedpt n, fixedpt exp)
     return (fixedpt_exp(fixedpt_mul(fixedpt_ln(n), exp)));
 }
 
-/* Return a weighted moving average.
-   AN+1 = (XN+1 + N * AN)/(N+1) */
+/**
+ * @brief Return a weighted moving average.
+ * @param latest_reading The latest reading.
+ * @param previous_average The previous average.
+ * @param nsamples The number of samples.
+ * @return The weighted moving average.
+ * @note The formula used is:
+ * AN+1 = (XN+1 + N * AN)/(N+1)
+ * where XN+1 is the latest reading, AN is the previous average, and N is the
+ * number of samples.
+ */
 static inline fixedpt fixedpt_averagew(
     fixedpt latest_reading, fixedpt previous_average, fixedpt nsamples)
 {
@@ -464,7 +487,7 @@ static inline fixedpt fixedpt_averagew(
  */
 static inline fixedpt fixedpt_fracpart_round(fixedpt A, int max_dec)
 {
-    // Extract the fractional part
+    /* Extract the fractional part */
     fixedpt frac = fixedpt_fracpart(A);
 
     /* allow -1 or other negative to default to a fixed number of places */
@@ -478,7 +501,7 @@ static inline fixedpt fixedpt_fracpart_round(fixedpt A, int max_dec)
 #endif
     }
 
-    // Scale the fractional part to the desired decimal places
+    /* Scale the fractional part to the desired decimal places */
     fixedpt scale = fixedpt_fromint(1);
     for (int i = 0; i < max_dec; i++) {
         scale = fixedpt_mul(scale, fixedpt_fromint(10));
@@ -499,7 +522,7 @@ static inline int fixedpt_fracpart_ceil_toint(fixedpt A, int max_dec)
 {
     fixedpt scaled_frac = fixedpt_fracpart_round(A, max_dec);
 
-    // Add 0.5 (scaled) for rounding
+    /* Add 0.5 (scaled) for rounding */
     scaled_frac = fixedpt_add(scaled_frac, FIXEDPT_ONE_HALF);
 
     return fixedpt_toint(scaled_frac);

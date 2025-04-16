@@ -152,7 +152,7 @@ struct ubasic_data {
     struct ubasic_mstimer sleep_timer;
 #endif
 
-// API for hardware drivers
+/* API for hardware drivers */
 #if defined(UBASIC_SCRIPT_HAVE_PWM_CHANNELS)
     void (*pwm_config)(uint16_t psc, uint16_t per);
     void (*pwm_write)(uint8_t ch, int32_t dutycycle);

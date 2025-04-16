@@ -51,7 +51,7 @@ enum {
 #endif
     /*4*/ TOKENIZER_VARIABLE,
 #if defined(VARIABLE_TYPE_STRING)
-    // string additions - must be here and in this order
+    /* string additions - must be here and in this order */
     /*5*/ TOKENIZER_STRINGVARIABLE,
     /*6*/ TOKENIZER_PRINT_STR,
     /*7*/ TOKENIZER_LEFT_STR,
@@ -95,9 +95,9 @@ enum {
     /*44*/ TOKENIZER_GT,
     /*45*/ TOKENIZER_EQ,
     /*46*/ TOKENIZER_EOL,
-    //
-    // Plus : Start
-    //
+    /* */
+    /* Plus : Start */
+    /* */
     /*47*/ TOKENIZER_NE,
     /*48*/ TOKENIZER_GE,
     /*49*/ TOKENIZER_LE,
@@ -172,9 +172,9 @@ enum {
     /*92*/ TOKENIZER_BACNET_WRITE_PROPERTY,
 #endif
     /*93*/ TOKENIZER_CLEAR,
-    //
-    // Plus: End
-    //
+    /* */
+    /* Plus: End */
+    /* */
 };
 
 struct tokenizer_data {
