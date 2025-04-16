@@ -15,9 +15,19 @@ The git repositories are hosted at the following sites:
 ## [Unreleased]
 
 ### Security
+
 ### Added
+
+* Added uBASIC-Plus program object example to STM32F4xx. (#967)
+* Added guards in create object initialization to prevent memory leaks. (#965)
+
 ### Changed
+
+* Improved mirror script debugging (#968)
+* Changed dlenv to support multiple datalinks via environment variable. (#966)
+
 ### Fixed
+
 ### Removed
 
 ## [1.4.1] - 2025-04-11
