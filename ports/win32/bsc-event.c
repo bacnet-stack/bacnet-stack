@@ -15,6 +15,7 @@
 
 #define DEBUG_BSC_EVENT 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_BSC_EVENT == 1
 #define DEBUG_PRINTF printf
 #else

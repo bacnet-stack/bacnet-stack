@@ -30,6 +30,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
     add_compile_options(-Wno-sign-compare)
+    add_compile_options(-Wno-implicit-fallthrough)
 
     # Just noise from clang
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
@@ -43,6 +44,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-missing-declarations)
     add_compile_options(-Wno-unused-but-set-variable)
     add_compile_options(-Wno-write-strings)
+    add_compile_options(-Wno-implicit-fallthrough)
 
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
@@ -173,6 +175,8 @@ list(APPEND testdirs
   bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
   bacnet/basic/object/trendlog
+  # basic/program
+  bacnet/basic/program/ubasic
   # basic/sys
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days

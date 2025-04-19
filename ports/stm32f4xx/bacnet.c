@@ -1,15 +1,16 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief BACnet stack initialization and task processing
+ * @author Steve Karg
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdint.h>
 #include <stdbool.h>
 /* hardware layer includes */
 #include "bacnet/basic/sys/mstimer.h"
 #include "rs485.h"
+#include "program-ubasic.h"
 /* BACnet Stack includes */
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"
@@ -20,15 +21,8 @@
 #include "bacnet/iam.h"
 /* BACnet objects */
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/ai.h"
-#include "bacnet/basic/object/ao.h"
-#include "bacnet/basic/object/av.h"
-#include "bacnet/basic/object/bi.h"
-#include "bacnet/basic/object/bo.h"
-#include "bacnet/basic/object/bv.h"
-#include "bacnet/basic/object/ms-input.h"
-#include "bacnet/basic/object/mso.h"
-#include "bacnet/basic/object/msv.h"
+#include "bacnet/basic/object/program.h"
+#include "bacnet/basic/program/ubasic/ubasic.h"
 /* me */
 #include "bacnet.h"
 
@@ -38,69 +32,14 @@ static struct mstimer DCC_Timer;
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
 
-#ifndef BACNET_ANALOG_INPUTS_MAX
-#define BACNET_ANALOG_INPUTS_MAX 12
-#endif
-#ifndef BACNET_ANALOG_OUTPUTS_MAX
-#define BACNET_ANALOG_OUTPUTS_MAX 12
-#endif
-#ifndef BACNET_ANALOG_VALUES_MAX
-#define BACNET_ANALOG_VALUES_MAX 12
-#endif
-#ifndef BACNET_BINARY_INPUTS_MAX
-#define BACNET_BINARY_INPUTS_MAX 12
-#endif
-#ifndef BACNET_BINARY_OUTPUTS_MAX
-#define BACNET_BINARY_OUTPUTS_MAX 12
-#endif
-#ifndef BACNET_BINARY_VALUES_MAX
-#define BACNET_BINARY_VALUES_MAX 12
-#endif
-#ifndef BACNET_MULTISTATE_INPUTS_MAX
-#define BACNET_MULTISTATE_INPUTS_MAX 12
-#endif
-#ifndef BACNET_MULTISTATE_OUTPUTS_MAX
-#define BACNET_MULTISTATE_OUTPUTS_MAX 12
-#endif
-#ifndef BACNET_MULTISTATE_VALUES_MAX
-#define BACNET_MULTISTATE_VALUES_MAX 12
-#endif
-
 /**
  * @brief Initialize the BACnet device object, the service handlers, and timers
  */
 void bacnet_init(void)
 {
-    uint32_t instance;
     /* initialize objects */
     Device_Init(NULL);
-    for (instance = 1; instance <= BACNET_ANALOG_INPUTS_MAX; instance++) {
-        Analog_Input_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_ANALOG_OUTPUTS_MAX; instance++) {
-        Analog_Output_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_ANALOG_VALUES_MAX; instance++) {
-        Analog_Value_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_BINARY_INPUTS_MAX; instance++) {
-        Binary_Input_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_BINARY_OUTPUTS_MAX; instance++) {
-        Binary_Output_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_BINARY_VALUES_MAX; instance++) {
-        Binary_Value_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_MULTISTATE_INPUTS_MAX; instance++) {
-        Multistate_Input_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_MULTISTATE_OUTPUTS_MAX; instance++) {
-        Multistate_Output_Create(instance);
-    }
-    for (instance = 1; instance <= BACNET_MULTISTATE_VALUES_MAX; instance++) {
-        Multistate_Value_Create(instance);
-    }
+    Program_UBASIC_Init(BACNET_MAX_INSTANCE);
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
@@ -118,12 +57,12 @@ void bacnet_init(void)
         SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     /* local time and date */
     apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        handler_timesync);
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
     handler_timesync_set_callback_set(datetime_timesync);
     datetime_init();
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
@@ -154,6 +93,7 @@ void bacnet_task(void)
         mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
     }
+    Program_UBASIC_Task();
     /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
     if (pdu_len) {
