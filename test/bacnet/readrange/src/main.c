@@ -30,6 +30,17 @@ static const char *read_range_request_type(int type)
     }
 }
 
+static int
+testlist_item_encode(uint32_t object_instance, uint32_t item, uint8_t *apdu)
+{
+    int apdu_len = 0;
+
+    apdu_len += encode_application_unsigned(apdu, object_instance);
+    apdu_len += encode_application_unsigned(apdu, item);
+
+    return apdu_len;
+}
+
 /**
  * @brief Test
  */
@@ -153,6 +164,18 @@ static void testReadRangeUnit(BACNET_READ_RANGE_DATA *data)
     zassert_equal(test_data.object_instance, data->object_instance, NULL);
     zassert_equal(test_data.object_property, data->object_property, NULL);
     zassert_equal(test_data.array_index, data->array_index, NULL);
+    if (data->RequestType == RR_BY_POSITION) {
+        test_len = readrange_ack_by_position_encode(
+            data, testlist_item_encode, 5, apdu, sizeof(apdu));
+        zassert_not_equal(test_len, 0, NULL);
+    } else if (data->RequestType == RR_BY_SEQUENCE) {
+        test_len = readrange_ack_by_sequence_encode(
+            data, testlist_item_encode, 5, 1200, apdu, sizeof(apdu));
+        zassert_not_equal(test_len, 0, NULL);
+        test_len = readrange_ack_by_sequence_encode(
+            data, testlist_item_encode, 5, 5, apdu, sizeof(apdu));
+        zassert_not_equal(test_len, 0, NULL);
+    }
     while (apdu_len) {
         apdu_len--;
         test_len = rr_decode_service_request(&apdu[0], apdu_len, &test_data);
