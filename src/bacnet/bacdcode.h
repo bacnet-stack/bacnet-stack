@@ -162,6 +162,8 @@ BACNET_STACK_EXPORT
 int encode_application_null(uint8_t *apdu);
 BACNET_STACK_EXPORT
 int encode_context_null(uint8_t *apdu, uint8_t tag_number);
+BACNET_STACK_EXPORT
+int bacnet_null_application_decode(const uint8_t *apdu, uint32_t apdu_size);
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
 BACNET_STACK_EXPORT
@@ -184,11 +186,14 @@ int bacnet_boolean_application_encode(
     uint8_t *apdu, uint32_t apdu_size, bool value);
 BACNET_STACK_EXPORT
 int bacnet_boolean_application_decode(
-    const uint8_t *apdu, uint32_t apdu_len_max, bool *value);
+    const uint8_t *apdu, uint32_t apdu_size, bool *value);
+BACNET_STACK_EXPORT
+int bacnet_boolean_context_value_decode(
+    const uint8_t *apdu, uint32_t apdu_size, bool *boolean_value);
 BACNET_STACK_EXPORT
 int bacnet_boolean_context_decode(
     const uint8_t *apdu,
-    uint32_t apdu_len_max,
+    uint32_t apdu_size,
     uint8_t tag_value,
     bool *boolean_value);
 

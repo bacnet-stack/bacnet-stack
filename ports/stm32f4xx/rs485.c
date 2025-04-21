@@ -24,36 +24,36 @@
 #include "rs485.h"
 
 #ifndef RS485_LINKSPRITE_ENABLED
-    #ifndef RS485_DFR0259_ENABLED
-        #define RS485_DFR0259_ENABLED 1
-    #endif
+#ifndef RS485_DFR0259_ENABLED
+#define RS485_DFR0259_ENABLED 1
+#endif
 #endif
 
 #if defined(RS485_DFR0259_ENABLED) || defined(RS485_LINKSPRITE_ENABLED)
-    /* DFR0259 RS485 Shield - TXD=PG14, RXD=PG9, USART6 */
-    #define RS485_USARTx      USART6
-    #define RS485_NVIC_IRQ    USART6_IRQn
-    #define RS485_USARTx_ISR  USART6_IRQHandler
-    #define RS485_USARTx_RCC  RCC_APB2Periph_USART6
-    #define RS485_GPIO_RCC    RCC_AHB1Periph_GPIOG
-    #define RS485_GPIO_PINS   GPIO_Pin_9 | GPIO_Pin_14
-    #define RS485_GPIO        GPIOG
-    /* alternate function (AF) */
-    #define RS485_AF_PINSOURCE_RX GPIO_PinSource9
-    #define RS485_AF_PINSOURCE_TX GPIO_PinSource14
-    #define RS485_AF_FUNCTION     GPIO_AF_USART6
+/* DFR0259 RS485 Shield - TXD=PG14, RXD=PG9, USART6 */
+#define RS485_USARTx USART6
+#define RS485_NVIC_IRQ USART6_IRQn
+#define RS485_USARTx_ISR USART6_IRQHandler
+#define RS485_USARTx_RCC RCC_APB2Periph_USART6
+#define RS485_GPIO_RCC RCC_AHB1Periph_GPIOG
+#define RS485_GPIO_PINS GPIO_Pin_9 | GPIO_Pin_14
+#define RS485_GPIO GPIOG
+/* alternate function (AF) */
+#define RS485_AF_PINSOURCE_RX GPIO_PinSource9
+#define RS485_AF_PINSOURCE_TX GPIO_PinSource14
+#define RS485_AF_FUNCTION GPIO_AF_USART6
 #endif
 #if defined(RS485_DFR0259_ENABLED)
-    /* DFR0259 RS485 Shield - CE=PF15 */
-    #define RS485_RTS_RCC     RCC_AHB1Periph_GPIOF
-    #define RS485_RTS_PIN     GPIO_Pin_15
-    #define RS485_RTS_GPIO    GPIOF
+/* DFR0259 RS485 Shield - CE=PF15 */
+#define RS485_RTS_RCC RCC_AHB1Periph_GPIOF
+#define RS485_RTS_PIN GPIO_Pin_15
+#define RS485_RTS_GPIO GPIOF
 #endif
 #if defined(RS485_LINKSPRITE_ENABLED)
-    /* LINKSPRITE RS485 Shield - CE=PD15 */
-    #define RS485_RTS_RCC     RCC_AHB1Periph_GPIOD
-    #define RS485_RTS_PIN     GPIO_Pin_15
-    #define RS485_RTS_GPIO    GPIOD
+/* LINKSPRITE RS485 Shield - CE=PD15 */
+#define RS485_RTS_RCC RCC_AHB1Periph_GPIOD
+#define RS485_RTS_PIN GPIO_Pin_15
+#define RS485_RTS_GPIO GPIOD
 #endif
 
 /* buffer for storing received bytes - size must be power of two */
@@ -305,9 +305,11 @@ void rs485_init(void)
     NVIC_InitTypeDef NVIC_InitStructure;
 
     /* initialize the Rx and Tx byte queues */
-    FIFO_Init(&Receive_Queue, &Receive_Queue_Data[0],
+    FIFO_Init(
+        &Receive_Queue, &Receive_Queue_Data[0],
         (unsigned)sizeof(Receive_Queue_Data));
-    FIFO_Init(&Transmit_Queue, &Transmit_Queue_Data[0],
+    FIFO_Init(
+        &Transmit_Queue, &Transmit_Queue_Data[0],
         (unsigned)sizeof(Transmit_Queue_Data));
 
     /* Enable GPIOx clock */

@@ -59,12 +59,12 @@ repos:
   #     - id: prettier
 
   - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: 3a6eb0fadf60b3cccfd80bad9dbb6fae7e47b316 # v1.10.0
+    rev: v1.10.0 # v1.10.0
     hooks:
       - id: text-unicode-replacement-char
 
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 1c48f639855b49be07ace8b824757152b6747baa #2.6.2
+    rev: 3.2.0 #2.6.2
     hooks:
       - id: editorconfig-checker
         alias: ec

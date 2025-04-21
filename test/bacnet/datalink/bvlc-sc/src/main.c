@@ -2770,7 +2770,9 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
     const char *err_desc = NULL;
 
     web_socket_uris[0] = 0;
-    sprintf(web_socket_uris, "%s %s", "web_socket_uri1", "web_socket_uri2");
+    snprintf(
+        web_socket_uris, sizeof(web_socket_uris), "%s %s", "web_socket_uri1",
+        "web_socket_uri2");
     memset(&origin.address, 0x91, BVLC_SC_VMAC_SIZE);
     memset(&dest.address, 0xef, BVLC_SC_VMAC_SIZE);
 

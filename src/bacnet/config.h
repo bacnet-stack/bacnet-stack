@@ -134,7 +134,9 @@
 #if !defined(MAX_APDU)
 /* #define MAX_APDU 50 */
 /* #define MAX_APDU 1476 */
-#if defined(BACDL_BIP)
+#if defined(BACDL_MULTIPLE)
+#define MAX_APDU 1476
+#elif defined(BACDL_BIP)
 #define MAX_APDU 1476
 /* Enable this IP for testing readrange so you get the More Follows flag set */
 /* #define MAX_APDU 128 */
@@ -157,7 +159,6 @@
 #endif
 #endif
 
-#if defined(BACDL_BSC)
 #ifndef SC_NETPORT_BVLC_MAX
 #define SC_NETPORT_BVLC_MAX 1500
 #endif
@@ -175,7 +176,6 @@
 #endif
 #ifndef SC_NETPORT_RECONNECT_TIME
 #define SC_NETPORT_RECONNECT_TIME 2
-#endif
 #endif
 
 /* for confirmed messages, this is the number of transactions */
@@ -254,6 +254,7 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_LOG_RECORD) || \
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
@@ -303,6 +304,7 @@
 #define BACAPP_SHED_LEVEL
 #define BACAPP_ACCESS_RULE
 #define BACAPP_CHANNEL_VALUE
+#define BACAPP_LOG_RECORD
 #define BACAPP_SECURE_CONNECT
 #endif
 
@@ -328,7 +330,8 @@
     defined(BACAPP_SCALE) || \
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
-    defined(BACAPP_CHANNEL_VALUE)
+    defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_LOG_RECORD)
 #define BACAPP_COMPLEX_TYPES
 #endif
 /* clang-format on */

@@ -16,11 +16,12 @@
 
 #define DEBUG_WEBSOCKET_CLIENT 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_WEBSOCKET_CLIENT == 1
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED
-#define DEBUG_PRINTF(...)
+#define DEBUG_PRINTF debug_printf_disabled
 #endif
 
 #ifndef LWS_PROTOCOL_LIST_TERM

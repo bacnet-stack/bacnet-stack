@@ -475,7 +475,7 @@ get_local_ifr_ioctl(const char *ifname, struct ifreq *ifr, int request)
     int fd;
     int rv; /* return value */
 
-    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
+    snprintf(ifr->ifr_name, sizeof(ifr->ifr_name), "%s", ifname);
     ifr->ifr_name[sizeof(ifr->ifr_name) - 1] = 0;
 
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -955,6 +955,9 @@ void bip_cleanup(void)
         close(BIP_Broadcast_Socket);
     }
     BIP_Broadcast_Socket = -1;
+    /* these were set non-zero during interface configuration */
+    BIP_Address.s_addr = 0;
+    BIP_Broadcast_Addr.s_addr = 0;
 
     return;
 }

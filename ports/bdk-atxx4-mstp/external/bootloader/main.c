@@ -36,7 +36,7 @@
 /*#define REMOVE_FLASH_BYTE_SUPPORT */
 
 /*
- * GCC doesn't optimize long int arithmetics very clever.  As the
+ * GCC doesn't optimize long int arithmetic very cleverly.  As the
  * address only needs to be larger than 16 bits for the ATmega128 and
  * above (where flash consumptions isn't much of an issue as the
  * entire boot loader will still fit even into the smallest possible

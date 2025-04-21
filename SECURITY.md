@@ -7,6 +7,7 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.4.x   | :white_check_mark: |
 | 1.3.x   | :white_check_mark: |
 | 1.2.x   | :white_check_mark: |
 | 1.1.x   | :white_check_mark: |
@@ -21,3 +22,6 @@ currently being supported with security updates.
 Please use the "bugs" feature of Sourceforge.net to report a vulnerability,
 where it will be tracked until it is resolved.
 https://sourceforge.net/p/bacnet/bugs/
+
+Vulnerabilities can also be reported using "issues" at Ghithub.
+https://github.com/bacnet-stack/bacnet-stack/issues

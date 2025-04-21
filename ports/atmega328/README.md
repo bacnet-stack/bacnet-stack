@@ -4,7 +4,7 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 
 1) USB bootloader using AVR-119 protocol
 
-2) 7-position DIP switch for MS/TP MAC address
+2) Arduino Uno V3 I/O to BACnet Objects map - see below
 
 3) Arduino Uno V3 compatible RS485 shield (DFR0259)
 
@@ -21,10 +21,10 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 | GND         | GND         | GND            |                 |
 | VIN         | VIN         |                |                 |
 |             |             |                |                 |
-| ADC0/PC0    | A0          |                | AV 0 Millivolts |
-| ADC1/PC1    | A1          |                | AV 1 Millivolts |
-| ADC2/PC2    | A2          |                | AV 2 Millivolts |
-| ADC3/PC3    | A3          |                | AV 3 Millivolts |
+| ADC0/PC0    | A0          |                | AV-0 Millivolts |
+| ADC1/PC1    | A1          |                | AV-1 Millivolts |
+| ADC2/PC2    | A2          |                | AV-2 Millivolts |
+| ADC3/PC3    | A3          |                | AV-3 Millivolts |
 | ADC4/PC4    | A4*         |                |                 |
 | ADC5/PC5    | A5*         |                |                 |
 |             |             |                |                 |
@@ -32,18 +32,18 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 | ADC4/PC4    | SDA*        | I2C            |                 |
 | AVDD        | AREF        |                |                 |
 | GND         | GND         |                |                 |
-| SCK/PB5     | D13         | LED-L ANODE (+)| BV 99 (output)  |
-| MISO/PB4    | D12         |                | BV 9 (output)   |
-| MOSI/PB3    | D11         |                | BV 8 (output)   |
-| SS/PB2      | D10         |                | BV 7 (output)   |
-| OC1/PB1     | D9          |                | BV 6 (output)   |
-| ICP/PB0     | D8          |                | BV 5 (output)   |
+| SCK/PB5     | D13         | LED-L ANODE (+)| BV-99 (output)  |
+| MISO/PB4    | D12         |                | BV-9 (output)   |
+| MOSI/PB3    | D11         |                | BV-8 (output)   |
+| SS/PB2      | D10         |                | BV-7 (output)   |
+| OC1/PB1     | D9          |                | BV-6 (output)   |
+| ICP/PB0     | D8          |                | BV-5 (output)   |
 |             |             |                |                 |
-| AIN1/PD7    | D7          |                | BV 4 (input)    |
-| AIN0/PD6    | D6          |                | BV 3 (input)    |
-| T1/PD5      | D5          |                | BV 2 (input)    |
-| T0/PD4      | D4          |                | BV 1 (input)    |
-| INT1/PD3    | D3          |                | BV 0 (input)    |
+| AIN1/PD7    | D7          |                | BV-4 (input)    |
+| AIN0/PD6    | D6          |                | BV-3 (input)    |
+| T1/PD5      | D5          |                | BV-2 (input)    |
+| T0/PD4      | D4          |                | BV-1 (input)    |
+| INT1/PD3    | D3          |                | BV-0 (input)    |
 | INT0/PD2    | D2          | CE DE /RE RTS  | RS485           |
 | TXD/PD1     | D1/Tx**     | TXD            | RS485           |
 | RXD/PD0     | D0/Rx**     | RXD            | RS485           |
@@ -84,24 +84,25 @@ The Makefile includes a recipe to use avrdude to program the Uno R3 via USB
 
     make install
 
-#### GCC and CStack Usage
+#### Board diagnostics and configuration
 
-CStack check for GCC is included in the device object as property 512.
-The compile shows 352 (.bss) + 136 (.data) = 488 bytes of RAM used, and
-the ATmega328 has 2048 bytes of RAM, leaving 1560 bytes for the CStack.
-BACnet Device object proprietary property 512 is mapped to the CStack Size
-and returns 1376 using ReadProperty request.  After some ReadProperty and
-WriteProperty requests, the CStack shows 1159 CStack bytes free.
-Note that the value 0xC5 (197) was used to paint the CStack.
-Keep this in mind when developing.
+| BACnet Object     |  Description     | Default        | R/W   |
+|:------------------|:-----------------|:---------------|:------|
+| AV-92             | Device ID        | 260123         | R/W   |
+| AV-93             | MS/TP bitrate    | 38400 bps      | R/W   |
+| AV-94             | MS/TP MAC        | 123            | R/W   |
+| AV-95             | MS/TP Max Manager| 127            | R/W   |
+| AV-96             | MCU Frequency    | F_CPU          | R     |
+| AV-97             | CStack Size      | 0              | R     |
+| AV-98             | CStack Unused    | 0              | R     |
+| AV-99             | Uptime           | 0              | R     |
 
 ##### Shield option
 
 The DFR0259 shield for RS485 was used, but any RS485 circuit could be
 attached to the Arduino Uno R3 using the same pins for Tx, Rx, CE RE/DE RTS.
 
-A 7-position DIP switch was connected to GPIO for the MS/TP MAC address,
-but the value could also be stored in EEPROM.
+The MS/TP MAC address, bitrate, and max-manager are stored in EEPROM.
 
 ### BACnet Capabilities
 

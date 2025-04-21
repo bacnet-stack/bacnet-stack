@@ -64,11 +64,11 @@ bsc:
 
 .PHONY: apps
 apps:
-	$(MAKE) -s -C apps all
+	$(MAKE) -s LEGACY=true -C apps all
 
 .PHONY: lib
 lib:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s LEGACY=true -C apps $@
 
 .PHONY: library
 library:
@@ -202,6 +202,10 @@ netnumis:
 server:
 	$(MAKE) -s -C apps $@
 
+.PHONY: server-basic
+server-basic:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
+
 .PHONY: server-client
 server-client:
 	$(MAKE) LEGACY=true -s -C apps $@
@@ -209,6 +213,10 @@ server-client:
 .PHONY: server-discover
 server-discover:
 	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: server-mini
+server-mini:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
 .PHONY: sc-hub
 sc-hub:
@@ -510,6 +518,11 @@ test:
 .PHONY: retest
 retest:
 	$(MAKE) -s -j -C test retest
+
+.PHONY: test-bsc
+test-bsc:
+	$(MAKE) -s -C test clean
+	$(MAKE) -s -j -C test test-bsc
 
 # Zephyr unit testing with twister
 # expects zephyr to be installed in ../zephyr in Workspace

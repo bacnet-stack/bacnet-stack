@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.0
+  VERSION 1.4.1
   LANGUAGES C)
 
 #
@@ -25,6 +25,16 @@ option(
   ON)
 
 option(
+    BACNET_BUILD_SERVER_MINI_APP
+    "compile the server-mini app"
+    ON)
+
+option(
+  BACNET_BUILD_SERVER_BASIC_APP
+  "compile the server-basic app"
+  ON)
+
+  option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
@@ -89,7 +99,7 @@ option(
   "build with uci"
   OFF)
 
-set(BACNET_PROTOCOL_REVISION 19)
+set(BACNET_PROTOCOL_REVISION 24)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -116,7 +126,7 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD 99)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
@@ -260,6 +270,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bacerror.h
   src/bacnet/bacint.c
   src/bacnet/bacint.h
+  src/bacnet/baclog.c
+  src/bacnet/baclog.h
   src/bacnet/bacprop.c
   src/bacnet/bacprop.h
   src/bacnet/bacpropstates.c
@@ -389,6 +401,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/osv.h
   src/bacnet/basic/object/piv.c
   src/bacnet/basic/object/piv.h
+  src/bacnet/basic/object/program.c
+  src/bacnet/basic/object/program.h
   src/bacnet/basic/object/schedule.c
   src/bacnet/basic/object/schedule.h
   src/bacnet/basic/object/structured_view.c
@@ -568,22 +582,22 @@ add_library(${PROJECT_NAME}
   src/bacnet/datalink/bacsec.c
   src/bacnet/datalink/bacsec.h
   src/bacnet/datalink/bip6.h
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
-  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
-  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
+  src/bacnet/datalink/bip.h
+  src/bacnet/datalink/bvlc6.c
+  src/bacnet/datalink/bvlc6.h
+  src/bacnet/datalink/bvlc.h
+  src/bacnet/datalink/bvlc.c
+  src/bacnet/datalink/crc.h
+  src/bacnet/datalink/crc.c
+  src/bacnet/datalink/cobs.h
+  src/bacnet/datalink/cobs.c
   src/bacnet/datalink/datalink.c
   src/bacnet/datalink/datalink.h
   src/bacnet/datalink/dlenv.c
   src/bacnet/datalink/dlenv.h
   src/bacnet/datalink/dlmstp.h
   src/bacnet/datalink/ethernet.h
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.c>
+  src/bacnet/datalink/mstp.c
   src/bacnet/datalink/mstpdef.h
   src/bacnet/datalink/mstp.h
   src/bacnet/datalink/mstptext.c
@@ -919,6 +933,27 @@ if(BACNET_STACK_BUILD_APPS)
     add_executable(piface apps/piface/main.c apps/piface/device.c)
     target_link_libraries(piface PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_PIFACE_APP)
+
+  if(BACNET_BUILD_SERVER_MINI_APP)
+    add_executable(bacmini apps/server-mini/main.c)
+    target_link_libraries(bacmini PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_SERVER_MINI_APP)
+
+  if(BACNET_BUILD_SERVER_BASIC_APP)
+    add_executable(bacbasic
+      apps/server-basic/main.c
+      src/bacnet/basic/server/bacnet_basic.c
+      src/bacnet/basic/server/bacnet_device.c
+      src/bacnet/basic/server/bacnet_port.c
+      src/bacnet/basic/server/bacnet_port_ipv4.c
+      src/bacnet/basic/server/bacnet_port_ipv6.c
+    )
+    target_link_libraries(bacbasic PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacbasic PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif(BACNET_BUILD_SERVER_BASIC_APP)
 
   if(BACNET_BUILD_BACPOLL_APP)
     add_executable(bacpoll

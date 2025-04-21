@@ -18,6 +18,7 @@
 
 #define DEBUG_BSC_HUB_CONNECTOR 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_BSC_HUB_CONNECTOR == 1
 #define DEBUG_PRINTF debug_printf
 #else
@@ -450,10 +451,11 @@ BSC_SC_RET bsc_hub_connector_start(
     c->primary_url[0] = 0;
     c->failover_url[0] = 0;
     c->user_arg = user_arg;
-    strncpy((char *)c->primary_url, primaryURL, sizeof(c->primary_url) - 1);
+    snprintf((char *)c->primary_url, sizeof(c->primary_url), "%s", primaryURL);
     if (failoverURL) {
-        strncpy(
-            (char *)c->failover_url, failoverURL, sizeof(c->failover_url) - 1);
+        snprintf(
+            (char *)c->failover_url, sizeof(c->failover_url), "%s",
+            failoverURL);
     }
     c->event_func = event_func;
     bsc_init_ctx_cfg(

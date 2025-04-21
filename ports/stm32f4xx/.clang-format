@@ -1,7 +1,27 @@
 ---
-# Disable formatting for now as there is external code. We should move external
-# code to a separate directory and enable formatting for our code.
+BasedOnStyle: WebKit
+AlignAfterOpenBracket: AlwaysBreak
+BinPackArguments: true
+BinPackParameters: false
+PenaltyBreakBeforeFirstCallParameter: 1
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlignEscapedNewlines: Left
+AlignArrayOfStructures: None
+PointerAlignment: Right
+InsertBraces: true
+BreakBeforeBraces: Linux
+BreakBeforeBinaryOperators: None
+KeepEmptyLinesAtTheStartOfBlocks: false
+IndentCaseLabels: true
+IndentWidth: 4
+UseTab: Never
+SortIncludes: false
+ColumnLimit: 80
+# Const always to left side.
+QualifierAlignment: Left
+---
+Language: JavaScript
 DisableFormat: true
-
-# DisableFormat will not disable include sorting with some versions.
-SortIncludes: Never
+...
