@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -59,6 +60,7 @@ void handler_read_property(
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     int len = 0;
+    int max_apdu_len = 0;
     int pdu_len = 0;
     int apdu_len = -1;
     int npdu_len = -1;
@@ -150,7 +152,8 @@ void handler_read_property(
                 len = rp_ack_encode_apdu_object_property_end(
                     &Handler_Transmit_Buffer[npdu_len + apdu_len]);
                 apdu_len += len;
-                if (apdu_len > service_data->max_resp) {
+                max_apdu_len = service_data->max_resp < MAX_APDU ? service_data->max_resp : MAX_APDU; //TODO: Danfoss Modification
+                if (apdu_len > max_apdu_len) {
 #if BACNET_SEGMENTATION_ENABLED
                     if (service_data->segmented_response_accepted) {
 

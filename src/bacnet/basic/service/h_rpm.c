@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <stdlib.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -221,6 +222,7 @@ void handler_read_property_multiple(
     int apdu_len = 0;
     int npdu_len = 0;
     int error = 0;
+    int max_apdu_len = 0;
 #if BACNET_SEGMENTATION_ENABLED
     BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     int apdu_header_len = 3;
@@ -517,7 +519,9 @@ void handler_read_property_multiple(
             }
             /* If not having an error so far, check the remaining space. */
             if (!berror) {
-                if (apdu_len > service_data->max_resp) {
+                max_apdu_len =  service_data->max_resp < MAX_APDU ? service_data->max_resp : MAX_APDU;  //TODO: Danfoss Modification
+                if (apdu_len >  max_apdu_len)
+                {
 #if BACNET_SEGMENTATION_ENABLED
                     if (service_data->segmented_response_accepted) {
                         apdu_init_fixed_header(

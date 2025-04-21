@@ -1264,19 +1264,20 @@ bool check_unexpected_pdu_received(
 {
     uint8_t index = 0;
     bool status = false;
-    uint8_t peer_id = 0;
-    peer_id = tsm_get_peer_id(src, service_data->invoke_id);
-    index = tsm_find_invokeID_index(peer_id);
-    if (index < MAX_TSM_TRANSACTIONS)
-    {
-        BACNET_TSM_DATA *plist = &TSM_List[index];
-        if ((plist->state == TSM_STATE_SEGMENTED_RESPONSE_SERVER) ||
-            (plist->state == TSM_STATE_SEGMENTED_REQUEST_SERVER)) {
-            abort_pdu_send(
-                service_data->invoke_id, src,
-                ABORT_REASON_INVALID_APDU_IN_THIS_STATE, true);
-            tsm_free_invoke_id_check(peer_id, src, true);
-            status = true;
+    BACNET_TSM_INDIRECT_DATA *peer_data;
+    peer_data = tsm_get_peer_id_data(src, service_data->invoke_id, false);
+    if (peer_data) {
+        index = tsm_find_invokeID_index(peer_data->InternalInvokeID);
+        if (index < MAX_TSM_TRANSACTIONS) {
+            BACNET_TSM_DATA *plist = &TSM_List[index];
+            if ((plist->state == TSM_STATE_SEGMENTED_RESPONSE_SERVER) ||
+                (plist->state == TSM_STATE_SEGMENTED_REQUEST_SERVER)) {
+                abort_pdu_send(
+                    service_data->invoke_id, src,
+                    ABORT_REASON_INVALID_APDU_IN_THIS_STATE, true);
+                tsm_free_invoke_id_check(plist->InvokeID, src, true);
+                status = true;
+            }
         }
     }
     return status;
