@@ -497,12 +497,6 @@ void apdu_retries_set(uint8_t value)
     Number_Of_Retries = value;
 }
 
-/* When network communications are completely disabled,
-   only DeviceCommunicationControl and ReinitializeDevice APDUs
-   shall be processed and no messages shall be initiated.
-   When the initiation of communications is disabled,
-   all APDUs shall be processed and responses returned as
-   required... */
 static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
 {
     bool status = false;
@@ -516,8 +510,7 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
                 status = true;
                 break;
         }
-    } 
-    /* ToDo: Below code is added. It should be handled in new stack. US: HV-7872*/
+    }
     else if (dcc_communication_initiation_disabled()) {
         switch (service_choice) {
             case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
@@ -698,7 +691,6 @@ void apdu_handler(
     uint8_t sequence_number = 0;
     uint8_t actual_window_size = 0;
     bool nak = false;
-    uint8_t peer_id = 0;
 #endif
 #if !BACNET_SVC_SERVER
     uint8_t invoke_id = 0;
@@ -846,8 +838,7 @@ void apdu_handler(
             }
 #if BACNET_SEGMENTATION_ENABLED
             /*Release the data*/
-            peer_id = tsm_get_peer_id(src, invoke_id);
-            tsm_free_invoke_id_check(peer_id, src, true);
+            tsm_free_invoke_id_segmentation(src, invoke_id);
 #else
             tsm_free_invoke_id(invoke_id);
 #endif
@@ -863,8 +854,7 @@ void apdu_handler(
             }
 #if BACNET_SEGMENTATION_ENABLED
             /*Release the data*/
-            peer_id = tsm_get_peer_id(src, invoke_id);
-            tsm_free_invoke_id_check(peer_id, src, true);
+            tsm_free_invoke_id_segmentation(src, invoke_id);
 #else
             tsm_free_invoke_id(invoke_id);
 #endif
@@ -888,8 +878,7 @@ void apdu_handler(
                 abort_pdu_send(invoke_id, src, reason, server);
             }
             /*Release the data*/
-            peer_id = tsm_get_peer_id(src, invoke_id);
-            tsm_free_invoke_id_check(peer_id, src, true);
+            tsm_free_invoke_id_segmentation(src, invoke_id);
 #else
             tsm_free_invoke_id(invoke_id);
 #endif

@@ -207,6 +207,10 @@
 #if !defined(MAX_SEGMENTS_ACCEPTED)
 #define MAX_SEGMENTS_ACCEPTED 25
 #endif
+#else
+#if !defined(MAX_SEGMENTS_ACCEPTED)
+#define MAX_SEGMENTS_ACCEPTED 1
+#endif
 #endif
 
 

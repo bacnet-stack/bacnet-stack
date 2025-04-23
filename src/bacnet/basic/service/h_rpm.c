@@ -35,8 +35,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
-uint8_t *Temp_Buf_rpm;
-
 /**
  * @brief Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for
  * this object type and the special properties ALL or REQUIRED or OPTIONAL.
@@ -223,13 +221,10 @@ void handler_read_property_multiple(
     int npdu_len = 0;
     int error = 0;
     int max_apdu_len = 0;
-#if BACNET_SEGMENTATION_ENABLED
     BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     int apdu_header_len = 3;
-    int sizeOfBuffer = MAX_PDU_SEND - MAX_NPDU;
-#else
-    int sizeOfBuffer = MAX_APDU;
-#endif
+    int sizeOfBuffer = MAX_PDU - MAX_NPDU;
+    uint8_t Temp_Buf_rpm[MAX_PDU - MAX_NPDU];
 
     if (service_data) {
         datalink_get_my_address(&my_address);

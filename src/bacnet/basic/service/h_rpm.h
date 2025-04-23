@@ -24,8 +24,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-extern uint8_t *Temp_Buf_rpm;
-
 BACNET_STACK_EXPORT
 void handler_read_property_multiple(
     uint8_t *service_request,

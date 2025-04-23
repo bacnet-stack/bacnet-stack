@@ -71,7 +71,7 @@ void handler_read_property(
 #if BACNET_SEGMENTATION_ENABLED
     BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     int apdu_header_len = 3;
-    int buffer_size = MAX_PDU_SEND;
+    int buffer_size = MAX_PDU;
 #else
     int buffer_size = MAX_PDU;
 #endif

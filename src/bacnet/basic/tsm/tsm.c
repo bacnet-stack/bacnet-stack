@@ -23,15 +23,9 @@
 #include <stdlib.h>
 #include "bacnet/segmentack.h"
 #include "bacnet/abort.h"
+#include "bacnet/basic/sys/platform.h"
 
 #define DEFAULT_WINDOW_SIZE 32
-
-#ifndef max
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef min
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
 
 /*Number of Duplicate Segments Received. */
 static uint8_t Duplicate_Count = 0;
@@ -42,7 +36,7 @@ static BACNET_TSM_INDIRECT_DATA TSM_Peer_Ids[MAX_TSM_PEERS];
 
 /** @file tsm.c  BACnet Transaction State Machine operations  */
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-uint8_t *Handler_Transmit_Buffer;
+uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #if (MAX_TSM_TRANSACTIONS)
 /* Really only needed for segmented messages */
@@ -1281,6 +1275,16 @@ bool check_unexpected_pdu_received(
         }
     }
     return status;
+}
+
+/*frees the invokeID for segemented messages */
+void tsm_free_invoke_id_segmentation(
+    BACNET_ADDRESS* src,
+    uint8_t invoke_id)
+{
+    uint8_t peer_id = 0;
+    peer_id = tsm_get_peer_id(src, invoke_id);
+    tsm_free_invoke_id_check(peer_id, src, true);
 }
 #endif
 

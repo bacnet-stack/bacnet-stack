@@ -27,7 +27,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-BACNET_STACK_EXPORT extern uint8_t *Handler_Transmit_Buffer;
+BACNET_STACK_EXPORT extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #ifdef __cplusplus
 }
@@ -216,6 +216,11 @@ void abort_pdu_send(
     BACNET_ADDRESS *dest, 
     uint8_t reason, 
     bool server);
+
+BACNET_STACK_EXPORT
+void tsm_free_invoke_id_segmentation(
+    BACNET_ADDRESS *src,
+    uint8_t invoke_id);
 
 #endif
 #ifdef __cplusplus

@@ -13,7 +13,6 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-#include "bacnet/basic/object/device.h"
 
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
@@ -4869,41 +4868,46 @@ int bacnet_array_encode(
     if (array_index == 0) {
         /* Array element zero is the number of objects in the list */
         len = encode_application_unsigned(NULL, array_size);
+#if! BACNET_SEGMENTATION_ENABLED 
         if (len > max_apdu) {
-            if (Device_Segmentation_Supported() != SEGMENTATION_BOTH) {
-                return apdu_len = BACNET_STATUS_ABORT;
-            }
+            apdu_len = BACNET_STATUS_ABORT;
+        } else
+#endif
+        {
+            len = encode_application_unsigned(apdu, array_size);
+            apdu_len = len;
         }
-        len = encode_application_unsigned(apdu, array_size);
-        apdu_len = len;
     } else if (array_index == BACNET_ARRAY_ALL) {
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         for (index = 0; index < array_size; index++) {
             len += encoder(object_instance, index, NULL);
         }
+#if !BACNET_SEGMENTATION_ENABLED 
         if (len > max_apdu) {
             /* encoded size is larger than APDU size */
-            if (Device_Segmentation_Supported() != SEGMENTATION_BOTH) {
-                return apdu_len = BACNET_STATUS_ABORT;
+            apdu_len = BACNET_STATUS_ABORT;
+        } else
+#endif
+        {
+            for (index = 0; index < array_size; index++) {
+                len = encoder(object_instance, index, apdu);
+                if (apdu) {
+                    apdu += len;
+                }
+                apdu_len += len;
             }
-        } 
-        for (index = 0; index < array_size; index++) {
-            len = encoder(object_instance, index, apdu);
-            if (apdu) {
-                apdu += len;
-            }
-            apdu_len += len;
         }
     } else if (array_index <= array_size) {
         /* index was specified; encode a single array element */
         index = array_index - 1;
         len = encoder(object_instance, index, NULL);
+
+#if !BACNET_SEGMENTATION_ENABLED
         if (len > max_apdu) {
-            if (Device_Segmentation_Supported() != SEGMENTATION_BOTH) {
-                return apdu_len = BACNET_STATUS_ABORT;
-            }
+            apdu_len = BACNET_STATUS_ABORT;
         }
+#endif
         len = encoder(object_instance, index, apdu);
         apdu_len = len;
     } else {
