@@ -182,12 +182,11 @@ void apdu_init_fixed_header(
     int max_apdu);
 
 BACNET_STACK_EXPORT
-void max_segments_accepted_set(uint8_t maxSegments);
+void apdu_max_segments_accepted_set(uint8_t maxSegments);
 
 BACNET_STACK_EXPORT
-uint8_t max_segments_accepted_get(void);
+uint8_t apdu_max_segments_accepted_get(void);
 #endif
-
 
 #ifdef __cplusplus
 }

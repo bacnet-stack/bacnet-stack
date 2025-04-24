@@ -497,6 +497,12 @@ void apdu_retries_set(uint8_t value)
     Number_Of_Retries = value;
 }
 
+/* When network communications are completely disabled,
+   only DeviceCommunicationControl and ReinitializeDevice APDUs
+   shall be processed and no messages shall be initiated.
+   When the initiation of communications is disabled,
+   all APDUs shall be processed and responses returned as
+   required... */
 static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
 {
     bool status = false;
@@ -505,21 +511,6 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
         switch (service_choice) {
             case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
             case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
-                break;
-            default:
-                status = true;
-                break;
-        }
-    }
-    else if (dcc_communication_initiation_disabled()) {
-        switch (service_choice) {
-            case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
-            case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
-            /* WhoIs will be processed and I-Am initiated as response. */
-            case SERVICE_UNCONFIRMED_WHO_IS:
-            case SERVICE_UNCONFIRMED_WHO_HAS:
-            case SERVICE_CONFIRMED_AUDIT_NOTIFICATION:
-            case SERVICE_UNCONFIRMED_AUDIT_NOTIFICATION:
                 break;
             default:
                 status = true;
@@ -567,7 +558,7 @@ static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
 }
 
 /* Invoke special handler for confirmed service */
-void invoke_confirmed_service_service_request(
+static void invoke_confirmed_service_service_request(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
     uint8_t service_choice,
@@ -598,7 +589,7 @@ void invoke_confirmed_service_service_request(
    - call the final functions with reassembled data when last packet ok is
    received
 */
-void apdu_handler_confirmed_service_segment(
+static void apdu_handler_confirmed_service_segment(
     BACNET_ADDRESS *src,
     uint8_t *apdu, /* APDU data */
     uint32_t apdu_len)
@@ -615,7 +606,6 @@ void apdu_handler_confirmed_service_segment(
         &apdu[0], /* APDU data */
         apdu_len, &service_data, &service_choice, &service_request,
         &service_request_len);
-
     if (len == 0) {
         /* service data unable to be decoded - simply drop */
         return;
@@ -640,7 +630,7 @@ void apdu_handler_confirmed_service_segment(
 
 /* Handler for normal message without segmentation, or segmented complete
  * message reassembled all-in-one */
-void apdu_handler_confirmed_service(
+static void apdu_handler_confirmed_service(
     BACNET_ADDRESS *src,
     uint8_t *apdu, /* APDU data */
     uint32_t apdu_len)
@@ -655,11 +645,13 @@ void apdu_handler_confirmed_service(
         &apdu[0], /* APDU data */
         apdu_len, &service_data, &service_choice, &service_request,
         &service_request_len);
-
+    if (len == 0) {
+        /* service data unable to be decoded - simply drop */
+        return;
+    }
 #if BACNET_SEGMENTATION_ENABLED
     /* Check for unexpected request is received in active TSM state */
-    if (check_unexpected_pdu_received(src,&service_data))
-    {
+    if (check_unexpected_pdu_received(src, &service_data)) {
         return;
     }
 #endif
@@ -714,7 +706,7 @@ void apdu_handler(
 #if BACNET_SEGMENTATION_ENABLED
             if (apdu[0] & BIT(3)) {
                 apdu_handler_confirmed_service_segment(src, apdu, apdu_len);
-            } else 
+            } else
 #endif
             {
                 apdu_handler_confirmed_service(src, apdu, apdu_len);
@@ -792,7 +784,7 @@ void apdu_handler(
             }
             break;
         case PDU_TYPE_SEGMENT_ACK:
-#if! BACNET_SEGMENTATION_ENABLED
+#if !BACNET_SEGMENTATION_ENABLED
             /* FIXME: what about a denial of service attack here?
                 we could check src to see if that matched the tsm */
             tsm_free_invoke_id(invoke_id);
@@ -1019,13 +1011,13 @@ void apdu_init_fixed_header(
     fixed_pdu_header->service_choice = service;
 }
 
-void max_segments_accepted_set(uint8_t maxSegments)
-{ 
+void apdu_max_segments_accepted_set(uint8_t maxSegments)
+{
     max_segments = maxSegments;
 }
 
-uint8_t max_segments_accepted_get(void)
+uint8_t apdu_max_segments_accepted_get(void)
 {
-   return max_segments;
+    return max_segments;
 }
 #endif

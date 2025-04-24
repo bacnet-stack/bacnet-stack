@@ -32,7 +32,6 @@ typedef struct _confirmed_service_ack_data {
     uint8_t proposed_window_number;
 } BACNET_CONFIRMED_SERVICE_ACK_DATA;
 
-#if BACNET_SEGMENTATION_ENABLED
 typedef struct BACnet_Apdu_Fixed_Header {
     /* pdu type Confirmed Request or Complex ACK */
     uint8_t pdu_type;
@@ -47,7 +46,6 @@ typedef struct BACnet_Apdu_Fixed_Header {
     /* Service number */
     uint8_t service_choice;
 } BACNET_APDU_FIXED_HEADER;
-#endif
 
 uint8_t apdu_network_priority(void);
 void apdu_network_priority_set(uint8_t pri);
