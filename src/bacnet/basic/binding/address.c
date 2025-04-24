@@ -350,18 +350,16 @@ void address_set_device_TTL(
  * @param device_id  Device-Id
  * @param max_apdu  Pointer to a variable, taking the maximum APDU size.
  * @param src  Pointer to address structure for return.
- * @param segmentation  Pointer to a variable, taking the BACNET_SEGMENTATION flag.
+ * @param segmentation  Pointer to a variable, taking the BACNET_SEGMENTATION
+ * flag.
  * @param maxsegments  Pointer to a variable, taking the maximum segments.
  */
-bool address_get_by_device(
+bool address_segment_get_by_device(
     uint32_t device_id,
     unsigned *max_apdu,
-    BACNET_ADDRESS *src
-#if BACNET_SEGMENTATION_ENABLED
-    ,uint8_t *segmentation
-    ,uint16_t *maxsegments
-#endif
-)
+    BACNET_ADDRESS *src,
+    uint8_t *segmentation,
+    uint16_t *maxsegments)
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
@@ -377,10 +375,20 @@ bool address_get_by_device(
                 if (max_apdu) {
                     *max_apdu = pMatch->max_apdu;
                 }
-#if BACNET_SEGMENTATION_ENABLED                
-                *segmentation = pMatch->segmentation;
-                *maxsegments = pMatch->maxsegments;
+                if (segmentation) {
+#if BACNET_SEGMENTATION_ENABLED
+                    *segmentation = pMatch->segmentation;
+#else
+                    *segmentation = SEGMENTATION_NONE;
 #endif
+                }
+                if (maxsegments) {
+#if BACNET_SEGMENTATION_ENABLED
+                    *maxsegments = pMatch->maxsegments;
+#else
+                    *maxsegments = 1;
+#endif
+                }
                 /* Prove we found it */
                 found = true;
             }
@@ -390,6 +398,19 @@ bool address_get_by_device(
     }
 
     return found;
+}
+
+/**
+ * @brief Return the cached addresBACNET_STACK_EXPORT
+s for the given device-id
+ * @param device_id  Device-Id
+ * @param max_apdu  Pointer to a variable, taking the maximum APDU size.
+ * @param src  Pointer to address structure for return.
+ */
+bool address_get_by_device(
+    uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src)
+{
+    return address_segment_get_by_device(device_id, max_apdu, src, NULL, NULL);
 }
 
 /**

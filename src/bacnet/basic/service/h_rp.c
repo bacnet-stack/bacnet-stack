@@ -39,7 +39,8 @@
  * by a call to apdu_set_confirmed_handler().
  * This handler builds a response packet, which is
  * - an Abort if
- *   - the message is segmented, when BACNET_SEGMENTATION_ENABLED is OFF(SEGMENTATION_NONE)
+ *   - the message is segmented, when BACNET_SEGMENTATION_ENABLED is
+ * OFF(SEGMENTATION_NONE)
  *   - if decoding fails
  *   - if the response would be too large
  * - the result from Device_Read_Property(), if it succeeds
@@ -91,7 +92,7 @@ void handler_read_property(
         len = BACNET_STATUS_REJECT;
         rpdata.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
         debug_print("RP: Missing Required Parameter. Sending Reject!\n");
- #if !BACNET_SEGMENTATION_ENABLED
+#if !BACNET_SEGMENTATION_ENABLED
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = BACNET_STATUS_ABORT;
@@ -140,8 +141,7 @@ void handler_read_property(
             /* configure our storage */
             rpdata.application_data =
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
-            rpdata.application_data_len =
-                buffer_size - (npdu_len + apdu_len);
+            rpdata.application_data_len = buffer_size - (npdu_len + apdu_len);
             if (!read_property_bacnet_array_valid(&rpdata)) {
                 len = BACNET_STATUS_ERROR;
             } else {
@@ -152,27 +152,27 @@ void handler_read_property(
                 len = rp_ack_encode_apdu_object_property_end(
                     &Handler_Transmit_Buffer[npdu_len + apdu_len]);
                 apdu_len += len;
-                max_apdu_len = service_data->max_resp < MAX_APDU ? service_data->max_resp : MAX_APDU; //TODO: Danfoss Modification
+                max_apdu_len = service_data->max_resp < MAX_APDU
+                    ? service_data->max_resp
+                    : MAX_APDU; // TODO: Danfoss Modification
                 if (apdu_len > max_apdu_len) {
 #if BACNET_SEGMENTATION_ENABLED
                     if (service_data->segmented_response_accepted) {
-
                         npdu_encode_npdu_data(
                             &npdu_data, true, MESSAGE_PRIORITY_NORMAL);
                         npdu_len = npdu_encode_pdu(
                             &Handler_Transmit_Buffer[0], src, &my_address,
                             &npdu_data);
-                        
+
                         tsm_set_complexack_transaction(
                             src, &npdu_data, &apdu_fixed_header, service_data,
-                            &Handler_Transmit_Buffer[npdu_len + apdu_header_len],
+                            &Handler_Transmit_Buffer
+                                [npdu_len + apdu_header_len],
                             (apdu_len - apdu_header_len));
                         error = false;
                         return;
-                    }
-                    else
-                    {
-                        //segmented response not accepted by the client
+                    } else {
+                        // segmented response not accepted by the client
                         rpdata.error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         len = BACNET_STATUS_ABORT;

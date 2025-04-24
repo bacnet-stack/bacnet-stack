@@ -42,10 +42,6 @@ Send_Life_Safety_Operation_Data(uint32_t device_id, const BACNET_LSO_DATA *data)
     bool status = false;
     int len = 0;
     int pdu_len = 0;
-#if BACNET_SEGMENTATION_ENABLED
-    uint8_t segmentation = 0;
-    uint16_t maxsegments = 0;
-#endif
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
@@ -53,12 +49,7 @@ Send_Life_Safety_Operation_Data(uint32_t device_id, const BACNET_LSO_DATA *data)
         return 0;
     }
     /* is the device bound? */
-    status = address_get_by_device(
-        device_id, &max_apdu, &dest
-#if BACNET_SEGMENTATION_ENABLED
-        ,&segmentation, &maxsegments
-#endif
-    );
+    status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
     if (status) {
         invoke_id = tsm_next_free_invokeID();

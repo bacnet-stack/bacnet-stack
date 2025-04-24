@@ -184,8 +184,14 @@ typedef struct BACnet_Object_Id {
     uint32_t instance;
 } BACNET_OBJECT_ID;
 
+#if !defined(MAX_SEGMENTS_ACCEPTED)
+#define MAX_SEGMENTS_ACCEPTED 1
+#endif
+#if !defined(MAX_APDU)
+#define MAX_APDU 1476
+#endif
 #define MAX_NPDU (1 + 1 + 2 + 1 + MAX_MAC_LEN + 2 + 1 + MAX_MAC_LEN + 1 + 1 + 2)
-#define MAX_PDU ((MAX_APDU * MAX_SEGMENTS_ACCEPTED) + MAX_NPDU) 
+#define MAX_PDU ((MAX_APDU * MAX_SEGMENTS_ACCEPTED) + MAX_NPDU)
 
 #define BACNET_ID_VALUE(bacnet_object_instance, bacnet_object_type)         \
     ((((bacnet_object_type) & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \

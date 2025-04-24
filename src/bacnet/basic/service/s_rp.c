@@ -132,18 +132,9 @@ uint8_t Send_Read_Property_Request(
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
-#if BACNET_SEGMENTATION_ENABLED
-    uint8_t segmentation = 0;
-    uint16_t maxsegments = 0;
-#endif
 
     /* is the device bound? */
-    status = address_get_by_device(
-        device_id, &max_apdu, &dest
-#if BACNET_SEGMENTATION_ENABLED
-        ,&segmentation, &maxsegments
-#endif
-    );
+    status = address_get_by_device(device_id, &max_apdu, &dest);
     if (status) {
         invoke_id = Send_Read_Property_Request_Address(
             &dest, max_apdu, object_type, object_instance, object_property,
