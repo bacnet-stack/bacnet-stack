@@ -944,7 +944,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port, FRAME_TYPE_TOKEN, mstp_port->Next_Station,
                         mstp_port->This_Station, NULL, 0);
                     mstp_port->RetryCount = 0;
-                    //mstp_port->EventCount = 0;
+                    mstp_port->EventCount = 0;
                     mstp_port->master_state = MSTP_MASTER_STATE_PASS_TOKEN;
                 }
             } else if (next_poll_station == mstp_port->Next_Station) {
