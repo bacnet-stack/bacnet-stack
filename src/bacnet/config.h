@@ -83,7 +83,6 @@
 #define BACNET_SEGMENTATION_ENABLED 1
 #endif
 
-
 #if defined(BACDL_SOME_DATALINK_ENABLED) && defined(BACDL_NONE)
 #error "BACDL_NONE is not compatible with other BACDL_ defines"
 #elif !defined(BACDL_SOME_DATALINK_ENABLED) && !defined(BACDL_NONE) && \
@@ -204,15 +203,14 @@
 
 /* for segmented messages, this is the number of segments accepted */
 /* (max memory allocated for one message : MAX_APDU * MAX_SEGMENTS) */
-#if !defined(MAX_SEGMENTS_ACCEPTED)
-#define MAX_SEGMENTS_ACCEPTED 25
+#if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
+#define BACNET_MAX_SEGMENTS_ACCEPTED 25
 #endif
 #else
-#if !defined(MAX_SEGMENTS_ACCEPTED)
-#define MAX_SEGMENTS_ACCEPTED 1
+#if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
+#define BACNET_MAX_SEGMENTS_ACCEPTED 1
 #endif
 #endif
-
 
 /* some modules have debugging enabled using PRINT_ENABLED */
 #if !defined(PRINT_ENABLED)

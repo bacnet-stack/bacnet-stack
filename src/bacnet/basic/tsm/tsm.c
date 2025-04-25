@@ -820,7 +820,7 @@ bool tsm_set_segmented_confirmed_service_received(
             } else {
                 /* Count maximum segments */
                 if (++TSM_List[index].ReceivedSegmentsCount >
-                    MAX_SEGMENTS_ACCEPTED) {
+                    BACNET_MAX_SEGMENTS_ACCEPTED) {
                     /* ABORT: SegmentReceivedOutOfSpace */
                     abort_pdu_send(
                         service_data->invoke_id, src,
@@ -922,10 +922,11 @@ void bacnet_calc_transmittable_length(
             maxsegments = confirmed_service_data->max_segs;
             /* if unspecified, try the maximum available, not just 2 segments */
             if (!maxsegments || maxsegments > 64) {
-                maxsegments = MAX_SEGMENTS_ACCEPTED;
+                maxsegments = BACNET_MAX_SEGMENTS_ACCEPTED;
             }
             /* maximum size we are able to transmit */
-            *total_max = min(maxsegments, MAX_SEGMENTS_ACCEPTED) * (*apdu_max);
+            *total_max =
+                min(maxsegments, BACNET_MAX_SEGMENTS_ACCEPTED) * (*apdu_max);
         }
         return;
     }
@@ -944,19 +945,20 @@ void bacnet_calc_transmittable_length(
                    segments supported.
                  */
                 if (!maxsegments) {
-                    maxsegments = MAX_SEGMENTS_ACCEPTED;
+                    maxsegments = BACNET_MAX_SEGMENTS_ACCEPTED;
                 }
                 /* maximum size we are able to transmit */
                 if (maxsegments) {
                     *total_max =
-                        min(maxsegments, MAX_SEGMENTS_ACCEPTED) * (*apdu_max);
+                        min(maxsegments, BACNET_MAX_SEGMENTS_ACCEPTED) *
+                        (*apdu_max);
                 }
             }
             return;
         }
     }
     *apdu_max = MAX_APDU;
-    *total_max = *apdu_max * MAX_SEGMENTS_ACCEPTED;
+    *total_max = *apdu_max * BACNET_MAX_SEGMENTS_ACCEPTED;
 }
 
 /* room checks to prevent buffer overflows */

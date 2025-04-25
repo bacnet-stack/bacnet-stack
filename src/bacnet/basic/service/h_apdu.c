@@ -29,7 +29,6 @@ static uint8_t Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
 #if BACNET_SEGMENTATION_ENABLED
 /* APDU Segment Timeout in Milliseconds */
 static uint16_t Segment_Timeout_Milliseconds = 5000;
-static uint8_t max_segments;
 #endif
 
 /* a simple table for crossing the services supported */
@@ -996,28 +995,18 @@ void apdu_init_fixed_header(
     switch (pdu_type) {
         case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
             fixed_pdu_header->service_data.request_data.max_segs =
-                MAX_SEGMENTS_ACCEPTED;
+                BACNET_MAX_SEGMENTS_ACCEPTED;
             /* allow to specify a lower APDU size : support arbitrary reduction
              * of APDU packets between peers */
             fixed_pdu_header->service_data.request_data.max_resp =
                 max_apdu < MAX_APDU ? max_apdu : MAX_APDU;
             fixed_pdu_header->service_data.request_data
-                .segmented_response_accepted = MAX_SEGMENTS_ACCEPTED > 1;
+                .segmented_response_accepted = BACNET_MAX_SEGMENTS_ACCEPTED > 1;
             break;
         case PDU_TYPE_COMPLEX_ACK:
         default:
             break;
     }
     fixed_pdu_header->service_choice = service;
-}
-
-void apdu_max_segments_accepted_set(uint8_t maxSegments)
-{
-    max_segments = maxSegments;
-}
-
-uint8_t apdu_max_segments_accepted_get(void)
-{
-    return max_segments;
 }
 #endif
