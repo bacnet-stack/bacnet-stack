@@ -467,7 +467,8 @@ static void tsm_blob_pad(BACNET_TSM_DATA *data, uint32_t allocation_unit)
 }
 
 /* add new data to current blob (allocate extra space if necessary) */
-static void tsm_blob_data_add(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
+static void
+tsm_blob_data_add(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
 {
     tsm_blob_pad(data, data_len);
     memcpy(&data->apdu_blob[data->apdu_blob_size], bdata, data_len);
@@ -482,8 +483,8 @@ static uint8_t *tsm_blob_data_get(BACNET_TSM_DATA *data, uint16_t *data_len)
 }
 
 /* Copy new data to current APDU sending blob data */
-static void tsm_blob_data_copy(
-    BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
+static void
+tsm_blob_data_copy(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
 {
     if (data->apdu) {
         free(data->apdu);
@@ -966,7 +967,8 @@ static void tsm_apdu_transmittable_length(
 }
 
 /* room checks to prevent buffer overflows */
-static bool tsm_apdu_space_available(int apdu_len, int max_apdu, int space_needed)
+static bool
+tsm_apdu_space_available(int apdu_len, int max_apdu, int space_needed)
 {
     return (apdu_len + space_needed) < max_apdu;
 }

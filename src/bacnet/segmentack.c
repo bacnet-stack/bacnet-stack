@@ -37,7 +37,8 @@
  *
  * @param apdu[in]  Pointer to the buffer for encoding.
  * @param negativeack[in]  Acknowedlegment for the segment.
- * @param server[in]  Set to True if the acknowlegment is from the server, else false.
+ * @param server[in]  Set to True if the acknowlegment is from the server, else
+ * false.
  * @param invoke_id[in]  Invoke Id
  * @param sequence_number[in]  Sequence number of the segment to be acknowledged
  * @param actual_window_size[in]  Actual window size.
@@ -45,14 +46,14 @@
  * @return Length of encoded data or zero on error.
  */
 int segmentack_encode_apdu(
-    uint8_t * apdu,
+    uint8_t *apdu,
     bool negativeack,
     bool server,
     uint8_t invoke_id,
     uint8_t sequence_number,
     uint8_t actual_window_size)
 {
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int apdu_len = 0; /* total length of the apdu, return value */
     uint8_t server_code = server ? 0x01 : 0x00;
     uint8_t nak_code = negativeack ? 0x02 : 0x00;
 
@@ -78,22 +79,25 @@ int segmentack_encode_apdu(
  * @return Length of decoded data or zero on error.
  */
 int segmentack_decode_service_request(
-    uint8_t * apdu,
+    uint8_t *apdu,
     unsigned apdu_len,
-    uint8_t * invoke_id,
-    uint8_t * sequence_number,
-    uint8_t * actual_window_size)
+    uint8_t *invoke_id,
+    uint8_t *sequence_number,
+    uint8_t *actual_window_size)
 {
     int len = 0;
     int apdu_header_size = 3;
 
     if (apdu_len >= apdu_header_size) {
-        if (invoke_id)
+        if (invoke_id) {
             *invoke_id = apdu[0];
-        if (sequence_number)
+        }
+        if (sequence_number) {
             *sequence_number = apdu[1];
-        if (actual_window_size)
+        }
+        if (actual_window_size) {
             *actual_window_size = apdu[2];
+        }
     }
 
     return len;

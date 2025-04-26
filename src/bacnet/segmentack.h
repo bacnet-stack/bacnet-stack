@@ -48,18 +48,19 @@ extern "C" {
 BACNET_STACK_EXPORT
 int segmentack_encode_apdu(
     uint8_t *apdu,
-        bool negativeack,
-        bool server,
-        uint8_t invoke_id,
-        uint8_t sequence_number,
-        uint8_t actual_window_size);
+    bool negativeack,
+    bool server,
+    uint8_t invoke_id,
+    uint8_t sequence_number,
+    uint8_t actual_window_size);
 
 BACNET_STACK_EXPORT
-int segmentack_decode_service_request(uint8_t *apdu,
-        unsigned apdu_len,
-        uint8_t *invoke_id,
-        uint8_t *sequence_number,
-        uint8_t *actual_window_size);
+int segmentack_decode_service_request(
+    uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    uint8_t *sequence_number,
+    uint8_t *actual_window_size);
 
 #ifdef __cplusplus
 }

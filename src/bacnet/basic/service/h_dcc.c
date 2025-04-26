@@ -109,8 +109,8 @@ void handler_device_communication_control(
                     "Missing Required Parameter. Sending Reject!\n");
         goto DCC_FAILURE;
     }
-    #if !BACNET_SEGMENTATION_ENABLED
-     else if (service_data->segmented_message) {
+#if !BACNET_SEGMENTATION_ENABLED
+    else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
@@ -118,7 +118,7 @@ void handler_device_communication_control(
                     "Sending Abort - segmented message.\n");
         goto DCC_FAILURE;
     }
-    #endif
+#endif
     /* decode the service request only */
     len = dcc_decode_service_request(
         service_request, service_len, &timeDuration, &state, &password);

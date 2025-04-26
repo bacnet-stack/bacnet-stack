@@ -78,7 +78,7 @@ option(
   BACDL_BSC
   "compile with secure-connect support"
   OFF)
- 
+
 option(
   BACNET_SEGMENTATION_ENABLED
   "enable segmentation"

@@ -71,8 +71,8 @@ void handler_reinitialize_device(
         debug_print("ReinitializeDevice: Missing Required Parameter. "
                     "Sending Reject!\n");
         goto RD_ABORT;
-    } 
-    #if !BACNET_SEGMENTATION_ENABLED
+    }
+#if !BACNET_SEGMENTATION_ENABLED
     else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
@@ -80,7 +80,7 @@ void handler_reinitialize_device(
         debug_print("ReinitializeDevice: Sending Abort - segmented message.\n");
         goto RD_ABORT;
     }
-    #endif
+#endif
     /* decode the service request only */
     len = rd_decode_service_request(
         service_request, service_len, &rd_data.state, &rd_data.password);
