@@ -365,7 +365,7 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
 }
 
 #if BACNET_SEGMENTATION_ENABLED
-void segmentack_pdu_send(
+static void tsm_segmentack_pdu_send(
     BACNET_ADDRESS *dest,
     bool negativeack,
     bool server,
@@ -396,8 +396,8 @@ void segmentack_pdu_send(
 }
 
 /* theorical size of apdu fixed header */
-uint32_t
-get_apdu_header_typical_size(BACNET_APDU_FIXED_HEADER *header, bool segmented)
+static uint32_t
+tsm_apdu_header_typical_size(BACNET_APDU_FIXED_HEADER *header, bool segmented)
 {
     int segmented_ack = 5;
     int unsegmented_ack = 3;
@@ -415,7 +415,7 @@ get_apdu_header_typical_size(BACNET_APDU_FIXED_HEADER *header, bool segmented)
 }
 
 /* Free allocated blob data */
-void free_blob(BACNET_TSM_DATA *data)
+static void tsm_blob_free(BACNET_TSM_DATA *data)
 {
     /* Free received data blobs */
     if (data->apdu_blob) {
@@ -433,13 +433,13 @@ void free_blob(BACNET_TSM_DATA *data)
 }
 
 /* keeps allocated blob data, but reset data & current size */
-void reset_blob(BACNET_TSM_DATA *data)
+static void tsm_blob_reset(BACNET_TSM_DATA *data)
 {
     data->apdu_blob_size = 0;
 }
 
 /* allocate new data if necessary, keeps existing bytes */
-void ensure_extra_blob_size(BACNET_TSM_DATA *data, uint32_t allocation_unit)
+static void tsm_blob_pad(BACNET_TSM_DATA *data, uint32_t allocation_unit)
 {
     if (!allocation_unit) { /* NOP */
         return;
@@ -467,22 +467,22 @@ void ensure_extra_blob_size(BACNET_TSM_DATA *data, uint32_t allocation_unit)
 }
 
 /* add new data to current blob (allocate extra space if necessary) */
-void add_blob_data(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
+static void tsm_blob_data_add(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
 {
-    ensure_extra_blob_size(data, data_len);
+    tsm_blob_pad(data, data_len);
     memcpy(&data->apdu_blob[data->apdu_blob_size], bdata, data_len);
     data->apdu_blob_size += data_len;
 }
 
 /* gets current blob data */
-uint8_t *get_blob_data(BACNET_TSM_DATA *data, uint16_t *data_len)
+static uint8_t *tsm_blob_data_get(BACNET_TSM_DATA *data, uint16_t *data_len)
 {
     *data_len = data->apdu_blob_size;
     return data->apdu_blob;
 }
 
 /* Copy new data to current APDU sending blob data */
-void copy_apdu_blob_data(
+static void tsm_blob_data_copy(
     BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
 {
     if (data->apdu) {
@@ -498,7 +498,7 @@ void copy_apdu_blob_data(
 
 /* gets Nth packet data to send in a segmented operation, or get the only data
  * packet in unsegmented world. */
-uint8_t *get_apdu_blob_data_segment(
+static uint8_t *tsm_blob_data_segment_get(
     BACNET_TSM_DATA *data, int segment_number, uint32_t *data_len)
 {
     /* Data is splitted in N blocks of, at maximum, ( APDU_MAX - APDU_HEADER )
@@ -506,7 +506,7 @@ uint8_t *get_apdu_blob_data_segment(
     bool segmented =
         data->apdu_fixed_header.service_data.common_data.segmented_message;
     int header_size =
-        get_apdu_header_typical_size(&data->apdu_fixed_header, segmented);
+        tsm_apdu_header_typical_size(&data->apdu_fixed_header, segmented);
     int block_request_size = (data->apdu_maximum_length - header_size);
     block_request_size = block_request_size;
     int data_position = segment_number * block_request_size;
@@ -548,7 +548,7 @@ void tsm_free_invoke_id_check(
 
         if (cleanup) {
             /* Release segmented data */
-            free_blob(&TSM_List[index]);
+            tsm_blob_free(&TSM_List[index]);
         }
     }
 }
@@ -613,7 +613,7 @@ uint8_t tsm_get_peer_id(BACNET_ADDRESS *src, uint8_t invokeID)
     return 0;
 }
 
-bool DuplicateInWindow(
+static bool DuplicateInWindow(
     BACNET_TSM_DATA *tsm_data,
     uint8_t seqA,
     uint32_t first_sequence_number,
@@ -634,7 +634,7 @@ bool DuplicateInWindow(
     }
 }
 
-bool duplicate_segment_received(
+static bool tsm_duplicate_segment_received(
     uint8_t index,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
     BACNET_ADDRESS *src)
@@ -642,7 +642,7 @@ bool duplicate_segment_received(
     BACNET_NPDU_DATA npdu_data;
     bool isDuplicate = false;
     uint8_t Ndup = TSM_List[index].ActualWindowSize;
-    // DuplicateSegmentReceived
+    /* DuplicateSegmentReceived */
     if (Duplicate_Count < Ndup) {
         TSM_List[index].SegmentTimer = apdu_segment_timeout();
         Duplicate_Count++;
@@ -651,7 +651,7 @@ bool duplicate_segment_received(
     // TooManyDuplicateSegmentsReceived
     else if (Duplicate_Count == Ndup) {
         npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-        segmentack_pdu_send(
+        tsm_segmentack_pdu_send(
             src, true, true, service_data->invoke_id,
             TSM_List[index].LastSequenceNumber,
             TSM_List[index].ActualWindowSize);
@@ -713,7 +713,8 @@ bool tsm_set_segmented_confirmed_service_received(
     }
     index = tsm_find_invokeID_index(internal_service_id);
     if (index >= MAX_TSM_TRANSACTIONS) { /* shall not fail */
-        tsm_abort_pdu_send(service_data->invoke_id, src, ABORT_REASON_OTHER, true);
+        tsm_abort_pdu_send(
+            service_data->invoke_id, src, ABORT_REASON_OTHER, true);
         return false;
     }
     /* check states */
@@ -739,7 +740,7 @@ bool tsm_set_segmented_confirmed_service_received(
             /* start the segmented timer */
             TSM_List[index].SegmentTimer = apdu_segment_timeout() * 4;
             /* reset memorized data */
-            reset_blob(&TSM_List[index]);
+            tsm_blob_reset(&TSM_List[index]);
 
             // ConfirmedSegmentedReceivedWindowSizeOutofRange
             if (service_data->sequence_number == 0 &&
@@ -758,7 +759,7 @@ bool tsm_set_segmented_confirmed_service_received(
             /* UnexpectedPDU_Received */
             if (service_data->sequence_number != 0) {
                 /* Release data */
-                free_blob(&TSM_List[index]);
+                tsm_blob_free(&TSM_List[index]);
                 /* Abort */
                 tsm_abort_pdu_send(
                     service_data->invoke_id, src,
@@ -767,10 +768,10 @@ bool tsm_set_segmented_confirmed_service_received(
                 tsm_free_invoke_id_check(internal_service_id, NULL, true);
             } else {
                 /* Okay : memorize data */
-                add_blob_data(
+                tsm_blob_data_add(
                     &TSM_List[index], service_request, service_request_len);
                 /* We ACK the first segment of the segmented message */
-                segmentack_pdu_send(
+                tsm_segmentack_pdu_send(
                     src, false, true, service_data->invoke_id,
                     TSM_List[index].LastSequenceNumber,
                     TSM_List[index].ActualWindowSize);
@@ -805,14 +806,15 @@ bool tsm_set_segmented_confirmed_service_received(
                         (TSM_List[index].InitialSequenceNumber) % 256,
                         TSM_List[index].LastSequenceNumber)) {
                     // DuplicateSegmentReceived
-                    if (duplicate_segment_received(index, service_data, src)) {
+                    if (tsm_duplicate_segment_received(
+                            index, service_data, src)) {
                         // state is in TSM_STATE_SEGMENTED_REQUEST_SERVER
                         break;
                     }
                 } else {
                     /* Recoverable Error: SegmentReceivedOutOfOrder */
                     /* ACK of last segment correctly received. */
-                    segmentack_pdu_send(
+                    tsm_segmentack_pdu_send(
                         src, true, true, service_data->invoke_id,
                         TSM_List[index].LastSequenceNumber,
                         TSM_List[index].ActualWindowSize);
@@ -828,7 +830,7 @@ bool tsm_set_segmented_confirmed_service_received(
                         service_data->invoke_id, src,
                         ABORT_REASON_BUFFER_OVERFLOW, true);
                     /* Release data */
-                    free_blob(&TSM_List[index]);
+                    tsm_blob_free(&TSM_List[index]);
                     /* Enter IDLE state */
                     TSM_List[index].state = TSM_STATE_IDLE;
                     /* We must free invoke_id ! */
@@ -837,7 +839,7 @@ bool tsm_set_segmented_confirmed_service_received(
                     /* NewSegmentReceived */
                     TSM_List[index].LastSequenceNumber =
                         service_data->sequence_number;
-                    add_blob_data(
+                    tsm_blob_data_add(
                         &TSM_List[index], service_request, service_request_len);
                     /* LastSegmentOfComplexACK_Received */
                     if (service_data->sequence_number ==
@@ -850,7 +852,7 @@ bool tsm_set_segmented_confirmed_service_received(
                     /* LastSegmentOfComplexACK_Received */
                     if (!service_data->more_follows) {
                         /* Resulting segment data */
-                        *pservice_request = get_blob_data(
+                        *pservice_request = tsm_blob_data_get(
                             &TSM_List[index], pservice_request_len);
                         result =
                             true; /* Returns true on final segment received */
@@ -860,7 +862,7 @@ bool tsm_set_segmented_confirmed_service_received(
                      * LastSegmentOfGroupReceived */
                     if (ack_needed) {
                         /* ACK received segment */
-                        segmentack_pdu_send(
+                        tsm_segmentack_pdu_send(
                             src, false, true, service_data->invoke_id,
                             TSM_List[index].LastSequenceNumber,
                             TSM_List[index].ActualWindowSize);
@@ -877,19 +879,19 @@ bool tsm_set_segmented_confirmed_service_received(
 /* calculates how many segments will be used to send data in this TSM slot
 @return 1 : No segmentation needed, >1 segmentation needed (number of segments).
 */
-uint32_t get_apdu_max_segments(BACNET_TSM_DATA *data)
+static uint32_t tsm_apdu_max_segments_get(BACNET_TSM_DATA *data)
 {
     uint32_t header_size;
     uint32_t packets;
 
     /* Are we unsegmented ? */
-    header_size = get_apdu_header_typical_size(&data->apdu_fixed_header, false);
+    header_size = tsm_apdu_header_typical_size(&data->apdu_fixed_header, false);
     if (header_size + data->apdu_len <= data->apdu_maximum_length) {
         return 1;
     }
 
     /* We are segmented : calculate how many segments to use */
-    header_size = get_apdu_header_typical_size(&data->apdu_fixed_header, true);
+    header_size = tsm_apdu_header_typical_size(&data->apdu_fixed_header, true);
 
     /* Number of packets to use formula : p = ( ( total_length - 1 ) /
      * packet_length ) + 1; */
@@ -899,7 +901,7 @@ uint32_t get_apdu_max_segments(BACNET_TSM_DATA *data)
     return packets;
 }
 
-void bacnet_calc_transmittable_length(
+static void tsm_apdu_transmittable_length(
     BACNET_ADDRESS *dest,
     BACNET_CONFIRMED_SERVICE_DATA *confirmed_service_data,
     uint32_t *apdu_max,
@@ -964,13 +966,13 @@ void bacnet_calc_transmittable_length(
 }
 
 /* room checks to prevent buffer overflows */
-bool check_write_apdu_space(int apdu_len, int max_apdu, int space_needed)
+static bool tsm_apdu_space_available(int apdu_len, int max_apdu, int space_needed)
 {
     return (apdu_len + space_needed) < max_apdu;
 }
 
 /* send a packet to peer */
-int tsm_pdu_send(BACNET_TSM_DATA *tsm_data, uint32_t segment_number)
+static int tsm_pdu_send(BACNET_TSM_DATA *tsm_data, uint32_t segment_number)
 {
     uint8_t Transmit_Buffer[MAX_PDU] = { 0 };
     BACNET_ADDRESS my_address;
@@ -990,7 +992,7 @@ int tsm_pdu_send(BACNET_TSM_DATA *tsm_data, uint32_t segment_number)
     }
     pdu_len += len;
     /* Header tweaks ! */
-    total_segments = get_apdu_max_segments(tsm_data);
+    total_segments = tsm_apdu_max_segments_get(tsm_data);
     /* Index out of bounds */
     if (segment_number >= total_segments) {
         return -1;
@@ -1022,12 +1024,12 @@ int tsm_pdu_send(BACNET_TSM_DATA *tsm_data, uint32_t segment_number)
     /* Rebuild APDU service data */
     /* gets Nth packet data */
     service_data =
-        get_apdu_blob_data_segment(tsm_data, segment_number, &service_len);
+        tsm_blob_data_segment_get(tsm_data, segment_number, &service_len);
     if (!service_data) { /* May be zero-size ! */
         return -1;
     }
     /* enough room ? */
-    if (!check_write_apdu_space(
+    if (!tsm_apdu_space_available(
             pdu_len, sizeof(Transmit_Buffer), service_len)) {
         return -1;
     }
@@ -1073,11 +1075,11 @@ int tsm_set_complexack_transaction(
     /* Choice between a segmented or a non-segmented transaction */
 
     /* fill in maximum fill values */
-    bacnet_calc_transmittable_length(
+    tsm_apdu_transmittable_length(
         dest, confirmed_service_data, &tsm_data->apdu_maximum_length,
         &tsm_data->maximum_transmittable_length);
     /* copy the apdu service data */
-    copy_apdu_blob_data(tsm_data, &pdu[0], pdu_len);
+    tsm_blob_data_copy(tsm_data, &pdu[0], pdu_len);
     /* copy npdu data */
     npdu_copy_data(&tsm_data->npdu_data, npdu_data);
     /* copy apdu header data */
@@ -1093,7 +1095,7 @@ int tsm_set_complexack_transaction(
     tsm_data->SentAllSegments = false;
 
     /* Choice between a segmented or a non-segmented transaction */
-    if (1 == (apdu_segments = get_apdu_max_segments(tsm_data))) {
+    if (1 == (apdu_segments = tsm_apdu_max_segments_get(tsm_data))) {
         /* UNSEGMENTED MODE : Free transaction afterwards */
         bytes_sent = tsm_pdu_send(tsm_data, 0);
         if (bytes_sent > 0) {
@@ -1105,11 +1107,11 @@ int tsm_set_complexack_transaction(
          * segment */
         if (pdu_len +
                 apdu_segments *
-                    get_apdu_header_typical_size(apdu_fixed_header, true) >
+                    tsm_apdu_header_typical_size(apdu_fixed_header, true) >
             tsm_data->maximum_transmittable_length) {
             /* Too much data : we cannot send that much, or the API cannot
              * receive that much ! */
-            free_blob(&TSM_List[index]);
+            tsm_blob_free(&TSM_List[index]);
             /* Abort */
             tsm_abort_pdu_send(
                 confirmed_service_data->invoke_id, dest,
@@ -1140,10 +1142,10 @@ int tsm_set_complexack_transaction(
 
 /* Sends PDU segments either until the window is full or
  until the last segment of a message has been sent.*/
-void FillWindow(BACNET_TSM_DATA *tsm_data, uint32_t sequence_number)
+static void FillWindow(BACNET_TSM_DATA *tsm_data, uint32_t sequence_number)
 {
     uint32_t ix;
-    uint32_t total_segments = get_apdu_max_segments(tsm_data);
+    uint32_t total_segments = tsm_apdu_max_segments_get(tsm_data);
     for (ix = 0; (ix < tsm_data->ActualWindowSize) &&
          (sequence_number + ix < total_segments);
          ix++) {
@@ -1155,7 +1157,7 @@ void FillWindow(BACNET_TSM_DATA *tsm_data, uint32_t sequence_number)
     }
 }
 
-bool InWindow(BACNET_TSM_DATA *data, uint8_t seqA, uint8_t seqB)
+static bool InWindow(BACNET_TSM_DATA *data, uint8_t seqA, uint8_t seqB)
 {
     uint8_t requiredWindowSize = seqA - seqB;
     return requiredWindowSize < data->ActualWindowSize;
@@ -1217,7 +1219,7 @@ void tsm_segmentack_received(
 
             /* 1..N segment number < number of segments ? */
             some_segment_remains = (big_segment_number + 1) <
-                get_apdu_max_segments(&TSM_List[index]);
+                tsm_apdu_max_segments_get(&TSM_List[index]);
             if (some_segment_remains) {
                 /* NewAck_Received : do we have a segment remaining to send */
                 TSM_List[index].InitialSequenceNumber = big_segment_number + 1;
@@ -1247,7 +1249,7 @@ void tsm_segmentack_received(
     } else {
         /* UnexpectedPDU_Received */
         /* Release data */
-        free_blob(&TSM_List[index]);
+        tsm_blob_free(&TSM_List[index]);
         /* Abort */
         tsm_abort_pdu_send(
             invoke_id, src, ABORT_REASON_INVALID_APDU_IN_THIS_STATE, true);
@@ -1303,8 +1305,9 @@ void tsm_free_invoke_id_segmentation(BACNET_ADDRESS *src, uint8_t invoke_id)
 void tsm_timer_milliseconds(uint16_t milliseconds)
 {
     unsigned i = 0; /* counter */
-    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        BACNET_TSM_DATA *plist = &TSM_List[i];
+    BACNET_TSM_DATA *plist = &TSM_List[0];
+
+    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
         if (plist->state == TSM_STATE_AWAIT_CONFIRMATION) {
             if (plist->RequestTimer > milliseconds) {
                 plist->RequestTimer -= milliseconds;
@@ -1332,7 +1335,6 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 }
             }
         }
-
 #if BACNET_SEGMENTATION_ENABLED
         if (plist->state == TSM_STATE_SEGMENTED_RESPONSE_SERVER) {
             /* RequestTimer stopped in this state */
@@ -1347,7 +1349,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 plist->SegmentTimer = apdu_segment_timeout();
                 if (plist->SegmentRetryCount) {
                     /* Re-send PDU data */
-                    FillWindow(&TSM_List[i], plist->InitialSequenceNumber);
+                    FillWindow(plist, plist->InitialSequenceNumber);
                 } else {
                     /* note: the invoke id has not been cleared yet
                        and this indicates a failed message:
@@ -1370,7 +1372,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 status. */
                 tsm_clear_peer_id(plist->InvokeID);
                 /* Release segmented data */
-                free_blob(&TSM_List[i]);
+                tsm_blob_free(plist);
 
                 /* flag slot as "unused" */
                 plist->InvokeID = 0;

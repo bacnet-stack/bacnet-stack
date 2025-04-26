@@ -166,15 +166,11 @@ void tsm_clear_peer_id(uint8_t InternalInvokeID);
 /* frees the invokeID and sets its state to IDLE */
 BACNET_STACK_EXPORT
 void tsm_free_invoke_id_check(
-    uint8_t invokeID,
-    BACNET_ADDRESS *peer_address,
-    bool cleanup);
+    uint8_t invokeID, BACNET_ADDRESS *peer_address, bool cleanup);
 
 /* Associates a Peer address and invoke ID with our TSM */
 BACNET_STACK_EXPORT
-uint8_t tsm_get_peer_id(
-    BACNET_ADDRESS *src,
-    uint8_t invokeID);
+uint8_t tsm_get_peer_id(BACNET_ADDRESS *src, uint8_t invokeID);
 
 BACNET_STACK_EXPORT
 bool tsm_set_segmented_confirmed_service_received(
@@ -205,20 +201,14 @@ void tsm_segmentack_received(
 
 BACNET_STACK_EXPORT
 bool tsm_is_invalid_apdu_in_this_state(
-    BACNET_ADDRESS *src,
-    BACNET_CONFIRMED_SERVICE_DATA *service_data);
+    BACNET_ADDRESS *src, BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 BACNET_STACK_EXPORT
 void tsm_abort_pdu_send(
-    uint8_t invoke_id,
-    BACNET_ADDRESS *dest,
-    uint8_t reason,
-    bool server);
+    uint8_t invoke_id, BACNET_ADDRESS *dest, uint8_t reason, bool server);
 
 BACNET_STACK_EXPORT
-void tsm_free_invoke_id_segmentation(
-    BACNET_ADDRESS *src,
-    uint8_t invoke_id);
+void tsm_free_invoke_id_segmentation(BACNET_ADDRESS *src, uint8_t invoke_id);
 
 #endif
 #ifdef __cplusplus
