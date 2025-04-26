@@ -1177,7 +1177,6 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
             /* FIXME: MSTP_Get_Reply waits for a matching reply, but
                if the next queued message doesn't match, then we
                sit here for Treply_delay doing nothing */
-            mstp_port->TokenCount = 0;
             length = (unsigned)MSTP_Get_Reply(mstp_port, 0);
             if (length > 0) {
                 /* Reply */
