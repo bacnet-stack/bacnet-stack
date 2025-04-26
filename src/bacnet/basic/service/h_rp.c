@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -30,6 +29,12 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
+
+#if BACNET_SEGMENTATION_ENABLED
+#define BACNET_RP_BUFFER_OVERFLOW ERROR_CODE_ABORT_BUFFER_OVERFLOW
+#else
+#define BACNET_RP_BUFFER_OVERFLOW ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED
+#endif
 
 /** @file h_rp.c  Handles Read Property requests. */
 
@@ -61,7 +66,7 @@ void handler_read_property(
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     int len = 0;
-    int max_apdu_len = 0;
+    int max_resp = 0;
     int pdu_len = 0;
     int apdu_len = -1;
     int npdu_len = -1;
@@ -72,13 +77,10 @@ void handler_read_property(
 #if BACNET_SEGMENTATION_ENABLED
     BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     int apdu_header_len = 3;
-    int buffer_size = MAX_PDU;
-#else
-    int buffer_size = MAX_PDU;
 #endif
 
     /* configure default error code as an abort since it is common */
-    rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+    rpdata.error_code = BACNET_RP_BUFFER_OVERFLOW;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
@@ -141,7 +143,7 @@ void handler_read_property(
             /* configure our storage */
             rpdata.application_data =
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
-            rpdata.application_data_len = buffer_size - (npdu_len + apdu_len);
+            rpdata.application_data_len = MAX_PDU - (npdu_len + apdu_len);
             if (!read_property_bacnet_array_valid(&rpdata)) {
                 len = BACNET_STATUS_ERROR;
             } else {
@@ -152,10 +154,9 @@ void handler_read_property(
                 len = rp_ack_encode_apdu_object_property_end(
                     &Handler_Transmit_Buffer[npdu_len + apdu_len]);
                 apdu_len += len;
-                max_apdu_len = service_data->max_resp < MAX_APDU
-                    ? service_data->max_resp
-                    : MAX_APDU; // TODO: Danfoss Modification
-                if (apdu_len > max_apdu_len) {
+                /* pick the smaller response limit: ours or theirs */
+                max_resp = min(service_data->max_resp, MAX_APDU);
+                if (apdu_len > max_resp) {
 #if BACNET_SEGMENTATION_ENABLED
                     if (service_data->segmented_response_accepted) {
                         npdu_encode_npdu_data(
@@ -169,13 +170,7 @@ void handler_read_property(
                             &Handler_Transmit_Buffer
                                 [npdu_len + apdu_header_len],
                             (apdu_len - apdu_header_len));
-                        error = false;
                         return;
-                    } else {
-                        // segmented response not accepted by the client
-                        rpdata.error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        len = BACNET_STATUS_ABORT;
                     }
 #else
                     /* too big for the sender - send an abort!

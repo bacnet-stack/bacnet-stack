@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 #include <stdlib.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -34,6 +33,18 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
+
+/* Smaller single threaded implementations prefer a
+   single buffer for encoding each property from the RPM request. */
+#ifndef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
+static uint8_t RPM_Prop_Buffer[MAX_APDU] = { 0 };
+#endif
+
+#if BACNET_SEGMENTATION_ENABLED
+#define BACNET_RPM_BUFFER_OVERFLOW ERROR_CODE_ABORT_BUFFER_OVERFLOW
+#else
+#define BACNET_RPM_BUFFER_OVERFLOW ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED
+#endif
 
 /**
  * @brief Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for
@@ -124,13 +135,16 @@ static int RPM_Encode_Property(
     size_t copy_len = 0;
     int apdu_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
-    uint8_t Temp_Buf[MAX_APDU];
+#ifdef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
+    uint8_t RPM_Prop_Buffer[MAX_APDU] = { 0 };
+#endif
 
     len = rpm_ack_encode_apdu_object_property(
-        &Temp_Buf[0], rpmdata->object_property, rpmdata->array_index);
-    copy_len = memcopy(&apdu[0], &Temp_Buf[0], offset, len, max_apdu);
+        &RPM_Prop_Buffer[0], rpmdata->object_property, rpmdata->array_index);
+    copy_len = memcopy(&apdu[0], &RPM_Prop_Buffer[0], offset, len, max_apdu);
     if (copy_len == 0) {
-        rpmdata->error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+        rpmdata->error_code = BACNET_RPM_BUFFER_OVERFLOW;
+        ;
         return BACNET_STATUS_ABORT;
     }
     apdu_len += len;
@@ -140,8 +154,8 @@ static int RPM_Encode_Property(
     rpdata.object_instance = rpmdata->object_instance;
     rpdata.object_property = rpmdata->object_property;
     rpdata.array_index = rpmdata->array_index;
-    rpdata.application_data = &Temp_Buf[0];
-    rpdata.application_data_len = sizeof(Temp_Buf);
+    rpdata.application_data = &RPM_Prop_Buffer[0];
+    rpdata.application_data_len = sizeof(RPM_Prop_Buffer);
 
     if ((rpmdata->object_property == PROP_ALL) ||
         (rpmdata->object_property == PROP_REQUIRED) ||
@@ -162,21 +176,21 @@ static int RPM_Encode_Property(
         }
         /* error was returned - encode that for the response */
         len = rpm_ack_encode_apdu_object_property_error(
-            &Temp_Buf[0], rpdata.error_class, rpdata.error_code);
-        copy_len =
-            memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len, max_apdu);
+            &RPM_Prop_Buffer[0], rpdata.error_class, rpdata.error_code);
+        copy_len = memcopy(
+            &apdu[0], &RPM_Prop_Buffer[0], offset + apdu_len, len, max_apdu);
 
         if (copy_len == 0) {
-            rpmdata->error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            rpmdata->error_code = BACNET_RPM_BUFFER_OVERFLOW;
             return BACNET_STATUS_ABORT;
         }
     } else if ((offset + apdu_len + 1 + len + 1) < max_apdu) {
         /* enough room to fit the property value and tags */
         len = rpm_ack_encode_apdu_object_property_value(
-            &apdu[offset + apdu_len], &Temp_Buf[0], len);
+            &apdu[offset + apdu_len], &RPM_Prop_Buffer[0], len);
     } else {
         /* not enough room - abort! */
-        rpmdata->error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+        rpmdata->error_code = BACNET_RPM_BUFFER_OVERFLOW;
         return BACNET_STATUS_ABORT;
     }
     apdu_len += len;
@@ -190,8 +204,9 @@ static int RPM_Encode_Property(
  * by a call to apdu_set_confirmed_handler().
  * This handler builds a response packet, which is
  * - an Abort if
- *   - the message is segmented, when BACNET_SEGMENTATION_ENABLED is OFF(SEGMENTATION_NONE)
+ *   - the message is segmented and SEGMENTATION_NONE
  *   - if decoding fails
+ *   - if the response would be too large
  * - the result from each included read request, if it succeeds
  * - an Error if processing fails for all, or individual errors if only some
  * fail, or there isn't enough room in the APDU to fit the data.
@@ -220,11 +235,14 @@ void handler_read_property_multiple(
     int apdu_len = 0;
     int npdu_len = 0;
     int error = 0;
-    int max_apdu_len = 0;
+    int max_resp = 0;
+#if BACNET_SEGMENTATION_ENABLED
     BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     int apdu_header_len = 3;
-    int sizeOfBuffer = MAX_PDU - MAX_NPDU;
-    uint8_t Temp_Buf_rpm[MAX_PDU - MAX_NPDU];
+#endif
+#ifdef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
+    uint8_t RPM_Prop_Buffer[MAX_APDU] = { 0 };
+#endif
 
     if (service_data) {
         datalink_get_my_address(&my_address);
@@ -286,19 +304,14 @@ void handler_read_property_multiple(
                 }
 #endif
                 /* Stick this object id into the reply - if it will fit */
-                len = rpm_ack_encode_apdu_object_begin(&Temp_Buf_rpm[0], &rpmdata);
+                len = rpm_ack_encode_apdu_object_begin(
+                    &RPM_Prop_Buffer[0], &rpmdata);
                 copy_len = memcopy(
-                    &Handler_Transmit_Buffer[npdu_len], &Temp_Buf_rpm[0], apdu_len,
-                    len, sizeOfBuffer);
+                    &Handler_Transmit_Buffer[npdu_len], &RPM_Prop_Buffer[0],
+                    apdu_len, len, sizeof(RPM_Prop_Buffer));
                 if (copy_len == 0) {
                     debug_print("RPM: Response too big!\n");
-#if !BACNET_SEGMENTATION_ENABLED
-                    rpmdata.error_code =
-                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-#else
-                    rpmdata.error_code =
-                        ERROR_CODE_ABORT_BUFFER_OVERFLOW;
-#endif
+                    rpmdata.error_code = BACNET_RPM_BUFFER_OVERFLOW;
                     error = BACNET_STATUS_ABORT;
                     berror = true;
                     break;
@@ -333,7 +346,8 @@ void handler_read_property_multiple(
                                 rpmdata.object_type, rpmdata.object_instance)) {
                             len = RPM_Encode_Property(
                                 &Handler_Transmit_Buffer[npdu_len],
-                                (uint16_t)apdu_len, sizeOfBuffer, &rpmdata);
+                                (uint16_t)apdu_len, MAX_PDU - npdu_len,
+                                &rpmdata);
                             if (len > 0) {
                                 apdu_len += len;
                             } else {
@@ -348,23 +362,18 @@ void handler_read_property_multiple(
                             /* No array index options for this special property.
                                Encode error for this object property response */
                             len = rpm_ack_encode_apdu_object_property(
-                                &Temp_Buf_rpm[0], rpmdata.object_property,
+                                &RPM_Prop_Buffer[0], rpmdata.object_property,
                                 rpmdata.array_index);
 
                             copy_len = memcopy(
                                 &Handler_Transmit_Buffer[npdu_len],
-                                &Temp_Buf_rpm[0], apdu_len, len, sizeOfBuffer);
+                                &RPM_Prop_Buffer[0], apdu_len, len,
+                                sizeof(RPM_Prop_Buffer));
 
                             if (copy_len == 0) {
                                 debug_print(
                                     "RPM: Too full to encode property!\n");
-#if !BACNET_SEGMENTATION_ENABLED
-                                rpmdata.error_code =
-                                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-#else
-                                rpmdata.error_code =
-                                    ERROR_CODE_ABORT_BUFFER_OVERFLOW;
-#endif
+                                rpmdata.error_code = BACNET_RPM_BUFFER_OVERFLOW;
                                 error = BACNET_STATUS_ABORT;
                                 /* The berror flag ensures that
                                    both loops will be broken! */
@@ -374,22 +383,17 @@ void handler_read_property_multiple(
 
                             apdu_len += len;
                             len = rpm_ack_encode_apdu_object_property_error(
-                                &Temp_Buf_rpm[0], ERROR_CLASS_PROPERTY,
+                                &RPM_Prop_Buffer[0], ERROR_CLASS_PROPERTY,
                                 ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY);
 
                             copy_len = memcopy(
                                 &Handler_Transmit_Buffer[npdu_len],
-                                &Temp_Buf_rpm[0], apdu_len, len, sizeOfBuffer);
+                                &RPM_Prop_Buffer[0], apdu_len, len,
+                                sizeof(RPM_Prop_Buffer));
 
                             if (copy_len == 0) {
                                 debug_print("RPM: Too full to encode error!\n");
-#if !BACNET_SEGMENTATION_ENABLED
-                                rpmdata.error_code =
-                                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-#else
-                                rpmdata.error_code =
-                                    ERROR_CODE_ABORT_BUFFER_OVERFLOW;
-#endif
+                                rpmdata.error_code = BACNET_RPM_BUFFER_OVERFLOW;
                                 error = BACNET_STATUS_ABORT;
                                 /* The berror flag ensures that
                                    both loops will be broken! */
@@ -418,7 +422,8 @@ void handler_read_property_multiple(
                                         rpmdata.object_instance)) {
                                     len = RPM_Encode_Property(
                                         &Handler_Transmit_Buffer[npdu_len],
-                                        (uint16_t)apdu_len, sizeOfBuffer, &rpmdata);
+                                        (uint16_t)apdu_len, MAX_PDU - npdu_len,
+                                        &rpmdata);
                                     if (len > 0) {
                                         apdu_len += len;
                                     } else {
@@ -440,7 +445,8 @@ void handler_read_property_multiple(
                                             special_object_property, index);
                                     len = RPM_Encode_Property(
                                         &Handler_Transmit_Buffer[npdu_len],
-                                        (uint16_t)apdu_len, sizeOfBuffer, &rpmdata);
+                                        (uint16_t)apdu_len, MAX_PDU - npdu_len,
+                                        &rpmdata);
                                     if (len > 0) {
                                         apdu_len += len;
                                     } else {
@@ -459,7 +465,7 @@ void handler_read_property_multiple(
                         /* handle an individual property */
                         len = RPM_Encode_Property(
                             &Handler_Transmit_Buffer[npdu_len],
-                            (uint16_t)apdu_len, sizeOfBuffer, &rpmdata);
+                            (uint16_t)apdu_len, MAX_PDU - npdu_len, &rpmdata);
                         if (len > 0) {
                             apdu_len += len;
                         } else {
@@ -478,20 +484,16 @@ void handler_read_property_multiple(
                         /* Reached end of property list so cap the result list
                          */
                         decode_len++;
-                        len = rpm_ack_encode_apdu_object_end(&Temp_Buf_rpm[0]);
+                        len =
+                            rpm_ack_encode_apdu_object_end(&RPM_Prop_Buffer[0]);
                         copy_len = memcopy(
-                            &Handler_Transmit_Buffer[npdu_len], &Temp_Buf_rpm[0],
-                            apdu_len, len, sizeOfBuffer);
+                            &Handler_Transmit_Buffer[npdu_len],
+                            &RPM_Prop_Buffer[0], apdu_len, len,
+                            MAX_PDU - npdu_len);
                         if (copy_len == 0) {
                             debug_print(
                                 "RPM: Too full to encode object end!\n");
-#if !BACNET_SEGMENTATION_ENABLED
-                            rpmdata.error_code =
-                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-#else
-                            rpmdata.error_code =
-                                ERROR_CODE_ABORT_BUFFER_OVERFLOW;
-#endif
+                            rpmdata.error_code = BACNET_RPM_BUFFER_OVERFLOW;
                             error = BACNET_STATUS_ABORT;
                             /* The berror flag ensures that
                                both loops will be broken! */
@@ -514,9 +516,8 @@ void handler_read_property_multiple(
             }
             /* If not having an error so far, check the remaining space. */
             if (!berror) {
-                max_apdu_len =  service_data->max_resp < MAX_APDU ? service_data->max_resp : MAX_APDU;  //TODO: Danfoss Modification
-                if (apdu_len >  max_apdu_len)
-                {
+                max_resp = min(service_data->max_resp, MAX_APDU);
+                if (apdu_len > max_resp) {
 #if BACNET_SEGMENTATION_ENABLED
                     if (service_data->segmented_response_accepted) {
                         apdu_init_fixed_header(
@@ -536,13 +537,7 @@ void handler_read_property_multiple(
                             &Handler_Transmit_Buffer
                                 [npdu_len + apdu_header_len],
                             (apdu_len - apdu_header_len));
-                        error = false;
                         return;
-                    } else {
-                        // segmented response not accepted by the client
-                        rpmdata.error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        error = BACNET_STATUS_ABORT;
                     }
 #else
                     /* too big for the sender - send an abort */
