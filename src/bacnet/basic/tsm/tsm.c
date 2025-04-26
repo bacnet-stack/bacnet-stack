@@ -508,8 +508,7 @@ static uint8_t *tsm_blob_data_segment_get(
         data->apdu_fixed_header.service_data.common_data.segmented_message;
     int header_size =
         tsm_apdu_header_typical_size(&data->apdu_fixed_header, segmented);
-    int block_request_size = (data->apdu_maximum_length - header_size);
-    block_request_size = block_request_size;
+    int block_request_size = data->apdu_maximum_length - header_size;
     int data_position = segment_number * block_request_size;
     int remaining_size = (int)data->apdu_len - data_position;
     *data_len = (uint32_t)max(0, min(remaining_size, block_request_size));
