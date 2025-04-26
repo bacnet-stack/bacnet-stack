@@ -25,14 +25,16 @@
 #include "bacnet/abort.h"
 #include "bacnet/basic/sys/platform.h"
 
-#define DEFAULT_WINDOW_SIZE 32
+#ifndef BACNET_SEGMENTATION_WINDOW_SIZE_DEFAULT
+#define BACNET_SEGMENTATION_WINDOW_SIZE_DEFAULT 32
+#endif
 
 /*Number of Duplicate Segments Received. */
 static uint8_t Duplicate_Count = 0;
 
 /* Indirection of state machine data with peer unique id values */
 static BACNET_TSM_INDIRECT_DATA TSM_Peer_Ids[MAX_TSM_PEERS];
-#endif // BACNET_SEGMENTATION_ENABLED
+#endif
 
 /** @file tsm.c  BACnet Transaction State Machine operations  */
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
@@ -1086,7 +1088,7 @@ int tsm_set_complexack_transaction(
     tsm_data->RetryCount = apdu_retries();
 
     tsm_data->ActualWindowSize = 1;
-    tsm_data->ProposedWindowSize = DEFAULT_WINDOW_SIZE;
+    tsm_data->ProposedWindowSize = BACNET_SEGMENTATION_WINDOW_SIZE_DEFAULT;
     tsm_data->InitialSequenceNumber = 0;
     tsm_data->SentAllSegments = false;
 
