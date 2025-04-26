@@ -44,8 +44,7 @@
  * by a call to apdu_set_confirmed_handler().
  * This handler builds a response packet, which is
  * - an Abort if
- *   - the message is segmented, when BACNET_SEGMENTATION_ENABLED is
- * OFF(SEGMENTATION_NONE)
+ *   - the message is segmented and segmentation is not supported
  *   - if decoding fails
  *   - if the response would be too large
  * - the result from Device_Read_Property(), if it succeeds

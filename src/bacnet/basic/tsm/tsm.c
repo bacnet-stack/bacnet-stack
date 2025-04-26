@@ -665,7 +665,7 @@ bool duplicate_segment_received(
 }
 
 /* send an Abort-PDU message because of incorrect segment/PDU received */
-void abort_pdu_send(
+void tsm_abort_pdu_send(
     uint8_t invoke_id, BACNET_ADDRESS *dest, uint8_t reason, bool server)
 {
     int pdu_len = 0;
@@ -706,14 +706,14 @@ bool tsm_set_segmented_confirmed_service_received(
     *internal_invoke_id = internal_service_id;
     if (!internal_service_id) {
         /* failed : could not allocate enough slot for this transaction */
-        abort_pdu_send(
+        tsm_abort_pdu_send(
             service_data->invoke_id, src,
             ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK, true);
         return false;
     }
     index = tsm_find_invokeID_index(internal_service_id);
     if (index >= MAX_TSM_TRANSACTIONS) { /* shall not fail */
-        abort_pdu_send(service_data->invoke_id, src, ABORT_REASON_OTHER, true);
+        tsm_abort_pdu_send(service_data->invoke_id, src, ABORT_REASON_OTHER, true);
         return false;
     }
     /* check states */
@@ -745,7 +745,7 @@ bool tsm_set_segmented_confirmed_service_received(
             if (service_data->sequence_number == 0 &&
                 (TSM_List[index].ProposedWindowSize == 0 ||
                  TSM_List[index].ProposedWindowSize > 127)) {
-                abort_pdu_send(
+                tsm_abort_pdu_send(
                     service_data->invoke_id, src,
                     ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE, true);
 
@@ -760,7 +760,7 @@ bool tsm_set_segmented_confirmed_service_received(
                 /* Release data */
                 free_blob(&TSM_List[index]);
                 /* Abort */
-                abort_pdu_send(
+                tsm_abort_pdu_send(
                     service_data->invoke_id, src,
                     ABORT_REASON_INVALID_APDU_IN_THIS_STATE, true);
                 /* We must free invoke_id ! */
@@ -787,7 +787,7 @@ bool tsm_set_segmented_confirmed_service_received(
             /* Sequence number MUST be (LastSequenceNumber+1 modulo 256) */
 
             if (TSM_List[index].SegmentTimer > apdu_timeout()) {
-                abort_pdu_send(
+                tsm_abort_pdu_send(
                     service_data->invoke_id, src,
                     ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME, true);
 
@@ -824,7 +824,7 @@ bool tsm_set_segmented_confirmed_service_received(
                 if (++TSM_List[index].ReceivedSegmentsCount >
                     BACNET_MAX_SEGMENTS_ACCEPTED) {
                     /* ABORT: SegmentReceivedOutOfSpace */
-                    abort_pdu_send(
+                    tsm_abort_pdu_send(
                         service_data->invoke_id, src,
                         ABORT_REASON_BUFFER_OVERFLOW, true);
                     /* Release data */
@@ -1057,14 +1057,14 @@ int tsm_set_complexack_transaction(
 
     if (!internal_service_id) {
         /* failed : could not allocate enough slot for this transaction */
-        abort_pdu_send(
+        tsm_abort_pdu_send(
             confirmed_service_data->invoke_id, dest,
             ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK, true);
         return -1;
     }
     index = tsm_find_invokeID_index(internal_service_id);
     if (index >= MAX_TSM_TRANSACTIONS) { /* shall not fail */
-        abort_pdu_send(
+        tsm_abort_pdu_send(
             confirmed_service_data->invoke_id, dest, ABORT_REASON_OTHER, true);
         return -1;
     }
@@ -1111,7 +1111,7 @@ int tsm_set_complexack_transaction(
              * receive that much ! */
             free_blob(&TSM_List[index]);
             /* Abort */
-            abort_pdu_send(
+            tsm_abort_pdu_send(
                 confirmed_service_data->invoke_id, dest,
                 ABORT_REASON_BUFFER_OVERFLOW, true);
             bytes_sent = -2;
@@ -1249,7 +1249,7 @@ void tsm_segmentack_received(
         /* Release data */
         free_blob(&TSM_List[index]);
         /* Abort */
-        abort_pdu_send(
+        tsm_abort_pdu_send(
             invoke_id, src, ABORT_REASON_INVALID_APDU_IN_THIS_STATE, true);
         /* We must free invoke_id ! */
         tsm_free_invoke_id_check(invoke_id, NULL, true);
@@ -1258,7 +1258,7 @@ void tsm_segmentack_received(
 
 /* Check unexpected PDU is received in active TSM state other than idle state
  * for server */
-bool check_unexpected_pdu_received(
+bool tsm_is_invalid_apdu_in_this_state(
     BACNET_ADDRESS *src, BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     uint8_t index = 0;
@@ -1271,7 +1271,7 @@ bool check_unexpected_pdu_received(
             BACNET_TSM_DATA *plist = &TSM_List[index];
             if ((plist->state == TSM_STATE_SEGMENTED_RESPONSE_SERVER) ||
                 (plist->state == TSM_STATE_SEGMENTED_REQUEST_SERVER)) {
-                abort_pdu_send(
+                tsm_abort_pdu_send(
                     service_data->invoke_id, src,
                     ABORT_REASON_INVALID_APDU_IN_THIS_STATE, true);
                 tsm_free_invoke_id_check(plist->InvokeID, src, true);

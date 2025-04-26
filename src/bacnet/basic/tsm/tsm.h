@@ -41,10 +41,8 @@ typedef enum {
     TSM_STATE_AWAIT_CONFIRMATION,
     TSM_STATE_AWAIT_RESPONSE,
     TSM_STATE_SEGMENTED_REQUEST_SERVER,
-    TSM_STATE_SEGMENTED_CONFIRMATION
-#if BACNET_SEGMENTATION_ENABLED
-    ,TSM_STATE_SEGMENTED_RESPONSE_SERVER
-#endif
+    TSM_STATE_SEGMENTED_CONFIRMATION,
+    TSM_STATE_SEGMENTED_RESPONSE_SERVER
 } BACNET_TSM_STATE;
 
 #if BACNET_SEGMENTATION_ENABLED
@@ -68,20 +66,20 @@ typedef struct BACnet_TSM_Data {
     uint8_t RetryCount;
 #if BACNET_SEGMENTATION_ENABLED
     /* used to count segment retries */
-    uint8_t SegmentRetryCount;  
+    uint8_t SegmentRetryCount;
     /* used to control APDU retries and the acceptance of server replies */
-    bool SentAllSegments;  
+    bool SentAllSegments;
     /* stores the sequence number of the last segment received in order */
-    uint8_t LastSequenceNumber; 
+    uint8_t LastSequenceNumber;
     /* stores the sequence number of the first segment of */
     /* a sequence of segments that fill a window */
-    uint8_t InitialSequenceNumber; 
+    uint8_t InitialSequenceNumber;
     /* stores the current window size */
-    uint8_t ActualWindowSize; 
+    uint8_t ActualWindowSize;
     /* stores the window size proposed by the segment sender */
-    uint8_t ProposedWindowSize;  
+    uint8_t ProposedWindowSize;
     /*  used to perform timeout on PDU segments */
-    uint16_t SegmentTimer; 
+    uint16_t SegmentTimer;
 #endif
     /* used to perform timeout on Confirmed Requests */
     /* in milliseconds */
@@ -168,14 +166,14 @@ void tsm_clear_peer_id(uint8_t InternalInvokeID);
 /* frees the invokeID and sets its state to IDLE */
 BACNET_STACK_EXPORT
 void tsm_free_invoke_id_check(
-    uint8_t invokeID, 
-    BACNET_ADDRESS *peer_address, 
+    uint8_t invokeID,
+    BACNET_ADDRESS *peer_address,
     bool cleanup);
 
 /* Associates a Peer address and invoke ID with our TSM */
 BACNET_STACK_EXPORT
 uint8_t tsm_get_peer_id(
-    BACNET_ADDRESS *src, 
+    BACNET_ADDRESS *src,
     uint8_t invokeID);
 
 BACNET_STACK_EXPORT
@@ -206,15 +204,15 @@ void tsm_segmentack_received(
     BACNET_ADDRESS *src);
 
 BACNET_STACK_EXPORT
-bool check_unexpected_pdu_received(
-    BACNET_ADDRESS *src, 
+bool tsm_is_invalid_apdu_in_this_state(
+    BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 BACNET_STACK_EXPORT
-void abort_pdu_send(
-    uint8_t invoke_id, 
-    BACNET_ADDRESS *dest, 
-    uint8_t reason, 
+void tsm_abort_pdu_send(
+    uint8_t invoke_id,
+    BACNET_ADDRESS *dest,
+    uint8_t reason,
     bool server);
 
 BACNET_STACK_EXPORT

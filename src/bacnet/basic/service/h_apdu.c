@@ -650,7 +650,7 @@ static void apdu_handler_confirmed_service(
     }
 #if BACNET_SEGMENTATION_ENABLED
     /* Check for unexpected request is received in active TSM state */
-    if (check_unexpected_pdu_received(src, &service_data)) {
+    if (tsm_is_invalid_apdu_in_this_state(src, &service_data)) {
         return;
     }
 #endif
@@ -866,7 +866,7 @@ void apdu_handler(
 #if BACNET_SEGMENTATION_ENABLED
             else {
                 /*SendAbort*/
-                abort_pdu_send(invoke_id, src, reason, server);
+                tsm_abort_pdu_send(invoke_id, src, reason, server);
             }
             /*Release the data*/
             tsm_free_invoke_id_segmentation(src, invoke_id);
