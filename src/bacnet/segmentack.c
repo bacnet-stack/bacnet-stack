@@ -37,7 +37,7 @@
  *
  * @param apdu[in]  Pointer to the buffer for encoding.
  * @param negativeack[in]  Acknowedlegment for the segment.
- * @param server[in]  Set to True if the acknowlegment is from the server, else
+ * @param server[in]  Set to True if the acknowledgment is from the server, else
  * false.
  * @param invoke_id[in]  Invoke Id
  * @param sequence_number[in]  Sequence number of the segment to be acknowledged
