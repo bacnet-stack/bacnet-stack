@@ -37,7 +37,7 @@
 /* Smaller single threaded implementations prefer a
    single buffer for encoding each property from the RPM request. */
 #ifndef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
-static uint8_t RPM_Prop_Buffer[MAX_APDU] = { 0 };
+static uint8_t RPM_Prop_Buffer[MAX_PDU - MAX_NPDU] = { 0 };
 #endif
 
 #if BACNET_SEGMENTATION_ENABLED
@@ -136,7 +136,7 @@ static int RPM_Encode_Property(
     int apdu_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
 #ifdef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
-    uint8_t RPM_Prop_Buffer[MAX_APDU] = { 0 };
+    uint8_t RPM_Prop_Buffer[MAX_PDU - MAX_NPDU] = { 0 };
 #endif
 
     len = rpm_ack_encode_apdu_object_property(
@@ -144,7 +144,6 @@ static int RPM_Encode_Property(
     copy_len = memcopy(&apdu[0], &RPM_Prop_Buffer[0], offset, len, max_apdu);
     if (copy_len == 0) {
         rpmdata->error_code = BACNET_RPM_BUFFER_OVERFLOW;
-        ;
         return BACNET_STATUS_ABORT;
     }
     apdu_len += len;
@@ -241,7 +240,7 @@ void handler_read_property_multiple(
     int apdu_header_len = 3;
 #endif
 #ifdef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
-    uint8_t RPM_Prop_Buffer[MAX_APDU] = { 0 };
+    uint8_t RPM_Prop_Buffer[MAX_PDU - MAX_NPDU] = { 0 };
 #endif
 
     if (service_data) {
