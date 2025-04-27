@@ -340,7 +340,8 @@ bool tsm_invoke_id_free(uint8_t invokeID)
     return status;
 }
 
-/** See if we failed get a confirmation for the message associated
+/**
+ * @brief Check if a confirmation failed to arrive for the message associated
  *  with this invoke ID.
  * @param invokeID [in] The invokeID to be checked, normally of last message
  * sent.
@@ -365,6 +366,15 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
 }
 
 #if BACNET_SEGMENTATION_ENABLED
+/**
+ * @brief Send a Segment Ack PDU
+ * @param dest [in] The destination address
+ * @param negativeack [in] true if negative ack, false if positive ack
+ * @param server [in] true if server, false if client
+ * @param invoke_id [in] The invoke ID
+ * @param sequence_number [in] The sequence number
+ * @param actual_window_size [in] The actual window size
+ */
 static void tsm_segmentack_pdu_send(
     BACNET_ADDRESS *dest,
     bool negativeack,
@@ -395,7 +405,12 @@ static void tsm_segmentack_pdu_send(
 #endif
 }
 
-/* theoretical size of apdu fixed header */
+/**
+ * @brief determine the theoretical size of an apdu fixed header
+ * @param header [in] The fixed header
+ * @param segmented [in] true if segmented, false if unsegmented
+ * @return the estimated size of the header
+ */
 static uint32_t
 tsm_apdu_header_typical_size(BACNET_APDU_FIXED_HEADER *header, bool segmented)
 {
@@ -414,7 +429,10 @@ tsm_apdu_header_typical_size(BACNET_APDU_FIXED_HEADER *header, bool segmented)
     return unsegmented_ack;
 }
 
-/* Free allocated blob data */
+/**
+ * @brief Free the allocated blob data
+ * @param data [in] The TSM data
+ */
 static void tsm_blob_free(BACNET_TSM_DATA *data)
 {
     /* Free received data blobs */
@@ -432,13 +450,21 @@ static void tsm_blob_free(BACNET_TSM_DATA *data)
     data->apdu_len = 0;
 }
 
-/* keeps allocated blob data, but reset data & current size */
+/**
+ * @param Reset blob current size, but keep allocated data
+ * @param data [in] The TSM data
+ */
 static void tsm_blob_reset(BACNET_TSM_DATA *data)
 {
     data->apdu_blob_size = 0;
 }
 
-/* allocate new data if necessary, keeps existing bytes */
+/**
+ * @brief Pad the data blob by allocating new data if necessary
+ *  while keeping existing bytes.
+ * @param data [in] The TSM data
+ * @param allocation_unit [in] The size of the data to allocate
+ */
 static void tsm_blob_pad(BACNET_TSM_DATA *data, uint32_t allocation_unit)
 {
     if (!allocation_unit) { /* NOP */
@@ -466,7 +492,12 @@ static void tsm_blob_pad(BACNET_TSM_DATA *data, uint32_t allocation_unit)
     }
 }
 
-/* add new data to current blob (allocate extra space if necessary) */
+/**
+ * Add new data to current blob (allocate extra space if necessary)
+ * @param data [in] The TSM data
+ * @param bdata [in] The data to add
+ * @param data_len [in] The length of the data
+ */
 static void
 tsm_blob_data_add(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
 {
@@ -475,14 +506,24 @@ tsm_blob_data_add(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
     data->apdu_blob_size += data_len;
 }
 
-/* gets current blob data */
+/**
+ * @brief Get the current blob data
+ * @param data [in] The TSM data
+ * @param data_len [out] The length of the data
+ * @return Pointer to the blob data
+ */
 static uint8_t *tsm_blob_data_get(BACNET_TSM_DATA *data, uint16_t *data_len)
 {
     *data_len = data->apdu_blob_size;
     return data->apdu_blob;
 }
 
-/* Copy new data to current APDU sending blob data */
+/**
+ * @brief Copy new data to current APDU sending blob data
+ * @param data [in] The TSM data
+ * @param bdata [in] The data to copy
+ * @param data_len [in] The length of the data
+ */
 static void
 tsm_blob_data_copy(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
 {
@@ -497,8 +538,14 @@ tsm_blob_data_copy(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
     }
 }
 
-/* gets Nth packet data to send in a segmented operation, or get the only data
- * packet in unsegmented world. */
+/**
+ * @brief Get the Nth packet data to send in a segmented operation,
+ * or get the only data packet in unsegmented world.
+ * @param data [in] The TSM data
+ * @param segment_number [in] The segment number to get
+ * @param data_len [out] The length of the data
+ * @return Pointer to the data segment
+ */
 static uint8_t *tsm_blob_data_segment_get(
     BACNET_TSM_DATA *data, int segment_number, uint32_t *data_len)
 {
@@ -515,7 +562,10 @@ static uint8_t *tsm_blob_data_segment_get(
     return data->apdu + data_position;
 }
 
-/** Clear TSM Peer data */
+/**
+ * @brief Clear TSM Peer data
+ * @param InternalInvokeID [in] The internal invoke ID
+ */
 void tsm_clear_peer_id(uint8_t InternalInvokeID)
 {
     int ix;
@@ -529,7 +579,13 @@ void tsm_clear_peer_id(uint8_t InternalInvokeID)
     }
 }
 
-/* frees the invokeID and sets its state to IDLE */
+/**
+ * @brief frees the invokeID and sets its state to IDLE
+ * @param invokeID [in] The invokeID to be checked, normally of last message
+ * sent.
+ * @param peer_address [in] The peer address to check against
+ * @param cleanup [in] If true, free the blob data
+ */
 void tsm_free_invoke_id_check(
     uint8_t invokeID, BACNET_ADDRESS *peer_address, bool cleanup)
 {
@@ -553,7 +609,13 @@ void tsm_free_invoke_id_check(
     }
 }
 
-/** Finds (optionally creates) an existing peer data */
+/**
+ * @brief Finds (optionally creates) an existing peer data
+ * @param src [in] The source address
+ * @param invokeID [in] The invoke ID
+ * @param createPeerId [in] Create a new peer ID if not found
+ * @return Pointer to the peer data or NULL if not found
+ */
 static BACNET_TSM_INDIRECT_DATA *
 tsm_get_peer_id_data(BACNET_ADDRESS *src, uint8_t invokeID, bool createPeerId)
 {
@@ -601,8 +663,12 @@ tsm_get_peer_id_data(BACNET_ADDRESS *src, uint8_t invokeID, bool createPeerId)
     return item;
 }
 
-/** Associates a Peer address and invoke ID with our TSM
-@returns A local InvokeID unique number, 0 in case of error. */
+/**
+ * @brief Associates a Peer address and invoke ID with our TSM
+ * @param src [in] The source address
+ * @param invokeID [in] The invoke ID
+ * @return A local InvokeID unique number, 0 in case of error.
+ */
 uint8_t tsm_get_peer_id(BACNET_ADDRESS *src, uint8_t invokeID)
 {
     BACNET_TSM_INDIRECT_DATA *peer_data;
@@ -613,6 +679,14 @@ uint8_t tsm_get_peer_id(BACNET_ADDRESS *src, uint8_t invokeID)
     return 0;
 }
 
+/**
+ * @brief Check if the segment is a duplicate
+ * @param tsm_data [in] The TSM data
+ * @param seqA [in] The sequence number of the segment
+ * @param first_sequence_number [in] The first sequence number in the window
+ * @param last_sequence_number [in] The last sequence number in the window
+ * @return true if the segment is a duplicate
+ */
 static bool DuplicateInWindow(
     BACNET_TSM_DATA *tsm_data,
     uint8_t seqA,
@@ -634,6 +708,13 @@ static bool DuplicateInWindow(
     }
 }
 
+/**
+ * @brief Check if the segment is a duplicate
+ * @param index [in] The index of the TSM
+ * @param service_data [in] The service data
+ * @param src [in] The source address
+ * @return true if the segment is a duplicate
+ */
 static bool tsm_duplicate_segment_received(
     uint8_t index,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
@@ -664,7 +745,14 @@ static bool tsm_duplicate_segment_received(
     return isDuplicate;
 }
 
-/* send an Abort-PDU message because of incorrect segment/PDU received */
+/**
+ * @brief send an Abort-PDU message because of incorrect segment/PDU received
+ * @param invoke_id [in] The invokeID to be checked, normally of last message
+ * sent.
+ * @param dest [in] The destination address
+ * @param reason [in] The reason for the abort
+ * @param server [in] true if the server, false if the client
+ */
 void tsm_abort_pdu_send(
     uint8_t invoke_id, BACNET_ADDRESS *dest, uint8_t reason, bool server)
 {
@@ -687,15 +775,22 @@ void tsm_abort_pdu_send(
         datalink_send_pdu(dest, &npdu_data, &Transmit_Buffer[0], pdu_len);
 }
 
-/** We received a segment of a ConfirmedService packet, check TSM state and
- * reassemble the full packet */
+/**
+ * @brief We received a segment of a ConfirmedService packet,
+ *  check TSM state and reassemble the full packet
+ * @param src [in] Source address
+ * @param service_data [in] Service data
+ * @param internal_invoke_id [out] Internal invoke ID
+ * @param pservice_request [in/out] Service request buffer
+ * @param pservice_request_len [in/out] Service request length
+ * @return true if the segment was received and processed
+ */
 bool tsm_set_segmented_confirmed_service_received(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
     uint8_t *internal_invoke_id,
-    uint8_t **pservice_request, /* IN/OUT */
-    uint16_t *pservice_request_len /* IN/OUT */
-)
+    uint8_t **pservice_request,
+    uint16_t *pservice_request_len)
 {
     uint8_t index;
     uint8_t *service_request = *pservice_request;
@@ -876,9 +971,13 @@ bool tsm_set_segmented_confirmed_service_received(
     return result;
 }
 
-/* calculates how many segments will be used to send data in this TSM slot
-@return 1 : No segmentation needed, >1 segmentation needed (number of segments).
-*/
+/**
+ * @brief calculate how many segments will be used to send data
+ *  in this TSM slot
+ * @param data - TSM data
+ * @return 1 : No segmentation needed, >1 segmentation needed (number of
+ *  segments).
+ */
 static uint32_t tsm_apdu_max_segments_get(BACNET_TSM_DATA *data)
 {
     uint32_t header_size;
@@ -901,6 +1000,13 @@ static uint32_t tsm_apdu_max_segments_get(BACNET_TSM_DATA *data)
     return packets;
 }
 
+/**
+ * @brief calculate the maximum APDU length
+ * @param dest - destination address
+ * @param confirmed_service_data - confirmed service data
+ * @param apdu_max - maximum APDU length
+ * @param total_max - total maximum APDU length
+ */
 static void tsm_apdu_transmittable_length(
     BACNET_ADDRESS *dest,
     BACNET_CONFIRMED_SERVICE_DATA *confirmed_service_data,
@@ -965,14 +1071,25 @@ static void tsm_apdu_transmittable_length(
     *total_max = *apdu_max * BACNET_MAX_SEGMENTS_ACCEPTED;
 }
 
-/* room checks to prevent buffer overflows */
+/**
+ * @brief room checks to prevent buffer overflows
+ * @param apdu_len - current APDU length
+ * @param max_apdu - maximum APDU length
+ * @param space_needed - space needed for the new data
+ * @return true if there is enough space, false otherwise
+ */
 static bool
 tsm_apdu_space_available(int apdu_len, int max_apdu, int space_needed)
 {
     return (apdu_len + space_needed) < max_apdu;
 }
 
-/* send a packet to peer */
+/**
+ * @brief send a packet to peer
+ * @param tsm_data - TSM data
+ * @param segment_number - segment number to send
+ * @return number of bytes sent or -1 on error
+ */
 static int tsm_pdu_send(BACNET_TSM_DATA *tsm_data, uint32_t segment_number)
 {
     uint8_t Transmit_Buffer[MAX_PDU] = { 0 };
@@ -1040,9 +1157,19 @@ static int tsm_pdu_send(BACNET_TSM_DATA *tsm_data, uint32_t segment_number)
         &tsm_data->dest, &tsm_data->npdu_data, &Transmit_Buffer[0], pdu_len);
 }
 
-/* Process and send segmented/unsegmented complex acknoweldegement based on the
-response data length For unsegemented response, send the whole data For
-segmented response, send the 1st segment of response data*/
+/**
+ * @brief Process and send segmented/unsegmented complex acknoweldegement
+ *  based on the response data length
+ *  For unsegmented response, send the whole data
+ *  For segmented response, send the 1st segment of response data
+ * @param dest - destination address
+ * @param npdu_data - NPDU data
+ * @param apdu_fixed_header - APDU fixed header
+ * @param confirmed_service_data - confirmed service data
+ * @param pdu - PDU data
+ * @param pdu_len - PDU length
+ * @return number of bytes sent or -1 on error
+ */
 int tsm_set_complexack_transaction(
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
@@ -1141,8 +1268,12 @@ int tsm_set_complexack_transaction(
     return bytes_sent;
 }
 
-/* Sends PDU segments either until the window is full or
- until the last segment of a message has been sent.*/
+/**
+ * @brief Sends PDU segments either until the window is full or
+ * until the last segment of a message has been sent.
+ * @param tsm_data - TSM data
+ * @param sequence_number - sequence number of the segment
+ */
 static void FillWindow(BACNET_TSM_DATA *tsm_data, uint32_t sequence_number)
 {
     uint32_t ix;
@@ -1158,14 +1289,29 @@ static void FillWindow(BACNET_TSM_DATA *tsm_data, uint32_t sequence_number)
     }
 }
 
+/**
+ * @brief Check if the sequence number is in the window
+ * @param data - TSM data
+ * @param seqA - sequence number A
+ * @param seqB - sequence number B
+ * @return true if the sequence number is in the window
+ */
 static bool InWindow(BACNET_TSM_DATA *data, uint8_t seqA, uint8_t seqB)
 {
     uint8_t requiredWindowSize = seqA - seqB;
     return requiredWindowSize < data->ActualWindowSize;
 }
 
-/*Process the received segment ack and send the next segment accordingly if
- * available*/
+/**
+ * @brief Process the received segment ack and send
+ *  the next segment accordingly if available
+ * @param invoke_id - invoke ID of the peer
+ * @param sequence_number - sequence number of the segment
+ * @param actual_window_size - actual window size
+ * @param nak - nak flag
+ * @param server - true if server
+ * @param src - BACnet address of the peer
+ */
 void tsm_segmentack_received(
     uint8_t invoke_id,
     uint8_t sequence_number,
@@ -1259,8 +1405,13 @@ void tsm_segmentack_received(
     }
 }
 
-/* Check unexpected PDU is received in active TSM state other than idle state
- * for server */
+/**
+ * @brief Check unexpected PDU is received in active TSM state other
+ *  than idle state for server
+ * @param src - BACnet address of the peer
+ * @param service_data - BACnet confirmed service data
+ * @return true if the unexpected PDU is received in active TSM state
+ */
 bool tsm_is_invalid_apdu_in_this_state(
     BACNET_ADDRESS *src, BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
@@ -1285,7 +1436,11 @@ bool tsm_is_invalid_apdu_in_this_state(
     return status;
 }
 
-/*frees the invokeID for segemented messages */
+/**
+ * @brief frees the invokeID for segmented messages
+ * @param src - BACnet address of the peer
+ * @param invoke_id - invoke ID to free
+ */
 void tsm_free_invoke_id_segmentation(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     uint8_t peer_id = 0;
