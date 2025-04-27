@@ -96,7 +96,7 @@ typedef struct BACnet_TSM_Data {
     /* copy of the APDU, should we need to send it again */
     uint8_t *apdu;
 #if BACNET_SEGMENTATION_ENABLED
-    /* APDU header informations */
+    /* APDU header information */
     BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     /* calculated max APDU length / packet */
     uint32_t apdu_maximum_length;

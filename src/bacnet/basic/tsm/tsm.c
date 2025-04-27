@@ -395,7 +395,7 @@ static void tsm_segmentack_pdu_send(
 #endif
 }
 
-/* theorical size of apdu fixed header */
+/* theoretical size of apdu fixed header */
 static uint32_t
 tsm_apdu_header_typical_size(BACNET_APDU_FIXED_HEADER *header, bool segmented)
 {
@@ -502,7 +502,7 @@ tsm_blob_data_copy(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
 static uint8_t *tsm_blob_data_segment_get(
     BACNET_TSM_DATA *data, int segment_number, uint32_t *data_len)
 {
-    /* Data is splitted in N blocks of, at maximum, ( APDU_MAX - APDU_HEADER )
+    /* Data is split in N blocks of, at maximum, ( APDU_MAX - APDU_HEADER )
      * bytes */
     bool segmented =
         data->apdu_fixed_header.service_data.common_data.segmented_message;
@@ -587,7 +587,7 @@ tsm_get_peer_id_data(BACNET_ADDRESS *src, uint8_t invokeID, bool createPeerId)
         index = tsm_find_invokeID_index(
             TSM_Peer_Ids[free_ix_found].InternalInvokeID);
         if (index < MAX_TSM_TRANSACTIONS) {
-            /* explicitely memorize peer InvokeID */
+            /* explicitly memorize peer InvokeID */
             TSM_List[index].InvokeID =
                 TSM_Peer_Ids[free_ix_found].InternalInvokeID;
             TSM_List[index].dest = *src;
@@ -914,7 +914,7 @@ static void tsm_apdu_transmittable_length(
     BACNET_ADDRESS src;
 
     /* either we are replying to a confirmed service, so we use prompted values
-       ; either we are requesting a peer, so we use memorised informations about
+       ; either we are requesting a peer, so we use memorised information about
        the peer device.
      */
     if (confirmed_service_data) {
@@ -940,7 +940,7 @@ static void tsm_apdu_transmittable_length(
                 deviceId, &max_apdu, &src, &segmentation, &maxsegments)) {
             /* Best possible APDU size */
             *total_max = *apdu_max = min(max_apdu, MAX_APDU);
-            /* IIf device is able to receive segments */
+            /* if device is able to receive segments */
             if (segmentation == SEGMENTATION_BOTH ||
                 segmentation == SEGMENTATION_RECEIVE) {
                 /* XXX - TODO: Number of segments accepted by peer device :

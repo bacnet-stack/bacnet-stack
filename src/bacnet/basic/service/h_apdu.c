@@ -615,7 +615,7 @@ static void apdu_handler_confirmed_service_segment(
         &service_request_len);
     /* last segment  */
     if (segment_ok && !service_data.more_follows) {
-        /* Clear peer informations */
+        /* Clear peer information */
         tsm_clear_peer_id(internal_service_id);
         /* Invoke service handler */
         invoke_confirmed_service_service_request(
