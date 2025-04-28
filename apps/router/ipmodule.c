@@ -240,7 +240,6 @@ int dl_ip_send(
             bip_dest.sin_port = data->port;
             data->buff[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
         }
-
     } else if (dest->mac_len == 6) {
         memcpy(&bip_dest.sin_addr.s_addr, &dest->mac[0], 4);
         memcpy(&bip_dest.sin_port, &dest->mac[4], 2);
