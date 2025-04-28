@@ -2040,14 +2040,14 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
-            if (pObject->Object_Write_Property) {
 #if (BACNET_PROTOCOL_REVISION >= 14)
-                if (wp_data->object_property == PROP_PROPERTY_LIST) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                    return status;
-                }
+            if (wp_data->object_property == PROP_PROPERTY_LIST) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                return status;
+            }
 #endif
+            if (pObject->Object_Write_Property) {
                 if (wp_data->object_property == PROP_OBJECT_NAME) {
                     status = Device_Write_Property_Object_Name(
                         wp_data, pObject->Object_Write_Property);
