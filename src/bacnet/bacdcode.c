@@ -1275,6 +1275,41 @@ int bacnet_boolean_application_decode(
 }
 
 /**
+ * @brief Decode a context boolean value.
+ * @param apdu  Pointer to the encode buffer.
+ * @param apdu_size  Number of bytes in the buffer.
+ * @param boolean_value  Pointer to a boolean variable
+ * @note The Boolean datatype differs from the other datatypes
+ * in that the encoding of a context-tagged Boolean value is not the
+ * same as the encoding of an application-tagged Boolean value.
+ * This is done so that the application-tagged value may be encoded
+ * in a single octet, without a contents octet. While this same encoding
+ * could have been used for the context-tagged case, doing
+ * so would require that the context be known in order to distinguish
+ * between a length or a value in the length/value/type field.
+ * This was considered to be undesirable.
+ * @return number of bytes decoded, or 0 if errors occur
+ */
+int bacnet_boolean_context_value_decode(
+    const uint8_t *apdu, uint32_t apdu_size, bool *boolean_value)
+{
+    int len = 0;
+
+    if (apdu && (apdu_size > 0)) {
+        if (boolean_value) {
+            if (apdu[0]) {
+                *boolean_value = true;
+            } else {
+                *boolean_value = false;
+            }
+        }
+        len = 1;
+    }
+
+    return len;
+}
+
+/**
  * @brief Decode the Boolean Value when context encoded
  * From clause 20.2.3 Encoding of a Boolean Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
@@ -1314,11 +1349,10 @@ int bacnet_boolean_context_decode(
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
             apdu_len = len;
-            if (apdu_len < apdu_size) {
-                if (boolean_value) {
-                    *boolean_value = decode_context_boolean(&apdu[apdu_len]);
-                }
-                apdu_len++;
+            len = bacnet_boolean_context_value_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, boolean_value);
+            if (len > 0) {
+                apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
             }
@@ -1483,8 +1517,7 @@ int decode_bitstring(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - value to decode into
- *
+ * @param value - value to decode into, or NULL for length checking
  * @return  number of bytes decoded, or zero if errors occur
  */
 int bacnet_bitstring_decode(
@@ -1499,7 +1532,7 @@ int bacnet_bitstring_decode(
     uint32_t bytes_used;
 
     /* check to see if the APDU is long enough */
-    if (apdu && value && (len_value <= apdu_size)) {
+    if (apdu && (len_value <= apdu_size)) {
         /* Init/empty the string. */
         bitstring_init(value);
         if (len_value > 0) {
@@ -1510,7 +1543,8 @@ int bacnet_bitstring_decode(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        value, (uint8_t)i, byte_reverse_bits(apdu[len++]));
+                        value, (uint8_t)i, byte_reverse_bits(apdu[len]));
+                    len++;
                 }
                 /* Erase the remaining unused bits. */
                 unused_bits = (uint8_t)(apdu[0] & 0x07);

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.0
+  VERSION 1.4.1
   LANGUAGES C)
 
 #
@@ -121,7 +121,7 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD 99)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
@@ -265,6 +265,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bacerror.h
   src/bacnet/bacint.c
   src/bacnet/bacint.h
+  src/bacnet/baclog.c
+  src/bacnet/baclog.h
   src/bacnet/bacprop.c
   src/bacnet/bacprop.h
   src/bacnet/bacpropstates.c
@@ -575,22 +577,22 @@ add_library(${PROJECT_NAME}
   src/bacnet/datalink/bacsec.c
   src/bacnet/datalink/bacsec.h
   src/bacnet/datalink/bip6.h
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
-  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
-  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
+  src/bacnet/datalink/bip.h
+  src/bacnet/datalink/bvlc6.c
+  src/bacnet/datalink/bvlc6.h
+  src/bacnet/datalink/bvlc.h
+  src/bacnet/datalink/bvlc.c
+  src/bacnet/datalink/crc.h
+  src/bacnet/datalink/crc.c
+  src/bacnet/datalink/cobs.h
+  src/bacnet/datalink/cobs.c
   src/bacnet/datalink/datalink.c
   src/bacnet/datalink/datalink.h
   src/bacnet/datalink/dlenv.c
   src/bacnet/datalink/dlenv.h
   src/bacnet/datalink/dlmstp.h
   src/bacnet/datalink/ethernet.h
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.c>
+  src/bacnet/datalink/mstp.c
   src/bacnet/datalink/mstpdef.h
   src/bacnet/datalink/mstp.h
   src/bacnet/datalink/mstptext.c

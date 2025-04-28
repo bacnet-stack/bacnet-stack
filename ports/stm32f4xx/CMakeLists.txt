@@ -151,6 +151,9 @@ set(BACNET_PROJECT_SOURCE
     ${CMAKE_SOURCE_DIR}/mstimer-init.c
     ${CMAKE_SOURCE_DIR}/rs485.c
 
+    ${CMAKE_SOURCE_DIR}/program-ubasic.c
+    ${CMAKE_SOURCE_DIR}/ubasic-port.c
+
     ${CMAKE_SOURCE_DIR}/device.c
     ${CMAKE_SOURCE_DIR}/netport.c
 
@@ -163,6 +166,9 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/object/ms-input.c
     ${LIBRARY_BACNET_BASIC}/object/mso.c
     ${LIBRARY_BACNET_BASIC}/object/msv.c
+    ${LIBRARY_BACNET_BASIC}/object/program.c
+    ${LIBRARY_BACNET_BASIC}/program/ubasic/ubasic.c
+    ${LIBRARY_BACNET_BASIC}/program/ubasic/tokenizer.c
 
     ${LIBRARY_BACNET_BASIC}/service/h_dcc.c
     ${LIBRARY_BACNET_BASIC}/service/h_apdu.c

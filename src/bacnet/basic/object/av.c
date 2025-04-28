@@ -32,6 +32,9 @@
 static OS_Keylist Object_List;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_ANALOG_VALUE;
+/* callback for present value writes */
+static analog_value_write_present_value_callback
+    Analog_Value_Write_Present_Value_Callback;
 
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -435,6 +438,24 @@ BACNET_RELIABILITY Analog_Value_Reliability(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Value_Object_Fault(const struct analog_value_descr *pObject)
+{
+    bool fault = false;
+
+    if (pObject) {
+        if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
+            fault = true;
+        }
+    }
+
+    return fault;
+}
+
+/**
  * @brief For a given object instance-number, sets the reliability
  * @param  object_instance - object-instance number of the object
  * @param  value - reliability property value
@@ -444,15 +465,34 @@ bool Analog_Value_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value)
 {
     bool status = false;
+    bool fault = false;
     struct analog_value_descr *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
+        fault = Analog_Value_Object_Fault(pObject);
         pObject->Reliability = value;
+        if (fault != Analog_Value_Object_Fault(pObject)) {
+            pObject->Changed = true;
+        }
         status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Value_Fault(uint32_t object_instance)
+{
+    struct analog_value_descr *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+
+    return Analog_Value_Object_Fault(pObject);
 }
 
 /**
@@ -702,6 +742,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     float real_value = (float)1.414;
     uint8_t *apdu = NULL;
     ANALOG_VALUE_DESCR *CurrentAV;
+    bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
 #endif
@@ -748,13 +789,11 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_IN_ALARM,
                 (CurrentAV->Event_State != EVENT_STATE_NORMAL));
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_FAULT,
-                (CurrentAV->Reliability != RELIABILITY_NO_FAULT_DETECTED));
+            state = Analog_Value_Fault(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, state);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                CurrentAV->Out_Of_Service);
+            state = Analog_Value_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -886,6 +925,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    float old_value = 0.0f;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     ANALOG_VALUE_DESCR *CurrentAV;
 
@@ -926,13 +966,23 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                        object. */
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                } else if (Analog_Value_Present_Value_Set(
-                               wp_data->object_instance, value.type.Real,
-                               wp_data->priority)) {
-                    status = true;
                 } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    old_value =
+                        Analog_Value_Present_Value(wp_data->object_instance);
+                    if (Analog_Value_Present_Value_Set(
+                            wp_data->object_instance, value.type.Real,
+                            wp_data->priority)) {
+                        status = true;
+                        if (Analog_Value_Write_Present_Value_Callback) {
+                            Analog_Value_Write_Present_Value_Callback(
+                                wp_data->object_instance, old_value,
+                                Analog_Value_Present_Value(
+                                    wp_data->object_instance));
+                        }
+                    } else {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
                 }
             }
             break;
@@ -1063,6 +1113,16 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/**
+ * @brief Sets a callback used when present-value is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Analog_Value_Write_Present_Value_Callback_Set(
+    analog_value_write_present_value_callback cb)
+{
+    Analog_Value_Write_Present_Value_Callback = cb;
 }
 
 /**

@@ -1,17 +1,10 @@
 /**
  * @file
+ * @brief The Network Port object provides access to the configuration
+ * and properties of network ports of a device.
  * @author Steve Karg
  * @date 2016
- * @brief Network port objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Network Port object provides access to the configuration
- * and properties of network ports of a device.
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -55,9 +48,15 @@ struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 static uint32_t Link_Speeds[] = { 9600, 19200, 38400, 57600, 76800, 115200 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_STATUS_FLAGS, PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE, PROP_NETWORK_TYPE, PROP_PROTOCOL_LEVEL,
+static const int Network_Port_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_NETWORK_TYPE,
+    PROP_PROTOCOL_LEVEL,
     PROP_CHANGES_PENDING,
 #if (BACNET_PROTOCOL_REVISION < 24)
     PROP_APDU_LENGTH,
@@ -65,17 +64,22 @@ static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_LINK_SPEED,
 #endif
-    -1 };
+    -1
+};
 
-static const int Network_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_LINK_SPEEDS,
+static const int Network_Port_Properties_Optional[] = {
+    PROP_MAC_ADDRESS,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+    PROP_LINK_SPEEDS,
 #if (BACNET_PROTOCOL_REVISION >= 24)
     PROP_APDU_LENGTH,
     PROP_NETWORK_NUMBER,
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_LINK_SPEED,
 #endif
-    -1 };
+    -1
+};
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
 
@@ -91,7 +95,8 @@ static const int Network_Port_Properties_Proprietary[] = { -1 };
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
-void Network_Port_Property_List(uint32_t object_instance,
+void Network_Port_Property_List(
+    uint32_t object_instance,
     const int **pRequired,
     const int **pOptional,
     const int **pProprietary)
@@ -438,8 +443,9 @@ bool Network_Port_Changes_Pending_Set(uint32_t instance, bool flag)
     index = Network_Port_Instance_To_Index(instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = flag;
-    } else
+    } else {
         return false;
+    }
 
     return true;
 }
@@ -523,8 +529,8 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
  * @param object_property - object-property to be checked
  * @return true if the property is a member of this object instance
  */
-static bool Network_Port_Property_List_Member(
-    uint32_t object_instance, int object_property)
+static bool
+Network_Port_Property_List_Member(uint32_t object_instance, int object_property)
 {
     bool found = false;
     const int *pRequired = NULL;
@@ -640,9 +646,9 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_LINK_SPEEDS:
             count = Network_Port_Link_Speeds_Count(rpdata->object_instance);
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, Network_Port_Link_Speeds_Encode, count,
-                apdu, apdu_max);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Network_Port_Link_Speeds_Encode, count, apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -652,7 +658,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_CHANGES_PENDING:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Network_Port_Changes_Pending(rpdata->object_instance));
             break;
         case PROP_APDU_LENGTH:
@@ -660,11 +667,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], Network_Port_APDU_Length(rpdata->object_instance));
             break;
         case PROP_MAX_MASTER:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_MSTP_Max_Master(rpdata->object_instance));
             break;
         case PROP_MAX_INFO_FRAMES:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_MSTP_Max_Info_Frames(rpdata->object_instance));
             break;
         default:
@@ -760,8 +769,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_MAC_ADDRESS:
             if (value.tag == BACNET_APPLICATION_TAG_OCTET_STRING) {
-                if (!Network_Port_MAC_Address_Set(wp_data->object_instance,
-                        value.type.Octet_String.value,
+                if (!Network_Port_MAC_Address_Set(
+                        wp_data->object_instance, value.type.Octet_String.value,
                         value.type.Octet_String.length)) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
