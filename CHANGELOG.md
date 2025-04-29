@@ -28,6 +28,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnetGroupChannelValue encoding and decoding of BACnetChannelValue
+  which was deemed errata by BACnet standard committee.
 * Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
 
 ### Removed
