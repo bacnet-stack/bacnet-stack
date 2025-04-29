@@ -28,6 +28,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
+
 ### Removed
 
 ## [1.4.1] - 2025-04-11
