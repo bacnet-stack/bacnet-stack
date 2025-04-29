@@ -255,51 +255,45 @@ bool Routed_Device_GetNext(
     int idx = *cursor;
     bool bSuccess = false;
 
-    /* First, see if the index is out of range.
-     * Eg, last call to GetNext may have been the last successful one.
-     */
-    if ((idx < 0) || (idx >= MAX_NUM_DEVICES)) {
+    if ((idx < 0) || (idx >= Num_Managed_Devices)) {
+        /* The next index will be out of range.
+           Eg, last call to GetNext may have been the last successful one.*/
         idx = -1;
-
-        /* Next, see if it's a BACnet broadcast.
-         * For broadcasts, all Devices get a chance at it.
-         */
     } else if (dest->net == BACNET_BROADCAST_NETWORK) {
+        /* For BACnet broadcasts, all Devices get a chance at it. */
         /* Just take the entry indexed by the cursor */
         bSuccess = Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
-    }
-    /* Or see if it's for the main Gateway Device, because
-     * there's no routing info.
-     */
-    else if (dest->net == 0) {
+    } else if (dest->net == 0) {
+        /* See if it's for the main Gateway Device,
+           because there's no routing info. */
         /* Handle like a normal, non-routed access of the Gateway Device.
-         * But first, make sure our internal access is pointing at
-         * that Device in our table by telling it "no routing info" : */
+           But first, make sure our internal access is pointing at
+           that Device in our table by telling it "no routing info" : */
         bSuccess = Routed_Device_Address_Lookup(0, dest->len, dest->adr);
         /* Next step: no more matches: */
         idx = -1;
-    }
-    /* Or if is our virtual DNET, check
-     * against each of our virtually routed Devices.
-     * If we get a match, have it handle the APDU.
-     * For broadcasts, all Devices get a chance at it.
-     */
-    else if (dest->net == dnet) {
-        if (idx == 0) { /* Step over this case (starting point) */
+    } else if (dest->net == dnet) {
+        /* Or if is our virtual DNET, check
+           against each of our virtually routed Devices.
+           If we get a match, have it handle the APDU.
+           For broadcasts, all Devices get a chance at it.*/
+        if (idx == 0) {
+            /* Step over this case (starting point) */
             idx = 1;
         }
         while (idx < MAX_NUM_DEVICES) {
             bSuccess =
                 Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
             if (bSuccess) {
-                break; /* We don't need to keep looking */
+                /* We don't need to keep looking */
+                break;
             }
         }
     }
-
     if (!bSuccess) {
         *cursor = -1;
-    } else if (idx == MAX_NUM_DEVICES) { /* No more to GetNext */
+    } else if (idx == MAX_NUM_DEVICES) {
+        /* No more to GetNext */
         *cursor = -1;
     } else {
         *cursor = idx;
