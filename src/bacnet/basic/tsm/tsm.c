@@ -1449,12 +1449,16 @@ void tsm_free_invoke_id_segmentation(BACNET_ADDRESS *src, uint8_t invoke_id)
 }
 #endif
 
-/** Called once a millisecond or slower.
+/**
+ * @brief Called once a millisecond or slower.
  *  This function calls the handler for a
  *  timeout 'Timeout_Function', if necessary.
- *  Here, Stack is updated only to support segmentation for Server and
- * implementing only two states TSM_STATE_SEGMENTED_RESPONSE_SERVER and
- * TSM_STATE_SEGMENTED_REQUEST_SERVER Client segmentation is not updated.
+ *
+ * @note Only supports segmentation for Server by
+ *  implementing two states:
+ *    TSM_STATE_SEGMENTED_RESPONSE_SERVER
+ *    TSM_STATE_SEGMENTED_REQUEST_SERVER
+ *  Client segmentation is not supported at this time.
  *
  * @param milliseconds - Count of milliseconds passed, since the last call.
  */
