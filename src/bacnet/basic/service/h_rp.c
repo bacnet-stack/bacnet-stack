@@ -142,7 +142,8 @@ void handler_read_property(
             /* configure our storage */
             rpdata.application_data =
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
-            rpdata.application_data_len = MAX_PDU - (npdu_len + apdu_len);
+            rpdata.application_data_len =
+                sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
             if (!read_property_bacnet_array_valid(&rpdata)) {
                 len = BACNET_STATUS_ERROR;
             } else {
@@ -153,7 +154,7 @@ void handler_read_property(
                 len = rp_ack_encode_apdu_object_property_end(
                     &Handler_Transmit_Buffer[npdu_len + apdu_len]);
                 apdu_len += len;
-                /* pick the smaller response limit: ours or theirs */
+                /* pick the smaller response packet: ours or theirs */
                 max_resp = min(service_data->max_resp, MAX_APDU);
                 if (apdu_len > max_resp) {
 #if BACNET_SEGMENTATION_ENABLED

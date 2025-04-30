@@ -38,7 +38,7 @@ static BACNET_TSM_INDIRECT_DATA TSM_Peer_Ids[MAX_TSM_PEERS];
 
 /** @file tsm.c  BACnet Transaction State Machine operations  */
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-uint8_t Handler_Transmit_Buffer[MAX_PDU];
+uint8_t Handler_Transmit_Buffer[MAX_ASDU];
 
 #if (MAX_TSM_TRANSACTIONS)
 /* Really only needed for segmented messages */
@@ -285,13 +285,13 @@ bool tsm_get_transaction_pdu(
         index = tsm_find_invokeID_index(invokeID);
         /* how much checking is needed?  state?  dest match? just invokeID? */
         if (index < MAX_TSM_TRANSACTIONS) {
-            /* FIXME: we may want to free the transaction so it doesn't timeout
-             */
+            /* FIXME: should we free the transaction so it doesn't timeout? */
             /* retrieve the transaction */
             plist = &TSM_List[index];
-            *apdu_len = (uint16_t)plist->apdu_len;
-            if (*apdu_len > MAX_PDU) {
-                *apdu_len = MAX_PDU;
+            if (plist->apdu_len > min(MAX_ASDU, UINT16_MAX)) {
+                *apdu_len = min(MAX_ASDU, UINT16_MAX);
+            } else {
+                *apdu_len = (uint16_t)plist->apdu_len;
             }
             for (j = 0; j < *apdu_len; j++) {
                 apdu[j] = plist->apdu[j];

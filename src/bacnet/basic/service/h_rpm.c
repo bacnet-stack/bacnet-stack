@@ -37,7 +37,7 @@
 /* Smaller single threaded implementations prefer a
    single buffer for encoding each property from the RPM request. */
 #ifndef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
-static uint8_t RPM_Prop_Buffer[MAX_PDU - MAX_NPDU] = { 0 };
+static uint8_t RPM_Prop_Buffer[MAX_ASDU - MAX_NPDU] = { 0 };
 #endif
 
 #if BACNET_SEGMENTATION_ENABLED
@@ -136,7 +136,7 @@ static int RPM_Encode_Property(
     int apdu_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
 #ifdef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
-    uint8_t RPM_Prop_Buffer[MAX_PDU - MAX_NPDU] = { 0 };
+    uint8_t RPM_Prop_Buffer[MAX_ASDU - MAX_NPDU] = { 0 };
 #endif
 
     len = rpm_ack_encode_apdu_object_property(
@@ -240,7 +240,7 @@ void handler_read_property_multiple(
     int apdu_header_len = 3;
 #endif
 #ifdef BACNET_RPM_PROPERTY_BUFFER_USE_CSTACK
-    uint8_t RPM_Prop_Buffer[MAX_PDU - MAX_NPDU] = { 0 };
+    uint8_t RPM_Prop_Buffer[MAX_ASDU - MAX_NPDU] = { 0 };
 #endif
 
     if (service_data) {
@@ -345,7 +345,8 @@ void handler_read_property_multiple(
                                 rpmdata.object_type, rpmdata.object_instance)) {
                             len = RPM_Encode_Property(
                                 &Handler_Transmit_Buffer[npdu_len],
-                                (uint16_t)apdu_len, MAX_PDU - npdu_len,
+                                (uint16_t)apdu_len,
+                                sizeof(Handler_Transmit_Buffer) - npdu_len,
                                 &rpmdata);
                             if (len > 0) {
                                 apdu_len += len;
@@ -421,7 +422,9 @@ void handler_read_property_multiple(
                                         rpmdata.object_instance)) {
                                     len = RPM_Encode_Property(
                                         &Handler_Transmit_Buffer[npdu_len],
-                                        (uint16_t)apdu_len, MAX_PDU - npdu_len,
+                                        (uint16_t)apdu_len,
+                                        sizeof(Handler_Transmit_Buffer) -
+                                            npdu_len,
                                         &rpmdata);
                                     if (len > 0) {
                                         apdu_len += len;
@@ -444,7 +447,9 @@ void handler_read_property_multiple(
                                             special_object_property, index);
                                     len = RPM_Encode_Property(
                                         &Handler_Transmit_Buffer[npdu_len],
-                                        (uint16_t)apdu_len, MAX_PDU - npdu_len,
+                                        (uint16_t)apdu_len,
+                                        sizeof(Handler_Transmit_Buffer) -
+                                            npdu_len,
                                         &rpmdata);
                                     if (len > 0) {
                                         apdu_len += len;
@@ -464,7 +469,9 @@ void handler_read_property_multiple(
                         /* handle an individual property */
                         len = RPM_Encode_Property(
                             &Handler_Transmit_Buffer[npdu_len],
-                            (uint16_t)apdu_len, MAX_PDU - npdu_len, &rpmdata);
+                            (uint16_t)apdu_len,
+                            sizeof(Handler_Transmit_Buffer) - npdu_len,
+                            &rpmdata);
                         if (len > 0) {
                             apdu_len += len;
                         } else {
@@ -488,7 +495,7 @@ void handler_read_property_multiple(
                         copy_len = memcopy(
                             &Handler_Transmit_Buffer[npdu_len],
                             &RPM_Prop_Buffer[0], apdu_len, len,
-                            MAX_PDU - npdu_len);
+                            sizeof(Handler_Transmit_Buffer) - npdu_len);
                         if (copy_len == 0) {
                             debug_print(
                                 "RPM: Too full to encode object end!\n");

@@ -191,7 +191,10 @@ typedef struct BACnet_Object_Id {
 #define MAX_APDU 1476
 #endif
 #define MAX_NPDU (1 + 1 + 2 + 1 + MAX_MAC_LEN + 2 + 1 + MAX_MAC_LEN + 1 + 1 + 2)
-#define MAX_PDU ((MAX_APDU * BACNET_MAX_SEGMENTS_ACCEPTED) + MAX_NPDU)
+#define MAX_PDU (MAX_APDU + MAX_NPDU)
+/* Application Service Data Unit (ASDU) that has not yet been segmented
+   into a protocol data unit (PDU) by the lower layer. */
+#define MAX_ASDU ((MAX_APDU * BACNET_MAX_SEGMENTS_ACCEPTED) + MAX_NPDU)
 
 #define BACNET_ID_VALUE(bacnet_object_instance, bacnet_object_type)         \
     ((((bacnet_object_type) & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \
