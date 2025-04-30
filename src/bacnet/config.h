@@ -204,7 +204,10 @@
 /* for segmented messages, this is the number of segments accepted */
 /* (max memory allocated for one message : MAX_APDU * MAX_SEGMENTS) */
 #if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
-#define BACNET_MAX_SEGMENTS_ACCEPTED 255
+/* note: can be 1..255.
+   ASDU in this library is often sized for 16-bit at 65535 max.
+   Therefore, the default here is limited to avoid overflow warnings. */
+#define BACNET_MAX_SEGMENTS_ACCEPTED 42
 #endif
 #else
 #if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
