@@ -204,7 +204,7 @@
 /* for segmented messages, this is the number of segments accepted */
 /* (max memory allocated for one message : MAX_APDU * MAX_SEGMENTS) */
 #if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
-#define BACNET_MAX_SEGMENTS_ACCEPTED 25
+#define BACNET_MAX_SEGMENTS_ACCEPTED 255
 #endif
 #else
 #if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
