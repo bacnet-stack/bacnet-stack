@@ -18,6 +18,7 @@
 #include "bacnet/timesync.h"
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
