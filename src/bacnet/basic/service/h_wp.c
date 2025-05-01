@@ -40,6 +40,10 @@
  *      the property shall not be changed, and the write shall
  *      be considered successful.
  *
+ * @note There was an interpretation request in April 2025 that limits
+ *  the bypass to only present-value property and only for Channel objects
+ *  or objects that include a priority array.
+ *
  * @param wp_data [in] The WriteProperty data structure
  * @return true if the write shall be considered successful
  */

@@ -500,6 +500,10 @@ bool write_property_unsigned_decode(
  *      the property shall not be changed, and the write shall
  *      be considered successful.
  *
+ * @note There was an interpretation request in April 2025 that limits
+ *  the bypass to only present-value property and only for Channel objects
+ *  or objects that include a priority array.
+ *
  * @param wp_data [in] The WriteProperty data structure
  * @param member_of_object [in] Function to check if a property is a member
   of an object instance
@@ -529,16 +533,11 @@ bool write_property_relinquish_bypass(
         }
         if (has_priority_array || (wp_data->object_type == OBJECT_CHANNEL)) {
             if (wp_data->object_property != PROP_PRESENT_VALUE) {
-                /* this property is not commandable,
+                /* this present-value property is not commandable,
                    so it "shall not be changed, and
                    the write shall be considered successful." */
                 bypass = true;
             }
-        } else {
-            /* this object is not commandable, so any property
-               written with a NULL "shall not be changed, and
-               the write shall be considered successful." */
-            bypass = true;
         }
     }
 

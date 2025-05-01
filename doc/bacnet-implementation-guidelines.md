@@ -760,14 +760,16 @@ does not support the Priority\_Array property.
 
 ## 8.24: Ignore Priority and NULL for Non-Commandable object writes
 
-If a property is writable but not commandable, the device shall process
-a WriteProperty, WriteGroup or WritePropertyMultiple request and ignore
-the priority parameter if it is included in the request.
+If any property is writable but the object is not commandable
+(does not contain a priority-array or is a Channel object),
+the device shall process a WriteProperty, WriteGroup or
+WritePropertyMultiple request and ignore the priority parameter
+if it is included in the request.
 
-If an attempt is made to relinquish a property that is not commandable
-and for which Null is not a supported datatype and no other error conditions
-exist, the property shall not be changed, and the write shall be considered
-successful [PR 21+].
+If an attempt is made to relinquish a present-value property but
+the object is not commandable (does not support a priority-array
+property or is a Channel object), the property shall not be changed,
+and the write shall be considered successful [PR 21+].
 
 ## 8.25: Server devices are required to support all COV lifetime values up to 8 hours (28800 seconds)
 
