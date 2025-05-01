@@ -524,15 +524,19 @@ bool write_property_relinquish_bypass(
         wp_data->application_data, wp_data->application_data_len);
     if ((len > 0) && (len == wp_data->application_data_len)) {
         /* single NULL */
-        /* check to see if this object property is commandable.
-           Does the property list contain a priority-array? */
-        if (member_of_object) {
-            has_priority_array = member_of_object(
-                wp_data->object_type, wp_data->object_instance,
-                PROP_PRIORITY_ARRAY);
-        }
-        if (has_priority_array || (wp_data->object_type == OBJECT_CHANNEL)) {
-            if (wp_data->object_property != PROP_PRESENT_VALUE) {
+        if (wp_data->object_property == PROP_PRESENT_VALUE) {
+            if (member_of_object) {
+                /* check to see if this object property is commandable.
+                Does the property list contain a priority-array? */
+                has_priority_array = member_of_object(
+                    wp_data->object_type, wp_data->object_instance,
+                    PROP_PRIORITY_ARRAY);
+            }
+            if (has_priority_array ||
+                (wp_data->object_type == OBJECT_CHANNEL)) {
+                /* this present-value property is commandable,
+                   and shall not be bypassed */
+            } else {
                 /* this present-value property is not commandable,
                    so it "shall not be changed, and
                    the write shall be considered successful." */

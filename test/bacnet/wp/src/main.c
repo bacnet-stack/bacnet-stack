@@ -308,7 +308,7 @@ static void testWritePropertyNull(void)
 
     bypass = write_property_relinquish_bypass(NULL, NULL);
     zassert_equal(bypass, false, NULL);
-    wp_data.object_type = OBJECT_ANALOG_OUTPUT;
+    wp_data.object_type = OBJECT_ANALOG_VALUE;
     wp_data.object_instance = 0;
     wp_data.object_property = PROP_PRESENT_VALUE;
     wp_data.application_data_len =
@@ -321,11 +321,16 @@ static void testWritePropertyNull(void)
     bypass = write_property_relinquish_bypass(
         &wp_data, test_write_property_member_of_object);
     zassert_equal(bypass, true, NULL);
+    wp_data.object_type = OBJECT_CHANNEL;
+    Is_Property_Member = false;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, false, NULL);
     wp_data.object_property = PROP_OUT_OF_SERVICE;
     Is_Property_Member = true;
     bypass = write_property_relinquish_bypass(
         &wp_data, test_write_property_member_of_object);
-    zassert_equal(bypass, true, NULL);
+    zassert_equal(bypass, false, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
