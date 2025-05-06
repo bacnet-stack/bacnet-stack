@@ -209,10 +209,6 @@
    Therefore, the default here is limited to avoid overflow warnings. */
 #define BACNET_MAX_SEGMENTS_ACCEPTED 42
 #endif
-#else
-#if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
-#define BACNET_MAX_SEGMENTS_ACCEPTED 1
-#endif
 #endif
 
 /* some modules have debugging enabled using PRINT_ENABLED */
