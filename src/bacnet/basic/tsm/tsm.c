@@ -723,14 +723,14 @@ static bool tsm_duplicate_segment_received(
     BACNET_NPDU_DATA npdu_data;
     bool isDuplicate = false;
     uint8_t Ndup = TSM_List[index].ActualWindowSize;
-    /* DuplicateSegmentReceived */
+
     if (Duplicate_Count < Ndup) {
+        /* DuplicateSegmentReceived */
         TSM_List[index].SegmentTimer = apdu_segment_timeout();
         Duplicate_Count++;
         isDuplicate = true;
-    }
-    // TooManyDuplicateSegmentsReceived
-    else if (Duplicate_Count == Ndup) {
+    } else if (Duplicate_Count == Ndup) {
+        /* TooManyDuplicateSegmentsReceived */
         npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
         tsm_segmentack_pdu_send(
             src, true, true, service_data->invoke_id,
@@ -742,6 +742,7 @@ static bool tsm_duplicate_segment_received(
         Duplicate_Count = 0;
         isDuplicate = true;
     }
+
     return isDuplicate;
 }
 
@@ -836,11 +837,10 @@ bool tsm_set_segmented_confirmed_service_received(
             TSM_List[index].SegmentTimer = apdu_segment_timeout() * 4;
             /* reset memorized data */
             tsm_blob_reset(&TSM_List[index]);
-
-            // ConfirmedSegmentedReceivedWindowSizeOutofRange
             if (service_data->sequence_number == 0 &&
                 (TSM_List[index].ProposedWindowSize == 0 ||
                  TSM_List[index].ProposedWindowSize > 127)) {
+                /* ConfirmedSegmentedReceivedWindowSizeOutofRange */
                 tsm_abort_pdu_send(
                     service_data->invoke_id, src,
                     ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE, true);
@@ -890,20 +890,16 @@ bool tsm_set_segmented_confirmed_service_received(
                 /* Enter IDLE state */
                 TSM_List[index].state = TSM_STATE_IDLE;
             }
-
-            // DuplicateSegmentReceived
             if ((service_data->sequence_number !=
-                 (uint8_t)(TSM_List[index].LastSequenceNumber + 1) % 256))
-
-            {
+                 (uint8_t)(TSM_List[index].LastSequenceNumber + 1) % 256)) {
                 if (DuplicateInWindow(
                         &TSM_List[index], service_data->sequence_number,
                         (TSM_List[index].InitialSequenceNumber) % 256,
                         TSM_List[index].LastSequenceNumber)) {
-                    // DuplicateSegmentReceived
+                    /* DuplicateSegmentReceived */
                     if (tsm_duplicate_segment_received(
                             index, service_data, src)) {
-                        // state is in TSM_STATE_SEGMENTED_REQUEST_SERVER
+                        /* state is in TSM_STATE_SEGMENTED_REQUEST_SERVER */
                         break;
                     }
                 } else {
