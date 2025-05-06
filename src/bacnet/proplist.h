@@ -62,6 +62,9 @@ const int *property_list_bacnet_list(void);
 BACNET_STACK_EXPORT
 bool property_list_bacnet_list_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);
+BACNET_STACK_EXPORT
+bool property_list_commandable_member(
+    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);
 
 #ifdef __cplusplus
 }
