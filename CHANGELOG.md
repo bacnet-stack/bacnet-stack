@@ -28,9 +28,14 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed WriteProperty NULL bypass which is only for present-value property
+  of commandable objects. (#984)
+* Fixed the ghost Device ID 0 in the I-Am response when the actual
+  routed devices are less than the MAX_NUM_DEVICES for gateway device. (#981)
 * Fixed BACnetGroupChannelValue encoding and decoding of BACnetChannelValue
   which was deemed errata by BACnet standard committee. (#980)
 * Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
+* Fixed network specific original broadcast for IP in apps/router. (#976)
 
 ### Removed
 
