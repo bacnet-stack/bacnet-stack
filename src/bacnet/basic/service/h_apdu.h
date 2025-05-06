@@ -162,7 +162,6 @@ void apdu_handler(
     uint8_t *apdu, /* APDU data */
     uint16_t pdu_len); /* for confirmed messages */
 
-#if BACNET_SEGMENTATION_ENABLED
 BACNET_STACK_EXPORT
 uint16_t apdu_segment_timeout(void);
 
@@ -180,13 +179,6 @@ void apdu_init_fixed_header(
     uint8_t invoke_id,
     uint8_t service,
     int max_apdu);
-
-BACNET_STACK_EXPORT
-void apdu_max_segments_accepted_set(uint8_t maxSegments);
-
-BACNET_STACK_EXPORT
-uint8_t apdu_max_segments_accepted_get(void);
-#endif
 
 #ifdef __cplusplus
 }
