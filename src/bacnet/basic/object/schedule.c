@@ -15,6 +15,7 @@
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/schedule.h"
 
@@ -25,6 +26,7 @@
 static SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];
 
 static const int Schedule_Properties_Required[] = {
+    /* list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -39,11 +41,14 @@ static const int Schedule_Properties_Required[] = {
     -1
 };
 
-static const int Schedule_Properties_Optional[] = { PROP_WEEKLY_SCHEDULE,
+static const int Schedule_Properties_Optional[] = {
+    /* list of optional properties */
+    PROP_WEEKLY_SCHEDULE,
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
-                                                    PROP_EXCEPTION_SCHEDULE,
+    PROP_EXCEPTION_SCHEDULE,
 #endif
-                                                    -1 };
+    -1
+};
 
 static const int Schedule_Properties_Proprietary[] = { -1 };
 
@@ -411,6 +416,71 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
+/**
+ * @brief Write the weekly schedule to the object
+ * @param wp_data - pointer to the write property data
+ * @param value - pointer to the weekly schedule value
+ * @return true if the write was successful, and false if not
+ */
+static bool Schedule_Weekly_Schedule_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_WEEKLY_SCHEDULE *value)
+{
+    SCHEDULE_DESCR *pObject;
+    bool status = false;
+    size_t array_index, tv, tv_size;
+
+    if (wp_data == NULL) {
+        return false;
+    }
+    pObject = Schedule_Object(wp_data->object_instance);
+    if (pObject) {
+        if ((wp_data->array_index >= 1) && (wp_data->array_index <= 7)) {
+            array_index = wp_data->array_index - 1;
+            tv_size = min(BACNET_WEEKLY_SCHEDULE_SIZE, MAX_DAY_SCHEDULE_VALUES);
+            for (tv = 0; tv < tv_size; tv++) {
+                /* copy the time value */
+                memcpy(
+                    &pObject->Weekly_Schedule[array_index].Time_Values[tv],
+                    &value->weeklySchedule[array_index].Time_Values[tv],
+                    sizeof(BACNET_TIME_VALUE));
+            }
+            status = true;
+        } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
+            /* write all */
+            for (array_index = 0; array_index < 7; array_index++) {
+                tv_size =
+                    min(BACNET_WEEKLY_SCHEDULE_SIZE, MAX_DAY_SCHEDULE_VALUES);
+                for (tv = 0; tv < tv_size; tv++) {
+                    /* copy the time value */
+                    memcpy(
+                        &pObject->Weekly_Schedule[array_index].Time_Values[tv],
+                        &value->weeklySchedule[array_index].Time_Values[tv],
+                        sizeof(BACNET_TIME_VALUE));
+                }
+            }
+            status = true;
+        } else if (wp_data->array_index == 0) {
+            /* write the size of the array */
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code =
+                ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+            status = true;
+        } else {
+            /* invalid array index */
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            status = false;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Write a property to the Schedule object
+ * @param wp_data - pointer to the write property data
+ * @return true if the write was successful, and false if not
+ */
 bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     unsigned object_index;
@@ -419,9 +489,9 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-    /* FIXME: len < application_data_len: more data? */
+    len = bacapp_decode_known_array_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property, wp_data->array_index);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -441,11 +511,22 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_WEEKLY_SCHEDULE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE);
+            if (status) {
+                Schedule_Weekly_Schedule_Write(
+                    wp_data, &value.type.Weekly_Schedule);
+            }
+            break;
         default:
             if (property_lists_member(
                     Schedule_Properties_Required, Schedule_Properties_Optional,
                     Schedule_Properties_Proprietary,
                     wp_data->object_property)) {
+                debug_printf(
+                    "Schedule_Write_Property: %s\n",
+                    bactext_property_name(wp_data->object_property));
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
