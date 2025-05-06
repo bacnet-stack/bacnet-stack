@@ -93,8 +93,6 @@ typedef struct BACnet_TSM_Data {
     /* the network layer info */
     BACNET_NPDU_DATA npdu_data;
     unsigned apdu_len;
-    /* copy of the APDU, should we need to send it again */
-    uint8_t *apdu;
 #if BACNET_SEGMENTATION_ENABLED
     /* APDU header information */
     BACNET_APDU_FIXED_HEADER apdu_fixed_header;
@@ -110,6 +108,11 @@ typedef struct BACnet_TSM_Data {
     uint32_t apdu_blob_size;
     /* Count received segments (prevents D.O.S.) */
     uint32_t ReceivedSegmentsCount;
+    /* copy of the APDU, should we need to send it again */
+    uint8_t *apdu;
+#else
+    /* copy of the APDU, should we need to send it again */
+    uint8_t apdu[MAX_PDU];
 #endif
 } BACNET_TSM_DATA;
 
