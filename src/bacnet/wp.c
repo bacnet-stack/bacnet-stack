@@ -500,9 +500,11 @@ bool write_property_unsigned_decode(
  *      the property shall not be changed, and the write shall
  *      be considered successful.
  *
- * @note There was an interpretation request in April 2025 that limits
- *  the bypass to only present-value property and only for Channel objects
- *  or objects that include a priority array.
+ * @note There was an interpretation request in April 2025 that clarifies
+ *  that the NULL bypass is only for present-value property of objects that
+ *  optionally support a priority array but don't implement it.
+ *  See 135-2024-19.2.1.1 Commandable Properties for the list of commandable
+ *  properties of specific objects.
  *
  * @param wp_data [in] The WriteProperty data structure
  * @param member_of_object [in] Function to check if a property is a member
@@ -524,7 +526,8 @@ bool write_property_relinquish_bypass(
         wp_data->application_data, wp_data->application_data_len);
     if ((len > 0) && (len == wp_data->application_data_len)) {
         /* single NULL */
-        if (wp_data->object_property == PROP_PRESENT_VALUE) {
+        if (property_list_commandable_member(
+                wp_data->object_type, wp_data->object_property)) {
             if (member_of_object) {
                 /* check to see if this object property is commandable.
                 Does the property list contain a priority-array? */
@@ -534,10 +537,10 @@ bool write_property_relinquish_bypass(
             }
             if (has_priority_array ||
                 (wp_data->object_type == OBJECT_CHANNEL)) {
-                /* this present-value property is commandable,
-                   and shall not be bypassed */
+                /* this property is commandable and shall not be bypassed */
             } else {
-                /* this present-value property is not commandable,
+                /* this property that is optionally commandable
+                   is not commandable for this object instance,
                    so it "shall not be changed, and
                    the write shall be considered successful." */
                 bypass = true;
