@@ -29,11 +29,17 @@
 #define BACNET_SEGMENTATION_WINDOW_SIZE_DEFAULT 32
 #endif
 
+/* for confirmed segmented messages, this is the number of peer
+   segmented requests we can stand at the same time. */
+#if !defined(BACNET_SEGMENTATION_TSM_PEERS_MAX)
+#define BACNET_SEGMENTATION_TSM_PEERS_MAX 16
+#endif
+
 /*Number of Duplicate Segments Received. */
 static uint8_t Duplicate_Count = 0;
 
 /* Indirection of state machine data with peer unique id values */
-static BACNET_TSM_INDIRECT_DATA TSM_Peer_Ids[MAX_TSM_PEERS];
+static BACNET_TSM_INDIRECT_DATA TSM_Peer_Ids[BACNET_SEGMENTATION_TSM_PEERS_MAX];
 #endif
 
 /** @file tsm.c  BACnet Transaction State Machine operations  */
@@ -571,7 +577,7 @@ void tsm_clear_peer_id(uint8_t InternalInvokeID)
     int ix;
 
     /* look for a matching internal invoke ID */
-    for (ix = 0; ix < MAX_TSM_PEERS; ix++) {
+    for (ix = 0; ix < BACNET_SEGMENTATION_TSM_PEERS_MAX; ix++) {
         /* see if it matches the internal number */
         if (TSM_Peer_Ids[ix].InternalInvokeID == InternalInvokeID) {
             TSM_Peer_Ids[ix].InternalInvokeID = 0;
@@ -625,7 +631,7 @@ tsm_get_peer_id_data(BACNET_ADDRESS *src, uint8_t invokeID, bool createPeerId)
     BACNET_TSM_INDIRECT_DATA *item = NULL;
 
     /* look for an empty slot, or a matching (address,peer invoke ID) */
-    for (ix = 0; ix < MAX_TSM_PEERS && !item; ix++) {
+    for (ix = 0; ix < BACNET_SEGMENTATION_TSM_PEERS_MAX && !item; ix++) {
         /* not free : see if it matches */
         if (TSM_Peer_Ids[ix].InternalInvokeID != 0) {
             if (invokeID == TSM_Peer_Ids[ix].PeerInvokeID &&

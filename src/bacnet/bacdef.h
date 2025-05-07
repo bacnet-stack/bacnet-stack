@@ -185,7 +185,14 @@ typedef struct BACnet_Object_Id {
 } BACNET_OBJECT_ID;
 
 #if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
+#if BACNET_SEGMENTATION_ENABLED
+/* note: BACNET_MAX_SEGMENTS_ACCEPTED can be 1..255.
+   ASDU in this library is usually sized for 16-bit at 65535 max.
+   Therefore, the default here is limited to avoid overflow warnings. */
+   #define BACNET_MAX_SEGMENTS_ACCEPTED 32
+#else
 #define BACNET_MAX_SEGMENTS_ACCEPTED 1
+#endif
 #endif
 #if !defined(MAX_APDU)
 #define MAX_APDU 1476

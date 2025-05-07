@@ -79,10 +79,6 @@
 #endif
 #endif
 
-#if defined(BACNET_SEGMENTATION_ENABLED)
-#define BACNET_SEGMENTATION_ENABLED 1
-#endif
-
 #if defined(BACDL_SOME_DATALINK_ENABLED) && defined(BACDL_NONE)
 #error "BACDL_NONE is not compatible with other BACDL_ defines"
 #elif !defined(BACDL_SOME_DATALINK_ENABLED) && !defined(BACDL_NONE) && \
@@ -177,6 +173,11 @@
 #define SC_NETPORT_RECONNECT_TIME 2
 #endif
 
+/* Enable or disable segmentation support in the library */
+#ifndef BACNET_SEGMENTATION_ENABLED
+#define BACNET_SEGMENTATION_ENABLED 0
+#endif
+
 /* for confirmed messages, this is the number of transactions */
 /* that we hold in a queue waiting for timeout. */
 /* Configure to zero if you don't want any confirmed messages */
@@ -192,23 +193,6 @@
 /* then you don't need to use this. */
 #if !defined(MAX_ADDRESS_CACHE)
 #define MAX_ADDRESS_CACHE 255
-#endif
-
-#if BACNET_SEGMENTATION_ENABLED
-/* for confirmed segmented messages, this is the number of peer
-   segmented requests we can stand at the same time. */
-#if !defined(MAX_TSM_PEERS)
-#define MAX_TSM_PEERS 16
-#endif
-
-/* for segmented messages, this is the number of segments accepted */
-/* (max memory allocated for one message : MAX_APDU * MAX_SEGMENTS) */
-#if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
-/* note: can be 1..255.
-   ASDU in this library is often sized for 16-bit at 65535 max.
-   Therefore, the default here is limited to avoid overflow warnings. */
-#define BACNET_MAX_SEGMENTS_ACCEPTED 42
-#endif
 #endif
 
 /* some modules have debugging enabled using PRINT_ENABLED */
