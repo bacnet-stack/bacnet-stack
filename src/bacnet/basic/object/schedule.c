@@ -471,10 +471,13 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
         if (array_index == 0) {
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
+            array_index--;
             len = bacnet_dailyschedule_context_decode(
                 application_data, application_data_len, 0, &daily_schedule);
             if (len > 0) {
-                tv_size = BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE;
+                tv_size =
+                    min(daily_schedule.TV_Count,
+                        BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE);
                 for (tv = 0; tv < tv_size; tv++) {
                     /* copy the time value */
                     memcpy(
@@ -482,6 +485,7 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
                         &daily_schedule.Time_Values[tv],
                         sizeof(BACNET_TIME_VALUE));
                 }
+                pObject->Weekly_Schedule[array_index].TV_Count = tv_size;
                 error_code = ERROR_CODE_SUCCESS;
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
