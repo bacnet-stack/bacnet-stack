@@ -108,7 +108,7 @@ void Schedule_Init(void)
         psched = &Schedule_Descr[i];
         datetime_copy_date(&psched->Start_Date, &start_date);
         datetime_copy_date(&psched->End_Date, &end_date);
-        for (j = 0; j < 7; j++) {
+        for (j = 0; j < BACNET_WEEKLY_SCHEDULE_SIZE; j++) {
             psched->Weekly_Schedule[j].TV_Count = 0;
         }
         memcpy(
@@ -229,6 +229,48 @@ void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value)
 }
 
 /**
+ * @brief Get the Weekly Schedule for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @return pointer to the Weekly Schedule, or NULL if not found
+ */
+BACNET_DAILY_SCHEDULE *
+Schedule_Weekly_Schedule(uint32_t object_instance, unsigned array_index)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (array_index < BACNET_WEEKLY_SCHEDULE_SIZE)) {
+        return &pObject->Weekly_Schedule[array_index];
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the Weekly Schedule for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param value - pointer to the Weekly Schedule to set
+ * @return true if the Weekly Schedule was set, and false if not
+ */
+bool Schedule_Weekly_Schedule_Set(
+    uint32_t object_instance,
+    unsigned array_index,
+    const BACNET_DAILY_SCHEDULE *value)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (array_index < BACNET_WEEKLY_SCHEDULE_SIZE)) {
+        memcpy(
+            &pObject->Weekly_Schedule[array_index], value,
+            sizeof(BACNET_WEEKLY_SCHEDULE));
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Encode a BACnetARRAY property element
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index requested:
@@ -241,33 +283,19 @@ void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value)
 static int Schedule_Weekly_Schedule_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
 {
-    int apdu_len = 0, len = 0;
+    int apdu_len;
     SCHEDULE_DESCR *pObject;
-    int day, i;
 
-    if (array_index >= 7) {
+    if (array_index >= BACNET_WEEKLY_SCHEDULE_SIZE) {
         return BACNET_STATUS_ERROR;
     }
     pObject = Schedule_Object(object_instance);
     if (!pObject) {
         return BACNET_STATUS_ERROR;
     }
-    day = array_index;
-    len = encode_opening_tag(apdu, 0);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    for (i = 0; i < pObject->Weekly_Schedule[day].TV_Count; i++) {
-        len = bacnet_time_value_encode(
-            apdu, &pObject->Weekly_Schedule[day].Time_Values[i]);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-    }
-    len = encode_closing_tag(apdu, 0);
-    apdu_len += len;
+
+    apdu_len = bacnet_dailyschedule_context_encode(
+        apdu, 0, &pObject->Weekly_Schedule[array_index]);
 
     return apdu_len;
 }
@@ -351,7 +379,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_WEEKLY_SCHEDULE:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                Schedule_Weekly_Schedule_Encode, 7, apdu, apdu_max);
+                Schedule_Weekly_Schedule_Encode, BACNET_WEEKLY_SCHEDULE_SIZE,
+                apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -417,63 +446,75 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
- * @brief Write the weekly schedule to the object
- * @param wp_data - pointer to the write property data
- * @param value - pointer to the weekly schedule value
- * @return true if the write was successful, and false if not
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
  */
-static bool Schedule_Weekly_Schedule_Write(
-    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_WEEKLY_SCHEDULE *value)
+static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
 {
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_DAILY_SCHEDULE daily_schedule = { 0 };
+    size_t tv, tv_size;
+    int len = 0;
     SCHEDULE_DESCR *pObject;
-    bool status = false;
-    size_t array_index, tv, tv_size;
 
-    if (wp_data == NULL) {
-        return false;
-    }
-    pObject = Schedule_Object(wp_data->object_instance);
+    pObject = Schedule_Object(object_instance);
     if (pObject) {
-        if ((wp_data->array_index >= 1) && (wp_data->array_index <= 7)) {
-            array_index = wp_data->array_index - 1;
-            tv_size = min(BACNET_WEEKLY_SCHEDULE_SIZE, MAX_DAY_SCHEDULE_VALUES);
-            for (tv = 0; tv < tv_size; tv++) {
-                /* copy the time value */
-                memcpy(
-                    &pObject->Weekly_Schedule[array_index].Time_Values[tv],
-                    &value->weeklySchedule[array_index].Time_Values[tv],
-                    sizeof(BACNET_TIME_VALUE));
-            }
-            status = true;
-        } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
-            /* write all */
-            for (array_index = 0; array_index < 7; array_index++) {
-                tv_size =
-                    min(BACNET_WEEKLY_SCHEDULE_SIZE, MAX_DAY_SCHEDULE_VALUES);
+        if (array_index == 0) {
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
+            len = bacnet_dailyschedule_context_decode(
+                application_data, application_data_len, 0, &daily_schedule);
+            if (len > 0) {
+                tv_size = BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE;
                 for (tv = 0; tv < tv_size; tv++) {
                     /* copy the time value */
                     memcpy(
                         &pObject->Weekly_Schedule[array_index].Time_Values[tv],
-                        &value->weeklySchedule[array_index].Time_Values[tv],
+                        &daily_schedule.Time_Values[tv],
                         sizeof(BACNET_TIME_VALUE));
                 }
+                error_code = ERROR_CODE_SUCCESS;
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
-            status = true;
-        } else if (wp_data->array_index == 0) {
-            /* write the size of the array */
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code =
-                ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
-            status = true;
         } else {
-            /* invalid array index */
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-            status = false;
+            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
-    return status;
+    return error_code;
+}
+
+/**
+ * @brief Decode one BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Schedule_Weekly_Schedule_Element_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_DAILY_SCHEDULE daily_schedule = { 0 };
+    int len = 0;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        len = bacnet_dailyschedule_context_decode(
+            apdu, apdu_size, 0, &daily_schedule);
+    }
+
+    return len;
 }
 
 /**
@@ -512,11 +553,14 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_WEEKLY_SCHEDULE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE);
-            if (status) {
-                Schedule_Weekly_Schedule_Write(
-                    wp_data, &value.type.Weekly_Schedule);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Schedule_Weekly_Schedule_Element_Length,
+                Schedule_Weekly_Schedule_Element_Write,
+                BACNET_WEEKLY_SCHEDULE_SIZE, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
         default:

@@ -19,12 +19,8 @@
 #include "bacnet/rp.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/bactimevalue.h"
+#include "bacnet/dailyschedule.h"
 #include "bacnet/special_event.h"
-
-#ifndef BACNET_WEEKLY_SCHEDULE_SIZE
-/* Maximum number of data points for each day */
-#define BACNET_WEEKLY_SCHEDULE_SIZE 8
-#endif
 
 #ifndef BACNET_SCHEDULE_OBJ_PROP_REF_SIZE
 /* Maximum number of obj prop references */
@@ -40,22 +36,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/*
- * Note:
- * This is a different struct from BACNET_DAILY_SCHEDULE used in prop value
- * encoding! The number of entries is different.
- */
-typedef struct bacnet_obj_daily_schedule {
-    BACNET_TIME_VALUE Time_Values[BACNET_WEEKLY_SCHEDULE_SIZE];
-    uint16_t TV_Count; /* the number of time values actually used */
-} BACNET_OBJ_DAILY_SCHEDULE;
-
 typedef struct schedule {
     /* Effective Period: Start and End Date */
     BACNET_DATE Start_Date;
     BACNET_DATE End_Date;
     /* Properties concerning Present Value */
-    BACNET_OBJ_DAILY_SCHEDULE Weekly_Schedule[7];
+    BACNET_DAILY_SCHEDULE Weekly_Schedule[BACNET_WEEKLY_SCHEDULE_SIZE];
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     BACNET_SPECIAL_EVENT Exception_Schedule[BACNET_EXCEPTION_SCHEDULE_SIZE];
 #endif
@@ -93,6 +79,15 @@ BACNET_STACK_EXPORT
 void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value);
 BACNET_STACK_EXPORT
 bool Schedule_Out_Of_Service(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+BACNET_DAILY_SCHEDULE *
+Schedule_Weekly_Schedule(uint32_t object_instance, unsigned array_index);
+BACNET_STACK_EXPORT
+bool Schedule_Weekly_Schedule_Set(
+    uint32_t object_instance,
+    unsigned array_index,
+    const BACNET_DAILY_SCHEDULE *value);
 
 BACNET_STACK_EXPORT
 bool Schedule_Object_Name(
