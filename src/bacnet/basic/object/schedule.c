@@ -231,6 +231,7 @@ void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value)
 /**
  * @brief Get the Weekly Schedule for a given object instance
  * @param object_instance - object-instance number of the object
+ * @param array_index - index of the Weekly Schedule to get 0 to 6
  * @return pointer to the Weekly Schedule, or NULL if not found
  */
 BACNET_DAILY_SCHEDULE *
@@ -249,6 +250,7 @@ Schedule_Weekly_Schedule(uint32_t object_instance, unsigned array_index)
 /**
  * @brief Set the Weekly Schedule for a given object instance
  * @param object_instance - object-instance number of the object
+ * @param array_index - index of the Weekly Schedule to set 0 to 6
  * @param value - pointer to the Weekly Schedule to set
  * @return true if the Weekly Schedule was set, and false if not
  */
