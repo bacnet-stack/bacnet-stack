@@ -223,25 +223,16 @@ int dl_ip_send(
 
     data->buff[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
+    /* note: this application only sets
+        dest->mac_len
+        dest->mac
+        dest->net
+        all other dest fields are set to zero and ignored */
     if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
         /* broadcast */
         bip_dest.sin_addr.s_addr = data->broadcast_addr.s_addr;
         bip_dest.sin_port = data->port;
         data->buff[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
-
-    } else if ((dest->net > 0) && (dest->len == 0)) {
-        /* net > 0 and net < 65535 are network specific broadcast if len = 0 */
-        if (dest->mac_len == 6) {
-            /* network specific broadcast to address */
-            memcpy(&bip_dest.sin_addr.s_addr, &dest->mac[0], 4);
-            memcpy(&bip_dest.sin_port, &dest->mac[4], 2);
-            data->buff[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
-        } else {
-            /* broadcast */
-            bip_dest.sin_addr.s_addr = data->broadcast_addr.s_addr;
-            bip_dest.sin_port = data->port;
-            data->buff[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
-        }
     } else if (dest->mac_len == 6) {
         memcpy(&bip_dest.sin_addr.s_addr, &dest->mac[0], 4);
         memcpy(&bip_dest.sin_port, &dest->mac[4], 2);
