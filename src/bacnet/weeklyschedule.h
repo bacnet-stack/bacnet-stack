@@ -20,8 +20,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#define BACNET_WEEKLY_SCHEDULE_SIZE 7
 typedef struct BACnet_Weekly_Schedule {
-    BACNET_DAILY_SCHEDULE weeklySchedule[7];
+    BACNET_DAILY_SCHEDULE weeklySchedule[BACNET_WEEKLY_SCHEDULE_SIZE];
     bool singleDay;
 } BACNET_WEEKLY_SCHEDULE;
 
