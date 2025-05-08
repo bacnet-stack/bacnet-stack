@@ -29,6 +29,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed NDPU comparison functions that were missing segment-ack PDU. (#991)
 * Fixed WriteProperty NULL bypass which is only for present-value property
   of commandable objects. (#984)
 * Fixed the ghost Device ID 0 in the I-Am response when the actual
