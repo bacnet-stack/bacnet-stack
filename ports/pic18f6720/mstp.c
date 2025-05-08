@@ -586,6 +586,7 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -596,7 +597,8 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
     }
     /* these services don't have service choice included */
     if ((reply.pdu_type != PDU_TYPE_REJECT) &&
-        (reply.pdu_type != PDU_TYPE_ABORT)) {
+        (reply.pdu_type != PDU_TYPE_ABORT) &&
+        (reply.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
         if (request.service_choice != reply.service_choice) {
             return false;
         }

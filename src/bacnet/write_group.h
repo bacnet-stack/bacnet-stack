@@ -21,7 +21,7 @@
  * BACnetGroupChannelValue ::= SEQUENCE {
  *   channel [0] Unsigned16,
  *   overriding-priority [1] Unsigned (1..16) OPTIONAL,
- *   value BACnetChannelValue
+ *   value [2] BACnetChannelValue
  * }
  */
 struct BACnet_Group_Channel_Value;

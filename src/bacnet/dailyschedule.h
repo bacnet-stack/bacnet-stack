@@ -20,7 +20,9 @@
  * be enough */
 /* however we try not to boost the bacnet application value structure size,  */
 /* so 7 x (this value) x sizeof(BACNET_TIME_VALUE) fits. */
-#define MAX_DAY_SCHEDULE_VALUES 40
+#ifndef BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE
+#define BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE 40
+#endif
 
 /*
     BACnetDailySchedule ::= SEQUENCE {
@@ -33,7 +35,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef struct BACnet_Daily_Schedule {
-    BACNET_TIME_VALUE Time_Values[MAX_DAY_SCHEDULE_VALUES];
+    BACNET_TIME_VALUE Time_Values[BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE];
     uint16_t TV_Count; /* the number of time values actually used */
 } BACNET_DAILY_SCHEDULE;
 

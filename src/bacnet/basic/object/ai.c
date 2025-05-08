@@ -304,7 +304,7 @@ const char *Analog_Input_Name_ASCII(uint32_t object_instance)
 unsigned Analog_Input_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
-#if !defined(INTRINSIC_REPORTING)
+#if defined(INTRINSIC_REPORTING)
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);

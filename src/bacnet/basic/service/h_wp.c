@@ -40,6 +40,12 @@
  *      the property shall not be changed, and the write shall
  *      be considered successful.
  *
+ * @note There was an interpretation request in April 2025 that clarifies
+ *  that the NULL bypass is only for present-value property of objects that
+ *  optionally support a priority array but don't implement it.
+ *  See 135-2024-19.2.1.1 Commandable Properties for the list of commandable
+ *  properties of specific objects.
+ *
  * @param wp_data [in] The WriteProperty data structure
  * @return true if the write shall be considered successful
  */

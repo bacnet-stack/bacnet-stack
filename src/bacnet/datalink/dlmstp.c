@@ -208,7 +208,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     }
     /* these don't have service choice included */
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        (reply.pdu_type == PDU_TYPE_ABORT) ||
+        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
             return false;
         }

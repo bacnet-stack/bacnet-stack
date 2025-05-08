@@ -497,7 +497,8 @@ static bool dlmstp_compare_data_expecting_reply(
     }
     /* these don't have service choice included */
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        (reply.pdu_type == PDU_TYPE_ABORT) ||
+        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
             debug_printf("DLMSTP: DER Compare failed: "
                          "Invoke ID mismatch.\n");
