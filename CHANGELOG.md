@@ -1,7 +1,7 @@
 # BACnet Stack ChangeLog
 
 BACnet open source protocol stack C library for embedded systems,
-Linux, MacOS, BSD, and Windows
+microcontrollers, Linux, MacOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
 
@@ -18,12 +18,13 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added the weekly-schedule property write in basic schedule object. (#990)
 * Added uBASIC-Plus program object example to STM32F4xx. (#967)
 * Added guards in create object initialization to prevent memory leaks. (#965)
 
 ### Changed
 
-* Improved mirror script debugging (#968)
+* Changed mirror script to improve debugging. (#968)
 * Changed dlenv to support multiple datalinks via environment variable. (#966)
 
 ### Fixed
@@ -35,7 +36,7 @@ The git repositories are hosted at the following sites:
 * Fixed BACnetGroupChannelValue encoding and decoding of BACnetChannelValue
   which was deemed errata by BACnet standard committee. (#980)
 * Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
-* Fixed network specific original broadcast for IP in apps/router. (#976)
+* Fixed network specific original broadcast for IP in apps/router. (#976)(#989)
 
 ### Removed
 
