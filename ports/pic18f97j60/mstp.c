@@ -607,7 +607,7 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
     if ((reply.pdu_type != PDU_TYPE_REJECT) &&
         (reply.pdu_type != PDU_TYPE_ABORT) &&
         (reply.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
-            if (request.service_choice != reply.service_choice) {
+        if (request.service_choice != reply.service_choice) {
             return false;
         }
     }
