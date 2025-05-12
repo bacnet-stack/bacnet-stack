@@ -24,10 +24,10 @@ BACNET_STACK_EXPORT
 void dlenv_init(void);
 
 BACNET_STACK_EXPORT
-void bip_dl_debug_enable(void);
+void dlenv_debug_disable(void);
 
 BACNET_STACK_EXPORT
-void bip_dl_debug_disable(void);
+void dlenv_debug_enable(void);
 
 BACNET_STACK_EXPORT
 int dlenv_register_as_foreign_device(void);

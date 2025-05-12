@@ -133,7 +133,8 @@ DEVICE_OBJECT_DATA *Get_Routed_Device_Object(int idx)
 {
     if (idx == -1) {
         return &Devices[iCurrent_Device_Idx];
-    } else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+    } else if (
+        (idx >= 0) && (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
         iCurrent_Device_Idx = idx;
         return &Devices[idx];
     } else {
@@ -154,7 +155,8 @@ BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
 {
     if (idx == -1) {
         return &Devices[iCurrent_Device_Idx].bacDevAddr;
-    } else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+    } else if (
+        (idx >= 0) && (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
         iCurrent_Device_Idx = idx;
         return &Devices[idx].bacDevAddr;
     } else {
@@ -201,7 +203,7 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, const uint8_t *dadr)
     DEVICE_OBJECT_DATA *pDev;
     int i;
 
-    if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+    if ((idx >= 0) && (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
         pDev = &Devices[idx];
         if (dlen == 0) {
             /* Automatic match */
@@ -255,51 +257,45 @@ bool Routed_Device_GetNext(
     int idx = *cursor;
     bool bSuccess = false;
 
-    /* First, see if the index is out of range.
-     * Eg, last call to GetNext may have been the last successful one.
-     */
-    if ((idx < 0) || (idx >= MAX_NUM_DEVICES)) {
+    if ((idx < 0) || (idx >= min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
+        /* The next index will be out of range.
+           Eg, last call to GetNext may have been the last successful one.*/
         idx = -1;
-
-        /* Next, see if it's a BACnet broadcast.
-         * For broadcasts, all Devices get a chance at it.
-         */
     } else if (dest->net == BACNET_BROADCAST_NETWORK) {
+        /* For BACnet broadcasts, all Devices get a chance at it. */
         /* Just take the entry indexed by the cursor */
         bSuccess = Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
-    }
-    /* Or see if it's for the main Gateway Device, because
-     * there's no routing info.
-     */
-    else if (dest->net == 0) {
+    } else if (dest->net == 0) {
+        /* See if it's for the main Gateway Device,
+           because there's no routing info. */
         /* Handle like a normal, non-routed access of the Gateway Device.
-         * But first, make sure our internal access is pointing at
-         * that Device in our table by telling it "no routing info" : */
+           But first, make sure our internal access is pointing at
+           that Device in our table by telling it "no routing info" : */
         bSuccess = Routed_Device_Address_Lookup(0, dest->len, dest->adr);
         /* Next step: no more matches: */
         idx = -1;
-    }
-    /* Or if is our virtual DNET, check
-     * against each of our virtually routed Devices.
-     * If we get a match, have it handle the APDU.
-     * For broadcasts, all Devices get a chance at it.
-     */
-    else if (dest->net == dnet) {
-        if (idx == 0) { /* Step over this case (starting point) */
+    } else if (dest->net == dnet) {
+        /* Or if is our virtual DNET, check
+           against each of our virtually routed Devices.
+           If we get a match, have it handle the APDU.
+           For broadcasts, all Devices get a chance at it.*/
+        if (idx == 0) {
+            /* Step over this case (starting point) */
             idx = 1;
         }
-        while (idx < MAX_NUM_DEVICES) {
+        while (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices)) {
             bSuccess =
                 Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
             if (bSuccess) {
-                break; /* We don't need to keep looking */
+                /* We don't need to keep looking */
+                break;
             }
         }
     }
-
     if (!bSuccess) {
         *cursor = -1;
-    } else if (idx == MAX_NUM_DEVICES) { /* No more to GetNext */
+    } else if (idx == min(MAX_NUM_DEVICES, Num_Managed_Devices)) {
+        /* No more to GetNext */
         *cursor = -1;
     } else {
         *cursor = idx;
@@ -359,7 +355,7 @@ static uint32_t Routed_Device_Instance_To_Index(uint32_t Instance_Number)
 {
     int i;
 
-    for (i = 0; i < MAX_NUM_DEVICES; i++) {
+    for (i = 0; i < min(MAX_NUM_DEVICES, Num_Managed_Devices); i++) {
         if (Devices[i].bacObj.Object_Instance_Number == Instance_Number) {
             /* Found Instance, so return the Device Index Number */
             return i;

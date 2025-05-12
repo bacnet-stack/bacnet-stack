@@ -69,6 +69,26 @@ static void testPropList(void)
             property_list_member(
                 property_list.Required.pList, PROP_OBJECT_NAME),
             NULL);
+        /* validate commandable object property list */
+        if ((i == OBJECT_CHANNEL) ||
+            (property_list_member(
+                 property_list.Required.pList, PROP_PRESENT_VALUE) &&
+             (property_list_member(
+                  property_list.Required.pList, PROP_PRIORITY_ARRAY) ||
+              property_list_member(
+                  property_list.Optional.pList, PROP_PRIORITY_ARRAY)))) {
+            zassert_true(
+                property_list_commandable_member(
+                    (BACNET_OBJECT_TYPE)i, PROP_PRESENT_VALUE),
+                "Object %s present-value is not listed as commandable",
+                bactext_object_type_name((BACNET_OBJECT_TYPE)i));
+        } else {
+            zassert_false(
+                property_list_commandable_member(
+                    (BACNET_OBJECT_TYPE)i, PROP_PRESENT_VALUE),
+                "Object %s present-value is listed as commandable",
+                bactext_object_type_name((BACNET_OBJECT_TYPE)i));
+        }
     }
     /* property is a BACnetARRAY */
     for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {

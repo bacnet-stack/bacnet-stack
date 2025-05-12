@@ -48,7 +48,7 @@ struct object_data {
     bool Changed : 1;
     void *Context;
     /* return 0 for success, negative on error */
-    int (*Load)(void *context, const char *location);
+    int (*Load)(void *context);
     int (*Run)(void *context);
     int (*Halt)(void *context);
     int (*Restart)(void *context);
@@ -960,9 +960,9 @@ void Program_Context_Set(uint32_t object_instance, void *context)
  * @brief Set the Load function for the object
  * @param object_instance [in] BACnet object instance number
  * @param load [in] pointer to the Load function
+ * @note function should return 0 for success, negative on error
  */
-void Program_Load_Set(
-    uint32_t object_instance, int (*load)(void *context, const char *location))
+void Program_Load_Set(uint32_t object_instance, int (*load)(void *context))
 {
     struct object_data *pObject = Object_Data(object_instance);
 
@@ -975,6 +975,7 @@ void Program_Load_Set(
  * @brief Set the Run function for the object
  * @param object_instance [in] BACnet object instance number
  * @param run [in] pointer to the Run function
+ * @note function should return 0 for success, negative on error
  */
 void Program_Run_Set(uint32_t object_instance, int (*run)(void *context))
 {
@@ -989,6 +990,7 @@ void Program_Run_Set(uint32_t object_instance, int (*run)(void *context))
  * @brief Set the Halt function for the object
  * @param object_instance [in] BACnet object instance number
  * @param halt [in] pointer to the Halt function
+ * @note function should return 0 for success, negative on error
  */
 void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
 {
@@ -1003,6 +1005,7 @@ void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
  * @brief Set the Restart function for the object
  * @param object_instance [in] BACnet object instance number
  * @param restart [in] pointer to the Restart function
+ * @note function should return 0 for success, negative on error
  */
 void Program_Restart_Set(
     uint32_t object_instance, int (*restart)(void *context))
@@ -1018,6 +1021,7 @@ void Program_Restart_Set(
  * @brief Set the Unload function for the object
  * @param object_instance [in] BACnet object instance number
  * @param unload [in] pointer to the Unload function
+ * @note function should return 0 for success, negative on error
  */
 void Program_Unload_Set(uint32_t object_instance, int (*unload)(void *context))
 {
@@ -1028,13 +1032,17 @@ void Program_Unload_Set(uint32_t object_instance, int (*unload)(void *context))
     }
 }
 
+/**
+ * @brief Handle the IDLE state of the program
+ * @param pObject [in] pointer to the object data
+ */
 static void Program_State_Idle_Handler(struct object_data *pObject)
 {
     int err;
 
     if (pObject->Program_Change == PROGRAM_REQUEST_LOAD) {
         if (pObject->Load) {
-            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            err = pObject->Load(pObject->Context);
             if (err == 0) {
                 pObject->Program_State = PROGRAM_STATE_LOADING;
                 pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
@@ -1047,7 +1055,7 @@ static void Program_State_Idle_Handler(struct object_data *pObject)
         }
     } else if (pObject->Program_Change == PROGRAM_REQUEST_RUN) {
         if (pObject->Load) {
-            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            err = pObject->Load(pObject->Context);
             if (err == 0) {
                 pObject->Program_State = PROGRAM_STATE_RUNNING;
                 pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
@@ -1074,6 +1082,10 @@ static void Program_State_Idle_Handler(struct object_data *pObject)
     }
 }
 
+/**
+ * @brief Handle the HALTED state of the program
+ * @param pObject [in] pointer to the object data
+ */
 static void Program_State_Halted_Handler(struct object_data *pObject)
 {
     int err;
@@ -1093,7 +1105,7 @@ static void Program_State_Halted_Handler(struct object_data *pObject)
         }
     } else if (pObject->Program_Change == PROGRAM_REQUEST_LOAD) {
         if (pObject->Load) {
-            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            err = pObject->Load(pObject->Context);
             if (err == 0) {
                 pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
                 pObject->Program_State = PROGRAM_STATE_LOADING;
@@ -1123,6 +1135,10 @@ static void Program_State_Halted_Handler(struct object_data *pObject)
     }
 }
 
+/**
+ * @brief Handle the RUNNING state of the program
+ * @param pObject [in] pointer to the object data
+ */
 static void Program_State_Running_Handler(struct object_data *pObject)
 {
     int err;
@@ -1142,7 +1158,7 @@ static void Program_State_Running_Handler(struct object_data *pObject)
         }
     } else if (pObject->Program_Change == PROGRAM_REQUEST_LOAD) {
         if (pObject->Load) {
-            err = pObject->Load(pObject->Context, pObject->Program_Location);
+            err = pObject->Load(pObject->Context);
             if (err == 0) {
                 pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
                 pObject->Program_State = PROGRAM_STATE_LOADING;
