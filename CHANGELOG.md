@@ -18,6 +18,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added more API for BACnet basic server device object. (#994)
 * Added the weekly-schedule property write in basic schedule object. (#990)
 * Added uBASIC-Plus program object example to STM32F4xx. (#967)
 * Added guards in create object initialization to prevent memory leaks. (#965)
