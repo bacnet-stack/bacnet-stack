@@ -110,7 +110,12 @@ struct ubasic_data {
     int16_t free_arrayptr;
     int16_t arrayvariable[MAX_VARNUM];
 #endif
+    /* entire program */
+    const char *program;
+    /* points to current statement */
     const char *program_ptr;
+    /* copy of the current statement until end-of-line */
+    char location[UBASIC_STATEMENT_SIZE];
 
     uint16_t gosub_stack[MAX_GOSUB_STACK_DEPTH];
     uint8_t gosub_stack_ptr;
@@ -209,7 +214,10 @@ void ubasic_load_program(struct ubasic_data *data, const char *program);
 void ubasic_clear_variables(struct ubasic_data *data);
 int32_t ubasic_run_program(struct ubasic_data *data);
 uint8_t ubasic_execute_statement(struct ubasic_data *data, char *statement);
+void ubasic_halt_program(struct ubasic_data *data);
+bool ubasic_program_finished(struct ubasic_data *data);
 uint8_t ubasic_finished(struct ubasic_data *data);
+const char *ubasic_program_location(struct ubasic_data *data);
 
 uint8_t ubasic_waiting_for_input(struct ubasic_data *data);
 uint8_t ubasic_getline(struct ubasic_data *data, int ch);
