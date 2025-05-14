@@ -116,7 +116,12 @@ struct ubasic_data {
     int16_t free_arrayptr;
     int16_t arrayvariable[UBASIC_VARNUM_MAX];
 #endif
+    /* entire program */
+    const char *program;
+    /* points to current statement */
     const char *program_ptr;
+    /* copy of the current statement until end-of-line */
+    char location[UBASIC_STATEMENT_SIZE];
 
     uint16_t gosub_stack[UBASIC_GOSUB_STACK_DEPTH];
     uint8_t gosub_stack_ptr;
@@ -220,7 +225,13 @@ int32_t ubasic_run_program(struct ubasic_data *data);
 BACNET_STACK_EXPORT
 uint8_t ubasic_execute_statement(struct ubasic_data *data, char *statement);
 BACNET_STACK_EXPORT
+void ubasic_halt_program(struct ubasic_data *data);
+BACNET_STACK_EXPORT
+bool ubasic_program_finished(struct ubasic_data *data);
+BACNET_STACK_EXPORT
 uint8_t ubasic_finished(struct ubasic_data *data);
+BACNET_STACK_EXPORT
+const char *ubasic_program_location(struct ubasic_data *data);
 
 BACNET_STACK_EXPORT
 uint8_t ubasic_waiting_for_input(struct ubasic_data *data);
