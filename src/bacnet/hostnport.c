@@ -1161,7 +1161,31 @@ int bacnet_fdt_entry_to_ascii(
 }
 
 /**
- * @brief Checks conformance of a hostname with RFC 1123
+ * @brief Checks conformance of a hostname with:
+ *  RFC 1123: Requirements for Internet Hosts – application and support
+ *  RFC 2181: Clarifications to the DNS specification
+ *
+ *  Host software MUST handle host names of up to 63 characters and
+ *  SHOULD handle host names of up to 255 characters.
+ *
+ *  Whenever a user inputs the identity of an Internet host, it SHOULD
+ *  be possible to enter either (1) a host domain name or (2) an IP
+ *  address in dotted-decimal ("#.#.#.#") form.  The host SHOULD check
+ *  the string syntactically for a dotted-decimal number before
+ *  looking it up in the Domain Name System.
+ *
+ *  The DNS itself places only one restriction on the particular labels
+ *  that can be used to identify resource records.  That one restriction
+ *  relates to the length of the label and the full name.  The length of
+ *  any one label is limited to between 1 and 63 octets.  A full domain
+ *  name is limited to 255 octets (including the separators).  The zero
+ *  length full name is defined as representing the root of the DNS tree,
+ *  and is typically written and displayed as ".".  Those restrictions
+ *  aside, any binary string whatever can be used as the label of any
+ *  resource record.  Similarly, any binary string can serve as the value
+ *  of any record that includes a domain name as some or all of its value
+ *  (SOA, NS, MX, PTR, CNAME, and any others that may be added).
+ *
  * @param hostname - hostname as BACNET_CHARACTER_STRING
  * @return true if the host name conorms to RFC 1123, false otherwise
  */
@@ -1172,17 +1196,17 @@ bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     int dot_count = 0;
     int i = 0;
     char c;
-    char fqdn_copy[MAX_CHARACTER_STRING_BYTES + 1] = { 0 };
+    char fqdn_copy[255 + 1] = { 0 };
     char *label = NULL;
 
     len = characterstring_length(hostname);
-    val = characterstring_value(hostname);
     /* Check length */
-    if (len == 0 || len > MAX_CHARACTER_STRING_BYTES) {
+    if ((len == 0) || (len > sizeof(fqdn_copy) - 1)) {
         /* Invalid length */
         return false;
     }
     /* Check if it looks like an IP address (basic check) */
+    val = characterstring_value(hostname);
     for (i = 0; i < len; i++) {
         if (val[i] == '.') {
             dot_count++;
@@ -1193,7 +1217,6 @@ bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
         /* Invalid: looks like an incomplete IP */
         return false;
     }
-
     /* Check each character */
     for (i = 0; i < len; i++) {
         c = val[i];
@@ -1218,12 +1241,12 @@ bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
             return false;
         }
     }
-    /* check for each label length not exceeding 63 characters */
-    /* Make a copy to manipulate */
+    /* Make a copy to manipulate when checking each label */
     strncpy(fqdn_copy, val, sizeof(fqdn_copy) - 1);
     /* Split FQDN by '.' */
     label = strtok(fqdn_copy, ".");
     while (label != NULL) {
+        /* check for each label length not exceeding 63 characters */
         if (strlen(label) > 63) {
             /* Invalid label found */
             return false;
@@ -1232,5 +1255,6 @@ bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
         label = strtok(NULL, ".");
     }
 
-    return true; /* Valid hostname */
+    /* Valid hostname */
+    return true;
 }

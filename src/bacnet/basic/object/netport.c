@@ -1973,18 +1973,16 @@ bool Network_Port_Remote_BBMD_Address(
     uint32_t object_instance, BACNET_HOST_N_PORT *bbmd_address)
 {
     bool status = false;
-    const unsigned index = Network_Port_Instance_To_Index(
-        object_instance); /* offset from instance lookup */
+    BACNET_HOST_N_PORT *BBMD_Address = NULL;
+    unsigned index;
 
+    index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        BACNET_HOST_N_PORT *BBMD_Address = NULL;
-
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             BBMD_Address = &Object_List[index].Network.IPv4.BBMD_Address;
         } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             BBMD_Address = &Object_List[index].Network.IPv6.BBMD_Address;
         }
-
         if (BBMD_Address) {
             if (bbmd_address) {
                 status = host_n_port_copy(bbmd_address, BBMD_Address);
@@ -2009,24 +2007,21 @@ bool Network_Port_Remote_BBMD_Address_Set(
     uint32_t object_instance, const BACNET_HOST_N_PORT *const bbmd_address)
 {
     bool status = false;
-    unsigned index = Network_Port_Instance_To_Index(
-        object_instance); /* offset from instance lookup */
+    BACNET_HOST_N_PORT *dest_bbmd_address = NULL;
+    unsigned index;
 
+    index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        BACNET_HOST_N_PORT *dest_bbmd_address = NULL;
-
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             dest_bbmd_address = &Object_List[index].Network.IPv4.BBMD_Address;
         } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             dest_bbmd_address = &Object_List[index].Network.IPv6.BBMD_Address;
         }
-
         if (dest_bbmd_address) {
             if (!host_n_port_same(dest_bbmd_address, bbmd_address)) {
                 host_n_port_copy(dest_bbmd_address, bbmd_address);
                 Object_List[index].Changes_Pending = true;
             }
-
             status = true;
         }
     }
@@ -2050,6 +2045,8 @@ static bool host_n_port_is_ip_address(BACNET_HOST_N_PORT *address)
         } else if (address->host_name) {
             status = false;
         } else {
+            /* none-tag option in this implementation is unconfigured
+               and we treat as if it is an IP address */
             status = true;
         }
     }
