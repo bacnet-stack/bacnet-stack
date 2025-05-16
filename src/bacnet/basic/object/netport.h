@@ -165,6 +165,8 @@ BACNET_STACK_EXPORT
 void Network_Port_IP_DHCP_Server(
     uint32_t object_instance, BACNET_OCTET_STRING *ip_address);
 BACNET_STACK_EXPORT
+bool Network_Port_IP_DHCP_Server_Set(
+    uint32_t object_instance, BACNET_OCTET_STRING *ip_address);
 BACNET_STACK_EXPORT
 bool Network_Port_IP_DHCP_Lease_Time_Set(
     uint32_t object_instance, const uint32_t value);
@@ -231,8 +233,7 @@ bool Network_Port_Remote_BBMD_BIP_Port_Set(
     uint32_t object_instance, uint16_t value);
 
 BACNET_STACK_EXPORT
-bool Network_Port_Remote_BBMD_Address(
-    uint32_t object_instance, BACNET_HOST_N_PORT *bbmd_address);
+BACNET_HOST_N_PORT *Network_Port_Remote_BBMD_Address(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Remote_BBMD_Address_Set(
     uint32_t object_instance, const BACNET_HOST_N_PORT *const bbmd_address);
