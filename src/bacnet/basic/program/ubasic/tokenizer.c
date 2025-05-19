@@ -35,191 +35,189 @@
 #include "config.h"
 #include "tokenizer.h"
 
-#define MAX_NUMLEN 8
-
 struct keyword_token {
     const char *keyword;
     uint8_t token;
 };
 
 static const struct keyword_token keywords[] = {
-#if defined(VARIABLE_TYPE_STRING)
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
     /* new string-related statements and functions */
-    { "left$", TOKENIZER_LEFT_STR },
-    { "right$", TOKENIZER_RIGHT_STR },
-    { "mid$", TOKENIZER_MID_STR },
-    { "str$", TOKENIZER_STR_STR },
-    { "chr$", TOKENIZER_CHR_STR },
-    { "val", TOKENIZER_VAL },
-    { "len", TOKENIZER_LEN },
-    { "instr", TOKENIZER_INSTR },
-    { "asc", TOKENIZER_ASC },
+    { "left$", UBASIC_TOKENIZER_LEFT_STR },
+    { "right$", UBASIC_TOKENIZER_RIGHT_STR },
+    { "mid$", UBASIC_TOKENIZER_MID_STR },
+    { "str$", UBASIC_TOKENIZER_STR_STR },
+    { "chr$", UBASIC_TOKENIZER_CHR_STR },
+    { "val", UBASIC_TOKENIZER_VAL },
+    { "len", UBASIC_TOKENIZER_LEN },
+    { "instr", UBASIC_TOKENIZER_INSTR },
+    { "asc", UBASIC_TOKENIZER_ASC },
 #endif
     /* end of string additions */
-    { "let ", TOKENIZER_LET },
-    { "println ", TOKENIZER_PRINTLN },
-    { "print ", TOKENIZER_PRINT },
-    { "if", TOKENIZER_IF },
-    { "then", TOKENIZER_THEN },
-    { "else", TOKENIZER_ELSE },
-    { "endif", TOKENIZER_ENDIF },
+    { "let ", UBASIC_TOKENIZER_LET },
+    { "println ", UBASIC_TOKENIZER_PRINTLN },
+    { "print ", UBASIC_TOKENIZER_PRINT },
+    { "if", UBASIC_TOKENIZER_IF },
+    { "then", UBASIC_TOKENIZER_THEN },
+    { "else", UBASIC_TOKENIZER_ELSE },
+    { "endif", UBASIC_TOKENIZER_ENDIF },
 #if defined(UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS)
-    { "toc", TOKENIZER_TOC },
+    { "toc", UBASIC_TOKENIZER_TOC },
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL)
-    { "input", TOKENIZER_INPUT },
+    { "input", UBASIC_TOKENIZER_INPUT },
 #endif
-    { "for ", TOKENIZER_FOR },
-    { "to ", TOKENIZER_TO },
-    { "next ", TOKENIZER_NEXT },
-    { "step ", TOKENIZER_STEP },
-    { "while", TOKENIZER_WHILE },
-    { "endwhile", TOKENIZER_ENDWHILE },
-    { "goto ", TOKENIZER_GOTO },
-    { "gosub ", TOKENIZER_GOSUB },
-    { "return", TOKENIZER_RETURN },
-    { "end", TOKENIZER_END },
+    { "for ", UBASIC_TOKENIZER_FOR },
+    { "to ", UBASIC_TOKENIZER_TO },
+    { "next ", UBASIC_TOKENIZER_NEXT },
+    { "step ", UBASIC_TOKENIZER_STEP },
+    { "while", UBASIC_TOKENIZER_WHILE },
+    { "endwhile", UBASIC_TOKENIZER_ENDWHILE },
+    { "goto ", UBASIC_TOKENIZER_GOTO },
+    { "gosub ", UBASIC_TOKENIZER_GOSUB },
+    { "return", UBASIC_TOKENIZER_RETURN },
+    { "end", UBASIC_TOKENIZER_END },
 #if defined(UBASIC_SCRIPT_HAVE_SLEEP)
-    { "sleep", TOKENIZER_SLEEP },
+    { "sleep", UBASIC_TOKENIZER_SLEEP },
 #endif
-#if defined(VARIABLE_TYPE_ARRAY)
-    { "dim ", TOKENIZER_DIM },
+#if defined(UBASIC_VARIABLE_TYPE_ARRAY)
+    { "dim ", UBASIC_TOKENIZER_DIM },
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS)
-    { "tic", TOKENIZER_TIC },
+    { "tic", UBASIC_TOKENIZER_TIC },
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS)
-    { "flag", TOKENIZER_HWE },
+    { "flag", UBASIC_TOKENIZER_HWE },
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR)
-    { "ran", TOKENIZER_RAN },
+    { "ran", UBASIC_TOKENIZER_RAN },
 #endif
-#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
-    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
-    { "sqrt", TOKENIZER_SQRT },
-    { "sin", TOKENIZER_SIN },
-    { "cos", TOKENIZER_COS },
-    { "tan", TOKENIZER_TAN },
-    { "exp", TOKENIZER_EXP },
-    { "ln", TOKENIZER_LN },
+#if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+    { "sqrt", UBASIC_TOKENIZER_SQRT },
+    { "sin", UBASIC_TOKENIZER_SIN },
+    { "cos", UBASIC_TOKENIZER_COS },
+    { "tan", UBASIC_TOKENIZER_TAN },
+    { "exp", UBASIC_TOKENIZER_EXP },
+    { "ln", UBASIC_TOKENIZER_LN },
 #if defined(UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR)
-    { "uniform", TOKENIZER_UNIFORM },
+    { "uniform", UBASIC_TOKENIZER_UNIFORM },
 #endif
-    { "abs", TOKENIZER_ABS },
-    { "floor", TOKENIZER_FLOOR },
-    { "ceil", TOKENIZER_CEIL },
-    { "round", TOKENIZER_ROUND },
-    { "pow", TOKENIZER_POWER },
-    { "avgw", TOKENIZER_AVERAGEW },
+    { "abs", UBASIC_TOKENIZER_ABS },
+    { "floor", UBASIC_TOKENIZER_FLOOR },
+    { "ceil", UBASIC_TOKENIZER_CEIL },
+    { "round", UBASIC_TOKENIZER_ROUND },
+    { "pow", UBASIC_TOKENIZER_POWER },
+    { "avgw", UBASIC_TOKENIZER_AVERAGEW },
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_GPIO_CHANNELS)
-    { "pinmode", TOKENIZER_PINMODE },
-    { "dread", TOKENIZER_DREAD },
-    { "dwrite", TOKENIZER_DWRITE },
+    { "pinmode", UBASIC_TOKENIZER_PINMODE },
+    { "dread", UBASIC_TOKENIZER_DREAD },
+    { "dwrite", UBASIC_TOKENIZER_DWRITE },
 #endif
 #ifdef UBASIC_SCRIPT_HAVE_PWM_CHANNELS
-    { "awrite_conf", TOKENIZER_PWMCONF },
-    { "awrite", TOKENIZER_PWM },
+    { "awrite_conf", UBASIC_TOKENIZER_PWMCONF },
+    { "awrite", UBASIC_TOKENIZER_PWM },
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_ANALOG_READ)
-    { "aread_conf", TOKENIZER_AREADCONF },
-    { "aread", TOKENIZER_AREAD },
+    { "aread_conf", UBASIC_TOKENIZER_AREADCONF },
+    { "aread", UBASIC_TOKENIZER_AREAD },
 #endif
-    { "hex ", TOKENIZER_PRINT_HEX },
-    { "dec ", TOKENIZER_PRINT_DEC },
-    { ":", TOKENIZER_COLON },
+    { "hex ", UBASIC_TOKENIZER_PRINT_HEX },
+    { "dec ", UBASIC_TOKENIZER_PRINT_DEC },
+    { ":", UBASIC_TOKENIZER_COLON },
 #if defined(UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH)
-    { "store", TOKENIZER_STORE },
-    { "recall", TOKENIZER_RECALL },
+    { "store", UBASIC_TOKENIZER_STORE },
+    { "recall", UBASIC_TOKENIZER_RECALL },
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_BACNET)
-    { "bac_create", TOKENIZER_BACNET_CREATE_OBJECT },
-    { "bac_read", TOKENIZER_BACNET_READ_PROPERTY },
-    { "bac_write", TOKENIZER_BACNET_WRITE_PROPERTY },
+    { "bac_create", UBASIC_TOKENIZER_BACNET_CREATE_OBJECT },
+    { "bac_read", UBASIC_TOKENIZER_BACNET_READ_PROPERTY },
+    { "bac_write", UBASIC_TOKENIZER_BACNET_WRITE_PROPERTY },
 #endif
-    { "clear", TOKENIZER_CLEAR },
-    { NULL, TOKENIZER_ERROR }
+    { "clear", UBASIC_TOKENIZER_CLEAR },
+    { NULL, UBASIC_TOKENIZER_ERROR }
 };
 
 /*---------------------------------------------------------------------------*/
 static uint8_t
-singlechar_or_operator(struct tokenizer_data *tree, uint8_t *offset)
+singlechar_or_operator(struct ubasic_tokenizer *tree, uint8_t *offset)
 {
     if (offset) {
         *offset = 1;
     }
 
     if ((*tree->ptr == '\n') || (*tree->ptr == ';')) {
-        return TOKENIZER_EOL;
+        return UBASIC_TOKENIZER_EOL;
     } else if (*tree->ptr == ',') {
-        return TOKENIZER_COMMA;
+        return UBASIC_TOKENIZER_COMMA;
     } else if (*tree->ptr == '+') {
-        return TOKENIZER_PLUS;
+        return UBASIC_TOKENIZER_PLUS;
     } else if (*tree->ptr == '-') {
-        return TOKENIZER_MINUS;
+        return UBASIC_TOKENIZER_MINUS;
     } else if (*tree->ptr == '&') {
         if (*(tree->ptr + 1) == '&') {
             if (offset) {
                 *offset += 1;
             }
-            return TOKENIZER_LAND;
+            return UBASIC_TOKENIZER_LAND;
         }
-        return TOKENIZER_AND;
+        return UBASIC_TOKENIZER_AND;
     } else if (*tree->ptr == '|') {
         if (*(tree->ptr + 1) == '|') {
             if (offset) {
                 *offset += 1;
             }
-            return TOKENIZER_LOR;
+            return UBASIC_TOKENIZER_LOR;
         }
-        return TOKENIZER_OR;
+        return UBASIC_TOKENIZER_OR;
     } else if (*tree->ptr == '*') {
-        return TOKENIZER_ASTR;
+        return UBASIC_TOKENIZER_ASTR;
     } else if (*tree->ptr == '!') {
-        return TOKENIZER_LNOT;
+        return UBASIC_TOKENIZER_LNOT;
     } else if (*tree->ptr == '~') {
-        return TOKENIZER_NOT;
+        return UBASIC_TOKENIZER_NOT;
     } else if (*tree->ptr == '/') {
-        return TOKENIZER_SLASH;
+        return UBASIC_TOKENIZER_SLASH;
     } else if (*tree->ptr == '%') {
-        return TOKENIZER_MOD;
+        return UBASIC_TOKENIZER_MOD;
     } else if (*tree->ptr == '(') {
-        return TOKENIZER_LEFTPAREN;
+        return UBASIC_TOKENIZER_LEFTPAREN;
     } else if (*tree->ptr == ')') {
-        return TOKENIZER_RIGHTPAREN;
+        return UBASIC_TOKENIZER_RIGHTPAREN;
     } else if (*tree->ptr == '<') {
         if (tree->ptr[1] == '=') {
             if (offset) {
                 *offset += 1;
             }
-            return TOKENIZER_LE;
+            return UBASIC_TOKENIZER_LE;
         } else if (tree->ptr[1] == '>') {
             if (offset) {
                 *offset += 1;
             }
-            return TOKENIZER_NE;
+            return UBASIC_TOKENIZER_NE;
         }
-        return TOKENIZER_LT;
+        return UBASIC_TOKENIZER_LT;
     } else if (*tree->ptr == '>') {
         if (tree->ptr[1] == '=') {
             if (offset) {
                 *offset += 1;
             }
-            return TOKENIZER_GE;
+            return UBASIC_TOKENIZER_GE;
         }
-        return TOKENIZER_GT;
+        return UBASIC_TOKENIZER_GT;
     } else if (*tree->ptr == '=') {
         if (tree->ptr[1] == '=') {
             if (offset) {
                 *offset += 1;
             }
         }
-        return TOKENIZER_EQ;
+        return UBASIC_TOKENIZER_EQ;
     }
     return 0;
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
+static uint8_t tokenizer_next_token(struct ubasic_tokenizer *tree)
 {
     const struct keyword_token *kt;
     uint8_t i, j;
@@ -230,7 +228,7 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
     }
 
     if (*tree->ptr == 0) {
-        return TOKENIZER_ENDOFINPUT;
+        return UBASIC_TOKENIZER_ENDOFINPUT;
     }
 
     uint8_t have_decdot = 0, i_dot = 0;
@@ -251,7 +249,7 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
                 tree->nextptr++;
                 continue;
             }
-            return TOKENIZER_INT;
+            return UBASIC_TOKENIZER_INT;
         }
     } else if (
         (tree->ptr[0] == '0') &&
@@ -261,7 +259,7 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
         while (*tree->nextptr == '0' || *tree->nextptr == '1') {
             tree->nextptr++;
         }
-        return TOKENIZER_INT;
+        return UBASIC_TOKENIZER_INT;
     } else if (isdigit(*tree->ptr) || (*tree->ptr == '.')) {
         /* is it FLOAT (digits with at most one decimal point) */
         /* is it DEC (digits without decimal point which ends in d,D,L,l) */
@@ -280,29 +278,29 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
                 tree->nextptr++;
                 have_decdot++;
                 if (have_decdot > 1) {
-                    return TOKENIZER_ERROR;
+                    return UBASIC_TOKENIZER_ERROR;
                 }
                 continue;
             }
             if (*tree->nextptr == 'd' || *tree->nextptr == 'D' ||
                 *tree->nextptr == 'l' || *tree->nextptr == 'L') {
-                return TOKENIZER_INT;
+                return UBASIC_TOKENIZER_INT;
             }
 
-#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
-    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+#if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
             if (i_dot) {
-                return TOKENIZER_FLOAT;
+                return UBASIC_TOKENIZER_FLOAT;
             }
 #endif
 
-            return TOKENIZER_NUMBER;
+            return UBASIC_TOKENIZER_NUMBER;
         }
     } else if ((j = singlechar_or_operator(tree, &i))) {
         tree->nextptr = tree->ptr + i;
         return j;
     }
-#if defined(VARIABLE_TYPE_STRING)
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
     else if (
         (*tree->ptr == '"' || *tree->ptr == '\'') &&
         (*(tree->ptr - 1) != '\\')) {
@@ -312,13 +310,13 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
             ++tree->nextptr;
             if ((*tree->nextptr == '\0') || (*tree->nextptr == '\n') ||
                 (*tree->nextptr == ';')) {
-                return TOKENIZER_ERROR;
+                return UBASIC_TOKENIZER_ERROR;
             }
         } while (*tree->nextptr != i || *(tree->nextptr - 1) == '\\');
 
         ++tree->nextptr;
 
-        return TOKENIZER_STRING;
+        return UBASIC_TOKENIZER_STRING;
     }
 #endif
     else {
@@ -364,34 +362,34 @@ static uint8_t tokenizer_next_token(struct tokenizer_data *tree)
             }
 
             if (j > 0 || i > 1) {
-                return TOKENIZER_LABEL;
+                return UBASIC_TOKENIZER_LABEL;
             }
 
             if (i == 1) {
-#if defined(VARIABLE_TYPE_STRING)
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
                 if (*(tree->ptr + 1) == '$') {
                     tree->nextptr++;
-                    return TOKENIZER_STRINGVARIABLE;
+                    return UBASIC_TOKENIZER_STRINGVARIABLE;
                 }
 #endif
 
-#if defined(VARIABLE_TYPE_ARRAY)
+#if defined(UBASIC_VARIABLE_TYPE_ARRAY)
                 if (*(tree->ptr + 1) == '@') {
                     tree->nextptr++;
-                    return TOKENIZER_ARRAYVARIABLE;
+                    return UBASIC_TOKENIZER_ARRAYVARIABLE;
                 }
 #endif
-                return TOKENIZER_VARIABLE;
+                return UBASIC_TOKENIZER_VARIABLE;
             }
             break;
         }
     }
 
-    return TOKENIZER_ERROR;
+    return UBASIC_TOKENIZER_ERROR;
 }
 /*---------------------------------------------------------------------------*/
-#if defined(VARIABLE_TYPE_STRING)
-int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
+int8_t tokenizer_stringlookahead(struct ubasic_tokenizer *tree)
 {
     /* return 1 (true) if next 'defining' token is string not integer */
     const char *saveptr = tree->ptr;
@@ -400,20 +398,23 @@ int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
     int8_t si = -1;
 
     while (si == -1) {
-        if (token == TOKENIZER_EOL || token == TOKENIZER_ENDOFINPUT) {
+        if (token == UBASIC_TOKENIZER_EOL ||
+            token == UBASIC_TOKENIZER_ENDOFINPUT) {
             si = 0;
         } else if (
-            token == TOKENIZER_NUMBER || token == TOKENIZER_VARIABLE ||
-            token == TOKENIZER_FLOAT) {
+            token == UBASIC_TOKENIZER_NUMBER ||
+            token == UBASIC_TOKENIZER_VARIABLE ||
+            token == UBASIC_TOKENIZER_FLOAT) {
             si = 0; /* number or numeric var */
-        } else if (token == TOKENIZER_PLUS) {
+        } else if (token == UBASIC_TOKENIZER_PLUS) {
             /* do nothing */
-        } else if (token == TOKENIZER_STRING) {
+        } else if (token == UBASIC_TOKENIZER_STRING) {
             si = 1;
         } else if (
-            token >= TOKENIZER_STRINGVARIABLE && token <= TOKENIZER_CHR_STR) {
+            token >= UBASIC_TOKENIZER_STRINGVARIABLE &&
+            token <= UBASIC_TOKENIZER_CHR_STR) {
             si = 1;
-        } else if (token > TOKENIZER_CHR_STR) {
+        } else if (token > UBASIC_TOKENIZER_CHR_STR) {
             si = 0; /* numeric function */
         }
 
@@ -425,19 +426,19 @@ int8_t tokenizer_stringlookahead(struct tokenizer_data *tree)
 }
 #endif
 /*---------------------------------------------------------------------------*/
-void tokenizer_init(struct tokenizer_data *tree, const char *program)
+void tokenizer_init(struct ubasic_tokenizer *tree, const char *program)
 {
     tree->ptr = program;
     tree->prog = program;
     tree->current_token = tokenizer_next_token(tree);
 }
 /*---------------------------------------------------------------------------*/
-uint8_t tokenizer_token(struct tokenizer_data *tree)
+uint8_t tokenizer_token(struct ubasic_tokenizer *tree)
 {
     return tree->current_token;
 }
 /*---------------------------------------------------------------------------*/
-void tokenizer_next(struct tokenizer_data *tree)
+void tokenizer_next(struct ubasic_tokenizer *tree)
 {
     if (tokenizer_finished(tree)) {
         return;
@@ -454,10 +455,10 @@ void tokenizer_next(struct tokenizer_data *tree)
 }
 /*---------------------------------------------------------------------------*/
 
-VARIABLE_TYPE tokenizer_num(struct tokenizer_data *tree)
+UBASIC_VARIABLE_TYPE tokenizer_num(struct ubasic_tokenizer *tree)
 {
     const char *c = tree->ptr;
-    VARIABLE_TYPE rval = 0;
+    UBASIC_VARIABLE_TYPE rval = 0;
 
     while (1) {
         if (*c < '0' || *c > '9') {
@@ -472,10 +473,10 @@ VARIABLE_TYPE tokenizer_num(struct tokenizer_data *tree)
     return rval;
 }
 
-VARIABLE_TYPE tokenizer_int(struct tokenizer_data *tree)
+UBASIC_VARIABLE_TYPE tokenizer_int(struct ubasic_tokenizer *tree)
 {
     const char *c = tree->ptr;
-    VARIABLE_TYPE rval = 0;
+    UBASIC_VARIABLE_TYPE rval = 0;
     if ((*c == '0') && (*(c + 1) == 'x' || *(c + 1) == 'X')) {
         c += 2;
         while (1) {
@@ -518,25 +519,25 @@ VARIABLE_TYPE tokenizer_int(struct tokenizer_data *tree)
     return tokenizer_num(tree);
 }
 
-#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
-    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+#if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
 /*---------------------------------------------------------------------------*/
-VARIABLE_TYPE tokenizer_float(struct tokenizer_data *tree)
+UBASIC_VARIABLE_TYPE tokenizer_float(struct ubasic_tokenizer *tree)
 {
     return str_fixedpt(
         tree->ptr, tree->nextptr - tree->ptr, FIXEDPT_FBITS >> 1);
 }
 #endif
 
-#if defined(VARIABLE_TYPE_STRING)
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
 /*---------------------------------------------------------------------------*/
-void tokenizer_string(struct tokenizer_data *tree, char *dest, uint8_t len)
+void tokenizer_string(struct ubasic_tokenizer *tree, char *dest, uint8_t len)
 {
     const char *string_end;
     char quote_char;
     uint8_t string_len;
 
-    if (tokenizer_token(tree) != TOKENIZER_STRING) {
+    if (tokenizer_token(tree) != UBASIC_TOKENIZER_STRING) {
         return;
     }
     quote_char = *tree->ptr;
@@ -564,12 +565,12 @@ void tokenizer_string(struct tokenizer_data *tree, char *dest, uint8_t len)
 }
 #endif
 
-void tokenizer_label(struct tokenizer_data *tree, char *dest, uint8_t len)
+void tokenizer_label(struct ubasic_tokenizer *tree, char *dest, uint8_t len)
 {
     const char *string_end = tree->nextptr;
     uint8_t string_len;
 
-    if (tokenizer_token(tree) != TOKENIZER_LABEL) {
+    if (tokenizer_token(tree) != UBASIC_TOKENIZER_LABEL) {
         return;
     }
 
@@ -593,13 +594,15 @@ void tokenizer_label(struct tokenizer_data *tree, char *dest, uint8_t len)
 }
 
 /*---------------------------------------------------------------------------*/
-bool tokenizer_finished(struct tokenizer_data *tree)
+bool tokenizer_finished(struct ubasic_tokenizer *tree)
 {
-    return ((*tree->ptr == 0) || (tree->current_token == TOKENIZER_ENDOFINPUT));
+    return (
+        (*tree->ptr == 0) ||
+        (tree->current_token == UBASIC_TOKENIZER_ENDOFINPUT));
 }
 
 /*---------------------------------------------------------------------------*/
-uint8_t tokenizer_variable_num(struct tokenizer_data *tree)
+uint8_t tokenizer_variable_num(struct ubasic_tokenizer *tree)
 {
     if ((*tree->ptr >= 'a' && *tree->ptr <= 'z')) {
         return (((uint8_t)*tree->ptr) - 'a');
@@ -613,23 +616,23 @@ uint8_t tokenizer_variable_num(struct tokenizer_data *tree)
 }
 /*---------------------------------------------------------------------------*/
 
-uint16_t tokenizer_save_offset(struct tokenizer_data *tree)
+uint16_t tokenizer_save_offset(struct ubasic_tokenizer *tree)
 {
     return (tree->ptr - tree->prog);
 }
 
-void tokenizer_jump_offset(struct tokenizer_data *tree, uint16_t offset)
+void tokenizer_jump_offset(struct ubasic_tokenizer *tree, uint16_t offset)
 {
     tree->ptr = (tree->prog + offset);
     tree->current_token = tokenizer_next_token(tree);
-    while ((tree->current_token == TOKENIZER_EOL) &&
+    while ((tree->current_token == UBASIC_TOKENIZER_EOL) &&
            !tokenizer_finished(tree)) {
         tokenizer_next(tree);
     }
     return;
 }
 
-const char *tokenizer_name(VARIABLE_TYPE token)
+const char *tokenizer_name(UBASIC_VARIABLE_TYPE token)
 {
     const struct keyword_token *kt;
 
