@@ -312,23 +312,17 @@ static void gpio_config(uint8_t ch, int8_t mode, uint8_t freq)
  */
 static void gpio_write(uint8_t ch, uint8_t pin_state)
 {
-    switch (ch) {
-        case 1:
-            if (pin_state) {
-                led_on(LED_LD1);
-            } else {
-                led_off(LED_LD1);
-            }
-            break;
-        case 2:
-            if (pin_state) {
-                led_on(LED_LD2);
-            } else {
-                led_off(LED_LD2);
-            }
-            break;
-        default:
-            break;
+    unsigned int led_index;
+
+    if (ch == 0) {
+        return;
+    }
+    /* adjust for zero based index */
+    led_index = ch - 1;
+    if (pin_state) {
+        led_on(led_index);
+    } else {
+        led_off(led_index);
     }
 }
 

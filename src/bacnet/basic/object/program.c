@@ -947,6 +947,22 @@ bool Program_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @param object_instance [in] BACnet object instance number
  * @param context [in] pointer to the context
  */
+void *Program_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject = Object_Data(object_instance);
+
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with load, unload, run, halt, and restart
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
 void Program_Context_Set(uint32_t object_instance, void *context)
 {
     struct object_data *pObject = Object_Data(object_instance);

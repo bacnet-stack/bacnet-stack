@@ -562,11 +562,15 @@ void ubasic_load_program(struct ubasic_data *data, const char *program)
     }
     data->status.byte = 0x00;
     if (program) {
-        data->program_ptr = program;
-        tokenizer_init(&data->tree, program);
+        data->program = program;
+    }
+    if (data->program) {
+        data->program_ptr = data->program;
+        tokenizer_init(&data->tree, data->program_ptr);
         data->status.bit.isRunning = 1;
     }
 }
+
 /*---------------------------------------------------------------------------*/
 static void
 token_error_print(struct ubasic_data *data, UBASIC_VARIABLE_TYPE token)
@@ -2809,7 +2813,7 @@ static void subsequent_statement(struct ubasic_data *data)
     return;
 }
 /*---------------------------------------------------------------------------*/
-static bool ubasic_program_finished(struct ubasic_data *data)
+bool ubasic_program_finished(struct ubasic_data *data)
 {
     struct ubasic_tokenizer *tree = &data->tree;
 
@@ -3013,6 +3017,29 @@ uint8_t ubasic_getline(struct ubasic_data *data, int ch)
 uint8_t ubasic_finished(struct ubasic_data *data)
 {
     return (ubasic_program_finished(data) || data->status.bit.isRunning == 0);
+}
+
+void ubasic_halt_program(struct ubasic_data *data)
+{
+    data->status.bit.isRunning = 0;
+}
+
+const char *ubasic_program_location(struct ubasic_data *data)
+{
+    struct ubasic_tokenizer *tree = &data->tree;
+    char *statement_end;
+    if (tree->ptr) {
+        snprintf(data->location, sizeof(data->location), "%s", tree->ptr);
+        /* only return the statement until end-of-line */
+        statement_end = strpbrk(data->location, ";\n");
+        if (statement_end) {
+            *statement_end = 0;
+        }
+    } else {
+        snprintf(data->location, sizeof(data->location), "end");
+    }
+
+    return data->location;
 }
 
 /*---------------------------------------------------------------------------*/
