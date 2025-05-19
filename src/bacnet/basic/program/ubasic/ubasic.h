@@ -62,7 +62,9 @@ typedef union {
     } bit;
 } UBASIC_STATUS;
 
+#ifndef UBASIC_FOR_LOOP_STACK_DEPTH
 #define UBASIC_FOR_LOOP_STACK_DEPTH 4
+#endif
 struct ubasic_for_state {
     uint16_t line_after_for;
     uint8_t for_variable;
