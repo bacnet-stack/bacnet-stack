@@ -29,7 +29,7 @@
 #include "bacnet/wp.h"
 #include "led.h"
 
-#if defined(UBASIC_SCRIPT_PRINT_TO_SERIAL)
+#if defined(UBASIC_SCRIPT_HAVE_PRINT_TO_SERIAL)
 /**
  * @brief Write a buffer to the serial port
  * @param msg Pointer to the buffer to write
@@ -444,7 +444,7 @@ static void bacnet_write_property(
     uint16_t object_type,
     uint32_t instance,
     uint32_t property_id,
-    VARIABLE_TYPE value)
+    UBASIC_VARIABLE_TYPE value)
 {
     BACNET_BINARY_PV value_binary = BINARY_INACTIVE;
 
@@ -522,10 +522,10 @@ static void bacnet_write_property(
  * @param property_id Property ID
  * @return Property value
  */
-static VARIABLE_TYPE bacnet_read_property(
+static UBASIC_VARIABLE_TYPE bacnet_read_property(
     uint16_t object_type, uint32_t instance, uint32_t property_id)
 {
-    VARIABLE_TYPE value = 0;
+    UBASIC_VARIABLE_TYPE value = 0;
     float value_float = 0.0;
     BACNET_BINARY_PV value_binary = BINARY_INACTIVE;
 
@@ -630,7 +630,7 @@ void ubasic_port_init(struct ubasic_data *data)
 #if defined(UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR)
     data->random_uint32 = random_uint32;
 #endif
-#if defined(UBASIC_SCRIPT_PRINT_TO_SERIAL)
+#if defined(UBASIC_SCRIPT_HAVE_PRINT_TO_SERIAL)
     data->serial_write = serial_write;
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL)

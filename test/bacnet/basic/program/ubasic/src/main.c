@@ -111,7 +111,7 @@ struct test_bacnet_object {
     uint16_t object_type;
     uint32_t object_instance;
     uint32_t property_id;
-    VARIABLE_TYPE property_value;
+    UBASIC_VARIABLE_TYPE property_value;
     char *object_name;
 };
 static struct test_bacnet_object Test_BACnet_Object[5];
@@ -130,7 +130,7 @@ static void bacnet_write_property(
     uint16_t object_type,
     uint32_t instance,
     uint32_t property_id,
-    VARIABLE_TYPE value)
+    UBASIC_VARIABLE_TYPE value)
 {
     if (instance < ARRAY_SIZE(Test_BACnet_Object)) {
         Test_BACnet_Object[instance].object_type = object_type;
@@ -140,7 +140,7 @@ static void bacnet_write_property(
     }
 }
 
-static VARIABLE_TYPE bacnet_read_property(
+static UBASIC_VARIABLE_TYPE bacnet_read_property(
     uint16_t object_type, uint32_t instance, uint32_t property_id)
 {
     if (instance < ARRAY_SIZE(Test_BACnet_Object)) {
@@ -191,7 +191,7 @@ static void test_ubasic_gpio(void)
         "next i;"
         "println 'average x y=', a, z;"
         "end;";
-    VARIABLE_TYPE value = 0;
+    UBASIC_VARIABLE_TYPE value = 0;
     data.mstimer_now = tick_now;
     data.serial_write = serial_write;
     data.gpio_config = gpio_config;
@@ -244,7 +244,7 @@ static void test_ubasic_bacnet(void)
         "a = bac_read(0, 1, 85);"
         "println 'bac_read 0, 1, 85 = ' a;"
         "end;";
-    VARIABLE_TYPE value = 0;
+    UBASIC_VARIABLE_TYPE value = 0;
     data.mstimer_now = tick_now;
     data.serial_write = serial_write;
     data.bacnet_create_object = bacnet_create_object;
@@ -326,7 +326,7 @@ static void test_ubasic_math(void)
         "println 'x^3=' w;"
         "end;";
 
-    VARIABLE_TYPE value = 0, xvalue = 0, arrayvalue[5];
+    UBASIC_VARIABLE_TYPE value = 0, xvalue = 0, arrayvalue[5];
     unsigned i;
     int32_t value_int = 0;
     int32_t value_frac = 0;
@@ -408,7 +408,7 @@ static void test_ubasic(void)
         ":l1 "
         "  println 'subroutine';"
         "return;";
-    VARIABLE_TYPE value = 0;
+    UBASIC_VARIABLE_TYPE value = 0;
     int32_t value_int = 0;
 
     ubasic_load_program(&data, program);

@@ -39,18 +39,26 @@ typedef void (*bacnet_basic_store_callback)(
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 void bacnet_basic_init(void);
+BACNET_STACK_EXPORT
 void bacnet_basic_init_callback_set(
     bacnet_basic_callback callback, void *context);
 
+BACNET_STACK_EXPORT
 void bacnet_basic_task(void);
+BACNET_STACK_EXPORT
 void bacnet_basic_task_callback_set(
     bacnet_basic_callback callback, void *context);
+BACNET_STACK_EXPORT
 void bacnet_basic_task_object_timer_set(unsigned long milliseconds);
 
+BACNET_STACK_EXPORT
 void bacnet_basic_store_callback_set(bacnet_basic_store_callback callback);
 
+BACNET_STACK_EXPORT
 unsigned long bacnet_basic_uptime_seconds(void);
+BACNET_STACK_EXPORT
 unsigned long bacnet_basic_packet_count(void);
 
 #ifdef __cplusplus
