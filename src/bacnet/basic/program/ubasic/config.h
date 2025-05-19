@@ -39,7 +39,7 @@
 #if !(                                                     \
     defined(UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR) || \
     defined(UBASIC_SCRIPT_HAVE_PWM_CHANNELS) ||            \
-    defined(UBASIC_SCRIPT_HAVE_GPIO) ||                    \
+    defined(UBASIC_SCRIPT_HAVE_GPIO_CHANNELS) ||           \
     defined(UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS) ||         \
     defined(UBASIC_SCRIPT_HAVE_SLEEP) ||                   \
     defined(UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS) ||         \
@@ -55,7 +55,7 @@
 #if defined(UBASIC_SCRIPT_HAVE_ALL)
 #define UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR
 #define UBASIC_SCRIPT_HAVE_PWM_CHANNELS 4
-#define UBASIC_SCRIPT_HAVE_GPIO
+#define UBASIC_SCRIPT_HAVE_GPIO_CHANNELS
 #define UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS 8
 #define UBASIC_SCRIPT_HAVE_SLEEP
 #define UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS
