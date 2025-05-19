@@ -64,6 +64,10 @@ BACNET_STACK_EXPORT
 bool bacnet_special_event_same(
     const BACNET_SPECIAL_EVENT *value1, const BACNET_SPECIAL_EVENT *value2);
 
+BACNET_STACK_EXPORT
+bool bacnet_special_event_copy(
+    BACNET_SPECIAL_EVENT *dest, const BACNET_SPECIAL_EVENT *src);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
