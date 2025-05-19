@@ -90,6 +90,15 @@ bool Schedule_Weekly_Schedule_Set(
     const BACNET_DAILY_SCHEDULE *value);
 
 BACNET_STACK_EXPORT
+BACNET_SPECIAL_EVENT *
+Schedule_Exception_Schedule(uint32_t object_instance, unsigned array_index);
+BACNET_STACK_EXPORT
+bool Schedule_Exception_Schedule_Set(
+    uint32_t object_instance,
+    unsigned array_index,
+    const BACNET_SPECIAL_EVENT *value);
+
+BACNET_STACK_EXPORT
 bool Schedule_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 

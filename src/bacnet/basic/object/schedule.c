@@ -304,6 +304,52 @@ static int Schedule_Weekly_Schedule_Encode(
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
 /**
+ * @brief Get the Exception Schedule for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param array_index - index of the Exception Schedule to get 0 to 6
+ * @return pointer to the Exception Schedule BACnetSpecialEvent,
+ *  or NULL if not found
+ */
+BACNET_SPECIAL_EVENT *
+Schedule_Exception_Schedule(uint32_t object_instance, unsigned array_index)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (array_index < BACNET_EXCEPTION_SCHEDULE_SIZE)) {
+        return &pObject->Exception_Schedule[array_index];
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the Exception Schedule for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param array_index - index of the Exception Schedule to set 0 to 6
+ * @param value - pointer to the Weekly Schedule BACnetSpecialEvent to set
+ * @return true if the Exception Schedule BACnetSpecialEvent was set,
+ *  and false if not
+ */
+bool Schedule_Exception_Schedule_Set(
+    uint32_t object_instance,
+    unsigned array_index,
+    const BACNET_SPECIAL_EVENT *value)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (array_index < BACNET_EXCEPTION_SCHEDULE_SIZE)) {
+        memcpy(
+            &pObject->Exception_Schedule[array_index], value,
+            sizeof(BACNET_SPECIAL_EVENT));
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Encode a BACnetARRAY property element
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index requested:
@@ -450,10 +496,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
- * @brief Write a value to a BACnetLIST property element value
- * @note This function is called by the array processing function
- *  bacnet_array_write() and will be setting elements as if this was
- *  a BACnetARRAY property type, except for element 0 (size).
+ * @brief Write a value to a BACnetARRAY property element value
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
@@ -476,7 +519,7 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
-            error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
             array_index--;
             len = bacnet_dailyschedule_context_decode(
@@ -530,10 +573,7 @@ static int Schedule_Weekly_Schedule_Element_Length(
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
 /**
- * @brief Write a value to a BACnetLIST property element value
- * @note This function is called by the array processing function
- *  bacnet_array_write() and will be setting elements as if this was
- *  a BACnetARRAY property type, except for element 0 (size).
+ * @brief Write a value to a BACnetARRAY property element value
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
@@ -555,7 +595,7 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
-            error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
             array_index--;
             len = bacnet_special_event_decode(
@@ -599,8 +639,7 @@ static int Schedule_Exception_Schedule_Element_Length(
 #endif
 
 /**
- * For a given object instance-number, returns the member element
- *
+ * @brief Set a memeber element of a given BACnetLIST object property
  * @param pObject - object in which to set the value
  * @param index - 0-based array index
  * @param pMember - pointer to member value
@@ -625,7 +664,8 @@ static bool List_Of_Object_Property_References_Set(
 }
 
 /**
- * @brief Write a value to a BACnetARRAY property element value
+ * @brief Write a value to a BACnetLIST property element value
+ *  using a BACnetARRAY write utility function
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
@@ -648,7 +688,7 @@ static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
-            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         } else if (array_index <= BACNET_SCHEDULE_OBJ_PROP_REF_SIZE) {
             len = bacapp_decode_known_property(
                 application_data, application_data_len, &value, OBJECT_SCHEDULE,
@@ -680,7 +720,7 @@ static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
 }
 
 /**
- * @brief Decode a BACnetARRAY property element to determine the length
+ * @brief Decode a BACnetLIST property element to determine the element length
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer

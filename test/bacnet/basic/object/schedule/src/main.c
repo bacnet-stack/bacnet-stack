@@ -28,24 +28,52 @@ static void testSchedule(void)
     unsigned count = 0;
     uint32_t object_instance = 0;
     const int skip_fail_property_list[] = { -1 };
-    BACNET_DAILY_SCHEDULE *daily_schedule;
-    size_t tv = 0, day = 0;
+    BACNET_DAILY_SCHEDULE daily_schedule, *test_daily_schedule;
+    BACNET_SPECIAL_EVENT special_event, *test_special_event;
+    size_t tv = 0, day = 0, i = 0;
+    bool status = false;
 
     Schedule_Init();
     count = Schedule_Count();
     zassert_true(count > 0, NULL);
     object_instance = Schedule_Index_To_Instance(0);
+    status = Schedule_Valid_Instance(object_instance);
+    zassert_true(status, NULL);
+
     /* fill the weekly schedule with some data */
     for (day = 0; day < BACNET_WEEKLY_SCHEDULE_SIZE; day++) {
-        daily_schedule = Schedule_Weekly_Schedule(object_instance, day);
-        daily_schedule->TV_Count = BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE;
-        for (tv = 0; tv < daily_schedule->TV_Count; tv++) {
+        daily_schedule.TV_Count = BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE;
+        for (tv = 0; tv < daily_schedule.TV_Count; tv++) {
             datetime_set_time(
-                &daily_schedule->Time_Values[tv].Time, tv % 24, 0, 0, 0);
-            daily_schedule->Time_Values[tv].Value.tag =
+                &daily_schedule.Time_Values[tv].Time, tv % 24, 0, 0, 0);
+            daily_schedule.Time_Values[tv].Value.tag =
                 BACNET_APPLICATION_TAG_REAL;
-            daily_schedule->Time_Values[tv].Value.type.Real = 1.0f + tv;
+            daily_schedule.Time_Values[tv].Value.type.Real = 1.0f + tv;
         }
+        Schedule_Weekly_Schedule_Set(object_instance, day, &daily_schedule);
+        test_daily_schedule = Schedule_Weekly_Schedule(object_instance, day);
+        status =
+            bacnet_dailyschedule_same(&daily_schedule, test_daily_schedule);
+        zassert_true(status, NULL);
+    }
+    for (i = 0; i < BACNET_EXCEPTION_SCHEDULE_SIZE; i++) {
+        special_event.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+        special_event.timeValues.TV_Count =
+            BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE;
+        for (tv = 0; tv < special_event.timeValues.TV_Count; tv++) {
+            datetime_set_time(
+                &special_event.timeValues.Time_Values[tv].Time, tv % 24, 0, 0,
+                0);
+            special_event.timeValues.Time_Values[tv].Value.tag =
+                BACNET_APPLICATION_TAG_REAL;
+            special_event.timeValues.Time_Values[tv].Value.type.Real =
+                1.0f + tv;
+            special_event.priority = tv % (BACNET_MAX_PRIORITY + 1);
+        }
+        Schedule_Exception_Schedule_Set(object_instance, i, &special_event);
+        test_special_event = Schedule_Exception_Schedule(object_instance, i);
+        status = bacnet_special_event_same(&special_event, test_special_event);
+        zassert_true(status, NULL);
     }
     /* general purpose test */
     bacnet_object_properties_read_write_test(
