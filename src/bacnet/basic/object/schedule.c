@@ -569,6 +569,19 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = true;
             }
             break;
+        case PROP_EFFECTIVE_PERIOD:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_DATERANGE);
+            if (status) {
+                /* set the start and end date */
+                datetime_copy_date(
+                    &Schedule_Descr[object_index].Start_Date,
+                    &value.type.Date_Range.startdate);
+                datetime_copy_date(
+                    &Schedule_Descr[object_index].End_Date,
+                    &value.type.Date_Range.enddate);
+            }
+            break;
         default:
             if (property_lists_member(
                     Schedule_Properties_Required, Schedule_Properties_Optional,
