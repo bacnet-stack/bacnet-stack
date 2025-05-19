@@ -76,7 +76,6 @@ void bacnet_task(void)
     bool hello_world = false;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src = { 0 };
-    unsigned long elapsed_ms;
 
     /* hello, World! */
     if (Device_ID != Device_Object_Instance_Number()) {

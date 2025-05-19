@@ -565,11 +565,8 @@ void ubasic_load_program(struct ubasic_data *data, const char *program)
         data->program = program;
     }
     if (data->program) {
-        data->program = program;
-    }
-    if (data->program) {
-        data->program_ptr = data->data->program;
-        tokenizer_init(&data->tree, data->data->program_ptr_ptr);
+        data->program_ptr = data->program;
+        tokenizer_init(&data->tree, data->program_ptr);
         data->status.bit.isRunning = 1;
     }
 }
@@ -3030,29 +3027,6 @@ void ubasic_halt_program(struct ubasic_data *data)
 const char *ubasic_program_location(struct ubasic_data *data)
 {
     struct ubasic_tokenizer *tree = &data->tree;
-    char *statement_end;
-    if (tree->ptr) {
-        snprintf(data->location, sizeof(data->location), "%s", tree->ptr);
-        /* only return the statement until end-of-line */
-        statement_end = strpbrk(data->location, ";\n");
-        if (statement_end) {
-            *statement_end = 0;
-        }
-    } else {
-        snprintf(data->location, sizeof(data->location), "end");
-    }
-
-    return data->location;
-}
-
-void ubasic_halt_program(struct ubasic_data *data)
-{
-    data->status.bit.isRunning = 0;
-}
-
-const char *ubasic_program_location(struct ubasic_data *data)
-{
-    struct tokenizer_data *tree = &data->tree;
     char *statement_end;
     if (tree->ptr) {
         snprintf(data->location, sizeof(data->location), "%s", tree->ptr);

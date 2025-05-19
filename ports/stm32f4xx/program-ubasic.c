@@ -44,8 +44,6 @@ static int Program_Load(void *context)
  */
 static int Program_Run(void *context)
 {
-    char *statement_end;
-
     if (!context) {
         return -1;
     }
@@ -121,7 +119,6 @@ void Program_UBASIC_Task(void)
 {
     size_t index, max_index;
     uint32_t instance;
-    struct program_context *context;
 
     if (mstimer_expired(&UBASIC_Timer)) {
         mstimer_reset(&UBASIC_Timer);

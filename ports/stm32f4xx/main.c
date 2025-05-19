@@ -105,8 +105,6 @@ int __io_putchar(int ch)
  */
 int main(void)
 {
-    struct mstimer Blink_Timer;
-
     /*At this stage the microcontroller clock setting is already configured,
        this is done through SystemInit() function which is called from startup
        file (startup_stm32f4xx.s) before to branch to application main.
