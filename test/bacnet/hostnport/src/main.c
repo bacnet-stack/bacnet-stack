@@ -120,13 +120,82 @@ static void test_HostNPort(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(create_object_tests, test_is_valid_hostname)
+#else
+static void test_is_valid_hostname(void)
+#endif
+{
+    bool status = false;
+    BACNET_CHARACTER_STRING hostname;
+
+    status = characterstring_init_ansi(&hostname, "valid.host.name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_true(status, NULL);
+
+    status = characterstring_init_ansi(&hostname, "invalid..host.name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_false(status, NULL);
+
+    status = characterstring_init_ansi(&hostname, "-invalid.host.name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_false(status, NULL);
+
+    status = characterstring_init_ansi(&hostname, "valid.host-name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_true(status, NULL);
+
+    status = characterstring_init_ansi(&hostname, "invalid.host--name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_false(status, NULL);
+
+    status = characterstring_init_ansi(&hostname, "invalid.host name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_false(status, NULL);
+
+    status = characterstring_init_ansi(&hostname, "valid.host.123.name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_true(status, NULL);
+
+    {
+        char too_long_label[65] = { 0 };
+        memset(too_long_label, 'l', sizeof(too_long_label) - 1);
+        status = characterstring_init_ansi(&hostname, too_long_label);
+        zassert_true(status, NULL);
+        status = bacnet_is_valid_hostname(&hostname);
+        zassert_false(status, NULL);
+    }
+
+    {
+        char max_length_label[64] = { 0 };
+        memset(max_length_label, 'l', sizeof(max_length_label) - 1);
+        status = characterstring_init_ansi(&hostname, max_length_label);
+        zassert_true(status, NULL);
+        status = bacnet_is_valid_hostname(&hostname);
+        zassert_true(status, NULL);
+    }
+
+    status = characterstring_init_ansi(&hostname, "non-alpanumer!c.host name");
+    zassert_true(status, NULL);
+    status = bacnet_is_valid_hostname(&hostname);
+    zassert_false(status, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(host_n_port_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
     ztest_test_suite(
         host_n_port_tests, ztest_unit_test(test_HostNPort),
-        ztest_unit_test(test_HostNPortMinimal_Init));
+        ztest_unit_test(test_HostNPortMinimal_Init),
+        ztest_unit_test(test_is_valid_hostname));
 
     ztest_run_test_suite(host_n_port_tests);
 }
