@@ -429,17 +429,17 @@ bool host_n_port_minimal_copy(
                         src->host.ip_address.address[i];
                 }
             }
-        }
-    } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
-        status = true;
-        dest->host.name.length = src->host.name.length;
-        for (i = 0; i < src->host.name.length; i++) {
-            if (i < sizeof(dest->host.name.fqdn)) {
-                dest->host.name.fqdn[i] = src->host.name.fqdn[i];
+        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+            status = true;
+            dest->host.name.length = src->host.name.length;
+            for (i = 0; i < src->host.name.length; i++) {
+                if (i < sizeof(dest->host.name.fqdn)) {
+                    dest->host.name.fqdn[i] = src->host.name.fqdn[i];
+                }
             }
+        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
+            status = true;
         }
-    } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
-        status = true;
     }
 
     return status;
