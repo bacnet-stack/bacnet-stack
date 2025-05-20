@@ -150,6 +150,13 @@ int bacnet_time_values_context_encode(
     const BACNET_TIME_VALUE *time_values,
     unsigned int max_time_values);
 
+BACNET_STACK_EXPORT
+bool bacnet_time_value_same(
+    const BACNET_TIME_VALUE *a, const BACNET_TIME_VALUE *b);
+BACNET_STACK_EXPORT
+void bacnet_time_value_copy(
+    BACNET_TIME_VALUE *dest, const BACNET_TIME_VALUE *src);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

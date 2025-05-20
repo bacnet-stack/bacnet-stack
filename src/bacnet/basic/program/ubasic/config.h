@@ -33,150 +33,117 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-
-/* Undef it all */
-
-/* Storage and arithmetic */
-#undef VARIABLE_STORAGE_INT16
-#undef VARIABLE_STORAGE_INT32
-#undef VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8
-#undef VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10
-#undef VARIABLE_TYPE_STRING
-#undef VARIABLE_TYPE_ARRAY
-#undef UBASIC_SCRIPT_HAVE_DEMO_SCRIPTS
+#include "bacnet/bacdef.h"
 
 /* Microcontroller related functionality */
-#undef UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR
-#undef UBASIC_SCRIPT_HAVE_PWM_CHANNELS
-#undef UBASIC_SCRIPT_HAVE_GPIO
-#undef UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS
-#undef UBASIC_SCRIPT_HAVE_SLEEP
-#undef UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS
-#undef UBASIC_SCRIPT_PRINT_TO_SERIAL
-#undef UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL
-#undef UBASIC_SCRIPT_HAVE_ANALOG_READ
-#undef UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH
-#undef UBASIC_SCRIPT_HAVE_BACNET
+#if !(                                                     \
+    defined(UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR) || \
+    defined(UBASIC_SCRIPT_HAVE_PWM_CHANNELS) ||            \
+    defined(UBASIC_SCRIPT_HAVE_GPIO_CHANNELS) ||           \
+    defined(UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS) ||         \
+    defined(UBASIC_SCRIPT_HAVE_SLEEP) ||                   \
+    defined(UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS) ||         \
+    defined(UBASIC_SCRIPT_HAVE_PRINT_TO_SERIAL) ||         \
+    defined(UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL) ||       \
+    defined(UBASIC_SCRIPT_HAVE_ANALOG_READ) ||             \
+    defined(UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH) ||     \
+    defined(UBASIC_SCRIPT_HAVE_BACNET) ||                  \
+    defined(UBASIC_SCRIPT_HAVE_STRING_VARIABLES))
+#define UBASIC_SCRIPT_HAVE_ALL
+#endif
+
+#if defined(UBASIC_SCRIPT_HAVE_ALL)
+#define UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR
+#define UBASIC_SCRIPT_HAVE_PWM_CHANNELS 4
+#define UBASIC_SCRIPT_HAVE_GPIO_CHANNELS
+#define UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS 8
+#define UBASIC_SCRIPT_HAVE_SLEEP
+#define UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS
+#define UBASIC_SCRIPT_HAVE_PRINT_TO_SERIAL
+#define UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL
+#define UBASIC_SCRIPT_HAVE_ANALOG_READ
+#define UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH
+#define UBASIC_SCRIPT_HAVE_BACNET
+#define UBASIC_SCRIPT_HAVE_STRING_VARIABLES
+#endif
 
 /**
  *
  *   UBASIC-PLUS: Start
  *
  */
+
+/* This many one-letter variables UBASIC supports */
+#ifndef UBASIC_VARNUM_MAX
+#define UBASIC_VARNUM_MAX 26
+#endif
+
+/* have numeric arrays and set their storage to this many UBASIC_VARIABLE_TYPE
+ * entries
+ */
+#ifndef UBASIC_VARIABLE_TYPE_ARRAY
+#define UBASIC_VARIABLE_TYPE_ARRAY 64
+#endif
+
+/* have strings and related functions */
+#ifdef UBASIC_SCRIPT_HAVE_STRING_VARIABLES
+#define UBASIC_VARIABLE_TYPE_STRING
+#endif
+
 /* default storage for all numeric values */
-#define VARIABLE_STORAGE_INT32
+#ifndef UBASIC_VARIABLE_STORAGE_INT16
+#undef UBASIC_VARIABLE_STORAGE_INT32
+#define UBASIC_VARIABLE_STORAGE_INT32
+#endif
 
 /* defines the representation of floating point numbers as fixed points:
     this is to allow UBASIC to run on Cortex M0 processors which do not
     support Floating Point Arithmetic in hardware (they emulate it which
     consumes lots of memory) */
-#define VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8
+#ifndef UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10
+#undef UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8
+#define UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8
+#endif
 
-/* This many one-letter variables UBASIC supports */
-#define MAX_VARNUM 26
-
-/* have numeric arrays and set their storage to this many VARIABLE_TYPE entries
- */
-#define VARIABLE_TYPE_ARRAY 64
-
-/* have strings and related functions */
-#define VARIABLE_TYPE_STRING
-
-/* can go to sleep: leave UBASIC for other stuff while waiting for timer to
- * expire */
-#define UBASIC_SCRIPT_HAVE_SLEEP
-
-/* have microcontroller support for PWM: specify how many channels */
-#define UBASIC_SCRIPT_HAVE_PWM_CHANNELS (4)
-
-/* have internal timer channels available through rlab-like toc(ch) functions */
-#define UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS (8)
-
-/* support for random number generator by micro-controller */
-#define UBASIC_SCRIPT_HAVE_RANDOM_NUMBER_GENERATOR
-
-/* support for direct access to pin inputs and outputs */
-#define UBASIC_SCRIPT_HAVE_GPIO_CHANNELS
-
-/* support flags in BASIC that change on hardware events:
-    for STM32F0XX nucleo and discovery boards
-   source of the events is push-button
-*/
-#define UBASIC_SCRIPT_HAVE_HARDWARE_EVENTS
-
-/* have a standard print to serial console function */
-#define UBASIC_SCRIPT_PRINT_TO_SERIAL
-
-/* how is input function supported ? */
-#define UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL
-
-/* support for analog inputs */
-#define UBASIC_SCRIPT_HAVE_ANALOG_READ
-
-/* support for BACnet objects and ReadProperty and WriteProperty (internal) */
-#define UBASIC_SCRIPT_HAVE_BACNET
-
-/* Demo scripts are huge. Do we need them? */
-#define UBASIC_SCRIPT_HAVE_DEMO_SCRIPTS
-
-/* support for storing/recalling variables in/from flash memory */
-#define UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH
-/**
- *
- *   UBASIC-PLUS: End
- *
- */
-
-/*
- * Selectively load header files based on the ocnfiguration above.
- * Remember MC Hammer:
- *                      CAN'T TOUCH THIS!
- *
- */
-#if defined(VARIABLE_STORAGE_INT32)
-
-#define VARIABLE_TYPE int32_t
-
-#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
-    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
-
+#if defined(UBASIC_VARIABLE_STORAGE_INT32)
+#define UBASIC_VARIABLE_TYPE int32_t
+#if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
 #define FIXEDPT_BITS 32
-
-#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8)
+#if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8)
 #define FIXEDPT_WBITS 24
-#elif defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+#elif defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
 #define FIXEDPT_WBITS 22
 #else
 #error "Only 24.8 and 22.10 floats are currently supported"
 #endif
-
 #include "fixedptc.h"
-
 #endif
-
-#elif defined(VARIABLE_STORAGE_INT16)
-
-#define VARIABLE_TYPE int16_t
-#if defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
-    defined(VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
+#elif defined(UBASIC_VARIABLE_STORAGE_INT16)
+#define UBASIC_VARIABLE_TYPE int16_t
+#if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
+    defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
 #error "Fixed Point Floats are Supported for 32bit Storage Only!"
 #endif
-
 #else
-
 #error "Only INT32 and INT16 variable types are supported."
-
 #endif
 
-#define UBASIC_STATEMENT_SIZE (64)
+#ifndef UBASIC_STATEMENT_SIZE
+#define UBASIC_STATEMENT_SIZE 64
+#endif
 
-#define MAX_STRINGLEN 40
-#define MAX_LABEL_LEN 10
+#ifndef UBASIC_STRINGLEN_MAX
+#define UBASIC_STRINGLEN_MAX 40
+#endif
 
-#if defined(VARIABLE_TYPE_STRING)
-#define MAX_STRINGVARLEN 64
-#define MAX_BUFFERLEN 256
-#define MAX_SVARNUM 26
+#ifndef UBASIC_LABEL_LEN_MAX
+#define UBASIC_LABEL_LEN_MAX 10
+#endif
+
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
+#define UBASIC_STRING_BUFFER_LEN_MAX 256
+#define UBASIC_STRING_VAR_LEN_MAX 26
 #endif
 
 #endif /* #ifndef _CONFIG_H_ */
