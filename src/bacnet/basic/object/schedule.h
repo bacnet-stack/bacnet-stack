@@ -61,6 +61,8 @@ typedef struct schedule {
 } SCHEDULE_DESCR;
 
 BACNET_STACK_EXPORT
+struct schedule *Schedule_Object(uint32_t object_instance);
+BACNET_STACK_EXPORT
 void Schedule_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary);
 
@@ -97,6 +99,29 @@ bool Schedule_Exception_Schedule_Set(
     uint32_t object_instance,
     unsigned array_index,
     const BACNET_SPECIAL_EVENT *value);
+
+BACNET_STACK_EXPORT
+bool Schedule_List_Of_Object_Property_References_Set(
+    uint32_t object_instance,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember);
+BACNET_STACK_EXPORT
+bool Schedule_List_Of_Object_Property_References(
+    uint32_t object_instance,
+    unsigned index,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember);
+BACNET_STACK_EXPORT
+size_t
+Schedule_List_Of_Object_Property_References_Capacity(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Schedule_Effective_Period_Set(
+    uint32_t object_instance,
+    const BACNET_DATE *start_date,
+    const BACNET_DATE *end_date);
+BACNET_STACK_EXPORT
+bool Schedule_Effective_Period(
+    uint32_t object_instance, BACNET_DATE *start_date, BACNET_DATE *end_date);
 
 BACNET_STACK_EXPORT
 bool Schedule_Object_Name(

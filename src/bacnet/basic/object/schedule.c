@@ -71,7 +71,7 @@ void Schedule_Property_Lists(
  * @param  object_instance - object-instance number of the object
  * @return object found in the list, or NULL if not found
  */
-static SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
+SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
 {
     unsigned int object_index;
     SCHEDULE_DESCR *pObject = NULL;
@@ -379,6 +379,141 @@ static int Schedule_Exception_Schedule_Encode(
 }
 #endif
 
+/**
+ * @brief Set the Effective Period for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param start_date - start date of the effective period
+ * @param end_date - end date of the effective period
+ * @return true if the effective period was set, and false if not
+ */
+bool Schedule_Effective_Period_Set(
+    uint32_t object_instance,
+    const BACNET_DATE *start_date,
+    const BACNET_DATE *end_date)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        datetime_copy_date(&pObject->Start_Date, start_date);
+        datetime_copy_date(&pObject->End_Date, end_date);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Get the Effective Period for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param start_date - start date of the effective period
+ * @param end_date - end date of the effective period
+ * @return true if the effective period was set, and false if not
+ */
+bool Schedule_Effective_Period(
+    uint32_t object_instance, BACNET_DATE *start_date, BACNET_DATE *end_date)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        datetime_copy_date(start_date, &pObject->Start_Date);
+        datetime_copy_date(end_date, &pObject->End_Date);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Set a memeber element of a given BACnetLIST object property
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+static bool List_Of_Object_Property_References_Set(
+    SCHEDULE_DESCR *pObject,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    if (pObject && (index < BACNET_SCHEDULE_OBJ_PROP_REF_SIZE)) {
+        if (pMember) {
+            status = bacnet_device_object_property_reference_copy(
+                &pObject->Object_Property_References[index], pMember);
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set a memeber element of a given BACnetLIST object property
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+bool Schedule_List_Of_Object_Property_References_Set(
+    uint32_t object_instance,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    status = List_Of_Object_Property_References_Set(pObject, index, pMember);
+
+    return status;
+}
+
+/**
+ * @brief Set a memeber element of a given BACnetLIST object property
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+bool Schedule_List_Of_Object_Property_References(
+    uint32_t object_instance,
+    unsigned index,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (index < BACNET_SCHEDULE_OBJ_PROP_REF_SIZE)) {
+        if (pMember) {
+            status = bacnet_device_object_property_reference_copy(
+                pMember, &pObject->Object_Property_References[index]);
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the size of the list of object property references
+ * @param object_instance [in] BACnet network port object instance number
+ * @return The size of the list of object property references
+ */
+size_t
+Schedule_List_Of_Object_Property_References_Capacity(uint32_t object_instance)
+{
+    (void)object_instance; /* unused */
+    return BACNET_SCHEDULE_OBJ_PROP_REF_SIZE;
+}
+
+/**
+ * @brief Read a property from the Schedule object
+ * @param rpdata [in] pointer to the read property data structure
+ * @return The length of the apdu encoded or BACNET_STATUS_ERROR
+ */
 int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;
@@ -637,31 +772,6 @@ static int Schedule_Exception_Schedule_Element_Length(
     return len;
 }
 #endif
-
-/**
- * @brief Set a memeber element of a given BACnetLIST object property
- * @param pObject - object in which to set the value
- * @param index - 0-based array index
- * @param pMember - pointer to member value
- * @return true if set, false if not set
- */
-static bool List_Of_Object_Property_References_Set(
-    SCHEDULE_DESCR *pObject,
-    unsigned index,
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
-{
-    bool status = false;
-    if (pObject && (index < BACNET_SCHEDULE_OBJ_PROP_REF_SIZE)) {
-        if (pMember) {
-            memcpy(
-                &pObject->Object_Property_References[index], pMember,
-                sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
-        }
-        status = true;
-    }
-
-    return status;
-}
 
 /**
  * @brief Write a value to a BACnetLIST property element value
