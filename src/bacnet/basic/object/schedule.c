@@ -443,7 +443,6 @@ static bool List_Of_Object_Property_References_Set(
             status = bacnet_device_object_property_reference_copy(
                 &pObject->Object_Property_References[index], pMember);
         }
-        status = true;
     }
 
     return status;
@@ -491,7 +490,6 @@ bool Schedule_List_Of_Object_Property_References(
             status = bacnet_device_object_property_reference_copy(
                 pMember, &pObject->Object_Property_References[index]);
         }
-        status = true;
     }
 
     return status;
