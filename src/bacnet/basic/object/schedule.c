@@ -426,7 +426,7 @@ bool Schedule_Effective_Period(
 }
 
 /**
- * @brief Set a memeber element of a given BACnetLIST object property
+ * @brief Set a member element of a given BACnetLIST object property
  * @param pObject - object in which to set the value
  * @param index - 0-based array index
  * @param pMember - pointer to member value
@@ -450,7 +450,7 @@ static bool List_Of_Object_Property_References_Set(
 }
 
 /**
- * @brief Set a memeber element of a given BACnetLIST object property
+ * @brief Set a member element of a given BACnetLIST object property
  * @param pObject - object in which to set the value
  * @param index - 0-based array index
  * @param pMember - pointer to member value
@@ -471,7 +471,7 @@ bool Schedule_List_Of_Object_Property_References_Set(
 }
 
 /**
- * @brief Set a memeber element of a given BACnetLIST object property
+ * @brief Set a member element of a given BACnetLIST object property
  * @param pObject - object in which to set the value
  * @param index - 0-based array index
  * @param pMember - pointer to member value
