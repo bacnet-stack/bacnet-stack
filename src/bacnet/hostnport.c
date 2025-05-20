@@ -441,9 +441,8 @@ bool host_n_port_minimal_copy(
     } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
         status = true;
     }
-}
 
-return status;
+    return status;
 }
 
 /**
