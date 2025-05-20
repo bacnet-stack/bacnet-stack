@@ -41,7 +41,7 @@ static void test_network_port(void)
     uint8_t ip_prefix;
     uint32_t object_instance = 1234, test_object_instance = 0;
     unsigned object_index = 0, test_object_index = 0;
-    BACNET_HOST_N_PORT *host_n_port, test_host_n_port = { 0 };
+    BACNET_HOST_N_PORT host_n_port, test_host_n_port = { 0 };
     BACNET_OCTET_STRING ip_address;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt[2] = {
         { .valid = true,
@@ -211,13 +211,16 @@ static void test_network_port(void)
                 fdt[0].dest_address.address[0], NULL);
             status = Network_Port_Remote_BBMD_IP_Address(
                 object_instance, NULL, NULL, NULL, NULL);
-            zassert_true(status, NULL);
+            zassert_false(status, NULL);
             status = Network_Port_Remote_BBMD_IP_Address_Set(
                 object_instance, 1, 2, 3, 4);
             zassert_true(status, NULL);
             status = Network_Port_Remote_BBMD_IP_Address(
                 object_instance, &test_address[0], &test_address[1],
                 &test_address[2], &test_address[3]);
+            zassert_true(status, NULL);
+            status = Network_Port_Remote_BBMD_IP_Address(
+                object_instance, NULL, NULL, NULL, NULL);
             zassert_true(status, NULL);
             zassert_equal(test_address[0], 1, NULL);
             zassert_equal(test_address[1], 2, NULL);
@@ -234,11 +237,10 @@ static void test_network_port(void)
             zassert_equal(
                 Network_Port_Remote_BBMD_BIP_Port(object_instance), 47808,
                 NULL);
-            host_n_port = Network_Port_Remote_BBMD_Address(object_instance);
-            zassert_not_null(host_n_port, NULL);
-            zassert_false(host_n_port->host_name, NULL);
-            zassert_true(host_n_port->host_ip_address, NULL);
-            zassert_equal(host_n_port->port, 47808, NULL);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_false(host_n_port.host_name, NULL);
+            zassert_true(host_n_port.host_ip_address, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
             test_host_n_port.host_ip_address = false;
             test_host_n_port.host_name = true;
             characterstring_init_ansi(
@@ -246,11 +248,10 @@ static void test_network_port(void)
             test_host_n_port.port = 47808;
             Network_Port_Remote_BBMD_Address_Set(
                 object_instance, &test_host_n_port);
-            host_n_port = Network_Port_Remote_BBMD_Address(object_instance);
-            zassert_not_null(host_n_port, NULL);
-            zassert_false(host_n_port->host_ip_address, NULL);
-            zassert_true(host_n_port->host_name, NULL);
-            zassert_equal(host_n_port->port, 47808, NULL);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_false(host_n_port.host_ip_address, NULL);
+            zassert_true(host_n_port.host_name, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
             characterstring_ansi_same(
                 &test_host_n_port.host.name, "bbmd.example.com");
             status =
@@ -279,20 +280,22 @@ static void test_network_port(void)
                 Network_Port_BBMD_IP6_FD_Table(object_instance), NULL);
             status =
                 Network_Port_Remote_BBMD_IP6_Address(object_instance, address);
-            zassert_true(status, NULL);
+            zassert_false(status, NULL);
             status = Network_Port_Remote_BBMD_IP6_Address_Set(
                 object_instance, address);
             zassert_true(status, NULL);
             status =
                 Network_Port_Remote_BBMD_BIP6_Port_Set(object_instance, 47808);
             zassert_true(status, NULL);
+            status =
+                Network_Port_Remote_BBMD_IP6_Address(object_instance, address);
+            zassert_true(status, NULL);
             zassert_equal(
                 Network_Port_Remote_BBMD_BIP6_Port(object_instance), 47808,
                 NULL);
-            host_n_port = Network_Port_Remote_BBMD_Address(object_instance);
-            zassert_not_null(host_n_port, NULL);
-            zassert_true(host_n_port->host_ip_address, NULL);
-            zassert_equal(host_n_port->port, 47808, NULL);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_true(host_n_port.host_ip_address, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
             test_host_n_port.host_ip_address = false;
             test_host_n_port.host_name = true;
             characterstring_init_ansi(
@@ -300,11 +303,10 @@ static void test_network_port(void)
             test_host_n_port.port = 47808;
             Network_Port_Remote_BBMD_Address_Set(
                 object_instance, &test_host_n_port);
-            host_n_port = Network_Port_Remote_BBMD_Address(object_instance);
-            zassert_not_null(host_n_port, NULL);
-            zassert_false(host_n_port->host_ip_address, NULL);
-            zassert_true(host_n_port->host_name, NULL);
-            zassert_equal(host_n_port->port, 47808, NULL);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_false(host_n_port.host_ip_address, NULL);
+            zassert_true(host_n_port.host_name, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
             status =
                 Network_Port_Remote_BBMD_BIP6_Lifetime_Set(object_instance, 60);
             zassert_true(status, NULL);

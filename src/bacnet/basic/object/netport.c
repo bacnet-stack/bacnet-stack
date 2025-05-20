@@ -53,7 +53,7 @@ struct bacnet_ipv4_port {
     void *BBMD_BD_Table;
     void *BBMD_FD_Table;
     /* used for foreign device registration to remote BBMD */
-    BACNET_HOST_N_PORT BBMD_Address;
+    BACNET_HOST_N_PORT_MINIMAL BBMD_Address;
     uint16_t BBMD_Lifetime;
 };
 
@@ -77,7 +77,7 @@ struct bacnet_ipv6_port {
     void *BBMD_BD_Table;
     void *BBMD_FD_Table;
     /* used for foreign device registration to remote BBMD */
-    BACNET_HOST_N_PORT BBMD_Address;
+    BACNET_HOST_N_PORT_MINIMAL BBMD_Address;
     uint16_t BBMD_Lifetime;
 };
 
@@ -1983,24 +1983,28 @@ static int BBMD_Foreign_Device_Table_Encode(
 /**
  * @brief For a given object instance-number, gets the HostNPort
  * @note depends on Network_Type being set for this object
- * @param  object_instance - object-instance number of the object
- * @return  HostNPort FD BBMD Address
+ * @param object_instance - object-instance number of the object
+ * @param bbmd_address - BACNET_HOST_N_PORT structure
+ * @return true if BBMD Address was copied
  */
-BACNET_HOST_N_PORT *Network_Port_Remote_BBMD_Address(uint32_t object_instance)
+bool Network_Port_Remote_BBMD_Address(
+    uint32_t object_instance, BACNET_HOST_N_PORT *bbmd_address)
 {
-    BACNET_HOST_N_PORT *bbmd_address = NULL;
+    bool status = false;
     unsigned index;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            bbmd_address = &Object_List[index].Network.IPv4.BBMD_Address;
+            status = host_n_port_from_minimal(
+                bbmd_address, &Object_List[index].Network.IPv4.BBMD_Address);
         } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
-            bbmd_address = &Object_List[index].Network.IPv6.BBMD_Address;
+            status = host_n_port_from_minimal(
+                bbmd_address, &Object_List[index].Network.IPv6.BBMD_Address);
         }
     }
 
-    return bbmd_address;
+    return status;
 }
 
 /**
@@ -2012,10 +2016,11 @@ BACNET_HOST_N_PORT *Network_Port_Remote_BBMD_Address(uint32_t object_instance)
  * @return  true if BBMD Address was set
  */
 bool Network_Port_Remote_BBMD_Address_Set(
-    uint32_t object_instance, const BACNET_HOST_N_PORT *const bbmd_address)
+    uint32_t object_instance, const BACNET_HOST_N_PORT *bbmd_address)
 {
     bool status = false;
-    BACNET_HOST_N_PORT *dest_bbmd_address = NULL;
+    BACNET_HOST_N_PORT_MINIMAL bbmd_address_minimal = { 0 };
+    BACNET_HOST_N_PORT_MINIMAL *dest_bbmd_address = NULL;
     unsigned index;
 
     index = Network_Port_Instance_To_Index(object_instance);
@@ -2026,36 +2031,15 @@ bool Network_Port_Remote_BBMD_Address_Set(
             dest_bbmd_address = &Object_List[index].Network.IPv6.BBMD_Address;
         }
         if (dest_bbmd_address) {
-            if (!host_n_port_same(dest_bbmd_address, bbmd_address)) {
-                host_n_port_copy(dest_bbmd_address, bbmd_address);
-                Object_List[index].Changes_Pending = true;
+            status =
+                host_n_port_to_minimal(&bbmd_address_minimal, bbmd_address);
+            if (status) {
+                if (!host_n_port_minimal_same(
+                        dest_bbmd_address, &bbmd_address_minimal)) {
+                    host_n_port_to_minimal(dest_bbmd_address, bbmd_address);
+                    Object_List[index].Changes_Pending = true;
+                }
             }
-            status = true;
-        }
-    }
-
-    return status;
-}
-
-/**
- * @brief Check if the HostNPort is an IP address
- * @param address - BACNET_HOST_N_PORT structure
- * @return true if the HostNPort is an IP address, or
- *  true if the HostNPort is unconfigured
- */
-static bool host_n_port_is_ip_address(BACNET_HOST_N_PORT *address)
-{
-    bool status = false;
-
-    if (address) {
-        if (address->host_ip_address) {
-            status = true;
-        } else if (address->host_name) {
-            status = false;
-        } else {
-            /* none-tag option in this implementation is unconfigured
-               and we treat as if it is an IP address */
-            status = true;
         }
     }
 
@@ -2080,24 +2064,24 @@ bool Network_Port_Remote_BBMD_IP_Address(
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
-    BACNET_HOST_N_PORT *address;
+    BACNET_HOST_N_PORT_MINIMAL *address;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             address = &Object_List[index].Network.IPv4.BBMD_Address;
-            if (host_n_port_is_ip_address(address)) {
+            if (address->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
                 if (a) {
-                    *a = address->host.ip_address.value[0];
+                    *a = address->host.ip_address.address[0];
                 }
                 if (b) {
-                    *b = address->host.ip_address.value[1];
+                    *b = address->host.ip_address.address[1];
                 }
                 if (c) {
-                    *c = address->host.ip_address.value[2];
+                    *c = address->host.ip_address.address[2];
                 }
                 if (d) {
-                    *d = address->host.ip_address.value[3];
+                    *d = address->host.ip_address.address[3];
                 }
                 status = true;
             }
@@ -2124,25 +2108,25 @@ bool Network_Port_Remote_BBMD_IP_Address_Set(
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
-    BACNET_HOST_N_PORT *address;
+    BACNET_HOST_N_PORT_MINIMAL *address;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             address = &Object_List[index].Network.IPv4.BBMD_Address;
-            if ((address->host.ip_address.value[0] != a) ||
-                (address->host.ip_address.value[1] != b) ||
-                (address->host.ip_address.value[2] != c) ||
-                (address->host.ip_address.value[3] != d)) {
+            if ((address->host.ip_address.address[0] != a) ||
+                (address->host.ip_address.address[1] != b) ||
+                (address->host.ip_address.address[2] != c) ||
+                (address->host.ip_address.address[3] != d) ||
+                (address->tag != BACNET_HOST_ADDRESS_TAG_IP_ADDRESS)) {
                 Object_List[index].Changes_Pending = true;
             }
-            address->host.ip_address.value[0] = a;
-            address->host.ip_address.value[1] = b;
-            address->host.ip_address.value[2] = c;
-            address->host.ip_address.value[3] = d;
+            address->host.ip_address.address[0] = a;
+            address->host.ip_address.address[1] = b;
+            address->host.ip_address.address[2] = c;
+            address->host.ip_address.address[3] = d;
             address->host.ip_address.length = 4;
-            address->host_name = false;
-            address->host_ip_address = true;
+            address->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
             status = true;
         }
     }
@@ -2436,22 +2420,15 @@ bool Network_Port_BBMD_IP6_FD_Table_Set(
 static int Foreign_Device_BBMD_Address_Encode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    unsigned index = 0; /* offset from instance lookup */
     int apdu_len = 0;
-    BACNET_HOST_N_PORT *bbmd_address;
+    BACNET_HOST_N_PORT bbmd_address = { 0 };
 
-    bbmd_address = Network_Port_Remote_BBMD_Address(object_instance);
-    if (bbmd_address) {
-        apdu_len = host_n_port_encode(
-            NULL, &Object_List[index].Network.IPv4.BBMD_Address);
-        if (apdu_len > apdu_size) {
-            apdu_len = BACNET_STATUS_ERROR;
-        } else {
-            apdu_len = host_n_port_encode(
-                apdu, &Object_List[index].Network.IPv4.BBMD_Address);
-        }
-    } else {
+    Network_Port_Remote_BBMD_Address(object_instance, &bbmd_address);
+    apdu_len = host_n_port_encode(NULL, &bbmd_address);
+    if (apdu_len > apdu_size) {
         apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        apdu_len = host_n_port_encode(apdu, &bbmd_address);
     }
 
     return apdu_len;
@@ -2472,18 +2449,18 @@ bool Network_Port_Remote_BBMD_IP6_Address(
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
-    BACNET_HOST_N_PORT *address;
+    BACNET_HOST_N_PORT_MINIMAL *address;
+    size_t i;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             address = &Object_List[index].Network.IPv6.BBMD_Address;
-            if (host_n_port_is_ip_address(address)) {
+            if (address->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
                 if (addr) {
-                    octetstring_copy_value(
-                        addr, IP6_ADDRESS_MAX,
-                        &Object_List[index]
-                             .Network.IPv6.BBMD_Address.host.ip_address);
+                    for (i = 0; i < IP6_ADDRESS_MAX; i++) {
+                        addr[i] = address->host.ip_address.address[i];
+                    }
                 }
                 status = true;
             }
@@ -2507,23 +2484,22 @@ bool Network_Port_Remote_BBMD_IP6_Address_Set(
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
-    uint8_t *ip_address;
+    BACNET_HOST_N_PORT_MINIMAL bbmd_address = { 0 };
+    uint16_t port;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
-            ip_address = octetstring_value(
-                &Object_List[index].Network.IPv4.BBMD_Address.host.ip_address);
-            if ((Object_List[index].Network.IPv6.BBMD_Address.host_name) ||
-                (memcmp(ip_address, addr, IP6_ADDRESS_MAX))) {
+            port = Object_List[index].Network.IPv6.BBMD_Address.port;
+            host_n_port_minimal_ip_init(
+                &bbmd_address, port, addr, IP6_ADDRESS_MAX);
+            if (!host_n_port_minimal_same(
+                    &Object_List[index].Network.IPv6.BBMD_Address,
+                    &bbmd_address)) {
                 Object_List[index].Changes_Pending = true;
             }
-            octetstring_init(
-                &Object_List[index].Network.IPv4.BBMD_Address.host.ip_address,
-                addr, IP6_ADDRESS_MAX);
-            Object_List[index].Network.IPv6.BBMD_Address.host_name = false;
-            Object_List[index].Network.IPv6.BBMD_Address.host_ip_address = true;
-            status = true;
+            status = host_n_port_minimal_copy(
+                &Object_List[index].Network.IPv6.BBMD_Address, &bbmd_address);
         }
     }
 

@@ -375,6 +375,210 @@ bool host_n_port_copy(BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT *src)
 }
 
 /**
+ * @brief Initialize a BACnetHostNPort_Minimal structure for IP address
+ * @param host - BACnetHostNPort_Minimal structure
+ * @param port - port number
+ * @param address - BACnetHostAddress
+ */
+void host_n_port_minimal_ip_init(
+    BACNET_HOST_N_PORT_MINIMAL *host,
+    uint16_t port,
+    const uint8_t *address,
+    size_t address_len)
+{
+    unsigned i, imax;
+
+    if (host) {
+        host->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
+        host->host.ip_address.length = address_len;
+        imax = min(address_len, sizeof(host->host.ip_address.address));
+        if (address) {
+            for (i = 0; i < imax; i++) {
+                host->host.ip_address.address[i] = address[i];
+            }
+        } else {
+            for (i = 0; i < imax; i++) {
+                host->host.ip_address.address[i] = 0;
+            }
+        }
+        host->port = port;
+    }
+}
+
+/**
+ * @brief copy the BACnetHostNPort_Minimal complex data
+ * @param dest - destination structure
+ * @param src - source structure
+ * @return true if successfully copied
+ */
+bool host_n_port_minimal_copy(
+    BACNET_HOST_N_PORT_MINIMAL *dest, const BACNET_HOST_N_PORT_MINIMAL *src)
+{
+    bool status = false;
+    int i, imax;
+
+    if (dest && src) {
+        dest->tag = src->tag;
+        dest->port = src->port;
+        if (src->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+            status = true;
+            dest->host.ip_address.length = src->host.ip_address.length;
+            imax =
+                min(src->host.ip_address.length,
+                    sizeof(dest->host.ip_address.address));
+            for (i = 0; i < imax; i++) {
+                dest->host.ip_address.address[i] =
+                    src->host.ip_address.address[i];
+            }
+        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+            status = true;
+            dest->host.name.length = src->host.name.length;
+            imax = min(src->host.name.length, sizeof(dest->host.name.fqdn));
+            for (i = 0; i < imax; i++) {
+                dest->host.name.fqdn[i] = src->host.name.fqdn[i];
+            }
+        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Copy the BACnetHostNPort complex data from src to dst
+ * @param dst - destination structure
+ * @param src - source structure
+ * @return true if successfully copied
+ */
+bool host_n_port_from_minimal(
+    BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT_MINIMAL *src)
+{
+    bool status = false;
+
+    if (dst && src) {
+        switch (src->tag) {
+            case BACNET_HOST_ADDRESS_TAG_NONE:
+                dst->host_ip_address = false;
+                dst->host_name = false;
+                status = true;
+                break;
+            case BACNET_HOST_ADDRESS_TAG_IP_ADDRESS:
+                dst->host_ip_address = true;
+                dst->host_name = false;
+                octetstring_init(
+                    &dst->host.ip_address, src->host.ip_address.address,
+                    src->host.ip_address.length);
+                status = true;
+                break;
+            case BACNET_HOST_ADDRESS_TAG_NAME:
+                dst->host_ip_address = false;
+                dst->host_name = true;
+                characterstring_init(
+                    &dst->host.name, CHARACTER_ANSI_X34, src->host.name.fqdn,
+                    src->host.name.length);
+                status = true;
+                break;
+            default:
+                return false; /* invalid tag number */
+        }
+        if (status) {
+            dst->port = src->port;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Copy the BACnetHostNPort complex data from src to dst
+ * @param dst - destination structure
+ * @param src - source structure
+ * @return true if successfully copied
+ */
+bool host_n_port_to_minimal(
+    BACNET_HOST_N_PORT_MINIMAL *dst, const BACNET_HOST_N_PORT *src)
+{
+    bool status = false;
+
+    if (dst && src) {
+        if (src->host_ip_address) {
+            dst->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
+            dst->host.ip_address.length = octetstring_copy_value(
+                dst->host.ip_address.address,
+                sizeof(dst->host.ip_address.address), &src->host.ip_address);
+            if (dst->host.ip_address.length > 0) {
+                status = true;
+            }
+        } else if (src->host_name) {
+            dst->tag = BACNET_HOST_ADDRESS_TAG_NAME;
+            dst->host.name.length = characterstring_copy_value(
+                dst->host.name.fqdn, sizeof(dst->host.name.fqdn),
+                &src->host.name);
+            if (dst->host.name.length > 0) {
+                status = true;
+            }
+        } else {
+            dst->tag = BACNET_HOST_ADDRESS_TAG_NONE;
+            status = true;
+        }
+        dst->port = src->port;
+    }
+
+    return status;
+}
+
+bool host_n_port_minimal_same(
+    const BACNET_HOST_N_PORT_MINIMAL *dst,
+    const BACNET_HOST_N_PORT_MINIMAL *src)
+{
+    bool status = false;
+    int i, imax;
+
+    if (dst && src) {
+        if (dst->tag == src->tag) {
+            if (dst->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+                if (dst->host.ip_address.length ==
+                    src->host.ip_address.length) {
+                    status = true;
+                    imax =
+                        min(dst->host.ip_address.length,
+                            sizeof(dst->host.ip_address.address));
+                    for (i = 0; i < imax; i++) {
+                        if (dst->host.ip_address.address[i] !=
+                            src->host.ip_address.address[i]) {
+                            status = false;
+                            break;
+                        }
+                    }
+                }
+            } else if (dst->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+                if (dst->host.name.length == src->host.name.length) {
+                    status = true;
+                    imax =
+                        min(dst->host.name.length, sizeof(dst->host.name.fqdn));
+                    for (i = 0; i < imax; i++) {
+                        if (dst->host.name.fqdn[i] != src->host.name.fqdn[i]) {
+                            status = false;
+                            break;
+                        }
+                    }
+                }
+            } else if (dst->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
+                status = true;
+            }
+            if (status) {
+                if (dst->port != src->port) {
+                    status = false;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief Compare the BACnetHostNPort complex data of src and dst
  * @param host1 - host 1 structure
  * @param host2 - host 2 structure

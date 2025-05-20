@@ -89,6 +89,9 @@ BACNET_STACK_EXPORT
 bool characterstring_copy(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
+size_t characterstring_copy_value(
+    char *dest, size_t dest_max_len, const BACNET_CHARACTER_STRING *src);
+BACNET_STACK_EXPORT
 bool characterstring_ansi_copy(
     char *dest, size_t dest_max_len, const BACNET_CHARACTER_STRING *src);
 /* returns true if the strings are the same length, encoding, value */
