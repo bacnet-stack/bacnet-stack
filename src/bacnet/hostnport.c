@@ -415,7 +415,7 @@ bool host_n_port_minimal_copy(
     BACNET_HOST_N_PORT_MINIMAL *dest, const BACNET_HOST_N_PORT_MINIMAL *src)
 {
     bool status = false;
-    int i, imax;
+    int i;
 
     if (dest && src) {
         dest->tag = src->tag;
@@ -423,26 +423,27 @@ bool host_n_port_minimal_copy(
         if (src->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
             status = true;
             dest->host.ip_address.length = src->host.ip_address.length;
-            imax =
-                min(src->host.ip_address.length,
-                    sizeof(dest->host.ip_address.address));
-            for (i = 0; i < imax; i++) {
-                dest->host.ip_address.address[i] =
-                    src->host.ip_address.address[i];
+            for (i = 0; i < src->host.ip_address.length; i++) {
+                if (i < sizeof(dest->host.ip_address.address)) {
+                    dest->host.ip_address.address[i] =
+                        src->host.ip_address.address[i];
+                }
             }
-        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
-            status = true;
-            dest->host.name.length = src->host.name.length;
-            imax = min(src->host.name.length, sizeof(dest->host.name.fqdn));
-            for (i = 0; i < imax; i++) {
+        }
+    } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+        status = true;
+        dest->host.name.length = src->host.name.length;
+        for (i = 0; i < src->host.name.length; i++) {
+            if (i < sizeof(dest->host.name.fqdn)) {
                 dest->host.name.fqdn[i] = src->host.name.fqdn[i];
             }
-        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
-            status = true;
         }
+    } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
+        status = true;
     }
+}
 
-    return status;
+return status;
 }
 
 /**
@@ -533,7 +534,7 @@ bool host_n_port_minimal_same(
     const BACNET_HOST_N_PORT_MINIMAL *src)
 {
     bool status = false;
-    int i, imax;
+    int i;
 
     if (dst && src) {
         if (dst->tag == src->tag) {
@@ -541,26 +542,26 @@ bool host_n_port_minimal_same(
                 if (dst->host.ip_address.length ==
                     src->host.ip_address.length) {
                     status = true;
-                    imax =
-                        min(dst->host.ip_address.length,
-                            sizeof(dst->host.ip_address.address));
-                    for (i = 0; i < imax; i++) {
-                        if (dst->host.ip_address.address[i] !=
-                            src->host.ip_address.address[i]) {
-                            status = false;
-                            break;
+                    for (i = 0; i < dst->host.ip_address.length; i++) {
+                        if (i < sizeof(dst->host.ip_address.address)) {
+                            if (dst->host.ip_address.address[i] !=
+                                src->host.ip_address.address[i]) {
+                                status = false;
+                                break;
+                            }
                         }
                     }
                 }
             } else if (dst->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
                 if (dst->host.name.length == src->host.name.length) {
                     status = true;
-                    imax =
-                        min(dst->host.name.length, sizeof(dst->host.name.fqdn));
-                    for (i = 0; i < imax; i++) {
-                        if (dst->host.name.fqdn[i] != src->host.name.fqdn[i]) {
-                            status = false;
-                            break;
+                    for (i = 0; i < dst->host.name.length; i++) {
+                        if (i < sizeof(dst->host.name.fqdn)) {
+                            if (dst->host.name.fqdn[i] !=
+                                src->host.name.fqdn[i]) {
+                                status = false;
+                                break;
+                            }
                         }
                     }
                 }
