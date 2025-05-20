@@ -75,13 +75,15 @@ int bacnet_dailyschedule_context_encode(
 bool bacnet_dailyschedule_same(
     const BACNET_DAILY_SCHEDULE *a, const BACNET_DAILY_SCHEDULE *b)
 {
+    unsigned i;
+
     if (a == NULL || b == NULL) {
         return false;
     }
     if (a->TV_Count != b->TV_Count) {
         return false;
     }
-    for (unsigned i = 0; i < a->TV_Count; i++) {
+    for (i = 0; i < a->TV_Count; i++) {
         if (!bacnet_time_value_same(&a->Time_Values[i], &b->Time_Values[i])) {
             return false;
         }
@@ -97,6 +99,8 @@ bool bacnet_dailyschedule_same(
 void bacnet_dailyschedule_copy(
     BACNET_DAILY_SCHEDULE *dest, const BACNET_DAILY_SCHEDULE *src)
 {
+    unsigned i;
+
     if (dest == NULL || src == NULL) {
         return;
     }
@@ -104,7 +108,7 @@ void bacnet_dailyschedule_copy(
         return;
     }
     dest->TV_Count = src->TV_Count;
-    for (unsigned i = 0; i < dest->TV_Count; i++) {
+    for (i = 0; i < dest->TV_Count; i++) {
         bacnet_time_value_copy(&dest->Time_Values[i], &src->Time_Values[i]);
     }
 }
