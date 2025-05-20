@@ -71,7 +71,7 @@ void Schedule_Property_Lists(
  * @param  object_instance - object-instance number of the object
  * @return object found in the list, or NULL if not found
  */
-static SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
+SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
 {
     unsigned int object_index;
     SCHEDULE_DESCR *pObject = NULL;
@@ -304,6 +304,52 @@ static int Schedule_Weekly_Schedule_Encode(
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
 /**
+ * @brief Get the Exception Schedule for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param array_index - index of the Exception Schedule to get 0 to 6
+ * @return pointer to the Exception Schedule BACnetSpecialEvent,
+ *  or NULL if not found
+ */
+BACNET_SPECIAL_EVENT *
+Schedule_Exception_Schedule(uint32_t object_instance, unsigned array_index)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (array_index < BACNET_EXCEPTION_SCHEDULE_SIZE)) {
+        return &pObject->Exception_Schedule[array_index];
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the Exception Schedule for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param array_index - index of the Exception Schedule to set 0 to 6
+ * @param value - pointer to the Weekly Schedule BACnetSpecialEvent to set
+ * @return true if the Exception Schedule BACnetSpecialEvent was set,
+ *  and false if not
+ */
+bool Schedule_Exception_Schedule_Set(
+    uint32_t object_instance,
+    unsigned array_index,
+    const BACNET_SPECIAL_EVENT *value)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (array_index < BACNET_EXCEPTION_SCHEDULE_SIZE)) {
+        memcpy(
+            &pObject->Exception_Schedule[array_index], value,
+            sizeof(BACNET_SPECIAL_EVENT));
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Encode a BACnetARRAY property element
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index requested:
@@ -333,6 +379,139 @@ static int Schedule_Exception_Schedule_Encode(
 }
 #endif
 
+/**
+ * @brief Set the Effective Period for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param start_date - start date of the effective period
+ * @param end_date - end date of the effective period
+ * @return true if the effective period was set, and false if not
+ */
+bool Schedule_Effective_Period_Set(
+    uint32_t object_instance,
+    const BACNET_DATE *start_date,
+    const BACNET_DATE *end_date)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        datetime_copy_date(&pObject->Start_Date, start_date);
+        datetime_copy_date(&pObject->End_Date, end_date);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Get the Effective Period for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param start_date - start date of the effective period
+ * @param end_date - end date of the effective period
+ * @return true if the effective period was set, and false if not
+ */
+bool Schedule_Effective_Period(
+    uint32_t object_instance, BACNET_DATE *start_date, BACNET_DATE *end_date)
+{
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        datetime_copy_date(start_date, &pObject->Start_Date);
+        datetime_copy_date(end_date, &pObject->End_Date);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Set a member element of a given BACnetLIST object property
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+static bool List_Of_Object_Property_References_Set(
+    SCHEDULE_DESCR *pObject,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    if (pObject && (index < BACNET_SCHEDULE_OBJ_PROP_REF_SIZE)) {
+        if (pMember) {
+            status = bacnet_device_object_property_reference_copy(
+                &pObject->Object_Property_References[index], pMember);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set a member element of a given BACnetLIST object property
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+bool Schedule_List_Of_Object_Property_References_Set(
+    uint32_t object_instance,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    status = List_Of_Object_Property_References_Set(pObject, index, pMember);
+
+    return status;
+}
+
+/**
+ * @brief Set a member element of a given BACnetLIST object property
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+bool Schedule_List_Of_Object_Property_References(
+    uint32_t object_instance,
+    unsigned index,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject && (index < BACNET_SCHEDULE_OBJ_PROP_REF_SIZE)) {
+        if (pMember) {
+            status = bacnet_device_object_property_reference_copy(
+                pMember, &pObject->Object_Property_References[index]);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the size of the list of object property references
+ * @param object_instance [in] BACnet network port object instance number
+ * @return The size of the list of object property references
+ */
+size_t
+Schedule_List_Of_Object_Property_References_Capacity(uint32_t object_instance)
+{
+    (void)object_instance; /* unused */
+    return BACNET_SCHEDULE_OBJ_PROP_REF_SIZE;
+}
+
+/**
+ * @brief Read a property from the Schedule object
+ * @param rpdata [in] pointer to the read property data structure
+ * @return The length of the apdu encoded or BACNET_STATUS_ERROR
+ */
 int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;
@@ -342,7 +521,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint16_t apdu_max = 0;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    int i;
+    int i, imax = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -411,7 +590,9 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-            for (i = 0; i < CurrentSC->obj_prop_ref_cnt; i++) {
+            imax = min(
+                CurrentSC->obj_prop_ref_cnt, BACNET_SCHEDULE_OBJ_PROP_REF_SIZE);
+            for (i = 0; i < imax; i++) {
                 apdu_len += bacapp_encode_device_obj_property_ref(
                     &apdu[apdu_len], &CurrentSC->Object_Property_References[i]);
             }
@@ -523,6 +704,153 @@ static int Schedule_Weekly_Schedule_Element_Length(
     return len;
 }
 
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_SPECIAL_EVENT special_event = { 0 };
+    int len = 0;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
+            array_index--;
+            len = bacnet_special_event_decode(
+                application_data, application_data_len, &special_event);
+            if (len > 0) {
+                bacnet_special_event_copy(
+                    &pObject->Exception_Schedule[array_index], &special_event);
+                error_code = ERROR_CODE_SUCCESS;
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode one BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Schedule_Exception_Schedule_Element_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_SPECIAL_EVENT special_event = { 0 };
+    int len = 0;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        len = bacnet_special_event_decode(apdu, apdu_size, &special_event);
+    }
+
+    return len;
+}
+#endif
+
+/**
+ * @brief Write a value to a BACnetLIST property element value
+ *  using a BACnetARRAY write utility function
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int len = 0;
+    bool status;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        } else if (array_index <= BACNET_SCHEDULE_OBJ_PROP_REF_SIZE) {
+            len = bacapp_decode_known_property(
+                application_data, application_data_len, &value, OBJECT_SCHEDULE,
+                PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+            if (len > 0) {
+                if (value.tag ==
+                    BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE) {
+                    status = List_Of_Object_Property_References_Set(
+                        pObject, array_index - 1,
+                        &value.type.Device_Object_Property_Reference);
+                    if (status) {
+                        pObject->obj_prop_ref_cnt = array_index;
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
+                } else {
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+            } else {
+                error_code = ERROR_CODE_ABORT_OTHER;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetLIST property element to determine the element length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Schedule_List_Of_Object_Property_References_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int len = 0;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        len = bacapp_decode_known_property(
+            apdu, apdu_size, &value, OBJECT_SCHEDULE,
+            PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+    }
+
+    return len;
+}
+
 /**
  * @brief Write a property to the Schedule object
  * @param wp_data - pointer to the write property data
@@ -569,6 +897,43 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = true;
             }
             break;
+        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Schedule_List_Of_Object_Property_References_Length,
+                Schedule_List_Of_Object_Property_References_Write,
+                BACNET_SCHEDULE_OBJ_PROP_REF_SIZE, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+        case PROP_EFFECTIVE_PERIOD:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_DATERANGE);
+            if (status) {
+                /* set the start and end date */
+                datetime_copy_date(
+                    &Schedule_Descr[object_index].Start_Date,
+                    &value.type.Date_Range.startdate);
+                datetime_copy_date(
+                    &Schedule_Descr[object_index].End_Date,
+                    &value.type.Date_Range.enddate);
+            }
+            break;
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+        case PROP_EXCEPTION_SCHEDULE:
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Schedule_Exception_Schedule_Element_Length,
+                Schedule_Exception_Schedule_Element_Write,
+                BACNET_EXCEPTION_SCHEDULE_SIZE, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+#endif
         default:
             if (property_lists_member(
                     Schedule_Properties_Required, Schedule_Properties_Optional,
