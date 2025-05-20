@@ -15,6 +15,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacstr.h"
 #include "bacnet/datalink/bvlc.h"
+#include "bacnet/datalink/bvlc6.h"
 
 /**
  *  BACnetHostNPort ::= SEQUENCE {
@@ -37,6 +38,25 @@ typedef struct BACnetHostNPort {
     } host;
     uint16_t port;
 } BACNET_HOST_N_PORT;
+
+#define BACNET_HOST_ADDRESS_TAG_NONE 0
+#define BACNET_HOST_ADDRESS_TAG_IP_ADDRESS 1
+#define BACNET_HOST_ADDRESS_TAG_NAME 2
+/* BACnetHostNPort with smaller RAM footprint using C datatypes */
+typedef struct BACnetHostNPort_Minimal {
+    uint8_t tag;
+    union BACnetHostAddress_Minimal {
+        struct BACnetHostOctetString {
+            uint8_t address[IP6_ADDRESS_MAX];
+            uint8_t length;
+        } ip_address;
+        struct BACnetHostCharacterString {
+            char fqdn[256];
+            uint8_t length;
+        } name;
+    } host;
+    uint16_t port;
+} BACNET_HOST_N_PORT_MINIMAL;
 
 /**
  *  BACnetBDTEntry ::= SEQUENCE {
@@ -99,6 +119,26 @@ int host_n_port_context_decode(
     BACNET_HOST_N_PORT *address);
 BACNET_STACK_EXPORT
 bool host_n_port_copy(BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT *src);
+
+BACNET_STACK_EXPORT
+bool host_n_port_from_minimal(
+    BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT_MINIMAL *src);
+BACNET_STACK_EXPORT
+bool host_n_port_to_minimal(
+    BACNET_HOST_N_PORT_MINIMAL *dst, const BACNET_HOST_N_PORT *src);
+BACNET_STACK_EXPORT
+bool host_n_port_minimal_copy(
+    BACNET_HOST_N_PORT_MINIMAL *dst, const BACNET_HOST_N_PORT_MINIMAL *src);
+BACNET_STACK_EXPORT
+bool host_n_port_minimal_same(
+    const BACNET_HOST_N_PORT_MINIMAL *dst,
+    const BACNET_HOST_N_PORT_MINIMAL *src);
+void host_n_port_minimal_ip_init(
+    BACNET_HOST_N_PORT_MINIMAL *host,
+    uint16_t port,
+    const uint8_t *address,
+    size_t address_len);
+
 BACNET_STACK_EXPORT
 bool host_n_port_same(
     const BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT *src);
@@ -162,6 +202,8 @@ bool bacnet_fdt_entry_from_ascii(BACNET_FDT_ENTRY *value, const char *argv);
 BACNET_STACK_EXPORT
 int bacnet_fdt_entry_to_ascii(
     char *str, size_t str_size, const BACNET_FDT_ENTRY *value);
+BACNET_STACK_EXPORT
+bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname);
 
 #ifdef __cplusplus
 }
