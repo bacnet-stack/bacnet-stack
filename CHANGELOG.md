@@ -18,6 +18,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added schedule object WriteProperty handling for effective-period,
+  list-of-object-property-references and exception-schedule properties. (#1000)
+* Added multiple uBASIC program objects to stm32f4xx example port. (#995)
 * Added more API for BACnet basic server device object. (#994)
 * Added the weekly-schedule property write in basic schedule object. (#990)
 * Added uBASIC-Plus program object example to STM32F4xx. (#967)
@@ -30,6 +33,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed network port object to accept host name option of host-n-port
+  writes. (#997)
+* Fixed missing exports in bacnet/basic header files. (#996)
 * Fixed NDPU comparison functions that were missing segment-ack PDU. (#991)
 * Fixed WriteProperty NULL bypass which is only for present-value property
   of commandable objects. (#984)
