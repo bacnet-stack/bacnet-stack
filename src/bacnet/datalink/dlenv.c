@@ -34,6 +34,7 @@
 
 /* enable debugging */
 static bool Datalink_Debug;
+static uint16_t Datalink_Debug_Timer_Seconds;
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
 static uint16_t BBMD_TTL_Seconds = 60000;
@@ -41,7 +42,9 @@ static uint16_t BBMD_TTL_Seconds = 60000;
 static BACNET_IP_ADDRESS BBMD_Address;
 static bool BBMD_Address_Valid;
 static uint16_t BBMD_Result = 0;
+#if defined(BACDL_BIP) && BBMD_ENABLED
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
+#endif
 static uint32_t Network_Port_Instance = 1;
 
 /**
@@ -96,9 +99,12 @@ void dlenv_bbmd_ttl_set(uint16_t ttl_secs)
  */
 int dlenv_bbmd_result(void)
 {
-    if ((BBMD_Result > 0) &&
-        (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK)) {
-        return -1;
+    if (BBMD_Result > 0) {
+#if defined(BACDL_BIP) && BBMD_ENABLED
+        if (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK) {
+            return -1;
+        }
+#endif
     }
     /* Else, show our send: */
     return BBMD_Result;
@@ -439,6 +445,14 @@ void dlenv_network_port_mstp_init(uint32_t instance)
     if (pEnv) {
         mac_address = strtol(pEnv, NULL, 0);
     }
+    if (Datalink_Debug) {
+        fprintf(
+            stderr,
+            "Network Port[%lu] mode=MSTP bitrate=%ld mac[0]=%ld "
+            "max_info_frames=%ld, max_master=%ld\n",
+            (unsigned long)instance, baud_rate, mac_address, max_info_frames,
+            max_master);
+    }
 #ifdef BACDL_MSTP
     dlmstp_set_max_info_frames(max_info_frames);
     dlmstp_set_max_master(max_master);
@@ -714,6 +728,8 @@ void dlenv_network_port_bsc_init(void)
  */
 void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 {
+    struct dlmstp_statistics statistics = { 0 };
+
     if (BBMD_Timer_Seconds) {
         if (BBMD_Timer_Seconds <= elapsed_seconds) {
             BBMD_Timer_Seconds = 0;
@@ -733,6 +749,25 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
         }
     }
+    if (Network_Port_Type(Network_Port_Instance) == PORT_TYPE_BIP) {
+        Datalink_Debug_Timer_Seconds = elapsed_seconds;
+        if (Datalink_Debug_Timer_Seconds >= 60) {
+            Datalink_Debug_Timer_Seconds = 0;
+            if (Datalink_Debug) {
+                dlmstp_fill_statistics(&statistics);
+                fprintf(stderr,
+                    "MSTP: Frames Rx:%u/%u Tx:%u PDU Rx:%u Tx:%u Lost:%u\n",
+                    statistics.receive_valid_frame_counter,
+                    statistics.receive_invalid_frame_counter,
+                    statistics.transmit_frame_counter,
+                    statistics.transmit_pdu_counter,
+                    statistics.receive_pdu_counter,
+                    statistics.lost_token_counter);
+                fflush(stderr);
+            }
+        }
+    }
+
 }
 
 /** Initialize the DataLink configuration from Environment variables,
@@ -856,6 +891,24 @@ void dlenv_init(void)
         port_type = PORT_TYPE_NON_BACNET;
 #endif
     }
+#else
+    /* if we are not compiling with multiple datalinks,
+       then we are using the only one available */
+#if defined(BACDL_BIP)
+        port_type = PORT_TYPE_BIP;
+#elif defined(BACDL_BIP6)
+        port_type = PORT_TYPE__BIP6;
+#elif defined(BACDL_MSTP)
+        port_type = PORT_TYPE_MSTP;
+#elif defined(BACDL_ETHERNET)
+        port_type = PORT_TYPE_ETHERNET;
+#elif defined(BACDL_ARCNET)
+        port_type = PORT_TYPE_ARCNET;
+#elif defined(BACDL_BSC)
+        port_type = PORT_TYPE_BSC;
+#else
+        port_type = PORT_TYPE_NON_BACNET;
+#endif
 #endif
     Network_Port_Type_Set(Network_Port_Instance, port_type);
     switch (port_type) {
@@ -888,7 +941,11 @@ void dlenv_init(void)
         apdu_retries_set((uint8_t)strtol(pEnv, NULL, 0));
     }
     /* === Initialize the Datalink Here === */
-    if (!datalink_init(getenv("BACNET_IFACE"))) {
+    pEnv = getenv("BACNET_IFACE");
+    if (Datalink_Debug) {
+        fprintf(stderr, "BACNET_IFACE=%s\n", pEnv ? pEnv : "none");
+    }
+    if (!datalink_init(pEnv)) {
         exit(1);
     }
 #if (MAX_TSM_TRANSACTIONS)
