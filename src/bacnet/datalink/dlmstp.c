@@ -955,7 +955,8 @@ void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
         return;
     }
     if (statistics) {
-        memmove(&statistics, user->Statistics, sizeof(struct dlmstp_statistics));
+        memmove(
+            &statistics, &user->Statistics, sizeof(struct dlmstp_statistics));
     }
 }
 
