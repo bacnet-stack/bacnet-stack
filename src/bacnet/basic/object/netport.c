@@ -4197,11 +4197,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
     }
 
-    if (!status && (wp_data->error_code == ERROR_CODE_OTHER)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-    }
-
     return status;
 }
 
