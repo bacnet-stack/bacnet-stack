@@ -877,7 +877,7 @@ void dlenv_init(void)
         port_type = PORT_TYPE_BIP;
 #elif defined(BACDL_BIP6)
         datalink_set("bip6");
-        port_type = PORT_TYPE__BIP6;
+        port_type = PORT_TYPE_BIP6;
 #elif defined(BACDL_MSTP)
         datalink_set("mstp");
         port_type = PORT_TYPE_MSTP;
@@ -901,7 +901,7 @@ void dlenv_init(void)
 #if defined(BACDL_BIP)
     port_type = PORT_TYPE_BIP;
 #elif defined(BACDL_BIP6)
-    port_type = PORT_TYPE__BIP6;
+    port_type = PORT_TYPE_BIP6;
 #elif defined(BACDL_MSTP)
     port_type = PORT_TYPE_MSTP;
 #elif defined(BACDL_ETHERNET)
