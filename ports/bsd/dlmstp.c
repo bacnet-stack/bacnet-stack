@@ -913,7 +913,10 @@ void dlmstp_reset_statistics(void)
  */
 void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
 {
-    memmove(&DLMSTP_Statistics, statistics, sizeof(struct dlmstp_statistics));
+    if (statistics == NULL) {
+        return;
+    }
+    memmove(statistics, &DLMSTP_Statistics, sizeof(struct dlmstp_statistics));
 }
 
 /**
