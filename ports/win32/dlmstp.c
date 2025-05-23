@@ -31,8 +31,10 @@
 
 /* packet queues */
 static DLMSTP_PACKET Receive_Packet;
+/* mechanism to wait for a packet */
 static HANDLE Receive_Packet_Flag;
 static HANDLE Ring_Buffer_Mutex;
+static HANDLE Receive_Packet_Mutex;
 /* local MS/TP port data - shared with RS-485 */
 static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -72,6 +74,9 @@ void dlmstp_cleanup(void)
     }
     if (Ring_Buffer_Mutex) {
         CloseHandle(Ring_Buffer_Mutex);
+    }
+    if (Receive_Packet_Mutex) {
+        CloseHandle(Receive_Packet_Mutex);
     }
 }
 
@@ -343,6 +348,7 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
     uint16_t pdu_len = 0;
     BOOL rc;
 
+    WaitForSingleObject(Receive_Packet_Mutex, INFINITE);
     if (!Receive_Packet.ready) {
         /* bounds check - maybe this should send an abort? */
         pdu_len = mstp_port->DataLength;
@@ -359,6 +365,7 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
         rc = ReleaseSemaphore(Receive_Packet_Flag, 1, NULL);
         (void)rc;
     }
+    ReleaseMutex(Receive_Packet_Mutex);
 
     return pdu_len;
 }
@@ -383,6 +390,7 @@ uint16_t dlmstp_receive(
     (void)max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
+    WaitForSingleObject(Receive_Packet_Mutex, INFINITE);
     wait_status = WaitForSingleObject(Receive_Packet_Flag, timeout);
     if (wait_status == WAIT_OBJECT_0) {
         if (Receive_Packet.ready) {
@@ -402,6 +410,7 @@ uint16_t dlmstp_receive(
             Receive_Packet.ready = false;
         }
     }
+    ReleaseMutex(Receive_Packet_Mutex);
 
     return pdu_len;
 }
@@ -410,7 +419,7 @@ uint16_t dlmstp_receive(
  * @brief Thread for the MS/TP receive state machine
  * @param pArg not used
  */
-static void dlmstp_receive_thread(void *pArg)
+static void dlmstp_thread(void *pArg)
 {
     uint32_t silence_milliseconds = 0;
     MSTP_MASTER_STATE master_state;
@@ -909,10 +918,17 @@ bool dlmstp_init(char *ifname)
     if (Receive_Packet_Flag == NULL) {
         exit(1);
     }
+    Receive_Packet_Mutex = CreateMutex(NULL, FALSE, "dlmstpReceivePacketMutex");
+    if (Receive_Packet_Mutex == NULL) {
+        fprintf(
+            stderr, "MS/TP: CreateMutex error: %ld\n", (long)GetLastError());
+        exit(1);
+    }
     /* initialize hardware */
     mstimer_set(&Silence_Timer, 0);
     if (ifname) {
         RS485_Set_Interface(ifname);
+        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
     }
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
@@ -935,7 +951,8 @@ bool dlmstp_init(char *ifname)
         stderr, "MS/TP Max_Info_Frames: %u\n",
         (unsigned)MSTP_Port.Nmax_info_frames);
     fprintf(
-        stderr, "RxBuf[%u] TxBuf[%u]\n", (unsigned)MSTP_Port.InputBufferSize,
+        stderr, "MS/TP RxBuf[%u] TxBuf[%u]\n",
+        (unsigned)MSTP_Port.InputBufferSize,
         (unsigned)MSTP_Port.OutputBufferSize);
     fprintf(
         stderr,
@@ -954,9 +971,9 @@ bool dlmstp_init(char *ifname)
         (MSTP_Port.CheckAutoBaud ? "true" : "false"));
     fflush(stderr);
 #endif
-    hThread = _beginthread(dlmstp_receive_thread, 4096, &arg_value);
+    hThread = _beginthread(dlmstp_thread, 4096, &arg_value);
     if (hThread == 0) {
-        fprintf(stderr, "Failed to start MS/TP receive thread\n");
+        fprintf(stderr, "Failed to start MS/TP thread\n");
     }
 
     return true;
@@ -973,20 +990,6 @@ void apdu_handler(
     (void)src;
     (void)apdu;
     (void)pdu_len;
-}
-
-/* returns a delta timestamp */
-uint32_t timestamp_ms(void)
-{
-    DWORD ticks = 0, delta_ticks = 0;
-    static DWORD last_ticks = 0;
-
-    ticks = GetTickCount();
-    delta_ticks =
-        (ticks >= last_ticks ? ticks - last_ticks : MAXDWORD - last_ticks);
-    last_ticks = ticks;
-
-    return delta_ticks;
 }
 
 static char *Network_Interface = NULL;
@@ -1007,10 +1010,9 @@ int main(int argc, char *argv[])
     /* forever task */
     for (;;) {
         pdu_len = dlmstp_receive(NULL, NULL, 0, UINT_MAX);
-#if 0
-        MSTP_Create_And_Send_Frame(&MSTP_Port, FRAME_TYPE_TEST_REQUEST,
-            MSTP_Port.SourceAddress, MSTP_Port.This_Station, NULL, 0);
-#endif
+        MSTP_Create_And_Send_Frame(
+            &MSTP_Port, FRAME_TYPE_TEST_REQUEST, MSTP_Port.SourceAddress,
+            MSTP_Port.This_Station, NULL, 0);
     }
 
     return 0;

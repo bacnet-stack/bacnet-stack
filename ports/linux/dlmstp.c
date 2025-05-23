@@ -40,8 +40,8 @@ static pthread_mutex_t Master_Done_Mutex;
 static pthread_mutex_t Ring_Buffer_Mutex;
 static pthread_mutex_t Thread_Mutex;
 static pthread_t hThread;
-static bool run_thread;
-
+static struct timespec Clock_Get_Time_Start;
+static bool Thread_Run;
 /* local MS/TP port data - shared with RS-485 */
 static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -62,8 +62,6 @@ static struct mstp_pdu_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];
 static RING_BUFFER PDU_Queue;
 /* local timer for tracking silence on the wire */
 static struct mstimer Silence_Timer;
-/* thread timer */
-static struct timespec start;
 /* local timer for tracking the last valid frame on the wire */
 static struct mstimer Valid_Frame_Timer;
 /* callbacks for monitoring */
@@ -78,7 +76,7 @@ static DLMSTP_STATISTICS DLMSTP_Statistics;
 void dlmstp_cleanup(void)
 {
     pthread_mutex_lock(&Thread_Mutex);
-    run_thread = false;
+    Thread_Run = false;
     pthread_mutex_unlock(&Thread_Mutex);
     pthread_join(hThread, NULL);
     pthread_cond_destroy(&Received_Frame_Flag);
@@ -488,9 +486,9 @@ uint16_t dlmstp_receive(
  * @brief Thread for the MS/TP state machines
  * @param pArg not used
  */
-static void *dlmstp_receive_thread(void *pArg)
+static void *dlmstp_thread(void *pArg)
 {
-    uint32_t silence = 0;
+    uint32_t silence_milliseconds = 0;
     bool run_master = false;
     bool thread_alive = true;
     bool run_loop;
@@ -498,10 +496,16 @@ static void *dlmstp_receive_thread(void *pArg)
 
     (void)pArg;
     while (thread_alive) {
-        if (MSTP_Port.ReceivedValidFrame == false &&
-            MSTP_Port.ReceivedInvalidFrame == false) {
+        /* only do receive state machine while we don't have a frame */
+        if ((MSTP_Port.ReceivedValidFrame == false) &&
+            (MSTP_Port.ReceivedInvalidFrame == false)) {
             RS485_Check_UART_Data(&MSTP_Port);
             MSTP_Receive_Frame_FSM(&MSTP_Port);
+            if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_PREAMBLE) {
+                if (Preamble_Callback) {
+                    Preamble_Callback();
+                }
+            }
         }
         if (MSTP_Port.ReceivedValidFrame) {
             DLMSTP_Statistics.receive_valid_frame_counter++;
@@ -522,20 +526,20 @@ static void *dlmstp_receive_thread(void *pArg)
             }
             run_master = true;
         } else {
-            silence = MSTP_Port.SilenceTimer(&MSTP_Port);
+            silence_milliseconds = MSTP_Port.SilenceTimer(&MSTP_Port);
             switch (MSTP_Port.master_state) {
                 case MSTP_MASTER_STATE_IDLE:
-                    if (silence >= Tno_token) {
+                    if (silence_milliseconds >= Tno_token) {
                         run_master = true;
                     }
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= MSTP_Port.Treply_timeout) {
+                    if (silence_milliseconds >= MSTP_Port.Treply_timeout) {
                         run_master = true;
                     }
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= MSTP_Port.Tusage_timeout) {
+                    if (silence_milliseconds >= MSTP_Port.Tusage_timeout) {
                         run_master = true;
                     }
                     break;
@@ -545,6 +549,7 @@ static void *dlmstp_receive_thread(void *pArg)
             }
         }
         if (run_master) {
+            run_master = false;
             if (MSTP_Port.SlaveNodeEnabled) {
                 MSTP_Slave_Node_FSM(&MSTP_Port);
             } else {
@@ -558,9 +563,9 @@ static void *dlmstp_receive_thread(void *pArg)
                 master_state = MSTP_Port.master_state;
                 run_loop = true;
                 while (run_loop) {
+                    /* wait while some states fast transition */
                     run_loop = MSTP_Master_Node_FSM(&MSTP_Port);
                     if (master_state != MSTP_Port.master_state) {
-                        /* state changed while some states fast transition */
                         if (MSTP_Port.master_state ==
                             MSTP_MASTER_STATE_NO_TOKEN) {
                             DLMSTP_Statistics.lost_token_counter++;
@@ -568,7 +573,7 @@ static void *dlmstp_receive_thread(void *pArg)
                         master_state = MSTP_Port.master_state;
                     }
                     pthread_mutex_lock(&Thread_Mutex);
-                    if (!run_thread) {
+                    if (!Thread_Run) {
                         run_loop = false;
                     }
                     pthread_mutex_unlock(&Thread_Mutex);
@@ -576,7 +581,7 @@ static void *dlmstp_receive_thread(void *pArg)
             }
         }
         pthread_mutex_lock(&Thread_Mutex);
-        thread_alive = run_thread;
+        thread_alive = Thread_Run;
         pthread_mutex_unlock(&Thread_Mutex);
     }
 
@@ -981,10 +986,14 @@ bool dlmstp_init(char *ifname)
             ifname);
         exit(1);
     }
-
-    pthread_mutex_init(&Ring_Buffer_Mutex, NULL);
     pthread_mutex_init(&Thread_Mutex, NULL);
-
+    rv = pthread_mutex_init(&Ring_Buffer_Mutex, NULL);
+    if (rv != 0) {
+        fprintf(
+            stderr, "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n",
+            ifname);
+        exit(1);
+    }
     /* initialize PDU queue */
     Ringbuf_Init(
         &PDU_Queue, (uint8_t *)&PDU_Buffer, sizeof(struct mstp_pdu_packet),
@@ -1007,7 +1016,7 @@ bool dlmstp_init(char *ifname)
             ifname);
         exit(1);
     }
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_gettime(CLOCK_MONOTONIC, &Clock_Get_Time_Start);
     /* initialize hardware */
     mstimer_set(&Silence_Timer, 0);
     if (ifname) {
@@ -1033,7 +1042,8 @@ bool dlmstp_init(char *ifname)
         stderr, "MS/TP Max_Info_Frames: %u\n",
         (unsigned)MSTP_Port.Nmax_info_frames);
     fprintf(
-        stderr, "RxBuf[%u] TxBuf[%u]\n", (unsigned)MSTP_Port.InputBufferSize,
+        stderr, "MS/TP RxBuf[%u] TxBuf[%u]\n",
+        (unsigned)MSTP_Port.InputBufferSize,
         (unsigned)MSTP_Port.OutputBufferSize);
     fprintf(
         stderr,
@@ -1053,10 +1063,10 @@ bool dlmstp_init(char *ifname)
     fflush(stderr);
 #endif
     /* start one thread */
-    run_thread = true;
-    rv = pthread_create(&hThread, NULL, dlmstp_receive_thread, NULL);
+    Thread_Run = true;
+    rv = pthread_create(&hThread, NULL, dlmstp_thread, NULL);
     if (rv != 0) {
-        fprintf(stderr, "Failed to start Master Node FSM task\n");
+        fprintf(stderr, "Failed to start MS/TP thread\n");
     }
 
     return true;
