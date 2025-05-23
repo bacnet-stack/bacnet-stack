@@ -339,12 +339,18 @@
  * We will start with the A type services code first as these are least likely
  * to be required in embedded systems using the stack.
  */
-#ifndef BACNET_SVC_SERVER
+#if !(                                                             \
+    defined(BACNET_SVC_I_HAVE_A) || defined(BACNET_SVC_WP_A) ||    \
+    defined(BACNET_SVC_RP_A) || defined(BACNET_SVC_RPM_A) ||       \
+    defined(BACNET_SVC_DCC_A) || defined(BACNET_SVC_RD_A) ||       \
+    defined(BACNET_SVC_TS_A) || defined(BACNET_USE_OCTETSTRING) || \
+    defined(BACNET_USE_DOUBLE) || defined(BACNET_USE_SIGNED) ||    \
+    defined(BACNET_SVC_SERVER))
 /* default to client-server device for the example apps to build. */
 #define BACNET_SVC_SERVER 0
 #endif
 
-#if (BACNET_SVC_SERVER == 0)
+#if defined(BACNET_SVC_SERVER) && (BACNET_SVC_SERVER == 0)
 /* client-server device */
 #define BACNET_SVC_I_HAVE_A 1
 #define BACNET_SVC_WP_A 1
