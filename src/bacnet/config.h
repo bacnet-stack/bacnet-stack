@@ -139,7 +139,7 @@
 #define MAX_APDU 1476
 #elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
 /* note: MS/TP extended frames can be up to 1476 bytes */
-#define MAX_APDU 1476
+#define MAX_APDU 480
 #elif defined(BACDL_ETHERNET) && !defined(BACNET_SECURITY)
 #define MAX_APDU 1476
 #elif defined(BACDL_ETHERNET) && defined(BACNET_SECURITY)

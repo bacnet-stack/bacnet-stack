@@ -45,6 +45,9 @@ void bacnet_port_task(void)
         bacnet_port_ipv4_task(elapsed_seconds);
 #elif defined(BACDL_BIP6)
         bacnet_port_ipv6_task(elapsed_seconds);
+#else
+        /* nothing to do */
+        (void)elapsed_seconds;
 #endif
     }
 }

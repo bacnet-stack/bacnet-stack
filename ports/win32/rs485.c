@@ -187,7 +187,21 @@ static void RS485_Configure_Status(void)
         fprintf(stderr, "Unable to set status on %s\n", RS485_Port_Name);
         RS485_Print_Error();
     }
-    /* configure the COM port timeout values */
+    /* configure the time-out parameters for a communications device. */
+    /* If an application sets ReadIntervalTimeout and
+       ReadTotalTimeoutMultiplier to MAXDWORD and
+       sets ReadTotalTimeoutConstant to a value greater
+       than zero and less than MAXDWORD, one of the following
+       occurs when the ReadFile function is called:
+        * If there are any bytes in the input buffer,
+          ReadFile returns immediately with the bytes in the buffer.
+        * If there are no bytes in the input buffer,
+          ReadFile waits until a byte arrives and then returns immediately.
+        * If no bytes arrive within the time specified
+          by ReadTotalTimeoutConstant, ReadFile times out.
+
+        Constant values are in milliseconds
+     */
     ctNew.ReadIntervalTimeout = MAXDWORD;
     ctNew.ReadTotalTimeoutMultiplier = MAXDWORD;
     ctNew.ReadTotalTimeoutConstant = 1;
