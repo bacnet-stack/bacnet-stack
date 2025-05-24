@@ -19,6 +19,10 @@
 /* BACnet Stack API */
 #include "bacnet/bacstr.h"
 
+#ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
+#define BACNET_USE_OCTETSTRING 1
+#endif
+
 #ifndef BACNET_STRING_UTF8_VALIDATION
 #define BACNET_STRING_UTF8_VALIDATION 1
 #endif
