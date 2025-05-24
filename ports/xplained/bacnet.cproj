@@ -231,6 +231,7 @@
             <Value>MSTP_PDU_PACKET_COUNT=2</Value>
             <Value>MAX_ADDRESS_CACHE=32</Value>
             <Value>MAX_ANALOG_INPUTS=8</Value>
+            <Value>BACNET_USE_DOUBLE=0</Value>
             <Value>BACNET_PROTOCOL_REVISION=9</Value>
             <Value>BOARD=XMEGA_A3BU_XPLAINED</Value>
             <Value>NDEBUG</Value>
@@ -337,6 +338,7 @@
             <Value>MSTP_PDU_PACKET_COUNT=2</Value>
             <Value>MAX_ADDRESS_CACHE=32</Value>
             <Value>MAX_ANALOG_INPUTS=8</Value>
+            <Value>BACNET_USE_DOUBLE=0</Value>
             <Value>BACNET_PROTOCOL_REVISION=9</Value>
             <Value>DEBUG</Value>
           </ListValues>
@@ -444,6 +446,7 @@
             <Value>MSTP_PDU_PACKET_COUNT=2</Value>
             <Value>MAX_ADDRESS_CACHE=32</Value>
             <Value>MAX_ANALOG_INPUTS=8</Value>
+            <Value>BACNET_USE_DOUBLE=0</Value>
             <Value>BACNET_PROTOCOL_REVISION=9</Value>
             <Value>BOARD=XMEGA_A3BU_XPLAINED</Value>
             <Value>CONF_BOARD_ENABLE_RS485_XPLAINED</Value>
