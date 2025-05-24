@@ -380,6 +380,9 @@ void bvlc_foreign_device_table_maintenance_timer(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list, uint16_t seconds);
 
 BACNET_STACK_EXPORT
+void bvlc_foreign_device_table_valid_clear(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
+BACNET_STACK_EXPORT
 uint16_t bvlc_foreign_device_table_valid_count(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
 

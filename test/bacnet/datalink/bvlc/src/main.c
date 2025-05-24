@@ -97,13 +97,14 @@ static void test_BVLC_Result_Code(uint16_t result_code)
     int len = 0, test_len = 0;
 
     len = bvlc_encode_result(pdu, sizeof(pdu), result_code);
-    zassert_equal(len, 6, NULL);
+    zassert_equal(len, 6, "result-code=%s", bvlc_result_code_name(result_code));
     test_len = test_BVLC_Header(pdu, len, &message_type, &length);
     zassert_equal(test_len, 4, NULL);
     zassert_equal(message_type, BVLC_RESULT, NULL);
     zassert_equal(length, 6, NULL);
     test_len += bvlc_decode_result(&pdu[4], length - 4, &test_result_code);
-    zassert_equal(len, test_len, NULL);
+    zassert_equal(
+        len, test_len, "result-code=%s", bvlc_result_code_name(result_code));
     zassert_equal(result_code, test_result_code, NULL);
 }
 
@@ -493,6 +494,9 @@ static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
     uint16_t i = 0;
     uint16_t count = 0;
     uint16_t test_count = 0;
+    uint8_t message_type = 0;
+    uint16_t message_length = 0;
+    int test_message_len = 0;
     bool status = false;
     BACNET_ERROR_CODE error_code;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_list[5] = { 0 };
@@ -540,6 +544,25 @@ static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
             &bdt_list[i], &test_bdt_list[i]);
         zassert_false(status, NULL);
     }
+    apdu_len = bvlc_encode_read_broadcast_distribution_table_ack(
+        apdu, sizeof(apdu), &bdt_list[0]);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_message_len =
+        test_BVLC_Header(apdu, apdu_len, &message_type, &message_length);
+    zassert_equal(test_message_len, 4, NULL);
+    zassert_equal(message_type, BVLC_READ_BROADCAST_DIST_TABLE_ACK, NULL);
+    test_apdu_len = bvlc_decode_read_broadcast_distribution_table_ack(
+        &apdu[test_message_len], apdu_len, &test_bdt_list[0]);
+    zassert_equal(
+        test_message_len + test_apdu_len, apdu_len,
+        "apdu_len=%u test_apdu_len=%u", apdu_len, test_apdu_len);
+    count = bvlc_broadcast_distribution_table_count(&test_bdt_list[0]);
+    zassert_equal(test_count, count, NULL);
+    for (i = 0; i < count; i++) {
+        status = bvlc_broadcast_distribution_table_entry_different(
+            &bdt_list[i], &test_bdt_list[i]);
+        zassert_false(status, NULL);
+    }
 }
 
 static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
@@ -552,6 +575,8 @@ static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *test_bdt_list = NULL;
     uint16_t i = 0;
     uint16_t count = 0;
+    BACNET_IP_ADDRESS dest_address = { { 1, 1, 1, 1 }, 47808 };
+    bool status = false;
 
     count = bvlc_broadcast_distribution_table_valid_count(bdt_list);
     test_bdt_list =
@@ -573,6 +598,15 @@ static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
         test_BVLC_Broadcast_Distribution_Table_Entry(
             &bdt_list[i], &test_bdt_list[i]);
     }
+    status = bvlc_broadcast_distribution_table_entry_forward_address(
+        &dest_address, bdt_list);
+    zassert_true(status, NULL);
+    status = bvlc_broadcast_distribution_table_entry_forward_address(
+        &dest_address, NULL);
+    zassert_false(status, NULL);
+    status =
+        bvlc_broadcast_distribution_table_entry_forward_address(NULL, NULL);
+    zassert_false(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -622,6 +656,10 @@ static void test_BVLC_Write_Broadcast_Distribution_Table(void)
         zassert_true(status, NULL);
     }
     test_BVLC_Write_Broadcast_Distribution_Table_Message(&bdt_list[0]);
+    /* cleanup */
+    bvlc_broadcast_distribution_table_valid_clear(&bdt_list[0]);
+    test_count = bvlc_broadcast_distribution_table_valid_count(&bdt_list[0]);
+    zassert_equal(test_count, 0, NULL);
 }
 
 static void test_BVLC_Read_Foreign_Device_Table_Ack_Message(
@@ -654,33 +692,28 @@ static void test_BVLC_Read_Foreign_Device_Table_Ack_Message(
     }
 }
 
-#if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(bvlc_tests, test_BVLC_Read_Foreign_Device_Table_Ack)
-#else
-static void test_BVLC_Read_Foreign_Device_Table_Ack(void)
-#endif
+static int test_BVLC_Foreign_Device_Table_Setup(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list, int count)
 {
     uint16_t i = 0;
-    uint16_t count = 0;
     uint16_t test_count = 0;
     uint16_t test_port_start = 0xBAC1;
+    uint16_t ttl_seconds = 12345;
     bool status = false;
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_list[5] = { 0 };
     BACNET_IP_ADDRESS dest_address = { 0 };
 
     status = bvlc_address_from_ascii(&dest_address, "192.168.0.1");
     zassert_true(status, NULL);
     /* configure a FDT entry */
-    count = sizeof(fdt_list) / sizeof(fdt_list[0]);
     bvlc_foreign_device_table_link_array(fdt_list, count);
     for (i = 0; i < count; i++) {
         dest_address.port = test_port_start + i;
         status = bvlc_foreign_device_table_entry_add(
-            &fdt_list[0], &dest_address, 12345);
+            fdt_list, &dest_address, ttl_seconds);
         zassert_true(status, NULL);
         /* add again should only update TTL */
         status = bvlc_foreign_device_table_entry_add(
-            &fdt_list[0], &dest_address, 12345);
+            fdt_list, &dest_address, ttl_seconds);
         zassert_true(status, NULL);
     }
     test_count = bvlc_foreign_device_table_count(fdt_list);
@@ -690,14 +723,89 @@ static void test_BVLC_Read_Foreign_Device_Table_Ack(void)
     }
     test_count = bvlc_foreign_device_table_valid_count(fdt_list);
     zassert_equal(test_count, count, NULL);
+
+    return count;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Read_Foreign_Device_Table_Ack)
+#else
+static void test_BVLC_Read_Foreign_Device_Table_Ack(void)
+#endif
+{
+    uint16_t count = 0;
+    uint16_t test_count = 0;
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_list[5] = { 0 };
+
+    count = sizeof(fdt_list) / sizeof(fdt_list[0]);
+    test_count = test_BVLC_Foreign_Device_Table_Setup(fdt_list, count);
+    zassert_equal(test_count, count, NULL);
+    if (test_count != count) {
+        printf("size=%u count=%u\n", count, test_count);
+    }
+    test_count = bvlc_foreign_device_table_valid_count(fdt_list);
+    zassert_equal(test_count, count, NULL);
     test_BVLC_Read_Foreign_Device_Table_Ack_Message(fdt_list);
     /* cleanup */
-    for (i = 0; i < count; i++) {
-        dest_address.port = test_port_start + i;
-        status =
-            bvlc_foreign_device_table_entry_delete(&fdt_list[0], &dest_address);
-        zassert_true(status, NULL);
+    bvlc_foreign_device_table_valid_clear(&fdt_list[0]);
+    test_count = bvlc_foreign_device_table_valid_count(fdt_list);
+    zassert_equal(test_count, 0, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Network_Port_Foreign_Device)
+#else
+static void test_BVLC_Network_Port_Foreign_Device(void)
+#endif
+{
+    uint8_t apdu[480] = { 0 };
+    int apdu_len = 0;
+    uint16_t i = 0;
+    uint16_t count = 0;
+    uint16_t test_count = 0;
+    uint16_t test_ttl_seconds = 0;
+    int len;
+    bool status = false;
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_list[5] = { 0 },
+                                         test_entry = { 0 };
+
+    count = sizeof(fdt_list) / sizeof(fdt_list[0]);
+    test_count = test_BVLC_Foreign_Device_Table_Setup(fdt_list, count);
+    zassert_equal(test_count, count, NULL);
+    if (test_count != count) {
+        printf("size=%u count=%u\n", count, test_count);
     }
+    test_count = bvlc_foreign_device_table_valid_count(fdt_list);
+    zassert_equal(test_count, count, NULL);
+    apdu_len = bvlc_foreign_device_table_encode(apdu, sizeof(apdu), fdt_list);
+    zassert_not_equal(apdu_len, 0, NULL);
+    /* test timer */
+    test_ttl_seconds = fdt_list[0].ttl_seconds_remaining;
+    bvlc_foreign_device_table_maintenance_timer(fdt_list, 60);
+    test_ttl_seconds -= 60;
+    for (i = 0; i < count; i++) {
+        zassert_equal(
+            fdt_list[i].ttl_seconds_remaining, test_ttl_seconds,
+            "entry[%u].seconds_remaining=%u expected=%u", i,
+            fdt_list[i].ttl_seconds_remaining, test_ttl_seconds);
+    }
+    bvlc_foreign_device_table_maintenance_timer(fdt_list, 60);
+    test_ttl_seconds -= 60;
+    for (i = 0; i < count; i++) {
+        zassert_equal(
+            fdt_list[i].ttl_seconds_remaining, test_ttl_seconds,
+            "entry[%u].seconds_remaining=%u expected=%u", i,
+            fdt_list[i].ttl_seconds_remaining, test_ttl_seconds);
+    }
+    status = bvlc_foreign_device_table_entry_copy(&test_entry, &fdt_list[0]);
+    zassert_true(status, NULL);
+    status =
+        bvlc_foreign_device_table_entry_different(&fdt_list[0], &test_entry);
+    zassert_false(status, NULL);
+    len = bvlc_encode_read_foreign_device_table(NULL, 0);
+    zassert_equal(len, 0, NULL);
+    /* cleanup */
+    bvlc_foreign_device_table_valid_clear(&fdt_list[0]);
     test_count = bvlc_foreign_device_table_valid_count(fdt_list);
     zassert_equal(test_count, 0, NULL);
 }
@@ -811,6 +919,9 @@ static void test_BVLC_Address_Get_Set(void)
             (unsigned)test_octet2, (unsigned)test_octet3);
     }
     zassert_false(status, NULL);
+    bvlc_address_from_network(&dst, 0x7F000000);
+    status = bvlc_address_different(&dst, &src);
+    zassert_false(status, NULL);
     /* BACnet to IPv4 address conversions */
     status = bvlc_address_port_from_ascii(&src, "192.168.0.1", "0xBAC0");
     zassert_true(status, NULL);
@@ -848,6 +959,8 @@ static void test_BVLC_Address_Get_Set(void)
     zassert_equal(octet1, test_octet1, NULL);
     zassert_equal(octet2, test_octet2, NULL);
     zassert_equal(octet3, test_octet3, NULL);
+    status = bvlc_address_mask(&dst, &src, &mask);
+    zassert_true(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -907,7 +1020,8 @@ void test_main(void)
         ztest_unit_test(test_BVLC_Secure_BVLL),
         ztest_unit_test(test_BVLC_Address_Copy),
         ztest_unit_test(test_BVLC_Address_Get_Set),
-        ztest_unit_test(test_BVLC_BBMD_Address));
+        ztest_unit_test(test_BVLC_BBMD_Address),
+        ztest_unit_test(test_BVLC_Network_Port_Foreign_Device));
 
     ztest_run_test_suite(bvlc_tests);
 }

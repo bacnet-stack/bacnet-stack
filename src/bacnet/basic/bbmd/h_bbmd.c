@@ -873,6 +873,22 @@ int bvlc_bbmd_enabled_handler(
             }
             break;
         case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
+            /* J.2.2.1 Write-Broadcast-Distribution-Table: Format
+            ...
+            Prior to the introduction of the Network Port object
+            in Protocol_Revision 17, this message was the interoperable
+            means of updating BDTs. That function is now performed
+            by writes to the Network Port object
+            ...
+            J.4.4.2 Use of the BVLL Write-Broadcast-Distribution-Table Message
+            Upon receipt of a BVLL Write-Broadcast-Distribution-Table message,
+            B/IP devices shall always return a BVLC-Result message to the
+            originating device with a result code of X'0010' indicating that
+            the Write-Broadcast-Distribution BVLL message is not supported.*/
+#if (BACNET_PROTOCOL_REVISION >= 17)
+            result_code = BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
+            send_result = true;
+#else
             debug_print_bip("Received Write-BDT", addr);
             function_len = bvlc_decode_write_broadcast_distribution_table(
                 pdu, pdu_len, &BBMD_Table[0]);
@@ -886,6 +902,7 @@ int bvlc_bbmd_enabled_handler(
                     BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
                 send_result = true;
             }
+#endif
             /* not an NPDU */
             offset = 0;
             break;
