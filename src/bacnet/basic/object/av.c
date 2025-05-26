@@ -999,8 +999,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 CurrentAV->Units = value.type.Enumerated;
             }
-#endif
             break;
+#endif
         case PROP_COV_INCREMENT:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
