@@ -1231,7 +1231,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct analog_input_descr *pObject;
-
+    fprintf(stderr, "[%s %d] Analog_Input_Write_Property \n ", __FILE__, __LINE__);
     /* Valid data? */
     if (wp_data == NULL) {
         return false;

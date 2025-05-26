@@ -195,7 +195,7 @@ int wp_decode_service_request(
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     int i = 0; /* loop counter */
     int imax = 0; /* max application data length */
-
+    fprintf(stderr, "[%s %d] wp_decode_service_request \n ", __FILE__, __LINE__);
     /* check for value pointers */
     if (!apdu) {
         return BACNET_STATUS_ERROR;
@@ -311,7 +311,7 @@ bool write_property_type_valid(
 {
     /* assume success */
     bool valid = true;
-
+    fprintf(stderr, "[%s %d] write_property_type_valid\n", __FILE__, __LINE__);
     if (value && (value->tag != expected_tag)) {
         valid = false;
         if (wp_data) {
@@ -337,7 +337,7 @@ bool write_property_string_valid(
     size_t len_max)
 {
     bool valid = false;
-
+    fprintf(stderr, "[%s %d] write_property_string_valid\n", __FILE__, __LINE__);
     if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         if (characterstring_encoding(&value->type.Character_String) ==
             CHARACTER_ANSI_X34) {
@@ -512,7 +512,8 @@ bool write_property_relinquish_bypass(
     bool bypass = false;
     bool has_priority_array = false;
     int len = 0;
-
+    fprintf(stderr, "[%s %d] write_property_relinquish_bypass\n",
+        __FILE__, __LINE__);
     if (!wp_data) {
         return false;
     }
