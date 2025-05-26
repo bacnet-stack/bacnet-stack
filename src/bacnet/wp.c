@@ -477,11 +477,19 @@ bool write_property_unsigned_decode(
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                fprintf(stderr,
+                    "[%s %d] write_property_unsigned_decode:"
+                    " wp_data_>error_code = %d\n", __FILE__, __LINE__,
+                    wp_data->error_code);
             }
         } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             status = false;
+            fprintf(stderr,
+                "[%s %d] write_property_unsigned_decode:"
+                " wp_data_>error_code = %d\n", __FILE__, __LINE__,
+                wp_data->error_code);
         }
     }
 
@@ -512,8 +520,8 @@ bool write_property_relinquish_bypass(
     bool bypass = false;
     bool has_priority_array = false;
     int len = 0;
-    fprintf(stderr, "[%s %d] write_property_relinquish_bypass\n",
-        __FILE__, __LINE__);
+        fprintf(stderr, "[%s %d] write_property_relinquish_bypass status wp_data->error_code = %d\n",
+            __FILE__, __LINE__, wp_data->error_code);
     if (!wp_data) {
         return false;
     }

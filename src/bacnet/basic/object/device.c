@@ -1708,6 +1708,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->object_type, wp_data->object_property);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
+        fprintf(stderr, "[%s %d] Device_Write_Property_Local status wp_data->error_code = %d\n",
+            __FILE__, __LINE__, wp_data->error_code);
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
