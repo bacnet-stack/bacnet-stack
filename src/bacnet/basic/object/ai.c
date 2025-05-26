@@ -1282,6 +1282,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+#if BACNET_AI_UNITS_WRITABLE
         case PROP_UNITS:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
@@ -1289,6 +1290,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 pObject->Units = value.type.Enumerated;
             }
             break;
+#endif
         case PROP_COV_INCREMENT:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
