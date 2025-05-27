@@ -46,8 +46,8 @@ void bacnet_port_task(void)
 #elif defined(BACDL_BIP6)
         bacnet_port_ipv6_task(elapsed_seconds);
 #else
-        /* no tasks for other datalink layers */
-        (void)elapsed_seconds; /* unused */
+        /* nothing to do */
+        (void)elapsed_seconds;
 #endif
     }
 }

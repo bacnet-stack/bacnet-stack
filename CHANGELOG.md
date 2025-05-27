@@ -34,7 +34,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 
 * Fixed network port object to accept host name option of host-n-port
-  writes. (#997)
+  writes. (#997) (#1001)
 * Fixed missing exports in bacnet/basic header files. (#996)
 * Fixed NDPU comparison functions that were missing segment-ack PDU. (#991)
 * Fixed WriteProperty NULL bypass which is only for present-value property

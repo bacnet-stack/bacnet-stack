@@ -28,9 +28,13 @@ mingw32:
 	export CC=$(ORIGINAL_CC) ; \
 	export LD=$(ORIGINAL_LD)
 
+.PHONY: mstpwin32-clean
+mstpwin32-clean:
+	$(MAKE) LEGACY=true BACDL=mstp BACNET_PORT=win32 -s -C apps clean
+
 .PHONY: mstpwin32
 mstpwin32:
-	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps all
+	$(MAKE) LEGACY=true BACDL=mstp BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mstp
 mstp:
