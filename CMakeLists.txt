@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.0.18
+  VERSION 1.4.0.19
   LANGUAGES C)
 
 message(STATUS "Minimal optimization, debug info included")
