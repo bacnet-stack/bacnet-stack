@@ -138,7 +138,7 @@ void handler_write_property(
     BACNET_ADDRESS my_address;
     bool valid_id = false;
     bool object_invalid = false;
-    fprintf(stderr, "[%s %d] handler_write_property \n ", __FILE__, __LINE__);
+
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
@@ -223,7 +223,7 @@ void handler_write_property(
     if (bytes_sent <= 0) {
         debug_perror("WP: Failed to send PDU");
     }
-    fprintf(stderr, "[%s %d] handler_write_property done\n", __FILE__, __LINE__);
+
     return;
 }
 

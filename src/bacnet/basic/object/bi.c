@@ -1142,8 +1142,6 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct object_data *pObject;
 
-    fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
-        __FILE__, __LINE__, wp_data->error_code);
     /* decode the some of the request */
 #if defined(BACAPP_COMPLEX_TYPES)
     len = bacapp_decode_known_property(
@@ -1197,8 +1195,6 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
-        __FILE__, __LINE__, wp_data->error_code);
                 }
             }
             break;
@@ -1277,8 +1273,6 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
-        __FILE__, __LINE__, wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;

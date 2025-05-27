@@ -1231,8 +1231,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct analog_input_descr *pObject;
-        fprintf(stderr, "[%s %d] Analog_Input_Write_Property status wp_data->error_code = %d\n",
-            __FILE__, __LINE__, wp_data->error_code);
+
     /* Valid data? */
     if (wp_data == NULL) {
         return false;
@@ -1254,10 +1253,6 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        /* error warning is produced here because the decoder is getting the wrong data type for each object with
-        event_time_stamp*/
-        fprintf(stderr, "[%s %d] Analog_Input_Write_Property status wp_data->error_code = %d\n",
-            __FILE__, __LINE__, wp_data->error_code);
         return false;
     }
     pObject = Analog_Input_Object(wp_data->object_instance);
@@ -1405,8 +1400,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
     }
-    fprintf(stderr, "[%s %d] Analog_Input_Write_Property status wp_data->error_code = %d\n",
-            __FILE__, __LINE__, wp_data->error_code);
+
     return status;
 }
 
