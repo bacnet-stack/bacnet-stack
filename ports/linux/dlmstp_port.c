@@ -16,7 +16,6 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacdef.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/mstp.h"
@@ -99,7 +98,7 @@ void dlmstp_cleanup(void *poPort)
     }
 
     /* restore the old port settings */
-    tcsetattr(poSharedData->RS485_Handle, TCSANOW, &poSharedData->RS485_oldtio);
+    ioctl(poSharedData->RS485_Handle, TCSETS2, &poSharedData->RS485_oldtio2);
     close(poSharedData->RS485_Handle);
 
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
@@ -770,7 +769,7 @@ bool dlmstp_init(void *poPort, char *ifname)
     unsigned long hThread = 0;
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
-    struct termios newtio;
+    struct termios2 newtio;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
     if (!mstp_port) {
         return false;
@@ -811,26 +810,25 @@ bool dlmstp_init(void *poPort, char *ifname)
         perror(poSharedData->RS485_Port_Name);
         exit(-1);
     }
-#if 0
-    /* non blocking for the read */
-    fcntl(poSharedData->RS485_Handle, F_SETFL, FNDELAY);
-#else
+    
     /* efficient blocking for the read */
     fcntl(poSharedData->RS485_Handle, F_SETFL, 0);
-#endif
+    
     /* save current serial port settings */
-    tcgetattr(poSharedData->RS485_Handle, &poSharedData->RS485_oldtio);
+    ioctl(poSharedData->RS485_Handle, TCGETS2, &poSharedData->RS485_oldtio2);
     /* clear struct for new port settings */
-    bzero(&newtio, sizeof(newtio));
+    memset(&newtio, 0, sizeof(newtio));
     /*
-       BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
+       BOTHER: Set bps rate.
        CRTSCTS : output hardware flow control (only used if the cable has
        all necessary lines. See sect. 7 of Serial-HOWTO)
-       CLOCAL  : local connection, no modem contol
+       CS8     : 8n1 (8bit,no parity,1 stopbit)
+       CLOCAL  : local connection, no modem control
        CREAD   : enable receiving characters
      */
-    newtio.c_cflag =
-        poSharedData->RS485_Baud | poSharedData->RS485MOD | CLOCAL | CREAD;
+    newtio.c_cflag = poSharedData->RS485MOD | CS8 | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
+    newtio.c_ispeed = poSharedData->RS485_Baud;
+    newtio.c_ospeed = poSharedData->RS485_Baud;
     /* Raw input */
     newtio.c_iflag = 0;
     /* Raw output */
@@ -838,10 +836,10 @@ bool dlmstp_init(void *poPort, char *ifname)
     /* no processing */
     newtio.c_lflag = 0;
     /* activate the settings for the port after flushing I/O */
-    tcsetattr(poSharedData->RS485_Handle, TCSAFLUSH, &newtio);
+    ioctl(poSharedData->RS485_Handle, TCSETSF2, &newtio);
     /* flush any data waiting */
     usleep(200000);
-    tcflush(poSharedData->RS485_Handle, TCIOFLUSH);
+    ioctl(poSharedData->RS485_Handle, TCFLSH, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(
         &poSharedData->Rx_FIFO, poSharedData->Rx_Buffer,
