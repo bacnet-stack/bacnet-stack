@@ -4181,6 +4181,18 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     &wp_data->error_class, &wp_data->error_code);
             }
             break;
+        case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                status = Network_Port_BBMD_Accept_FD_Registrations_Set(
+                    wp_data->object_instance, value.type.Boolean);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
         default:
             if (Property_List_Member(
                     wp_data->object_instance, wp_data->object_property)) {

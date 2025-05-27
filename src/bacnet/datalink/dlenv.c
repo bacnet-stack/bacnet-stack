@@ -316,6 +316,28 @@ static int bbmd6_register_as_foreign_device(void)
 }
 
 /**
+ * @brief
+ *
+ * @param instance
+ */
+static void bip_network_port_activate_changes(uint32_t instance)
+{
+    bvlc_bbmd_accept_fd_registrations_set(
+        Network_Port_BBMD_Accept_FD_Registrations(instance));
+}
+
+/**
+ * @brief
+ *
+ * @param instance
+ */
+static void bip_network_port_discard_changes(uint32_t instance)
+{
+    Network_Port_BBMD_Accept_FD_Registrations_Set(
+        instance, bvlc_bbmd_accept_fd_registrations());
+}
+
+/**
  * Datalink network port object settings
  */
 static void dlenv_network_port_bip_init(uint32_t instance)
@@ -395,6 +417,8 @@ static void dlenv_network_port_bip_init(uint32_t instance)
         instance, addr0, addr1, addr2, addr3);
     Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
     Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
+    Network_Port_BBMD_Accept_FD_Registrations_Set(
+        instance, bvlc_bbmd_accept_fd_registrations());
 #endif
     /* common NP data */
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
@@ -405,6 +429,10 @@ static void dlenv_network_port_bip_init(uint32_t instance)
     /* last thing - clear pending changes - we don't want to set these
        since they are already set */
     Network_Port_Changes_Pending_Set(instance, false);
+    Network_Port_Changes_Pending_Activate_Callback_Set(
+        instance, bip_network_port_activate_changes);
+    Network_Port_Changes_Pending_Discard_Callback_Set(
+        instance, bip_network_port_discard_changes);
 }
 
 /**
