@@ -132,6 +132,16 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     return true;
 }
 
+bool RS485_Get_Config(struct serial_rs485 *config)
+{
+    return ioctl (RS485_Handle, TIOCGRS485, config) < 0;
+}
+
+bool RS485_Set_Config(struct serial_rs485 const *config)
+{
+    return ioctl (RS485_Handle, TIOCSRS485, config) < 0;
+}
+
 /****************************************************************************
  * DESCRIPTION: Transmit a frame on the wire
  * RETURN:      none
