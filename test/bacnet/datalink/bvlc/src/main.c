@@ -759,7 +759,8 @@ static void test_BVLC_Network_Port_Foreign_Device(void)
 #endif
 {
     uint8_t apdu[480] = { 0 };
-    int apdu_len = 0;
+    int apdu_len = 0, test_apdu_len = 0;
+    BACNET_ERROR_CODE error_code;
     uint16_t i = 0;
     uint16_t count = 0;
     uint16_t test_count = 0;
@@ -767,6 +768,7 @@ static void test_BVLC_Network_Port_Foreign_Device(void)
     int len;
     bool status = false;
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_list[5] = { 0 },
+                                         test_fdt_list[5] = { 0 },
                                          test_entry = { 0 };
 
     count = sizeof(fdt_list) / sizeof(fdt_list[0]);
@@ -777,8 +779,16 @@ static void test_BVLC_Network_Port_Foreign_Device(void)
     }
     test_count = bvlc_foreign_device_table_valid_count(fdt_list);
     zassert_equal(test_count, count, NULL);
+    /* test the encode/decode pair */
     apdu_len = bvlc_foreign_device_table_encode(apdu, sizeof(apdu), fdt_list);
     zassert_not_equal(apdu_len, 0, NULL);
+    test_count = sizeof(test_fdt_list) / sizeof(test_fdt_list[0]);
+    bvlc_foreign_device_table_link_array(&test_fdt_list[0], test_count);
+    test_apdu_len = bvlc_foreign_device_table_decode(
+        &apdu[0], apdu_len, &error_code, &test_fdt_list[0]);
+    zassert_equal(test_apdu_len, apdu_len, NULL);
+    count = bvlc_foreign_device_table_count(&test_fdt_list[0]);
+    zassert_equal(test_count, count, NULL);
     /* test timer */
     test_ttl_seconds = fdt_list[0].ttl_seconds_remaining;
     bvlc_foreign_device_table_maintenance_timer(fdt_list, 60);

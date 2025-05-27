@@ -1287,6 +1287,92 @@ int bvlc_foreign_device_table_encode(
 }
 
 /**
+ * @brief Decode the Foreign_Device-Table for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param fdt_head - head of a FDT linked list
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
+int bvlc_foreign_device_table_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
+{
+    int len = 0, apdu_len = 0;
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry = NULL;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+
+    /* default reject code */
+    if (error_code) {
+        *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    }
+    /* check for value pointers */
+    if ((apdu_size == 0) || (!apdu)) {
+        return BACNET_STATUS_REJECT;
+    }
+    fdt_entry = fdt_head;
+    while (fdt_entry) {
+        /* bacnetip-address [0] OCTET STRING */
+        len = bacnet_octet_string_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &octet_string);
+        if (len <= 0) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        bvlc_decode_address(
+            octetstring_value(&octet_string), octetstring_length(&octet_string),
+            &fdt_entry->dest_address);
+        apdu_len += len;
+        /* time-to-live [1] Unsigned16 */
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+        if (len <= 0) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        apdu_len += len;
+        if (unsigned_value <= UINT16_MAX) {
+            fdt_entry->ttl_seconds = unsigned_value;
+        } else {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        /* remaining-time-to-live [2] Unsigned16 */
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
+        if (len <= 0) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        apdu_len += len;
+        if (unsigned_value <= UINT16_MAX) {
+            fdt_entry->ttl_seconds_remaining = unsigned_value;
+        } else {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        /* mark as valid */
+        fdt_entry->valid = true;
+        /* next entry */
+        fdt_entry = fdt_entry->next;
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief J.2.7 Read-Foreign-Device-Table: encode
  *
  * The message provides a mechanism for retrieving the contents of a BBMD's
