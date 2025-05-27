@@ -41,7 +41,9 @@ static uint16_t BBMD_TTL_Seconds = 60000;
 static BACNET_IP_ADDRESS BBMD_Address;
 static bool BBMD_Address_Valid;
 static uint16_t BBMD_Result = 0;
+#if defined(BACDL_BIP) && BBMD_ENABLED
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
+#endif
 static uint32_t Network_Port_Instance = 1;
 
 /**
@@ -322,8 +324,13 @@ static int bbmd6_register_as_foreign_device(void)
  */
 static void bip_network_port_activate_changes(uint32_t instance)
 {
+#if defined(BACDL_BIP)
     bvlc_bbmd_accept_fd_registrations_set(
         Network_Port_BBMD_Accept_FD_Registrations(instance));
+#else
+    /* if we are not using BIP, then we don't have any changes to discard */
+    (void)instance;
+#endif
 }
 
 /**
@@ -333,8 +340,13 @@ static void bip_network_port_activate_changes(uint32_t instance)
  */
 static void bip_network_port_discard_changes(uint32_t instance)
 {
+#if defined(BACDL_BIP)
     Network_Port_BBMD_Accept_FD_Registrations_Set(
         instance, bvlc_bbmd_accept_fd_registrations());
+#else
+    /* if we are not using BIP, then we don't have any changes to discard */
+    (void)instance;
+#endif
 }
 
 /**
