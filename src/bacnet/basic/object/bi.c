@@ -1158,8 +1158,6 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
-        __FILE__, __LINE__, wp_data->error_code);
         return false;
     }
     if (!(pObject = Binary_Input_Object(wp_data->object_instance))) {
@@ -1186,6 +1184,7 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+#if BACNET_BI_PROLARITY_WRITE
         case PROP_POLARITY:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
@@ -1203,6 +1202,7 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
+#endif
 #if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
             status = write_property_type_valid(
@@ -1277,6 +1277,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
+        __FILE__, __LINE__, wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;

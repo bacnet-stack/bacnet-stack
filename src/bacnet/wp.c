@@ -317,6 +317,8 @@ bool write_property_type_valid(
         if (wp_data) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        fprintf(stderr, "[%s %d] write_property_type_valid status wp_data->error_code = %d\n",
+        __FILE__, __LINE__, wp_data->error_code);
         }
     }
 
