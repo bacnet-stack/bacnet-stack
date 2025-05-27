@@ -50,7 +50,7 @@ static bool BVLC_NAT_Handling = false;
 static BACNET_IP_ADDRESS Remote_BBMD;
 /** if we are a foreign device, store the Time-To-Live Seconds here */
 static uint16_t Remote_BBMD_TTL_Seconds;
-/** Dynamic enable or disable of accepting FD registations */
+/** Dynamic enable or disable of accepting FD registrations */
 static bool BBMD_Accept_FD_Registrations = 1;
 #if BBMD_ENABLED || BBMD_CLIENT_ENABLED
 /* local buffer & length for sending */
