@@ -822,11 +822,10 @@ bool dlmstp_init(void *poPort, char *ifname)
        BOTHER: Set bps rate.
        CRTSCTS : output hardware flow control (only used if the cable has
        all necessary lines. See sect. 7 of Serial-HOWTO)
-       CS8     : 8n1 (8bit,no parity,1 stopbit)
        CLOCAL  : local connection, no modem control
        CREAD   : enable receiving characters
      */
-    newtio.c_cflag = poSharedData->RS485MOD | CS8 | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
+    newtio.c_cflag = poSharedData->RS485MOD | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
     newtio.c_ispeed = poSharedData->RS485_Baud;
     newtio.c_ospeed = poSharedData->RS485_Baud;
     /* Raw input */
