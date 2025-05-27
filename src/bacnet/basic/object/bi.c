@@ -1142,6 +1142,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct object_data *pObject;
 
+    fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
+        __FILE__, __LINE__, wp_data->error_code);
     /* decode the some of the request */
 #if defined(BACAPP_COMPLEX_TYPES)
     len = bacapp_decode_known_property(
@@ -1156,6 +1158,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
+        __FILE__, __LINE__, wp_data->error_code);
         return false;
     }
     if (!(pObject = Binary_Input_Object(wp_data->object_instance))) {
@@ -1194,6 +1198,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    fprintf(stderr, "[%s %d] Binary_Input_Write_Property status wp_data->error_code = %d\n",
+        __FILE__, __LINE__, wp_data->error_code);
                 }
             }
             break;
