@@ -28,6 +28,10 @@ SRCS = main.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/mstptext.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/crc.c
 
+ifeq (${BACNET_PORT},linux)
+	SRCS += $(BACNET_PORT_DIR)/termios2.c
+endif
+
 # This demo seems to be a little unique
 DEFINES = $(BACNET_DEFINES) -DBACDL_MSTP
 

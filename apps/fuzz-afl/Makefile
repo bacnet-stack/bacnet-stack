@@ -24,6 +24,10 @@ PORT_MSTP_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
 
+ifeq (${BACNET_PORT},linux)
+	PORT_MSTP_SRC += $(BACNET_PORT_DIR)/termios2.c
+endif
+
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \

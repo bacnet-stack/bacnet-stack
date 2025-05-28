@@ -52,6 +52,10 @@ SRCS = main.c \
 	msgqueue.c \
 	network_layer.c
 
+ifeq (${BACNET_PORT},linux)
+	SRCS += $(BACNET_PORT_DIR)/termios2.c
+endif
+
 # note: router does not use common libbacnet.a library,
 # so use CFLAGS without common app defines or includes
 CFLAGS = -I${SOURCE_DIR} -I${BACNET_PORT_DIR}
