@@ -12,7 +12,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
