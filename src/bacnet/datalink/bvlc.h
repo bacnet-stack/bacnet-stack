@@ -273,6 +273,12 @@ bool bvlc_broadcast_distribution_table_entry_append(
     const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
 
 BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_table_entry_insert(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry,
+    uint16_t array_index);
+
+BACNET_STACK_EXPORT
 bool bvlc_broadcast_distribution_table_entry_set(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry,
     const BACNET_IP_ADDRESS *addr,
@@ -414,6 +420,12 @@ bool bvlc_foreign_device_table_entry_add(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
     const BACNET_IP_ADDRESS *ip_address,
     uint16_t ttl_seconds);
+
+BACNET_STACK_EXPORT
+bool bvlc_foreign_device_table_entry_insert(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry,
+    uint16_t array_index);
 
 BACNET_STACK_EXPORT
 int bvlc_encode_foreign_device_table_entry(

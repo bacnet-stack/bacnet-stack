@@ -357,6 +357,37 @@ bool bvlc_broadcast_distribution_table_entry_append(
 }
 
 /**
+ * @brief Append an entry to the Broadcast-Distribution-Table
+ * @param bdt_list - first entry in list of BDT entries
+ * @param bdt_entry - entry to insert into to list of BDT entries
+ * @param bdt_index - 0..N where N is count-1
+ * @return true if the Broadcast-Distribution-Table entry was inserted
+ */
+bool bvlc_broadcast_distribution_table_entry_insert(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry,
+    uint16_t bdt_index)
+{
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_node = NULL;
+    uint16_t count = 0;
+    bool status = false;
+
+    bdt_node = bdt_list;
+    while (bdt_node) {
+        if (count == bdt_index) {
+            status = true;
+            bvlc_broadcast_distribution_table_entry_copy(bdt_node, bdt_entry);
+            bdt_node->valid = true;
+            break;
+        }
+        bdt_node = bdt_node->next;
+        count++;
+    }
+
+    return status;
+}
+
+/**
  * @brief Set an entry to the Broadcast-Distribution-Table
  * @param bdt_entry - first element in list of BDT entries
  * @param addr - B/IPv4 address to match, along with mask
@@ -1554,6 +1585,36 @@ bool bvlc_foreign_device_table_entry_add(
             }
             fdt_entry = fdt_entry->next;
         }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Append an entry to the Foreign-Device-Table
+ * @param bdt_list - first entry in list of FDT entries
+ * @param bdt_entry - entry to insert into to list of FDT entries
+ * @param bdt_index - 0..N where N is count-1
+ * @return true if the  entry was inserted
+ */
+bool bvlc_foreign_device_table_entry_insert(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry,
+    uint16_t array_index)
+{
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_node = NULL;
+    uint16_t count = 0;
+    bool status = false;
+
+    fdt_node = fdt_list;
+    while (fdt_node) {
+        if (count == array_index) {
+            status = bvlc_foreign_device_table_entry_copy(fdt_node, fdt_entry);
+            fdt_node->valid = true;
+            break;
+        }
+        fdt_node = fdt_node->next;
+        count++;
     }
 
     return status;
