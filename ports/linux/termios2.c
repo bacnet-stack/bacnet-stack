@@ -14,10 +14,13 @@ int termios2_tcsetattr(
     switch (optional_actions) {
         case TCSANOW:
             optional_actions = TCSETS2;
+            break;
         case TCSADRAIN:
             optional_actions = TCSETSW2;
+            break;
         case TCSAFLUSH:
             optional_actions = TCSETSF2;
+            break;
         default:
             errno = EINVAL;
             return -1;
@@ -27,7 +30,7 @@ int termios2_tcsetattr(
 
 int termios2_tcgetattr(const int fildes, struct termios2 *termios2_p)
 {
-    return ioctl(fildes, termios2_p);
+    return ioctl(fildes, TCGETS2, termios2_p);
 }
 
 int termios2_tcflush(const int fildes, const int queue_selector)

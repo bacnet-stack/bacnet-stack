@@ -5,6 +5,10 @@
 #include <asm/termbits.h>
 #undef termios
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 int termios2_tcsetattr(
     int fildes, int optional_actions, const struct termios2 *termios2_p);
 
@@ -13,5 +17,9 @@ int termios2_tcgetattr(int fildes, struct termios2 *termios2_p);
 int termios2_tcflush(int fildes, int queue_selector);
 
 int termios2_tcdrain(int fildes);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
