@@ -23,10 +23,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <asm/termbits.h>
 #include <unistd.h>
 #include <sched.h>
-#include <linux/serial.h> /* for struct serial_struct */
 #include <sys/ioctl.h>
 /* for scandir */
 #include <dirent.h>
@@ -132,14 +130,26 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     return true;
 }
 
+/****************************************************************************
+ * DESCRIPTION: Gets RS485 config (e.g. automatic RTS for half-duplex direction)
+ * RETURN:      true on success
+ * ALGORITHM:   none
+ * NOTES:       https://www.kernel.org/doc/Documentation/serial/serial-rs485.txt
+ *****************************************************************************/
 bool RS485_Get_Config(struct serial_rs485 *config)
 {
-    return ioctl (RS485_Handle, TIOCGRS485, config) < 0;
+    return ioctl(RS485_Handle, TIOCGRS485, config) == 0;
 }
 
-bool RS485_Set_Config(struct serial_rs485 const *config)
+/****************************************************************************
+ * DESCRIPTION: Sets RS485 config (e.g. automatic RTS for half-duplex direction)
+ * RETURN:      true on success
+ * ALGORITHM:   none
+ * NOTES:       https://www.kernel.org/doc/Documentation/serial/serial-rs485.txt
+ *****************************************************************************/
+bool RS485_Set_Config(const struct serial_rs485 *const config)
 {
-    return ioctl (RS485_Handle, TIOCSRS485, config) < 0;
+    return ioctl(RS485_Handle, TIOCSRS485, config) == 0;
 }
 
 /****************************************************************************
@@ -151,69 +161,44 @@ bool RS485_Set_Config(struct serial_rs485 const *config)
 void RS485_Send_Frame(
     struct mstp_port_struct_t *mstp_port, /* port specific data */
     const uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
-    uint16_t nbytes)
-{ /* number of bytes of data (up to 501) */
+    uint16_t nbytes /* number of bytes of data (up to 501) */)
+{
     uint32_t turnaround_time_usec = Tturnaround * 1000000UL;
-    uint32_t baud;
+    uint32_t baud = RS485_Baud;
+    int handle = RS485_Handle;
     ssize_t written = 0;
     int greska;
     const SHARED_MSTP_DATA *poSharedData = NULL;
 
-    if (mstp_port) {
+    if (mstp_port && mstp_port->UserData) {
         poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
+        baud = poSharedData->RS485_Baud;
+        handle = poSharedData->RS485_Handle;
     }
-    if (!poSharedData) {
-        baud = RS485_Get_Baud_Rate();
-        /* sleeping for turnaround time is necessary to give other devices
-           time to change from sending to receiving state. */
-        usleep(turnaround_time_usec / baud);
-        /*
-           On  success,  the  number of bytes written are returned (zero
-           indicates nothing was written).  On error, -1  is  returned,  and
-           errno  is  set appropriately.   If  count  is zero and the file
-           descriptor refers to a regular file, 0 will be returned without
-           causing any other effect.  For a special file, the results are not
-           portable.
-         */
-        written = write(RS485_Handle, buffer, nbytes);
-        greska = errno;
-        if (written <= 0) {
-            printf("write error: %s\n", strerror(greska));
-        } else {
-            /* wait until all output has been transmitted. */
-            ioctl(RS485_Handle,TCSBRK,1);
-        }
-        /*  tcdrain(RS485_Handle); */
-        /* per MSTP spec, sort of */
-        if (mstp_port) {
-            mstp_port->SilenceTimerReset((void *)mstp_port);
-        }
+
+    /* sleeping for turnaround time is necessary to give other devices
+       time to change from sending to receiving state. */
+    usleep(turnaround_time_usec / baud);
+    /*
+       On  success,  the  number of bytes written are returned (zero
+       indicates nothing was written).  On error, -1  is  returned,  and
+       errno  is  set appropriately.   If  count  is zero and the file
+       descriptor refers to a regular file, 0 will be returned without
+       causing any other effect.  For a special file, the results are not
+       portable.
+     */
+    written = write(handle, buffer, nbytes);
+    greska = errno;
+    if (written <= 0) {
+        printf("write error: %s\n", strerror(greska));
     } else {
-        baud = RS485_Get_Port_Baud_Rate(mstp_port);
-        /* sleeping for turnaround time is necessary to give other devices
-           time to change from sending to receiving state. */
-        usleep(turnaround_time_usec / baud);
-        /*
-           On  success,  the  number of bytes written are returned (zero
-           indicates nothing was written).  On error, -1  is  returned,  and
-           errno  is  set appropriately.   If  count  is zero and the file
-           descriptor refers to a regular file, 0 will be returned without
-           causing any other effect.  For a special file, the results are not
-           portable.
-         */
-        written = write(poSharedData->RS485_Handle, buffer, nbytes);
-        greska = errno;
-        if (written <= 0) {
-            printf("write error: %s\n", strerror(greska));
-        } else {
-            /* wait until all output has been transmitted. */
-            ioctl(poSharedData->RS485_Handle,TCSBRK,1);
-        }
-        /*  tcdrain(RS485_Handle); */
-        /* per MSTP spec, sort of */
-        if (mstp_port) {
-            mstp_port->SilenceTimerReset((void *)mstp_port);
-        }
+        /* wait until all output has been transmitted. */
+        termios2_tcdrain(handle);
+    }
+
+    /* per MSTP spec, sort of */
+    if (mstp_port) {
+        mstp_port->SilenceTimerReset((void *)mstp_port);
     }
 }
 
@@ -229,79 +214,52 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     struct timeval waiter;
     uint8_t buf[2048];
     ssize_t n;
+    int handle = RS485_Handle;
+    FIFO_BUFFER *fifo = &Rx_FIFO;
 
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
-    if (!poSharedData) {
-        if (mstp_port->ReceiveError == true) {
-            /* do nothing but wait for state machine to clear the error */
-            /* burning time, so wait a longer time */
+    if (poSharedData) {
+        handle = poSharedData->RS485_Handle;
+        fifo = &poSharedData->Rx_FIFO;
+    }
+
+    if (mstp_port->ReceiveError == true) {
+        /* do nothing but wait for state machine to clear the error */
+        /* burning time, so wait a longer time */
+        waiter.tv_sec = 0;
+        waiter.tv_usec = 5000;
+    } else if (mstp_port->DataAvailable == false) {
+        /* wait for state machine to read from the DataRegister */
+        if (FIFO_Count(fifo) > 0) {
+            /* data is available */
+            mstp_port->DataRegister = FIFO_Get(fifo);
+            mstp_port->DataAvailable = true;
+            /* FIFO is giving data - just poll */
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 0;
+        } else {
+            /* FIFO is empty - wait a longer time */
             waiter.tv_sec = 0;
             waiter.tv_usec = 5000;
-        } else if (mstp_port->DataAvailable == false) {
-            /* wait for state machine to read from the DataRegister */
-            if (FIFO_Count(&Rx_FIFO) > 0) {
-                /* data is available */
-                mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
-                mstp_port->DataAvailable = true;
-                /* FIFO is giving data - just poll */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 0;
-            } else {
-                /* FIFO is empty - wait a longer time */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 5000;
-            }
         }
-        /* grab bytes and stuff them into the FIFO every time */
-        FD_ZERO(&input);
-        FD_SET(RS485_Handle, &input);
-        n = select(RS485_Handle + 1, &input, NULL, NULL, &waiter);
-        if (n < 0) {
-            return;
-        }
-        if (FD_ISSET(RS485_Handle, &input)) {
-            n = read(RS485_Handle, buf, sizeof(buf));
-            FIFO_Add(&Rx_FIFO, &buf[0], n);
-        }
-    } else {
-        if (mstp_port->ReceiveError == true) {
-            /* do nothing but wait for state machine to clear the error */
-            /* burning time, so wait a longer time */
-            waiter.tv_sec = 0;
-            waiter.tv_usec = 5000;
-        } else if (mstp_port->DataAvailable == false) {
-            /* wait for state machine to read from the DataRegister */
-            if (FIFO_Count(&poSharedData->Rx_FIFO) > 0) {
-                /* data is available */
-                mstp_port->DataRegister = FIFO_Get(&poSharedData->Rx_FIFO);
-                mstp_port->DataAvailable = true;
-                /* FIFO is giving data - just poll */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 0;
-            } else {
-                /* FIFO is empty - wait a longer time */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 5000;
-            }
-        }
-        /* grab bytes and stuff them into the FIFO every time */
-        FD_ZERO(&input);
-        FD_SET(poSharedData->RS485_Handle, &input);
-        n = select(poSharedData->RS485_Handle + 1, &input, NULL, NULL, &waiter);
-        if (n < 0) {
-            return;
-        }
-        if (FD_ISSET(poSharedData->RS485_Handle, &input)) {
-            n = read(poSharedData->RS485_Handle, buf, sizeof(buf));
-            FIFO_Add(&poSharedData->Rx_FIFO, &buf[0], n);
-        }
+    }
+    /* grab bytes and stuff them into the FIFO every time */
+    FD_ZERO(&input);
+    FD_SET(handle, &input);
+    n = select(handle + 1, &input, NULL, NULL, &waiter);
+    if (n < 0) {
+        return;
+    }
+    if (FD_ISSET(handle, &input)) {
+        n = read(handle, buf, sizeof(buf));
+        FIFO_Add(fifo, &buf[0], n);
     }
 }
 
 void RS485_Cleanup(void)
 {
     /* restore the old port settings */
-    ioctl(RS485_Handle, TCSETS2, &RS485_oldtio2);
+    termios2_tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio2);
     close(RS485_Handle);
 }
 
@@ -321,23 +279,28 @@ void RS485_Initialize(void)
         perror(RS485_Port_Name);
         exit(-1);
     }
-    
+#if 0
+    /* non blocking for the read */
+    fcntl(RS485_Handle, F_SETFL, FNDELAY);
+#else
     /* efficient blocking for the read */
     fcntl(RS485_Handle, F_SETFL, 0);
-    
+#endif
     /* save current serial port settings */
     ioctl(RS485_Handle, TCGETS2, &RS485_oldtio2);
     /* clear struct for new port settings */
     memset(&newtio, 0, sizeof(newtio));
     /*
-       BAUDRATE: Set bps rate
+       BOTHER: Set bps rate.
+       https://man7.org/linux/man-pages/man2/TCSETS.2const.html
        CRTSCTS : output hardware flow control (only used if the cable has
        all necessary lines. See sect. 7 of Serial-HOWTO)
        CS8     : 8n1 (8bit,no parity,1 stopbit)
        CLOCAL  : local connection, no modem control
        CREAD   : enable receiving characters
      */
-    newtio.c_cflag = RS485MOD | CS8 | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
+    newtio.c_cflag =
+        CS8 | CLOCAL | CREAD | RS485MOD | BOTHER | (BOTHER << IBSHIFT);
     newtio.c_ispeed = RS485_Baud;
     newtio.c_ospeed = RS485_Baud;
     /* Raw input */
@@ -347,7 +310,7 @@ void RS485_Initialize(void)
     /* no processing */
     newtio.c_lflag = 0;
     /* activate the settings for the port after flushing I/O */
-    ioctl(RS485_Handle, TCSETSF2, &newtio);    
+    termios2_tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
     fflush(stdout);
@@ -356,7 +319,7 @@ void RS485_Initialize(void)
     atexit(RS485_Cleanup);
     /* flush any data waiting */
     usleep(200000);
-    ioctl(RS485_Handle, TCFLSH, TCIOFLUSH);
+    termios2_tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
 }

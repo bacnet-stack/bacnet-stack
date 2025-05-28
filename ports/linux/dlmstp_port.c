@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-#include <errno.h>
+
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -98,7 +98,8 @@ void dlmstp_cleanup(void *poPort)
     }
 
     /* restore the old port settings */
-    ioctl(poSharedData->RS485_Handle, TCSETS2, &poSharedData->RS485_oldtio2);
+    termios2_tcsetattr(
+        poSharedData->RS485_Handle, TCSANOW, &poSharedData->RS485_oldtio2);
     close(poSharedData->RS485_Handle);
 
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
@@ -810,22 +811,28 @@ bool dlmstp_init(void *poPort, char *ifname)
         perror(poSharedData->RS485_Port_Name);
         exit(-1);
     }
-    
+#if 0
+    /* non blocking for the read */
+    fcntl(poSharedData->RS485_Handle, F_SETFL, FNDELAY);
+#else
     /* efficient blocking for the read */
     fcntl(poSharedData->RS485_Handle, F_SETFL, 0);
-    
+#endif
     /* save current serial port settings */
-    ioctl(poSharedData->RS485_Handle, TCGETS2, &poSharedData->RS485_oldtio2);
+    termios2_tcgetattr(
+        poSharedData->RS485_Handle, &poSharedData->RS485_oldtio2);
     /* clear struct for new port settings */
     memset(&newtio, 0, sizeof(newtio));
     /*
        BOTHER: Set bps rate.
+       https://man7.org/linux/man-pages/man2/TCSETS.2const.html
        CRTSCTS : output hardware flow control (only used if the cable has
        all necessary lines. See sect. 7 of Serial-HOWTO)
        CLOCAL  : local connection, no modem control
        CREAD   : enable receiving characters
      */
-    newtio.c_cflag = poSharedData->RS485MOD | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
+    newtio.c_cflag =
+        poSharedData->RS485MOD | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
     newtio.c_ispeed = poSharedData->RS485_Baud;
     newtio.c_ospeed = poSharedData->RS485_Baud;
     /* Raw input */
@@ -835,10 +842,10 @@ bool dlmstp_init(void *poPort, char *ifname)
     /* no processing */
     newtio.c_lflag = 0;
     /* activate the settings for the port after flushing I/O */
-    ioctl(poSharedData->RS485_Handle, TCSETSF2, &newtio);
+    termios2_tcsetattr(poSharedData->RS485_Handle, TCSAFLUSH, &newtio);
     /* flush any data waiting */
     usleep(200000);
-    ioctl(poSharedData->RS485_Handle, TCFLSH, TCIOFLUSH);
+    termios2_tcflush(poSharedData->RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(
         &poSharedData->Rx_FIFO, poSharedData->Rx_Buffer,
