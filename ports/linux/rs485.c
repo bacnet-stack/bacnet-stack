@@ -287,7 +287,7 @@ void RS485_Initialize(void)
     fcntl(RS485_Handle, F_SETFL, 0);
 #endif
     /* save current serial port settings */
-    ioctl(RS485_Handle, TCGETS2, &RS485_oldtio2);
+    termios2_tcgetattr(RS485_Handle, &RS485_oldtio2);
     /* clear struct for new port settings */
     memset(&newtio, 0, sizeof(newtio));
     /*
