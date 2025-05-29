@@ -1956,7 +1956,7 @@ static bool Device_Write_Property_Object_Name(
     uint32_t object_instance = 0;
     int apdu_size = 0;
     const uint8_t *apdu = NULL;
-
+    fprintf(stderr, "[%s %d] object name " __FILE__, __LINE__);
     if (!wp_data) {
         return false;
     }
@@ -1969,7 +1969,9 @@ static bool Device_Write_Property_Object_Name(
             (!characterstring_printable(&value))) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            fprintf(stderr, "[%s %d] object name " __FILE__, __LINE__);
         } else {
+            fprintf(stderr, "[%s %d] object name " __FILE__, __LINE__);
             status = true;
         }
     } else if (len == 0) {
@@ -1984,6 +1986,7 @@ static bool Device_Write_Property_Object_Name(
         if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
             if ((object_type == wp_data->object_type) &&
                 (object_instance == wp_data->object_instance)) {
+                fprintf(stderr, "[%s %d] object name " __FILE__, __LINE__);
                 /* writing same name to same object */
                 status = true;
             } else {
@@ -1991,8 +1994,10 @@ static bool Device_Write_Property_Object_Name(
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                 status = false;
+                fprintf(stderr, "[%s %d] object name " __FILE__, __LINE__);
             }
         } else {
+            fprintf(stderr, "[%s %d] object name " __FILE__, __LINE__);
             status = Object_Write_Property(wp_data);
         }
     }
