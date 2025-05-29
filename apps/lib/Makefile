@@ -44,10 +44,6 @@ PORT_MSTP_SRC = \
 	$(BACNET_PORT_DIR)/rs485.c \
 	$(BACNET_PORT_DIR)/dlmstp.c
 
-ifeq (${BACNET_PORT},linux)
-	PORT_MSTP_SRC += $(BACNET_PORT_DIR)/termios2.c
-endif
-
 PORT_ETHERNET_SRC = \
 	$(BACNET_PORT_DIR)/ethernet.c
 
