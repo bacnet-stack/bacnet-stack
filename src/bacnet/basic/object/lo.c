@@ -2355,10 +2355,6 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, &value.type.Lighting_Command,
                     wp_data->priority, &wp_data->error_class,
                     &wp_data->error_code);
-                if (!status) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -2435,6 +2431,18 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Unsigned_Int,
                     wp_data->priority, &wp_data->error_class,
                     &wp_data->error_code);
+            }
+            break;
+        case PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = Lighting_Output_Default_Priority_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:
