@@ -129,7 +129,7 @@ bool datetime_local(
     bool *dst_active)
 {
     bool status = false;
-    struct tm *tblock;
+    struct tm *tblock = NULL;
 #if defined(_MSC_VER)
     struct tm newtime = { 0 };
     __time64_t long_time = 0;

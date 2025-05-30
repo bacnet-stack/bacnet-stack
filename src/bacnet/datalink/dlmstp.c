@@ -573,9 +573,7 @@ uint8_t dlmstp_max_info_frames(void)
 void dlmstp_set_max_master(uint8_t max_master)
 {
     if (max_master <= 127) {
-        if (MSTP_Port->This_Station <= max_master) {
-            MSTP_Port->Nmax_master = max_master;
-        }
+        MSTP_Port->Nmax_master = max_master;
     }
 
     return;
@@ -957,7 +955,8 @@ void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
         return;
     }
     if (statistics) {
-        *statistics = user->Statistics;
+        memmove(
+            statistics, &user->Statistics, sizeof(struct dlmstp_statistics));
     }
 }
 
