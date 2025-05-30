@@ -18,6 +18,17 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added missing API defined in header into ports/win32/dlmstp.c module,
+  added a PDU queue and refactored receive thread, and refactored MS/TP
+  timing parameters. (#1003)
+* Added missing API defined in header into ports/linux/dlmstp.c module,
+  and refactored MS/TP timing parameters. (#1003)
+* Added missing API defined in header into ports/bsd/dlmstp.c module,
+  and refactored MS/TP timing parameters. (#1003)
+* Added Egress_Time integration during the blink-warn and warn-relinquish
+  lighting operations. (#1008)
+* Added writable properties lighting-command-default-priority, egress-time,
+  blink-warn-enable, and relinquish-default. (#1008)
 * Added schedule object WriteProperty handling for effective-period,
   list-of-object-property-references and exception-schedule properties. (#1000)
 * Added multiple uBASIC program objects to stm32f4xx example port. (#995)
@@ -28,11 +39,19 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+
+* Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
 * Changed mirror script to improve debugging. (#968)
 * Changed dlenv to support multiple datalinks via environment variable. (#966)
 
 ### Fixed
 
+* Fixed ports/xplained conversion of double warning. (#1004)
+* Fixed BACNET_USE_DOUBLE usage in AVR ports. (#1004)
+* Fixed integer out-of-range in AVR port. (#1004)
+* Fixed missing function prototype for whois_request_encode(). (#1004)
+* Fixed Linux MS/TP 76800 bitrate for Linux 2.6.20+ circa 2007 and added
+  get/set API for config. (#1007)
 * Fixed network port object to accept host name option of host-n-port
   writes. (#997) (#1001)
 * Fixed missing exports in bacnet/basic header files. (#996)
