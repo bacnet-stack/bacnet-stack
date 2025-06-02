@@ -1956,7 +1956,7 @@ static bool Device_Write_Property_Object_Name(
     uint32_t object_instance = 0;
     int apdu_size = 0;
     const uint8_t *apdu = NULL;
-    fprintf(stderr,"[%s %d] entry \n" , __FILE__, __LINE__);
+
     if (!wp_data) {
         return false;
     }
@@ -1969,40 +1969,34 @@ static bool Device_Write_Property_Object_Name(
             (!characterstring_printable(&value))) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            fprintf(stderr,"[%s %d] error \n" , __FILE__, __LINE__);
         } else {
-            fprintf(stderr,"[%s %d] success \n" , __FILE__, __LINE__);
             status = true;
         }
     } else if (len == 0) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        fprintf(stderr,"[%s %d] error duplicate name wp_data->error_code=%d\n" , __FILE__, __LINE__, wp_data->error_code);
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        fprintf(stderr,"[%s %d] error duplicate name wp_data->error_code=%d\n" , __FILE__, __LINE__, wp_data->error_code);
     }
     if (status) {
         /* All the object names in a device must be unique */
         if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
             if ((object_type == wp_data->object_type) &&
                 (object_instance == wp_data->object_instance)) {
-                fprintf(stderr,"[%s %d] success same name\n" , __FILE__, __LINE__);
+                /* writing the same name to same object gives a write-access-denied */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                /* writing same name to same object */
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+
                 status = false;
             } else {
                 /* name already exists in some object */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                 status = false;
-                fprintf(stderr,"[%s %d] error duplicate name wp_data->error_code=%d\n" , __FILE__, __LINE__, wp_data->error_code);
             }
         } else {
             status = Object_Write_Property(wp_data);
-            fprintf(stderr,"[%s %d] writing object property\n" , __FILE__, __LINE__);
         }
     }
 
