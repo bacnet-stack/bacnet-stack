@@ -1977,9 +1977,11 @@ static bool Device_Write_Property_Object_Name(
     } else if (len == 0) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        fprintf(stderr,"[%s %d] error duplicate name wp_data->error_code=%d\n" , __FILE__, __LINE__, wp_data->error_code);
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        fprintf(stderr,"[%s %d] error duplicate name wp_data->error_code=%d\n" , __FILE__, __LINE__, wp_data->error_code);
     }
     if (status) {
         /* All the object names in a device must be unique */
@@ -1987,7 +1989,12 @@ static bool Device_Write_Property_Object_Name(
             if ((object_type == wp_data->object_type) &&
                 (object_instance == wp_data->object_instance)) {
                 fprintf(stderr,"[%s %d] success same name\n" , __FILE__, __LINE__);
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 /* writing same name to same object */
+                status = false;
+            } else {
+                /* name already exists in some object */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                 status = false;
