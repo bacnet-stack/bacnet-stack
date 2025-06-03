@@ -823,7 +823,7 @@ bool bip_init(char *ifname)
     struct sockaddr_in sin;
     SOCKET sock_fd = INVALID_SOCKET;
     struct sockaddr_in broadcast_sin_config;
-    SOCKET sock_broadcast_sock_fd = INVALID_SOCKET;
+    SOCKET broadcast_sock_fd = INVALID_SOCKET;
 
     bip_init_windows();
     if (ifname) {
