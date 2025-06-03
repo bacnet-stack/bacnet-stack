@@ -46,6 +46,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnet/IP initialization on a network interface where the system
+  reports the interface's unicast IP address as being the same as its
+  broadcast IP address (e.g., utunX interfaces for VPNs on macOS). (#1011)
 * Fixed ports/xplained conversion of double warning. (#1004)
 * Fixed BACNET_USE_DOUBLE usage in AVR ports. (#1004)
 * Fixed integer out-of-range in AVR port. (#1004)
