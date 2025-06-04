@@ -178,6 +178,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ai.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ao.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\av.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\auditlog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bacfile.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bi.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bo.c" />
@@ -207,6 +208,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ai.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ao.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\av.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\auditlog.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bacfile.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bi.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bo.h" />
