@@ -18,6 +18,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added more writable properties to Analog, Binary, and Multistate Output
+  objects. (#1012)
 * Added missing API defined in header into ports/win32/dlmstp.c module,
   added a PDU queue and refactored receive thread, and refactored MS/TP
   timing parameters. (#1003)
