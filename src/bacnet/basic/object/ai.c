@@ -44,7 +44,7 @@ static const int Properties_Optional[] = {
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
     PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
     PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_DETECTION_ENABLE,
+    PROP_EVENT_DETECTION_ENABLE, PROP_EVENT_MESSAGE_TEXTS,
 #endif
     -1
 };
@@ -665,6 +665,59 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 }
 
 #if defined(INTRINSIC_REPORTING)
+
+/**
+ * @brief For a given object instance-number and event transition, returns the
+ * event message text
+ * @param  object_instance - object-instance number of the object
+ * @param  transition - transition type
+ * @return event message text or NULL if object not found or transition invalid
+ */
+const char *Analog_Input_Event_Message_Text(
+    const uint32_t object_instance,
+    const enum BACnetEventTransitionBits transition)
+{
+    const char *text = NULL;
+    const struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject && transition < MAX_BACNET_EVENT_TRANSITION) {
+        text = pObject->Event_Message_Texts[transition];
+        if (!text) {
+            text = "";
+        }
+    }
+
+    return text;
+}
+
+/**
+ * @brief For a given object instance-number and event transition, sets the
+ * event message text
+ * NOTE: Text will be generated automatically by default if new_text is null
+ * @param  object_instance - object-instance number of the object
+ * @param  transition - transition type
+ * @param  new_text - holds the event message text to be set
+ * @return  true if event message text was set
+ */
+
+bool Analog_Input_Event_Message_Text_Set(
+    const uint32_t object_instance,
+    const enum BACnetEventTransitionBits transition,
+    const char *const new_text)
+{
+    bool status = false; /* return value */
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject && transition < MAX_BACNET_EVENT_TRANSITION) {
+        pObject->Event_Message_Texts[transition] = new_text;
+        status = true;
+    }
+
+    return status;
+}
+
 /**
  * @brief Encode a EventTimeStamps property element
  * @param object_instance [in] BACnet network port object instance number
@@ -708,6 +761,32 @@ static int Analog_Input_Event_Time_Stamps_Encode(
         }
     } else {
         apdu_len = BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] object instance number
+ * @param index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Analog_Input_Event_Message_Texts_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    const char *text = NULL; /* return value */
+    BACNET_CHARACTER_STRING char_string = { 0 };
+
+    text = Analog_Input_Event_Message_Text(object_instance, index);
+    if (text) {
+        characterstring_init_ansi(&char_string, text);
+        apdu_len = encode_application_character_string(apdu, &char_string);
     }
 
     return apdu_len;
@@ -869,6 +948,19 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
                 Analog_Input_Event_Time_Stamps_Encode,
+                MAX_BACNET_EVENT_TRANSITION, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_EVENT_MESSAGE_TEXTS:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Analog_Input_Event_Message_Texts_Encode,
                 MAX_BACNET_EVENT_TRANSITION, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =

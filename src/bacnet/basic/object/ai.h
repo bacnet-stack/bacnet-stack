@@ -46,6 +46,7 @@ typedef struct analog_input_descr {
     unsigned Notify_Type : 1;
     ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
     BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+    const char *Event_Message_Texts[MAX_BACNET_EVENT_TRANSITION];
     /* time to generate event notification */
     uint32_t Remaining_Time_Delay;
     /* AckNotification information */
@@ -112,9 +113,13 @@ BACNET_STACK_EXPORT
 void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-unsigned Analog_Input_Event_State(uint32_t object_instance);
+const char *Analog_Input_Event_Message_Text(
+    uint32_t object_instance, enum BACnetEventTransitionBits transition);
 BACNET_STACK_EXPORT
-bool Analog_Input_Event_State_Set(uint32_t object_instance, unsigned state);
+bool Analog_Input_Event_Message_Text_Set(
+    uint32_t object_instance,
+    enum BACnetEventTransitionBits transition,
+    const char *new_text);
 
 BACNET_STACK_EXPORT
 bool Analog_Input_Change_Of_Value(uint32_t instance);
