@@ -18,6 +18,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added more writable properties to Analog, Binary, and Multistate Output
+  objects. (#1012)
 * Added missing API defined in header into ports/win32/dlmstp.c module,
   added a PDU queue and refactored receive thread, and refactored MS/TP
   timing parameters. (#1003)
@@ -46,6 +48,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed usage of Keylist_Data_Add() return value in Calendar,
+  CharacterString Value, Load Control, and BACnet/SC Network Port
+  objects. (#1016)
 * Fixed BACnet/IP initialization on a network interface where the system
   reports the interface's unicast IP address as being the same as its
   broadcast IP address (e.g., utunX interfaces for VPNs on macOS). (#1011)
