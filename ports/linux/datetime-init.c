@@ -89,10 +89,16 @@ bool datetime_local(
 
     if (gettimeofday(&tv, NULL) == 0) {
         /* Needed for syncing of Datetime between NMC & BACnet */
-        tv.tv_sec += *utc_offset_minutes * 60;
+       // tv.tv_sec += *utc_offset_minutes * 60;
         to = Time_Offset;
+        fprintf(stderr, "[%s %d] tv.tv_sec = %ld\n", __FILE__, __LINE__, (long)tv.tv_sec);
+        fprintf(stderr, "[%s %d] Time Offset = %d ms\n", __FILE__, __LINE__, to);
         tv.tv_sec += (int)to / 1000;
+        fprintf(stderr, "[%s %d] Time Offset = %d sec\n", __FILE__, __LINE__, (int)to / 1000);
+        fprintf(stderr, "[%s %d] tv.tv_sec = %ld\n", __FILE__, __LINE__, (long)tv.tv_sec);
+        fprintf(stderr, "Time Offset = %d sec\n", (int)to / 1000);
         tv.tv_usec += (to % 1000) * 1000;
+        fprintf(stderr, "[%s %d] tv.tv_usec = %ld\n", __FILE__, __LINE__, (long)tv.tv_usec);
         tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
     }
     if (tblock) {
