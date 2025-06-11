@@ -1312,6 +1312,7 @@ int32_t Device_UTC_Offset(void)
 void Device_UTC_Offset_Set(int16_t offset)
 {
     UTC_Offset = offset;
+    fprintf(stderr, "Device_UTC_Offset_Set: %d\n", UTC_Offset);
 }
 
 bool Device_Daylight_Savings_Status(void)
