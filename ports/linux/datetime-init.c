@@ -88,6 +88,8 @@ bool datetime_local(
     int32_t to;
 
     if (gettimeofday(&tv, NULL) == 0) {
+        /* Needed for syncing of Datetime between NMC & BACnet */
+        tv.tv_sec += *utc_offset_minutes * 60;
         to = Time_Offset;
         tv.tv_sec += (int)to / 1000;
         tv.tv_usec += (to % 1000) * 1000;
