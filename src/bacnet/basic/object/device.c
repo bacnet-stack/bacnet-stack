@@ -1288,6 +1288,15 @@ bool Device_Object_Name_Copy(
     return found;
 }
 
+void Device_set_datetime(
+    BACNET_DATE *date, BACNET_TIME *time)
+{
+    fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
+        __FILE__, __LINE__, time->hour, time->min, time->sec,
+        date->year, date->month, date->day);
+    datetime_timesync(date, time, true);
+}
+
 static void Update_Current_Time(void)
 {
     datetime_local(
@@ -1297,7 +1306,10 @@ static void Update_Current_Time(void)
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
 {
     Update_Current_Time();
-
+    fprintf(stderr, "[%s %d] Device_getCurrentDateTime: %d:%d:%d %d/%d/%d UTC offset %d, DST %s\n",
+        __FILE__, __LINE__, Local_Time.hour, Local_Time.min, Local_Time.sec,
+        Local_Date.year, Local_Date.month, Local_Date.day, UTC_Offset,
+        Daylight_Savings_Status ? "true" : "false");
     DateTime->date = Local_Date;
     DateTime->time = Local_Time;
 }
