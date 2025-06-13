@@ -39,33 +39,29 @@ static int32_t time_difference(struct timeval t0, struct timeval t1)
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     struct timeval tv_inp, tv_sys;
-    struct tm *timeinfo;
-    time_t rawtime;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    fprintf(stderr, "[%s %d] datetime_timesync: %d:%d:%d %d/%d/%d\n",
-        __FILE__, __LINE__, timeinfo->tm_hour, timeinfo->tm_min,
-        timeinfo->tm_sec, timeinfo->tm_year + 1900, timeinfo->tm_mon + 1,
-        timeinfo->tm_mday);
-    /* fixme: only set the time if off by some amount */
-    timeinfo->tm_year = bdate->year - 1900;
-    timeinfo->tm_mon = bdate->month - 1;
-    timeinfo->tm_mday = bdate->day;
-    timeinfo->tm_hour = btime->hour;
-    timeinfo->tm_min = btime->min;
-    timeinfo->tm_sec = btime->sec;
-    tv_inp.tv_sec = mktime(timeinfo);
+    struct tm timeinfo = {0};
+    // DO NOT use localtime() here, just zero and set fields directly
+    timeinfo.tm_year = bdate->year - 1900;
+    timeinfo.tm_mon  = bdate->month - 1;
+    timeinfo.tm_mday = bdate->day;
+    timeinfo.tm_hour = btime->hour;
+    timeinfo.tm_min  = btime->min;
+    timeinfo.tm_sec  = btime->sec;
+
+    tv_inp.tv_sec = mktime(&timeinfo);
     tv_inp.tv_usec = btime->hundredths * 10000;
+
     fprintf(stderr, "[%s %d] tv_inp.tv_sec = %ld, tv_inp.tv_usec = %ld\n",
         __FILE__, __LINE__, (long)tv_inp.tv_sec, (long)tv_inp.tv_usec);
     fprintf(stderr, "[%s %d] Time input: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, btime->hour, btime->min, btime->sec,
         bdate->year, bdate->month, bdate->day);
+
     if (gettimeofday(&tv_sys, NULL) == 0) {
         if (utc) {
+            // timezone is in seconds, tm_isdst is 1 if DST is in effect
             Time_Offset = time_difference(tv_inp, tv_sys) -
-                (timezone - timeinfo->tm_isdst * 3600) * 1000;
-
+                (timezone - timeinfo.tm_isdst * 3600) * 1000;
         } else {
             Time_Offset = time_difference(tv_inp, tv_sys);
         }
