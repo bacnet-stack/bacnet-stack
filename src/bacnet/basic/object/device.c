@@ -1288,14 +1288,17 @@ bool Device_Object_Name_Copy(
     return found;
 }
 
-void Device_set_datetime(
-    BACNET_DATE *date, BACNET_TIME *time)
+void Device_set_datetime(BACNET_DATE *date, BACNET_TIME *time)
 {
+    datetime_set_date(&Local_Date, date->year, date->month, date->day);
+    datetime_set_time(&Local_Time, time->hour, time->min, time->sec, time->hundredths);
+
     fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, time->hour, time->min, time->sec,
-        date->year, date->month, date->day);
-    datetime_timesync(&date, &time, true);
-        fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
+         date->year, date->month, date->day);
+    datetime_timesync(&Local_Date, &Local_Time, true);
+
+    fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, time->hour, time->min, time->sec,
         date->year, date->month, date->day);
 }
