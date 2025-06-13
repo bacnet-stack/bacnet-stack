@@ -1294,7 +1294,7 @@ void Device_set_datetime(
     fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, time->hour, time->min, time->sec,
         date->year, date->month, date->day);
-    datetime_timesync(date, time, true);
+    datetime_timesync(&date, &time, true);
 }
 
 static void Update_Current_Time(void)
