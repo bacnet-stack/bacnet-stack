@@ -38,6 +38,10 @@ static int32_t time_difference(struct timeval t0, struct timeval t1)
  */
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
+    fprintf(stderr, "[%s %d] Time input: %d:%d:%d %d/%d/%d\n",
+    __FILE__, __LINE__, btime->hour, btime->min, btime->sec,
+    bdate->year, bdate->month, bdate->day);
+
     struct timeval tv_inp, tv_sys;
     struct tm timeinfo = {0};
     // DO NOT use localtime() here, just zero and set fields directly
@@ -51,8 +55,15 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     tv_inp.tv_sec = mktime(&timeinfo);
     tv_inp.tv_usec = btime->hundredths * 10000;
 
-    fprintf(stderr, "[%s %d] tv_inp.tv_sec = %ld, tv_inp.tv_usec = %ld\n",
-        __FILE__, __LINE__, (long)tv_inp.tv_sec, (long)tv_inp.tv_usec);
+    fprintf(stderr, "%s %d] timeinfo.tm_year = %d, tm_mon = %d, tm_mday = %d\n",
+        __FILE__, __LINE__, timeinfo.tm_year, timeinfo.tm_mon, timeinfo.tm_mday);
+
+    fprintf(stderr, "[%s %d] timeinfo.tm_hour = %d, tm_min = %d, tm_sec = %d\n",
+        __FILE__, __LINE__, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+
+    fprintf(stderr, "[%s %d] tv_inp.tv_sec = %ld\n",
+        __FILE__, __LINE__, (long)tv_inp.tv_sec);
+
     fprintf(stderr, "[%s %d] Time input: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, btime->hour, btime->min, btime->sec,
         bdate->year, bdate->month, bdate->day);
