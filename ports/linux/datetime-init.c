@@ -41,6 +41,7 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     fprintf(stderr, "[%s %d] datetime_timesync: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, btime->hour, btime->min, btime->sec,
         bdate->year, bdate->month, bdate->day);
+
     struct timeval tv_inp, tv_sys;
     struct tm *timeinfo;
     time_t rawtime;
@@ -58,6 +59,7 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         __FILE__, __LINE__, timeinfo->tm_hour, timeinfo->tm_min,
         timeinfo->tm_sec, timeinfo->tm_year + 1900, timeinfo->tm_mon + 1,
         timeinfo->tm_mday);
+
     tv_inp.tv_sec = mktime(timeinfo);
     tv_inp.tv_usec = btime->hundredths * 10000;
 
