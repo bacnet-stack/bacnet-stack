@@ -1288,7 +1288,7 @@ bool Device_Object_Name_Copy(
     return found;
 }
 
-void Device_set_datetime(BACNET_DATE *date, BACNET_TIME *time)
+void Device_Set_Datetime(BACNET_DATE *date, BACNET_TIME *time)
 {
     fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, time->hour, time->min, time->sec,

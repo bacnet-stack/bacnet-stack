@@ -67,11 +67,11 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         __FILE__, __LINE__, (long)tv_inp.tv_sec, (long)tv_inp.tv_usec);
     if (gettimeofday(&tv_sys, NULL) == 0) {
         if (utc) {
-            Time_Offset = time_difference(tv_inp, tv_sys) -
+            Time_Offset = time_difference(tv_sys, tv_inp) -
                 (timezone - timeinfo->tm_isdst * 3600) * 1000;
 
         } else {
-            Time_Offset = time_difference(tv_inp, tv_sys);
+            Time_Offset = time_difference(tv_sys, tv_inp);
         }
         fprintf(stderr, "[%s %d] tv_sys: %ld.%06ld\n",
             __FILE__, __LINE__, (long)tv_sys.tv_sec, (long)tv_sys.tv_usec);
@@ -105,7 +105,6 @@ bool datetime_local(
     int32_t to;
 
     if (gettimeofday(&tv, NULL) == 0) {
-        /* Needed for syncing of Datetime between NMC & BACnet */
         to = Time_Offset;
         fprintf(stderr, "[%s %d] tv.tv_sec = %ld\n", __FILE__, __LINE__, (long)tv.tv_sec);
         fprintf(stderr, "[%s %d] Time Offset = %d ms\n", __FILE__, __LINE__, to);
