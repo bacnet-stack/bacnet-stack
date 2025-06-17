@@ -80,6 +80,7 @@ HALSRC = main.c \
 	adc.c \
 	input.c \
 	serial.c \
+	spi-master.c \
 	rs485.c \
 	mstimer-init.c \
 	led.c \
