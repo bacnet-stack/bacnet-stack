@@ -522,6 +522,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_uevent.h
   src/bacnet/basic/service/s_upt.c
   src/bacnet/basic/service/s_upt.h
+  src/bacnet/basic/service/s_whoami.c
+  src/bacnet/basic/service/s_whoami.h
   src/bacnet/basic/service/s_whohas.c
   src/bacnet/basic/service/s_whohas.h
   src/bacnet/basic/service/s_whois.c
@@ -648,6 +650,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/timesync.c
   src/bacnet/timesync.h
   src/bacnet/version.h
+  src/bacnet/whoami.c
+  src/bacnet/whoami.h
   src/bacnet/whohas.c
   src/bacnet/whohas.h
   src/bacnet/whois.c
@@ -1089,6 +1093,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
+
+  add_executable(whoami apps/who-am-i/main.c)
+  target_link_libraries(whoami PRIVATE ${PROJECT_NAME})
 
   add_executable(whohas apps/whohas/main.c)
   target_link_libraries(whohas PRIVATE ${PROJECT_NAME})

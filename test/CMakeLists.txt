@@ -118,6 +118,7 @@ list(APPEND testdirs
   bacnet/timestamp
   bacnet/timesync
   bacnet/weeklyschedule
+  bacnet/who_am_i
   bacnet/whohas
   bacnet/whois
   bacnet/wp

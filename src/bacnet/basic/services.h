@@ -79,6 +79,7 @@
 #include "bacnet/basic/service/s_ts.h"
 #include "bacnet/basic/service/s_uevent.h"
 #include "bacnet/basic/service/s_upt.h"
+#include "bacnet/basic/service/s_whoami.h"
 #include "bacnet/basic/service/s_whohas.h"
 #include "bacnet/basic/service/s_whois.h"
 #include "bacnet/basic/service/s_wp.h"
