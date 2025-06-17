@@ -31,8 +31,8 @@ static struct mstimer WhoIs_Timer;
 static struct mstimer Read_Write_Timer;
 /* list of devices */
 static OS_Keylist Device_List = NULL;
-/* discovery destination network */
-static uint16_t Target_DNET = 0;
+/* discovery destination */
+static BACNET_ADDRESS Target_DEST = { 0 };
 /* re-discovery time */
 static unsigned long Discovery_Milliseconds;
 /* states of discovery */
@@ -467,16 +467,16 @@ bool bacnet_discover_property_name(
             device_id, object_type, object_instance, object_property, &value);
         if (status && value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             if (characterstring_valid(&value.type.Character_String)) {
-                strncpy(
-                    buffer, characterstring_value(&value.type.Character_String),
-                    buffer_len - 1);
+                snprintf(
+                    buffer, buffer_len, "%s",
+                    characterstring_value(&value.type.Character_String));
             } else {
                 status = false;
             }
         }
     }
     if (!status) {
-        strncpy(buffer, default_string, buffer_len);
+        snprintf(buffer, buffer_len, "%s", default_string);
     }
 
     return status;
@@ -1074,16 +1074,12 @@ bool bacnet_discover_device_iterate(
 
 /**
  * @brief Non-blocking task for running BACnet client tasks
- * @param dest - BACnet address of the destination discovery
  */
 void bacnet_discover_task(void)
 {
-    BACNET_ADDRESS dest = { 0 };
-
     if (mstimer_expired(&WhoIs_Timer)) {
         mstimer_restart(&WhoIs_Timer);
-        dest.net = Target_DNET;
-        Send_WhoIs_To_Network(&dest, -1, -1);
+        Send_WhoIs_To_Network(&Target_DEST, -1, -1);
     }
     if (mstimer_expired(&Read_Write_Timer)) {
         mstimer_restart(&Read_Write_Timer);
@@ -1095,21 +1091,39 @@ void bacnet_discover_task(void)
 }
 
 /**
- * @brief Set the BACnet time between discovery in seconds
- * @param seconds - number of seconds between discovery intervals
+ * @brief Set the BACnet network number for directed requests
+ * @param dnet - BACnet network number
  */
 void bacnet_discover_dnet_set(uint16_t dnet)
 {
-    Target_DNET = dnet;
+    Target_DEST.net = dnet;
 }
 
 /**
- * @brief Get the BACnet time between discovery in seconds
- * @return number of seconds between discovery intervals
+ * @brief Get the BACnet network number
+ * @return BACnet network number
  */
 uint16_t bacnet_discover_dnet(void)
 {
-    return Target_DNET;
+    return Target_DEST.net;
+}
+
+/**
+ * @brief Set the BACnet address of target for directed requests
+ * @param dest - BACnet address
+ */
+void bacnet_discover_dest_set(const BACNET_ADDRESS *dest)
+{
+    bacnet_address_copy(&Target_DEST, dest);
+}
+
+/**
+ * @brief Get the the BACnet address of target
+ * @return BACnet address
+ */
+const BACNET_ADDRESS *bacnet_discover_dest(void)
+{
+    return &Target_DEST;
 }
 
 /**

@@ -1236,6 +1236,12 @@
     <group>
         <name>BACnet Basic System</name>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\program\ubasic\ubasic.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\program\ubasic\tokenizer.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
         </file>
         <file>
@@ -1276,6 +1282,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\system_stm32f4xx.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\ubasic-port.c</name>
         </file>
     </group>
     <group>

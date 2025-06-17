@@ -2190,3 +2190,25 @@ const char *bactext_shed_level_type_name(unsigned index)
     return indtext_by_index_default(
         bacnet_shed_level_type_names, index, ASHRAE_Reserved_String);
 }
+
+/* note: different than DaysOfWeek bit string where 0=monday */
+INDTEXT_DATA bacnet_log_datum_names[] = {
+    { BACNET_LOG_DATUM_STATUS, "status" },
+    { BACNET_LOG_DATUM_BOOLEAN, "boolean" },
+    { BACNET_LOG_DATUM_REAL, "real" },
+    { BACNET_LOG_DATUM_ENUMERATED, "enumerated" },
+    { BACNET_LOG_DATUM_UNSIGNED, "unsigned" },
+    { BACNET_LOG_DATUM_SIGNED, "signed" },
+    { BACNET_LOG_DATUM_BITSTRING, "bitstring" },
+    { BACNET_LOG_DATUM_NULL, "null" },
+    { BACNET_LOG_DATUM_FAILURE, "failure" },
+    { BACNET_LOG_DATUM_TIME_CHANGE, "time-change" },
+    { BACNET_LOG_DATUM_ANY, "any" },
+    { 0, NULL }
+};
+
+const char *bactext_log_datum_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bacnet_log_datum_names, index, ASHRAE_Reserved_String);
+}

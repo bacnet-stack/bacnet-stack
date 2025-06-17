@@ -129,7 +129,9 @@
 #if !defined(MAX_APDU)
 /* #define MAX_APDU 50 */
 /* #define MAX_APDU 1476 */
-#if defined(BACDL_BIP)
+#if defined(BACDL_MULTIPLE)
+#define MAX_APDU 1476
+#elif defined(BACDL_BIP)
 #define MAX_APDU 1476
 /* Enable this IP for testing readrange so you get the More Follows flag set */
 /* #define MAX_APDU 128 */
@@ -137,7 +139,7 @@
 #define MAX_APDU 1476
 #elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
 /* note: MS/TP extended frames can be up to 1476 bytes */
-#define MAX_APDU 1476
+#define MAX_APDU 480
 #elif defined(BACDL_ETHERNET) && !defined(BACNET_SECURITY)
 #define MAX_APDU 1476
 #elif defined(BACDL_ETHERNET) && defined(BACNET_SECURITY)
@@ -152,7 +154,6 @@
 #endif
 #endif
 
-#if defined(BACDL_BSC)
 #ifndef SC_NETPORT_BVLC_MAX
 #define SC_NETPORT_BVLC_MAX 1500
 #endif
@@ -170,7 +171,6 @@
 #endif
 #ifndef SC_NETPORT_RECONNECT_TIME
 #define SC_NETPORT_RECONNECT_TIME 2
-#endif
 #endif
 
 /* for confirmed messages, this is the number of transactions */
@@ -234,6 +234,7 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_LOG_RECORD) || \
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
@@ -283,6 +284,7 @@
 #define BACAPP_SHED_LEVEL
 #define BACAPP_ACCESS_RULE
 #define BACAPP_CHANNEL_VALUE
+#define BACAPP_LOG_RECORD
 #define BACAPP_SECURE_CONNECT
 #endif
 
@@ -308,7 +310,8 @@
     defined(BACAPP_SCALE) || \
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
-    defined(BACAPP_CHANNEL_VALUE)
+    defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_LOG_RECORD)
 #define BACAPP_COMPLEX_TYPES
 #endif
 /* clang-format on */
@@ -328,6 +331,34 @@
 #define MAX_OCTET_STRING_BYTES (MAX_APDU - 6)
 #endif
 
+/* Do we need any octet strings? */
+#ifndef BACNET_USE_OCTETSTRING
+#define BACNET_USE_OCTETSTRING 1
+#endif
+
+/* Do we need any doubles? */
+#ifndef BACNET_USE_DOUBLE
+#define BACNET_USE_DOUBLE 1
+#endif
+
+/* Do we need any signed integers */
+#ifndef BACNET_USE_SIGNED
+#define BACNET_USE_SIGNED 1
+#endif
+
+/* if a datatype is not enabled, the BACapp helper cannot use it */
+#if (BACNET_USE_OCTETSTRING == 0)
+#undef BACAPP_OCTET_STRING
+#endif
+
+#if (BACNET_USE_DOUBLE == 0)
+#undef BACAPP_DOUBLE
+#endif
+
+#if (BACNET_USE_SIGNED == 0)
+#undef BACAPP_SIGNED
+#endif
+
 /**
  * @note Control the selection of services etc to enable code size reduction
  * for those compiler suites which do not handle removing of unused functions
@@ -336,12 +367,16 @@
  * We will start with the A type services code first as these are least likely
  * to be required in embedded systems using the stack.
  */
-#ifndef BACNET_SVC_SERVER
+#if !(                                                          \
+    defined(BACNET_SVC_I_HAVE_A) || defined(BACNET_SVC_WP_A) || \
+    defined(BACNET_SVC_RP_A) || defined(BACNET_SVC_RPM_A) ||    \
+    defined(BACNET_SVC_DCC_A) || defined(BACNET_SVC_RD_A) ||    \
+    defined(BACNET_SVC_TS_A) || defined(BACNET_SVC_SERVER))
 /* default to client-server device for the example apps to build. */
 #define BACNET_SVC_SERVER 0
 #endif
 
-#if (BACNET_SVC_SERVER == 0)
+#if defined(BACNET_SVC_SERVER) && (BACNET_SVC_SERVER == 0)
 /* client-server device */
 #define BACNET_SVC_I_HAVE_A 1
 #define BACNET_SVC_WP_A 1
@@ -350,9 +385,6 @@
 #define BACNET_SVC_DCC_A 1
 #define BACNET_SVC_RD_A 1
 #define BACNET_SVC_TS_A 1
-#define BACNET_USE_OCTETSTRING 1
-#define BACNET_USE_DOUBLE 1
-#define BACNET_USE_SIGNED 1
 #endif
 
 /* Do them one by one */
@@ -378,18 +410,6 @@
 
 #ifndef BACNET_SVC_RD_A /* Do we send ReinitialiseDevice requests? */
 #define BACNET_SVC_RD_A 0
-#endif
-
-#ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
-#define BACNET_USE_OCTETSTRING 0
-#endif
-
-#ifndef BACNET_USE_DOUBLE /* Do we need any doubles? */
-#define BACNET_USE_DOUBLE 0
-#endif
-
-#ifndef BACNET_USE_SIGNED /* Do we need any signed integers */
-#define BACNET_USE_SIGNED 0
 #endif
 
 #endif

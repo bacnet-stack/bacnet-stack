@@ -200,6 +200,7 @@ static bool MSTP_Compare_Data_Expecting_Reply(
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -207,7 +208,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     }
     /* these don't have service choice included */
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        (reply.pdu_type == PDU_TYPE_ABORT) ||
+        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
             return false;
         }
@@ -347,6 +349,7 @@ uint16_t dlmstp_receive(
     struct dlmstp_rs485_driver *driver;
     uint16_t i;
     uint32_t milliseconds;
+    MSTP_MASTER_STATE master_state;
 
     (void)timeout;
     if (!MSTP_Port) {
@@ -418,8 +421,15 @@ uint16_t dlmstp_receive(
         } else if (
             (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) ||
             MSTP_Port->ZeroConfigEnabled || MSTP_Port->CheckAutoBaud) {
+            master_state = MSTP_Port->master_state;
             while (MSTP_Master_Node_FSM(MSTP_Port)) {
-                /* do nothing while some states fast transition */
+                if (master_state != MSTP_Port->master_state) {
+                    /* state changed while some states fast transition */
+                    if (MSTP_Port->master_state == MSTP_MASTER_STATE_NO_TOKEN) {
+                        user->Statistics.lost_token_counter++;
+                    }
+                    master_state = MSTP_Port->master_state;
+                }
             };
         }
     }
@@ -563,9 +573,7 @@ uint8_t dlmstp_max_info_frames(void)
 void dlmstp_set_max_master(uint8_t max_master)
 {
     if (max_master <= 127) {
-        if (MSTP_Port->This_Station <= max_master) {
-            MSTP_Port->Nmax_master = max_master;
-        }
+        MSTP_Port->Nmax_master = max_master;
     }
 
     return;
@@ -947,7 +955,8 @@ void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
         return;
     }
     if (statistics) {
-        *statistics = user->Statistics;
+        memmove(
+            statistics, &user->Statistics, sizeof(struct dlmstp_statistics));
     }
 }
 

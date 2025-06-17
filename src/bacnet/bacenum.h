@@ -1135,7 +1135,8 @@ typedef enum BACnetProgramRequest {
     PROGRAM_REQUEST_RUN = 2,
     PROGRAM_REQUEST_HALT = 3,
     PROGRAM_REQUEST_RESTART = 4,
-    PROGRAM_REQUEST_UNLOAD = 5
+    PROGRAM_REQUEST_UNLOAD = 5,
+    PROGRAM_REQUEST_MAX = 6
 } BACNET_PROGRAM_REQUEST;
 
 typedef enum BACnetProgramState {
@@ -1144,7 +1145,8 @@ typedef enum BACnetProgramState {
     PROGRAM_STATE_RUNNING = 2,
     PROGRAM_STATE_WAITING = 3,
     PROGRAM_STATE_HALTED = 4,
-    PROGRAM_STATE_UNLOADING = 5
+    PROGRAM_STATE_UNLOADING = 5,
+    PROGRAM_STATE_MAX = 6
 } BACNET_PROGRAM_STATE;
 
 typedef enum BACnetProgramError {
@@ -1155,12 +1157,9 @@ typedef enum BACnetProgramError {
     PROGRAM_ERROR_OTHER = 4,
     PROGRAM_ERROR_RESERVED_MIN = 5,
     PROGRAM_ERROR_RESERVED_MAX = 63,
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 64-65535 may be used by others subject to  */
-    /* the procedures and constraints described in Clause 23. */
-    /* do the max range inside of enum so that
-       compilers will allocate adequate sized datatype for enum
-       which is used to store decoding */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-65535 may be used by others subject
+       to the procedures and constraints described in Clause 23. */
     PROGRAM_ERROR_PROPRIETARY_MIN = 64,
     PROGRAM_ERROR_PROPRIETARY_MAX = 65535
 } BACNET_PROGRAM_ERROR;
@@ -1682,7 +1681,9 @@ typedef enum {
     /* BACnetAccessRule */
     BACNET_APPLICATION_TAG_ACCESS_RULE,
     /* BACnetChannelValue */
-    BACNET_APPLICATION_TAG_CHANNEL_VALUE
+    BACNET_APPLICATION_TAG_CHANNEL_VALUE,
+    /* BACnetLogRecord */
+    BACNET_APPLICATION_TAG_LOG_RECORD
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -1868,6 +1869,21 @@ typedef enum BACnetLoggingType {
     LOGGING_TYPE_COV = 1,
     LOGGING_TYPE_TRIGGERED = 2
 } BACNET_LOGGING_TYPE;
+
+typedef enum BACnetLogDatum {
+    BACNET_LOG_DATUM_STATUS = 0,
+    BACNET_LOG_DATUM_BOOLEAN = 1,
+    BACNET_LOG_DATUM_REAL = 2,
+    BACNET_LOG_DATUM_ENUMERATED = 3,
+    BACNET_LOG_DATUM_UNSIGNED = 4,
+    BACNET_LOG_DATUM_SIGNED = 5,
+    BACNET_LOG_DATUM_BITSTRING = 6,
+    BACNET_LOG_DATUM_NULL = 7,
+    BACNET_LOG_DATUM_FAILURE = 8,
+    BACNET_LOG_DATUM_TIME_CHANGE = 9,
+    BACNET_LOG_DATUM_ANY = 10,
+    BACNET_LOG_DATUM_MAX = 11
+} BACNET_LOG_DATUM;
 
 typedef enum {
     ACKNOWLEDGMENT_FILTER_ALL = 0,

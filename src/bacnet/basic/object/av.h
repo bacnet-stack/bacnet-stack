@@ -55,6 +55,15 @@ typedef struct analog_value_descr {
 #endif
 } ANALOG_VALUE_DESCR;
 
+/**
+ * @brief Callback for gateway write present value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - floating point analog value prior to write
+ * @param  value - floating point analog value of the write
+ */
+typedef void (*analog_value_write_present_value_callback)(
+    uint32_t object_instance, float old_value, float value);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -83,6 +92,10 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
 bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void Analog_Value_Write_Present_Value_Callback_Set(
+    analog_value_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
 bool Analog_Value_Present_Value_Set(

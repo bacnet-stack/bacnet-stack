@@ -28,7 +28,8 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
-    BACDL_BSC=1
+    BACDL_ALL=1
+    BACNET_NETWORK_PORT_IP_DHCP_ENABLED=1
     BACNET_SECURE_CONNECT_ROUTING_TABLE=1
     BSC_CONF_HUB_FUNCTIONS_NUM=1
     BSC_CONF_HUB_CONNECTORS_NUM=1
@@ -66,6 +67,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/baclog.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
@@ -89,6 +91,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
@@ -117,6 +120,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/baclog.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
@@ -140,6 +144,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c

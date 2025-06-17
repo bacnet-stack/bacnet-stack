@@ -378,9 +378,11 @@ static const int Properties_BACnetARRAY[] = {
     PROP_EXCEPTION_SCHEDULE,
     PROP_TAGS,
     PROP_ISSUER_CERTIFICATE_FILES,
-    PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
     PROP_NEGATIVE_ACCESS_RULES,
     PROP_POSITIVE_ACCESS_RULES,
+#if (INT_MAX > 0xFFFF)
+    PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
+#endif
     -1
 };
 
@@ -533,4 +535,54 @@ bool property_list_bacnet_list_member(
     }
 
     return property_list_member(Properties_BACnetLIST, object_property);
+}
+
+/**
+ * @brief Determine if the object property is a commandable member
+ *
+ * 19.2.1.1 Commandable Properties
+ * The prioritization scheme is applied to certain properties of objects.
+ * The standard commandable properties and objects are as follows.
+ *
+ * @param object_type - object-type to be checked
+ * @param object_property - object-property to be checked
+ * @return true if the property is a commandable member
+ */
+bool property_list_commandable_member(
+    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
+{
+    bool status = false;
+
+    switch (object_type) {
+        case OBJECT_ACCESS_DOOR:
+        case OBJECT_ANALOG_OUTPUT:
+        case OBJECT_ANALOG_VALUE:
+        case OBJECT_BINARY_LIGHTING_OUTPUT:
+        case OBJECT_BINARY_OUTPUT:
+        case OBJECT_BINARY_VALUE:
+        case OBJECT_BITSTRING_VALUE:
+        case OBJECT_CHANNEL:
+        case OBJECT_CHARACTERSTRING_VALUE:
+        case OBJECT_DATE_VALUE:
+        case OBJECT_DATE_PATTERN_VALUE:
+        case OBJECT_DATETIME_VALUE:
+        case OBJECT_DATETIME_PATTERN_VALUE:
+        case OBJECT_INTEGER_VALUE:
+        case OBJECT_LARGE_ANALOG_VALUE:
+        case OBJECT_LIGHTING_OUTPUT:
+        case OBJECT_MULTI_STATE_OUTPUT:
+        case OBJECT_MULTI_STATE_VALUE:
+        case OBJECT_OCTETSTRING_VALUE:
+        case OBJECT_POSITIVE_INTEGER_VALUE:
+        case OBJECT_TIME_VALUE:
+        case OBJECT_TIME_PATTERN_VALUE:
+            if (object_property == PROP_PRESENT_VALUE) {
+                status = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return status;
 }

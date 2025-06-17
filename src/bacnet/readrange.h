@@ -44,14 +44,13 @@ typedef struct BACnet_Read_Range_Data {
 /** Defines to indicate which type of read range request it is.
    Not really a bit map but we do it like this to allow quick
    checking of request against capabilities for the property */
-
 #define RR_BY_POSITION 1
 #define RR_BY_SEQUENCE 2
 #define RR_BY_TIME 4
-#define RR_READ_ALL \
-    8 /**< Read all of array - so don't send any range in the request */
-#define RR_ARRAY_OF_LISTS \
-    16 /**< For info functionality indicates array of lists if set */
+/**< Read all of the list, and don't encode OPTIONAL range in the request */
+#define RR_READ_ALL 8
+/**< For info functionality indicates array of lists if set */
+#define RR_ARRAY_OF_LISTS 16
 
 /** Defines for ReadRange packet overheads to allow us to determine how
  * much space is left for actual payload:
@@ -128,6 +127,11 @@ int rr_decode_service_request(
 BACNET_STACK_EXPORT
 int rr_ack_encode_apdu(
     uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *rrdata);
+BACNET_STACK_EXPORT
+int readrange_ack_encode(uint8_t *apdu, const BACNET_READ_RANGE_DATA *data);
+BACNET_STACK_EXPORT
+size_t readrange_ack_service_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_RANGE_DATA *data);
 
 BACNET_STACK_EXPORT
 int rr_ack_decode_service_request(

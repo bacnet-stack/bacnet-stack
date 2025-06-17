@@ -304,7 +304,7 @@ const char *Analog_Input_Name_ASCII(uint32_t object_instance)
 unsigned Analog_Input_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
-#if !defined(INTRINSIC_REPORTING)
+#if defined(INTRINSIC_REPORTING)
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
@@ -423,6 +423,24 @@ BACNET_RELIABILITY Analog_Input_Reliability(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Input_Object_Fault(const struct analog_input_descr *pObject)
+{
+    bool fault = false;
+
+    if (pObject) {
+        if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
+            fault = true;
+        }
+    }
+
+    return fault;
+}
+
+/**
  * @brief For a given object instance-number, sets the reliability
  * @param  object_instance - object-instance number of the object
  * @param  value - reliability property value
@@ -432,15 +450,34 @@ bool Analog_Input_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value)
 {
     bool status = false;
+    bool fault = false;
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
+        fault = Analog_Input_Object_Fault(pObject);
         pObject->Reliability = value;
+        if (fault != Analog_Input_Object_Fault(pObject)) {
+            pObject->Changed = true;
+        }
         status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Input_Fault(uint32_t object_instance)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+
+    return Analog_Input_Object_Fault(pObject);
 }
 
 /**
@@ -689,6 +726,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     float real_value = (float)1.414;
+    bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
 #endif
@@ -728,13 +766,11 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_IN_ALARM,
                 pObject->Event_State != EVENT_STATE_NORMAL);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_FAULT,
-                pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED);
+            state = Analog_Input_Fault(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, state);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                pObject->Out_Of_Service);
+            state = Analog_Input_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:

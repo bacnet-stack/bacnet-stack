@@ -1,10 +1,10 @@
-/************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *************************************************************************/
+/**
+ * @file
+ * @brief Main function for the STM32F4xx NUCLEO board
+ * @author Steve Karg
+ * @date 2021
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -24,6 +24,7 @@
 #include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
+#include "program-ubasic.h"
 
 /* MS/TP port */
 static struct mstp_port_struct_t MSTP_Port;
@@ -40,6 +41,53 @@ static struct dlmstp_rs485_driver RS485_Driver = {
 static struct dlmstp_user_data_t MSTP_User_Data;
 static uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
 static uint8_t Output_Buffer[DLMSTP_MPDU_MAX];
+static const char *UBASIC_Program_1 =
+    /* program listing with either \0, \n, or ';' at the end of each line.
+       note: indentation is not required */
+    "println 'Demo - GPIO';"
+    ":loop;"
+    "  dwrite(3, 1);"
+    "  sleep (0.3);"
+    "  dwrite(3, 0);"
+    "  sleep (0.3);"
+    "goto loop;"
+    "end;";
+static const char *UBASIC_Program_2 =
+    /* program listing with either \0, \n, or ';' at the end of each line.
+       note: indentation is not required */
+    "println 'Demo - GPIO';"
+    ":loop;"
+    "  dwrite(2, 1);"
+    "  sleep (0.5);"
+    "  dwrite(2, 0);"
+    "  sleep (0.1);"
+    "goto loop;"
+    "end;";
+static const char *UBASIC_Program_3 =
+    /* program listing with either \0, \n, or ';' at the end of each line.
+       note: indentation is not required */
+    "println 'Demo - BACnet & GPIO';"
+    "bac_create(0, 1, 'ADC-1-AVG');"
+    "bac_create(0, 2, 'ADC-2-AVG');"
+    "bac_create(0, 3, 'ADC-1-RAW');"
+    "bac_create(0, 4, 'ADC-3-RAW');"
+    "bac_create(4, 1, 'LED-1');"
+    ":startover;"
+    "  a = aread(1);"
+    "  bac_write(0, 3, 85, a);"
+    "  c = avgw(a, c, 10);"
+    "  bac_write(0, 1, 85, c);"
+    "  b = aread(2);"
+    "  bac_write(0, 4, 85, b);"
+    "  d = avgw(b, d, 10);"
+    "  bac_write(0, 2, 85, d);"
+    "  h = bac_read(4, 1, 85);"
+    "  dwrite(1, (h % 2));"
+    "  sleep (0.2);"
+    "goto startover;"
+    "end;";
+/* uBASIC data tree for each program running */
+static struct ubasic_data UBASIC_Data[3];
 
 /**
  * @brief Called from _write() function from printf and friends
@@ -57,8 +105,6 @@ int __io_putchar(int ch)
  */
 int main(void)
 {
-    struct mstimer Blink_Timer;
-
     /*At this stage the microcontroller clock setting is already configured,
        this is done through SystemInit() function which is called from startup
        file (startup_stm32f4xx.s) before to branch to application main.
@@ -72,7 +118,6 @@ int main(void)
     mstimer_init();
     led_init();
     rs485_init();
-    mstimer_set(&Blink_Timer, 500);
     /* FIXME: get the device ID from EEPROM */
     Device_Set_Object_Instance_Number(103);
     /* seed stdlib rand() with device-id to get pseudo consistent
@@ -99,7 +144,7 @@ int main(void)
     MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
     /* choose from non-volatile configuration for zero-config or slave mode */
-    MSTP_Port.ZeroConfigEnabled = true;
+    MSTP_Port.ZeroConfigEnabled = false;
     MSTP_Port.Zero_Config_Preferred_Station = 0;
     MSTP_Port.SlaveNodeEnabled = false;
     MSTP_Port.CheckAutoBaud = false;
@@ -112,7 +157,7 @@ int main(void)
         dlmstp_set_mac_address(255);
     } else {
         /* FIXME: get the address from hardware DIP or from EEPROM */
-        dlmstp_set_mac_address(1);
+        dlmstp_set_mac_address(63);
     }
     if (!MSTP_Port.CheckAutoBaud) {
         /* FIXME: get the baud rate from hardware DIP or from EEPROM */
@@ -120,13 +165,14 @@ int main(void)
     }
     /* initialize application layer*/
     bacnet_init();
+    /* configure a program */
+    Program_UBASIC_Init(10);
+    Program_UBASIC_Create(1, &UBASIC_Data[0], UBASIC_Program_1);
+    Program_UBASIC_Create(2, &UBASIC_Data[1], UBASIC_Program_2);
+    Program_UBASIC_Create(3, &UBASIC_Data[2], UBASIC_Program_3);
     for (;;) {
-        if (mstimer_expired(&Blink_Timer)) {
-            mstimer_reset(&Blink_Timer);
-            led_toggle(LED_LD3);
-            led_toggle(LED_RS485);
-        }
         led_task();
         bacnet_task();
+        Program_UBASIC_Task();
     }
 }

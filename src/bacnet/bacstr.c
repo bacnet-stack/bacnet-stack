@@ -19,6 +19,10 @@
 /* BACnet Stack API */
 #include "bacnet/bacstr.h"
 
+#ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
+#define BACNET_USE_OCTETSTRING 1
+#endif
+
 #ifndef BACNET_STRING_UTF8_VALIDATION
 #define BACNET_STRING_UTF8_VALIDATION 1
 #endif
@@ -496,6 +500,35 @@ bool characterstring_ansi_copy(
     }
 
     return false;
+}
+
+/**
+ * @brief Copy a BACnetCharacterString into a buffer with null padding
+ * @param dest  Pointer to the destination buffer.
+ * @param dest_max_len  Size of the destination buffer.
+ * @param src  Pointer to the source BACnetCharacterString.
+ * @return Length of the copied BACnetCharacterString, or 0 if the string
+ *  exceeds the destination buffer size.
+ */
+size_t characterstring_copy_value(
+    char *dest, size_t dest_max_len, const BACNET_CHARACTER_STRING *src)
+{
+    size_t i = 0, length = 0;
+
+    if (dest && src) {
+        if (src->length < dest_max_len) {
+            length = src->length;
+            for (i = 0; i < dest_max_len; i++) {
+                if (i < src->length) {
+                    dest[i] = src->value[i];
+                } else {
+                    dest[i] = 0;
+                }
+            }
+        }
+    }
+
+    return length;
 }
 
 /**

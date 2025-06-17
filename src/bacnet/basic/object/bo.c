@@ -56,24 +56,28 @@ static binary_output_write_present_value_callback
     Binary_Output_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_PRESENT_VALUE,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_EVENT_STATE,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_POLARITY,
-                                           PROP_PRIORITY_ARRAY,
-                                           PROP_RELINQUISH_DEFAULT,
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_POLARITY,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
 #if (BACNET_PROTOCOL_REVISION >= 17)
-                                           PROP_CURRENT_COMMAND_PRIORITY,
+    PROP_CURRENT_COMMAND_PRIORITY,
 #endif
-                                           -1 };
+    -1
+};
 
-static const int Properties_Optional[] = { PROP_RELIABILITY, PROP_DESCRIPTION,
-                                           PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT,
-                                           -1 };
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_RELIABILITY, PROP_DESCRIPTION, PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -987,6 +991,13 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+    if (!property_lists_member(
+            Properties_Required, Properties_Optional, Properties_Proprietary,
+            rpdata->object_property)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+        return BACNET_STATUS_ERROR;
+    }
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
@@ -1073,7 +1084,6 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-#if (BACNET_PROTOCOL_REVISION >= 17)
         case PROP_CURRENT_COMMAND_PRIORITY:
             i = Binary_Output_Present_Value_Priority(rpdata->object_instance);
             if ((i >= BACNET_MIN_PRIORITY) && (i <= BACNET_MAX_PRIORITY)) {
@@ -1082,7 +1092,6 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = encode_application_null(&apdu[0]);
             }
             break;
-#endif
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1143,6 +1152,22 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 Binary_Output_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
+            }
+            break;
+        case PROP_POLARITY:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                Binary_Output_Polarity_Set(
+                    wp_data->object_instance, value.type.Enumerated);
+            }
+            break;
+        case PROP_RELINQUISH_DEFAULT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                Binary_Output_Relinquish_Default_Set(
+                    wp_data->object_instance, value.type.Enumerated);
             }
             break;
         default:

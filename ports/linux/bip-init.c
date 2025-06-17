@@ -475,7 +475,7 @@ get_local_ifr_ioctl(const char *ifname, struct ifreq *ifr, int request)
     int fd;
     int rv; /* return value */
 
-    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
+    snprintf(ifr->ifr_name, sizeof(ifr->ifr_name), "%s", ifname);
     ifr->ifr_name[sizeof(ifr->ifr_name) - 1] = 0;
 
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -885,6 +885,8 @@ bool bip_init(char *ifname)
 {
     struct sockaddr_in sin;
     int sock_fd = -1;
+    struct sockaddr_in broadcast_sin_config;
+    int broadcast_sock_fd;
 
     if (ifname) {
         snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", ifname);
@@ -910,21 +912,36 @@ bool bip_init(char *ifname)
     if (sock_fd < 0) {
         return false;
     }
+
+    broadcast_sin_config.sin_family = AF_INET;
+    broadcast_sin_config.sin_port = BIP_Port;
+    memset(
+        &(broadcast_sin_config.sin_zero), '\0',
+        sizeof(broadcast_sin_config.sin_zero));
     if (BIP_Broadcast_Binding_Address_Override) {
-        sin.sin_addr.s_addr = BIP_Broadcast_Binding_Address.s_addr;
+        broadcast_sin_config.sin_addr.s_addr =
+            BIP_Broadcast_Binding_Address.s_addr;
     } else {
 #if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
-        sin.sin_addr.s_addr = htonl(INADDR_ANY);
+        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_ANY);
 #elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
-        sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 #else
-        sin.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
+        broadcast_sin_config.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
 #endif
     }
-    sock_fd = createSocket(&sin);
-    BIP_Broadcast_Socket = sock_fd;
-    if (sock_fd < 0) {
-        return false;
+    if (broadcast_sin_config.sin_addr.s_addr == BIP_Address.s_addr) {
+        /* handle the case when a network interface on the system
+           reports the interface's unicast IP address as being
+           the same as its broadcast IP address */
+        BIP_Broadcast_Socket = BIP_Socket;
+    } else {
+        broadcast_sock_fd = createSocket(&broadcast_sin_config);
+        BIP_Broadcast_Socket = broadcast_sock_fd;
+        if (broadcast_sock_fd < 0) {
+            bip_cleanup();
+            return false;
+        }
     }
 
     bvlc_init();
@@ -955,6 +972,9 @@ void bip_cleanup(void)
         close(BIP_Broadcast_Socket);
     }
     BIP_Broadcast_Socket = -1;
+    /* these were set non-zero during interface configuration */
+    BIP_Address.s_addr = 0;
+    BIP_Broadcast_Addr.s_addr = 0;
 
     return;
 }

@@ -29,6 +29,8 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/netport.c \
 	$(PLATFORM_DIR)/rs485.c \
 	$(PLATFORM_DIR)/mstimer-init.c \
+	$(PLATFORM_DIR)/program-ubasic.c \
+	$(PLATFORM_DIR)/ubasic-port.c \
 	$(PLATFORM_DIR)/stm32f4xx_it.c \
 	$(PLATFORM_DIR)/system_stm32f4xx.c
 
@@ -43,6 +45,9 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/object/ms-input.c \
 	$(BACNET_BASIC)/object/mso.c \
 	$(BACNET_BASIC)/object/msv.c \
+	$(BACNET_BASIC)/object/program.c \
+	$(BACNET_BASIC)/program/ubasic/ubasic.c \
+	$(BACNET_BASIC)/program/ubasic/tokenizer.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
@@ -173,6 +178,7 @@ BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
 BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 BACNET_FLAGS += -DBACAPP_MINIMAL
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
