@@ -22,8 +22,8 @@
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
 #include "bacnet/npdu.h"
+#include "bacnet/abort.h"
 #include "bacnet/apdu.h"
-#include "bacport.h"
 #include "bacnet/whois.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
@@ -40,6 +40,7 @@
 #include "bacnet/datalink/bip.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 #include "bacepics.h"
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
