@@ -936,6 +936,88 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     }
 }
 
+#if (BACNET_PROTOCOL_REVISION >= 28)
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Restore_On(struct object_data *pObject, unsigned priority)
+{
+    unsigned current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        /* we have priority - configure the Lighting Command */
+        lighting_command_restore_on(&pObject->Lighting_Command);
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Restore_Off(struct object_data *pObject, unsigned priority)
+{
+    unsigned current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        /* we have priority - configure the Lighting Command */
+        lighting_command_restore_off(&pObject->Lighting_Command);
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Toggle_Restore(struct object_data *pObject, unsigned priority)
+{
+    unsigned current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        /* we have priority - configure the Lighting Command */
+        lighting_command_toggle_restore(&pObject->Lighting_Command);
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Toggle_Default(struct object_data *pObject, unsigned priority)
+{
+    unsigned current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        /* we have priority - configure the Lighting Command */
+        lighting_command_toggle_default(&pObject->Lighting_Command);
+    }
+}
+#endif
+
 /**
  * For a given object instance-number, writes the present-value
  *
@@ -975,7 +1057,7 @@ static bool Lighting_Output_Lighting_Command_Write(
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return status;
     }
-    if (value->operation >= MAX_BACNET_LIGHTING_OPERATION) {
+    if (value->operation >= BACNET_LIGHTS_RESERVED_MIN) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return status;
@@ -1043,6 +1125,24 @@ static bool Lighting_Output_Lighting_Command_Write(
                 Lighting_Command_Stop(pObject, priority);
                 status = true;
                 break;
+#if (BACNET_PROTOCOL_REVISION >= 28)
+            case BACNET_LIGHTS_RESTORE_ON:
+                Lighting_Command_Restore_On(pObject, priority);
+                status = true;
+                break;
+            case BACNET_LIGHTS_RESTORE_OFF:
+                Lighting_Command_Restore_Off(pObject, priority);
+                status = true;
+                break;
+            case BACNET_LIGHTS_TOGGLE_RESTORE:
+                Lighting_Command_Toggle_Restore(pObject, priority);
+                status = true;
+                break;
+            case BACNET_LIGHTS_TOGGLE_DEFAULT:
+                Lighting_Command_Toggle_Default(pObject, priority);
+                status = true;
+                break;
+#endif
             default:
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1908,7 +2008,7 @@ bool Lighting_Output_Transition_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (value <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST) {
+        if (value <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_MAX) {
             pObject->Transition = value;
             status = true;
         }
@@ -1941,7 +2041,7 @@ static bool Lighting_Output_Transition_Write(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if (value < BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST) {
+        if (value < BACNET_LIGHTING_TRANSITION_PROPRIETARY_MAX) {
             pObject->Transition = value;
             status = true;
         } else {
