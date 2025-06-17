@@ -201,12 +201,7 @@ static void MyAbortHandler(
 #endif
         Error_Detected = true;
         Last_Error_Class = ERROR_CLASS_SERVICES;
-        if (abort_reason < ABORT_REASON_RESERVED_MIN) {
-            Last_Error_Code =
-                (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
-        } else {
-            Last_Error_Code = ERROR_CODE_ABORT_OTHER;
-        }
+        Last_Error_Code = abort_convert_to_error_code(abort_reason);
     }
 }
 

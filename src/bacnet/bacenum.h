@@ -1977,9 +1977,10 @@ typedef enum {
     /* Enumerated values 64-255 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     ABORT_REASON_RESERVED_MIN = 12,
-    ABORT_REASON_RESERVED_MAX = 63,
-    ABORT_REASON_PROPRIETARY_MIN = 64,
-    ABORT_REASON_PROPRIETARY_MAX = 255
+    /* for legacy applications */
+    MAX_BACNET_ABORT_REASON = ABORT_REASON_RESERVED_MIN,
+    ABORT_REASON_PROPRIETARY_FIRST = 64,
+    ABORT_REASON_PROPRIETARY_LAST = 255
 } BACNET_ABORT_REASON;
 
 typedef enum {

@@ -1378,14 +1378,14 @@ INDTEXT_DATA bacnet_abort_reason_names[] = {
     { ABORT_REASON_OUT_OF_RESOURCES, "out-of-resources" },
     { ABORT_REASON_TSM_TIMEOUT, "tsm-timeout" },
     { ABORT_REASON_APDU_TOO_LONG, "apdu-too-long" },
-    { ABORT_REASON_PROPRIETARY_MIN, "Proprietary" },
+    { ABORT_REASON_PROPRIETARY_FIRST, "Proprietary" },
     { 0, NULL }
 };
 
 const char *bactext_abort_reason_name(unsigned index)
 {
     return indtext_by_index_split_default(
-        bacnet_abort_reason_names, index, ABORT_REASON_PROPRIETARY_MIN,
+        bacnet_abort_reason_names, index, ABORT_REASON_PROPRIETARY_FIRST,
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
