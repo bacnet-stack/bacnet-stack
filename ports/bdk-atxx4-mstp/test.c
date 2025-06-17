@@ -48,6 +48,7 @@ void test_init(void)
 #else
     BIT_SET(DDRB, DDB0);
 #endif
+    spi_master_init();
 }
 
 /**
