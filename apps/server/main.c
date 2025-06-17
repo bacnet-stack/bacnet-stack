@@ -166,7 +166,7 @@ static void Init_Service_Handlers(void)
     Device_Init(NULL);
     /* create some dynamically created objects as examples */
     object_data.object_instance = BACNET_MAX_INSTANCE;
-    for (i = 0; i <= BACNET_OBJECT_TYPE_LAST; i++) {
+    for (i = 0; i <= BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
         object_data.object_type = i;
         if (Device_Create_Object(&object_data)) {
             printf(

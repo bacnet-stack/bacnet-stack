@@ -26,17 +26,17 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records:
 
-[CVE-2023-38339](https://www.cve.org/CVERecord?id=CVE-2023-38339) -
-Out of bounds jump in h_apdu.c:apdu_handler
-[#79](https://sourceforge.net/p/bacnet/bugs/79/)
+[CVE-2023-38341](https://www.cve.org/CVERecord?id=CVE-2023-38341) -
+Multiple out-of-bounds accesses in bacerror code paths
+[#81](https://sourceforge.net/p/bacnet/bugs/81/)
 
 [CVE-2023-38340](https://www.cve.org/CVERecord?id=CVE-2023-38340) -
 Out of bounds accesses in bacnet_npdu_decode
 [#80](https://sourceforge.net/auth/?return_to=/p/bacnet/bugs/80/)
 
-[CVE-2023-38341](https://www.cve.org/CVERecord?id=CVE-2023-38341) -
-Multiple out-of-bounds accesses in bacerror code paths
-[#81](https://sourceforge.net/p/bacnet/bugs/81/)
+[CVE-2023-38339](https://www.cve.org/CVERecord?id=CVE-2023-38339) -
+Out of bounds jump in h_apdu.c:apdu_handler
+[#79](https://sourceforge.net/p/bacnet/bugs/79/)
 
 [CVE-2019-12480](https://www.cve.org/CVERecord?id=CVE-2019-12480) -
 Invalid read in bacserv when decoding alarm tags
