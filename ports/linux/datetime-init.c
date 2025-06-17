@@ -65,9 +65,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     tv_inp.tv_sec = mktime(timeinfo);
     tv_inp.tv_usec = btime->hundredths * 10000;
 
-    fprintf(stderr, "[%s %d] tv_inp: %ld.%06ld\n",
-        __FILE__, __LINE__, (long)tv_inp.tv_sec, (long)tv_inp.tv_usec);
     if (gettimeofday(&tv_sys, NULL) == 0) {
+
         if (utc) {
             Time_Offset = time_difference(tv_inp, tv_sys) -
                 (timezone - timeinfo->tm_isdst * 3600) * 1000;

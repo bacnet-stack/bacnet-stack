@@ -1298,7 +1298,7 @@ void Device_Set_Datetime(BACNET_DATE *date, BACNET_TIME *time)
     datetime_set_time(&Local_Time, time->hour, time->min, time->sec,
         time->hundredths);
 
-    datetime_timesync(&Local_Date, &Local_Time, true);
+    datetime_timesync(&Local_Date, &Local_Time, false);
 
     fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, time->hour, time->min, time->sec,
@@ -1309,6 +1309,9 @@ static void Update_Current_Time(void)
 {
     datetime_local(
         &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
+    fprintf(stderr, "[%s %d] Update_Current_Time: %d:%d:%d %d/%d/%d UTC offset: %d\n",
+        __FILE__, __LINE__, Local_Time.hour, Local_Time.min, Local_Time.sec,
+        Local_Date.year, Local_Date.month, Local_Date.day, UTC_Offset);
 }
 
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
