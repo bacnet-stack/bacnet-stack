@@ -55,6 +55,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     timeinfo->tm_min = btime->min;
     timeinfo->tm_sec = btime->sec;
 
+    fprintf(stderr, "[%s %d] Time)Offset = %d ms\n",
+        __FILE__, __LINE__, Time_Offset);
     fprintf(stderr, "[%s %d] timeinfo: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, timeinfo->tm_hour, timeinfo->tm_min,
         timeinfo->tm_sec, timeinfo->tm_year + 1900, timeinfo->tm_mon + 1,
@@ -67,11 +69,11 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         __FILE__, __LINE__, (long)tv_inp.tv_sec, (long)tv_inp.tv_usec);
     if (gettimeofday(&tv_sys, NULL) == 0) {
         if (utc) {
-            Time_Offset = time_difference(tv_sys, tv_inp) -
+            Time_Offset = time_difference(tv_inp, tv_sys) -
                 (timezone - timeinfo->tm_isdst * 3600) * 1000;
 
         } else {
-            Time_Offset = time_difference(tv_sys, tv_inp);
+            Time_Offset = time_difference(tv_inp, tv_sys);
         }
         fprintf(stderr, "[%s %d] tv_sys: %ld.%06ld\n",
             __FILE__, __LINE__, (long)tv_sys.tv_sec, (long)tv_sys.tv_usec);
@@ -103,7 +105,8 @@ bool datetime_local(
     struct tm *tblock = NULL;
     struct timeval tv;
     int32_t to;
-
+    fprintf(stderr, "[%s %d] gettimeofday Time Offset = %d ms\n",
+        __FILE__, __LINE__, Time_Offset);
     if (gettimeofday(&tv, NULL) == 0) {
         to = Time_Offset;
         fprintf(stderr, "[%s %d] tv.tv_sec = %ld\n", __FILE__, __LINE__, (long)tv.tv_sec);
