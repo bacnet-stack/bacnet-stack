@@ -52,13 +52,6 @@ typedef struct BACnet_Read_Range_Data {
 /**< For info functionality indicates array of lists if set */
 #define RR_ARRAY_OF_LISTS 16
 
-/** Bit String Enumerations */
-typedef enum {
-    RESULT_FLAG_FIRST_ITEM = 0,
-    RESULT_FLAG_LAST_ITEM = 1,
-    RESULT_FLAG_MORE_ITEMS = 2
-} BACNET_RESULT_FLAGS;
-
 /** Defines for ReadRange packet overheads to allow us to determine how
  * much space is left for actual payload:
  *
