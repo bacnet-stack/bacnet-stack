@@ -33,9 +33,9 @@ void handler_you_are_json_print(
     BACNET_CHARACTER_STRING model_name = { 0 };
     BACNET_CHARACTER_STRING serial_number = { 0 };
     BACNET_OCTET_STRING mac_address = { 0 };
-    char *model_name_string = "";
-    char *serial_number_string = "";
-    char *mac_address_string = "";
+    char *model_name_string = NULL;
+    char *serial_number_string = NULL;
+    char *mac_address_string = NULL;
 
     (void)src;
     len = you_are_request_decode(
@@ -50,22 +50,22 @@ void handler_you_are_json_print(
             if (model_name_string) {
                 bacapp_snprintf_character_string(
                     model_name_string, len + 1, &model_name);
-            } else {
-                model_name_string = "";
             }
         }
-        debug_printf_stdout(" \"model-name\" : %s,\n", model_name_string);
+        debug_printf_stdout(
+            " \"model-name\" : %s,\n",
+            model_name_string ? model_name_string : "");
         len = bacapp_snprintf_character_string(NULL, 0, &serial_number);
         if (len > 0) {
             serial_number_string = calloc(sizeof(char), len + 1);
             if (serial_number_string) {
                 bacapp_snprintf_character_string(
                     serial_number_string, len + 1, &serial_number);
-            } else {
-                serial_number_string = "";
             }
         }
-        debug_printf_stdout(" \"serial-number\" : %s", serial_number_string);
+        debug_printf_stdout(
+            " \"serial-number\" : %s",
+            serial_number_string ? serial_number_string : "");
         if (device_id <= BACNET_MAX_INSTANCE) {
             debug_printf_stdout(",\n");
             debug_printf_stdout(
@@ -79,23 +79,16 @@ void handler_you_are_json_print(
                 if (mac_address_string) {
                     bacapp_snprintf_octet_string(
                         mac_address_string, len + 1, &mac_address);
-                } else {
-                    mac_address_string = "";
                 }
             }
             debug_printf_stdout(
-                " \"device-mac-address\" : \"%s\"", mac_address_string);
+                " \"device-mac-address\" : \"%s\"",
+                mac_address_string ? mac_address_string : "");
         }
         debug_printf_stdout("\n }\n}\n");
-        if (model_name_string) {
-            free(model_name_string);
-        }
-        if (serial_number_string) {
-            free(serial_number_string);
-        }
-        if (mac_address_string) {
-            free(mac_address_string);
-        }
+        free(model_name_string);
+        free(serial_number_string);
+        free(mac_address_string);
     }
 
     return;
