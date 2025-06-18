@@ -2184,6 +2184,106 @@ static int bacapp_snprintf_double(char *str, size_t str_len, double value)
 }
 #endif
 
+/**
+ * @brief Print an octet string value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - octet string value to print
+ * @return number of characters written
+ */
+int bacapp_snprintf_octet_string(
+    char *str, size_t str_len, const BACNET_OCTET_STRING *value)
+{
+    int ret_val = 0;
+    int len = 0;
+    int slen = 0;
+    int i = 0;
+
+    len = octetstring_length(value);
+    if (len > 0) {
+        const uint8_t *octet_str;
+        octet_str = octetstring_value((BACNET_OCTET_STRING *)value);
+        for (i = 0; i < len; i++) {
+            slen = bacapp_snprintf(str, str_len, "%02X", *octet_str);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            octet_str++;
+        }
+    }
+
+    return ret_val;
+}
+
+/**
+ * @brief Print a character string value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - character string value to print
+ * @return number of characters written
+ */
+int bacapp_snprintf_character_string(
+    char *str, size_t str_len, const BACNET_CHARACTER_STRING *value)
+{
+    int ret_val = 0;
+    int len = 0;
+    int slen = 0;
+    int i = 0;
+    const char *char_str;
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
+    /* Wide character (decoded from multi-byte character). */
+    wchar_t wc;
+    /* Wide character length in bytes. */
+    int wclen;
+#endif
+
+    len = characterstring_length(value);
+    char_str = characterstring_value(value);
+    slen = bacapp_snprintf(str, str_len, "\"");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
+    if (characterstring_encoding(value) == CHARACTER_UTF8) {
+        while (len > 0) {
+            wclen = mbtowc(&wc, char_str, MB_CUR_MAX);
+            if (wclen == -1) {
+                /* Encoding error, reset state: */
+                mbtowc(NULL, NULL, MB_CUR_MAX);
+                /* After handling an invalid byte,
+                    retry with the next one. */
+                wclen = 1;
+                wc = L'?';
+            } else {
+                if (!iswprint(wc)) {
+                    wc = L'.';
+                }
+            }
+            /* For portability, cast wchar_t to wint_t */
+            slen = bacapp_snprintf(str, str_len, "%lc", (wint_t)wc);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            if (len > wclen) {
+                len -= wclen;
+                char_str += wclen;
+            } else {
+                len = 0;
+            }
+        }
+    } else
+#endif
+    {
+        for (i = 0; i < len; i++) {
+            if (isprint(*((const unsigned char *)char_str))) {
+                slen = bacapp_snprintf(str, str_len, "%c", *char_str);
+            } else {
+                slen = bacapp_snprintf(str, str_len, "%c", '.');
+            }
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            char_str++;
+        }
+    }
+    slen = bacapp_snprintf(str, str_len, "\"");
+    ret_val += slen;
+
+    return ret_val;
+}
+
 #if defined(BACAPP_BIT_STRING)
 /**
  * @brief Print a bit string value to a string for EPICS
@@ -3601,21 +3701,11 @@ static int bacapp_snprintf_action_command(
 int bacapp_snprintf_value(
     char *str, size_t str_len, const BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
-    size_t len = 0, i = 0;
     const BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
     int slen = 0;
-#if defined(BACAPP_CHARACTER_STRING)
-    const char *char_str;
-#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
-    /* Wide character (decoded from multi-byte character). */
-    wchar_t wc;
-    /* Wide character length in bytes. */
-    int wclen;
-#endif
-#endif
 
     if (object_value && object_value->value) {
         value = object_value->value;
@@ -3658,69 +3748,14 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
-                len = octetstring_length(&value->type.Octet_String);
-                if (len > 0) {
-                    const uint8_t *octet_str;
-                    octet_str = octetstring_value(
-                        (BACNET_OCTET_STRING *)&value->type.Octet_String);
-                    for (i = 0; i < len; i++) {
-                        slen =
-                            bacapp_snprintf(str, str_len, "%02X", *octet_str);
-                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                        octet_str++;
-                    }
-                }
+                ret_val = bacapp_snprintf_octet_string(
+                    str, str_len, &value->type.Octet_String);
                 break;
 #endif
 #if defined(BACAPP_CHARACTER_STRING)
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                len = characterstring_length(&value->type.Character_String);
-                char_str = characterstring_value(&value->type.Character_String);
-                slen = bacapp_snprintf(str, str_len, "\"");
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
-                if (characterstring_encoding(&value->type.Character_String) ==
-                    CHARACTER_UTF8) {
-                    while (len > 0) {
-                        wclen = mbtowc(&wc, char_str, MB_CUR_MAX);
-                        if (wclen == -1) {
-                            /* Encoding error, reset state: */
-                            mbtowc(NULL, NULL, MB_CUR_MAX);
-                            /* After handling an invalid byte,
-                               retry with the next one. */
-                            wclen = 1;
-                            wc = L'?';
-                        } else {
-                            if (!iswprint(wc)) {
-                                wc = L'.';
-                            }
-                        }
-                        /* For portability, cast wchar_t to wint_t */
-                        slen = bacapp_snprintf(str, str_len, "%lc", (wint_t)wc);
-                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                        if (len > wclen) {
-                            len -= wclen;
-                            char_str += wclen;
-                        } else {
-                            len = 0;
-                        }
-                    }
-                } else
-#endif
-                {
-                    for (i = 0; i < len; i++) {
-                        if (isprint(*((const unsigned char *)char_str))) {
-                            slen =
-                                bacapp_snprintf(str, str_len, "%c", *char_str);
-                        } else {
-                            slen = bacapp_snprintf(str, str_len, "%c", '.');
-                        }
-                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                        char_str++;
-                    }
-                }
-                slen = bacapp_snprintf(str, str_len, "\"");
-                ret_val += slen;
+                ret_val = bacapp_snprintf_character_string(
+                    str, str_len, &value->type.Character_String);
                 break;
 #endif
 #if defined(BACAPP_BIT_STRING)

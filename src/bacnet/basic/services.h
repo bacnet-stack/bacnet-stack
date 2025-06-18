@@ -53,6 +53,7 @@
 #include "bacnet/basic/service/h_wp.h"
 #include "bacnet/basic/service/h_wpm.h"
 #include "bacnet/basic/service/h_write_group.h"
+#include "bacnet/basic/service/h_youare.h"
 
 /* application layer service send helpers */
 #include "bacnet/basic/service/s_abort.h"

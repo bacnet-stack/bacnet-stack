@@ -11,11 +11,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
+#include <locale.h>
+#endif
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/whoami.h"
+#include "bacnet/youare.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bactext.h"
@@ -41,19 +45,6 @@ static BACNET_CHARACTER_STRING Source_Serial_Number = { 0 };
 static bool Error_Detected = false;
 /* debug info printing */
 static bool BACnet_Debug_Enabled;
-
-static void MyYouAreHandler(
-    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-    if (BACnet_Debug_Enabled) {
-        fprintf(stderr, "Received You-Are-Request");
-    }
-
-    return;
-}
 
 /**
  * @brief Print the BACnet Abort reason
@@ -95,7 +86,8 @@ static void init_service_handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the unconfirmed request that may be sent to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_YOU_ARE, MyYouAreHandler);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_YOU_ARE, handler_you_are_json_print);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
@@ -307,6 +299,17 @@ int main(int argc, char *argv[])
     }
     init_service_handlers();
     dlenv_init();
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
+    /* Internationalized programs must call setlocale()
+     * to initiate a specific language operation.
+     * This can be done by calling setlocale() as follows.
+     * If your native locale doesn't use UTF-8 encoding
+     * you need to replace the empty string with a
+     * locale like "en_US.utf8" which is the same as the string
+     * used in the enviromental variable "LANG=en_US.UTF-8".
+     */
+    setlocale(LC_ALL, "");
+#endif
     atexit(datalink_cleanup);
     if (timeout_milliseconds == 0) {
         timeout_milliseconds = apdu_timeout() * apdu_retries();

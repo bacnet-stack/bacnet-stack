@@ -474,6 +474,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_wpm.h
   src/bacnet/basic/service/h_write_group.c
   src/bacnet/basic/service/h_write_group.h
+  src/bacnet/basic/service/h_youare.c
+  src/bacnet/basic/service/h_youare.h
   src/bacnet/basic/service/s_abort.c
   src/bacnet/basic/service/s_abort.h
   src/bacnet/basic/service/s_ack_alarm.c
