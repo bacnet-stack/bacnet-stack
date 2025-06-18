@@ -1298,7 +1298,7 @@ void Device_Set_Datetime(BACNET_DATE *date, BACNET_TIME *time)
     datetime_set_time(&Local_Time, time->hour, time->min, time->sec,
         time->hundredths);
 
-    datetime_timesync(&Local_Date, &Local_Time, false);
+    datetime_timesync(&Local_Date, &Local_Time, true);
 
     fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
         __FILE__, __LINE__, time->hour, time->min, time->sec,
