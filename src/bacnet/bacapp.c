@@ -3705,7 +3705,9 @@ int bacapp_snprintf_value(
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
+#if defined(BACAPP_BDT_ENTRY) || defined(BACAPP_FDT_ENTRY)
     int slen = 0;
+#endif
 
     if (object_value && object_value->value) {
         value = object_value->value;
@@ -3789,9 +3791,8 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_TIMESTAMP)
             case BACNET_APPLICATION_TAG_TIMESTAMP:
-                slen = bacapp_timestamp_to_ascii(
+                ret_val = bacapp_timestamp_to_ascii(
                     str, str_len, &value->type.Time_Stamp);
-                ret_val += slen;
                 break;
 #endif
 #if defined(BACAPP_DATETIME)
