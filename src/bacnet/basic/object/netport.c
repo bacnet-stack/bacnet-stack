@@ -1052,7 +1052,8 @@ float Network_Port_Link_Speed(uint32_t object_instance)
  */
 static bool MSTP_Valid_Link_Speed(const float value)
 {
-    for (int i = 0; i < MSTP_LINK_SPEEDS_MAX; ++i) {
+    int i = 0;
+    for (; i < MSTP_LINK_SPEEDS_MAX; ++i) {
         if ((unsigned)value == MSTP_LINK_SPEEDS[i]) {
             return true;
         }
@@ -3887,8 +3888,8 @@ static int MSTP_Link_Speeds_Element_Encode(
     const BACNET_ARRAY_INDEX array_index,
     uint8_t *const apdu)
 {
-    (void)object_instance;
     int apdu_len = BACNET_STATUS_ERROR;
+    (void)object_instance;
 
     if (array_index < MSTP_LINK_SPEEDS_MAX) {
         apdu_len =
