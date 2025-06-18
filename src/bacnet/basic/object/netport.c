@@ -125,6 +125,13 @@ struct object_data {
 
 static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 
+#ifndef MSTP_LINK_SPEED_LIST
+#define MSTP_LINK_SPEED_LIST 9600, 19200, 38400, 57600, 76800, 115200
+#endif
+static unsigned MSTP_LINK_SPEEDS[] = { MSTP_LINK_SPEED_LIST };
+static unsigned MSTP_LINK_SPEEDS_MAX =
+    sizeof MSTP_LINK_SPEEDS / sizeof(unsigned);
+
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = {
     /* unordered list of required properties */
@@ -170,6 +177,7 @@ static const int MSTP_Port_Properties_Optional[] = {
     PROP_NETWORK_NUMBER,
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_LINK_SPEED,
+    PROP_LINK_SPEEDS,
 #endif
     -1
 };
@@ -1036,6 +1044,22 @@ float Network_Port_Link_Speed(uint32_t object_instance)
 }
 
 /**
+ * Validate the Link_Speed
+ *
+ * @param  value Link_Speed value in bits-per-second
+ * @return  true if values are in MSTP_Link_Speeds
+ */
+static bool MSTP_Valid_Link_Speed(const float value)
+{
+    for (int i = 0; i < MSTP_LINK_SPEEDS_MAX; ++i) {
+        if ((unsigned)value == MSTP_LINK_SPEEDS[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * For a given object instance-number, sets the Link_Speed
  *
  * @param  object_instance - object-instance number of the object
@@ -1049,8 +1073,11 @@ bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        Object_List[index].Link_Speed = value;
-        status = true;
+        if (Object_List[index].Network_Type != PORT_TYPE_MSTP ||
+            MSTP_Valid_Link_Speed(value)) {
+            Object_List[index].Link_Speed = value;
+            status = true;
+        }
     }
 
     return status;
@@ -3844,6 +3871,32 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int MSTP_Link_Speeds_Element_Encode(
+    const uint32_t object_instance,
+    const BACNET_ARRAY_INDEX array_index,
+    uint8_t *const apdu)
+{
+    (void)object_instance;
+    int apdu_len = BACNET_STATUS_ERROR;
+
+    if (array_index < MSTP_LINK_SPEEDS_MAX) {
+        apdu_len =
+            encode_application_real(apdu, (float)MSTP_LINK_SPEEDS[array_index]);
+    }
+
+    return apdu_len;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -3945,6 +3998,19 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_LINK_SPEED:
             apdu_len = encode_application_real(
                 &apdu[0], Network_Port_Link_Speed(rpdata->object_instance));
+            break;
+        case PROP_LINK_SPEEDS:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                MSTP_Link_Speeds_Element_Encode, MSTP_LINK_SPEEDS_MAX, apdu,
+                apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
             break;
         case PROP_CHANGES_PENDING:
             apdu_len = encode_application_boolean(
@@ -4337,6 +4403,24 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
+        case PROP_MAC_ADDRESS:
+            if (Network_Port_Type(wp_data->object_instance) == PORT_TYPE_MSTP) {
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_OCTET_STRING);
+                if (status) {
+                    status = Network_Port_MAC_Address_Set(
+                        wp_data->object_instance, value.type.Octet_String.value,
+                        value.type.Octet_String.length);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+            break;
         case PROP_MAX_MASTER:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
@@ -4370,6 +4454,23 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            }
+            break;
+        case PROP_LINK_SPEED:
+            if (Network_Port_Type(wp_data->object_instance) == PORT_TYPE_MSTP) {
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+                if (status) {
+                    status = Network_Port_Link_Speed_Set(
+                        wp_data->object_instance, value.type.Real);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
         case PROP_FD_BBMD_ADDRESS:
