@@ -1075,12 +1075,9 @@ bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type != PORT_TYPE_MSTP ||
-            MSTP_Valid_Link_Speed(value)) {
-            Object_List[index].Link_Speed = value;
-            Object_List[index].Changes_Pending = true;
-            status = true;
-        }
+        Object_List[index].Link_Speed = value;
+        Object_List[index].Changes_Pending = true;
+        status = true;
     }
 
     return status;
@@ -4464,8 +4461,11 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_REAL);
                 if (status) {
-                    status = Network_Port_Link_Speed_Set(
-                        wp_data->object_instance, value.type.Real);
+                    status = MSTP_Valid_Link_Speed(value.type.Real);
+                    if (status) {
+                        status = Network_Port_Link_Speed_Set(
+                            wp_data->object_instance, value.type.Real);
+                    }
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
