@@ -534,6 +534,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_wpm.h
   src/bacnet/basic/service/s_write_group.c
   src/bacnet/basic/service/s_write_group.h
+  src/bacnet/basic/service/s_youare.c
+  src/bacnet/basic/service/s_youare.h
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
@@ -662,6 +664,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/wpm.h
   src/bacnet/write_group.c
   src/bacnet/write_group.h
+  src/bacnet/youare.c
+  src/bacnet/youare.h
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.c>
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.h>)
 target_sources(
@@ -1123,6 +1127,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
+
+  add_executable(youare apps/you-are/main.c)
+  target_link_libraries(youare PRIVATE ${PROJECT_NAME})
 if(BACDL_BSC)
   add_executable(sc-hub apps/sc-hub/main.c)
   target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})

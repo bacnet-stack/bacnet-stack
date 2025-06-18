@@ -85,6 +85,8 @@
 #include "bacnet/basic/service/s_wp.h"
 #include "bacnet/basic/service/s_wpm.h"
 #include "bacnet/basic/service/s_write_group.h"
+#include "bacnet/basic/service/s_youare.h"
+#include "bacnet/basic/service/s_youare.h"
 
 /** @defgroup MISCHNDLR Miscellaneous Service Handlers
  * Various utilities and functions to support the service handlers

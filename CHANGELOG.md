@@ -91,6 +91,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added You-Are and Who-Am-I encoding, decoding, unit tests, and command
+  line applications bacyouare and bacwhoami.
 * Added the option to specify a target destination for
   apps/server-discover. (#958)
 * Added Program object task state transitions from request and callbacks. (#960)

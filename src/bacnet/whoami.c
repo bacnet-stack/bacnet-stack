@@ -113,7 +113,6 @@ int who_am_i_request_decode(
 {
     int len = 0, apdu_len = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-    BACNET_CHARACTER_STRING char_string = { 0 };
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
@@ -136,21 +135,19 @@ int who_am_i_request_decode(
     }
     apdu_len += len;
     len = bacnet_character_string_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &char_string);
+        &apdu[apdu_len], apdu_size - apdu_len, model_name);
     if (len > 0) {
-        characterstring_copy(model_name, &char_string);
+        apdu_len += len;
     } else {
         return BACNET_STATUS_ERROR;
     }
-    apdu_len += len;
     len = bacnet_character_string_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &char_string);
+        &apdu[apdu_len], apdu_size - apdu_len, serial_number);
     if (len > 0) {
-        characterstring_copy(serial_number, &char_string);
+        apdu_len += len;
     } else {
         return BACNET_STATUS_ERROR;
     }
-    apdu_len += len;
 
     return apdu_len;
 }
