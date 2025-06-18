@@ -971,6 +971,7 @@ bool Network_Port_MAC_Address_Set(
                 break;
         }
         if (mac_src && mac_dest && (mac_len == mac_size)) {
+            Object_List[index].Changes_Pending = true;
             memcpy(mac_dest, mac_src, mac_size);
             status = true;
         }
@@ -1076,6 +1077,7 @@ bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
         if (Object_List[index].Network_Type != PORT_TYPE_MSTP ||
             MSTP_Valid_Link_Speed(value)) {
             Object_List[index].Link_Speed = value;
+            Object_List[index].Changes_Pending = true;
             status = true;
         }
     }
