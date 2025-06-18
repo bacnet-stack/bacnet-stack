@@ -91,10 +91,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
-<<<<<<< feature/add-who-am-i-and-you-are-services
 * Added You-Are and Who-Am-I encoding, decoding, unit tests, and command
-  line applications bacyouare and bacwhoami.
-=======
+  line applications bacyouare and bacwhoami. Added You-Are handler and
+  integrated with apps/server example with JSON printout. (#1024)
 * Added object type and services supported BACnetBitString sizes for
   protocol revision 25-30. (#1020)
 * Added new BACnet text for BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
@@ -109,7 +108,6 @@ The git repositories are hosted at the following sites:
   BACnetAuthenticationDecision, BACnetAuthorizationPosture, BACnetFaultType,
   BACnetPriorityFilter, BACnetResultFlags, and BACnetSuccessFilter
   enumerations. (#1020)
->>>>>>> master
 * Added the option to specify a target destination for
   apps/server-discover. (#958)
 * Added Program object task state transitions from request and callbacks. (#960)
