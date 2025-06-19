@@ -78,6 +78,10 @@ int getevent_ack_decode_service_request(
     BACNET_GET_EVENT_INFORMATION_DATA *get_event_data,
     bool *moreEvents);
 
+BACNET_STACK_EXPORT
+void getevent_information_link_array(
+    BACNET_GET_EVENT_INFORMATION_DATA *array, size_t size);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

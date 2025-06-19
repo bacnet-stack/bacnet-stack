@@ -338,3 +338,21 @@ int getevent_ack_decode_service_request(
 
     return len;
 }
+
+/**
+ * @brief Convert an array of GetEventInformation-Request to linked list
+ * @param array pointer to element zero of the array
+ * @param size number of elements in the array
+ */
+void getevent_information_link_array(
+    BACNET_GET_EVENT_INFORMATION_DATA *array, size_t size)
+{
+    size_t i = 0;
+
+    for (i = 0; i < size; i++) {
+        if (i > 0) {
+            array[i - 1].next = &array[i];
+        }
+        array[i].next = NULL;
+    }
+}

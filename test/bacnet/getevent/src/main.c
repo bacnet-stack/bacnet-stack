@@ -98,36 +98,39 @@ static void testGetEventInformationAck(void)
     int apdu_len = 0;
     uint8_t invoke_id = 1;
     uint8_t test_invoke_id = 0;
-    BACNET_GET_EVENT_INFORMATION_DATA event_data;
-    BACNET_GET_EVENT_INFORMATION_DATA test_event_data;
+    BACNET_GET_EVENT_INFORMATION_DATA event_data[1] = { 0 };
+    BACNET_GET_EVENT_INFORMATION_DATA test_event_data[1] = { 0 };
     bool moreEvents = false;
     bool test_moreEvents = false;
     unsigned i = 0;
 
-    event_data.objectIdentifier.type = OBJECT_BINARY_INPUT;
-    event_data.objectIdentifier.instance = 1;
-    event_data.eventState = EVENT_STATE_NORMAL;
-    bitstring_init(&event_data.acknowledgedTransitions);
-    bitstring_set_bit(
-        &event_data.acknowledgedTransitions, TRANSITION_TO_OFFNORMAL, false);
-    bitstring_set_bit(
-        &event_data.acknowledgedTransitions, TRANSITION_TO_FAULT, false);
-    bitstring_set_bit(
-        &event_data.acknowledgedTransitions, TRANSITION_TO_NORMAL, false);
-    for (i = 0; i < 3; i++) {
-        event_data.eventTimeStamps[i].tag = TIME_STAMP_SEQUENCE;
-        event_data.eventTimeStamps[i].value.sequenceNum = 0;
-    }
-    event_data.notifyType = NOTIFY_ALARM;
-    bitstring_init(&event_data.eventEnable);
-    bitstring_set_bit(&event_data.eventEnable, TRANSITION_TO_OFFNORMAL, true);
-    bitstring_set_bit(&event_data.eventEnable, TRANSITION_TO_FAULT, true);
-    bitstring_set_bit(&event_data.eventEnable, TRANSITION_TO_NORMAL, true);
-    for (i = 0; i < 3; i++) {
-        event_data.eventPriorities[i] = 1;
-    }
-    event_data.next = NULL;
+    getevent_information_link_array(
+        &test_event_data, ARRAY_SIZE(test_event_data));
+    getevent_information_link_array(&event_data, ARRAY_SIZE(event_data));
 
+    event_data[0].objectIdentifier.type = OBJECT_BINARY_INPUT;
+    event_data[0].objectIdentifier.instance = 1;
+    event_data[0].eventState = EVENT_STATE_NORMAL;
+    bitstring_init(&event_data[0].acknowledgedTransitions);
+    bitstring_set_bit(
+        &event_data[0].acknowledgedTransitions, TRANSITION_TO_OFFNORMAL, false);
+    bitstring_set_bit(
+        &event_data[0].acknowledgedTransitions, TRANSITION_TO_FAULT, false);
+    bitstring_set_bit(
+        &event_data[0].acknowledgedTransitions, TRANSITION_TO_NORMAL, false);
+    for (i = 0; i < 3; i++) {
+        event_data[0].eventTimeStamps[i].tag = TIME_STAMP_SEQUENCE;
+        event_data[0].eventTimeStamps[i].value.sequenceNum = 0;
+    }
+    event_data[0].notifyType = NOTIFY_ALARM;
+    bitstring_init(&event_data[0].eventEnable);
+    bitstring_set_bit(
+        &event_data[0].eventEnable, TRANSITION_TO_OFFNORMAL, true);
+    bitstring_set_bit(&event_data[0].eventEnable, TRANSITION_TO_FAULT, true);
+    bitstring_set_bit(&event_data[0].eventEnable, TRANSITION_TO_NORMAL, true);
+    for (i = 0; i < 3; i++) {
+        event_data[0].eventPriorities[i] = 1;
+    }
     len = getevent_ack_encode_apdu_init(&apdu[0], sizeof(apdu), invoke_id);
     zassert_not_equal(len, 0, NULL);
     zassert_not_equal(len, -1, NULL);
@@ -149,13 +152,14 @@ static void testGetEventInformationAck(void)
     zassert_equal(test_invoke_id, invoke_id, NULL);
 
     zassert_equal(
-        event_data.objectIdentifier.type, test_event_data.objectIdentifier.type,
-        NULL);
+        event_data[0].objectIdentifier.type,
+        test_event_data[0].objectIdentifier.type, NULL);
     zassert_equal(
-        event_data.objectIdentifier.instance,
-        test_event_data.objectIdentifier.instance, NULL);
+        event_data[0].objectIdentifier.instance,
+        test_event_data[0].objectIdentifier.instance, NULL);
 
-    zassert_equal(event_data.eventState, test_event_data.eventState, NULL);
+    zassert_equal(
+        event_data[0].eventState, test_event_data[0].eventState, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
