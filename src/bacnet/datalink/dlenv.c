@@ -790,7 +790,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
         }
     }
     if (Network_Port_Type(Network_Port_Instance) == PORT_TYPE_MSTP) {
-        Datalink_Debug_Timer_Seconds = elapsed_seconds;
+        Datalink_Debug_Timer_Seconds += elapsed_seconds;
         if (Datalink_Debug_Timer_Seconds >= 60) {
             Datalink_Debug_Timer_Seconds = 0;
             if (Datalink_Debug) {
