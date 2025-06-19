@@ -1290,28 +1290,17 @@ bool Device_Object_Name_Copy(
 
 void Device_Set_Datetime(BACNET_DATE *date, BACNET_TIME *time)
 {
-    fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
-        __FILE__, __LINE__, time->hour, time->min, time->sec,
-        date->year, date->month, date->day);
-
     datetime_set_date(&Local_Date, date->year, date->month, date->day);
     datetime_set_time(&Local_Time, time->hour, time->min, time->sec,
         time->hundredths);
 
     datetime_timesync(&Local_Date, &Local_Time, true);
-
-    fprintf(stderr, "[%s %d] Device_set_datetime: %d:%d:%d %d/%d/%d\n",
-        __FILE__, __LINE__, time->hour, time->min, time->sec,
-        date->year, date->month, date->day);
 }
 
 static void Update_Current_Time(void)
 {
     datetime_local(
         &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
-    fprintf(stderr, "[%s %d] Update_Current_Time: %d:%d:%d %d/%d/%d UTC offset: %d\n",
-        __FILE__, __LINE__, Local_Time.hour, Local_Time.min, Local_Time.sec,
-        Local_Date.year, Local_Date.month, Local_Date.day, UTC_Offset);
 }
 
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
@@ -1332,7 +1321,6 @@ int32_t Device_UTC_Offset(void)
 void Device_UTC_Offset_Set(int16_t offset)
 {
     UTC_Offset = offset;
-    fprintf(stderr, "Device_UTC_Offset_Set: %d\n", UTC_Offset);
 }
 
 bool Device_Daylight_Savings_Status(void)
@@ -1898,8 +1886,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if ((value.type.Signed_Int < (12 * 60)) &&
                     (value.type.Signed_Int > (-12 * 60))) {
                     Device_UTC_Offset_Set(value.type.Signed_Int);
-                    fprintf(stderr, "[%s %d]  Device_UTC_Offset_Set: %d\n",
-                        __FILE__, __LINE__, value.type.Signed_Int);
                     status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

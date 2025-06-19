@@ -18,10 +18,7 @@ void datetime_init(void)
 {
 }
 
-void datetime_timesync(
-    BACNET_DATE *bdate,
-    BACNET_TIME *btime,
-    bool utc)
+void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     (void)bdate;
     (void)btime;
@@ -29,7 +26,6 @@ void datetime_timesync(
 
     /* This is a stub, so we do nothing */
 }
-
 
 bool datetime_local(
     BACNET_DATE *bdate,
