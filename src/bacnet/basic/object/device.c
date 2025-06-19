@@ -1291,8 +1291,8 @@ bool Device_Object_Name_Copy(
 void Device_Set_Datetime(BACNET_DATE *date, BACNET_TIME *time)
 {
     datetime_set_date(&Local_Date, date->year, date->month, date->day);
-    datetime_set_time(&Local_Time, time->hour, time->min, time->sec,
-        time->hundredths);
+    datetime_set_time(
+        &Local_Time, time->hour, time->min, time->sec, time->hundredths);
 
     datetime_timesync(&Local_Date, &Local_Time, true);
 }
