@@ -59,14 +59,7 @@ void handler_get_alarm_summary(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_len == 0) {
-        apdu_len = reject_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_print("GetAlarmSummary: Missing Required Parameter. "
-                    "Sending Reject!\n");
-        goto GET_ALARM_SUMMARY_ABORT;
-    } else if (service_data->segmented_message) {
+    if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         apdu_len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
