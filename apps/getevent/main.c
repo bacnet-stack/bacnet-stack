@@ -114,7 +114,7 @@ static void My_Get_Event_Ack_Handler(
     BACNET_GET_EVENT_INFORMATION_DATA data[MAX_OBJ_IDS_IN_GE_ACK] = { 0 };
 
     (void)src;
-    getevent_information_link_array(data, ARRAY_SIZE(data));
+    getevent_information_link_array(&data[0], ARRAY_SIZE(data));
     printf(
         "Recieved Ack. Saved invoke ID was %i, service returned %i\n",
         Request_Invoke_ID, service_data->invoke_id);

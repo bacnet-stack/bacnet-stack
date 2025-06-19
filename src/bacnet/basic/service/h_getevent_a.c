@@ -52,7 +52,7 @@ void get_event_ack_handler(
 
     (void)src;
     (void)service_data;
-    getevent_information_link_array(get_event_data, ARRAY_SIZE(get_event_data));
+    getevent_information_link_array(&get_event_data[0], ARRAY_SIZE(get_event_data));
     apdu_len = getevent_ack_decode_service_request(
         &service_request[0], service_len, &get_event_data[0], &more_events);
 
