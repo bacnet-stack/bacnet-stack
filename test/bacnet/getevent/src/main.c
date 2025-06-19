@@ -105,8 +105,8 @@ static void testGetEventInformationAck(void)
     unsigned i = 0;
 
     getevent_information_link_array(
-        &test_event_data, ARRAY_SIZE(test_event_data));
-    getevent_information_link_array(&event_data, ARRAY_SIZE(event_data));
+        test_event_data, ARRAY_SIZE(test_event_data));
+    getevent_information_link_array(event_data, ARRAY_SIZE(event_data));
 
     event_data[0].objectIdentifier.type = OBJECT_BINARY_INPUT;
     event_data[0].objectIdentifier.instance = 1;
