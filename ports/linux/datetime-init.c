@@ -82,6 +82,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         }
         fprintf(stderr, "[%s %d] tv_sys: %ld.%06ld\n",
             __FILE__, __LINE__, (long)tv_sys.tv_sec, (long)tv_sys.tv_usec);
+        fprintf(stderr, "[%s %d] timezone = %ld\n",
+            __FILE__, __LINE__, (long)timezone);
 
 #if PRINT_ENABLED
         printf("Time offset = %d\n", Time_Offset);
@@ -111,6 +113,9 @@ bool datetime_local(
     int32_t to;
     fprintf(stderr, "[%s %d] gettimeofday Time Offset = %d ms\n",
         __FILE__, __LINE__, Time_Offset);
+    fprintf(stderr, "[%s %d] gettimeofday timezone = %ld\n",
+        __FILE__, __LINE__, (long)timezone);
+
     if (gettimeofday(&tv, NULL) == 0) {
         to = Time_Offset;
         fprintf(stderr, "[%s %d] tv.tv_sec = %ld\n", __FILE__, __LINE__, (long)tv.tv_sec);
@@ -159,6 +164,8 @@ bool datetime_local(
                 between Coordinated Universal Time (UTC) and
                 local standard time */
             *utc_offset_minutes = timezone / 60;
+            fprintf(stderr, "[%s %d] UTC offset = %d minutes\n",
+                __FILE__, __LINE__, *utc_offset_minutes);
         }
     }
 

@@ -1898,6 +1898,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if ((value.type.Signed_Int < (12 * 60)) &&
                     (value.type.Signed_Int > (-12 * 60))) {
                     Device_UTC_Offset_Set(value.type.Signed_Int);
+                    fprintf(stderr, "[%s %d]  Device_UTC_Offset_Set: %d\n",
+                        __FILE__, __LINE__, value.type.Signed_Int);
                     status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
