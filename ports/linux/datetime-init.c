@@ -163,7 +163,7 @@ bool datetime_local(
             /* timezone is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
                 local standard time */
-            *utc_offset_minutes = timezone / 60;
+            *utc_offset_minutes = -(timezone / 60);
             fprintf(stderr, "[%s %d] UTC offset = %d minutes\n",
                 __FILE__, __LINE__, *utc_offset_minutes);
         }
