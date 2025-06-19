@@ -181,6 +181,9 @@ static void init_service_handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, my_i_am_handler);
+    /* handle any Who-Am-I requests we receive */
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_AM_I, handler_who_am_i_json_print);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);

@@ -16,7 +16,7 @@
  */
 
 /**
- * @brief Who-Am-I-Request service decoder
+ * @brief You-Are-Request service decoder
  * @param apdu [in] Buffer containing the APDU
  * @param apdu_size [in] The length of the APDU
  * @param device_id the Device Object_Identifier to be assigned

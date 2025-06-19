@@ -464,6 +464,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_ucov.h
   src/bacnet/basic/service/h_upt.c
   src/bacnet/basic/service/h_upt.h
+  src/bacnet/basic/service/h_whoami.c
+  src/bacnet/basic/service/h_whoami.h
   src/bacnet/basic/service/h_whohas.c
   src/bacnet/basic/service/h_whohas.h
   src/bacnet/basic/service/h_whois.c

@@ -61,19 +61,6 @@ MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
     Error_Detected = true;
 }
 
-/** Handler for Who-Am-I-Requests, with broadcast You-Are response.
- * @param service_request [in] The received message to be handled.
- * @param service_len [in] Length of the service_request message.
- * @param src [in] The BACNET_ADDRESS of the message's source (ignored).
- */
-void MyWhoAmIHandler(
-    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-}
-
 /**
  * @brief Initialize the BACnet service handlers that this application
  *  needs to use.
@@ -91,7 +78,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_AM_I, MyWhoAmIHandler);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_AM_I, handler_who_am_i_json_print);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);

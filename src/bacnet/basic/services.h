@@ -48,6 +48,7 @@
 #include "bacnet/basic/service/h_ts.h"
 #include "bacnet/basic/service/h_ucov.h"
 #include "bacnet/basic/service/h_upt.h"
+#include "bacnet/basic/service/h_whoami.h"
 #include "bacnet/basic/service/h_whohas.h"
 #include "bacnet/basic/service/h_whois.h"
 #include "bacnet/basic/service/h_wp.h"

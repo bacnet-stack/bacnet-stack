@@ -26,7 +26,7 @@
 #include "bacnet/datalink/datalink.h"
 
 /**
- * @brief Send a Who-Am-I service request to a remote network
+ * @brief Send a You-Are service request to a remote network
  * @param target_address [in] BACnet address of the target network
  * @param device_id the Device Object_Identifier to be assigned
  *  in the qualified device.
