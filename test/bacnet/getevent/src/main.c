@@ -147,7 +147,7 @@ static void testGetEventInformationAck(void)
     apdu_len += len;
     len = getevent_ack_decode_apdu(
         &apdu[0], apdu_len, /* total length of the apdu */
-        &test_invoke_id, &test_event_data, &test_moreEvents);
+        &test_invoke_id, &test_event_data[0], &test_moreEvents);
     zassert_not_equal(len, -1, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
 
