@@ -15,6 +15,9 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/npdu.h"
+#if BACNET_SEGMENTATION_ENABLED
+#include "bacnet/apdu.h"
+#endif
 
 /* note: TSM functionality is optional - only needed if we are
    doing client requests */
@@ -37,9 +40,25 @@ typedef enum {
     TSM_STATE_IDLE,
     TSM_STATE_AWAIT_CONFIRMATION,
     TSM_STATE_AWAIT_RESPONSE,
-    TSM_STATE_SEGMENTED_REQUEST,
+    TSM_STATE_SEGMENTED_REQUEST_SERVER,
     TSM_STATE_SEGMENTED_CONFIRMATION
+#if BACNET_SEGMENTATION_ENABLED
+    ,TSM_STATE_SEGMENTED_RESPONSE_SERVER
+#endif
 } BACNET_TSM_STATE;
+
+#if BACNET_SEGMENTATION_ENABLED
+/* Indirect data state : */
+typedef struct BACnet_TSM_Indirect_Data {
+    /* the address we received data from */
+    BACNET_ADDRESS PeerAddress;
+    /* the peer unique id */
+    uint8_t PeerInvokeID;
+    /* the unique id to use within our internal states.
+       zero means : "unused slot". */
+    uint8_t InternalInvokeID;
+} BACNET_TSM_INDIRECT_DATA;
+#endif
 
 /* 5.4.1 Variables And Parameters */
 /* The following variables are defined for each instance of  */
@@ -47,21 +66,23 @@ typedef enum {
 typedef struct BACnet_TSM_Data {
     /* used to count APDU retries */
     uint8_t RetryCount;
+#if BACNET_SEGMENTATION_ENABLED
     /* used to count segment retries */
-    /*uint8_t SegmentRetryCount;  */
+    uint8_t SegmentRetryCount;  
     /* used to control APDU retries and the acceptance of server replies */
-    /*bool SentAllSegments;  */
+    bool SentAllSegments;  
     /* stores the sequence number of the last segment received in order */
-    /*uint8_t LastSequenceNumber; */
+    uint8_t LastSequenceNumber; 
     /* stores the sequence number of the first segment of */
     /* a sequence of segments that fill a window */
-    /*uint8_t InitialSequenceNumber; */
+    uint8_t InitialSequenceNumber; 
     /* stores the current window size */
-    /*uint8_t ActualWindowSize; */
+    uint8_t ActualWindowSize; 
     /* stores the window size proposed by the segment sender */
-    /*uint8_t ProposedWindowSize;  */
+    uint8_t ProposedWindowSize;  
     /*  used to perform timeout on PDU segments */
-    /*uint8_t SegmentTimer; */
+    uint16_t SegmentTimer; 
+#endif
     /* used to perform timeout on Confirmed Requests */
     /* in milliseconds */
     uint16_t RequestTimer;
@@ -73,9 +94,25 @@ typedef struct BACnet_TSM_Data {
     BACNET_ADDRESS dest;
     /* the network layer info */
     BACNET_NPDU_DATA npdu_data;
-    /* copy of the APDU, should we need to send it again */
-    uint8_t apdu[MAX_PDU];
     unsigned apdu_len;
+    /* copy of the APDU, should we need to send it again */
+    uint8_t *apdu;
+#if BACNET_SEGMENTATION_ENABLED
+    /* APDU header informations */
+    BACNET_APDU_FIXED_HEADER apdu_fixed_header;
+    /* calculated max APDU length / packet */
+    uint32_t apdu_maximum_length;
+    /* calculated max APDU length / total */
+    uint32_t maximum_transmittable_length;
+    /* Multiple APDU segments blob memorized here */
+    uint8_t *apdu_blob;
+    /* Size of allocated Multiple APDU segments blob */
+    uint32_t apdu_blob_allocated;
+    /* Size of data within the multiple APDU segments blob  */
+    uint32_t apdu_blob_size;
+    /* Count received segments (prevents D.O.S.) */
+    uint32_t ReceivedSegmentsCount;
+#endif
 } BACNET_TSM_DATA;
 
 typedef void (*tsm_timeout_function)(uint8_t invoke_id);
@@ -123,6 +160,69 @@ bool tsm_invoke_id_free(uint8_t invokeID);
 BACNET_STACK_EXPORT
 bool tsm_invoke_id_failed(uint8_t invokeID);
 
+#if BACNET_SEGMENTATION_ENABLED
+/** Clear TSM Peer data */
+BACNET_STACK_EXPORT
+void tsm_clear_peer_id(uint8_t InternalInvokeID);
+
+/* frees the invokeID and sets its state to IDLE */
+BACNET_STACK_EXPORT
+void tsm_free_invoke_id_check(
+    uint8_t invokeID, 
+    BACNET_ADDRESS *peer_address, 
+    bool cleanup);
+
+/* Associates a Peer address and invoke ID with our TSM */
+BACNET_STACK_EXPORT
+uint8_t tsm_get_peer_id(
+    BACNET_ADDRESS *src, 
+    uint8_t invokeID);
+
+BACNET_STACK_EXPORT
+bool tsm_set_segmented_confirmed_service_received(
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data,
+    uint8_t *internal_invoke_id,
+    uint8_t **pservice_request, /* IN/OUT */
+    uint16_t *pservice_request_len /* IN/OUT */
+);
+
+BACNET_STACK_EXPORT
+int tsm_set_complexack_transaction(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    BACNET_APDU_FIXED_HEADER *apdu_fixed_header,
+    BACNET_CONFIRMED_SERVICE_DATA *confirmed_service_data,
+    uint8_t *pdu,
+    uint32_t pdu_len);
+
+BACNET_STACK_EXPORT
+void tsm_segmentack_received(
+    uint8_t invoke_id,
+    uint8_t sequence_number,
+    uint8_t actual_window_size,
+    bool nak,
+    bool server,
+    BACNET_ADDRESS *src);
+
+BACNET_STACK_EXPORT
+bool check_unexpected_pdu_received(
+    BACNET_ADDRESS *src, 
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
+
+BACNET_STACK_EXPORT
+void abort_pdu_send(
+    uint8_t invoke_id, 
+    BACNET_ADDRESS *dest, 
+    uint8_t reason, 
+    bool server);
+
+BACNET_STACK_EXPORT
+void tsm_free_invoke_id_segmentation(
+    BACNET_ADDRESS *src,
+    uint8_t invoke_id);
+
+#endif
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
