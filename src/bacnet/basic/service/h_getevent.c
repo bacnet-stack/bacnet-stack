@@ -96,7 +96,7 @@ void handler_get_event_information(
     BACNET_ADDRESS my_address;
     BACNET_OBJECT_ID object_id;
     unsigned i = 0, j = 0; /* counter */
-    BACNET_GET_EVENT_INFORMATION_DATA getevent_data;
+    BACNET_GET_EVENT_INFORMATION_DATA getevent_data = { 0 };
     int valid_event = 0;
 
     /* initialize type of 'Last Received Object Identifier' using max value */
