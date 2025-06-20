@@ -8,6 +8,7 @@
  */
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
@@ -16,6 +17,7 @@
 /* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/youare.h"
+#include "bacnet/whoami.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/version.h"
@@ -23,6 +25,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
@@ -37,6 +40,9 @@ static uint16_t Target_Vendor_ID;
 static BACNET_OCTET_STRING Target_MAC_Address;
 static BACNET_CHARACTER_STRING Target_Model_Name;
 static BACNET_CHARACTER_STRING Target_Serial_Number;
+static bool Target_Send_You_Are_Approved;
+static BACNET_ADDRESS Target_Destination_Address;
+
 /* flag for signalling errors */
 static bool Error_Detected = false;
 
@@ -62,6 +68,36 @@ MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 }
 
 /**
+ * A basic handler for Who-Am-I responses.
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source.
+ */
+static void My_Who_Am_I_Handler(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
+{
+    int len = 0;
+    uint16_t vendor_id = 0;
+    BACNET_CHARACTER_STRING model_name = { 0 };
+    BACNET_CHARACTER_STRING serial_number = { 0 };
+
+    (void)src;
+    len = who_am_i_request_decode(
+        service_request, service_len, &vendor_id, &model_name, &serial_number);
+    if (len > 0) {
+        printf("Who-Am-I Requested.\n");
+        if ((Target_Vendor_ID == vendor_id) &&
+            characterstring_same(&Target_Model_Name, &model_name) &&
+            characterstring_same(&Target_Serial_Number, &serial_number)) {
+            bacnet_address_copy(&Target_Destination_Address, src);
+            Target_Send_You_Are_Approved = true;
+        }
+    }
+
+    return;
+}
+
+/**
  * @brief Initialize the BACnet service handlers that this application
  *  needs to use.
  */
@@ -79,7 +115,7 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_WHO_AM_I, handler_who_am_i_json_print);
+        SERVICE_UNCONFIRMED_WHO_AM_I, My_Who_Am_I_Handler);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
@@ -90,6 +126,7 @@ static void print_usage(const char *filename)
     printf(
         "Usage: %s [device-instance vendor-id model-name serial [MAC]]\n",
         filename);
+    printf("       [--whois]\n");
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
@@ -97,6 +134,8 @@ static void print_usage(const char *filename)
 static void print_help(const char *filename)
 {
     printf("Send BACnet You-Are message to the network.\n");
+    printf("--whois\n"
+           "Optionally send a Who-Is request to 4194303 to elicit Who-Am-I.\n");
     printf("--mac A\n"
            "Optional BACnet mac address."
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
@@ -165,11 +204,13 @@ int main(int argc, char *argv[])
     BACNET_ADDRESS dest = { 0 };
     bool specific_address = false;
     bool repeat_forever = false;
+    bool send_whois = false;
     unsigned timeout = 100; /* milliseconds */
     int argi = 0;
     unsigned int target_args = 0;
     const char *filename = NULL;
     long retry_count = 0;
+    struct mstimer apdu_timer = { 0 };
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -206,6 +247,8 @@ int main(int argc, char *argv[])
                     specific_address = true;
                 }
             }
+        } else if (strcmp(argv[argi], "--whois") == 0) {
+            send_whois = true;
         } else if (strcmp(argv[argi], "--repeat") == 0) {
             repeat_forever = true;
         } else if (strcmp(argv[argi], "--retry") == 0) {
@@ -261,11 +304,23 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     /* send the request */
+    if (send_whois) {
+        mstimer_set(&apdu_timer, apdu_timeout() * apdu_retries());
+        Send_WhoIs_To_Network(&dest, BACNET_MAX_INSTANCE, BACNET_MAX_INSTANCE);
+    } else {
+        bacnet_address_copy(&Target_Destination_Address, &dest);
+        Target_Send_You_Are_Approved = true;
+    }
     do {
-        Send_You_Are_To_Network(
-            &dest, Target_Device_ID, Target_Vendor_ID, &Target_Model_Name,
-            &Target_Serial_Number, &Target_MAC_Address);
-        if (repeat_forever || retry_count) {
+        if (Target_Send_You_Are_Approved) {
+            Send_You_Are_To_Network(
+                &dest, Target_Device_ID, Target_Vendor_ID, &Target_Model_Name,
+                &Target_Serial_Number, &Target_MAC_Address);
+            if (send_whois) {
+                break;
+            }
+        }
+        if (repeat_forever || retry_count || mstimer_interval(&apdu_timer)) {
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
             /* process */
@@ -279,7 +334,7 @@ int main(int argc, char *argv[])
                 retry_count--;
             }
         }
-    } while (repeat_forever || retry_count);
+    } while (repeat_forever || retry_count || !mstimer_expired(&apdu_timer));
 
     return 0;
 }

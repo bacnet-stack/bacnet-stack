@@ -174,8 +174,6 @@ static void Init_Service_Handlers(void)
                 (unsigned)object_data.object_instance);
         }
     }
-    /* update structured view with this device instance */
-    Structured_View_Update();
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_who_am_i_unicast);
@@ -295,6 +293,7 @@ int main(int argc, char *argv[])
     uint32_t elapsed_milliseconds = 0;
     uint32_t elapsed_seconds = 0;
     BACNET_CHARACTER_STRING DeviceName;
+    uint32_t device_id = 0xFFFFFFFF;
 #if defined(BACNET_TIME_MASTER)
     BACNET_DATE_TIME bdatetime;
 #endif
@@ -380,22 +379,27 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
 #if BACNET_PROTOCOL_REVISION >= 22
     if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+        apdu_set_unconfirmed_handler(
+            SERVICE_UNCONFIRMED_YOU_ARE, handler_you_are_device_id_set);
         /* The Who-Am-I service is used by a sending BACnet-user
            to indicate that it requires identity configuration
            via the You-Are service. */
         Send_Who_Am_I_Broadcast(
             Device_Vendor_Identifier(), Device_Model_Name(),
             Device_Serial_Number());
-    } else {
-        /* broadcast an I-Am on startup */
-        Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
-#else
-    /* broadcast an I-Am on startup */
-    Send_I_Am(&Handler_Transmit_Buffer[0]);
 #endif
     /* loop forever */
     for (;;) {
+        if (device_id != Device_Object_Instance_Number()) {
+            device_id = Device_Object_Instance_Number();
+            /* update structured view with this device instance */
+            Structured_View_Update();
+            if (Device_Object_Instance_Number() != BACNET_MAX_INSTANCE) {
+                /* broadcast an I-Am on startup */
+                Send_I_Am(&Handler_Transmit_Buffer[0]);
+            }
+        }
         /* input */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 

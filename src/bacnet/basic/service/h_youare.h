@@ -25,6 +25,10 @@ BACNET_STACK_EXPORT
 void handler_you_are_json_print(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src);
 
+BACNET_STACK_EXPORT
+void handler_you_are_device_id_set(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

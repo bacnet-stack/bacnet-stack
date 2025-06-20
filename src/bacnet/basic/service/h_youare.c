@@ -17,6 +17,7 @@
 #include "bacnet/youare.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/object/device.h"
 
 /**
  * A basic handler for You-Are responses.
@@ -89,6 +90,39 @@ void handler_you_are_json_print(
         free(model_name_string);
         free(serial_number_string);
         free(mac_address_string);
+    }
+
+    return;
+}
+
+/**
+ * A basic handler for You-Are-Request
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source.
+ */
+void handler_you_are_device_id_set(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
+{
+    int len = 0;
+    uint32_t device_id = 0;
+    uint16_t vendor_id = 0;
+    BACNET_CHARACTER_STRING model_name = { 0 }, device_model_name = { 0 };
+    BACNET_CHARACTER_STRING serial_number = { 0 }, device_serial_number = { 0 };
+
+    (void)src;
+    len = you_are_request_decode(
+        service_request, service_len, &device_id, &vendor_id, &model_name,
+        &serial_number, NULL);
+    if (len > 0) {
+        characterstring_init_ansi(&device_model_name, Device_Model_Name());
+        characterstring_init_ansi(
+            &device_serial_number, Device_Serial_Number());
+        if ((Device_Vendor_Identifier() == vendor_id) &&
+            characterstring_same(&device_model_name, &model_name) &&
+            characterstring_same(&device_serial_number, &serial_number)) {
+            Device_Set_Object_Instance_Number(device_id);
+        }
     }
 
     return;
