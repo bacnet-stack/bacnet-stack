@@ -448,6 +448,10 @@ whois: $(BACNET_LIB_TARGET)
 who-am-i: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: you-are
+you-are: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: writebdt
 writebdt: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@

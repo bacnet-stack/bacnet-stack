@@ -26,6 +26,12 @@ int Send_Who_Am_I_To_Network(
     const BACNET_CHARACTER_STRING *model_name,
     const BACNET_CHARACTER_STRING *serial_number);
 
+BACNET_STACK_EXPORT
+int Send_Who_Am_I_Broadcast(
+    uint16_t device_vendor_id,
+    const char *device_model_name,
+    const char *device_serial_number);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

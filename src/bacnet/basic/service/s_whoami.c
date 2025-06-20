@@ -67,3 +67,26 @@ int Send_Who_Am_I_To_Network(
 
     return bytes_sent;
 }
+
+/**
+ * @brief Send an I-Am broadcast message in response to Who-Is message
+ * @param buffer [in] The buffer to use for building and sending the message.
+ * @return The number of bytes sent to the network.
+ */
+int Send_Who_Am_I_Broadcast(
+    uint16_t device_vendor_id,
+    const char *device_model_name,
+    const char *device_serial_number)
+{
+    int bytes_sent = 0;
+    BACNET_CHARACTER_STRING model_name = { 0 }, serial_number = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+
+    datalink_get_broadcast_address(&dest);
+    characterstring_init_ansi(&model_name, device_model_name);
+    characterstring_init_ansi(&serial_number, device_serial_number);
+    bytes_sent = Send_Who_Am_I_To_Network(
+        &dest, device_vendor_id, &model_name, &serial_number);
+
+    return bytes_sent;
+}

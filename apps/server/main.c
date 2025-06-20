@@ -177,7 +177,8 @@ static void Init_Service_Handlers(void)
     /* update structured view with this device instance */
     Structured_View_Update();
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_who_am_i_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
@@ -377,8 +378,22 @@ int main(int argc, char *argv[])
     }
     dlenv_init();
     atexit(datalink_cleanup);
+#if BACNET_PROTOCOL_REVISION >= 22
+    if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+        /* The Who-Am-I service is used by a sending BACnet-user
+           to indicate that it requires identity configuration
+           via the You-Are service. */
+        Send_Who_Am_I_Broadcast(
+            Device_Vendor_Identifier(), Device_Model_Name(),
+            Device_Serial_Number());
+    } else {
+        /* broadcast an I-Am on startup */
+        Send_I_Am(&Handler_Transmit_Buffer[0]);
+    }
+#else
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
+#endif
     /* loop forever */
     for (;;) {
         /* input */
