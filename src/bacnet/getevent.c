@@ -430,7 +430,9 @@ int getevent_ack_decode_service_request(
             &apdu[apdu_len], apdu_size - apdu_len, 4, &enum_value);
         if (len > 0) {
             if (enum_value < NOTIFY_MAX) {
-                data->notifyType = (BACNET_NOTIFY_TYPE)enum_value;
+                if (data) {
+                    data->notifyType = (BACNET_NOTIFY_TYPE)enum_value;
+                }
             } else {
                 return BACNET_STATUS_ERROR;
             }

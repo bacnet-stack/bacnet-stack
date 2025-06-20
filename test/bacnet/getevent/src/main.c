@@ -64,27 +64,25 @@ static int getevent_ack_decode_apdu(
     BACNET_GET_EVENT_INFORMATION_DATA *get_event_data,
     bool *moreEvents)
 {
-    int len = 0;
-    int offset = 0;
-
     if (!apdu) {
-        return -1;
+        return BACNET_STATUS_ERROR;
+    }
+    if (apdu_len < 3) {
+        return BACNET_STATUS_ERROR; /* too short */
     }
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
-    *invoke_id = apdu[1];
+    if (invoke_id) {
+        *invoke_id = apdu[1];
+    }
     if (apdu[2] != SERVICE_CONFIRMED_GET_EVENT_INFORMATION) {
-        return -1;
-    }
-    offset = 3;
-    if (apdu_len > offset) {
-        len = getevent_ack_decode_service_request(
-            &apdu[offset], apdu_len - offset, get_event_data, moreEvents);
+        return BACNET_STATUS_ERROR;
     }
 
-    return len;
+    return getevent_ack_decode_service_request(
+        &apdu[3], apdu_len - 3, get_event_data, moreEvents);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -94,8 +92,7 @@ static void testGetEventInformationAck(void)
 #endif
 {
     uint8_t apdu[480] = { 0 };
-    int len = 0;
-    int apdu_len = 0;
+    int len = 0, apdu_len = 0, null_len = 0;
     uint8_t invoke_id = 1;
     uint8_t test_invoke_id = 0;
     BACNET_GET_EVENT_INFORMATION_DATA event_data[1] = { 0 };
@@ -145,9 +142,11 @@ static void testGetEventInformationAck(void)
     zassert_not_equal(len, 0, NULL);
     zassert_not_equal(len, -1, NULL);
     apdu_len += len;
+    null_len = getevent_ack_decode_apdu(&apdu[0], apdu_len, NULL, NULL, NULL);
     len = getevent_ack_decode_apdu(
         &apdu[0], apdu_len, /* total length of the apdu */
         &test_invoke_id, &test_event_data[0], &test_moreEvents);
+    zassert_equal(null_len, len, "null_len=%d len=%d", null_len, len);
     zassert_not_equal(len, -1, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
 
@@ -160,6 +159,11 @@ static void testGetEventInformationAck(void)
 
     zassert_equal(
         event_data[0].eventState, test_event_data[0].eventState, NULL);
+    while (apdu_len) {
+        apdu_len--;
+        len = getevent_ack_decode_apdu(&apdu[0], apdu_len, NULL, NULL, NULL);
+        zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    }
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
