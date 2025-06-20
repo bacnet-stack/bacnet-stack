@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
+
 ### Added
 
 * Added more writable properties to Analog, Binary, and Multistate Output
@@ -48,6 +50,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed GetEvent usage of linked list by initializing next in all
+  the examples and unit test. (#1026)
 * Fixed usage of Keylist_Data_Add() return value in Calendar,
   CharacterString Value, Load Control, and BACnet/SC Network Port
   objects. (#1016)
