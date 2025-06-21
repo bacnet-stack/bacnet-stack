@@ -45,7 +45,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "config.h"
-#include "platform.h"
 #include "tokenizer.h"
 
 /* define a status structure with bit fields */
@@ -63,24 +62,31 @@ typedef union {
     } bit;
 } UBASIC_STATUS;
 
-#define MAX_FOR_STACK_DEPTH 4
+#ifndef UBASIC_FOR_LOOP_STACK_DEPTH
+#define UBASIC_FOR_LOOP_STACK_DEPTH 4
+#endif
 struct ubasic_for_state {
     uint16_t line_after_for;
     uint8_t for_variable;
-    VARIABLE_TYPE to;
-    VARIABLE_TYPE step;
+    UBASIC_VARIABLE_TYPE to;
+    UBASIC_VARIABLE_TYPE step;
 };
 
-#define MAX_WHILE_STACK_DEPTH 4
+#ifndef UBASIC_WHILE_LOOP_STACK_DEPTH
+#define UBASIC_WHILE_LOOP_STACK_DEPTH 4
+#endif
 struct ubasic_while_state {
     uint16_t line_while;
     int16_t line_after_endwhile;
 };
 
-#define MAX_GOSUB_STACK_DEPTH 10
-#define MAX_IF_STACK_DEPTH 4
+#ifndef UBASIC_GOSUB_STACK_DEPTH
+#define UBASIC_GOSUB_STACK_DEPTH 10
+#endif
 
-#define UBASIC_SERIAL_INPUT_MS 50
+#ifndef UBASIC_IF_THEN_STACK_DEPTH
+#define UBASIC_IF_THEN_STACK_DEPTH 4
+#endif
 
 enum {
     UBASIC_RECALL_STORE_TYPE_VARIABLE = 0,
@@ -103,37 +109,42 @@ struct ubasic_mstimer {
 struct ubasic_data {
     UBASIC_STATUS status;
     uint8_t input_how;
-    struct tokenizer_data tree;
+    struct ubasic_tokenizer tree;
 
-#if defined(VARIABLE_TYPE_ARRAY)
-    VARIABLE_TYPE arrays_data[VARIABLE_TYPE_ARRAY];
+#if defined(UBASIC_VARIABLE_TYPE_ARRAY)
+    UBASIC_VARIABLE_TYPE arrays_data[UBASIC_VARIABLE_TYPE_ARRAY];
     int16_t free_arrayptr;
-    int16_t arrayvariable[MAX_VARNUM];
+    int16_t arrayvariable[UBASIC_VARNUM_MAX];
 #endif
+    /* entire program */
+    const char *program;
+    /* points to current statement */
     const char *program_ptr;
+    /* copy of the current statement until end-of-line */
+    char location[UBASIC_STATEMENT_SIZE];
 
-    uint16_t gosub_stack[MAX_GOSUB_STACK_DEPTH];
+    uint16_t gosub_stack[UBASIC_GOSUB_STACK_DEPTH];
     uint8_t gosub_stack_ptr;
 
-    struct ubasic_for_state for_stack[MAX_FOR_STACK_DEPTH];
+    struct ubasic_for_state for_stack[UBASIC_FOR_LOOP_STACK_DEPTH];
     uint8_t for_stack_ptr;
 
-    int16_t if_stack[MAX_IF_STACK_DEPTH];
+    int16_t if_stack[UBASIC_IF_THEN_STACK_DEPTH];
     uint8_t if_stack_ptr;
 
-    struct ubasic_while_state while_stack[MAX_WHILE_STACK_DEPTH];
+    struct ubasic_while_state while_stack[UBASIC_WHILE_LOOP_STACK_DEPTH];
     uint8_t while_stack_ptr;
 
-    VARIABLE_TYPE variables[MAX_VARNUM];
+    UBASIC_VARIABLE_TYPE variables[UBASIC_VARNUM_MAX];
 
 #if defined(UBASIC_SCRIPT_HAVE_STORE_VARS_IN_FLASH)
     uint8_t varnum;
 #endif
 
-#if defined(VARIABLE_TYPE_STRING)
-    char stringstack[MAX_BUFFERLEN];
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
+    char stringstack[UBASIC_STRING_BUFFER_LEN_MAX];
     int16_t freebufptr;
-    int16_t stringvariables[MAX_SVARNUM];
+    int16_t stringvariables[UBASIC_STRING_VAR_LEN_MAX];
 #endif
 
 #if defined(UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL)
@@ -141,8 +152,8 @@ struct ubasic_data {
     uint8_t input_type;
     char statement[UBASIC_STATEMENT_SIZE];
 #endif
-#if defined(VARIABLE_TYPE_ARRAY)
-    VARIABLE_TYPE input_array_index;
+#if defined(UBASIC_VARIABLE_TYPE_ARRAY)
+    UBASIC_VARIABLE_TYPE input_array_index;
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS)
     uint32_t tic_toc_timer[UBASIC_SCRIPT_HAVE_TICTOC_CHANNELS];
@@ -189,7 +200,7 @@ struct ubasic_data {
 #if defined(UBASIC_SCRIPT_HAVE_INPUT_FROM_SERIAL)
     int (*ubasic_getc)(void);
 #endif
-#if defined(UBASIC_SCRIPT_PRINT_TO_SERIAL)
+#if defined(UBASIC_SCRIPT_HAVE_PRINT_TO_SERIAL)
     void (*serial_write)(const char *buffer, uint16_t n);
 #endif
 #if defined(UBASIC_SCRIPT_HAVE_BACNET)
@@ -199,43 +210,70 @@ struct ubasic_data {
         uint16_t object_type,
         uint32_t instance,
         uint32_t property_id,
-        VARIABLE_TYPE value);
-    VARIABLE_TYPE(*bacnet_read_property)
+        UBASIC_VARIABLE_TYPE value);
+    UBASIC_VARIABLE_TYPE(*bacnet_read_property)
     (uint16_t object_type, uint32_t instance, uint32_t property_id);
 #endif
 };
 
+BACNET_STACK_EXPORT
 void ubasic_load_program(struct ubasic_data *data, const char *program);
+BACNET_STACK_EXPORT
 void ubasic_clear_variables(struct ubasic_data *data);
+BACNET_STACK_EXPORT
 int32_t ubasic_run_program(struct ubasic_data *data);
+BACNET_STACK_EXPORT
 uint8_t ubasic_execute_statement(struct ubasic_data *data, char *statement);
+BACNET_STACK_EXPORT
+void ubasic_halt_program(struct ubasic_data *data);
+BACNET_STACK_EXPORT
+bool ubasic_program_finished(struct ubasic_data *data);
+BACNET_STACK_EXPORT
 uint8_t ubasic_finished(struct ubasic_data *data);
+BACNET_STACK_EXPORT
+const char *ubasic_program_location(struct ubasic_data *data);
 
+BACNET_STACK_EXPORT
 uint8_t ubasic_waiting_for_input(struct ubasic_data *data);
+BACNET_STACK_EXPORT
 uint8_t ubasic_getline(struct ubasic_data *data, int ch);
+BACNET_STACK_EXPORT
 int ubasic_printf(struct ubasic_data *data, const char *format, ...);
+BACNET_STACK_EXPORT
 int ubasic_getc(struct ubasic_data *data);
 
-VARIABLE_TYPE ubasic_get_variable(struct ubasic_data *data, char variable);
+BACNET_STACK_EXPORT
+UBASIC_VARIABLE_TYPE
+ubasic_get_variable(struct ubasic_data *data, char variable);
+BACNET_STACK_EXPORT
 void ubasic_set_variable(
-    struct ubasic_data *data, char variable, VARIABLE_TYPE value);
+    struct ubasic_data *data, char variable, UBASIC_VARIABLE_TYPE value);
 
-#if defined(VARIABLE_TYPE_ARRAY)
+#if defined(UBASIC_VARIABLE_TYPE_ARRAY)
+BACNET_STACK_EXPORT
 void ubasic_dim_arrayvariable(
     struct ubasic_data *data, char variable, int16_t size);
+BACNET_STACK_EXPORT
 void ubasic_set_arrayvariable(
-    struct ubasic_data *data, char variable, uint16_t idx, VARIABLE_TYPE value);
-VARIABLE_TYPE
+    struct ubasic_data *data,
+    char variable,
+    uint16_t idx,
+    UBASIC_VARIABLE_TYPE value);
+BACNET_STACK_EXPORT
+UBASIC_VARIABLE_TYPE
 ubasic_get_arrayvariable(struct ubasic_data *data, char variable, uint16_t idx);
 #endif
 
-#if defined(VARIABLE_TYPE_STRING)
+#if defined(UBASIC_VARIABLE_TYPE_STRING)
+BACNET_STACK_EXPORT
 int16_t ubasic_get_stringvariable(struct ubasic_data *data, uint8_t varnum);
+BACNET_STACK_EXPORT
 void ubasic_set_stringvariable(
     struct ubasic_data *data, uint8_t varnum, int16_t size);
 #endif
 
 /* API to interface and initialize the ported hardware drivers */
+BACNET_STACK_EXPORT
 void ubasic_port_init(struct ubasic_data *data);
 
 #endif /* __UBASIC_H__ */

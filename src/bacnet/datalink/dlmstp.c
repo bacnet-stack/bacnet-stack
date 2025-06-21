@@ -200,6 +200,7 @@ static bool MSTP_Compare_Data_Expecting_Reply(
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -207,7 +208,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     }
     /* these don't have service choice included */
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        (reply.pdu_type == PDU_TYPE_ABORT) ||
+        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
             return false;
         }
@@ -571,9 +573,7 @@ uint8_t dlmstp_max_info_frames(void)
 void dlmstp_set_max_master(uint8_t max_master)
 {
     if (max_master <= 127) {
-        if (MSTP_Port->This_Station <= max_master) {
-            MSTP_Port->Nmax_master = max_master;
-        }
+        MSTP_Port->Nmax_master = max_master;
     }
 
     return;
@@ -955,7 +955,8 @@ void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
         return;
     }
     if (statistics) {
-        *statistics = user->Statistics;
+        memmove(
+            statistics, &user->Statistics, sizeof(struct dlmstp_statistics));
     }
 }
 

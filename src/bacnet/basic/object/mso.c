@@ -361,6 +361,58 @@ bool Multistate_Output_Relinquish_Default_Set(
 }
 
 /**
+ * @brief For a given object instance-number, writes the present-value to the
+ *  remote node
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog value
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Multistate_Output_Relinquish_Default_Write(
+    uint32_t object_instance,
+    uint32_t value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+    uint32_t old_value = 0;
+    uint32_t new_value = 0;
+    unsigned max_states = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        max_states = state_name_count(pObject->State_Text);
+        if ((value >= 1) && (value <= max_states)) {
+            old_value = Object_Present_Value(pObject);
+            Multistate_Output_Relinquish_Default_Set(object_instance, value);
+            if (pObject->Out_Of_Service) {
+                /* The physical point that the object represents
+                    is not in service. This means that changes to the
+                    Present_Value property are decoupled from the
+                    physical output when the value of Out_Of_Service
+                    is true. */
+            } else if (Multistate_Output_Write_Present_Value_Callback) {
+                new_value = Object_Present_Value(pObject);
+                Multistate_Output_Write_Present_Value_Callback(
+                    object_instance, old_value, new_value);
+            }
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
  * @param  value - integer multi-state value 1..N
@@ -1104,6 +1156,21 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 Multistate_Output_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
+            }
+            break;
+        case PROP_RELINQUISH_DEFAULT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = false;
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Multistate_Output_Relinquish_Default_Write(
+                        wp_data->object_instance, value.type.Unsigned_Int,
+                        &wp_data->error_class, &wp_data->error_code);
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:

@@ -1351,7 +1351,14 @@ static bool Load_Control_Shed_Levels_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     entry = Keylist_Data_Delete_By_Index(
                         pObject->Shed_Level_List, index);
                     key = (uint32_t)unsigned_value;
-                    Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                    index =
+                        Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                    if (index < 0) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        return false;
+                    }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1370,7 +1377,13 @@ static bool Load_Control_Shed_Levels_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 entry = Keylist_Data_Delete_By_Index(
                     pObject->Shed_Level_List, index);
                 key = (uint32_t)unsigned_value;
-                Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                index = Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                if (index < 0) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    return false;
+                }
+
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

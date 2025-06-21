@@ -19,9 +19,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 void bacnet_port_ipv6_foreign_device_init(
     const uint16_t ttl_seconds, const BACNET_IP6_ADDRESS *bbmd_address);
+BACNET_STACK_EXPORT
 void bacnet_port_ipv6_task(uint16_t elapsed_seconds);
+BACNET_STACK_EXPORT
 bool bacnet_port_ipv6_init(void);
 
 #ifdef __cplusplus

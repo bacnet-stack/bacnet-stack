@@ -50,6 +50,8 @@ static bool BVLC_NAT_Handling = false;
 static BACNET_IP_ADDRESS Remote_BBMD;
 /** if we are a foreign device, store the Time-To-Live Seconds here */
 static uint16_t Remote_BBMD_TTL_Seconds;
+/** Dynamic enable or disable of accepting FD registrations */
+static bool BBMD_Accept_FD_Registrations = 1;
 #if BBMD_ENABLED || BBMD_CLIENT_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
@@ -873,6 +875,22 @@ int bvlc_bbmd_enabled_handler(
             }
             break;
         case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
+            /* J.2.2.1 Write-Broadcast-Distribution-Table: Format
+            ...
+            Prior to the introduction of the Network Port object
+            in Protocol_Revision 17, this message was the interoperable
+            means of updating BDTs. That function is now performed
+            by writes to the Network Port object
+            ...
+            J.4.4.2 Use of the BVLL Write-Broadcast-Distribution-Table Message
+            Upon receipt of a BVLL Write-Broadcast-Distribution-Table message,
+            B/IP devices shall always return a BVLC-Result message to the
+            originating device with a result code of X'0010' indicating that
+            the Write-Broadcast-Distribution BVLL message is not supported.*/
+#if (BACNET_PROTOCOL_REVISION >= 17)
+            result_code = BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
+            send_result = true;
+#else
             debug_print_bip("Received Write-BDT", addr);
             function_len = bvlc_decode_write_broadcast_distribution_table(
                 pdu, pdu_len, &BBMD_Table[0]);
@@ -886,6 +904,7 @@ int bvlc_bbmd_enabled_handler(
                     BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
                 send_result = true;
             }
+#endif
             /* not an NPDU */
             offset = 0;
             break;
@@ -971,6 +990,13 @@ int bvlc_bbmd_enabled_handler(
                without the receipt of another BVLL Register-Foreign-Device
                message from the same foreign device, the FDT entry for this
                device shall be cleared. */
+#if (BACNET_PROTOCOL_REVISION >= 17)
+            if (!BBMD_Accept_FD_Registrations) {
+                result_code = BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK;
+                send_result = true;
+                break;
+            }
+#endif
             function_len =
                 bvlc_decode_register_foreign_device(pdu, pdu_len, &ttl_seconds);
             if (function_len) {
@@ -1201,6 +1227,25 @@ int bvlc_broadcast_handler(
     }
 
     return offset;
+}
+
+/**
+ * @brief Get the status of the BBMD_Accept_FD_Registrations flag.
+ * @return true if BBMD_Accept_FD_Registrations is enabled, false otherwise.
+ */
+bool bvlc_bbmd_accept_fd_registrations(void)
+{
+    return BBMD_Accept_FD_Registrations;
+}
+
+/**
+ * @brief Set the status of the BBMD_Accept_FD_Registrations flag.
+ * @param flag - true to enable accepting foreign device registrations,
+ *                 false to disable.
+ */
+void bvlc_bbmd_accept_fd_registrations_set(bool flag)
+{
+    BBMD_Accept_FD_Registrations = flag;
 }
 
 #if BBMD_CLIENT_ENABLED

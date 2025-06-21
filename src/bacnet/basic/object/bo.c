@@ -1154,6 +1154,22 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_POLARITY:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                Binary_Output_Polarity_Set(
+                    wp_data->object_instance, value.type.Enumerated);
+            }
+            break;
+        case PROP_RELINQUISH_DEFAULT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                Binary_Output_Relinquish_Default_Set(
+                    wp_data->object_instance, value.type.Enumerated);
+            }
+            break;
         default:
             if (property_lists_member(
                     Properties_Required, Properties_Optional,

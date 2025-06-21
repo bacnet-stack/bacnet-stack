@@ -1,7 +1,7 @@
 # BACnet Stack ChangeLog
 
 BACnet open source protocol stack C library for embedded systems,
-Linux, MacOS, BSD, and Windows
+microcontrollers, Linux, MacOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
 
@@ -16,17 +16,66 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
+
 ### Added
 
+* Added more writable properties to Analog, Binary, and Multistate Output
+  objects. (#1012)
+* Added missing API defined in header into ports/win32/dlmstp.c module,
+  added a PDU queue and refactored receive thread, and refactored MS/TP
+  timing parameters. (#1003)
+* Added missing API defined in header into ports/linux/dlmstp.c module,
+  and refactored MS/TP timing parameters. (#1003)
+* Added missing API defined in header into ports/bsd/dlmstp.c module,
+  and refactored MS/TP timing parameters. (#1003)
+* Added Egress_Time integration during the blink-warn and warn-relinquish
+  lighting operations. (#1008)
+* Added writable properties lighting-command-default-priority, egress-time,
+  blink-warn-enable, and relinquish-default. (#1008)
+* Added schedule object WriteProperty handling for effective-period,
+  list-of-object-property-references and exception-schedule properties. (#1000)
+* Added multiple uBASIC program objects to stm32f4xx example port. (#995)
+* Added more API for BACnet basic server device object. (#994)
+* Added the weekly-schedule property write in basic schedule object. (#990)
 * Added uBASIC-Plus program object example to STM32F4xx. (#967)
 * Added guards in create object initialization to prevent memory leaks. (#965)
 
 ### Changed
 
-* Improved mirror script debugging (#968)
+
+* Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
+* Changed mirror script to improve debugging. (#968)
 * Changed dlenv to support multiple datalinks via environment variable. (#966)
 
 ### Fixed
+
+* Fixed GetEvent usage of linked list by initializing next in all
+  the examples and unit test. (#1026)
+* Fixed usage of Keylist_Data_Add() return value in Calendar,
+  CharacterString Value, Load Control, and BACnet/SC Network Port
+  objects. (#1016)
+* Fixed BACnet/IP initialization on a network interface where the system
+  reports the interface's unicast IP address as being the same as its
+  broadcast IP address (e.g., utunX interfaces for VPNs on macOS). (#1011)
+* Fixed ports/xplained conversion of double warning. (#1004)
+* Fixed BACNET_USE_DOUBLE usage in AVR ports. (#1004)
+* Fixed integer out-of-range in AVR port. (#1004)
+* Fixed missing function prototype for whois_request_encode(). (#1004)
+* Fixed Linux MS/TP 76800 bitrate for Linux 2.6.20+ circa 2007 and added
+  get/set API for config. (#1007)
+* Fixed network port object to accept host name option of host-n-port
+  writes. (#997) (#1001)
+* Fixed missing exports in bacnet/basic header files. (#996)
+* Fixed NDPU comparison functions that were missing segment-ack PDU. (#991)
+* Fixed WriteProperty NULL bypass which is only for present-value property
+  of commandable objects. (#984)
+* Fixed the ghost Device ID 0 in the I-Am response when the actual
+  routed devices are less than the MAX_NUM_DEVICES for gateway device. (#981)
+* Fixed BACnetGroupChannelValue encoding and decoding of BACnetChannelValue
+  which was deemed errata by BACnet standard committee. (#980)
+* Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
+* Fixed network specific original broadcast for IP in apps/router. (#976)(#989)
 
 ### Removed
 
@@ -46,6 +95,20 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added object type and services supported BACnetBitString sizes for
+  protocol revision 25-30. (#1020)
+* Added new BACnet text for BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
+  BACnetRestartReason, BACnetNetworkType, BACnetNetworkNumberQuality,
+  BACnetNetworkPortCommand, BACnetAuthenticationDecision,
+  BACnetAuthorizationPosture, BACnetFaultType, BACnetPriorityFilter,
+  BACnetSuccessFilter, and BACnetResultFlags. (#1020)
+* Added new BACnetPropertyIdentifier, BACnetEngineeringUnits, BACnetEventState,
+  BACnetRestartReason, BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
+  BACnetLifeSafetyState, BACnet_Services_Supported, BACnetLightingOperation,
+  BACnetBinaryLightingPV, BACnetNetworkPortCommand,
+  BACnetAuthenticationDecision, BACnetAuthorizationPosture, BACnetFaultType,
+  BACnetPriorityFilter, BACnetResultFlags, and BACnetSuccessFilter
+  enumerations. (#1020)
 * Added the option to specify a target destination for
   apps/server-discover. (#958)
 * Added Program object task state transitions from request and callbacks. (#960)

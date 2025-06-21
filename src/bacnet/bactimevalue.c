@@ -369,3 +369,94 @@ int bacnet_time_values_context_encode(
 
     return apdu_len;
 }
+
+/**
+ * * @brief Compare two BACnetTimeValue values
+ * @param a [in] First value to compare
+ * @param b [in] Second value to compare
+ * @return true if equal, false if not equal
+ */
+bool bacnet_time_value_same(
+    const BACNET_TIME_VALUE *a, const BACNET_TIME_VALUE *b)
+{
+    if (a == NULL || b == NULL) {
+        return false;
+    }
+    if (a->Time.hour != b->Time.hour) {
+        return false;
+    }
+    if (a->Time.min != b->Time.min) {
+        return false;
+    }
+    if (a->Time.sec != b->Time.sec) {
+        return false;
+    }
+    if (a->Time.hundredths != b->Time.hundredths) {
+        return false;
+    }
+    if (a->Value.tag != b->Value.tag) {
+        return false;
+    }
+    switch (a->Value.tag) {
+#if defined(BACAPP_BOOLEAN)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            if (a->Value.type.Boolean != b->Value.type.Boolean) {
+                return false;
+            }
+            break;
+#endif
+#if defined(BACAPP_UNSIGNED)
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            if (a->Value.type.Unsigned_Int != b->Value.type.Unsigned_Int) {
+                return false;
+            }
+            break;
+#endif
+#if defined(BACAPP_SIGNED)
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            if (a->Value.type.Signed_Int != b->Value.type.Signed_Int) {
+                return false;
+            }
+            break;
+#endif
+#if defined(BACAPP_REAL)
+        case BACNET_APPLICATION_TAG_REAL:
+            if (islessgreater(a->Value.type.Real, b->Value.type.Real)) {
+                return false;
+            }
+            break;
+#endif
+#if defined(BACAPP_DOUBLE)
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            if (islessgreater(a->Value.type.Double, b->Value.type.Double)) {
+                return false;
+            }
+            break;
+#endif
+#if defined(BACAPP_ENUMERATED)
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            if (a->Value.type.Enumerated != b->Value.type.Enumerated) {
+                return false;
+            }
+            break;
+#endif
+        default:
+            break;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Copy a BACnetTimeValue value
+ * @param dest [in] destination to copy to
+ * @param src [in] source to copy from
+ */
+void bacnet_time_value_copy(
+    BACNET_TIME_VALUE *dest, const BACNET_TIME_VALUE *src)
+{
+    if (dest == NULL || src == NULL) {
+        return;
+    }
+    memcpy(dest, src, sizeof(BACNET_TIME_VALUE));
+}

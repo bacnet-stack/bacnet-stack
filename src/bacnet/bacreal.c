@@ -90,7 +90,6 @@ int encode_bacnet_real(float value, uint8_t *apdu)
 }
 
 #if BACNET_USE_DOUBLE
-
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* returns the number of apdu bytes consumed */
 int decode_double(const uint8_t *apdu, double *double_value)

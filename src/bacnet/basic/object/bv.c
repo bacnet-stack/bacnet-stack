@@ -1314,7 +1314,7 @@ void Binary_Value_Init(void)
 unsigned Binary_Value_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
-#if !defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
+#if !(defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING))
     (void)object_instance;
 #else
     struct object_data *pObject = Binary_Value_Object(object_instance);

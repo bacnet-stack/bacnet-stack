@@ -19,6 +19,8 @@ extern "C" {
 
 /* encode service  - use -1 for limit if you want unlimited */
 BACNET_STACK_EXPORT
+int whois_request_encode(uint8_t *apdu, int32_t low_limit, int32_t high_limit);
+BACNET_STACK_EXPORT
 int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit);
 
 BACNET_STACK_EXPORT

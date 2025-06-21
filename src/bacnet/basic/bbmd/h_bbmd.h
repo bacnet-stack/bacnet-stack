@@ -98,6 +98,11 @@ void bvlc_remote_bbmd_address(BACNET_IP_ADDRESS *address);
 BACNET_STACK_EXPORT
 uint16_t bvlc_remote_bbmd_lifetime(void);
 
+BACNET_STACK_EXPORT
+bool bvlc_bbmd_accept_fd_registrations(void);
+BACNET_STACK_EXPORT
+void bvlc_bbmd_accept_fd_registrations_set(bool flag);
+
 /* Local interface to manage BBMD.
  * The interface user needs to handle mutual exclusion if needed i.e.
  * BACnet packet is not being handled when the BBMD table is modified.
