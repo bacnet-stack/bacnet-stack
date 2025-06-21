@@ -464,6 +464,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_ucov.h
   src/bacnet/basic/service/h_upt.c
   src/bacnet/basic/service/h_upt.h
+  src/bacnet/basic/service/h_whoami.c
+  src/bacnet/basic/service/h_whoami.h
   src/bacnet/basic/service/h_whohas.c
   src/bacnet/basic/service/h_whohas.h
   src/bacnet/basic/service/h_whois.c
@@ -474,6 +476,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_wpm.h
   src/bacnet/basic/service/h_write_group.c
   src/bacnet/basic/service/h_write_group.h
+  src/bacnet/basic/service/h_youare.c
+  src/bacnet/basic/service/h_youare.h
   src/bacnet/basic/service/s_abort.c
   src/bacnet/basic/service/s_abort.h
   src/bacnet/basic/service/s_ack_alarm.c
@@ -522,6 +526,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_uevent.h
   src/bacnet/basic/service/s_upt.c
   src/bacnet/basic/service/s_upt.h
+  src/bacnet/basic/service/s_whoami.c
+  src/bacnet/basic/service/s_whoami.h
   src/bacnet/basic/service/s_whohas.c
   src/bacnet/basic/service/s_whohas.h
   src/bacnet/basic/service/s_whois.c
@@ -532,6 +538,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_wpm.h
   src/bacnet/basic/service/s_write_group.c
   src/bacnet/basic/service/s_write_group.h
+  src/bacnet/basic/service/s_youare.c
+  src/bacnet/basic/service/s_youare.h
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
@@ -648,6 +656,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/timesync.c
   src/bacnet/timesync.h
   src/bacnet/version.h
+  src/bacnet/whoami.c
+  src/bacnet/whoami.h
   src/bacnet/whohas.c
   src/bacnet/whohas.h
   src/bacnet/whois.c
@@ -658,6 +668,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/wpm.h
   src/bacnet/write_group.c
   src/bacnet/write_group.h
+  src/bacnet/youare.c
+  src/bacnet/youare.h
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.c>
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.h>)
 target_sources(
@@ -1090,6 +1102,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
 
+  add_executable(whoami apps/who-am-i/main.c)
+  target_link_libraries(whoami PRIVATE ${PROJECT_NAME})
+
   add_executable(whohas apps/whohas/main.c)
   target_link_libraries(whohas PRIVATE ${PROJECT_NAME})
 
@@ -1116,6 +1131,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
+
+  add_executable(youare apps/you-are/main.c)
+  target_link_libraries(youare PRIVATE ${PROJECT_NAME})
 if(BACDL_BSC)
   add_executable(sc-hub apps/sc-hub/main.c)
   target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})

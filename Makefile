@@ -238,6 +238,10 @@ mstpcrc:
 uevent:
 	$(MAKE) -s -C apps $@
 
+.PHONY: who-am-i
+who-am-i:
+	$(MAKE) -s -C apps $@
+
 .PHONY: whois
 whois:
 	$(MAKE) -s -C apps $@
@@ -248,6 +252,10 @@ writepropm:
 
 .PHONY: writegroup
 writegroup:
+	$(MAKE) -s -C apps $@
+
+.PHONY: you-are
+you-are:
 	$(MAKE) -s -C apps $@
 
 .PHONY: router

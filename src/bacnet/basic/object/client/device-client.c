@@ -51,6 +51,7 @@ static char *Application_Software_Version = "1.0";
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static char *Location = "USA";
 static char *Description = "command line client";
+static char *Serial_Number = "BACnetc64b8511f0a5bab73ca11c2d9a";
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -330,9 +331,14 @@ static const int Device_Properties_Required[] = {
 
 static const int Device_Properties_Optional[] = {
 #if defined(BACDL_MSTP)
-    PROP_MAX_MASTER,  PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
 #endif
-    PROP_DESCRIPTION, PROP_LOCATION,        PROP_ACTIVE_COV_SUBSCRIPTIONS, -1
+    PROP_DESCRIPTION,
+    PROP_LOCATION,
+    PROP_SERIAL_NUMBER,
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
+    -1
 };
 
 static const int Device_Properties_Proprietary[] = { -1 };
@@ -668,6 +674,15 @@ bool Device_Set_Location(const char *name, size_t length)
     }
 
     return status;
+}
+
+/**
+ * @brief Get the UUID device serial-number property value.
+ * @return The device serial-number, as a character string.
+ */
+const char *Device_Serial_Number(void)
+{
+    return Serial_Number;
 }
 
 uint8_t Device_Protocol_Version(void)
@@ -1161,6 +1176,11 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            break;
+        case PROP_SERIAL_NUMBER:
+            characterstring_init_ansi(&char_string, Serial_Number);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
