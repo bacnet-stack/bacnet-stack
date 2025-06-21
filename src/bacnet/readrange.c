@@ -684,3 +684,266 @@ int rr_ack_decode_service_request(
 
     return apdu_len;
 }
+
+/**
+ * @brief Encode a ReadRange-ACK by position request
+ * @param data  Pointer to the ReadRange data structure
+ * @param encoder  Function pointer to encode the record
+ * @param item_count  Number of items in the list 1..N
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size  Size of the buffer for encoding
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ * @note This function encodes the ReadRange-ACK by position, encoding
+ *  the records starting from a specified position and returning as many
+ *  as will fit in the provided buffer.
+ */
+int readrange_ack_by_position_encode(
+    BACNET_READ_RANGE_DATA *data,
+    int (*encoder)(uint32_t object_instance, uint32_t item, uint8_t *apdu),
+    uint32_t item_count,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+    int len = 0;
+    int32_t ref_index;
+    uint32_t item = 0;
+    uint32_t first_item = 0;
+    uint32_t last_item = 0;
+
+    if (data->RequestType == RR_READ_ALL) {
+        /*
+         * Read all the list or as much as will fit in the buffer by selecting
+         * a range that covers the whole list and falling through to the next
+         * section of code
+         */
+        data->Count = item_count;
+        data->Range.RefIndex = 1; /* Starting at the beginning */
+    }
+    if (data->Count < 0) {
+        /* negative count means work from index backwards */
+        /*
+         * Convert from end index/negative count to
+         * start index/positive count and then process as
+         * normal. This assumes that the order to return items
+         * is always first to last, if this is not true we will
+         * have to handle this differently.
+         *
+         * Note: We need to be careful about how we convert these
+         * values due to the mix of signed and unsigned types - don't
+         * try to optimise the code unless you understand all the
+         * implications of the data type conversions!
+         */
+
+        /* pull out and convert to signed */
+        ref_index = data->Range.RefIndex;
+        /* Adjust backwards, remember count is -ve */
+        ref_index += data->Count + 1;
+        if (ref_index < 1) {
+            /* if count is too much, return from 1 to start index */
+            data->Count = data->Range.RefIndex;
+            data->Range.RefIndex = 1;
+        } else {
+            /* Otherwise adjust the start index and make count +ve */
+            data->Range.RefIndex = ref_index;
+            data->Count = -data->Count;
+        }
+    }
+    /* From here on in we only have a starting point and a positive count */
+    if (data->Range.RefIndex > item_count) {
+        /* Nothing to return as we are past the end of the list */
+        return 0;
+    }
+    /* Index of last required entry */
+    last_item = data->Range.RefIndex + data->Count - 1;
+    if (last_item > item_count) {
+        /* Capped at end of list if necessary */
+        last_item = item_count;
+    }
+    /* note: item is 1..N */
+    item = data->Range.RefIndex;
+    /* Record where we started from */
+    first_item = item;
+    /* encode the list */
+    while (item <= last_item) {
+        len = encoder(data->object_instance, item, NULL);
+        if ((apdu_len + len) < apdu_size) {
+            /* If we have space in the buffer, encode the item */
+            len = encoder(data->object_instance, item, apdu);
+            apdu_len += len;
+            if (apdu) {
+                apdu += len;
+            }
+            data->ItemCount++;
+        } else {
+            /* No more space in the buffer, stop processing */
+            bitstring_set_bit(&data->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
+            break;
+        }
+        item++;
+    }
+    /* Set remaining result flags if necessary */
+    if (first_item == 1) {
+        bitstring_set_bit(&data->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+    }
+    if (last_item == item_count) {
+        bitstring_set_bit(&data->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a ReadRange-ACK by sequence request
+ * @param data  Pointer to the ReadRange data structure
+ * @param encoder  Function pointer to encode the record
+ * @param item_count  Number of items in the list 1..N
+ * @param item_count_total Number of items that have ever been in the list
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size  Size of the buffer for encoding
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ * @note This function encodes the ReadRange-ACK by sequence,
+ * encoding the records starting from a specified sequence number
+ * and returning as many as will fit in the provided buffer.
+ */
+int readrange_ack_by_sequence_encode(
+    BACNET_READ_RANGE_DATA *data,
+    int (*encoder)(uint32_t object_instance, uint32_t item, uint8_t *apdu),
+    uint32_t item_count,
+    uint32_t item_count_total,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+    int len = 0;
+    /* Current entry number */
+    uint32_t uiIndex = 0;
+    /* Entry number we started encoding from */
+    uint32_t uiFirst = 0;
+    /* Entry number we finished encoding on */
+    uint32_t uiLast = 0;
+    /* Tracking sequence number when encoding */
+    uint32_t uiSequence = 0;
+    /* Sequence number for 1st record in log */
+    uint32_t uiFirstSeq = 0;
+    /* Starting Sequence number for request */
+    uint32_t uiBegin = 0;
+    /* Ending Sequence number for request */
+    uint32_t uiEnd = 0;
+    /* Has request sequence range spanned the max for uint32_t? */
+    bool bWrapReq = false;
+    /* Has sequence range spanned the max for uint32_t? */
+    bool bWrapLog = false;
+
+    /* Figure out the sequence number for the first record, last is
+     * item_count_total */
+    uiFirstSeq = item_count_total - (item_count - 1);
+    /* Calculate start and end sequence numbers from request */
+    if (data->Count < 0) {
+        uiBegin = data->Range.RefSeqNum + data->Count + 1;
+        uiEnd = data->Range.RefSeqNum;
+    } else {
+        uiBegin = data->Range.RefSeqNum;
+        uiEnd = data->Range.RefSeqNum + data->Count - 1;
+    }
+    /* See if we have any wrap around situations */
+    if (uiBegin > uiEnd) {
+        bWrapReq = true;
+    }
+    if (uiFirstSeq > item_count_total) {
+        bWrapLog = true;
+    }
+
+    if ((bWrapReq == false) && (bWrapLog == false)) {
+        /* Simple case no wraps */
+        /* If no overlap between request range and buffer contents bail out */
+        if ((uiEnd < uiFirstSeq) || (uiBegin > item_count_total)) {
+            return (0);
+        }
+        /* Truncate range if necessary so it is guaranteed to lie
+         * between the first and last sequence numbers in the buffer
+         * inclusive.
+         */
+        if (uiBegin < uiFirstSeq) {
+            uiBegin = uiFirstSeq;
+        }
+
+        if (uiEnd > item_count_total) {
+            uiEnd = item_count_total;
+        }
+    } else { /* There are wrap arounds to contend with */
+        /* First check for non overlap condition as it is common to all */
+        if ((uiBegin > item_count_total) && (uiEnd < uiFirstSeq)) {
+            return (0);
+        }
+
+        if (bWrapLog == false) { /* Only request range wraps */
+            if (uiEnd < uiFirstSeq) {
+                uiEnd = item_count_total;
+                if (uiBegin < uiFirstSeq) {
+                    uiBegin = uiFirstSeq;
+                }
+            } else {
+                uiBegin = uiFirstSeq;
+                if (uiEnd > item_count_total) {
+                    uiEnd = item_count_total;
+                }
+            }
+        } else if (bWrapReq == false) { /* Only log wraps */
+            if (uiBegin > item_count_total) {
+                if (uiBegin > uiFirstSeq) {
+                    uiBegin = uiFirstSeq;
+                }
+            } else {
+                if (uiEnd > item_count_total) {
+                    uiEnd = item_count_total;
+                }
+            }
+        } else { /* Both wrap */
+            if (uiBegin < uiFirstSeq) {
+                uiBegin = uiFirstSeq;
+            }
+
+            if (uiEnd > item_count_total) {
+                uiEnd = item_count_total;
+            }
+        }
+    }
+    /* We now have a range that lies completely within the log buffer
+     * and we need to figure out where that starts in the buffer.
+     */
+    uiIndex = uiBegin - uiFirstSeq + 1;
+    uiSequence = uiBegin;
+    /* Record where we started from */
+    uiFirst = uiIndex;
+    /* encode the list */
+    while (uiSequence != uiEnd + 1) {
+        len = encoder(data->object_instance, uiIndex, NULL);
+        if ((apdu_len + len) < apdu_size) {
+            /* If we have space in the buffer, encode the item */
+            len = encoder(data->object_instance, uiIndex, apdu);
+            apdu_len += len;
+            if (apdu) {
+                apdu += len;
+            }
+            data->ItemCount++;
+        } else {
+            /* No more space in the buffer, stop processing */
+            bitstring_set_bit(&data->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
+            break;
+        }
+        uiLast = uiIndex; /* Record the last entry encoded */
+        uiIndex++; /* and get ready for next one */
+        uiSequence++;
+    }
+    /* Set remaining result flags if necessary */
+    if (uiFirst == 1) {
+        bitstring_set_bit(&data->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+    }
+    if (uiLast == item_count) {
+        bitstring_set_bit(&data->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
+    }
+    data->FirstSequence = uiBegin;
+
+    return apdu_len;
+}
