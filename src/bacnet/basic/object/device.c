@@ -1309,12 +1309,10 @@ static void Update_Current_Time(void)
 {
     datetime_local(
         &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
-        fprintf(stderr, "[%s %d] Update_Current_Time: %d:%d:%d %d/%d/%d\n",
+    fprintf(stderr, "[%s %d] Update_Current_Time: %d:%d:%d %d/%d/%d offset %d\n",
         __FILE__, __LINE__, Local_Time.hour, Local_Time.min, Local_Time.sec,
         Local_Date.year, Local_Date.month, Local_Date.day, UTC_Offset);
-
-    UTC_Offset = -UTC_Offset;
-
+    UTC_Offset = -UTC_Offset; /* invert for BACnet */
 }
 
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
