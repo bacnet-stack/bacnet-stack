@@ -2688,6 +2688,45 @@ static const int Trend_Log_Multiple_Properties_Optional[] = {
     -1
 };
 
+static const int Audit_Log_Properties_Required[] = {
+    /* unordered list of properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_ENABLE,
+    PROP_BUFFER_SIZE,
+    PROP_LOG_BUFFER,
+    PROP_RECORD_COUNT,
+    PROP_TOTAL_RECORD_COUNT,
+    -1
+};
+
+static const int Audit_Log_Properties_Optional[] = {
+    /* unordered list of properties */
+    PROP_DESCRIPTION,
+    PROP_RELIABILITY,
+    PROP_MEMBER_OF,
+    PROP_DELETE_ON_FORWARD,
+    PROP_ISSUE_CONFIRMED_NOTIFICATIONS,
+    PROP_EVENT_DETECTION_ENABLE,
+    PROP_NOTIFICATION_CLASS,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_AUDIT_LEVEL,
+    PROP_AUDITABLE_OPERATIONS,
+    PROP_TAGS,
+    PROP_PROFILE_LOCATION,
+    PROP_PROFILE_NAME,
+    -1
+};
+
 /**
  * Function that returns the list of all Optional properties
  * of known standard objects.
@@ -2890,6 +2929,9 @@ const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
             break;
         case OBJECT_TREND_LOG_MULTIPLE:
             pList = Trend_Log_Multiple_Properties_Optional;
+            break;
+        case OBJECT_AUDIT_LOG:
+            pList = Audit_Log_Properties_Optional;
             break;
         default:
             pList = Default_Properties_Optional;
@@ -3101,6 +3143,9 @@ const int *property_list_required(BACNET_OBJECT_TYPE object_type)
             break;
         case OBJECT_TREND_LOG_MULTIPLE:
             pList = Trend_Log_Multiple_Properties_Required;
+            break;
+        case OBJECT_AUDIT_LOG:
+            pList = Audit_Log_Properties_Required;
             break;
         default:
             pList = Default_Properties_Required;

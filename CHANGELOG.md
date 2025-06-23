@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
+
 ### Added
 
 * Added more writable properties to Analog, Binary, and Multistate Output
@@ -41,13 +43,16 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
-
+* Changed ReadRange by-position and by-sequence encoding by refactoring
+  into a common module. (#1028)
 * Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
 * Changed mirror script to improve debugging. (#968)
 * Changed dlenv to support multiple datalinks via environment variable. (#966)
 
 ### Fixed
 
+* Fixed GetEvent usage of linked list by initializing next in all
+  the examples and unit test. (#1026)
 * Fixed usage of Keylist_Data_Add() return value in Calendar,
   CharacterString Value, Load Control, and BACnet/SC Network Port
   objects. (#1016)
@@ -91,6 +96,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added You-Are and Who-Am-I encoding, decoding, unit tests, and command
+  line applications bacyouare and bacwhoami. Added You-Are handler and
+  integrated with apps/server example with JSON printout. (#1024)
 * Added object type and services supported BACnetBitString sizes for
   protocol revision 25-30. (#1020)
 * Added new BACnet text for BACnetLifeSafetyMode, BACnetLifeSafetyOperation,

@@ -42,20 +42,18 @@ void get_event_ack_handler(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
-    uint8_t i = 0;
     uint16_t apdu_len = 0;
     bool more_events = false;
     /* initialize array big enough to accommodate
        multiple get event data in APDU */
-    BACNET_GET_EVENT_INFORMATION_DATA get_event_data[MAX_NUMBER_OF_EVENTS];
+    BACNET_GET_EVENT_INFORMATION_DATA get_event_data[MAX_NUMBER_OF_EVENTS] = {
+        0
+    };
 
     (void)src;
     (void)service_data;
-    for (i = 1; i < MAX_NUMBER_OF_EVENTS; i++) {
-        /* Create linked list */
-        get_event_data[i - 1].next = &get_event_data[i];
-    }
-
+    getevent_information_link_array(
+        &get_event_data[0], ARRAY_SIZE(get_event_data));
     apdu_len = getevent_ack_decode_service_request(
         &service_request[0], service_len, &get_event_data[0], &more_events);
 
