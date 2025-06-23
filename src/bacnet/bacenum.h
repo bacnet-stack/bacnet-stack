@@ -1260,7 +1260,9 @@ typedef enum {
        and the sum is encoded using context tag 63,
        the extended-value choice.*/
     PROP_STATE_EXAMPLE_ONE = 256,
-    PROP_STATE_EXAMPLE_TWO = 257
+    PROP_STATE_EXAMPLE_TWO = 257,
+    PROP_STATE_SC_CONNECTION_STATE = 258,
+    PROP_STATE_SC_HUB_CONNECTOR_STATE = 259
 } BACNET_PROPERTY_STATES;
 
 typedef enum BACnetReliability {
