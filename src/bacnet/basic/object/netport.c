@@ -178,7 +178,7 @@ static const int MSTP_Port_Properties_Optional[] = {
 static const int MSTP_Port_Link_Speeds[] = {
     9600, 19200, 38400, 57600, 76800, 115200, -1,
 };
-static const unsigned MSTP_Port_Link_Speeds_Max =
+static const unsigned MSTP_Port_Link_Speeds_Array_Size =
     sizeof MSTP_Port_Link_Speeds / sizeof(int);
 
 static const int BIP_Port_Properties_Optional[] = {
@@ -1051,13 +1051,20 @@ float Network_Port_Link_Speed(uint32_t object_instance)
  */
 static bool MSTP_Valid_Link_Speed(const float value)
 {
-    int i = 0;
-    for (; i < MSTP_LINK_SPEEDS_MAX; ++i) {
-        if ((unsigned)value == MSTP_LINK_SPEEDS[i]) {
-            return true;
+    bool status = false;
+    const int *pList = MSTP_Port_Link_Speeds;
+
+    if (pList) {
+        while ((*pList) != -1) {
+            if ((unsigned)value == (*pList)) {
+                status = true;
+                break;
+            }
+            pList++;
         }
     }
-    return false;
+
+    return status;
 }
 
 /**
@@ -3887,7 +3894,7 @@ static int MSTP_Link_Speeds_Element_Encode(
     int apdu_len = BACNET_STATUS_ERROR;
     (void)object_instance;
 
-    if (array_index < MSTP_Port_Link_Speeds_Max) {
+    if (array_index < MSTP_Port_Link_Speeds_Array_Size) {
         apdu_len = encode_application_real(
             apdu, (float)MSTP_Port_Link_Speeds[array_index]);
     }
@@ -4001,8 +4008,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_LINK_SPEEDS:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                MSTP_Link_Speeds_Element_Encode, MSTP_Port_Link_Speeds_Max,
-                apdu, apdu_size);
+                MSTP_Link_Speeds_Element_Encode,
+                MSTP_Port_Link_Speeds_Array_Size, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
