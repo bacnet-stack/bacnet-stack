@@ -43,7 +43,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
-
+* Changed ReadRange by-position and by-sequence encoding by refactoring
+  into a common module. (#1028)
 * Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
 * Changed mirror script to improve debugging. (#968)
 * Changed dlenv to support multiple datalinks via environment variable. (#966)
