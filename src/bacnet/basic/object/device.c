@@ -756,6 +756,12 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
     return Reinitialize_State;
 }
 
+bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state)
+{
+    Reinitialize_State = state;
+    return true;
+}
+
 unsigned Device_Count(void)
 {
     return 1;
