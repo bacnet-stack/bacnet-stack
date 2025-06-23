@@ -179,7 +179,7 @@ static const int MSTP_Port_Link_Speeds[] = {
     9600, 19200, 38400, 57600, 76800, 115200, -1,
 };
 static const unsigned MSTP_Port_Link_Speeds_Array_Size =
-    sizeof MSTP_Port_Link_Speeds / sizeof(int);
+    (sizeof MSTP_Port_Link_Speeds / sizeof(int)) - 1;
 
 static const int BIP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
