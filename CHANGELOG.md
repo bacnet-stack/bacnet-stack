@@ -95,6 +95,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added You-Are and Who-Am-I encoding, decoding, unit tests, and command
+  line applications bacyouare and bacwhoami. Added You-Are handler and
+  integrated with apps/server example with JSON printout. (#1024)
 * Added object type and services supported BACnetBitString sizes for
   protocol revision 25-30. (#1020)
 * Added new BACnet text for BACnetLifeSafetyMode, BACnetLifeSafetyOperation,

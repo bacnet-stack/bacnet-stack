@@ -376,6 +376,10 @@ int bacapp_snprintf_value(
     char *str,
     size_t str_len,
     const BACNET_OBJECT_PROPERTY_VALUE *object_value);
+int bacapp_snprintf_octet_string(
+    char *str, size_t str_len, const BACNET_OCTET_STRING *value);
+int bacapp_snprintf_character_string(
+    char *str, size_t str_len, const BACNET_CHARACTER_STRING *value);
 
 BACNET_STACK_EXPORT
 bool bacapp_channel_value_copy(
