@@ -1309,7 +1309,6 @@ static void Update_Current_Time(void)
 #if BACNET_SE_NMC_TIME_OFFSET
     UTC_Offset = -UTC_Offset;
 #endif
-
 }
 
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)

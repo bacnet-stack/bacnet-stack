@@ -50,19 +50,16 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     timeinfo->tm_hour = btime->hour;
     timeinfo->tm_min = btime->min;
     timeinfo->tm_sec = btime->sec;
-
     tv_inp.tv_sec = mktime(timeinfo);
     tv_inp.tv_usec = btime->hundredths * 10000;
-
     if (gettimeofday(&tv_sys, NULL) == 0) {
-
         if (utc) {
             Time_Offset = time_difference(tv_inp, tv_sys) -
                 (timezone - timeinfo->tm_isdst * 3600) * 1000;
+
         } else {
             Time_Offset = time_difference(tv_inp, tv_sys);
         }
-
 #if PRINT_ENABLED
         printf("Time offset = %d\n", Time_Offset);
 #endif
