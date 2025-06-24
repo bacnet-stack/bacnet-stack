@@ -1302,13 +1302,13 @@ static void Update_Current_Time(void)
     datetime_local(
         &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
 
-    /* Required for SE NMC as the timezone UTC_OFFset
-       sent from the NMC is opposite to what is used
-       by the BACnet-stack and has to be inverted to
-       be displayed correctly in device object */
-    #if BACNET_SE_NMC_TIME_OFFSET
-        UTC_Offset = -UTC_Offset;
-    #endif
+/* Required for SE NMC as the timezone UTC_OFFset
+    sent from the NMC is opposite to what is used
+    by the BACnet-stack and has to be inverted to
+    be displayed correctly in device object */
+#if BACNET_SE_NMC_TIME_OFFSET
+    UTC_Offset = -UTC_Offset;
+#endif
 
 }
 
@@ -1323,6 +1323,7 @@ void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
 int32_t Device_UTC_Offset(void)
 {
     Update_Current_Time();
+
     return UTC_Offset;
 }
 
