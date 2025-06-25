@@ -90,6 +90,9 @@ static void print_usage(const char *filename)
         "in bacenum.h.  It is the data type of the value that you are\n"
         "monitoring.  For example, if you were monitoring a REAL value,\n"
         "you would use a tag of 4.\n");
+    printf("Complex data use the property argument and a tag number -1 to\n"
+           "lookup the appropriate internal application tag for the value.\n"
+           "The complex data value argument varies in its construction.\n");
     printf("\n");
     printf(
         "value:\n"
