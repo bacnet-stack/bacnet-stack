@@ -1186,7 +1186,7 @@ typedef enum BACnetRestartReason {
     RESTART_REASON_PROPRIETARY_MAX = 255
 } BACNET_RESTART_REASON;
 
-typedef enum {
+typedef enum BACnetPropertyStates {
     PROP_STATE_BOOLEAN_VALUE = 0,
     PROP_STATE_BINARY_VALUE = 1,
     PROP_STATE_EVENT_TYPE = 2,
