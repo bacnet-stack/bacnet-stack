@@ -11,6 +11,7 @@
 #include <net/if.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <arpa/inet.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <sys/types.h>
@@ -762,11 +763,29 @@ void bip_set_interface(const char *ifname)
     struct in_addr local_address;
     struct in_addr netmask;
     int rv = 0;
+    const char *bind_addr_env = NULL;
+    in_addr_t bind_addr;
+    bool address_from_env = false;
 
-    /* setup local address */
-    rv = bip_get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
-    if (rv < 0) {
-        local_address.s_addr = 0;
+    /* allow override of binding address */
+    bind_addr_env = getenv("BACNET_BIND_ADDRESS");
+    if (bind_addr_env) {
+        bind_addr = inet_addr(bind_addr_env);
+        printf(
+            "BIP: Binding to address %s\n", bind_addr_env);
+        if (bind_addr != INADDR_NONE) {
+            local_address.s_addr = bind_addr;
+            address_from_env = true;
+        }
+    }
+
+    if (!address_from_env) {
+        /* setup local address */
+        rv = bip_get_local_address_ioctl(
+            ifname, &local_address, SIOCGIFADDR);
+        if (rv < 0) {
+            local_address.s_addr = 0;
+        }
     }
     BIP_Address.s_addr = local_address.s_addr;
     if (BIP_Debug) {
