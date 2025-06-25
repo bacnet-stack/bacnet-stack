@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     bool status = false;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
-    uint8_t tag;
+    long tag;
     unsigned object_type = 0;
     unsigned object_property = 0;
 
@@ -190,9 +190,13 @@ int main(int argc, char *argv[])
             cov_data.listOfValues->propertyIdentifier, MAX_BACNET_PROPERTY_ID);
         return 1;
     }
-    if (tag >= MAX_BACNET_APPLICATION_TAG) {
+    if (tag < 0) {
+        tag = bacapp_known_property_tag(
+            cov_data.monitoredObjectIdentifier.type,
+            cov_data.listOfValues->propertyIdentifier);
+    } else if (tag >= MAX_BACNET_APPLICATION_TAG) {
         fprintf(
-            stderr, "tag=%u - it must be less than %u\n", tag,
+            stderr, "tag=%ld - it must be less than %u\n", tag,
             MAX_BACNET_APPLICATION_TAG);
         return 1;
     }
