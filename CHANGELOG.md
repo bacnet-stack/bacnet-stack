@@ -20,6 +20,28 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added the ability to write to the mstp mac address and link speed
+  property values in the basic network port object. (#1025)
+* Added new error-code enumerations from 135-2024 BACnet.
+* Added new BACnetPropertyState enumerations from 135-2024 BACnet.
+* Added a basic example Auditlog object. (#458)
+* Added You-Are and Who-Am-I encoding, decoding, unit tests, and command
+  line applications bacyouare and bacwhoami. Added You-Are handler and
+  integrated with apps/server example with JSON printout. (#1024)
+* Added object type and services supported BACnetBitString sizes for
+  protocol revision 25-30. (#1020)
+* Added new BACnet text for BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
+  BACnetRestartReason, BACnetNetworkType, BACnetNetworkNumberQuality,
+  BACnetNetworkPortCommand, BACnetAuthenticationDecision,
+  BACnetAuthorizationPosture, BACnetFaultType, BACnetPriorityFilter,
+  BACnetSuccessFilter, and BACnetResultFlags. (#1020)
+* Added new BACnetPropertyIdentifier, BACnetEngineeringUnits, BACnetEventState,
+  BACnetRestartReason, BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
+  BACnetLifeSafetyState, BACnet_Services_Supported, BACnetLightingOperation,
+  BACnetBinaryLightingPV, BACnetNetworkPortCommand,
+  BACnetAuthenticationDecision, BACnetAuthorizationPosture, BACnetFaultType,
+  BACnetPriorityFilter, BACnetResultFlags, and BACnetSuccessFilter
+  enumerations. (#1020)
 * Added more writable properties to Analog, Binary, and Multistate Output
   objects. (#1012)
 * Added missing API defined in header into ports/win32/dlmstp.c module,
@@ -96,23 +118,6 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
-* Added You-Are and Who-Am-I encoding, decoding, unit tests, and command
-  line applications bacyouare and bacwhoami. Added You-Are handler and
-  integrated with apps/server example with JSON printout. (#1024)
-* Added object type and services supported BACnetBitString sizes for
-  protocol revision 25-30. (#1020)
-* Added new BACnet text for BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
-  BACnetRestartReason, BACnetNetworkType, BACnetNetworkNumberQuality,
-  BACnetNetworkPortCommand, BACnetAuthenticationDecision,
-  BACnetAuthorizationPosture, BACnetFaultType, BACnetPriorityFilter,
-  BACnetSuccessFilter, and BACnetResultFlags. (#1020)
-* Added new BACnetPropertyIdentifier, BACnetEngineeringUnits, BACnetEventState,
-  BACnetRestartReason, BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
-  BACnetLifeSafetyState, BACnet_Services_Supported, BACnetLightingOperation,
-  BACnetBinaryLightingPV, BACnetNetworkPortCommand,
-  BACnetAuthenticationDecision, BACnetAuthorizationPosture, BACnetFaultType,
-  BACnetPriorityFilter, BACnetResultFlags, and BACnetSuccessFilter
-  enumerations. (#1020)
 * Added the option to specify a target destination for
   apps/server-discover. (#958)
 * Added Program object task state transitions from request and callbacks. (#960)
