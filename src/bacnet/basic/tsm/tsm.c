@@ -314,7 +314,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                     plist->RequestTimer = apdu_timeout();
                     plist->RetryCount++;
                     printf(
-                        "invoke-id[%u] Retry after %ums",
+                        "invoke-id[%u] Retry after %ums\n",
                         (unsigned)plist->InvokeID,
                         (unsigned)plist->RequestTimer);
                     datalink_send_pdu(
