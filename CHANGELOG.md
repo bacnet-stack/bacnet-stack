@@ -20,6 +20,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added known property decoding in UnconfirmedCOVNotification handler. (#1030)
+* Added the ability for apps/ucov to send property specific application
+  tagged data using -1 argument for tag. (#1030)
 * Added the ability to write to the mstp mac address and link speed
   property values in the basic network port object. (#1025)
 * Added new error-code enumerations from 135-2024 BACnet.
