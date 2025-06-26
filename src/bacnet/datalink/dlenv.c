@@ -100,7 +100,7 @@ void dlenv_bbmd_ttl_set(uint16_t ttl_secs)
 int dlenv_bbmd_result(void)
 {
     if (BBMD_Result > 0) {
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) && BBMD_CLIENT_ENABLED
         if (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK) {
             return -1;
         }
@@ -127,24 +127,25 @@ int dlenv_bbmd_result(void)
 static int bbmd_register_as_foreign_device(void)
 {
     int retval = -1;
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) && BBMD_CLIENT_ENABLED
+    char *pEnv = NULL;
+    long long_value = 0;
+#if BBMD_ENABLED
     bool bdt_entry_valid = false;
     uint16_t bdt_entry_port = 0;
-    char *pEnv = NULL;
     unsigned a[4] = { 0 };
     char bbmd_env[32] = "";
     unsigned entry_number = 0;
-    long long_value = 0;
     int c;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_table = NULL;
+#endif
 
+    BBMD_Address.port = 0xBAC0;
     pEnv = getenv("BACNET_BBMD_PORT");
     if (pEnv) {
         long_value = strtol(pEnv, NULL, 0);
         if (long_value <= 0xFFFF) {
             BBMD_Address.port = (uint16_t)long_value;
-        } else {
-            BBMD_Address.port = 0xBAC0;
         }
     }
     pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
@@ -181,7 +182,9 @@ static int bbmd_register_as_foreign_device(void)
                 (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port);
         }
         BBMD_Timer_Seconds = BBMD_TTL_Seconds;
-    } else {
+    }
+#if BBMD_ENABLED
+    else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
             bdt_entry_valid = false;
             snprintf(
@@ -257,6 +260,7 @@ static int bbmd_register_as_foreign_device(void)
             }
         }
     }
+#endif
 #endif
     BBMD_Result = retval;
 
@@ -790,7 +794,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
         }
     }
     if (Network_Port_Type(Network_Port_Instance) == PORT_TYPE_MSTP) {
-        Datalink_Debug_Timer_Seconds = elapsed_seconds;
+        Datalink_Debug_Timer_Seconds += elapsed_seconds;
         if (Datalink_Debug_Timer_Seconds >= 60) {
             Datalink_Debug_Timer_Seconds = 0;
             if (Datalink_Debug) {
