@@ -1269,6 +1269,23 @@ int bvlc_register_with_bbmd(
     return bip_send_mpdu(bbmd_addr, &BVLC_Buffer[0], BVLC_Buffer_Len);
 }
 
+int bvlc_delete_from_bbmd(void)
+{
+    int status;
+    BACNET_IP_ADDRESS addr;
+    BACNET_IP_ADDRESS bbmd_addr;
+    bip_get_addr(&addr);
+    bvlc_address_copy(&bbmd_addr, &Remote_BBMD);
+    BVLC_Buffer_Len = bvlc_encode_delete_foreign_device(
+        &BVLC_Buffer[0], sizeof(BVLC_Buffer), &addr);
+    status = bip_send_mpdu(&Remote_BBMD, &BVLC_Buffer[0], BVLC_Buffer_Len);
+    if (status) {
+        memset(&Remote_BBMD, 0, sizeof(Remote_BBMD));
+        Remote_BBMD_TTL_Seconds = 0;
+    }
+    return status;
+}
+
 /** Get the remote BBMD address that was used to Register as a foreign device
  * @param bbmd_addr - IPv4 address of BBMD with which to register
  * @return Positive number (of bytes sent) on success,
