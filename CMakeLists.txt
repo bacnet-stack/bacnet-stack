@@ -952,6 +952,7 @@ if(BACNET_STACK_BUILD_APPS)
       src/bacnet/basic/server/bacnet_port.c
       src/bacnet/basic/server/bacnet_port_ipv4.c
       src/bacnet/basic/server/bacnet_port_ipv6.c
+      src/bacnet/basic/server/bacnet_port_mstp.c
     )
     target_link_libraries(bacbasic PRIVATE ${PROJECT_NAME})
     target_compile_options(bacbasic PRIVATE
