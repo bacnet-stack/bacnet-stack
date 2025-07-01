@@ -45,6 +45,10 @@ static struct Address_Cache_Entry {
     uint8_t Flags;
     uint32_t device_id;
     unsigned max_apdu;
+#if BACNET_SEGMENTATION_ENABLED
+    uint8_t segmentation;
+    uint16_t maxsegments;
+#endif
     BACNET_ADDRESS address;
     uint32_t TimeToLive;
 } Address_Cache[MAX_ADDRESS_CACHE];
@@ -346,9 +350,18 @@ void address_set_device_TTL(
  * @param device_id  Device-Id
  * @param max_apdu  Pointer to a variable, taking the maximum APDU size.
  * @param src  Pointer to address structure for return.
+ * @param segmentation  Pointer to a variable, taking the BACNET_SEGMENTATION flag.
+ * @param maxsegments  Pointer to a variable, taking the maximum segments.
  */
 bool address_get_by_device(
-    uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src)
+    uint32_t device_id,
+    unsigned *max_apdu,
+    BACNET_ADDRESS *src
+#if BACNET_SEGMENTATION_ENABLED
+    ,uint8_t *segmentation
+    ,uint16_t *maxsegments
+#endif
+)
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
@@ -364,6 +377,10 @@ bool address_get_by_device(
                 if (max_apdu) {
                     *max_apdu = pMatch->max_apdu;
                 }
+#if BACNET_SEGMENTATION_ENABLED                
+                *segmentation = pMatch->segmentation;
+                *maxsegments = pMatch->maxsegments;
+#endif
                 /* Prove we found it */
                 found = true;
             }
