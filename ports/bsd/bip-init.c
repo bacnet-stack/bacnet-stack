@@ -36,6 +36,8 @@ static struct in_addr BIP_Broadcast_Binding_Address;
 static bool BIP_Debug = false;
 /* interface name */
 static char BIP_Interface_Name[IF_NAMESIZE] = { 0 };
+/* point-to-point interface flag */
+static bool BIP_Point_To_Point = false;
 
 /**
  * @brief Print the IPv4 address with debug info
@@ -460,72 +462,33 @@ static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
 /**
  * @brief Get the default interface name using routing info
  * @return interface name, or NULL if not found or none
-*/
-static char *ifname_default(void)
-{
-    if (BIP_Interface_Name[0] != 0) {
-        return BIP_Interface_Name;
-    }
-    snprintf(BIP_Interface_Name,  sizeof(BIP_Interface_Name), "%s", "en0");
-
-    return BIP_Interface_Name;
-}
-
-/** Gets the local IP address and local broadcast address from the system,
- *  and saves it into the BACnet/IP data structures.
- *
- * @param ifname [in] The named interface to use for the network layer.
- *        Eg, for MAC OS X, ifname is en0, en1, and others.
- * @param addr [out] The netmask addr, broadcast addr, ip addr.
- * @param request [in] addr broadaddr netmask
  */
-/**
- * @brief Issue a specific request foor an interface via an ioctl() call.
- * @param ifname - the interface name
- * @param addr [out] the address in host order.
- * @param request - the ioctl() request
- * @return 0 on success, else the error from the ioctl() call.
- */
-int bip_get_local_address_ioctl(
-    const char *ifname, struct in_addr *addr, uint32_t request)
+static const char *ifname_from_route(void)
 {
-    char rv = '\0'; /* return value */
+    /* a bit of a hack, but it works */
+    static char ifname[IFNAMSIZ];
+    struct sockaddr_in sin;
+    socklen_t len = sizeof(sin);
+    int sock = -1;
 
-    struct ifaddrs *ifaddrs_ptr;
-    int status;
-    status = getifaddrs(&ifaddrs_ptr);
-    if (status == -1) {
-        fprintf(
-            stderr, "Error in 'getifaddrs': %d (%s)\n", errno, strerror(errno));
-    }
-    while (ifaddrs_ptr) {
-        if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) &&
-            (strcmp(ifaddrs_ptr->ifa_name, ifname) == 0)) {
-            void *addr_ptr = NULL;
-            if (!ifaddrs_ptr->ifa_addr) {
-                return rv;
-            }
-            switch (request) {
-                case SIOCGIFADDR:
-                    addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_addr);
-                    break;
-                case SIOCGIFBRDADDR:
-                    addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_broadaddr);
-                    break;
-                case SIOCGIFNETMASK:
-                    addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_netmask);
-                    break;
-                default:
-                    break;
-            }
-            if (addr_ptr) {
-                memcpy(addr, addr_ptr, sizeof(struct in_addr));
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(12345);
+    sin.sin_addr.s_addr = inet_addr("8.8.8.8");
+    sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock != -1) {
+        if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) != -1) {
+            if (getsockname(sock, (struct sockaddr *)&sin, &len) != -1) {
+                if (inet_ntop(AF_INET, &sin.sin_addr, ifname, sizeof(ifname)) !=
+                    NULL) {
+                    /* success! */
+                }
             }
         }
-        ifaddrs_ptr = ifaddrs_ptr->ifa_next;
+        close(sock);
     }
-    freeifaddrs(ifaddrs_ptr);
-    return rv;
+
+    return ifname;
 }
 
 /**
@@ -535,13 +498,31 @@ int bip_get_local_address_ioctl(
  */
 int bip_get_local_netmask(struct in_addr *netmask)
 {
-    int rv;
+    int rv = -1;
     char *ifname = getenv("BACNET_IFACE");
+    struct ifaddrs *ifaddrs_ptr = NULL;
+    struct ifaddrs *ifa = NULL;
 
     if (ifname == NULL) {
-        ifname = "en0";
+        ifname = (char *)ifname_from_route();
     }
-    rv = bip_get_local_address_ioctl(ifname, netmask, SIOCGIFNETMASK);
+    if (getifaddrs(&ifaddrs_ptr) == 0) {
+        for (ifa = ifaddrs_ptr; ifa != NULL; ifa = ifa->ifa_next) {
+            if (ifa->ifa_addr && (ifa->ifa_addr->sa_family == AF_INET)) {
+                if (ifname && (strcmp(ifa->ifa_name, ifname) == 0)) {
+                    if (ifa->ifa_netmask) {
+                        memcpy(
+                            netmask,
+                            &((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr,
+                            sizeof(struct in_addr));
+                        rv = 0;
+                        break;
+                    }
+                }
+            }
+        }
+        freeifaddrs(ifaddrs_ptr);
+    }
 
     return rv;
 }
@@ -569,60 +550,64 @@ void bip_set_interface(const char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
-    int rv = 0;
+    struct ifaddrs *ifaddrs_ptr;
+    struct ifaddrs *ifa;
+    void *addr_ptr = NULL;
+    /* In case of no physical interface, all may be 0.
+     * Then we have to use the loopback interface. */
+    local_address.s_addr = 0;
+    broadcast_address.s_addr = 0;
+    BIP_Point_To_Point = false;
 
-    /* setup local address */
-    rv = bip_get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
-    if (rv < 0) {
-        local_address.s_addr = 0;
+    if (ifname) {
+        snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", ifname);
     }
-    BIP_Address.s_addr = local_address.s_addr;
-    if (BIP_Debug) {
-        fprintf(stderr, "BIP: Interface: %s\n", ifname);
-        fprintf(stderr, "BIP: Address: %s\n", inet_ntoa(local_address));
-        fflush(stderr);
-    }
-    /* setup local broadcast address */
-#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
-    long broadcast_address;
-    long net_address;
-
-    broadcast_address = 0;
-    net_address = local_address.s_addr;
-    if (IN_CLASSA(ntohl(net_address))) {
-        broadcast_address =
-            (ntohl(net_address) & ~IN_CLASSA_HOST) | IN_CLASSA_HOST;
-    } else if (IN_CLASSB(ntohl(net_address))) {
-        broadcast_address =
-            (ntohl(net_address) & ~IN_CLASSB_HOST) | IN_CLASSB_HOST;
-    } else if (IN_CLASSC(ntohl(net_address))) {
-        broadcast_address =
-            (ntohl(net_address) & ~IN_CLASSC_HOST) | IN_CLASSC_HOST;
-    } else if (IN_CLASSD(ntohl(net_address))) {
-        broadcast_address =
-            (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
+    if (getifaddrs(&ifaddrs_ptr) == -1) {
+        if (BIP_Debug) {
+            fprintf(stderr, "BIP: getifaddrs: %s\n", strerror(errno));
+        }
     } else {
-        broadcast_address = INADDR_BROADCAST;
-    }
-    BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
-#else
-    rv = bip_get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
-    if (rv < 0) {
-        BIP_Broadcast_Addr.s_addr = ~0;
-    } else {
-        BIP_Broadcast_Addr = local_address;
+        for (ifa = ifaddrs_ptr; ifa != NULL; ifa = ifa->ifa_next) {
+            if (!ifa->ifa_addr) {
+                continue;
+            }
+            if (ifa->ifa_addr->sa_family == AF_INET) {
+                if (ifname && (strcmp(ifa->ifa_name, ifname) == 0)) {
+                    addr_ptr = get_addr_ptr(ifa->ifa_addr);
+                    memcpy(&local_address, addr_ptr, sizeof(struct in_addr));
+                    if (ifa->ifa_flags & IFF_BROADCAST) {
+                        addr_ptr = get_addr_ptr(ifa->ifa_broadaddr);
+                        memcpy(
+                            &broadcast_address, addr_ptr,
+                            sizeof(struct in_addr));
+                    } else if (ifa->ifa_flags & IFF_POINTOPOINT) {
+                        BIP_Point_To_Point = true;
+                        addr_ptr = get_addr_ptr(ifa->ifa_dstaddr);
+                        memcpy(
+                            &broadcast_address, addr_ptr,
+                            sizeof(struct in_addr));
+                    }
+                }
+            }
+        }
+        freeifaddrs(ifaddrs_ptr);
+        BIP_Address.s_addr = local_address.s_addr;
         BIP_Broadcast_Addr.s_addr = broadcast_address.s_addr;
     }
-#endif
     if (BIP_Debug) {
+        fprintf(stderr, "BIP: Interface: %s\n", BIP_Interface_Name);
+        fprintf(stderr, "BIP: Address: %s\n", inet_ntoa(BIP_Address));
         fprintf(
             stderr, "BIP: Broadcast Address: %s\n",
             inet_ntoa(BIP_Broadcast_Addr));
-        fprintf(
-            stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
-            ntohs(BIP_Port));
         fflush(stderr);
     }
+}
+
+static const char *ifname_default(void)
+{
+    static char ifname[IFNAMSIZ] = "en0";
+    return ifname;
 }
 
 static int createSocket(const struct sockaddr_in *sin)
@@ -652,15 +637,6 @@ static int createSocket(const struct sockaddr_in *sin)
         close(sock_fd);
         return status;
     }
-    /* Bind to the proper interface to send without default gateway */
-    /* status = setsockopt(
-        sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
-        strlen(BIP_Interface_Name));
-    if (status < 0) {
-        if (BIP_Debug) {
-            perror("SO_BINDTODEVICE: ");
-        }
-    } */
     /* bind the socket to the local port number and IP address */
     status =
         bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
@@ -721,33 +697,38 @@ bool bip_init(char *ifname)
         return false;
     }
 
-    broadcast_sin_config.sin_family = AF_INET;
-    broadcast_sin_config.sin_port = BIP_Port;
-    memset(&(broadcast_sin_config.sin_zero), '\0',
-        sizeof(broadcast_sin_config.sin_zero));
-    if (BIP_Broadcast_Binding_Address_Override) {
-        broadcast_sin_config.sin_addr.s_addr =
-            BIP_Broadcast_Binding_Address.s_addr;
-    } else {
-#if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
-        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_ANY);
-#elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
-        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-#else
-        broadcast_sin_config.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
-#endif
-    }
-    if (broadcast_sin_config.sin_addr.s_addr == BIP_Address.s_addr) {
-        /* handle the case when a network interface on the system
-           reports the interface's unicast IP address as being
-           the same as its broadcast IP address */
+    if (BIP_Point_To_Point) {
         BIP_Broadcast_Socket = BIP_Socket;
     } else {
-        broadcast_sock_fd = createSocket(&broadcast_sin_config);
-        BIP_Broadcast_Socket = broadcast_sock_fd;
-        if (broadcast_sock_fd < 0) {
-            bip_cleanup();
-            return false;
+        broadcast_sin_config.sin_family = AF_INET;
+        broadcast_sin_config.sin_port = BIP_Port;
+        memset(
+            &(broadcast_sin_config.sin_zero), '\0',
+            sizeof(broadcast_sin_config.sin_zero));
+        if (BIP_Broadcast_Binding_Address_Override) {
+            broadcast_sin_config.sin_addr.s_addr =
+                BIP_Broadcast_Binding_Address.s_addr;
+        } else {
+#if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
+            broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_ANY);
+#elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
+            broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+#else
+            broadcast_sin_config.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
+#endif
+        }
+        if (broadcast_sin_config.sin_addr.s_addr == BIP_Address.s_addr) {
+            /* handle the case when a network interface on the system
+               reports the interface's unicast IP address as being
+               the same as its broadcast IP address */
+            BIP_Broadcast_Socket = BIP_Socket;
+        } else {
+            broadcast_sock_fd = createSocket(&broadcast_sin_config);
+            BIP_Broadcast_Socket = broadcast_sock_fd;
+            if (broadcast_sock_fd < 0) {
+                bip_cleanup();
+                return false;
+            }
         }
     }
 
