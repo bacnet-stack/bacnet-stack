@@ -16,8 +16,37 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
+
 ### Added
 
+* Added known property decoding in UnconfirmedCOVNotification handler. (#1030)
+* Added the ability for apps/ucov to send property specific application
+  tagged data using -1 argument for tag. (#1030)
+* Added the ability to write to the mstp mac address and link speed
+  property values in the basic network port object. (#1025)
+* Added new error-code enumerations from 135-2024 BACnet.
+* Added new BACnetPropertyState enumerations from 135-2024 BACnet.
+* Added a basic example Auditlog object. (#458)
+* Added You-Are and Who-Am-I encoding, decoding, unit tests, and command
+  line applications bacyouare and bacwhoami. Added You-Are handler and
+  integrated with apps/server example with JSON printout. (#1024)
+* Added object type and services supported BACnetBitString sizes for
+  protocol revision 25-30. (#1020)
+* Added new BACnet text for BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
+  BACnetRestartReason, BACnetNetworkType, BACnetNetworkNumberQuality,
+  BACnetNetworkPortCommand, BACnetAuthenticationDecision,
+  BACnetAuthorizationPosture, BACnetFaultType, BACnetPriorityFilter,
+  BACnetSuccessFilter, and BACnetResultFlags. (#1020)
+* Added new BACnetPropertyIdentifier, BACnetEngineeringUnits, BACnetEventState,
+  BACnetRestartReason, BACnetLifeSafetyMode, BACnetLifeSafetyOperation,
+  BACnetLifeSafetyState, BACnet_Services_Supported, BACnetLightingOperation,
+  BACnetBinaryLightingPV, BACnetNetworkPortCommand,
+  BACnetAuthenticationDecision, BACnetAuthorizationPosture, BACnetFaultType,
+  BACnetPriorityFilter, BACnetResultFlags, and BACnetSuccessFilter
+  enumerations. (#1020)
+* Added more writable properties to Analog, Binary, and Multistate Output
+  objects. (#1012)
 * Added missing API defined in header into ports/win32/dlmstp.c module,
   added a PDU queue and refactored receive thread, and refactored MS/TP
   timing parameters. (#1003)
@@ -39,13 +68,22 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
-
+* Changed ReadRange by-position and by-sequence encoding by refactoring
+  into a common module. (#1028)
 * Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
 * Changed mirror script to improve debugging. (#968)
 * Changed dlenv to support multiple datalinks via environment variable. (#966)
 
 ### Fixed
 
+* Fixed GetEvent usage of linked list by initializing next in all
+  the examples and unit test. (#1026)
+* Fixed usage of Keylist_Data_Add() return value in Calendar,
+  CharacterString Value, Load Control, and BACnet/SC Network Port
+  objects. (#1016)
+* Fixed BACnet/IP initialization on a network interface where the system
+  reports the interface's unicast IP address as being the same as its
+  broadcast IP address (e.g., utunX interfaces for VPNs on macOS). (#1011)
 * Fixed ports/xplained conversion of double warning. (#1004)
 * Fixed BACNET_USE_DOUBLE usage in AVR ports. (#1004)
 * Fixed integer out-of-range in AVR port. (#1004)

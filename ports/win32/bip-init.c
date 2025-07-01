@@ -822,6 +822,8 @@ bool bip_init(char *ifname)
 {
     struct sockaddr_in sin;
     SOCKET sock_fd = INVALID_SOCKET;
+    struct sockaddr_in broadcast_sin_config;
+    SOCKET broadcast_sock_fd = INVALID_SOCKET;
 
     bip_init_windows();
     if (ifname) {
@@ -859,29 +861,44 @@ bool bip_init(char *ifname)
     sock_fd = createSocket(&sin);
     BIP_Socket = sock_fd;
     if (sock_fd == INVALID_SOCKET) {
+        bip_cleanup();
         return false;
     }
+    broadcast_sin_config.sin_family = AF_INET;
+    broadcast_sin_config.sin_port = BIP_Port;
+    memset(
+        &(broadcast_sin_config.sin_zero), '\0',
+        sizeof(broadcast_sin_config.sin_zero));
     if (BIP_Broadcast_Binding_Address_Override) {
         sin.sin_addr.s_addr = BIP_Broadcast_Binding_Address.s_addr;
     } else {
 #if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
-        sin.sin_addr.s_addr = htonl(INADDR_ANY);
+        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_ANY);
 #elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
-        sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 #else
-        sin.sin_addr.s_addr = BIP_Address.s_addr;
+        broadcast_sin_config.sin_addr.s_addr = BIP_Address.s_addr;
 #endif
     }
     if (BIP_Debug) {
         fprintf(
-            stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
-            ntohs(sin.sin_port));
+            stderr, "BIP: broadcast bind %s:%hu\n",
+            inet_ntoa(broadcast_sin_config.sin_addr),
+            ntohs(broadcast_sin_config.sin_port));
         fflush(stderr);
     }
-    sock_fd = createSocket(&sin);
-    BIP_Broadcast_Socket = sock_fd;
-    if (sock_fd == INVALID_SOCKET) {
-        return false;
+    if (broadcast_sin_config.sin_addr.s_addr == BIP_Address.s_addr) {
+        /* handle the case when a network interface on the system
+           reports the interface's unicast IP address as being
+           the same as its broadcast IP address */
+        BIP_Broadcast_Socket = BIP_Socket;
+    } else {
+        broadcast_sock_fd = createSocket(&broadcast_sin_config);
+        BIP_Broadcast_Socket = broadcast_sock_fd;
+        if (broadcast_sock_fd == INVALID_SOCKET) {
+            bip_cleanup();
+            return false;
+        }
     }
     bvlc_init();
 

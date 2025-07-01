@@ -24,7 +24,7 @@ mingw32:
 	ORIGINAL_LD=$(LD) ; \
 	export CC=i686-w64-mingw32-gcc ; \
 	export LD=i686-w64-mingw32-ld ; \
-	$(MAKE) BACNET_PORT=win32 -s -C apps all ; \
+	$(MAKE) BACNET_PORT=win32 LEGACY=true -s -C apps all ; \
 	export CC=$(ORIGINAL_CC) ; \
 	export LD=$(ORIGINAL_LD)
 
@@ -238,6 +238,10 @@ mstpcrc:
 uevent:
 	$(MAKE) -s -C apps $@
 
+.PHONY: who-am-i
+who-am-i:
+	$(MAKE) -s -C apps $@
+
 .PHONY: whois
 whois:
 	$(MAKE) -s -C apps $@
@@ -248,6 +252,10 @@ writepropm:
 
 .PHONY: writegroup
 writegroup:
+	$(MAKE) -s -C apps $@
+
+.PHONY: you-are
+you-are:
 	$(MAKE) -s -C apps $@
 
 .PHONY: router

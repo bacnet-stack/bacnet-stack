@@ -1145,6 +1145,48 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                status = Analog_Output_Units_Set(
+                    wp_data->object_instance, value.type.Enumerated);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_COV_INCREMENT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                if (value.type.Real >= 0.0f) {
+                    Analog_Output_COV_Increment_Set(
+                        wp_data->object_instance, value.type.Real);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_MIN_PRES_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                Analog_Output_Min_Pres_Value_Set(
+                    wp_data->object_instance, value.type.Real);
+            }
+            break;
+        case PROP_MAX_PRES_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                Analog_Output_Max_Pres_Value_Set(
+                    wp_data->object_instance, value.type.Real);
+            }
+            break;
         default:
             if (property_lists_member(
                     Properties_Required, Properties_Optional,
