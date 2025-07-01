@@ -206,16 +206,14 @@ static bool dlmstp_compare_data_expecting_reply(
         request_pdu, request_pdu_len, NULL, &request.address,
         &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
-        debug_printf(
-            "DLMSTP: DER Compare failed: "
-            "Request is Network message.\n");
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "Request is Network message.\n");
         return false;
     }
     request.pdu_type = request_pdu[offset] & 0xF0;
     if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-        debug_printf(
-            "DLMSTP: DER Compare failed: "
-            "Not Confirmed Request.\n");
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "Not Confirmed Request.\n");
         return false;
     }
     request.invoke_id = request_pdu[offset + 2];
@@ -231,9 +229,8 @@ static bool dlmstp_compare_data_expecting_reply(
     offset = (uint16_t)bacnet_npdu_decode(
         reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
-        debug_printf(
-            "DLMSTP: DER Compare failed: "
-            "Reply is Network message.\n");
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "Reply is Network message.\n");
         return false;
     }
     /* reply could be a lot of things:
@@ -270,30 +267,26 @@ static bool dlmstp_compare_data_expecting_reply(
         (reply.pdu_type == PDU_TYPE_ABORT) ||
         (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
-            debug_printf(
-                "DLMSTP: DER Compare failed: "
-                "Invoke ID mismatch.\n");
+            debug_printf("DLMSTP: DER Compare failed: "
+                         "Invoke ID mismatch.\n");
             return false;
         }
     } else {
         if (request.invoke_id != reply.invoke_id) {
-            debug_printf(
-                "DLMSTP: DER Compare failed: "
-                "Invoke ID mismatch.\n");
+            debug_printf("DLMSTP: DER Compare failed: "
+                         "Invoke ID mismatch.\n");
             return false;
         }
         if (request.service_choice != reply.service_choice) {
-            debug_printf(
-                "DLMSTP: DER Compare failed: "
-                "Service choice mismatch.\n");
+            debug_printf("DLMSTP: DER Compare failed: "
+                         "Service choice mismatch.\n");
             return false;
         }
     }
     if (request.npdu_data.protocol_version !=
         reply.npdu_data.protocol_version) {
-        debug_printf(
-            "DLMSTP: DER Compare failed: "
-            "NPDU Protocol Version mismatch.\n");
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "NPDU Protocol Version mismatch.\n");
         return false;
     }
 #if 0
@@ -306,9 +299,8 @@ static bool dlmstp_compare_data_expecting_reply(
     }
 #endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
-        debug_printf(
-            "DLMSTP: DER Compare failed: "
-            "BACnet Address mismatch.\n");
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "BACnet Address mismatch.\n");
         return false;
     }
 
@@ -991,7 +983,7 @@ bool dlmstp_init(char *ifname)
     int rv = 0;
 
     pthread_condattr_init(&attr);
-    //TODO use mach_absolute_time() <mach/mach_time.h> for MONOTONIC clock
+    // TODO use mach_absolute_time() <mach/mach_time.h> for MONOTONIC clock
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
         fprintf(
             stderr, "MS/TP Interface: %s\n failed to set MONOTONIC clock\n",
