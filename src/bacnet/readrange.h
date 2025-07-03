@@ -139,6 +139,23 @@ int rr_ack_decode_service_request(
     int apdu_len, /* total length of the apdu */
     BACNET_READ_RANGE_DATA *rrdata);
 
+BACNET_STACK_EXPORT
+int readrange_ack_by_position_encode(
+    BACNET_READ_RANGE_DATA *data,
+    int (*encoder)(uint32_t object_instance, uint32_t item, uint8_t *apdu),
+    uint32_t item_count,
+    uint8_t *apdu,
+    size_t apdu_size);
+
+BACNET_STACK_EXPORT
+int readrange_ack_by_sequence_encode(
+    BACNET_READ_RANGE_DATA *data,
+    int (*encoder)(uint32_t object_instance, uint32_t item, uint8_t *apdu),
+    uint32_t item_count,
+    uint32_t item_count_total,
+    uint8_t *apdu,
+    size_t apdu_size);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
