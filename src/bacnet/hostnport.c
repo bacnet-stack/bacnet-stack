@@ -506,7 +506,9 @@ bool host_n_port_to_minimal(
             dst->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
             dst->host.ip_address.length = octetstring_copy_value(
                 dst->host.ip_address.address,
-                sizeof(dst->host.ip_address.address), &src->host.ip_address);
+                min(sizeof(dst->host.ip_address.address),
+                    src->host.ip_address.length),
+                &src->host.ip_address);
             if (dst->host.ip_address.length > 0) {
                 status = true;
             }
