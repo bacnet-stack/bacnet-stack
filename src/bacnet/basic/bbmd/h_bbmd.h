@@ -94,6 +94,8 @@ BACNET_STACK_EXPORT
 int bvlc_register_with_bbmd(
     const BACNET_IP_ADDRESS *address, uint16_t time_to_live_seconds);
 BACNET_STACK_EXPORT
+int bvlc_delete_from_bbmd();
+BACNET_STACK_EXPORT
 void bvlc_remote_bbmd_address(BACNET_IP_ADDRESS *address);
 BACNET_STACK_EXPORT
 uint16_t bvlc_remote_bbmd_lifetime(void);
