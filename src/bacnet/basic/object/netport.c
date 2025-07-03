@@ -1211,6 +1211,7 @@ void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Discard_Changes) {
             Object_List[index].Discard_Changes(object_instance);
+            Object_List[index].Changes_Pending = false;
         }
     }
 }
@@ -4662,7 +4663,8 @@ void Network_Port_Changes_Discard(void)
 
     for (i = 0; i < BACNET_NETWORK_PORTS_MAX; i++) {
         if (Object_List[i].Changes_Pending) {
-            Network_Port_Changes_Pending_Discard(i);
+            Network_Port_Changes_Pending_Discard(
+                Object_List[i].Instance_Number);
             Object_List[i].Changes_Pending = false;
         }
     }

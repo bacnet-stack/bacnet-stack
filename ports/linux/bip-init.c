@@ -817,6 +817,11 @@ void bip_set_interface(const char *ifname)
     }
 }
 
+const char *bip_get_interface(void)
+{
+    return BIP_Interface_Name;
+}
+
 static int createSocket(const struct sockaddr_in *sin)
 {
     int status = 0; /* return from socket lib calls */

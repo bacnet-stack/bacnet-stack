@@ -1060,6 +1060,23 @@ bool Device_Serial_Number_Set(const char *str, size_t length)
     return status;
 }
 
+void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart)
+{
+    bacapp_timestamp_copy(time_of_restart, &Time_Of_Device_Restart);
+}
+
+bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart)
+{
+    bool status = false;
+
+    if (time_of_restart) {
+        bacapp_timestamp_copy(&Time_Of_Device_Restart, time_of_restart);
+        status = true;
+    }
+
+    return status;
+}
+
 uint8_t Device_Protocol_Version(void)
 {
     return BACNET_PROTOCOL_VERSION;
