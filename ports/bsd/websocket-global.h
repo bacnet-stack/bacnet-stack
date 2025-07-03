@@ -18,8 +18,10 @@ void bsc_websocket_global_unlock(void);
 #else
 void bsc_websocket_global_lock_dbg(char *f, int line);
 void bsc_websocket_global_unlock_dbg(char *f, int line);
-#define bsc_websocket_global_lock() bsc_websocket_global_lock_dbg(__FILE__, __LINE__);
-#define bsc_websocket_global_unlock() bsc_websocket_global_unlock_dbg(__FILE__, __LINE__);
+#define bsc_websocket_global_lock() \
+    bsc_websocket_global_lock_dbg(__FILE__, __LINE__);
+#define bsc_websocket_global_unlock() \
+    bsc_websocket_global_unlock_dbg(__FILE__, __LINE__);
 #endif
 
 void bsc_websocket_init_log(void);
