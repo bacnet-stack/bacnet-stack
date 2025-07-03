@@ -460,13 +460,13 @@ static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
 /**
  * @brief Get the default interface name using routing info
  * @return interface name, or NULL if not found or none
-*/
+ */
 static char *ifname_default(void)
 {
     if (BIP_Interface_Name[0] != 0) {
         return BIP_Interface_Name;
     }
-    snprintf(BIP_Interface_Name,  sizeof(BIP_Interface_Name), "%s", "en0");
+    snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", "en0");
 
     return BIP_Interface_Name;
 }
@@ -606,7 +606,8 @@ void bip_set_interface(const char *ifname)
     }
     BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
 #else
-    rv = bip_get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
+    rv =
+        bip_get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
     if (rv < 0) {
         BIP_Broadcast_Addr.s_addr = ~0;
     } else {
@@ -723,7 +724,8 @@ bool bip_init(char *ifname)
 
     broadcast_sin_config.sin_family = AF_INET;
     broadcast_sin_config.sin_port = BIP_Port;
-    memset(&(broadcast_sin_config.sin_zero), '\0',
+    memset(
+        &(broadcast_sin_config.sin_zero), '\0',
         sizeof(broadcast_sin_config.sin_zero));
     if (BIP_Broadcast_Binding_Address_Override) {
         broadcast_sin_config.sin_addr.s_addr =
