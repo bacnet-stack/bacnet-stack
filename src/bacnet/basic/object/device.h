@@ -217,6 +217,9 @@ BACNET_STACK_EXPORT
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime);
 
 BACNET_STACK_EXPORT
+void Device_Set_Datetime(BACNET_DATE *date, BACNET_TIME *time);
+
+BACNET_STACK_EXPORT
 int32_t Device_UTC_Offset(void);
 BACNET_STACK_EXPORT
 void Device_UTC_Offset_Set(int16_t offset);

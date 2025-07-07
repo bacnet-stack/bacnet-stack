@@ -1288,10 +1288,27 @@ bool Device_Object_Name_Copy(
     return found;
 }
 
+void Device_Set_Datetime(BACNET_DATE *date, BACNET_TIME *time)
+{
+    datetime_set_date(&Local_Date, date->year, date->month, date->day);
+    datetime_set_time(
+        &Local_Time, time->hour, time->min, time->sec, time->hundredths);
+
+    datetime_timesync(&Local_Date, &Local_Time, true);
+}
+
 static void Update_Current_Time(void)
 {
     datetime_local(
         &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
+
+/* Required for SE NMC as the timezone UTC_OFFset
+    sent from the NMC is opposite to what is used
+    by the BACnet-stack and has to be inverted to
+    be displayed correctly in device object */
+#if BACNET_SE_NMC_TIME_OFFSET
+    UTC_Offset = -UTC_Offset;
+#endif
 }
 
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)

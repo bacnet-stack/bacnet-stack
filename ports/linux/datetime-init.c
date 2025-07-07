@@ -127,7 +127,8 @@ bool datetime_local(
         if (utc_offset_minutes) {
             /* timezone is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
-                local standard time */
+                local standard time. Inverting utc_offset_minutes
+                as it comes into the BACnet inverted  */
             *utc_offset_minutes = timezone / 60;
         }
     }
