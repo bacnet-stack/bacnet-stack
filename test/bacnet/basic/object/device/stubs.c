@@ -23,7 +23,6 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     (void)bdate;
     (void)btime;
     (void)utc;
-
 }
 
 bool datetime_local(
