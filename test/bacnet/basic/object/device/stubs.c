@@ -24,7 +24,6 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     (void)btime;
     (void)utc;
 
-    /* This is a stub, so we do nothing */
 }
 
 bool datetime_local(
