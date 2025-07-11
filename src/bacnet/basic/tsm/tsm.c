@@ -811,6 +811,9 @@ bool tsm_set_segmented_confirmed_service_received(
         tsm_abort_pdu_send(
             service_data->invoke_id, src,
             ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK, true);
+        
+        /* We must free invoke_id ! */
+        tsm_free_invoke_id_check(internal_service_id, NULL, true);
         return false;
     }
     index = tsm_find_invokeID_index(internal_service_id);
@@ -851,8 +854,8 @@ bool tsm_set_segmented_confirmed_service_received(
                     service_data->invoke_id, src,
                     ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE, true);
 
-                TSM_List[index].state = TSM_STATE_IDLE;
-
+                /* We must free invoke_id ! */
+                tsm_free_invoke_id_check(internal_service_id, NULL, true);
                 break;
             }
 
@@ -893,8 +896,9 @@ bool tsm_set_segmented_confirmed_service_received(
                     service_data->invoke_id, src,
                     ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME, true);
 
-                /* Enter IDLE state */
-                TSM_List[index].state = TSM_STATE_IDLE;
+                /* We must free invoke_id ! */
+                tsm_free_invoke_id_check(internal_service_id, NULL, true);
+                break;
             }
             if ((service_data->sequence_number !=
                  (uint8_t)(TSM_List[index].LastSequenceNumber + 1) % 256)) {
@@ -1198,6 +1202,7 @@ int tsm_set_complexack_transaction(
     if (index >= MAX_TSM_TRANSACTIONS) { /* shall not fail */
         tsm_abort_pdu_send(
             confirmed_service_data->invoke_id, dest, ABORT_REASON_OTHER, true);
+        tsm_free_invoke_id_check(internal_service_id, dest, true);
         return -1;
     }
     tsm_data = &TSM_List[index];
@@ -1515,9 +1520,14 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                     /* Re-send PDU data */
                     FillWindow(plist, plist->InitialSequenceNumber);
                 } else {
-                    /* note: the invoke id has not been cleared yet
-                       and this indicates a failed message:
-                       IDLE and a valid invoke id */
+                    /*  Reached max retries, Clear Peer data */
+                    tsm_clear_peer_id(plist->InvokeID);                    
+                    /* Release segmented data */
+                    free_blob(&TSM_List[i]);
+
+                    /* flag slot as "unused" */
+                    plist->InvokeID = 0;
+                    /* set to IDLE state */
                     plist->state = TSM_STATE_IDLE;
                 }
             }
