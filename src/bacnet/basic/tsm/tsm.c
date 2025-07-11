@@ -1447,7 +1447,9 @@ void tsm_free_invoke_id_segmentation(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     uint8_t peer_id = 0;
     peer_id = tsm_get_peer_id(src, invoke_id);
-    tsm_free_invoke_id_check(peer_id, src, true);
+    //Peer_id = 0 refers to free slot
+    if(peer_id)
+        tsm_free_invoke_id_check(peer_id, src, true);
 }
 #endif
 
