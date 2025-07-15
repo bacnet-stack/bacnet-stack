@@ -368,6 +368,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/device.c
   src/bacnet/basic/object/device.h
   $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/object/gateway/gw_device.c>
+  src/bacnet/basic/object/event_enrollment.c
+  src/bacnet/basic/object/event_enrollment.h
   src/bacnet/basic/object/iv.c
   src/bacnet/basic/object/iv.h
   src/bacnet/basic/object/lc.c

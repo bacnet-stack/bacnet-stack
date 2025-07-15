@@ -22,7 +22,7 @@ typedef enum {
 
 typedef uint8_t TYPE_BACNET_TIMESTAMP_TYPE;
 
-typedef struct BACnet_Timestamp {
+typedef struct BACnetTimeStamp {
     TYPE_BACNET_TIMESTAMP_TYPE tag;
     union {
         BACNET_TIME time;
