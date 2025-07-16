@@ -180,6 +180,294 @@ typedef struct BACnet_Event_Notification_Data {
     } notificationParams;
 } BACNET_EVENT_NOTIFICATION_DATA;
 
+/*  BACnetEventParameter ::= CHOICE {
+        -- These choices have a one-to-one correspondence with
+        -- the Event_Type enumeration with the exception of the
+        -- complex-event-type, which is used for proprietary event types.
+        change-of-bitstring [0] SEQUENCE {
+            time-delay [0] Unsigned,
+            bitmask [1] BitString,
+            list-of-bitstring-values [2] SEQUENCE OF BitString
+        },
+        change-of-state [1] SEQUENCE {
+            time-delay [0] Unsigned,
+            list-of-values [1] SEQUENCE OF BACnetPropertyStates
+        },
+        change-of-value [2] SEQUENCE {
+            time-delay [0] Unsigned,
+            cov-criteria [1] CHOICE {
+                bitmask [0] BitString,
+                referenced-property-increment [1] Real
+            }
+        },
+        command-failure [3] SEQUENCE {
+            time-delay [0] Unsigned,
+            feedback-property-reference [1] BACnetDeviceObjectPropertyReference
+        },
+        floating-limit [4] SEQUENCE {
+            time-delay [0] Unsigned,
+            setpoint-reference [1] BACnetDeviceObjectPropertyReference,
+            low-diff-limit [2] Real,
+            high-diff-limit [3] Real,
+            deadband [4] Real
+        },
+        out-of-range [5] SEQUENCE {
+            time-delay [0] Unsigned,
+            low-limit [1] Real,
+            high-limit [2] Real,
+            deadband [3] Real
+        },
+        -- CHOICE [6] has been intentionally omitted.
+        -- It parallels the complex-event-type CHOICE [6] of the
+        -- BACnetNotificationParameters production which was
+        -- introduced to allow the addition of proprietary event
+        -- algorithms whose event parameters are not necessarily
+        -- network-visible.
+        -- context tag 7 is deprecated
+        change-of-life-safety [8] SEQUENCE {
+            time-delay[0] Unsigned,
+            list-of-life-safety-alarm-values[1] SEQUENCE OF
+                BACnetLifeSafetyState,
+            list-of-alarm-values[2] SEQUENCE OF BACnetLifeSafetyState,
+            mode-property-reference[3] BACnetDeviceObjectPropertyReference
+        },
+        extended [9] SEQUENCE {
+            vendor-id [0] Unsigned16,
+            extended-event-type [1] Unsigned,
+            parameters[2] SEQUENCE OF CHOICE {
+                null Null,
+                real Real,
+                unsigned Unsigned,
+                boolean Boolean,
+                integer Integer,
+                double Double,
+                octetstring OctetString,
+                characterstring CharacterString,
+                bitstring BitString,
+                enumerated ENUMERATED,
+                date DatePattern,
+                time TimePattern,
+                objectidentifier BACnetObjectIdentifier,
+                reference [0] BACnetDeviceObjectPropertyReference
+        }
+    },
+    buffer-ready [10] SEQUENCE {
+        notification-threshold [0] Unsigned,
+        previous-notification-count[1] Unsigned32
+    },
+    unsigned-range [11] SEQUENCE {
+        time-delay[0] Unsigned,
+        low-limit[1] Unsigned,
+        high-limit[2] Unsigned
+    },
+    -- context tag 12 is reserved for future addenda
+    access-event [13] SEQUENCE {
+        list-of-access-events[0] SEQUENCE OF BACnetAccessEvent,
+        access-event-time-reference[1] BACnetDeviceObjectPropertyReference
+    },
+    double-out-of-range [14] SEQUENCE {
+        time-delay[0] Unsigned,
+        low-limit[1] Double,
+        high-limit[2] Double,
+        deadband[3] Double
+    },
+    signed-out-of-range [15] SEQUENCE {
+        time-delay[0] Unsigned,
+        low-limit[1] Integer,
+        high-limit[2] Integer,
+        deadband[3] Unsigned
+    },
+    unsigned-out-of-range [16] SEQUENCE {
+        time-delay[0] Unsigned,
+        low-limit[1] Unsigned,
+        high-limit[2] Unsigned,
+        deadband[3] Unsigned
+    },
+    change-of-characterstring [17] SEQUENCE {
+        time-delay[0] Unsigned,
+        list-of-alarm-values[1] SEQUENCE OF CharacterString
+    },
+    change-of-status-flags [18] SEQUENCE {
+        time-delay[0] Unsigned,
+        selected-flags[1] BACnetStatusFlags
+    },
+    -- CHOICE [19] has been intentionally omitted.
+    -- It parallels the change-of-reliability event type CHOICE[19]
+    -- of the BACnetNotificationParameters production
+    -- which was introduced for the notification of event state
+    -- changes to FAULT and from FAULT, which does not have
+    -- event parameters.
+    none [20] Null,
+    change-of-discrete-value [21] SEQUENCE {
+        new-value [0] CHOICE {
+            boolean Boolean,
+            unsigned Unsigned,
+            integer Integer,
+            enumerated ENUMERATED,
+            characterstring CharacterString,
+            octetstring OctetString,
+            datePattern Date,
+            timePattern Time,
+            objectidentifier BACnetObjectIdentifier,
+            datetime [0] BACnetDateTime
+        },
+        status-flags [1] BACnetStatusFlags
+    },
+    change-of-timer [22] SEQUENCE {
+        time-delay [0] Unsigned,
+        alarm-values[1] SEQUENCE OF BACnetTimerState,
+        update-time-reference[2] BACnetDeviceObjectPropertyReference
+    }
+*/
+typedef struct BACnetEventParameter {
+    BACNET_EVENT_TYPE event_type;
+    union {
+        struct {
+            uint32_t time_delay;
+            BACNET_BIT_STRING bitmask;
+            struct {
+                BACNET_BIT_STRING value;
+                void *next;
+            } list_of_bitstring_values;
+        } change_of_bitstring;
+        struct {
+            uint32_t time_delay;
+            struct {
+                BACNET_PROPERTY_STATE value;
+                void *next;
+            } list_of_values;
+        } change_of_state;
+        struct {
+            uint32_t time_delay;
+            union {
+                BACNET_BIT_STRING bitmask;
+                float referenced_property_increment;
+            } cov_criteria;
+        } change_of_value;
+        struct {
+            uint32_t time_delay;
+            BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE feedback_property_reference;
+        } command_failure;
+        struct {
+            uint32_t time_delay;
+            BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE setpoint_reference;
+            float low_diff_limit;
+            float high_diff_limit;
+            float deadband;
+        } floating_limit;
+        struct {
+            uint32_t time_delay;
+            float low_limit;
+            float high_limit;
+            float deadband;
+        } out_of_range;
+        struct {
+            uint32_t time_delay;
+            struct {
+                BACNET_LIFE_SAFETY_STATE value;
+                void *next;
+            } list_of_life_safety_alarm_values;
+            struct {
+                BACNET_LIFE_SAFETY_STATE value;
+                void *next;
+            } list_of_alarm_values;
+            BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE mode_property_reference;
+        } change_of_life_safety;
+        struct {
+            uint16_t vendor_id;
+            uint32_t extended_event_type;
+            struct {
+                uint8_t tag;
+                union {
+                    bool boolean_value;
+                    float real_value;
+                    BACNET_UNSIGNED_INTEGER unsigned_value;
+                    int32_t integer_value;
+                    double double_value;
+                    BACNET_OCTET_STRING octet_string;
+                    BACNET_CHARACTER_STRING character_string;
+                    BACNET_BIT_STRING bit_string;
+                    uint32_t enumerated;
+                    BACNET_DATE date_pattern;
+                    BACNET_TIME time_pattern;
+                    BACNET_OBJECT_ID object_identifier;
+                    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE reference;
+                } parameters;
+                void *next;
+            } parameters;
+        } extended;
+        struct {
+            uint32_t notification_threshold;
+            uint32_t previous_notification_count;
+        } buffer_ready;
+        struct {
+            uint32_t time_delay;
+            uint32_t low_limit;
+            uint32_t high_limit;
+        } unsigned_range;
+        struct {
+            struct {
+                BACNET_ACCESS_EVENT value;
+                void *next;
+            } list_of_access_events;
+            BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE access_event_time_reference;
+        } access_event;
+        struct {
+            uint32_t time_delay;
+            double low_limit;
+            double high_limit;
+            double deadband;
+        } double_out_of_range;
+        struct {
+            uint32_t time_delay;
+            int32_t low_limit;
+            int32_t high_limit;
+            uint32_t deadband;
+        } signed_out_of_range;
+        struct {
+            uint32_t time_delay;
+            uint32_t low_limit;
+            uint32_t high_limit;
+            uint32_t deadband;
+        } unsigned_out_of_range;
+        struct {
+            uint32_t time_delay;
+            struct {
+                BACNET_CHARACTER_STRING value;
+                void *next;
+            } list_of_alarm_values;
+        } change_of_characterstring;
+        struct {
+            uint32_t time_delay;
+            BACNET_STATUS_FLAGS selected_flags;
+        } change_of_status_flags;
+        struct {
+            uint8_t tag;
+            union {
+                bool boolean_value;
+                BACNET_UNSIGNED_INTEGER unsigned_value;
+                int32_t integer_value;
+                uint32_t enumerated;
+                BACNET_CHARACTER_STRING character_string;
+                BACNET_OCTET_STRING octet_string;
+                BACNET_DATE date_pattern;
+                BACNET_TIME time_pattern;
+                BACNET_OBJECT_ID object_identifier;
+                BACNET_DATE_TIME datetime;
+            } new_value;
+            BACNET_STATUS_FLAGS status_flags;
+        } change_of_discrete_value;
+        struct {
+            uint32_t time_delay;
+            struct {
+                BACNET_TIMER_STATE value;
+                void *next;
+            } alarm_values;
+            BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE update_time_reference;
+        } change_of_timer;
+    } parameter;
+} BACNET_EVENT_PARAMETER;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

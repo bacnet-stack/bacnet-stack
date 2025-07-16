@@ -21,6 +21,7 @@
 #include "bacnet/bactext.h"
 #include "bacnet/cov.h"
 #include "bacnet/apdu.h"
+#include "bacnet/event.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/reject.h"
@@ -37,6 +38,7 @@ struct object_data {
     const char *Description;
     BACNET_EVENT_TYPE Event_Type;
     BACNET_NOTIFY_TYPE Notify_Type;
+    BACNET_EVENT_PARAMETER Event_Parameters;
     BACNET_OBJECT_PROPERTY_REFERENCE Object_Property_Reference;
     BACNET_EVENT_STATE Event_State;
     BACNET_EVENT_ENABLE Event_Enable;
