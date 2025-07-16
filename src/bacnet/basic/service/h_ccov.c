@@ -127,13 +127,13 @@ void handler_ccov_notification(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_NPDU_DATA npdu_data;
-    BACNET_COV_DATA cov_data;
-    BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_COV_DATA cov_data = { 0 };
+    BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES] = { 0 };
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
-    BACNET_ADDRESS my_address;
+    BACNET_ADDRESS my_address = { 0 };
 
     /* create linked list to store data if more
        than one property value is expected */
