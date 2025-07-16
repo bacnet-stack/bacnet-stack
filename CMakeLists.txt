@@ -880,7 +880,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
         ports/bsd/ethernet.c
       )
     endif()
-  endif()  
+  endif()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
