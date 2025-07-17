@@ -1269,6 +1269,12 @@ int bvlc_register_with_bbmd(
     return bip_send_mpdu(bbmd_addr, &BVLC_Buffer[0], BVLC_Buffer_Len);
 }
 
+/** Become a normal (non-foreign) device and delete self from a BBMD if
+ * registered
+ * @return Positive number (of bytes sent) on success,
+ *         0 if no delete request is sent, or
+ *         -1 if delete fails.
+ */
 int bvlc_delete_from_bbmd(void)
 {
     int status;
