@@ -228,8 +228,8 @@ uint8_t tsm_next_free_invokeID(void)
  * @param bdata [in] The data to copy
  * @param data_len [in] The length of the data
  */
-static void
-tsm_blob_data_copy(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
+static void tsm_blob_data_copy(
+    BACNET_TSM_DATA *data, const uint8_t *bdata, uint32_t data_len)
 {
 #if BACNET_SEGMENTATION_ENABLED
     if (data->apdu) {
