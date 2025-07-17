@@ -811,7 +811,7 @@ bool tsm_set_segmented_confirmed_service_received(
         tsm_abort_pdu_send(
             service_data->invoke_id, src,
             ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK, true);
-        
+
         /* We must free invoke_id ! */
         tsm_free_invoke_id_check(internal_service_id, NULL, true);
         return false;
@@ -886,20 +886,9 @@ bool tsm_set_segmented_confirmed_service_received(
             /* reset the segment timer */
             TSM_List[index].RequestTimer = 0; /* unused */
             /* ANSI/ASHRAE 135-2008 5.4.5.2 SEGMENTED_REQUEST / Timeout */
-            /* If SegmentTimer becomes greater than Tseg times four, [...] enter
-             * IDLE state */
+            /* ...SegmentTimer becomes greater than Tseg times four, ... */
             TSM_List[index].SegmentTimer = apdu_segment_timeout() * 4;
             /* Sequence number MUST be (LastSequenceNumber+1 modulo 256) */
-
-            if (TSM_List[index].SegmentTimer > apdu_timeout()) {
-                tsm_abort_pdu_send(
-                    service_data->invoke_id, src,
-                    ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME, true);
-
-                /* We must free invoke_id ! */
-                tsm_free_invoke_id_check(internal_service_id, NULL, true);
-                break;
-            }
             if ((service_data->sequence_number !=
                  (uint8_t)(TSM_List[index].LastSequenceNumber + 1) % 256)) {
                 if (DuplicateInWindow(
@@ -1452,9 +1441,10 @@ void tsm_free_invoke_id_segmentation(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     uint8_t peer_id = 0;
     peer_id = tsm_get_peer_id(src, invoke_id);
-    //Peer_id = 0 refers to free slot
-    if(peer_id)
+    // Peer_id = 0 refers to free slot
+    if (peer_id) {
         tsm_free_invoke_id_check(peer_id, src, true);
+    }
 }
 #endif
 
@@ -1504,6 +1494,23 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 }
             }
         }
+        if (plist->state == TSM_STATE_AWAIT_RESPONSE) {
+            /*  5.4.5.3 AWAIT_RESPONSE
+                In the AWAIT_RESPONSE state, the device waits for the
+                local application program to respond to a BACnet-Confirmed-
+                Request-PDU. See Clause 9.8 for specific considerations
+                in MS/TP networks.*/
+            /*  If RequestTimer becomes greater than Tout,
+                then issue an N-UNITDATA.request with
+                'data_expecting_reply' = FALSE to transmit
+                a BACnet-Abort-PDU with 'server' = TRUE and
+                'abort-reason' = APPLICATION_EXCEEDED_REPLY_TIME;
+                send ABORT.indication with 'server' = TRUE and
+                'abort-reason' = APPLICATION_EXCEEDED_REPLY_TIME
+                to the local application program; and
+                enter the IDLE state. */
+            /* note: this TSM implemention doesn't do this state */
+        }
 #if BACNET_SEGMENTATION_ENABLED
         if (plist->state == TSM_STATE_SEGMENTED_RESPONSE_SERVER) {
             /* RequestTimer stopped in this state */
@@ -1521,7 +1528,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                     FillWindow(plist, plist->InitialSequenceNumber);
                 } else {
                     /*  Reached max retries, Clear Peer data */
-                    tsm_clear_peer_id(plist->InvokeID);                    
+                    tsm_clear_peer_id(plist->InvokeID);
                     /* Release segmented data */
                     free_blob(&TSM_List[i]);
 
@@ -1532,15 +1539,23 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 }
             }
         }
-
-        if (plist->state == TSM_STATE_SEGMENTED_REQUEST_SERVER) {
+        if ((plist->state == TSM_STATE_SEGMENTED_REQUEST_SERVER) ||
+            (plist->state == TSM_STATE_SEGMENTED_CONFIRMATION)) {
+            /*  5.4.5.2 SEGMENTED_REQUEST
+                In the SEGMENTED_REQUEST state, the device waits for segments
+                of a BACnet-Confirmed-Request-PDU. */
+            /*  5.4.4.4 SEGMENTED_CONF
+                In the SEGMENTED_CONF state, the device waits for one or
+                more segments in response to a BACnet-SegmentACK-PDU.*/
             /* RequestTimer stopped in this state */
             if (plist->SegmentTimer > milliseconds) {
                 plist->SegmentTimer -= milliseconds;
             } else {
                 plist->SegmentTimer = 0;
             }
-            /* timeout : free memory */
+            /*  Timeout
+                If SegmentTimer becomes greater than Tseg times four,
+                then stop SegmentTimer and enter the IDLE state. */
             if (plist->SegmentTimer == 0) {
                 /* Clear Peer data, if any. Lookup with our internal ID
                 status. */
