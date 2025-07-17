@@ -222,6 +222,28 @@ uint8_t tsm_next_free_invokeID(void)
     return invokeID;
 }
 
+/**
+ * @brief Copy new data to current APDU sending blob data
+ * @param data [in] The TSM data
+ * @param bdata [in] The data to copy
+ * @param data_len [in] The length of the data
+ */
+static void
+tsm_blob_data_copy(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
+{
+#if BACNET_SEGMENTATION_ENABLED
+    if (data->apdu) {
+        free(data->apdu);
+    }
+    data->apdu = NULL;
+    data->apdu = calloc(1, data_len);
+#endif
+    if (data->apdu != NULL) {
+        memcpy(data->apdu, bdata, data_len);
+        data->apdu_len = data_len;
+    }
+}
+
 /** Set for an unsegmented transaction
  *  the state to await confirmation.
  *
@@ -238,7 +260,6 @@ void tsm_set_confirmed_unsegmented_transaction(
     const uint8_t *apdu,
     uint16_t apdu_len)
 {
-    uint16_t j = 0;
     uint8_t index;
     BACNET_TSM_DATA *plist;
 
@@ -252,10 +273,7 @@ void tsm_set_confirmed_unsegmented_transaction(
             /* start the timer */
             plist->RequestTimer = apdu_timeout();
             /* copy the data */
-            for (j = 0; j < apdu_len; j++) {
-                plist->apdu[j] = apdu[j];
-            }
-            plist->apdu_len = apdu_len;
+            tsm_blob_data_copy(plist, apdu, apdu_len);
             npdu_copy_data(&plist->npdu_data, ndpu_data);
             bacnet_address_copy(&plist->dest, dest);
         }
@@ -523,26 +541,6 @@ static uint8_t *tsm_blob_data_get(BACNET_TSM_DATA *data, uint16_t *data_len)
 {
     *data_len = data->apdu_blob_size;
     return data->apdu_blob;
-}
-
-/**
- * @brief Copy new data to current APDU sending blob data
- * @param data [in] The TSM data
- * @param bdata [in] The data to copy
- * @param data_len [in] The length of the data
- */
-static void
-tsm_blob_data_copy(BACNET_TSM_DATA *data, uint8_t *bdata, uint32_t data_len)
-{
-    if (data->apdu) {
-        free(data->apdu);
-    }
-    data->apdu = NULL;
-    data->apdu = calloc(1, data_len);
-    if (data->apdu != NULL) {
-        memcpy(data->apdu, bdata, data_len);
-        data->apdu_len = data_len;
-    }
 }
 
 /**
