@@ -1089,7 +1089,11 @@ uint8_t Device_Protocol_Revision(void)
 
 BACNET_SEGMENTATION Device_Segmentation_Supported(void)
 {
+#if BACNET_SEGMENTATION_ENABLED
+    return SEGMENTATION_BOTH;
+#else
     return SEGMENTATION_NONE;
+#endif
 }
 
 uint32_t Device_Database_Revision(void)
