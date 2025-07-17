@@ -1535,7 +1535,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                     /*  Reached max retries, Clear Peer data */
                     tsm_clear_peer_id(plist->InvokeID);
                     /* Release segmented data */
-                    free_blob(&TSM_List[i]);
+                    tsm_blob_free(&TSM_List[i]);
 
                     /* flag slot as "unused" */
                     plist->InvokeID = 0;
