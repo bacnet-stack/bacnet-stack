@@ -85,6 +85,7 @@ void CharacterString_Value_Property_Lists(
 uint32_t CharacterString_Value_Create(uint32_t object_instance)
 {
     struct characterstring_object *pObject = NULL;
+    int index;
 
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
@@ -101,7 +102,7 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
         pObject = calloc(1, sizeof(struct characterstring_object));
         if (pObject) {
             /* add to list */
-            int index = Keylist_Data_Add(Object_List, object_instance, pObject);
+            index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;

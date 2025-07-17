@@ -52,6 +52,14 @@ BACNET_STACK_EXPORT
 int bacnet_dailyschedule_context_encode(
     uint8_t *apdu, uint8_t tag_number, const BACNET_DAILY_SCHEDULE *day);
 
+BACNET_STACK_EXPORT
+bool bacnet_dailyschedule_same(
+    const BACNET_DAILY_SCHEDULE *a, const BACNET_DAILY_SCHEDULE *b);
+
+BACNET_STACK_EXPORT
+void bacnet_dailyschedule_copy(
+    BACNET_DAILY_SCHEDULE *dest, const BACNET_DAILY_SCHEDULE *src);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

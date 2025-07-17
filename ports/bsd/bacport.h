@@ -1,39 +1,39 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* SPDX-License-Identifier: MIT
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 
 #ifndef BACPORT_H
 #define BACPORT_H
 
 /* common unix sockets headers needed */
-#include <sys/types.h>   /* basic system data types */
-#include <sys/time.h>    /* timeval{} for select() */
-#include <time.h>        /* timespec{} for pselect() */
-#include <netinet/in.h>  /* sockaddr_in{} and other Internet defns */
-#include <arpa/inet.h>   /* inet(3) functions */
-#include <fcntl.h>       /* for nonblocking */
+#include <sys/types.h> /* basic system data types */
+#include <sys/time.h> /* timeval{} for select() */
+#include <time.h> /* timespec{} for pselect() */
+#include <netinet/in.h> /* sockaddr_in{} and other Internet defns */
+#include <arpa/inet.h> /* inet(3) functions */
+#include <fcntl.h> /* for nonblocking */
 #include <netdb.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>    /* for S_xxx file mode constants */
-#include <sys/uio.h>     /* for iovec{} and readv/writev */
+#include <sys/stat.h> /* for S_xxx file mode constants */
+#include <sys/uio.h> /* for iovec{} and readv/writev */
 #include <unistd.h>
 #include <sys/wait.h>
-#include <sys/un.h>      /* for Unix domain sockets */
+#include <sys/un.h> /* for Unix domain sockets */
 
 #ifdef HAVE_SYS_SELECT_H
-#include <sys/select.h>  /* for convenience */
+#include <sys/select.h> /* for convenience */
 #endif
 
 #ifdef HAVE_POLL_H
-#include <poll.h>        /* for convenience */
+#include <poll.h> /* for convenience */
 #endif
 
 /* Three headers are normally needed for socket/file ioctl's:
@@ -60,7 +60,7 @@
 #include <net/if_arp.h>
 #include <net/if_dl.h>
 #include <ifaddrs.h>
-#include <net/ethernet.h>       /* the L2 protocols */
+#include <net/ethernet.h> /* the L2 protocols */
 #include <netinet/in.h>
 #include <netinet/in_var.h>
 #include <arpa/inet.h>

@@ -52,13 +52,6 @@ typedef struct BACnet_Read_Range_Data {
 /**< For info functionality indicates array of lists if set */
 #define RR_ARRAY_OF_LISTS 16
 
-/** Bit String Enumerations */
-typedef enum {
-    RESULT_FLAG_FIRST_ITEM = 0,
-    RESULT_FLAG_LAST_ITEM = 1,
-    RESULT_FLAG_MORE_ITEMS = 2
-} BACNET_RESULT_FLAGS;
-
 /** Defines for ReadRange packet overheads to allow us to determine how
  * much space is left for actual payload:
  *
@@ -145,6 +138,23 @@ int rr_ack_decode_service_request(
     uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     BACNET_READ_RANGE_DATA *rrdata);
+
+BACNET_STACK_EXPORT
+int readrange_ack_by_position_encode(
+    BACNET_READ_RANGE_DATA *data,
+    int (*encoder)(uint32_t object_instance, uint32_t item, uint8_t *apdu),
+    uint32_t item_count,
+    uint8_t *apdu,
+    size_t apdu_size);
+
+BACNET_STACK_EXPORT
+int readrange_ack_by_sequence_encode(
+    BACNET_READ_RANGE_DATA *data,
+    int (*encoder)(uint32_t object_instance, uint32_t item, uint8_t *apdu),
+    uint32_t item_count,
+    uint32_t item_count_total,
+    uint8_t *apdu,
+    size_t apdu_size);
 
 #ifdef __cplusplus
 }

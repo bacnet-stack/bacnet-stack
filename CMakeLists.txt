@@ -469,6 +469,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_ucov.h
   src/bacnet/basic/service/h_upt.c
   src/bacnet/basic/service/h_upt.h
+  src/bacnet/basic/service/h_whoami.c
+  src/bacnet/basic/service/h_whoami.h
   src/bacnet/basic/service/h_whohas.c
   src/bacnet/basic/service/h_whohas.h
   src/bacnet/basic/service/h_whois.c
@@ -479,6 +481,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_wpm.h
   src/bacnet/basic/service/h_write_group.c
   src/bacnet/basic/service/h_write_group.h
+  src/bacnet/basic/service/h_youare.c
+  src/bacnet/basic/service/h_youare.h
   src/bacnet/basic/service/s_abort.c
   src/bacnet/basic/service/s_abort.h
   src/bacnet/basic/service/s_ack_alarm.c
@@ -527,6 +531,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_uevent.h
   src/bacnet/basic/service/s_upt.c
   src/bacnet/basic/service/s_upt.h
+  src/bacnet/basic/service/s_whoami.c
+  src/bacnet/basic/service/s_whoami.h
   src/bacnet/basic/service/s_whohas.c
   src/bacnet/basic/service/s_whohas.h
   src/bacnet/basic/service/s_whois.c
@@ -537,6 +543,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_wpm.h
   src/bacnet/basic/service/s_write_group.c
   src/bacnet/basic/service/s_write_group.h
+  src/bacnet/basic/service/s_youare.c
+  src/bacnet/basic/service/s_youare.h
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
@@ -655,6 +663,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/timesync.c
   src/bacnet/timesync.h
   src/bacnet/version.h
+  src/bacnet/whoami.c
+  src/bacnet/whoami.h
   src/bacnet/whohas.c
   src/bacnet/whohas.h
   src/bacnet/whois.c
@@ -665,6 +675,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/wpm.h
   src/bacnet/write_group.c
   src/bacnet/write_group.h
+  src/bacnet/youare.c
+  src/bacnet/youare.h
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.c>
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.h>)
 target_sources(
@@ -732,6 +744,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/termios2.h>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
@@ -842,10 +855,40 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
-    ports/bsd/bip-init.c
+    $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/dlmstp.c>
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
     ports/bsd/stdbool.h)
+
+  if(BACDL_ETHERNET)
+    FIND_PATH(PCAP_INCLUDE pcap.h)
+    if(NOT PCAP_INCLUDE)
+      message(WARNING "BACNET: pcap.h header file not found")
+    else()
+      message(STATUS "BACNET: pcap Include:...................\"${PCAP_INCLUDE}\"")
+    endif()
+    FIND_LIBRARY(PCAP_LIBRARIES NAMES pcap)
+    if(NOT PCAP_LIBRARIES)
+      message(WARNING "BACNET: libpcap not found")
+    else()
+      message(STATUS "BACNET: pcap Lib:.......................\"${PCAP_LIBRARIES}\"")
+    endif()
+    if(PCAP_INCLUDE AND PCAP_LIBRARIES)
+      include_directories(${PCAP_INCLUDE})
+      link_libraries(${PCAP_LIBRARIES})
+      target_sources(${PROJECT_NAME} PRIVATE
+        ports/bsd/ethernet.c
+      )
+    endif()
+  endif()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -1097,6 +1140,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
 
+  add_executable(whoami apps/who-am-i/main.c)
+  target_link_libraries(whoami PRIVATE ${PROJECT_NAME})
+
   add_executable(whohas apps/whohas/main.c)
   target_link_libraries(whohas PRIVATE ${PROJECT_NAME})
 
@@ -1123,6 +1169,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
+
+  add_executable(youare apps/you-are/main.c)
+  target_link_libraries(youare PRIVATE ${PROJECT_NAME})
 if(BACDL_BSC)
   add_executable(sc-hub apps/sc-hub/main.c)
   target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})

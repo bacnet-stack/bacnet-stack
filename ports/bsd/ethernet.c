@@ -83,11 +83,13 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
     int i;
 
     if (getifaddrs(&ifap) == 0) {
-        for(ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next) {
-            if (!strcmp((ifaptr)->ifa_name, ifname) && (((ifaptr)->ifa_addr)->sa_family == AF_LINK)) {
-                ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
+        for (ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next) {
+            if (!strcmp((ifaptr)->ifa_name, ifname) &&
+                (((ifaptr)->ifa_addr)->sa_family == AF_LINK)) {
+                ptr = (unsigned char *)LLADDR(
+                    (struct sockaddr_dl *)(ifaptr)->ifa_addr);
                 for (i = 0; i < 6; ++i) {
-                    mac[i] = *(ptr+i);
+                    mac[i] = *(ptr + i);
                 }
                 break;
             }
@@ -98,7 +100,6 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
         return 0;
     }
 }
-
 
 bool ethernet_init(char *if_name)
 {
@@ -114,7 +115,8 @@ bool ethernet_init(char *if_name)
      */
     /* Retrieve the device list */
     if (pcap_findalldevs(&pcap_all_if, pcap_errbuf) == -1) {
-        fprintf(stderr, "ethernet.c: error in pcap_findalldevs: %s\n", pcap_errbuf);
+        fprintf(
+            stderr, "ethernet.c: error in pcap_findalldevs: %s\n", pcap_errbuf);
         return false;
     }
     /* Scan the list printing every entry */
@@ -125,7 +127,8 @@ bool ethernet_init(char *if_name)
     }
     pcap_freealldevs(pcap_all_if); /* we don't need it anymore */
     if (dev == NULL) {
-        fprintf(stderr, "ethernet.c: specified interface not found: %s\n", if_name);
+        fprintf(
+            stderr, "ethernet.c: specified interface not found: %s\n", if_name);
         return false;
     }
 
@@ -133,15 +136,11 @@ bool ethernet_init(char *if_name)
      * Get local MAC address
      */
     get_local_hwaddr(if_name, Ethernet_MAC_Address);
-    fprintf(stderr, "ethernet: src mac %02x:%02x:%02x:%02x:%02x:%02x \n",
-        Ethernet_MAC_Address[0],
-        Ethernet_MAC_Address[1],
-        Ethernet_MAC_Address[2],
-        Ethernet_MAC_Address[3],
-        Ethernet_MAC_Address[4],
-        Ethernet_MAC_Address[5]
-     );
-
+    fprintf(
+        stderr, "ethernet: src mac %02x:%02x:%02x:%02x:%02x:%02x \n",
+        Ethernet_MAC_Address[0], Ethernet_MAC_Address[1],
+        Ethernet_MAC_Address[2], Ethernet_MAC_Address[3],
+        Ethernet_MAC_Address[4], Ethernet_MAC_Address[5]);
 
     /**
      * Open interface for subsequent sending and receiving
@@ -152,12 +151,13 @@ bool ethernet_init(char *if_name)
         ETHERNET_MPDU_MAX, /* portion of the packet to capture */
         PCAP_OPENFLAG_PROMISCUOUS, /* promiscuous mode */
         eth_timeout, /* read timeout */
-        //NULL, /* authentication on the remote machine */
+        // NULL, /* authentication on the remote machine */
         pcap_errbuf /* error buffer */
     );
     if (pcap_eth802_fp == NULL) {
         ethernet_cleanup();
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "ethernet.c: unable to open the adapter. %s is not supported by "
             "Pcap\n",
             if_name);
@@ -170,7 +170,6 @@ bool ethernet_init(char *if_name)
 
     return ethernet_valid();
 }
-
 
 /* function to send a packet out the 802.2 socket */
 /* returns bytes sent success, negative on failure */
@@ -187,7 +186,8 @@ int ethernet_send_addr(
 
     /* don't waste time if the socket is not valid */
     if (!ethernet_valid()) {
-        fprintf(stderr, "ethernet: invalid 802.2 ethernet interface descriptor!\n");
+        fprintf(
+            stderr, "ethernet: invalid 802.2 ethernet interface descriptor!\n");
         return -1;
     }
     /* load destination ethernet MAC address */
@@ -227,7 +227,8 @@ int ethernet_send_addr(
     /* Send the packet */
     if (pcap_sendpacket(pcap_eth802_fp, mtu, mtu_len) != 0) {
         /* did it get sent? */
-        fprintf(stderr, "ethernet: error in sending packet: %s\n",
+        fprintf(
+            stderr, "ethernet: error in sending packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
         return -5;
     }
@@ -282,14 +283,16 @@ uint16_t ethernet_receive(
 
     /* Make sure the socket is open */
     if (!ethernet_valid()) {
-        fprintf(stderr, "ethernet: invalid 802.2 ethernet interface descriptor!\n");
+        fprintf(
+            stderr, "ethernet: invalid 802.2 ethernet interface descriptor!\n");
         return 0;
     }
 
     /* Capture a packet */
     res = pcap_next_ex(pcap_eth802_fp, &header, &pkt_data);
     if (res < 0) {
-        fprintf(stderr, "ethernet: error in receiving packet: %s\n",
+        fprintf(
+            stderr, "ethernet: error in receiving packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
         return 0;
     } else if (res == 0) {

@@ -265,3 +265,21 @@ bool bacnet_special_event_same(
 
     return true;
 }
+
+/**
+ * @brief Compare the BACnetSpecialEvent complex data
+ * @param value1 - BACNET_SPECIAL_EVENT structure
+ * @param value2 - BACNET_SPECIAL_EVENT structure
+ * @return true if the same
+ */
+bool bacnet_special_event_copy(
+    BACNET_SPECIAL_EVENT *dest, const BACNET_SPECIAL_EVENT *src)
+{
+    if (!dest || !src) {
+        return false;
+    }
+
+    memcpy(dest, src, sizeof(BACNET_SPECIAL_EVENT));
+
+    return true;
+}

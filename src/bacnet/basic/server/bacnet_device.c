@@ -78,6 +78,24 @@
 #define BACNET_DEVICE_MODEL_NAME "GNU Basic Server Model 42"
 #endif
 
+#ifdef CONFIG_BACNET_BASIC_DEVICE_LOCATION_NAME
+#define BACNET_DEVICE_LOCATION_NAME CONFIG_BACNET_BASIC_DEVICE_LOCATION_NAME
+#else
+#define BACNET_DEVICE_LOCATION_NAME "GNU Basic Building"
+#endif
+
+#ifdef CONFIG_BACNET_BASIC_DEVICE_SERIAL_NUMBER
+#define BACNET_DEVICE_SERIAL_NUMBER CONFIG_BACNET_BASIC_DEVICE_SERIAL_NUMBER
+#else
+#define BACNET_DEVICE_SERIAL_NUMBER "BACnetDMcN56RBkeDJuNfxn3M44tfC2Y"
+#endif
+
+#ifdef CONFIG_BACNET_BASIC_COV_SUBSCRIPTIONS_SIZE
+#define BACNET_COV_SUBSCRIPTIONS_SIZE CONFIG_BACNET_BASIC_COV_SUBSCRIPTIONS_SIZE
+#else
+#define BACNET_COV_SUBSCRIPTIONS_SIZE 0
+#endif
+
 #if !(                                                            \
     defined(CONFIG_BACNET_BASIC_OBJECT_ALL) ||                    \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT) ||           \
@@ -769,21 +787,28 @@ static object_functions_t Object_Table[] = {
 };
 
 /* local data */
-static const char *Application_Software_Version = BACNET_DEVICE_VERSION;
 static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_CHARACTER_STRING My_Object_Name;
 static const char *Device_Name_Default = BACNET_DEVICE_OBJECT_NAME;
 static const char *Device_Description_Default = BACNET_DEVICE_DESCRIPTION;
+static const char *Device_Vendor_Name_Default = BACNET_VENDOR_NAME;
+static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static const char *Model_Name = BACNET_DEVICE_MODEL_NAME;
+static const char *Device_Location_Default = BACNET_DEVICE_LOCATION_NAME;
+static const char *Application_Software_Version = BACNET_DEVICE_VERSION;
+static const char *Firmware_Revision = BACNET_VERSION_TEXT;
 static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static BACNET_CHARACTER_STRING Reinit_Password;
-static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static write_property_function Device_Write_Property_Store_Callback;
+static uint8_t Device_UUID[16];
+static const char *Serial_Number = BACNET_DEVICE_SERIAL_NUMBER;
+static BACNET_TIMESTAMP Time_Of_Device_Restart;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
+    /* List of Required properties in this object */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -807,17 +832,25 @@ static const int Device_Properties_Required[] = {
     -1
 };
 
-static const int Device_Properties_Optional[] = { PROP_DESCRIPTION,
-                                                  PROP_LOCATION,
+static const int Device_Properties_Optional[] = {
+    /* List of Optional properties in this object */
+    PROP_DESCRIPTION,
+    PROP_LOCATION,
 #if defined(BACDL_MSTP)
-                                                  PROP_MAX_MASTER,
-                                                  PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
 #endif
-                                                  PROP_LOCAL_DATE,
-                                                  PROP_LOCAL_TIME,
-                                                  PROP_UTC_OFFSET,
-                                                  PROP_DAYLIGHT_SAVINGS_STATUS,
-                                                  -1 };
+#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
+#endif
+    PROP_LOCAL_DATE,
+    PROP_LOCAL_TIME,
+    PROP_UTC_OFFSET,
+    PROP_DAYLIGHT_SAVINGS_STATUS,
+    PROP_SERIAL_NUMBER,
+    PROP_TIME_OF_DEVICE_RESTART,
+    -1
+};
 
 static const int Device_Properties_Proprietary[] = { -1 };
 
@@ -1041,6 +1074,12 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
     return Reinitialize_State;
 }
 
+bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state)
+{
+    Reinitialize_State = state;
+    return true;
+}
+
 unsigned Device_Count(void)
 {
     return 1;
@@ -1096,7 +1135,70 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
     return status;
 }
 
-/* methods to manipulate the data */
+/**
+ * @brief Initialize a UUID for storing the unique identifier of this device
+ * @note A Universally Unique IDentifier (UUID) - also called a
+ * Global Unique IDentifier (GUID) - is a 128-bit value, see RFC 4122.
+ *
+ * 4.4.  Algorithms for Creating a UUID from Truly Random or
+ *      Pseudo-Random Numbers
+ *
+ *   The version 4 UUID is meant for generating UUIDs from truly-random or
+ *   pseudo-random numbers.
+ *
+ *   The algorithm is as follows:
+ *
+ *   o  Set the two most significant bits (bits 6 and 7) of the
+ *      clock_seq_hi_and_reserved to zero and one, respectively.
+ *
+ *   o  Set the four most significant bits (bits 12 through 15) of the
+ *      time_hi_and_version field to the 4-bit version number from
+ *      Section 4.1.3.
+ *
+ *   o  Set all the other bits to randomly (or pseudo-randomly) chosen
+ *      values.
+ */
+void Device_UUID_Init(void)
+{
+    unsigned i = 0;
+
+    /* 1. Generate 16 random bytes = 128 bits */
+    for (i = 0; i < sizeof(Device_UUID); i++) {
+        Device_UUID[i] = rand() % 256;
+    }
+    /* 2. Adjust certain bits according to RFC 4122 section 4.4.
+       This just means do the following
+       (a) set the high nibble of the 7th byte equal to 4 and
+       (b) set the two most significant bits of the 9th byte to 10'B,
+       so the high nibble will be one of {8,9,A,B}.
+       From http://www.cryptosys.net/pki/Uuid.c.html */
+    Device_UUID[6] = 0x40 | (Device_UUID[6] & 0x0f);
+    Device_UUID[8] = 0x80 | (Device_UUID[8] & 0x3f);
+}
+
+/**
+ * @brief Set the UUID for this device
+ * @param new_uuid [in] The new UUID to set
+ * @param length [in] The length of the new UUID
+ */
+void Device_UUID_Set(const uint8_t *new_uuid, size_t length)
+{
+    if (new_uuid && (length == sizeof(Device_UUID))) {
+        memcpy(Device_UUID, new_uuid, sizeof(Device_UUID));
+    }
+}
+
+/**
+ * @brief Get the UUID for this device
+ * @param uuid [out] The UUID of this device
+ * @param length [in] The length of the UUID
+ */
+void Device_UUID_Get(uint8_t *uuid, size_t length)
+{
+    if (uuid && (length == sizeof(Device_UUID))) {
+        memcpy(uuid, Device_UUID, sizeof(Device_UUID));
+    }
+}
 
 /** Return the Object Instance number for our (single) Device Object.
  * This is a key function, widely invoked by the handler code, since
@@ -1148,7 +1250,129 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
 
 uint16_t Device_Vendor_Identifier(void)
 {
-    return BACNET_VENDOR_ID;
+    return Vendor_Identifier;
+}
+
+void Device_Set_Vendor_Identifier(uint16_t vendor_id)
+{
+    Vendor_Identifier = vendor_id;
+}
+
+const char *Device_Model_Name(void)
+{
+    return Model_Name;
+}
+
+bool Device_Set_Model_Name(const char *name, size_t length)
+{
+    (void)length;
+    Model_Name = name ? name : BACNET_DEVICE_MODEL_NAME;
+
+    return true;
+}
+
+const char *Device_Firmware_Revision(void)
+{
+    return Firmware_Revision;
+}
+
+bool Device_Set_Firmware_Revision(const char *name, size_t length)
+{
+    (void)length;
+    Firmware_Revision = name ? name : BACNET_VERSION_TEXT;
+
+    return true;
+}
+
+const char *Device_Application_Software_Version(void)
+{
+    return Application_Software_Version;
+}
+
+bool Device_Set_Application_Software_Version(const char *name, size_t length)
+{
+    (void)length;
+    Application_Software_Version = name ? name : BACNET_DEVICE_VERSION;
+
+    return true;
+}
+
+const char *Device_Description(void)
+{
+    return Device_Description_Default;
+}
+
+bool Device_Set_Description(const char *name, size_t length)
+{
+    (void)length;
+    Device_Description_Default = name ? name : BACNET_DEVICE_DESCRIPTION;
+
+    return true;
+}
+
+const char *Device_Location(void)
+{
+    return Device_Location_Default;
+}
+
+bool Device_Set_Location(const char *name, size_t length)
+{
+    (void)length;
+    Device_Location_Default = name ? name : BACNET_DEVICE_LOCATION_NAME;
+    return true;
+}
+
+const char *Device_Vendor_Name(void)
+{
+    return Device_Vendor_Name_Default;
+}
+
+bool Device_Set_Vendor_Name(const char *name, size_t length)
+{
+    (void)length;
+    Device_Vendor_Name_Default = name ? name : BACNET_VENDOR_NAME;
+
+    return true;
+}
+
+/**
+ * @brief Get the device serial-number property value.
+ * @return The device serial-number, as a character string.
+ */
+const char *Device_Serial_Number(void)
+{
+    return Serial_Number;
+}
+
+/**
+ * @brief Set the device serial-number property value.
+ * @param str [in] The new device serial-number, as a character string.
+ * @param length [in] The number of characters in the string.
+ * @return true if the device serial-number was set, false if the value was
+ *  too long to store in the object.
+ */
+bool Device_Serial_Number_Set(const char *str, size_t length)
+{
+    (void)length;
+    Serial_Number = str ? str : BACNET_DEVICE_SERIAL_NUMBER;
+    return true;
+}
+
+void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart)
+{
+    bacapp_timestamp_copy(time_of_restart, &Time_Of_Device_Restart);
+}
+
+bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart)
+{
+    bool status = false;
+
+    if (time_of_restart) {
+        bacapp_timestamp_copy(&Time_Of_Device_Restart, time_of_restart);
+        status = true;
+    }
+
+    return status;
 }
 
 BACNET_SEGMENTATION Device_Segmentation_Supported(void)
@@ -1397,7 +1621,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_LOCATION:
-            characterstring_init_ansi(&char_string, "USA");
+            characterstring_init_ansi(&char_string, Device_Location_Default);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -1406,12 +1630,12 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], Device_System_Status());
             break;
         case PROP_VENDOR_NAME:
-            characterstring_init_ansi(&char_string, BACNET_VENDOR_NAME);
+            characterstring_init_ansi(&char_string, Device_Vendor_Name_Default);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_VENDOR_IDENTIFIER:
-            apdu_len = encode_application_unsigned(&apdu[0], BACNET_VENDOR_ID);
+            apdu_len = encode_application_unsigned(&apdu[0], Vendor_Identifier);
             break;
         case PROP_MODEL_NAME:
             characterstring_init_ansi(&char_string, Model_Name);
@@ -1419,7 +1643,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, BACnet_Version);
+            characterstring_init_ansi(&char_string, Firmware_Revision);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -1524,6 +1748,25 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_DAYLIGHT_SAVINGS_STATUS:
             datetime_local(&bdate, &btime, &utc_offset_minutes, &dst_active);
             apdu_len = encode_application_boolean(&apdu[0], dst_active);
+            break;
+#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            if ((apdu_len = handler_cov_encode_subscriptions(
+                     &apdu[0], apdu_max)) < 0) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                apdu_len = BACNET_STATUS_ABORT;
+            }
+            break;
+#endif
+        case PROP_SERIAL_NUMBER:
+            characterstring_init_ansi(&char_string, Serial_Number);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_TIME_OF_DEVICE_RESTART:
+            apdu_len =
+                bacapp_encode_timestamp(&apdu[0], &Time_Of_Device_Restart);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;

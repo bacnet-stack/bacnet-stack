@@ -734,27 +734,31 @@ bool Network_Port_Routing_Table_Add(
     uint8_t status,
     uint8_t performance_index)
 {
-    bool st = false;
+    int index;
     uint8_t network_type;
     BACNET_ROUTER_ENTRY *entry;
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    BACNET_SC_PARAMS *params;
+
+    params = Network_Port_SC_Params(object_instance);
     if (!params) {
         return false;
     }
-
     network_type = Network_Port_Type(object_instance);
     entry = calloc(1, sizeof(BACNET_ROUTER_ENTRY));
     if (!entry) {
         return false;
     }
-
     entry->Network_Number = network_number;
     MAC_Address_Set(network_type, entry->Mac_Address, mac, mac_len);
     entry->Status = status;
     entry->Performance_Index = performance_index;
-    st = Keylist_Data_Add(params->Routing_Table, network_number, entry);
+    index = Keylist_Data_Add(params->Routing_Table, network_number, entry);
+    if (index < 0) {
+        free(entry);
+        return false;
+    }
 
-    return st;
+    return true;
 }
 
 bool Network_Port_Routing_Table_Delete(

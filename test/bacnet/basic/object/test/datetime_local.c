@@ -41,3 +41,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     }
     (void)utc;
 }
+
+void datetime_init(void)
+{
+    /* nothing to do */
+}
