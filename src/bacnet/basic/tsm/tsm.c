@@ -1514,7 +1514,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 'abort-reason' = APPLICATION_EXCEEDED_REPLY_TIME
                 to the local application program; and
                 enter the IDLE state. */
-            /* note: this TSM implemention doesn't do this state */
+            /* note: this TSM implementation doesn't do this state */
         }
 #if BACNET_SEGMENTATION_ENABLED
         if (plist->state == TSM_STATE_SEGMENTED_RESPONSE_SERVER) {
