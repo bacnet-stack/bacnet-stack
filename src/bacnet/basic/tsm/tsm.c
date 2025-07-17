@@ -237,11 +237,13 @@ static void tsm_blob_data_copy(
     }
     data->apdu = NULL;
     data->apdu = calloc(1, data_len);
-#endif
-    if (data->apdu != NULL) {
-        memcpy(data->apdu, bdata, data_len);
-        data->apdu_len = data_len;
+    if (!data->apdu) {
+        DEBUG_FPRINTF(stderr, "TSM: failed to allocate %d bytes\n", data_len);
+        return;
     }
+#endif
+    memcpy(data->apdu, bdata, data_len);
+    data->apdu_len = data_len;
 }
 
 /** Set for an unsegmented transaction
@@ -425,9 +427,7 @@ static void tsm_segmentack_pdu_send(
     pdu_len = apdu_len + npdu_len;
     bytes_sent =
         datalink_send_pdu(dest, &npdu_data, &Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-    fprintf(stderr, "bytes sent=%d\n", bytes_sent);
-#endif
+    DEBUG_FPRINTF(stderr, "bytes sent=%d\n", bytes_sent);
 }
 
 /**
@@ -504,6 +504,12 @@ static void tsm_blob_pad(BACNET_TSM_DATA *data, uint32_t allocation_unit)
         /* (nb: here there may be extra space remaining) */
         uint8_t *apdu_new_blob =
             calloc(1, data->apdu_blob_allocated + allocation_unit);
+        if (!apdu_new_blob) {
+            DEBUG_FPRINTF(
+                stderr, "TSM: failed to allocate %d bytes\n",
+                data->apdu_blob_allocated + allocation_unit);
+            return;
+        }
         /* recopy old data */
         if (data->apdu_blob_size) {
             memcpy(apdu_new_blob, data->apdu_blob, data->apdu_blob_size);
