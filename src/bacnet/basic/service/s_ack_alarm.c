@@ -1,33 +1,16 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 John Minack <minack@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send an Alarm Acknowledgment.
+ * @author John Minack <minack@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -42,9 +25,6 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-/** @file s_ack_alarm.c  Send an Alarm Acknowledgment. */
-#define PRINTF debug_perror
-
 /** Sends an Confirmed Alarm Acknowledgment.
  *
  * @param pdu [in] the PDU buffer used for sending the message
@@ -54,9 +34,10 @@
  * @return invoke id of outgoing message, or 0 if communication is disabled,
  *         or no tsm slot is available.
  */
-uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu,
+uint8_t Send_Alarm_Acknowledgement_Address(
+    uint8_t *pdu,
     uint16_t pdu_size,
-    BACNET_ALARM_ACK_DATA *data,
+    const BACNET_ALARM_ACK_DATA *data,
     BACNET_ADDRESS *dest)
 {
     int len = 0;
@@ -93,14 +74,13 @@ uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu,
                 invoke_id, dest, &npdu_data, pdu, (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
             if (bytes_sent <= 0) {
-                PRINTF("Failed to Send Alarm Ack Request (%s)!\n",
-                    strerror(errno));
+                debug_perror("Failed to Send Alarm Ack Request");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            PRINTF("Failed to Send Alarm Ack Request "
-                   "(exceeds destination maximum APDU)!\n");
+            debug_printf_stderr("Failed to Send Alarm Ack Request "
+                                "(exceeds destination maximum APDU)!\n");
         }
     }
 
@@ -116,7 +96,7 @@ uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu,
  *         or no tsm slot is available.
  */
 uint8_t Send_Alarm_Acknowledgement(
-    uint32_t device_id, BACNET_ALARM_ACK_DATA *data)
+    uint32_t device_id, const BACNET_ALARM_ACK_DATA *data)
 {
     BACNET_ADDRESS dest = { 0 };
     unsigned max_apdu = 0;

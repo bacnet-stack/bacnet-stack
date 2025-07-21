@@ -45,7 +45,7 @@ static void testRingAroundBuffer(
     /* test the ring around the buffer */
     for (index = 0; index < element_count; index++) {
         for (count = 1; count < 4; count++) {
-            value = (index * count) % 255;
+            value = (index * count) % 256;
             for (data_index = 0; data_index < element_size; data_index++) {
                 data_element[data_index] = value;
             }
@@ -54,7 +54,7 @@ static void testRingAroundBuffer(
             zassert_equal(Ringbuf_Count(test_buffer), count, NULL);
         }
         for (count = 1; count < 4; count++) {
-            value = (index * count) % 255;
+            value = (index * count) % 256;
             test_data = Ringbuf_Peek(test_buffer);
             zassert_not_null(test_data, NULL);
             if (test_data) {
@@ -79,6 +79,7 @@ static void testRingAroundBuffer(
  */
 static void testRingBuf(
     uint8_t *data_store,
+    unsigned data_store_size,
     uint8_t *data_element,
     unsigned element_size,
     unsigned element_count)
@@ -89,8 +90,8 @@ static void testRingBuf(
     unsigned data_index;
     bool status;
 
-    status =
-        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status = Ringbuf_Initialize(
+        &test_buffer, data_store, data_store_size, element_size, element_count);
     if (!status) {
         return;
     }
@@ -175,7 +176,8 @@ static void testRingBufSizeSmall(void)
     uint8_t data_element[5];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
-    testRingBuf(data_store, data_element, sizeof(data_element),
+    testRingBuf(
+        data_store, sizeof(data_store), data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
 }
 
@@ -191,7 +193,8 @@ static void testRingBufSizeLarge(void)
     uint8_t data_element[16];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(99)];
 
-    testRingBuf(data_store, data_element, sizeof(data_element),
+    testRingBuf(
+        data_store, sizeof(data_store), data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
 }
 
@@ -208,10 +211,11 @@ static void testRingBufSizeInvalid(void)
     uint8_t data_element[16];
     uint8_t data_store[sizeof(data_element) * 99];
 
-    zassert_false(Ringbuf_Init(&test_buffer,
-		     data_store, sizeof(data_element),
-                     sizeof(data_store) / sizeof(data_element)),
-		  NULL);
+    zassert_false(
+        Ringbuf_Initialize(
+            &test_buffer, data_store, sizeof(data_store), sizeof(data_element),
+            sizeof(data_store) / sizeof(data_element)),
+        NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -239,6 +243,7 @@ static void testRingBufPowerOfTwo(void)
  */
 static bool testRingBufNextElement(
     uint8_t *data_store,
+    unsigned data_store_size,
     uint8_t *data_element,
     unsigned element_size,
     unsigned element_count)
@@ -248,8 +253,8 @@ static bool testRingBufNextElement(
     unsigned index;
     unsigned data_index;
     bool status;
-    status =
-        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status = Ringbuf_Initialize(
+        &test_buffer, data_store, data_store_size, element_size, element_count);
     if (!status) {
         return false;
     }
@@ -344,27 +349,26 @@ static void testRingBufNextElementSizeSmall(void)
     uint8_t data_element[5];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
-    status = testRingBufNextElement(data_store, data_element,
-        sizeof(data_element), sizeof(data_store) / sizeof(data_element));
+    status = testRingBufNextElement(
+        data_store, sizeof(data_store), data_element, sizeof(data_element),
+        sizeof(data_store) / sizeof(data_element));
     zassert_true(status, NULL);
 }
 /**
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(ringbuf_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(ringbuf_tests,
-     ztest_unit_test(testRingBufPowerOfTwo),
-     ztest_unit_test(testRingBufSizeSmall),
-     ztest_unit_test(testRingBufSizeLarge),
-     ztest_unit_test(testRingBufSizeInvalid),
-     ztest_unit_test(testRingBufNextElementSizeSmall)
-     );
+    ztest_test_suite(
+        ringbuf_tests, ztest_unit_test(testRingBufPowerOfTwo),
+        ztest_unit_test(testRingBufSizeSmall),
+        ztest_unit_test(testRingBufSizeLarge),
+        ztest_unit_test(testRingBufSizeInvalid),
+        ztest_unit_test(testRingBufNextElementSizeSmall));
 
     ztest_run_test_suite(ringbuf_tests);
 }

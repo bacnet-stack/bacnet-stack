@@ -1,15 +1,14 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
+/**
+ * @file
+ * @brief Unit test for object
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date July 2023
  *
  * SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet command object APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/command.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -25,71 +24,54 @@ ZTEST(tests_object_command, test_object_command)
 static void test_object_command(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-    /* for decode value data */
-    BACNET_APPLICATION_DATA_VALUE value;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-    unsigned port = 0;
+    bool status = false;
     unsigned count = 0;
     uint32_t object_instance = 0;
+    const int skip_fail_property_list[] = { -1 };
+    BACNET_ACTION_LIST *pAction;
 
-    object_instance = Command_Index_To_Instance(0);
     Command_Init();
     count = Command_Count();
     zassert_true(count > 0, NULL);
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_COMMAND;
-    rpdata.object_instance = object_instance;
-    Command_Property_Lists(&pRequired, &pOptional, &pProprietary);
-    while ((*pRequired) != -1) {
-	rpdata.object_property = *pRequired;
-	rpdata.array_index = BACNET_ARRAY_ALL;
-	len = Command_Read_Property(&rpdata);
-	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
-	if (len > 0) {
-	    test_len = bacapp_decode_application_data(
-		rpdata.application_data,
-		(uint8_t)rpdata.application_data_len, &value);
-	    zassert_true(test_len >= 0, NULL);
-	}
-	pRequired++;
-    }
-    while ((*pOptional) != -1) {
-	rpdata.object_property = *pOptional;
-	rpdata.array_index = BACNET_ARRAY_ALL;
-	len = Command_Read_Property(&rpdata);
-	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
-	if (len > 0) {
-	    test_len = bacapp_decode_application_data(
-		rpdata.application_data,
-		(uint8_t)rpdata.application_data_len, &value);
-	    zassert_true(test_len >= 0, NULL);
-	}
-	pOptional++;
-    }
-    port++;
-
-    return;
+    object_instance = Command_Index_To_Instance(0);
+    status = Command_Valid_Instance(object_instance);
+    zassert_true(status, NULL);
+    count = Command_Action_List_Count(object_instance);
+    zassert_true(count > 0, NULL);
+    /* configure the instance property values */
+    pAction = Command_Action_List_Entry(object_instance, 0);
+    zassert_not_null(pAction, NULL);
+    pAction->Device_Id.type = OBJECT_DEVICE;
+    pAction->Device_Id.instance = 4194303;
+    pAction->Object_Id.type = OBJECT_ANALOG_INPUT;
+    pAction->Object_Id.instance = 4194303;
+    pAction->Property_Identifier = PROP_PRESENT_VALUE;
+    pAction->Property_Array_Index = BACNET_ARRAY_ALL;
+    pAction->Priority = 16;
+    pAction->Value.tag = BACNET_APPLICATION_TAG_REAL;
+    pAction->Value.type.Real = 3.14159f;
+    pAction->Post_Delay = 0;
+    pAction->Quit_On_Failure = false;
+    pAction->Write_Successful = false;
+    pAction->next = NULL;
+    Command_In_Process_Set(object_instance, false);
+    Command_All_Writes_Successful_Set(object_instance, false);
+    /* perform a general test for RP/WP */
+    bacnet_object_properties_read_write_test(
+        OBJECT_COMMAND, object_instance, Command_Property_Lists,
+        Command_Read_Property, Command_Write_Property, skip_fail_property_list);
 }
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(tests_object_command, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(tests_object_command,
-     ztest_unit_test(test_object_command)
-     );
+    ztest_test_suite(
+        tests_object_command, ztest_unit_test(test_object_command));
 
     ztest_run_test_suite(tests_object_command);
 }

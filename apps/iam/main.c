@@ -1,50 +1,31 @@
-/**************************************************************************
- *
- * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet service to the network:
+ * I-Am message
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
-#include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
@@ -68,8 +49,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     (void)src;
     (void)invoke_id;
@@ -96,59 +77,62 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s [device-instance vendor-id max-apdu segmentation]\n",
+    printf(
+        "Usage: %s [device-instance vendor-id max-apdu segmentation]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet I-Am message for a device.\n");
     printf("--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--repeat\n"
-        "Send the message repeatedly until signalled to quit.\n"
-        "Default is to not repeat, sending only a single message.\n");
+           "Send the message repeatedly until signalled to quit.\n"
+           "Default is to not repeat, sending only a single message.\n");
     printf("\n");
     printf("--retry C\n"
-        "Send the message C number of times\n"
-        "Default is retry 0, only sending one time.\n");
+           "Send the message C number of times\n"
+           "Default is retry 0, only sending one time.\n");
     printf("\n");
     printf("--delay\n"
-        "Delay, in milliseconds, between repeated messages.\n"
-        "Default delay is 100ms.\n");
+           "Delay, in milliseconds, between repeated messages.\n"
+           "Default delay is 100ms.\n");
     printf("\n");
     printf("device-instance:\n"
-        "BACnet device-ID 0..4194303\n");
+           "BACnet device-ID 0..4194303\n");
     printf("\n");
     printf("vendor-id:\n"
-        "Vendor Identifier 0..65535\n");
+           "Vendor Identifier 0..65535\n");
     printf("\n");
     printf("max-apdu:\n"
-        "Maximum APDU size 50..65535\n");
+           "Maximum APDU size 50..65535\n");
     printf("\n");
     printf("segmentation:\n"
-        "BACnet Segmentation 0=both, 1=transmit, 2=receive, 3=none\n");
+           "BACnet Segmentation 0=both, 1=transmit, 2=receive, 3=none\n");
     printf("\n");
-    printf("Example:\n"
+    printf(
+        "Example:\n"
         "To send an I-Am message of instance=1234 vendor-id=260 max-apdu=480\n"
         "%s 1234 260 480\n",
         filename);
@@ -167,7 +151,7 @@ int main(int argc, char *argv[])
     unsigned timeout = 100; /* milliseconds */
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
     long retry_count = 0;
 
     filename = filename_remove_path(argv[0]);
@@ -276,8 +260,9 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
     /* send the request */
     do {
-        Send_I_Am_To_Network(&dest, Target_Device_ID, Target_Max_APDU,
-            Target_Segmentation, Target_Vendor_ID);
+        Send_I_Am_To_Network(
+            &dest, Target_Device_ID, Target_Max_APDU, Target_Segmentation,
+            Target_Vendor_ID);
         if (repeat_forever || retry_count) {
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);

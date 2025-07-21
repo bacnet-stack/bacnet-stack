@@ -1,55 +1,36 @@
-/**************************************************************************
- *
- * Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet BVLC message, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet BVLC message
+ * Write-Broadcast-Distribution-Table to a BBMD on the network,
+ * and prints the result code received.  This is useful for
+ * configuring the BBMD on the network.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
-#include <errno.h>
 #include <ctype.h> /* for toupper */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/datalink/bvlc.h"
 /* some demo stuff needed */
-#ifndef DEBUG_ENABLED
-#define DEBUG_ENABLED 0
-#endif
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/bvlc.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
@@ -76,8 +57,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -124,7 +105,8 @@ int main(int argc, char *argv[])
     uint16_t result_code = 0;
 
     if (argc < 2) {
-        printf("Usage: %s IP port <IP:port[:mask]> [<IP:port[:mask]>]\r\n",
+        printf(
+            "Usage: %s IP port <IP:port[:mask]> [<IP:port[:mask]>]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -171,8 +153,9 @@ int main(int argc, char *argv[])
     argi = 3;
     while (argc > argi) {
         bdt_entry = &BBMD_Table_Entry[bdti];
-        c = sscanf(argv[argi], "%3u.%3u.%3u.%3u:%5u:%3u.%3u.%3u.%3u", &a[0],
-            &a[1], &a[2], &a[3], &p, &m[0], &m[1], &m[2], &m[3]);
+        c = sscanf(
+            argv[argi], "%3u.%3u.%3u.%3u:%5u:%3u.%3u.%3u.%3u", &a[0], &a[1],
+            &a[2], &a[3], &p, &m[0], &m[1], &m[2], &m[3]);
         if ((c == 4) || (c == 5) || (c == 9)) {
             bvlc_address_set(&bdt_entry->dest_address, a[0], a[1], a[2], a[3]);
             if ((c == 5) || (c == 9)) {

@@ -12,11 +12,12 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
+/* some demo stuff needed */
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -26,8 +27,12 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
+
 /* print with flush by default */
-#define PRINTF debug_aprintf
+#define PRINTF debug_printf_stdout
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
@@ -63,17 +68,18 @@ static void print_help(const char *filename)
            "you are reading.  For example, if you were reading\n"
            "Analog Output 2, the object-instance would be 2.\n");
     PRINTF("\n");
-    PRINTF("Example:\n"
-           "If you want read the Present-Value of Analog Output 101\n"
-           "in Device 123, you could send either of the following\n"
-           "commands:\n"
-           "%s 123 analog-output 101\n"
-           "%s 123 1 101\n"
-           "If you want read the Present-Value of Binary Input 1\n"
-           "in Device 123, you could send either of the following\n"
-           "commands:\n"
-           "%s 123 binary-input 1\n"
-           "%s 123 3 1\n",
+    PRINTF(
+        "Example:\n"
+        "If you want read the Present-Value of Analog Output 101\n"
+        "in Device 123, you could send either of the following\n"
+        "commands:\n"
+        "%s 123 analog-output 101\n"
+        "%s 123 1 101\n"
+        "If you want read the Present-Value of Binary Input 1\n"
+        "in Device 123, you could send either of the following\n"
+        "commands:\n"
+        "%s 123 binary-input 1\n"
+        "%s 123 3 1\n",
         filename, filename, filename, filename);
 }
 
@@ -120,8 +126,9 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 device_id = strtol(argv[argi], NULL, 0);
                 if (device_id > BACNET_MAX_INSTANCE) {
-                    fprintf(stderr, "device=%u - it must be less than %u\n",
-                        device_id, BACNET_MAX_INSTANCE);
+                    fprintf(
+                        stderr, "device=%u - not greater than %u\n", device_id,
+                        BACNET_MAX_INSTANCE);
                     return 1;
                 }
             }
@@ -156,22 +163,25 @@ int main(int argc, char *argv[])
     }
     Device_Set_Object_Instance_Number(device_id);
     if (target_device_object_instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             target_device_object_instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    PRINTF("BACnet Server-Client Demo\n"
-           "BACnet Stack Version %s\n"
-           "BACnet Device ID: %u\n"
-           "Max APDU: %d\n",
+    PRINTF(
+        "BACnet Server-Client Demo\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     fflush(stdout);
     dlenv_init();
     atexit(datalink_cleanup);
     bacnet_task_init();
     bacnet_data_poll_seconds_set(print_seconds);
-    if (!bacnet_data_object_add(target_device_object_instance,
-            target_object_type, target_object_instance)) {
+    if (!bacnet_data_object_add(
+            target_device_object_instance, target_object_type,
+            target_object_instance)) {
         return 1;
     }
     mstimer_set(&print_value_timer, print_seconds * 1000);
@@ -187,7 +197,8 @@ int main(int argc, char *argv[])
                     if (bacnet_data_analog_present_value(
                             target_device_object_instance, target_object_type,
                             target_object_instance, &float_value)) {
-                        PRINTF("Device %u %s-%u=%f\n",
+                        PRINTF(
+                            "Device %u %s-%u=%f\n",
                             (unsigned)target_device_object_instance,
                             bactext_object_type_name(target_object_type),
                             (unsigned)target_object_instance, float_value);
@@ -199,7 +210,8 @@ int main(int argc, char *argv[])
                     if (bacnet_data_binary_present_value(
                             target_device_object_instance, target_object_type,
                             target_object_instance, &bool_value)) {
-                        PRINTF("Device %u %s-%u=%s\n",
+                        PRINTF(
+                            "Device %u %s-%u=%s\n",
                             (unsigned)target_device_object_instance,
                             bactext_object_type_name(target_object_type),
                             (unsigned)target_object_instance,
@@ -212,7 +224,8 @@ int main(int argc, char *argv[])
                     if (bacnet_data_multistate_present_value(
                             target_device_object_instance, target_object_type,
                             target_object_instance, &unsigned_value)) {
-                        PRINTF("Device %u %s-%u=%u\n",
+                        PRINTF(
+                            "Device %u %s-%u=%u\n",
                             (unsigned)target_device_object_instance,
                             bactext_object_type_name(target_object_type),
                             (unsigned)target_object_instance,

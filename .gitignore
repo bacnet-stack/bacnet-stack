@@ -1,6 +1,10 @@
+*.su
+*.nm
+*.pyc
 *.log
 *.a
 *.o
+*.obj
 *.exe
 *.bak
 *~
@@ -57,60 +61,50 @@ test-results.xml
 Debug/
 settings/
 *.componentinfo.xml
-bin/
 Backup*
 BACnet_BDT_table
 address_cache
 **/build/*
 **/_build/*
-CMakeLists.txt.user
 **/out/*
 Obj/
 Release/
-apps/piface/libmcp23s17/
-apps/piface/libpifacedigital/
+libwebsockets/
 
+# cmake artifacts
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+# zephyr artifacts
+/twister-out/*
 /test/build/
 /cmake-build-*
 /.idea
 
-/apps/abort/bacabort
-/apps/ack-alarm/bacackalarm
-/apps/readfile/bacarf
-/apps/writefile/bacawf
-/apps/dcc/bacdcc
-/apps/epics/bacepics
-/apps/error/bacerror
-/apps/event/bacevent
-/apps/getevent/bacge
-/apps/iam/baciam
-/apps/iamrouter/baciamr
-/apps/initrouter/bacinitr
-/apps/netnumis/bacnni
-/apps/server-client/bacpoll
-/apps/readbdt/bacrbdt
-/apps/reinit/bacrd
-/apps/readfdt/bacrfdt
-/apps/readprop/bacrp
-/apps/readpropm/bacrpm
-/apps/readrange/bacrr
-/apps/scov/bacscov
-/apps/server/bacserv
-/apps/timesync/bacts
-/apps/ucov/bacucov
-/apps/uevent/bacuevent
-/apps/uptransfer/bacupt
-/apps/writebdt/bacwbdt
-/apps/whohas/bacwh
-/apps/whois/bacwi
-/apps/whatisnetnum/bacwinn
-/apps/whoisrouter/bacwir
-/apps/writeprop/bacwp
-/apps/writepropm/bacwpm
-/apps/mstpcap/mstpcap
-/apps/mstpcrc/mstpcrc
-/apps/add-list-element/bacale
-/apps/remove-list-element/bacrle
-/apps/create-object/bacco
-/apps/delete-object/bacdo
+# doxygen artifacts
+doc/output/html/
 
+# exclude the bin folder, except for some files
+bin/*
+!bin/*.sh
+!bin/*.bat
+!bin/*.txt
+
+# exclude the apps folder, except for some source files
+apps/*
+!apps/Makefile
+!apps/*.md
+apps/**/*
+!apps/**/
+!apps/**/*.c
+!apps/**/*.h
+!apps/**/*.txt
+!apps/**/*.md
+!apps/**/Makefile
+!apps/**/CMakeLists.txt
+apps/piface/libmcp23s17/
+apps/piface/libpifacedigital/
+
+*.vcxproj.user

@@ -2,33 +2,16 @@
  *
  * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/whohas.h"
 #include "bacnet/basic/object/device.h"
@@ -41,7 +24,7 @@
  *  or object ID, if the Device has a match.
  *  @param data [in] The decoded who-has payload from the request.
  */
-static void match_name_or_object(BACNET_WHO_HAS_DATA *data)
+static void match_name_or_object(const BACNET_WHO_HAS_DATA *data)
 {
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
@@ -55,7 +38,8 @@ static void match_name_or_object(BACNET_WHO_HAS_DATA *data)
         found = Device_Valid_Object_Name(
             &data->object.name, &object_type, &object_instance);
         if (found) {
-            Send_I_Have(Device_Object_Instance_Number(),
+            Send_I_Have(
+                Device_Object_Instance_Number(),
                 (BACNET_OBJECT_TYPE)object_type, object_instance,
                 &data->object.name);
         }
@@ -65,7 +49,8 @@ static void match_name_or_object(BACNET_WHO_HAS_DATA *data)
             (BACNET_OBJECT_TYPE)data->object.identifier.type,
             data->object.identifier.instance, &object_name);
         if (found) {
-            Send_I_Have(Device_Object_Instance_Number(),
+            Send_I_Have(
+                Device_Object_Instance_Number(),
                 (BACNET_OBJECT_TYPE)data->object.identifier.type,
                 data->object.identifier.instance, &object_name);
         }
@@ -93,8 +78,8 @@ void handler_who_has(
     if (len > 0) {
         if ((data.low_limit == -1) || (data.high_limit == -1)) {
             directed_to_me = true;
-        } else if ((Device_Object_Instance_Number() >=
-                       (uint32_t)data.low_limit) &&
+        } else if (
+            (Device_Object_Instance_Number() >= (uint32_t)data.low_limit) &&
             (Device_Object_Instance_Number() <= (uint32_t)data.high_limit)) {
             directed_to_me = true;
         }
@@ -142,8 +127,9 @@ void handler_who_has_for_routing(
             dev_instance = Device_Object_Instance_Number();
             if ((data.low_limit == -1) || (data.high_limit == -1) ||
                 ((dev_instance >= data.low_limit) &&
-                    (dev_instance <= data.high_limit)))
+                 (dev_instance <= data.high_limit))) {
                 match_name_or_object(&data);
+            }
         }
     }
 }

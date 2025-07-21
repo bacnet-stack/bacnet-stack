@@ -1,38 +1,22 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Confirmed COV Notifications service handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/cov.h"
 #include "bacnet/bactext.h"
 /* basic services, TSM, and datalink */
@@ -40,9 +24,6 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/sys/debug.h"
-
-/** @file h_ccov.c  Handles Confirmed COV Notifications. */
-#define PRINTF debug_perror
 
 /* max number of COV properties decoded in a COV notification */
 #ifndef MAX_COV_PROPERTIES
@@ -91,6 +72,41 @@ void handler_ccov_notification_add(BACNET_COV_NOTIFICATION *cb)
     } while (head);
 }
 
+/**
+ * @brief Print ConfirmedCOVNotification data
+ * @param cov_data - data decoded from the COV notification
+ */
+void handler_ccov_data_print(BACNET_COV_DATA *cov_data)
+{
+    BACNET_PROPERTY_VALUE *pProperty_value = NULL;
+
+    debug_printf_stderr("CCOV: PID=%u ", cov_data->subscriberProcessIdentifier);
+    debug_printf_stderr("instance=%u ", cov_data->initiatingDeviceIdentifier);
+    debug_printf_stderr(
+        "%s %u ",
+        bactext_object_type_name(cov_data->monitoredObjectIdentifier.type),
+        cov_data->monitoredObjectIdentifier.instance);
+    debug_printf_stderr("time remaining=%u seconds ", cov_data->timeRemaining);
+    debug_printf_stderr("\n");
+    pProperty_value = cov_data->listOfValues;
+    while (pProperty_value) {
+        debug_printf_stderr("CCOV: ");
+        if (pProperty_value->propertyIdentifier < 512) {
+            debug_printf_stderr(
+                "%s ",
+                bactext_property_name(pProperty_value->propertyIdentifier));
+        } else {
+            debug_printf_stderr(
+                "proprietary %u ", pProperty_value->propertyIdentifier);
+        }
+        if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
+            debug_printf_stderr("%u ", pProperty_value->propertyArrayIndex);
+        }
+        debug_printf_stderr("\n");
+        pProperty_value = pProperty_value->next;
+    }
+}
+
 /*  */
 /** Handler for an Confirmed COV Notification.
  * @ingroup DSCOV
@@ -105,19 +121,19 @@ void handler_ccov_notification_add(BACNET_COV_NOTIFICATION *cb)
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_ccov_notification(uint8_t *service_request,
+void handler_ccov_notification(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_NPDU_DATA npdu_data;
-    BACNET_COV_DATA cov_data;
-    BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
-    BACNET_PROPERTY_VALUE *pProperty_value = NULL;
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_COV_DATA cov_data = { 0 };
+    BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES] = { 0 };
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
-    BACNET_ADDRESS my_address;
+    BACNET_ADDRESS my_address = { 0 };
 
     /* create linked list to store data if more
        than one property value is expected */
@@ -125,15 +141,21 @@ void handler_ccov_notification(uint8_t *service_request,
     cov_data.listOfValues = &property_value[0];
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    PRINTF("CCOV: Received Notification!\n");
-    if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
-        PRINTF("CCOV: Segmented message.  Sending Abort!\n");
+    debug_print("CCOV: Received Notification!\n");
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_print("CCOV: Missing Required Parameter. Sending Reject!\n");
+        goto CCOV_ABORT;
+    } else if (service_data->segmented_message) {
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        debug_print("CCOV: Segmented message.  Sending Abort!\n");
         goto CCOV_ABORT;
     }
     /* decode the service request only */
@@ -141,48 +163,27 @@ void handler_ccov_notification(uint8_t *service_request,
         service_request, service_len, &cov_data);
     if (len > 0) {
         handler_ccov_notification_callback(&cov_data);
-        PRINTF("CCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
-        PRINTF("instance=%u ", cov_data.initiatingDeviceIdentifier);
-        PRINTF("%s %u ",
-            bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
-            cov_data.monitoredObjectIdentifier.instance);
-        PRINTF("time remaining=%u seconds ", cov_data.timeRemaining);
-        PRINTF("\n");
-        pProperty_value = &property_value[0];
-        while (pProperty_value) {
-            PRINTF("CCOV: ");
-            if (pProperty_value->propertyIdentifier < 512) {
-                PRINTF("%s ",
-                    bactext_property_name(pProperty_value->propertyIdentifier));
-            } else {
-                PRINTF("proprietary %u ", pProperty_value->propertyIdentifier);
-            }
-            if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
-                PRINTF("%u ", pProperty_value->propertyArrayIndex);
-            }
-            PRINTF("\n");
-            pProperty_value = pProperty_value->next;
-        }
     }
     /* bad decoding or something we didn't understand - send an abort */
     if (len <= 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
-        PRINTF("CCOV: Bad Encoding. Sending Abort!\n");
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
+        debug_print("CCOV: Bad Encoding. Sending Abort!\n");
         goto CCOV_ABORT;
     } else {
-        len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_COV_NOTIFICATION);
-        PRINTF("CCOV: Sending Simple Ack!\n");
+        len = encode_simple_ack(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_COV_NOTIFICATION);
+        debug_print("CCOV: Sending Simple Ack!\n");
     }
 CCOV_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        PRINTF("CCOV: Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("CCOV: Failed to send PDU");
     }
-    (void)bytes_sent;
 
     return;
 }

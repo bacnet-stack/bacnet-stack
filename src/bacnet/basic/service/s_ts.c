@@ -1,33 +1,16 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send TimeSync requests.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -39,31 +22,27 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
-
-/** @file s_ts.c  Send TimeSync requests. */
+#include "bacnet/basic/sys/debug.h"
 
 /**
- * Sends a TimeSync message to a specific destination
- *
+ * @brief Sends a TimeSync message to a specific destination
+ * @ingroup BIBB-DM-TS-A
  * @param dest - #BACNET_ADDRESS - the specific destination
  * @param bdate - #BACNET_DATE
  * @param btime - #BACNET_TIME
  */
 void Send_TimeSync_Remote(
-    BACNET_ADDRESS *dest, BACNET_DATE *bdate, BACNET_TIME *btime)
+    BACNET_ADDRESS *dest, const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
     if (!dcc_communication_enabled()) {
         return;
     }
-
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
@@ -73,25 +52,20 @@ void Send_TimeSync_Remote(
     len = timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
     pdu_len += len;
     /* send it out the datalink */
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Time-Synchronization Request (%s)!\n",
-            strerror(errno));
-#endif
+    bytes_sent = datalink_send_pdu(
+        dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("Failed to Send Time-Synchronization Request");
+    }
 }
 
 /**
- * Sends a TimeSync message as a broadcast
- *
+ * @brief Sends a TimeSync message as a broadcast
+ * @ingroup BIBB-DM-TS-A
  * @param bdate - #BACNET_DATE
  * @param btime - #BACNET_TIME
  */
-void Send_TimeSync(BACNET_DATE *bdate, BACNET_TIME *btime)
+void Send_TimeSync(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     BACNET_ADDRESS dest;
 
@@ -100,20 +74,18 @@ void Send_TimeSync(BACNET_DATE *bdate, BACNET_TIME *btime)
 }
 
 /**
- * Sends a UTC TimeSync message to a specific destination
- *
+ * @brief Sends a UTC TimeSync message to a specific destination
+ * @ingroup BIBB-DM-UTC-A
  * @param dest - #BACNET_ADDRESS - the specific destination
  * @param bdate - #BACNET_DATE
  * @param btime - #BACNET_TIME
  */
 void Send_TimeSyncUTC_Remote(
-    BACNET_ADDRESS *dest, BACNET_DATE *bdate, BACNET_TIME *btime)
+    BACNET_ADDRESS *dest, const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
@@ -130,26 +102,20 @@ void Send_TimeSyncUTC_Remote(
     len = timesync_utc_encode_apdu(
         &Handler_Transmit_Buffer[pdu_len], bdate, btime);
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
-            strerror(errno));
-#endif
+    bytes_sent = datalink_send_pdu(
+        dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("Failed to Send UTC-Time-Synchronization Request");
+    }
 }
 
 /**
- * Sends a UTC TimeSync message as a broadcast
- *
+ * @brief Sends a UTC TimeSync message as a broadcast
+ * @ingroup BIBB-DM-UTC-A
  * @param bdate - #BACNET_DATE
  * @param btime - #BACNET_TIME
  */
-void Send_TimeSyncUTC(BACNET_DATE *bdate, BACNET_TIME *btime)
+void Send_TimeSyncUTC(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     BACNET_ADDRESS dest;
 
@@ -158,7 +124,8 @@ void Send_TimeSyncUTC(BACNET_DATE *bdate, BACNET_TIME *btime)
 }
 
 /**
- * Sends a UTC TimeSync message using the local time from the device.
+ * @brief Sends a UTC TimeSync message using the local time from the device.
+ * @ingroup BIBB-DM-UTC-A
  */
 void Send_TimeSyncUTC_Device(void)
 {
@@ -179,7 +146,8 @@ void Send_TimeSyncUTC_Device(void)
 }
 
 /**
- * Sends a TimeSync message using the local time from the device.
+ * @brief Sends a TimeSync message using the local time from the device.
+ * @ingroup BIBB-DM-TS-A
  */
 void Send_TimeSync_Device(void)
 {

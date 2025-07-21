@@ -8,7 +8,7 @@
  * @brief test BACnet datalink return codes
  */
 
-#include <stdlib.h>  /* For calloc() */
+#include <stdlib.h> /* For calloc() */
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/datalink.h>
 #include "bacnet/apdu.h"
@@ -42,15 +42,14 @@ static void test_datalink_arcnet(void)
     char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    BACNET_ADDRESS addr = {
-        .mac_len = 6, 
-        .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
-        .net = 54,
-        .len = 7,
-        .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32 }
-    };
-    BACNET_ADDRESS addr2 = {0};
-    BACNET_NPDU_DATA npdu = {0};
+    BACNET_ADDRESS addr = { .mac_len = 6,
+                            .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
+                            .net = 54,
+                            .len = 7,
+                            .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54,
+                                     0x32 } };
+    BACNET_ADDRESS addr2 = { 0 };
+    BACNET_NPDU_DATA npdu = { 0 };
 
     zassert_equal(z_cleanup_mock(), 0, NULL);
     datalink_set("arcnet");
@@ -71,8 +70,9 @@ static void test_datalink_arcnet(void)
     ztest_expect_value(arcnet_send_pdu, npdu_data, &npdu);
     ztest_expect_data(arcnet_send_pdu, pdu, expected_data);
     ztest_returns_value(arcnet_send_pdu, 4);
-    zassert_equal(datalink_send_pdu(&addr, &npdu, expected_data,
-        sizeof(expected_data)), 4, NULL);
+    zassert_equal(
+        datalink_send_pdu(&addr, &npdu, expected_data, sizeof(expected_data)),
+        4, NULL);
     zassert_equal(z_cleanup_mock(), 0, NULL);
 
     // receive
@@ -123,15 +123,14 @@ static void test_datalink_bip(void)
     char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    BACNET_ADDRESS addr = {
-        .mac_len = 6, 
-        .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
-        .net = 54,
-        .len = 7,
-        .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32 }
-    };
-    BACNET_ADDRESS addr2 = {0};
-    BACNET_NPDU_DATA npdu = {0};
+    BACNET_ADDRESS addr = { .mac_len = 6,
+                            .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
+                            .net = 54,
+                            .len = 7,
+                            .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54,
+                                     0x32 } };
+    BACNET_ADDRESS addr2 = { 0 };
+    BACNET_NPDU_DATA npdu = { 0 };
 
     zassert_equal(z_cleanup_mock(), 0, NULL);
     datalink_set("bip");
@@ -152,8 +151,9 @@ static void test_datalink_bip(void)
     ztest_expect_value(bip_send_pdu, npdu_data, &npdu);
     ztest_expect_data(bip_send_pdu, pdu, expected_data);
     ztest_returns_value(bip_send_pdu, 4);
-    zassert_equal(datalink_send_pdu(&addr, &npdu, expected_data,
-        sizeof(expected_data)), 4, NULL);
+    zassert_equal(
+        datalink_send_pdu(&addr, &npdu, expected_data, sizeof(expected_data)),
+        4, NULL);
     zassert_equal(z_cleanup_mock(), 0, NULL);
 
     // receive
@@ -207,15 +207,14 @@ static void test_datalink_bip6(void)
     char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    BACNET_ADDRESS addr = {
-        .mac_len = 6, 
-        .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
-        .net = 54,
-        .len = 7,
-        .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32 }
-    };
-    BACNET_ADDRESS addr2 = {0};
-    BACNET_NPDU_DATA npdu = {0};
+    BACNET_ADDRESS addr = { .mac_len = 6,
+                            .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
+                            .net = 54,
+                            .len = 7,
+                            .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54,
+                                     0x32 } };
+    BACNET_ADDRESS addr2 = { 0 };
+    BACNET_NPDU_DATA npdu = { 0 };
 
     zassert_equal(z_cleanup_mock(), 0, NULL);
     datalink_set("bip6");
@@ -236,8 +235,9 @@ static void test_datalink_bip6(void)
     ztest_expect_value(bip6_send_pdu, npdu_data, &npdu);
     ztest_expect_data(bip6_send_pdu, pdu, expected_data);
     ztest_returns_value(bip6_send_pdu, 4);
-    zassert_equal(datalink_send_pdu(&addr, &npdu, expected_data,
-        sizeof(expected_data)), 4, NULL);
+    zassert_equal(
+        datalink_send_pdu(&addr, &npdu, expected_data, sizeof(expected_data)),
+        4, NULL);
     zassert_equal(z_cleanup_mock(), 0, NULL);
 
     // receive
@@ -290,15 +290,14 @@ static void test_datalink_dlmstp(void)
     char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    BACNET_ADDRESS addr = {
-        .mac_len = 6, 
-        .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
-        .net = 54,
-        .len = 7,
-        .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32 }
-    };
-    BACNET_ADDRESS addr2 = {0};
-    BACNET_NPDU_DATA npdu = {0};
+    BACNET_ADDRESS addr = { .mac_len = 6,
+                            .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
+                            .net = 54,
+                            .len = 7,
+                            .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54,
+                                     0x32 } };
+    BACNET_ADDRESS addr2 = { 0 };
+    BACNET_NPDU_DATA npdu = { 0 };
 
     zassert_equal(z_cleanup_mock(), 0, NULL);
     datalink_set("mstp");
@@ -319,8 +318,9 @@ static void test_datalink_dlmstp(void)
     ztest_expect_value(dlmstp_send_pdu, npdu_data, &npdu);
     ztest_expect_data(dlmstp_send_pdu, pdu, expected_data);
     ztest_returns_value(dlmstp_send_pdu, 4);
-    zassert_equal(datalink_send_pdu(&addr, &npdu, expected_data,
-        sizeof(expected_data)), 4, NULL);
+    zassert_equal(
+        datalink_send_pdu(&addr, &npdu, expected_data, sizeof(expected_data)),
+        4, NULL);
     zassert_equal(z_cleanup_mock(), 0, NULL);
 
     // receive
@@ -371,15 +371,14 @@ static void test_datalink_ethernet(void)
     char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    BACNET_ADDRESS addr = {
-        .mac_len = 6, 
-        .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
-        .net = 54,
-        .len = 7,
-        .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32 }
-    };
-    BACNET_ADDRESS addr2 = {0};
-    BACNET_NPDU_DATA npdu = {0};
+    BACNET_ADDRESS addr = { .mac_len = 6,
+                            .mac = { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE },
+                            .net = 54,
+                            .len = 7,
+                            .adr = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54,
+                                     0x32 } };
+    BACNET_ADDRESS addr2 = { 0 };
+    BACNET_NPDU_DATA npdu = { 0 };
 
     zassert_equal(z_cleanup_mock(), 0, NULL);
     datalink_set("ethernet");
@@ -400,8 +399,9 @@ static void test_datalink_ethernet(void)
     ztest_expect_value(ethernet_send_pdu, npdu_data, &npdu);
     ztest_expect_data(ethernet_send_pdu, pdu, expected_data);
     ztest_returns_value(ethernet_send_pdu, 4);
-    zassert_equal(datalink_send_pdu(&addr, &npdu, expected_data,
-        sizeof(expected_data)), 4, NULL);
+    zassert_equal(
+        datalink_send_pdu(&addr, &npdu, expected_data, sizeof(expected_data)),
+        4, NULL);
     zassert_equal(z_cleanup_mock(), 0, NULL);
 
     // receive
@@ -442,7 +442,6 @@ static void test_datalink_ethernet(void)
     datalink_maintenance_timer(42);
 }
 
-
 /**
  * @}
  */
@@ -452,13 +451,11 @@ ZTEST_SUITE(datalink_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(datalink_tests,
-     ztest_unit_test(test_datalink_arcnet),
-     ztest_unit_test(test_datalink_bip),
-     ztest_unit_test(test_datalink_bip6),
-     ztest_unit_test(test_datalink_dlmstp),
-     ztest_unit_test(test_datalink_ethernet)
-     );
+    ztest_test_suite(
+        datalink_tests, ztest_unit_test(test_datalink_arcnet),
+        ztest_unit_test(test_datalink_bip), ztest_unit_test(test_datalink_bip6),
+        ztest_unit_test(test_datalink_dlmstp),
+        ztest_unit_test(test_datalink_ethernet));
 
     ztest_run_test_suite(datalink_tests);
 }

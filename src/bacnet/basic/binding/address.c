@@ -1,48 +1,21 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2004 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief Handle device instance and NPDU address binding
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bacnet/bits.h"
-#include "bacnet/config.h"
-#include "bacnet/bacaddr.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/readrange.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/binding/address.h"
 
 /* we are likely compiling the demo command line tools if print enabled */
@@ -51,8 +24,6 @@
 #define BACNET_ADDRESS_CACHE_FILE
 #endif
 #endif
-
-/** @file address.c  Handle address binding */
 
 /* This module is used to handle the address binding that */
 /* occurs in BACnet.  A device id is bound to a MAC address. */
@@ -105,7 +76,7 @@ static struct Address_Cache_Entry {
  */
 void address_protected_entry_index_set(uint32_t top_protected_entry_index)
 {
-    if (top_protected_entry_index <= (MAX_ADDRESS_CACHE - 1)) {
+    if (top_protected_entry_index < MAX_ADDRESS_CACHE) {
         Top_Protected_Entry = top_protected_entry_index;
     }
 }
@@ -173,7 +144,7 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
     for (index = Top_Protected_Entry; index < MAX_ADDRESS_CACHE; index++) {
         pMatch = &Address_Cache[index];
         if ((pMatch->Flags &
-                (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC)) ==
+             (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC)) ==
             BAC_ADDR_IN_USE) {
             if (pMatch->TimeToLive <= ulTime) {
                 /* Shorter lived entry found */
@@ -195,7 +166,7 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
     for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
         pMatch = &Address_Cache[index];
         if ((pMatch->Flags &
-                (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC)) ==
+             (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC)) ==
             ((uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
@@ -240,7 +211,8 @@ static void address_file_init(const char *pFilename)
         while (fgets(line, (int)sizeof(line), pFile) != NULL) {
             /* ignore comments */
             if (line[0] != ';') {
-                if (sscanf(line, "%7ld %79s %5u %79s %4u", &device_id,
+                if (sscanf(
+                        line, "%7ld %79s %5u %79s %4u", &device_id,
                         &mac_string[0], &snet, &sadr_string[0],
                         &max_apdu) == 5) {
                     if (bacnet_address_mac_from_ascii(&mac, mac_string)) {
@@ -411,7 +383,7 @@ bool address_get_by_device(
  *
  * @return true/false
  */
-bool address_get_device_id(BACNET_ADDRESS *src, uint32_t *device_id)
+bool address_get_device_id(const BACNET_ADDRESS *src, uint32_t *device_id)
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
@@ -442,7 +414,8 @@ bool address_get_device_id(BACNET_ADDRESS *src, uint32_t *device_id)
  * @param max_apdu  Maximum APDU size.
  * @param src  Pointer to address structure to add.
  */
-void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
+void address_add(
+    uint32_t device_id, unsigned max_apdu, const BACNET_ADDRESS *src)
 {
     bool found = false; /* return value */
     struct Address_Cache_Entry *pMatch;
@@ -531,7 +504,8 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
  *
  * @return true if device is already bound
  */
-bool address_device_bind_request(uint32_t device_id,
+bool address_device_bind_request(
+    uint32_t device_id,
     uint32_t *device_ttl,
     unsigned *max_apdu,
     BACNET_ADDRESS *src)
@@ -623,7 +597,7 @@ bool address_bind_request(
  * @param src  Pointer to the BACnet address.
  */
 void address_add_binding(
-    uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
+    uint32_t device_id, unsigned max_apdu, const BACNET_ADDRESS *src)
 {
     struct Address_Cache_Entry *pMatch;
     unsigned index;
@@ -661,7 +635,8 @@ void address_add_binding(
  *
  * @return true/false
  */
-bool address_device_get_by_index(unsigned index,
+bool address_device_get_by_index(
+    unsigned index,
     uint32_t *device_id,
     uint32_t *device_ttl,
     unsigned *max_apdu,
@@ -704,7 +679,8 @@ bool address_device_get_by_index(unsigned index,
  *
  * @return true/false
  */
-bool address_get_by_index(unsigned index,
+bool address_get_by_index(
+    unsigned index,
     uint32_t *device_id,
     unsigned *max_apdu,
     BACNET_ADDRESS *src)
@@ -908,7 +884,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     pMatch = Address_Cache;
     uiIndex = 1;
     while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-        BAC_ADDR_IN_USE) { /* Find first bound entry */
+           BAC_ADDR_IN_USE) { /* Find first bound entry */
         pMatch++;
         /* Shall not happen as the count has been checked first. */
         if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
@@ -975,7 +951,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         pRequest->ItemCount++;
 
         while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-            BAC_ADDR_IN_USE) {
+               BAC_ADDR_IN_USE) {
             /* Find next bound entry */
             pMatch++;
             /* Can normally not happen. */
@@ -1000,7 +976,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 /**
  * Scan the cache and eliminate any expired entries. Should be called
  * periodically to ensure the cache is managed correctly. If this function
- * is never called at all the whole cache is effectivly rendered static and
+ * is never called at all the whole cache is effectively rendered static and
  * entries never expire unless explicitly deleted.
  *
  * @param uSeconds  Approximate number of seconds since last call to this
@@ -1015,8 +991,8 @@ void address_cache_timer(uint16_t uSeconds)
         pMatch = &Address_Cache[index];
         if (((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) != 0) &&
             ((pMatch->Flags & BAC_ADDR_STATIC) ==
-                0)) { /* Check all entries holding a slot except statics
-                       */
+             0)) { /* Check all entries holding a slot except statics
+                    */
             if (pMatch->TimeToLive >= uSeconds) {
                 pMatch->TimeToLive -= uSeconds;
             } else {

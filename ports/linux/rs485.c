@@ -1,39 +1,11 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ * Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 /** @file linux/rs485.c  Provides Linux-specific functions for RS-485 serial. */
 
 /* The module handles sending data out the RS-485 port */
@@ -51,11 +23,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <termios.h>
 #include <unistd.h>
 #include <sched.h>
-#include <linux/serial.h> /* for struct serial_struct */
-#include <math.h> /* for calculation of custom divisor */
 #include <sys/ioctl.h>
 /* for scandir */
 #include <dirent.h>
@@ -70,7 +39,7 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
-#include "dlmstp_linux.h"
+#include "dlmstp_port.h"
 
 /* Posix serial programming reference:
 http://www.easysw.com/~mike/serial/serial.html */
@@ -81,9 +50,8 @@ http://www.easysw.com/~mike/serial/serial.html */
 
 /* handle returned from open() */
 static int RS485_Handle = -1;
-/* baudrate settings are defined in <asm/termbits.h>, which is
-   included by <termios.h> */
-static unsigned int RS485_Baud = B38400;
+/* baudrate */
+static unsigned int RS485_Baud = 38400;
 /* serial port name, /dev/ttyS0,
   /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
 static char *RS485_Port_Name = "/dev/ttyUSB0";
@@ -92,18 +60,12 @@ static char *RS485_Port_Name = "/dev/ttyUSB0";
 #define RS485MOD 0
 #endif
 /* serial I/O settings */
-static struct termios RS485_oldtio;
-/* for setting custom divisor */
-static struct serial_struct RS485_oldserial;
-/* indicator of special baud rate */
-static bool RS485_SpecBaud = false;
+static struct termios2 RS485_oldtio2;
 
 /* Ring buffer for incoming bytes, in order to speed up the receiving. */
 static FIFO_BUFFER Rx_FIFO;
 /* buffer size needs to be a power of 2 */
 static uint8_t Rx_Buffer[4096];
-
-#define _POSIX_SOURCE 1 /* POSIX compliant source */
 
 /*********************************************************************
  * DESCRIPTION: Configures the interface name
@@ -138,77 +100,7 @@ const char *RS485_Interface(void)
  *****************************************************************************/
 uint32_t RS485_Get_Baud_Rate(void)
 {
-    uint32_t baud = 0;
-
-    switch (RS485_Baud) {
-        case B0:
-            baud = 0;
-            break;
-        case B50:
-            baud = 50;
-            break;
-        case B75:
-            baud = 75;
-            break;
-        case B110:
-            baud = 110;
-            break;
-        case B134:
-            baud = 134;
-            break;
-        case B150:
-            baud = 150;
-            break;
-        case B200:
-            baud = 200;
-            break;
-        case B300:
-            baud = 300;
-            break;
-        case B600:
-            baud = 600;
-            break;
-        case B1200:
-            baud = 1200;
-            break;
-        case B1800:
-            baud = 1800;
-            break;
-        case B2400:
-            baud = 2400;
-            break;
-        case B4800:
-            baud = 4800;
-            break;
-        case B9600:
-            baud = 9600;
-            break;
-        case B19200:
-            baud = 19200;
-            break;
-        case B38400:
-            if (!RS485_SpecBaud) {
-                /* Linux asks for custom divisor
-                   only when baud is set on 38400 */
-                baud = 38400;
-            } else {
-                baud = 76800;
-            }
-            break;
-        case B57600:
-            baud = 57600;
-            break;
-        case B115200:
-            baud = 115200;
-            break;
-        case B230400:
-            baud = 230400;
-            break;
-        default:
-            baud = 9600;
-    }
-
-    return baud;
+    return RS485_Baud;
 }
 
 /****************************************************************************
@@ -217,77 +109,13 @@ uint32_t RS485_Get_Baud_Rate(void)
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-uint32_t RS485_Get_Port_Baud_Rate(volatile struct mstp_port_struct_t *mstp_port)
+uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
 {
-    uint32_t baud = 0;
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
     if (!poSharedData) {
         return 0;
     }
-    switch (poSharedData->RS485_Baud) {
-        case B0:
-            baud = 0;
-            break;
-        case B50:
-            baud = 50;
-            break;
-        case B75:
-            baud = 75;
-            break;
-        case B110:
-            baud = 110;
-            break;
-        case B134:
-            baud = 134;
-            break;
-        case B150:
-            baud = 150;
-            break;
-        case B200:
-            baud = 200;
-            break;
-        case B300:
-            baud = 300;
-            break;
-        case B600:
-            baud = 600;
-            break;
-        case B1200:
-            baud = 1200;
-            break;
-        case B1800:
-            baud = 1800;
-            break;
-        case B2400:
-            baud = 2400;
-            break;
-        case B4800:
-            baud = 4800;
-            break;
-        case B9600:
-            baud = 9600;
-            break;
-        case B19200:
-            baud = 19200;
-            break;
-        case B38400:
-            baud = 38400;
-            break;
-        case B57600:
-            baud = 57600;
-            break;
-        case B115200:
-            baud = 115200;
-            break;
-        case B230400:
-            baud = 230400;
-            break;
-        default:
-            baud = 9600;
-            break;
-    }
-
-    return baud;
+    return poSharedData->RS485_Baud;
 }
 
 /****************************************************************************
@@ -298,81 +126,63 @@ uint32_t RS485_Get_Port_Baud_Rate(volatile struct mstp_port_struct_t *mstp_port)
  *****************************************************************************/
 bool RS485_Set_Baud_Rate(uint32_t baud)
 {
-    bool valid = true;
+    struct termios2 newtio;
 
-    RS485_SpecBaud = false;
-    switch (baud) {
-        case 0:
-            RS485_Baud = B0;
-            break;
-        case 50:
-            RS485_Baud = B50;
-            break;
-        case 75:
-            RS485_Baud = B75;
-            break;
-        case 110:
-            RS485_Baud = B110;
-            break;
-        case 134:
-            RS485_Baud = B134;
-            break;
-        case 150:
-            RS485_Baud = B150;
-            break;
-        case 200:
-            RS485_Baud = B200;
-            break;
-        case 300:
-            RS485_Baud = B300;
-            break;
-        case 600:
-            RS485_Baud = B600;
-            break;
-        case 1200:
-            RS485_Baud = B1200;
-            break;
-        case 1800:
-            RS485_Baud = B1800;
-            break;
-        case 2400:
-            RS485_Baud = B2400;
-            break;
-        case 4800:
-            RS485_Baud = B4800;
-            break;
-        case 9600:
-            RS485_Baud = B9600;
-            break;
-        case 19200:
-            RS485_Baud = B19200;
-            break;
-        case 38400:
-            RS485_Baud = B38400;
-            break;
-        case 57600:
-            RS485_Baud = B57600;
-            break;
-        case 76800:
-            RS485_Baud = B38400;
-            RS485_SpecBaud = true;
-            break;
-        case 115200:
-            RS485_Baud = B115200;
-            break;
-        case 230400:
-            RS485_Baud = B230400;
-            break;
-        default:
-            valid = false;
-            break;
+    RS485_Baud = baud;
+
+    if (RS485_Handle >= 0) {
+        /* clear struct for new port settings */
+        memset(&newtio, 0, sizeof(newtio));
+        /*
+           BOTHER: Set bps rate.
+           https://man7.org/linux/man-pages/man2/TCSETS.2const.html
+           CRTSCTS : output hardware flow control (only used if the cable has
+           all necessary lines. See sect. 7 of Serial-HOWTO)
+           CS8     : 8n1 (8bit,no parity,1 stopbit)
+           CLOCAL  : local connection, no modem control
+           CREAD   : enable receiving characters
+         */
+        newtio.c_cflag =
+            CS8 | CLOCAL | CREAD | RS485MOD | BOTHER | (BOTHER << IBSHIFT);
+        newtio.c_ispeed = RS485_Baud;
+        newtio.c_ospeed = RS485_Baud;
+        /* Raw input */
+        newtio.c_iflag = 0;
+        /* Raw output */
+        newtio.c_oflag = 0;
+        /* no processing */
+        newtio.c_lflag = 0;
+        /* activate the settings for the port after flushing I/O */
+        termios2_tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
+
+#if PRINT_ENABLED
+        fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
+        fflush(stdout);
+#endif
     }
+    return true;
+}
 
-    if (valid) {
-        /* FIXME: store the baud rate */
-    }
+/****************************************************************************
+ * DESCRIPTION: Gets RS485 config (e.g. automatic RTS for half-duplex direction)
+ * RETURN:      true on success
+ * ALGORITHM:   none
+ * NOTES:       https://www.kernel.org/doc/Documentation/serial/serial-rs485.txt
+ *****************************************************************************/
+bool RS485_Get_Config(struct serial_rs485 *config)
+{
+    return ioctl(RS485_Handle, TIOCGRS485, config) == 0;
+}
 
-    return valid;
+/****************************************************************************
+ * DESCRIPTION: Sets RS485 config (e.g. automatic RTS for half-duplex direction)
+ * RETURN:      true on success
+ * ALGORITHM:   none
+ * NOTES:       https://www.kernel.org/doc/Documentation/serial/serial-rs485.txt
+ *****************************************************************************/
+bool RS485_Set_Config(const struct serial_rs485 *const config)
+{
+    return ioctl(RS485_Handle, TIOCSRS485, config) == 0;
 }
 
 /****************************************************************************
@@ -382,74 +192,47 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
  * NOTES:       none
  *****************************************************************************/
 void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
-    uint16_t nbytes)
-{ /* number of bytes of data (up to 501) */
-    uint32_t turnaround_time = Tturnaround * 1000;
-    uint32_t baud;
+    struct mstp_port_struct_t *mstp_port, /* port specific data */
+    const uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
+    uint16_t nbytes /* number of bytes of data (up to 501) */)
+{
+    uint32_t turnaround_time_usec = Tturnaround * 1000000UL;
+    uint32_t baud = RS485_Baud;
+    int handle = RS485_Handle;
     ssize_t written = 0;
     int greska;
-    SHARED_MSTP_DATA *poSharedData = NULL;
+    const SHARED_MSTP_DATA *poSharedData = NULL;
 
-    if (mstp_port) {
+    if (mstp_port && mstp_port->UserData) {
         poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
-    }
-    if (!poSharedData) {
-        baud = RS485_Get_Baud_Rate();
-        /* sleeping for turnaround time is necessary to give other devices
-           time to change from sending to receiving state. */
-        usleep(turnaround_time / baud);
-        /*
-           On  success,  the  number of bytes written are returned (zero
-           indicates nothing was written).  On error, -1  is  returned,  and
-           errno  is  set appropriately.   If  count  is zero and the file
-           descriptor refers to a regular file, 0 will be returned without
-           causing any other effect.  For a special file, the results are not
-           portable.
-         */
-        written = write(RS485_Handle, buffer, nbytes);
-        greska = errno;
-        if (written <= 0) {
-            printf("write error: %s\n", strerror(greska));
-        } else {
-            /* wait until all output has been transmitted. */
-            tcdrain(RS485_Handle);
-        }
-        /*  tcdrain(RS485_Handle); */
-        /* per MSTP spec, sort of */
-        if (mstp_port) {
-            mstp_port->SilenceTimerReset((void *)mstp_port);
-        }
-    } else {
-        baud = RS485_Get_Port_Baud_Rate(mstp_port);
-        /* sleeping for turnaround time is necessary to give other devices
-           time to change from sending to receiving state. */
-        usleep(turnaround_time / baud);
-        /*
-           On  success,  the  number of bytes written are returned (zero
-           indicates nothing was written).  On error, -1  is  returned,  and
-           errno  is  set appropriately.   If  count  is zero and the file
-           descriptor refers to a regular file, 0 will be returned without
-           causing any other effect.  For a special file, the results are not
-           portable.
-         */
-        written = write(poSharedData->RS485_Handle, buffer, nbytes);
-        greska = errno;
-        if (written <= 0) {
-            printf("write error: %s\n", strerror(greska));
-        } else {
-            /* wait until all output has been transmitted. */
-            tcdrain(poSharedData->RS485_Handle);
-        }
-        /*  tcdrain(RS485_Handle); */
-        /* per MSTP spec, sort of */
-        if (mstp_port) {
-            mstp_port->SilenceTimerReset((void *)mstp_port);
-        }
+        baud = poSharedData->RS485_Baud;
+        handle = poSharedData->RS485_Handle;
     }
 
-    return;
+    /* sleeping for turnaround time is necessary to give other devices
+       time to change from sending to receiving state. */
+    usleep(turnaround_time_usec / baud);
+    /*
+       On  success,  the  number of bytes written are returned (zero
+       indicates nothing was written).  On error, -1  is  returned,  and
+       errno  is  set appropriately.   If  count  is zero and the file
+       descriptor refers to a regular file, 0 will be returned without
+       causing any other effect.  For a special file, the results are not
+       portable.
+     */
+    written = write(handle, buffer, nbytes);
+    greska = errno;
+    if (written <= 0) {
+        printf("write error: %s\n", strerror(greska));
+    } else {
+        /* wait until all output has been transmitted. */
+        termios2_tcdrain(handle);
+    }
+
+    /* per MSTP spec, sort of */
+    if (mstp_port) {
+        mstp_port->SilenceTimerReset((void *)mstp_port);
+    }
 }
 
 /****************************************************************************
@@ -458,95 +241,63 @@ void RS485_Send_Frame(
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
     fd_set input;
     struct timeval waiter;
     uint8_t buf[2048];
-    int n;
+    ssize_t n;
+    int handle = RS485_Handle;
+    FIFO_BUFFER *fifo = &Rx_FIFO;
 
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
-    if (!poSharedData) {
-        if (mstp_port->ReceiveError == true) {
-            /* do nothing but wait for state machine to clear the error */
-            /* burning time, so wait a longer time */
+    if (poSharedData) {
+        handle = poSharedData->RS485_Handle;
+        fifo = &poSharedData->Rx_FIFO;
+    }
+
+    if (mstp_port->ReceiveError == true) {
+        /* do nothing but wait for state machine to clear the error */
+        /* burning time, so wait a longer time */
+        waiter.tv_sec = 0;
+        waiter.tv_usec = 5000;
+    } else if (mstp_port->DataAvailable == false) {
+        /* wait for state machine to read from the DataRegister */
+        if (FIFO_Count(fifo) > 0) {
+            /* data is available */
+            mstp_port->DataRegister = FIFO_Get(fifo);
+            mstp_port->DataAvailable = true;
+            /* FIFO is giving data - just poll */
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 0;
+        } else {
+            /* FIFO is empty - wait a longer time */
             waiter.tv_sec = 0;
             waiter.tv_usec = 5000;
-        } else if (mstp_port->DataAvailable == false) {
-            /* wait for state machine to read from the DataRegister */
-            if (FIFO_Count(&Rx_FIFO) > 0) {
-                /* data is available */
-                mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
-                mstp_port->DataAvailable = true;
-                /* FIFO is giving data - just poll */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 0;
-            } else {
-                /* FIFO is empty - wait a longer time */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 5000;
-            }
         }
-        /* grab bytes and stuff them into the FIFO every time */
-        FD_ZERO(&input);
-        FD_SET(RS485_Handle, &input);
-        n = select(RS485_Handle + 1, &input, NULL, NULL, &waiter);
-        if (n < 0) {
-            return;
-        }
-        if (FD_ISSET(RS485_Handle, &input)) {
-            n = read(RS485_Handle, buf, sizeof(buf));
-            FIFO_Add(&Rx_FIFO, &buf[0], n);
-        }
-    } else {
-        if (mstp_port->ReceiveError == true) {
-            /* do nothing but wait for state machine to clear the error */
-            /* burning time, so wait a longer time */
-            waiter.tv_sec = 0;
-            waiter.tv_usec = 5000;
-        } else if (mstp_port->DataAvailable == false) {
-            /* wait for state machine to read from the DataRegister */
-            if (FIFO_Count(&poSharedData->Rx_FIFO) > 0) {
-                /* data is available */
-                mstp_port->DataRegister = FIFO_Get(&poSharedData->Rx_FIFO);
-                mstp_port->DataAvailable = true;
-                /* FIFO is giving data - just poll */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 0;
-            } else {
-                /* FIFO is empty - wait a longer time */
-                waiter.tv_sec = 0;
-                waiter.tv_usec = 5000;
-            }
-        }
-        /* grab bytes and stuff them into the FIFO every time */
-        FD_ZERO(&input);
-        FD_SET(poSharedData->RS485_Handle, &input);
-        n = select(poSharedData->RS485_Handle + 1, &input, NULL, NULL, &waiter);
-        if (n < 0) {
-            return;
-        }
-        if (FD_ISSET(poSharedData->RS485_Handle, &input)) {
-            n = read(poSharedData->RS485_Handle, buf, sizeof(buf));
-            FIFO_Add(&poSharedData->Rx_FIFO, &buf[0], n);
-        }
+    }
+    /* grab bytes and stuff them into the FIFO every time */
+    FD_ZERO(&input);
+    FD_SET(handle, &input);
+    n = select(handle + 1, &input, NULL, NULL, &waiter);
+    if (n < 0) {
+        return;
+    }
+    if (FD_ISSET(handle, &input)) {
+        n = read(handle, buf, sizeof(buf));
+        FIFO_Add(fifo, &buf[0], n);
     }
 }
 
 void RS485_Cleanup(void)
 {
     /* restore the old port settings */
-    tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
-    ioctl(RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
+    termios2_tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio2);
     close(RS485_Handle);
 }
 
 void RS485_Initialize(void)
 {
-    struct termios newtio;
-    struct serial_struct newserial;
-    float baud_error = 0.0;
-
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
 #endif
@@ -567,57 +318,15 @@ void RS485_Initialize(void)
     fcntl(RS485_Handle, F_SETFL, 0);
 #endif
     /* save current serial port settings */
-    tcgetattr(RS485_Handle, &RS485_oldtio);
-    /* we read the old serial setup */
-    ioctl(RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
-    /* we need a copy of existing settings */
-    memcpy(&newserial, &RS485_oldserial, sizeof(struct serial_struct));
-    /* clear struct for new port settings */
-    bzero(&newtio, sizeof(newtio));
-    /*
-       BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
-       CRTSCTS : output hardware flow control (only used if the cable has
-       all necessary lines. See sect. 7 of Serial-HOWTO)
-       CS8     : 8n1 (8bit,no parity,1 stopbit)
-       CLOCAL  : local connection, no modem contol
-       CREAD   : enable receiving characters
-     */
-    newtio.c_cflag = RS485_Baud | CS8 | CLOCAL | CREAD | RS485MOD;
-    /* Raw input */
-    newtio.c_iflag = 0;
-    /* Raw output */
-    newtio.c_oflag = 0;
-    /* no processing */
-    newtio.c_lflag = 0;
-    /* activate the settings for the port after flushing I/O */
-    tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
-    if (RS485_SpecBaud) {
-        /* 76800, custom divisor must be set */
-        newserial.flags |= ASYNC_SPD_CUST;
-        newserial.custom_divisor = round(((float)newserial.baud_base) / 76800);
-        /* we must check that we calculated some sane value;
-           small baud bases yield bad custom divisor values */
-        baud_error = fabs(1 -
-            ((float)newserial.baud_base) / ((float)newserial.custom_divisor) /
-                76800);
-        if ((newserial.custom_divisor == 0) || (baud_error > 0.02)) {
-            /* bad divisor */
-            fprintf(stderr, "RS485 bad custom divisor %d, base baud %d\n",
-                newserial.custom_divisor, newserial.baud_base);
-            exit(EXIT_FAILURE);
-        }
-        /* if all goes well, set new divisor */
-        ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
-    }
-#if PRINT_ENABLED
-    fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
-    fflush(stdout);
-#endif
+    termios2_tcgetattr(RS485_Handle, &RS485_oldtio2);
+
+    RS485_Set_Baud_Rate(RS485_Baud);
+
     /* destructor */
     atexit(RS485_Cleanup);
     /* flush any data waiting */
     usleep(200000);
-    tcflush(RS485_Handle, TCIOFLUSH);
+    termios2_tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
 }
@@ -645,19 +354,22 @@ void RS485_Print_Ports(void)
         while (n--) {
             if (strcmp(namelist[n]->d_name, "..") &&
                 strcmp(namelist[n]->d_name, ".")) {
-                snprintf(device_dir, sizeof(device_dir), "%s%s/device", sysdir,
+                snprintf(
+                    device_dir, sizeof(device_dir), "%s%s/device", sysdir,
                     namelist[n]->d_name);
                 /* Stat the devicedir and handle it if it is a symlink */
                 if (lstat(device_dir, &st) == 0 && S_ISLNK(st.st_mode)) {
                     memset(buffer, 0, sizeof(buffer));
-                    snprintf(device_dir, sizeof(device_dir),
-                        "%s%s/device/driver", sysdir, namelist[n]->d_name);
+                    snprintf(
+                        device_dir, sizeof(device_dir), "%s%s/device/driver",
+                        sysdir, namelist[n]->d_name);
                     if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
                         valid_port = false;
                         driver_name = basename(buffer);
                         if (strcmp(driver_name, "serial8250") == 0) {
                             /* serial8250-devices must be probed */
-                            snprintf(device_dir, sizeof(device_dir), "/dev/%s",
+                            snprintf(
+                                device_dir, sizeof(device_dir), "/dev/%s",
                                 namelist[n]->d_name);
                             fd = open(
                                 device_dir, O_RDWR | O_NONBLOCK | O_NOCTTY);
@@ -677,8 +389,9 @@ void RS485_Print_Ports(void)
                         }
                         if (valid_port) {
                             /* print full absolute file path */
-                            printf("interface {value=/dev/%s}"
-                                   "{display=MS/TP Capture on /dev/%s}\n",
+                            printf(
+                                "interface {value=/dev/%s}"
+                                "{display=MS/TP Capture on /dev/%s}\n",
                                 namelist[n]->d_name, namelist[n]->d_name);
                         }
                     }
@@ -690,11 +403,58 @@ void RS485_Print_Ports(void)
     }
 }
 
+int termios2_tcsetattr(
+    const int fildes,
+    int optional_actions,
+    const struct termios2 *const termios2_p)
+{
+    /* https://man7.org/linux/man-pages/man2/TCSETS.2const.html */
+
+    switch (optional_actions) {
+        case TCSANOW:
+            optional_actions = TCSETS2;
+            break;
+        case TCSADRAIN:
+            optional_actions = TCSETSW2;
+            break;
+        case TCSAFLUSH:
+            optional_actions = TCSETSF2;
+            break;
+        default:
+            errno = EINVAL;
+            return -1;
+    };
+    return ioctl(fildes, optional_actions, termios2_p);
+}
+
+int termios2_tcgetattr(const int fildes, struct termios2 *termios2_p)
+{
+    /* https://man7.org/linux/man-pages/man2/TCSETS.2const.html */
+    return ioctl(fildes, TCGETS2, termios2_p);
+}
+
+int termios2_tcflush(const int fildes, const int queue_selector)
+{
+    /* https://manpages.opensuse.org/Tumbleweed/man-pages/TCFLSH.2const.en.html
+     */
+    return ioctl(fildes, TCFLSH, queue_selector);
+}
+
+int termios2_tcdrain(const int fildes)
+{
+    /*
+    https://man7.org/linux/man-pages/man2/TCSBRK.2const.html
+    TCSBRK Equivalent to tcsendbreak(fd, arg).
+    Linux treats tcsendbreak(fd,arg) with nonzero arg like tcdrain(fd)
+    */
+    return ioctl(fildes, TCSBRK, 1);
+}
+
 #ifdef TEST_RS485
 #include <string.h>
 int main(int argc, char *argv[])
 {
-    volatile struct mstp_port_struct_t mstp_port = { 0 };
+    struct mstp_port_struct_t mstp_port = { 0 };
     uint8_t token_buf[8] = { 0x55, 0xFF, 0x00, 0x7E, 0x07, 0x00, 0x00, 0xFD };
     uint8_t pfm_buf[8] = { 0x55, 0xFF, 0x01, 0x67, 0x07, 0x00, 0x00, 0x3E };
     long baud = 38400;

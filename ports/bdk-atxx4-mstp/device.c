@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stdbool.h>
@@ -67,12 +50,11 @@ static struct my_object_functions {
     read_property_function Object_Read_Property;
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
-} Object_Table[] = {
-    { OBJECT_DEVICE, NULL, /* don't init - recursive! */
-        Device_Count, Device_Index_To_Instance,
-        Device_Valid_Object_Instance_Number,
-        Device_Object_Name, Device_Read_Property_Local,
-        Device_Write_Property_Local, Device_Property_Lists },
+} Object_Table[] = { { OBJECT_DEVICE, NULL, /* don't init - recursive! */
+                         Device_Count, Device_Index_To_Instance,
+                         Device_Valid_Object_Instance_Number,
+                         Device_Object_Name, Device_Read_Property_Local,
+                         Device_Write_Property_Local, Device_Property_Lists },
     { OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
         Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
         Analog_Input_Object_Name, Analog_Input_Read_Property, NULL,
@@ -161,8 +143,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #if (BACNET_PROTOCOL_REVISION >= 14)
                 if ((int)rpdata->object_property == PROP_PROPERTY_LIST) {
                     Device_Objects_Property_List(rpdata->object_type,
-			rpdata->object_instance,
-                        &property_list);
+                        rpdata->object_instance, &property_list);
                     apdu_len = property_list_encode(rpdata,
                         property_list.Required.pList,
                         property_list.Optional.pList,
@@ -179,6 +160,67 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
+/**
+ * @brief Handles the writing of the object name property
+ * @param wp_data [in,out] WriteProperty data structure
+ * @param Object_Write_Property object specific function to write the property
+ * @return True on success, else False if there is an error.
+ */
+static bool Device_Write_Property_Object_Name(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    write_property_function Object_Write_Property)
+{
+    bool status = false; /* return value */
+    int len = 0;
+    BACNET_CHARACTER_STRING value;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
+    int apdu_size = 0;
+    uint8_t *apdu = NULL;
+
+    if (!wp_data) {
+        return false;
+    }
+    apdu = wp_data->application_data;
+    apdu_size = wp_data->application_data_len;
+    len = bacnet_character_string_application_decode(apdu, apdu_size, &value);
+    if (len > 0) {
+        if ((characterstring_encoding(&value) != CHARACTER_ANSI_X34) ||
+            (characterstring_length(&value) == 0) ||
+            (!characterstring_printable(&value))) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        } else {
+            status = true;
+        }
+    } else if (len == 0) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+    if (status) {
+        /* All the object names in a device must be unique */
+        if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
+            if ((object_type == wp_data->object_type) &&
+                (object_instance == wp_data->object_instance)) {
+                /* writing same name to same object - but is it writable? */
+                status = Object_Write_Property(wp_data);
+            } else {
+                /* name already exists in some object */
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
+                status = false;
+            }
+        } else {
+            status = Object_Write_Property(wp_data);
+        }
+    }
+
+    return status;
+}
+
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false;
@@ -190,10 +232,30 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
             if (pObject->Object_Write_Property) {
-                status = pObject->Object_Write_Property(wp_data);
+#if (BACNET_PROTOCOL_REVISION >= 14)
+                if (wp_data->object_property == PROP_PROPERTY_LIST) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    return false;
+                }
+#endif
+                if (wp_data->object_property == PROP_OBJECT_NAME) {
+                    status = Device_Write_Property_Object_Name(
+                        wp_data, pObject->Object_Write_Property);
+                } else {
+                    status = pObject->Object_Write_Property(wp_data);
+                }
             } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                if (Device_Objects_Property_List_Member(wp_data->object_type,
+                        wp_data->object_instance,  wp_data->object_property)) {
+                    /* this property is not writable */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else {
+                    /* this property is not supported */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                }
             }
         } else {
             wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -260,6 +322,35 @@ void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
     return;
 }
 
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+bool Device_Objects_Property_List_Member(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property)
+{
+    bool found = false;
+    struct special_property_list_t property_list = { 0 };
+
+    Device_Objects_Property_List(object_type, object_instance, &property_list);
+    found = property_list_member(property_list.Required.pList, object_property);
+    if (!found) {
+        found =
+            property_list_member(property_list.Optional.pList, object_property);
+    }
+    if (!found) {
+        found = property_list_member(
+            property_list.Proprietary.pList, object_property);
+    }
+
+    return found;
+}
+
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -286,11 +377,12 @@ uint32_t Device_Index_To_Instance(unsigned index)
 
 static char *Device_Name_Default(void)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text[32]; /* okay for single thread */
 
-    sprintf(text_string, "DEVICE-%lu", Object_Instance_Number);
+    snprintf(text, sizeof(text), "DEVICE-%lu",
+        (unsigned long)Object_Instance_Number);
 
-    return text_string;
+    return text;
 }
 
 bool Device_Object_Name(
@@ -306,12 +398,64 @@ bool Device_Object_Name(
     return status;
 }
 
+/**
+ * @brief Sets the ReinitializeDevice password
+ *
+ * The password shall be a null terminated C string of up to
+ * 20 ASCII characters for those devices that require the password.
+ *
+ * For those devices that do not require a password, set to NULL or
+ * point to a zero length C string (null terminated).
+ *
+ * @param the ReinitializeDevice password; can be NULL or empty string
+ */
+bool Device_Reinitialize_Password_Set(const char *password)
+{
+    Reinit_Password = password;
+
+    return true;
+}
+
+/**
+ * @brief Commands a Device re-initialization, to a given state.
+ *  The request's password must match for the operation to succeed.
+ *  This implementation provides a framework, but doesn't
+ *  actually *DO* anything.
+ * @note You could use a mix of states and passwords to multiple outcomes.
+ * @note You probably want to restart *after* the simple ack has been sent
+ *       from the return handler, so just set a local flag here.
+ * @ingroup ObjIntf
+ *
+ * @param rd_data [in,out] The information from the RD request.
+ *                         On failure, the error class and code will be set.
+ * @return True if succeeds (password is correct), else False.
+ */
 bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
+    bool password_success = false;
 
-    /* Note: you could use a mix of state and password to multiple things */
-    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+    /* From 16.4.1.1.2 Password
+        This optional parameter shall be a CharacterString of up to
+        20 characters. For those devices that require the password as a
+        protection, the service request shall be denied if the parameter
+        is absent or if the password is incorrect. For those devices that
+        do not require a password, this parameter shall be ignored.*/
+    if (Reinit_Password && strlen(Reinit_Password) > 0) {
+        if (characterstring_length(&rd_data->password) > 20) {
+            rd_data->error_class = ERROR_CLASS_SERVICES;
+            rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        } else if (characterstring_ansi_same(
+                       &rd_data->password, Reinit_Password)) {
+            password_success = true;
+        } else {
+            rd_data->error_class = ERROR_CLASS_SECURITY;
+            rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+        }
+    } else {
+        password_success = true;
+    }
+    if (password_success) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
             case BACNET_REINIT_WARMSTART:
@@ -341,9 +485,6 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
                 break;
         }
-    } else {
-        rd_data->error_class = ERROR_CLASS_SECURITY;
-        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
     }
 
     return status;
@@ -520,7 +661,7 @@ int Device_Object_List_Element_Encode(
     return apdu_len;
 }
 
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
+bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
@@ -576,9 +717,13 @@ bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
     struct my_object_functions *pObject = NULL;
     bool found = false;
 
-    pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-        found = pObject->Object_Name(object_instance, object_name);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Name) {
+                found = pObject->Object_Name(object_instance, object_name);
+            }
+        }
     }
 
     return found;
@@ -695,9 +840,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
-                Device_Object_List_Element_Encode,
-                count, apdu, apdu_max);
+                rpdata->array_index, Device_Object_List_Element_Encode, count,
+                apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -749,13 +893,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -764,7 +901,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value - false=error */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     uint8_t max_master = 0;
 
     /* decode the some of the request */
@@ -775,13 +912,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch ((int)wp_data->object_property) {

@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2005 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdint.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
@@ -89,14 +62,15 @@ bool arcnet_valid(void)
 
 void arcnet_cleanup(void)
 {
-    if (arcnet_valid())
+    if (arcnet_valid()) {
         close(ARCNET_Sock_FD);
+    }
     ARCNET_Sock_FD = -1;
 
     return;
 }
 
-static int arcnet_bind(char *interface_name)
+static int arcnet_bind(const char *interface_name)
 {
     int sock_fd = -1; /* return value */
     struct ifreq ifr;
@@ -106,7 +80,8 @@ static int arcnet_bind(char *interface_name)
     /* check to see if we are being run as root */
     uid = getuid();
     if (uid != 0) {
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "arcnet: Unable to open an af_packet socket.  "
             "Try running with root priveleges.\n");
         return sock_fd;
@@ -119,7 +94,8 @@ static int arcnet_bind(char *interface_name)
     if ((sock_fd = socket(PF_PACKET, SOCK_PACKET, htons(ETH_P_ALL))) < 0) {
         /* Error occured */
         fprintf(stderr, "arcnet: Error opening socket: %s\n", strerror(errno));
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "You might need to add the following to modules.conf\n"
             "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
@@ -135,19 +111,24 @@ static int arcnet_bind(char *interface_name)
         ARCNET_Socket_Address.sa_family = ARPHRD_ARCNET;
         /*ARCNET_Socket_Address.sa_family = PF_INET; */
         /* Clear the memory before copying */
-        memset(ARCNET_Socket_Address.sa_data, '\0',
+        memset(
+            ARCNET_Socket_Address.sa_data, '\0',
             sizeof(ARCNET_Socket_Address.sa_data));
         /* Strcpy the interface name into the address */
-        strncpy(ARCNET_Socket_Address.sa_data, interface_name,
-            sizeof(ARCNET_Socket_Address.sa_data) - 1);
+        snprintf(
+            ARCNET_Socket_Address.sa_data,
+            sizeof(ARCNET_Socket_Address.sa_data), "%s", interface_name);
         fprintf(
             stderr, "arcnet: binding \"%s\"\n", ARCNET_Socket_Address.sa_data);
-        if (bind(sock_fd, &ARCNET_Socket_Address,
+        if (bind(
+                sock_fd, &ARCNET_Socket_Address,
                 sizeof(ARCNET_Socket_Address)) != 0) {
             /* Bind problem, close socket and return */
-            fprintf(stderr, "arcnet: Unable to bind socket : %s\n",
+            fprintf(
+                stderr, "arcnet: Unable to bind socket : %s\n",
                 strerror(errno));
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "You might need to add the following to modules.conf\n"
                 "(or in /etc/modutils/alias on Debian with update-modules):\n"
                 "alias net-pf-17 af_packet\n"
@@ -159,20 +140,24 @@ static int arcnet_bind(char *interface_name)
             exit(-1);
         }
     }
-    strncpy(ifr.ifr_name, interface_name, sizeof(ifr.ifr_name));
+    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", interface_name);
     rv = ioctl(sock_fd, SIOCGIFHWADDR, &ifr);
-    if (rv != -1) /* worked okay */
+    if (rv != -1) { /* worked okay */
         ARCNET_MAC_Address = ifr.ifr_hwaddr.sa_data[0];
+    }
     /* copy this info into the local copy since bind wiped it out */
     ARCNET_Socket_Address.sa_family = ARPHRD_ARCNET;
     /*ARCNET_Socket_Address.sa_family = PF_INET; */
     /* Clear the memory before copying */
-    memset(ARCNET_Socket_Address.sa_data, '\0',
+    memset(
+        ARCNET_Socket_Address.sa_data, '\0',
         sizeof(ARCNET_Socket_Address.sa_data));
     /* Strcpy the interface name into the address */
-    strncpy(ARCNET_Socket_Address.sa_data, interface_name,
-        sizeof(ARCNET_Socket_Address.sa_data) - 1);
-    fprintf(stderr, "arcnet: MAC=%02Xh iface=\"%s\"\n", ARCNET_MAC_Address,
+    snprintf(
+        ARCNET_Socket_Address.sa_data, sizeof(ARCNET_Socket_Address.sa_data),
+        "%s", interface_name);
+    fprintf(
+        stderr, "arcnet: MAC=%02Xh iface=\"%s\"\n", ARCNET_MAC_Address,
         ARCNET_Socket_Address.sa_data);
 
     atexit(arcnet_cleanup);
@@ -182,17 +167,19 @@ static int arcnet_bind(char *interface_name)
 
 bool arcnet_init(char *interface_name)
 {
-    if (interface_name)
+    if (interface_name) {
         ARCNET_Sock_FD = arcnet_bind(interface_name);
-    else
+    } else {
         ARCNET_Sock_FD = arcnet_bind("arc0");
+    }
 
     return arcnet_valid();
 }
 
 /* function to send a PDU out the socket */
 /* returns number of bytes sent on success, negative on failure */
-int arcnet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int arcnet_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
     BACNET_NPDU_DATA *npdu_data, /* network information */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -213,15 +200,15 @@ int arcnet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
         return -1;
     }
     /* load destination MAC address */
-    if (dest->mac_len == 1)
+    if (dest->mac_len == 1) {
         pkt->hard.dest = dest->mac[0];
-    else {
+    } else {
         fprintf(stderr, "arcnet: invalid destination MAC address!\n");
         return -2;
     }
-    if (src.mac_len == 1)
+    if (src.mac_len == 1) {
         pkt->hard.source = src.mac[0];
-    else {
+    } else {
         fprintf(stderr, "arcnet: invalid source MAC address!\n");
         return -3;
     }
@@ -238,19 +225,22 @@ int arcnet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     }
     memcpy(&pkt->soft.raw[4], pdu, pdu_len);
     /* Send the packet */
-    bytes = sendto(ARCNET_Sock_FD, &mtu, mtu_len, 0,
+    bytes = sendto(
+        ARCNET_Sock_FD, &mtu, mtu_len, 0,
         (struct sockaddr *)&ARCNET_Socket_Address,
         sizeof(ARCNET_Socket_Address));
     /* did it get sent? */
-    if (bytes < 0)
+    if (bytes < 0) {
         fprintf(stderr, "arcnet: Error sending packet: %s\n", strerror(errno));
+    }
 
     return bytes;
 }
 
 /* receives an framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
-uint16_t arcnet_receive(BACNET_ADDRESS *src, /* source address */
+uint16_t arcnet_receive(
+    BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* PDU data */
     uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout)
@@ -264,8 +254,9 @@ uint16_t arcnet_receive(BACNET_ADDRESS *src, /* source address */
     struct archdr *pkt = (struct archdr *)buf;
 
     /* Make sure the socket is open */
-    if (ARCNET_Sock_FD <= 0)
+    if (ARCNET_Sock_FD <= 0) {
         return 0;
+    }
 
     /* we could just use a non-blocking socket, but that consumes all
        the CPU time.  We can use a timeout; it is only supported as
@@ -282,24 +273,28 @@ uint16_t arcnet_receive(BACNET_ADDRESS *src, /* source address */
     FD_SET(ARCNET_Sock_FD, &read_fds);
     max = ARCNET_Sock_FD;
 
-    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
+    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
         received_bytes = read(ARCNET_Sock_FD, &buf[0], sizeof(buf));
-    else
+    } else {
         return 0;
+    }
 
     /* See if there is a problem */
     if (received_bytes < 0) {
         /* EAGAIN Non-blocking I/O has been selected  */
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
-        if (errno != EAGAIN)
-            fprintf(stderr, "ethernet: Read error in receiving packet: %s\n",
+        if (errno != EAGAIN) {
+            fprintf(
+                stderr, "ethernet: Read error in receiving packet: %s\n",
                 strerror(errno));
+        }
         return 0;
     }
 
-    if (received_bytes == 0)
+    if (received_bytes == 0) {
         return 0;
+    }
 
     /* printf("arcnet: received %u bytes (offset=%02Xh %02Xh) "
        "from %02Xh (proto==%02Xh)\n",
@@ -339,11 +334,13 @@ uint16_t arcnet_receive(BACNET_ADDRESS *src, /* source address */
     pdu_len = received_bytes - ARC_HDR_SIZE;
     pdu_len -= 4 /* SC, DSAP, SSAP, LLC Control */;
     /* copy the buffer into the PDU */
-    if (pdu_len < max_pdu)
+    if (pdu_len < max_pdu) {
         memmove(&pdu[0], &pkt->soft.raw[4], pdu_len);
+    }
     /* silently ignore packets that are too large */
-    else
+    else {
         pdu_len = 0;
+    }
 
     return pdu_len;
 }

@@ -3,16 +3,15 @@
  * @brief DeleteObject service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacapp.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacapp.h"
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/delete_object.h"
 
@@ -29,7 +28,7 @@
  * @return Bytes encoded or zero on error.
  */
 int delete_object_encode_service_request(
-    uint8_t *apdu, BACNET_DELETE_OBJECT_DATA *data)
+    uint8_t *apdu, const BACNET_DELETE_OBJECT_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -39,6 +38,33 @@ int delete_object_encode_service_request(
         len = encode_application_object_id(
             apdu, data->object_type, data->object_instance);
         apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the DeleteObject service request
+ *
+ *  DeleteObject-Request ::= SEQUENCE {
+ *      object-identifier BACnetObjectIdentifier
+ *  }
+ *
+ * @param apdu  Pointer to the buffer for encoded values
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+int delete_object_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_DELETE_OBJECT_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = delete_object_encode_service_request(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = delete_object_encode_service_request(apdu, data);
     }
 
     return apdu_len;
@@ -58,7 +84,7 @@ int delete_object_encode_service_request(
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
  */
 int delete_object_decode_service_request(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data)
 {
     int len = 0;
     int apdu_len = 0;
@@ -66,12 +92,17 @@ int delete_object_decode_service_request(
     uint32_t object_instance = 0;
 
     /* object-identifier BACnetObjectIdentifier */
-    len = bacnet_object_id_application_decode(&apdu[apdu_len], 
-        apdu_size - apdu_len, &object_type, &object_instance);
+    len = bacnet_object_id_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &object_type, &object_instance);
     if (len == BACNET_STATUS_ERROR) {
-            if (data) {
-                data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
-            }
+        if (data) {
+            data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        }
+        return BACNET_STATUS_REJECT;
+    } else if (len == 0) {
+        if (data) {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
         return BACNET_STATUS_REJECT;
     } else {
         if ((object_type >= MAX_BACNET_OBJECT_TYPE) ||

@@ -37,15 +37,15 @@ static void testBACnetUnsigned16(void)
     memset(apdu, -1, sizeof(apdu));
     len = encode_unsigned16(&apdu[0], value);
     zassert_equal(len, 2, NULL);
-    test_value = (uint16_t) ~0U;
+    test_value = (uint16_t)~0U;
     len = decode_unsigned16(&apdu[0], &test_value);
     zassert_equal(len, 2, NULL);
     zassert_equal(value, test_value, NULL);
 
-    for (value = 1; value != 0; value = (value << 1) & ((1UL<<16)-1)) {
+    for (value = 1; value != 0; value = (value << 1) & ((1UL << 16) - 1)) {
         len = encode_unsigned16(&apdu[0], value);
         zassert_equal(len, 2, NULL);
-        test_value = (uint16_t) ~0U;
+        test_value = (uint16_t)~0U;
         len = decode_unsigned16(&apdu[0], &test_value);
         zassert_equal(value, test_value, NULL);
     }
@@ -77,7 +77,7 @@ static void testBACnetUnsigned24(void)
     zassert_equal(len, 3, NULL);
     zassert_equal(value, test_value, NULL);
 
-    for (value = 1; value != 0; value = (value << 1) & ((1UL<<24)-1)) {
+    for (value = 1; value != 0; value = (value << 1) & ((1UL << 24) - 1)) {
         len = encode_unsigned24(&apdu[0], value);
         zassert_equal(len, 3, NULL);
         test_value = ~0U;
@@ -148,7 +148,7 @@ static void testBACnetUnsigned40(void)
     zassert_equal(len, 5, NULL);
     zassert_equal(value, test_value, NULL);
 
-    for (value = 1; value != 0; value = (value << 1) & ((1ULL<<40)-1)) {
+    for (value = 1; value != 0; value = (value << 1) & ((1ULL << 40) - 1)) {
         len = encode_unsigned40(&apdu[0], value);
         zassert_equal(len, 5, NULL);
         test_value = ~0ULL;
@@ -189,7 +189,7 @@ static void testBACnetUnsigned48(void)
     zassert_equal(len, 6, NULL);
     zassert_equal(value, test_value, NULL);
 
-    for (value = 1; value != 0; value = (value << 1) & ((1ULL<<48)-1)) {
+    for (value = 1; value != 0; value = (value << 1) & ((1ULL << 48) - 1)) {
         len = encode_unsigned48(&apdu[0], value);
         zassert_equal(len, 6, NULL);
         test_value = ~0ULL;
@@ -230,7 +230,7 @@ static void testBACnetUnsigned56(void)
     zassert_equal(len, 7, NULL);
     zassert_equal(value, test_value, NULL);
 
-    for (value = 1; value != 0; value = (value << 1) & ((1ULL<<56)-1)) {
+    for (value = 1; value != 0; value = (value << 1) & ((1ULL << 56) - 1)) {
         len = encode_unsigned56(&apdu[0], value);
         zassert_equal(len, 7, NULL);
         test_value = ~0ULL;
@@ -299,9 +299,9 @@ static void testBACnetUnsignedLength(void)
     int bits = (8 * sizeof(BACNET_UNSIGNED_INTEGER));
 
     for (value = ~value; value > 0; value >>= 1) {
-	len = bacnet_unsigned_length(value);
-	zassert_equal(len, (bits + 7)/8, NULL);
-	bits -= 1;
+        len = bacnet_unsigned_length(value);
+        zassert_equal(len, (bits + 7) / 8, NULL);
+        bits -= 1;
     }
     len = bacnet_unsigned_length(0);
     zassert_equal(len, 1, NULL);
@@ -339,8 +339,9 @@ static void testBACnetSigned8(void)
         test_value = ~0U;
         len = decode_signed8(&apdu[0], &test_value);
         zassert_equal(value, test_value, NULL);
-        if (value == 127)
+        if (value == 127) {
             break;
+        }
     }
 }
 
@@ -376,8 +377,9 @@ static void testBACnetSigned16(void)
         test_value = ~0U;
         len = decode_signed16(&apdu[0], &test_value);
         zassert_equal(value, test_value, NULL);
-        if (value == 32767)
+        if (value == 32767) {
             break;
+        }
     }
 }
 
@@ -461,26 +463,23 @@ static void testBACnetSigned32(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bacint_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacint_tests,
-     ztest_unit_test(testBACnetUnsigned16),
-     ztest_unit_test(testBACnetUnsigned24),
-     ztest_unit_test(testBACnetUnsigned32),
-     ztest_unit_test(testBACnetUnsigned40),
-     ztest_unit_test(testBACnetUnsigned48),
-     ztest_unit_test(testBACnetUnsigned56),
-     ztest_unit_test(testBACnetUnsigned64),
-     ztest_unit_test(testBACnetUnsignedLength),
-     ztest_unit_test(testBACnetSigned8),
-     ztest_unit_test(testBACnetSigned16),
-     ztest_unit_test(testBACnetSigned24),
-     ztest_unit_test(testBACnetSigned32)
-     );
+    ztest_test_suite(
+        bacint_tests, ztest_unit_test(testBACnetUnsigned16),
+        ztest_unit_test(testBACnetUnsigned24),
+        ztest_unit_test(testBACnetUnsigned32),
+        ztest_unit_test(testBACnetUnsigned40),
+        ztest_unit_test(testBACnetUnsigned48),
+        ztest_unit_test(testBACnetUnsigned56),
+        ztest_unit_test(testBACnetUnsigned64),
+        ztest_unit_test(testBACnetUnsignedLength),
+        ztest_unit_test(testBACnetSigned8), ztest_unit_test(testBACnetSigned16),
+        ztest_unit_test(testBACnetSigned24),
+        ztest_unit_test(testBACnetSigned32));
 
     ztest_run_test_suite(bacint_tests);
 }

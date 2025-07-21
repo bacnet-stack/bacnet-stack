@@ -41,7 +41,6 @@ static void test_CreateObject(void)
 #endif
 {
     BACNET_CREATE_OBJECT_DATA data = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
 
     test_CreateObjectCodec(&data);
     data.object_instance = BACNET_MAX_INSTANCE;
@@ -83,7 +82,6 @@ static void test_CreateObjectACK(void)
 #endif
 {
     BACNET_CREATE_OBJECT_DATA data = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
 
     test_CreateObjectAckCodec(&data);
     data.object_instance = BACNET_MAX_INSTANCE;
@@ -107,15 +105,18 @@ static void test_CreateObjectError(void)
     null_len = create_object_error_ack_service_encode(NULL, &data);
     apdu_len = create_object_error_ack_service_encode(apdu, &data);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = create_object_error_ack_service_decode(apdu, apdu_len, &test_data);
+    test_len =
+        create_object_error_ack_service_decode(apdu, apdu_len, &test_data);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_equal(test_data.error_class, data.error_class, NULL);
     zassert_equal(test_data.error_code, data.error_code, NULL);
-    zassert_equal(test_data.first_failed_element_number,
-        data.first_failed_element_number, NULL);
+    zassert_equal(
+        test_data.first_failed_element_number, data.first_failed_element_number,
+        NULL);
     while (test_len) {
         test_len--;
-        len = create_object_error_ack_service_decode(apdu, test_len, &test_data);
+        len =
+            create_object_error_ack_service_decode(apdu, test_len, &test_data);
         zassert_equal(
             len, BACNET_STATUS_REJECT, "len=%d test_len=%d", len, test_len);
     }
@@ -130,7 +131,8 @@ ZTEST_SUITE(create_object_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(create_object_tests, ztest_unit_test(test_CreateObject),
+    ztest_test_suite(
+        create_object_tests, ztest_unit_test(test_CreateObject),
         ztest_unit_test(test_CreateObjectACK),
         ztest_unit_test(test_CreateObjectError));
 

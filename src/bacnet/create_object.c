@@ -3,16 +3,15 @@
  * @brief CreateObject service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacapp.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacapp.h"
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/create_object.h"
 
@@ -96,6 +95,28 @@ int create_object_encode_service_request(
 }
 
 /**
+ * @brief Encode the CreateObject service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t create_object_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = create_object_encode_service_request(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = create_object_encode_service_request(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the CreateObject service request
  *
  *  CreateObject-Request ::= SEQUENCE {
@@ -107,13 +128,13 @@ int create_object_encode_service_request(
  *  }
  *
  * @param apdu  Pointer to the buffer for decoding.
- * @param apdu_len  Count of valid bytes in the buffer.
+ * @param apdu_size  Count of valid bytes in the buffer.
  * @param data  Pointer to the property decoded data to be stored
  *
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
  */
 int create_object_decode_service_request(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0;
     int apdu_len = 0;
@@ -133,9 +154,10 @@ int create_object_decode_service_request(
     apdu_len += len;
     /* CHOICE of Tag [0] or [1] */
     /* object-identifier [1] BACnetObjectIdentifier */
-    len = bacnet_object_id_context_decode(&apdu[apdu_len], apdu_size - apdu_len,
-        1, &object_type, &object_instance);
-    if ((len != BACNET_STATUS_ERROR) && (len != 0)) {
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &object_type,
+        &object_instance);
+    if (len > 0) {
         if ((object_type >= MAX_BACNET_OBJECT_TYPE) ||
             (object_instance >= BACNET_MAX_INSTANCE)) {
             if (data) {
@@ -152,7 +174,7 @@ int create_object_decode_service_request(
         /* object-type [0] BACnetObjectType */
         len = bacnet_enumerated_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 0, &enumerated_value);
-        if ((len != BACNET_STATUS_ERROR) && (len != 0)) {
+        if (len > 0) {
             if (enumerated_value >= MAX_BACNET_OBJECT_TYPE) {
                 if (data) {
                     data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
@@ -188,7 +210,7 @@ int create_object_decode_service_request(
         }
         len = bacapp_property_value_decode(
             &apdu[apdu_len], apdu_size - apdu_len, list_of_initial_values);
-        if (len == BACNET_STATUS_ERROR) {
+        if (len <= 0) {
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
@@ -218,7 +240,7 @@ int create_object_decode_service_request(
  * @return number of bytes encoded
  */
 int create_object_ack_service_encode(
-    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, const BACNET_CREATE_OBJECT_DATA *data)
 {
     /* BACnetObjectIdentifier */
     return encode_application_object_id(
@@ -236,7 +258,7 @@ int create_object_ack_service_encode(
  * @return number of bytes encoded
  */
 int create_object_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_CREATE_OBJECT_DATA *data)
 {
     int apdu_len = 3; /* total length of the apdu, return value */
 
@@ -261,10 +283,10 @@ int create_object_ack_encode(
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  size of the buffer for decoding.
  * @param data  Pointer to the property data to be encoded.
- * @return Bytes encoded or BACNET_STATUS_REJECT on error.
+ * @return Bytes encoded or #BACNET_STATUS_ERROR on error.
  */
 int create_object_ack_service_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int apdu_len = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
@@ -272,7 +294,9 @@ int create_object_ack_service_decode(
 
     apdu_len = bacnet_object_id_application_decode(
         apdu, apdu_size, &object_type, &object_instance);
-    if (apdu_len > 0) {
+    if (apdu_len <= 0) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
         if (data) {
             data->object_instance = object_instance;
             data->object_type = object_type;
@@ -295,7 +319,7 @@ int create_object_ack_service_decode(
  * @return Bytes encoded or zero on error.
  */
 int create_object_error_ack_service_encode(
-    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, const BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -327,14 +351,14 @@ int create_object_error_ack_service_encode(
 }
 
 /**
- * @brief Encode an Error acknowledge in the APDU.
+ * @brief Encode a CreateObject Error acknowledge in the APDU.
  * @param apdu [in] The APDU buffer.
  * @param invoke_id [in] Invoked service ID.
  * @param data [in] Data of the invoked property.
  * @return number of bytes encoded
  */
 int create_object_error_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 3;
 
@@ -363,7 +387,7 @@ int create_object_error_ack_encode(
  * @return Bytes encoded or BACNET_STATUS_REJECT on error.
  */
 int create_object_error_ack_service_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0, apdu_len = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
@@ -378,19 +402,11 @@ int create_object_error_ack_service_decode(
         data->error_class = ERROR_CLASS_SERVICES;
         data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
     }
-    if (apdu_size < apdu_len) {
-        return BACNET_STATUS_REJECT;
-    }
     /* Opening Context tag 0 - Error */
-    if (decode_is_opening_tag_number(apdu, 0)) {
-        /* opening tag 0 is 1 byte */
-        len = 1;
+    if (bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
         apdu_len += len;
         apdu += len;
     } else {
-        return BACNET_STATUS_REJECT;
-    }
-    if (apdu_size < apdu_len) {
         return BACNET_STATUS_REJECT;
     }
     len = bacerror_decode_error_class_and_code(
@@ -405,19 +421,11 @@ int create_object_error_ack_service_decode(
     } else {
         return BACNET_STATUS_REJECT;
     }
-    if (apdu_size < apdu_len) {
-        return BACNET_STATUS_REJECT;
-    }
     /* Closing Context tag 0 - Error */
-    if (decode_is_closing_tag_number(apdu, 0)) {
-        /* closing tag 0 is 1 byte */
-        len = 1;
+    if (bacnet_is_closing_tag_number(apdu, apdu_size - apdu_len, 0, &len)) {
         apdu_len += len;
         apdu += len;
     } else {
-        return BACNET_STATUS_REJECT;
-    }
-    if (apdu_size < apdu_len) {
         return BACNET_STATUS_REJECT;
     }
     len = bacnet_unsigned_context_decode(

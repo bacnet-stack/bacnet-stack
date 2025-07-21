@@ -1,0 +1,138 @@
+name: Raspberry Pi
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      tags:
+        description: 'Test scenario tags'
+        required: false
+        type: boolean
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+
+jobs:
+  log-the-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Log level: $LEVEL"
+          echo "Tags: $TAGS"
+          echo "Environment: $ENVIRONMENT"
+        env:
+          LEVEL: ${{ inputs.logLevel }}
+          TAGS: ${{ inputs.tags }}
+          ENVIRONMENT: ${{ inputs.environment }}
+
+  raspi-bip-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq gcc-arm-linux-gnueabihf
+    - name: Build Demo Apps
+      run: |
+        export CC=arm-linux-gnueabihf-gcc
+        export LD=arm-linux-gnueabihf-ld
+        arm-linux-gnueabihf-gcc --version
+        make clean
+        make LEGACY=true all
+
+  piface:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Checkout libmcp23s17 repo
+      uses: actions/checkout@v4
+      with:
+        repository: piface/libmcp23s17
+        path: ./apps/piface/libmcp23s17
+
+    - name: Checkout libpifacedigital repo
+      uses: actions/checkout@v4
+      with:
+        repository: piface/libpifacedigital
+        path: ./apps/piface/libpifacedigital
+
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq gcc-arm-linux-gnueabihf
+
+    - name: Build libmcp23s17 library
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        cd apps/piface/libmcp23s17
+        make CC=arm-linux-gnueabihf-gcc
+        arm-linux-gnueabihf-ar rcs libmcp23s17.a src/mcp23s17.o
+        cd ../../../
+
+    - name: Build pifacedigital library
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        cd apps/piface/libpifacedigital
+        make CC=arm-linux-gnueabihf-gcc
+        : # Use the arm-linux-gnueabihf-ar command to create a static library
+        arm-linux-gnueabihf-ar rcs libpifacedigital.a src/pifacedigital.o
+        cd ../../../
+
+    - name: Build Piface demo
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        : # BACnet library uses environment CC and LD variables
+        CC=arm-linux-gnueabihf-gcc
+        LD=arm-linux-gnueabihf-ld
+        CROSS_PREFIX=arm-linux-gnueabihf-
+        make piface
+
+  blinkt:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Checkout pigpio repo
+      uses: actions/checkout@v4
+      with:
+        repository: joan2937/pigpio
+        path: ./apps/blinkt/pigpio
+
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq gcc-arm-linux-gnueabihf
+
+    - name: Build Blinkt! pigpio library
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        CROSS_PREFIX=arm-linux-gnueabihf-
+        DESTDIR="${HOME}/.local/bin"
+        cd apps/binkt/pigpio
+        make CROSS_PREFIX="${CROSS_PREFIX}" DESTDIR="${DESTDIR}" all install
+        cd ../../../
+
+    - name: Build Blinkt! demo
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        : # BACnet library uses environment CC and LD variables
+        export CC=arm-linux-gnueabihf-gcc
+        export LD=arm-linux-gnueabihf-ld
+        export CROSS_PREFIX=arm-linux-gnueabihf-
+        make blinkt

@@ -1,47 +1,30 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 John Minack
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send an Unconfirmed Event Notification.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include "bacnet/event.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/sys/debug.h"
 
-/** @file s_uevent.c  Send an Unconfirmed Event Notification. */
-
-/** Sends an Unconfirmed Alarm/Event Notification.
- * @ingroup EVNOTFCN
- *
+/**
+ * @brief Sends an Unconfirmed Alarm/Event Notification.
+ * @ingroup BIBB-AE-N-A
  * @param buffer [in,out] The buffer to build the message in for sending.
  * @param data [in] The information about the Event to be sent.
  * @param dest [in] The destination address information (may be a broadcast).
  * @return Size of the message sent (bytes), or a negative value on error.
  */
 int Send_UEvent_Notify(
-    uint8_t *buffer, BACNET_EVENT_NOTIFICATION_DATA *data, BACNET_ADDRESS *dest)
+    uint8_t *buffer,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
+    BACNET_ADDRESS *dest)
 {
     int len = 0;
     int pdu_len = 0;
@@ -58,6 +41,9 @@ int Send_UEvent_Notify(
     pdu_len += len;
     /* send the data */
     bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("Failed to Send EventNotification Request");
+    }
 
     return bytes_sent;
 }

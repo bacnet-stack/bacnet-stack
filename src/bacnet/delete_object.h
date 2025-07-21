@@ -3,19 +3,17 @@
  * @brief API for DeleteObject service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
-  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DELETE_OBJECT_H
 #define BACNET_DELETE_OBJECT_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 
 /**
@@ -44,10 +42,15 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 int delete_object_encode_service_request(
-    uint8_t *apdu, BACNET_DELETE_OBJECT_DATA *data);
+    uint8_t *apdu, const BACNET_DELETE_OBJECT_DATA *data);
+
+BACNET_STACK_EXPORT
+int delete_object_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_DELETE_OBJECT_DATA *data);
+
 BACNET_STACK_EXPORT
 int delete_object_decode_service_request(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data);
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data);
 
 #ifdef __cplusplus
 }

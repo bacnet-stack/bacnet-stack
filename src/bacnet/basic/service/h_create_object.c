@@ -3,17 +3,15 @@
  * @brief CreateObject service application handlers
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -45,7 +43,8 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_create_object(uint8_t *service_request,
+void handler_create_object(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -60,15 +59,22 @@ void handler_create_object(uint8_t *service_request,
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_perror("CreateObject: Received Request!\n");
-    if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
-        debug_perror("CreateObject: Segmented message.  Sending Abort!\n");
+    debug_print("CreateObject: Received Request!\n");
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_print(
+            "CreateObject: Missing Required Parameter. Sending Reject!\n");
+        status = false;
+    } else if (service_data->segmented_message) {
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        debug_print("CreateObject: Segmented message.  Sending Abort!\n");
         status = false;
     }
     if (status) {
@@ -76,36 +82,37 @@ void handler_create_object(uint8_t *service_request,
         len = create_object_decode_service_request(
             service_request, service_len, &data);
         if (len > 0) {
-            debug_perror("CreateObject: type=%lu instance=%lu\n",
+            debug_printf_stderr(
+                "CreateObject: type=%lu instance=%lu\n",
                 (unsigned long)data.object_type,
                 (unsigned long)data.object_instance);
         } else {
-            debug_perror("CreateObject: Unable to decode request!\n");
+            debug_print("CreateObject: Unable to decode request!\n");
         }
         if (len <= 0) {
             /* bad decoding or something we didn't understand */
             if (len == BACNET_STATUS_ABORT) {
-                len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = abort_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     abort_convert_error_code(data.error_code), true);
-                debug_perror("CreateObject: Sending Abort!\n");
+                debug_print("CreateObject: Sending Abort!\n");
             } else if (len == BACNET_STATUS_REJECT) {
-                len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = reject_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     reject_convert_error_code(data.error_code));
-                debug_perror("CreateObject: Sending Reject!\n");
+                debug_print("CreateObject: Sending Reject!\n");
             }
         } else {
             if (Device_Create_Object(&data)) {
-                len =
-                    create_object_ack_encode(&Handler_Transmit_Buffer[pdu_len],
-                        service_data->invoke_id, &data);
-                debug_perror("CreateObject: Sending ACK!\n");
+                len = create_object_ack_encode(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
+                debug_print("CreateObject: Sending ACK!\n");
             } else {
                 len = create_object_error_ack_encode(
-                    &Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
-                debug_perror("CreateObject: Sending Error!\n");
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
+                debug_print("CreateObject: Sending Error!\n");
             }
         }
     }
@@ -116,8 +123,7 @@ void handler_create_object(uint8_t *service_request,
             src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     }
     if (bytes_sent <= 0) {
-        debug_perror(
-            "CreateObject: Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("CreateObject: Failed to send PDU");
     }
 
     return;

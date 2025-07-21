@@ -3,11 +3,7 @@
  * @brief BACnetDestination complex data type encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -16,13 +12,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacdest.h"
 
 /**
  * @brief Initialize the BACnetDestination data structure with defaults
@@ -71,7 +68,7 @@ void bacnet_destination_default_init(BACNET_DESTINATION *destination)
  * @return true if r1 and r2 are the same
  */
 bool bacnet_recipient_same(
-    BACNET_RECIPIENT *r1, BACNET_RECIPIENT *r2)
+    const BACNET_RECIPIENT *r1, const BACNET_RECIPIENT *r2)
 {
     bool status = false;
 
@@ -102,8 +99,7 @@ bool bacnet_recipient_same(
  * @param src - BACnetRecipient 1 structure
  * @param dest - BACnetRecipient 2 structure
  */
-void bacnet_recipient_copy(
-    BACNET_RECIPIENT *dest, BACNET_RECIPIENT *src)
+void bacnet_recipient_copy(BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src)
 {
     if (dest && src) {
         memmove(dest, src, sizeof(BACNET_RECIPIENT));
@@ -115,7 +111,7 @@ void bacnet_recipient_copy(
  * @param recipient - BACnetRecipient structure
  * @return true if BACnetRecipient is equal to the device object wildcard
  */
-bool bacnet_recipient_device_wildcard(BACNET_RECIPIENT *recipient)
+bool bacnet_recipient_device_wildcard(const BACNET_RECIPIENT *recipient)
 {
     bool status = false;
 
@@ -135,7 +131,7 @@ bool bacnet_recipient_device_wildcard(BACNET_RECIPIENT *recipient)
  * @param recipient - BACnetRecipient structure
  * @return true if BACnetRecipient is a valid device object instance
  */
-bool bacnet_recipient_device_valid(BACNET_RECIPIENT *recipient)
+bool bacnet_recipient_device_valid(const BACNET_RECIPIENT *recipient)
 {
     bool status = false;
 
@@ -156,7 +152,8 @@ bool bacnet_recipient_device_valid(BACNET_RECIPIENT *recipient)
  * @param d2 - BACnetDestination 2 structure
  * @return true if dest1 and dest2 are the same
  */
-bool bacnet_destination_same(BACNET_DESTINATION *d1, BACNET_DESTINATION *d2)
+bool bacnet_destination_same(
+    const BACNET_DESTINATION *d1, const BACNET_DESTINATION *d2)
 {
     bool status = false;
 
@@ -169,8 +166,7 @@ bool bacnet_destination_same(BACNET_DESTINATION *d1, BACNET_DESTINATION *d2)
             status = (datetime_compare_time(&d1->ToTime, &d2->ToTime) == 0);
         }
         if (status) {
-            status = bacnet_recipient_same(
-                &d1->Recipient, &d2->Recipient);
+            status = bacnet_recipient_same(&d1->Recipient, &d2->Recipient);
         }
         if (status) {
             status = (d1->ProcessIdentifier == d2->ProcessIdentifier);
@@ -191,7 +187,8 @@ bool bacnet_destination_same(BACNET_DESTINATION *d1, BACNET_DESTINATION *d2)
  * @param dest - BACnetDestination 1 structure
  * @param src - BACnetDestination 2 structure
  */
-void bacnet_destination_copy(BACNET_DESTINATION *dest, BACNET_DESTINATION *src)
+void bacnet_destination_copy(
+    BACNET_DESTINATION *dest, const BACNET_DESTINATION *src)
 {
     if (dest && src) {
         memmove(dest, src, sizeof(BACNET_DESTINATION));
@@ -203,7 +200,7 @@ void bacnet_destination_copy(BACNET_DESTINATION *dest, BACNET_DESTINATION *src)
  * @param d1 - BACnetDestination 1 structure
  * @return true if d1 and d2 (defaults) are the same
  */
-bool bacnet_destination_default(BACNET_DESTINATION *d1)
+bool bacnet_destination_default(const BACNET_DESTINATION *d1)
 {
     BACNET_DESTINATION d2 = { 0 };
 
@@ -230,7 +227,8 @@ bool bacnet_destination_default(BACNET_DESTINATION *d1)
  *
  * @return bytes encoded or zero on error.
  */
-int bacnet_destination_encode(uint8_t *apdu, BACNET_DESTINATION *destination)
+int bacnet_destination_encode(
+    uint8_t *apdu, const BACNET_DESTINATION *destination)
 {
     int apdu_len = 0, len = 0;
 
@@ -250,32 +248,10 @@ int bacnet_destination_encode(uint8_t *apdu, BACNET_DESTINATION *destination)
         if (apdu) {
             apdu += len;
         }
-        if (destination->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
-            len = encode_context_object_id(apdu, 0, OBJECT_DEVICE,
-                destination->Recipient.type.device.instance);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-        } else if (destination->Recipient.tag == BACNET_RECIPIENT_TAG_ADDRESS) {
-            /* opening tag 1 */
-            len = encode_opening_tag(apdu, 1);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-            len = encode_bacnet_address(
-                apdu, &destination->Recipient.type.address);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-            /* closing tag 1 */
-            len = encode_closing_tag(apdu, 1);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
+        len = bacnet_recipient_encode(apdu, &destination->Recipient);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
         }
         /* Process Identifier - Unsigned32 */
         len = encode_application_unsigned(apdu, destination->ProcessIdentifier);
@@ -305,7 +281,7 @@ int bacnet_destination_encode(uint8_t *apdu, BACNET_DESTINATION *destination)
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int bacnet_destination_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DESTINATION *destination)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DESTINATION *destination)
 {
     int len = 0;
     int apdu_len = 0;
@@ -348,169 +324,307 @@ int bacnet_destination_context_encode(
  * @return bytes encoded or #BACNET_STATUS_REJECT on error.
  */
 int bacnet_destination_decode(
-    uint8_t *apdu, int apdu_size, BACNET_DESTINATION *destination)
+    const uint8_t *apdu, int apdu_size, BACNET_DESTINATION *destination)
 {
     int len = 0, apdu_len = 0;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_BIT_STRING bitstring = { 0 };
+    BACNET_TIME btime = { 0 };
+    BACNET_RECIPIENT recipient = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    bool boolean_value = false;
 
     if (!apdu) {
         return BACNET_STATUS_REJECT;
     }
-    if (!destination) {
-        return BACNET_STATUS_REJECT;
-    }
     /* Decode Valid Days */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_BIT_STRING)) {
+    len = bacnet_bitstring_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &bitstring);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    bitstring_copy(&destination->ValidDays, &value.type.Bit_String);
+    if (destination) {
+        bitstring_copy(&destination->ValidDays, &bitstring);
+    }
     apdu_len += len;
-    apdu += len;
     /* Decode From Time */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_TIME)) {
+    len = bacnet_time_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &btime);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    datetime_copy_time(&destination->FromTime, &value.type.Time);
+    if (destination) {
+        datetime_copy_time(&destination->FromTime, &btime);
+    }
     apdu_len += len;
-    apdu += len;
     /* Decode To Time */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_TIME)) {
+    len = bacnet_time_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &btime);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    datetime_copy_time(&destination->ToTime, &value.type.Time);
+    if (destination) {
+        datetime_copy_time(&destination->ToTime, &btime);
+    }
     apdu_len += len;
-    apdu += len;
-    if (decode_is_context_tag(apdu, BACNET_RECIPIENT_TAG_DEVICE)) {
-        /* device [0] BACnetObjectIdentifier */
-        destination->Recipient.tag = BACNET_RECIPIENT_TAG_DEVICE;
-        len = decode_context_object_id(apdu, BACNET_RECIPIENT_TAG_DEVICE,
-            &destination->Recipient.type.device.type,
-            &destination->Recipient.type.device.instance);
-        if (len == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_REJECT;
-        }
-        if (destination->Recipient.type.device.type != OBJECT_DEVICE) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-        apdu += len;
-    } else if (decode_is_opening_tag_number(
-                   apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
-        /* address [1] BACnetAddress */
-        destination->Recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
-        /* opening tag [1] is len 1 */
-        len = 1;
-        apdu_len += len;
-        apdu += len;
-        len = decode_bacnet_address(apdu, &destination->Recipient.type.address);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR)) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-        apdu += len;
-        /* closing tag [1] */
-        if (decode_is_closing_tag_number(apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
-            /* closing tag [1] is len 1 */
-            len = 1;
-            apdu_len += len;
-            apdu += len;
-        } else {
-            return BACNET_STATUS_REJECT;
-        }
-    } else {
+    /* Recipient */
+    len = bacnet_recipient_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &recipient);
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
     }
+    if (destination) {
+        bacnet_recipient_copy(&destination->Recipient, &recipient);
+    }
+    apdu_len += len;
     /* Process Identifier */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+    len = bacnet_unsigned_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &unsigned_value);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    destination->ProcessIdentifier = value.type.Unsigned_Int;
+    if (destination) {
+        destination->ProcessIdentifier = unsigned_value;
+    }
     apdu_len += len;
-    apdu += len;
     /* Issue Confirmed Notifications */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_BOOLEAN)) {
+    len = bacnet_boolean_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &boolean_value);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    destination->ConfirmedNotify = value.type.Boolean;
+    if (destination) {
+        destination->ConfirmedNotify = boolean_value;
+    }
     apdu_len += len;
-    apdu += len;
     /* Transitions */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_BIT_STRING)) {
+    len = bacnet_bitstring_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &bitstring);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    bitstring_copy(&destination->Transitions, &value.type.Bit_String);
+    if (destination) {
+        bitstring_copy(&destination->Transitions, &bitstring);
+    }
     apdu_len += len;
 
     return apdu_len;
 }
 
+/**
+ * @brief Encode the BACnetRecipient complex data
+ *
+ * BACnetRecipient ::= CHOICE {
+ *      device [0] BACnetObjectIdentifier,
+ *      address [1] BACnetAddress
+ * }
+ *
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param recipient  Pointer to the property data to be encoded.
+ *
+ * @return bytes encoded or zero on error.
+ */
+int bacnet_recipient_encode(uint8_t *apdu, const BACNET_RECIPIENT *recipient)
+{
+    int apdu_len = 0, len = 0;
 
-#define LEN_BRANCH(snprintf_expr)   \
-    do {                            \
-        len = snprintf_expr;        \
-        output_len += len;          \
-        if (buf) {                  \
-            if (len > buf_size) {   \
-                return -1;          \
-            } else {                \
-                buf += len;         \
-                buf_size -= len;    \
-            }                       \
-        }                           \
-    } while (0)
+    if (recipient->tag == BACNET_RECIPIENT_TAG_DEVICE) {
+        len = encode_context_object_id(
+            apdu, 0, OBJECT_DEVICE, recipient->type.device.instance);
+        apdu_len += len;
+    } else if (recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) {
+        /* opening tag 1 */
+        len = encode_opening_tag(apdu, 1);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_bacnet_address(apdu, &recipient->type.address);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* closing tag 1 */
+        len = encode_closing_tag(apdu, 1);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a BACnetRecipient complex data type
+ * @param apdu - the APDU buffer
+ * @param tag_number - context tag number
+ * @param recipient  Pointer to the property data to be encoded.
+ * @return length of the APDU buffer, or 0 if not able to encode
+ */
+int bacnet_recipient_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_RECIPIENT *recipient)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (recipient) {
+        len = encode_opening_tag(apdu, tag_number);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacnet_recipient_encode(apdu, recipient);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the BACnetRecipient complex data
+ *
+ * BACnetRecipient ::= CHOICE {
+ *      device [0] BACnetObjectIdentifier,
+ *      address [1] BACnetAddress
+ * }
+ *
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param apdu_size  Count of valid bytes in the buffer.
+ * @param recipient  Pointer to the property data to be decoded, or NULL for
+ * decoding to determine the length.
+ *
+ * @return bytes encoded or #BACNET_STATUS_REJECT on error.
+ */
+int bacnet_recipient_decode(
+    const uint8_t *apdu, int apdu_size, BACNET_RECIPIENT *recipient)
+{
+    int len = 0, apdu_len = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
+    uint32_t instance = 0;
+    BACNET_ADDRESS address;
+
+    if (!apdu) {
+        return BACNET_STATUS_REJECT;
+    }
+    /* device [0] BACnetObjectIdentifier */
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, BACNET_RECIPIENT_TAG_DEVICE,
+        &object_type, &instance);
+    if (len > 0) {
+        if (object_type != OBJECT_DEVICE) {
+            return BACNET_STATUS_REJECT;
+        }
+        if (recipient) {
+            recipient->tag = BACNET_RECIPIENT_TAG_DEVICE;
+            recipient->type.device.type = object_type;
+            recipient->type.device.instance = instance;
+        }
+        apdu_len += len;
+    } else {
+        len = bacnet_address_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, BACNET_RECIPIENT_TAG_ADDRESS,
+            &address);
+        if (len > 0) {
+            if (recipient) {
+                recipient->tag = BACNET_RECIPIENT_TAG_ADDRESS;
+                bacnet_address_copy(&recipient->type.address, &address);
+            }
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_REJECT;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a time stamp and check for opening and closing tags.
+ * @param apdu  Pointer to the APDU buffer.
+ * @param apdu_size - the APDU buffer length
+ * @param tag_number  The tag number that shall
+ *                    hold the time stamp.
+ * @param value  Pointer to the variable that shall
+ *               take the time stamp values.
+ * @return number of bytes decoded, zero if tag mismatch,
+ *  or BACNET_STATUS_ERROR if an error occurs
+ */
+int bacnet_recipient_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_RECIPIENT *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return 0;
+    }
+    apdu_len += len;
+    len = bacnet_recipient_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
 
 /**
  * Convert BACnet_Destination to ASCII for printing
  *
  * Output format:
  *
- * (ValidDays=[1,2,5,6,7];FromTime=0:00:00.0;ToTime=23:59:59.9;Recipient=Device(type=8,instance=15);ProcessIdentifier=0;ConfirmedNotify=false;Transitions=[to-offnormal,to-fault,to-normal])
+ * (
+ *  ValidDays=[1,2,5,6,7];
+ *  FromTime=0:00:00.0;
+ *  ToTime=23:59:59.9;
+ *  Recipient=Device(type=8,instance=15);
+ *  ProcessIdentifier=0;
+ *  ConfirmedNotify=false;
+ *  Transitions=[to-offnormal,to-fault,to-normal]
+ * )
  *
  * - ValidDays ... array of numbers, 1=Mon through 7=Sun
  * - FromTime, ToTime ... HH:MM:SS.s
- * - Recipient ... two variants: Recipient=Device(type=8,instance=15) or Recipient=Address(net=1234,mac=c0:a8:00:0f)
+ * - Recipient ... two variants: Recipient=Device(type=8,instance=15) or
+ * Recipient=Address(net=1234,mac=c0:a8:00:0f)
  *   - type ... bacnet object type enum
  *   - instance ... bacnet object instance
  *   - net ... bacnet network number
  *   - mac ... bacnet MAC address; can be separated by colons or periods.
  * - ProcessIdentifier ... 32bit unsigned int, process ID
  * - ConfirmedNotify ... true or false
- * - Transitions ... array with any of the three items: to-offnormal, to-fault, to-normal
+ * - Transitions ... array with any of the three items: to-offnormal, to-fault,
+ * to-normal
  *
  * @param bacdest - Destination struct to convert to ASCII
  * @param buf - ASCII output buffer
  * @param buf_size - ASCII output buffer capacity
  *
  * @return the number of characters which would be generated for the given
- *  input, excluding the trailing null. negative is returned if the capacity was not sufficient.
+ *  input, excluding the trailing null.
  * @note buf and buf_size may be null and zero to return only the size
  */
-int bacnet_destination_to_ascii(const BACNET_DESTINATION *bacdest, char *buf, size_t buf_size)
+int bacnet_destination_to_ascii(
+    const BACNET_DESTINATION *bacdest, char *buf, size_t buf_size)
 {
     int len = 0;
-    int output_len = 0;
+    int buf_len = 0;
     bool comma;
     int i;
 
-    LEN_BRANCH(snprintf(buf, buf_size, "("));
-
+    len = snprintf(buf, buf_size, "(");
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
     /*
      BACnetDaysOfWeek ::= BIT STRING {
          monday     (0),
@@ -522,68 +636,80 @@ int bacnet_destination_to_ascii(const BACNET_DESTINATION *bacdest, char *buf, si
          sunday     (6)
      }
     */
-
     /* Use numbers 1-7 (ISO 8601) */
-    LEN_BRANCH(snprintf(buf, buf_size, "ValidDays=["));
+    len = snprintf(buf, buf_size, "ValidDays=[");
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
     comma = false;
     for (i = 0; i < 7; i++) {
-        if (bitstring_bit((BACNET_BIT_STRING *) &bacdest->ValidDays, i)) {
+        if (bitstring_bit(&bacdest->ValidDays, i)) {
             if (comma) {
-                LEN_BRANCH(snprintf(buf, buf_size, ","));
+                len = snprintf(buf, buf_size, ",");
+                buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
             }
-            LEN_BRANCH(snprintf(buf, buf_size, "%d", i + 1));
+            len = snprintf(buf, buf_size, "%d", i + 1);
+            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
             comma = true;
         }
     }
-    LEN_BRANCH(snprintf(buf, buf_size, "];"));
-
-    LEN_BRANCH(snprintf(buf, buf_size, "FromTime=%d:%02d:%02d.%02d;",
-        bacdest->FromTime.hour,
-        bacdest->FromTime.min,
-        bacdest->FromTime.sec,
-        bacdest->FromTime.hundredths
-        ));
-
-
-    LEN_BRANCH(snprintf(buf, buf_size, "ToTime=%d:%02d:%02d.%02d;",
-        bacdest->ToTime.hour,
-        bacdest->ToTime.min,
-        bacdest->ToTime.sec,
-        bacdest->ToTime.hundredths
-        ));
-
-    LEN_BRANCH(snprintf(buf, buf_size, "Recipient="));
+    len = snprintf(buf, buf_size, "];");
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = snprintf(
+        buf, buf_size, "FromTime=%d:%02d:%02d.%02d;", bacdest->FromTime.hour,
+        bacdest->FromTime.min, bacdest->FromTime.sec,
+        bacdest->FromTime.hundredths);
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = snprintf(
+        buf, buf_size, "ToTime=%d:%02d:%02d.%02d;", bacdest->ToTime.hour,
+        bacdest->ToTime.min, bacdest->ToTime.sec, bacdest->ToTime.hundredths);
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = snprintf(buf, buf_size, "Recipient=");
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
     if (bacdest->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
-        LEN_BRANCH(snprintf(buf, buf_size, "Device(type=%d,instance=%lu)",
-        bacdest->Recipient.type.device.type,
-        (unsigned long)bacdest->Recipient.type.device.instance));
+        len = snprintf(
+            buf, buf_size, "Device(type=%d,instance=%lu)",
+            bacdest->Recipient.type.device.type,
+            (unsigned long)bacdest->Recipient.type.device.instance);
+        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
     } else {
         /*
           BACnetAddress ::= SEQUENCE {
-              network-number Unsigned16, -- A value of 0 indicates the local network
-              mac-address    OCTET STRING -- A string of length 0 indicates a broadcast
+              network-number Unsigned16, -- A value of 0 indicates the local
+          network mac-address    OCTET STRING -- A string of length 0 indicates
+          a broadcast
           }
         */
-        LEN_BRANCH(snprintf(buf, buf_size, "Address(net=%d,mac=", bacdest->Recipient.type.address.net));
+        len = snprintf(
+            buf, buf_size,
+            "Address(net=%d,mac=", bacdest->Recipient.type.address.net);
+        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
 
-        /* TODO determine if it's IPv4+port or Ethernet mac address and print it nicer - how? Both are 6 bytes long. */
+        /* TODO determine if it's IPv4+port or Ethernet mac address and print it
+         * nicer - how? Both are 6 bytes long. */
 
         for (i = 0; i < bacdest->Recipient.type.address.mac_len; i++) {
             if (i > 0) {
-                LEN_BRANCH(snprintf(buf, buf_size, ":"));
+                len = snprintf(buf, buf_size, ":");
+                buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
             }
-            LEN_BRANCH(snprintf(buf, buf_size, "%02x", bacdest->Recipient.type.address.mac[i]));
+            len = snprintf(
+                buf, buf_size, "%02x", bacdest->Recipient.type.address.mac[i]);
+            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
         }
-        LEN_BRANCH(snprintf(buf, buf_size, ")"));
+        len = snprintf(buf, buf_size, ")");
+        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
     }
-    LEN_BRANCH(snprintf(buf, buf_size, ";"));
+    len = snprintf(buf, buf_size, ";");
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
 
-    LEN_BRANCH(snprintf(buf, buf_size, "ProcessIdentifier=%lu;", 
-        (unsigned long)bacdest->ProcessIdentifier));
+    len = snprintf(
+        buf, buf_size, "ProcessIdentifier=%lu;",
+        (unsigned long)bacdest->ProcessIdentifier);
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
 
-    LEN_BRANCH(snprintf(buf, buf_size, "ConfirmedNotify=%s;",
-        bacdest->ConfirmedNotify ? "true" : "false"
-        ));
+    len = snprintf(
+        buf, buf_size, "ConfirmedNotify=%s;",
+        bacdest->ConfirmedNotify ? "true" : "false");
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
 
     /*
      BACnetEventTransitionBits ::= BIT STRING {
@@ -592,36 +718,45 @@ int bacnet_destination_to_ascii(const BACNET_DESTINATION *bacdest, char *buf, si
          to-normal    (2)
      }
     */
-    LEN_BRANCH(snprintf(buf, buf_size, "Transitions=["));
+    len = snprintf(buf, buf_size, "Transitions=[");
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+
     comma = false;
-    /* TODO remove casting when bitstring_bit() has const added - Github issue #320 */
-    if (bitstring_bit((BACNET_BIT_STRING *) &bacdest->Transitions, TRANSITION_TO_OFFNORMAL)) {
-        LEN_BRANCH(snprintf(buf, buf_size, "to-offnormal"));
+    /* TODO remove casting when bitstring_bit() has const added - Github issue
+     * #320 */
+    if (bitstring_bit(&bacdest->Transitions, TRANSITION_TO_OFFNORMAL)) {
+        len = snprintf(buf, buf_size, "to-offnormal");
+        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
         comma = true;
     }
-    if (bitstring_bit((BACNET_BIT_STRING *) &bacdest->Transitions, TRANSITION_TO_FAULT)) {
+    if (bitstring_bit(&bacdest->Transitions, TRANSITION_TO_FAULT)) {
         if (comma) {
-            LEN_BRANCH(snprintf(buf, buf_size, ","));
+            len = snprintf(buf, buf_size, ",");
+            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
         }
-        LEN_BRANCH(snprintf(buf, buf_size, "to-fault"));
+        len = snprintf(buf, buf_size, "to-fault");
+        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
         comma = true;
     }
-    if (bitstring_bit((BACNET_BIT_STRING *) &bacdest->Transitions, TRANSITION_TO_NORMAL)) {
+    if (bitstring_bit(&bacdest->Transitions, TRANSITION_TO_NORMAL)) {
         if (comma) {
-            LEN_BRANCH(snprintf(buf, buf_size, ","));
+            len = snprintf(buf, buf_size, ",");
+            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
         }
-        LEN_BRANCH(snprintf(buf, buf_size, "to-normal"));
+        len = snprintf(buf, buf_size, "to-normal");
+        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
     }
-    LEN_BRANCH(snprintf(buf, buf_size, "])")); /* end of the outer paren */
+    len = snprintf(buf, buf_size, "])"); /* end of the outer paren */
+    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
 
-    return output_len;
+    return buf_len;
 }
-
 
 /**
  * Parse BACnet_Destination from ASCII string (as entered by user)
  *
- * @param bacdest - Destination struct to pupulate with data from the ASCII string
+ * @param bacdest - Destination struct to populate with data from the ASCII
+ * string
  * @param buf - ASCII string, zero terminated
  * @return true on success
  */
@@ -657,14 +792,9 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
     enum ParseKeyword kw = 0;
     BACNET_TIME *ptime;
     BACNET_MAC_ADDRESS tmpmac;
-    static const char * KW_LOOKUP[] = {
-        "ValidDays",
-        "FromTime",
-        "ToTime",
-        "Recipient",
-        "ProcessIdentifier",
-        "ConfirmedNotify",
-        "Transitions",
+    static const char *KW_LOOKUP[] = {
+        "ValidDays",         "FromTime",        "ToTime",      "Recipient",
+        "ProcessIdentifier", "ConfirmedNotify", "Transitions",
     };
 
     if (bacdest == NULL || buf == NULL) {
@@ -673,7 +803,6 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
 
     bacnet_destination_default_init(bacdest);
 
-
     /* Helper macros to simplify the parser ... */
 
 /* true if the character is whitespace */
@@ -681,48 +810,49 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
 
 /* Discard characters while they match a given test. Goes to parse_end on NUL.
  * ctest is a boolean expression where c is the tested character */
-#define DISCARD_WHILE(ctest) \
-    do { \
-        while(1) {                    \
-            c = buf[pos];             \
-            if (c == 0) {             \
-                goto parse_end;       \
-            }                         \
-            if ((ctest)) {            \
-                pos++;                \
-                continue;             \
-            }                         \
-            break;                    \
-        }                             \
-    } while(0)
+#define DISCARD_WHILE(ctest)    \
+    do {                        \
+        while (1) {             \
+            c = buf[pos];       \
+            if (c == 0) {       \
+                goto parse_end; \
+            }                   \
+            if ((ctest)) {      \
+                pos++;          \
+                continue;       \
+            }                   \
+            break;              \
+        }                       \
+    } while (0)
 
 /* Discard all whitespace. Goes to parse_end on NUL. */
 #define DISCARD_WHITESPACE() DISCARD_WHILE(ISWHITE(c))
 
 /* Must consume a given word; return false otherwise. */
-#define MUST_CONSUME(s)                                          \
-    do {                                                         \
-        _must_consume_tmplen = strlen(s);                        \
-        if (0 == strncmp(&buf[pos], s, _must_consume_tmplen)) {  \
-            pos += _must_consume_tmplen;                         \
-        } else {                                                 \
-            return false;                                        \
-        }                                                        \
-    } while(0)
+#define MUST_CONSUME(s)                                         \
+    do {                                                        \
+        _must_consume_tmplen = strlen(s);                       \
+        if (0 == strncmp(&buf[pos], s, _must_consume_tmplen)) { \
+            pos += _must_consume_tmplen;                        \
+        } else {                                                \
+            return false;                                       \
+        }                                                       \
+    } while (0)
 
-/* Collect a decimal number and store the result into tmp; stop on a non-digit. Clobbers "c" and "tmp". TODO replace with strtol? */
-#define COLLECT_NUMBER_TMP(maxdigits) \
-    do {                                        \
-        tmp = 0;                                \
-        for (_number_i = 0; _number_i < (maxdigits); _number_i++) {  \
-            c = buf[pos];                       \
-            if (c >= '0' && c <= '9') {         \
-                tmp = (tmp * 10) + (c - '0');   \
-                pos++;                          \
-            } else {                            \
-                break;                          \
-            }                                   \
-        }                                       \
+/* Collect a decimal number and store the result into tmp; stop on a non-digit.
+ * Clobbers "c" and "tmp". TODO replace with strtol? */
+#define COLLECT_NUMBER_TMP(maxdigits)                               \
+    do {                                                            \
+        tmp = 0;                                                    \
+        for (_number_i = 0; _number_i < (maxdigits); _number_i++) { \
+            c = buf[pos];                                           \
+            if (c >= '0' && c <= '9') {                             \
+                tmp = (tmp * 10) + (c - '0');                       \
+                pos++;                                              \
+            } else {                                                \
+                break;                                              \
+            }                                                       \
+        }                                                           \
     } while (0)
 
     /* Go through all key=value pieces in the string */
@@ -762,7 +892,9 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
                 }
                 break;
 
-            case PH_VALUE_SPACER: /* Equals between key and value, also consuming opening square bracket if present. */
+            case PH_VALUE_SPACER: /* Equals between key and value, also
+                                     consuming opening square bracket if
+                                     present. */
                 DISCARD_WHITESPACE();
                 MUST_CONSUME("=");
                 DISCARD_WHILE(c == '[' || ISWHITE(c));
@@ -791,7 +923,8 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
                             }
                             if (j == 0) {
                                 if (c >= '1' && c <= '7') {
-                                    bitstring_set_bit(&bacdest->ValidDays, c - '1', true);
+                                    bitstring_set_bit(
+                                        &bacdest->ValidDays, c - '1', true);
                                     pos++;
                                     j = 1;
                                 } else {
@@ -814,7 +947,8 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
                             ptime = &bacdest->ToTime;
                         }
 
-                        /* TODO implemented in bacapp_parse_application_data - extract & reuse? */
+                        /* TODO implemented in bacapp_parse_application_data -
+                         * extract & reuse? */
 
                         /* Hour */
                         COLLECT_NUMBER_TMP(2);
@@ -886,17 +1020,20 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
                             if (j == 0) {
                                 if (0 ==
                                     strncmp(&buf[pos], "to-offnormal", 12)) {
-                                    bitstring_set_bit(&bacdest->Transitions,
+                                    bitstring_set_bit(
+                                        &bacdest->Transitions,
                                         TRANSITION_TO_OFFNORMAL, true);
                                     pos += 12;
-                                } else if (0 ==
-                                    strncmp(&buf[pos], "to-fault", 8)) {
-                                    bitstring_set_bit(&bacdest->Transitions,
+                                } else if (
+                                    0 == strncmp(&buf[pos], "to-fault", 8)) {
+                                    bitstring_set_bit(
+                                        &bacdest->Transitions,
                                         TRANSITION_TO_FAULT, true);
                                     pos += 8;
-                                } else if (0 ==
-                                    strncmp(&buf[pos], "to-normal", 9)) {
-                                    bitstring_set_bit(&bacdest->Transitions,
+                                } else if (
+                                    0 == strncmp(&buf[pos], "to-normal", 9)) {
+                                    bitstring_set_bit(
+                                        &bacdest->Transitions,
                                         TRANSITION_TO_NORMAL, true);
                                     pos += 9;
                                 } else {
@@ -913,7 +1050,8 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
                     case KW_Recipient:
                         if (0 == strncmp(&buf[pos], "Device", 6)) {
                             pos += 6;
-                            bacdest->Recipient.tag = BACNET_RECIPIENT_TAG_DEVICE;
+                            bacdest->Recipient.tag =
+                                BACNET_RECIPIENT_TAG_DEVICE;
 
                             DISCARD_WHITESPACE();
                             MUST_CONSUME("(");
@@ -942,7 +1080,8 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
 
                         } else if (0 == strncmp(&buf[pos], "Address", 7)) {
                             pos += 7;
-                            bacdest->Recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+                            bacdest->Recipient.tag =
+                                BACNET_RECIPIENT_TAG_ADDRESS;
 
                             DISCARD_WHITESPACE();
                             MUST_CONSUME("(");
@@ -963,13 +1102,18 @@ bool bacnet_destination_from_ascii(BACNET_DESTINATION *bacdest, const char *buf)
                             MUST_CONSUME("=");
                             DISCARD_WHITESPACE();
 
-                            if (!bacnet_address_mac_from_ascii(&tmpmac, &buf[pos])) {
+                            if (!bacnet_address_mac_from_ascii(
+                                    &tmpmac, &buf[pos])) {
                                 return false;
                             }
-                            bacdest->Recipient.type.address.mac_len = tmpmac.len;
-                            memcpy(&bacdest->Recipient.type.address.mac, &tmpmac.adr, MAX_MAC_LEN);
+                            bacdest->Recipient.type.address.mac_len =
+                                tmpmac.len;
+                            memcpy(
+                                &bacdest->Recipient.type.address.mac,
+                                &tmpmac.adr, MAX_MAC_LEN);
 
-                            /* address_mac_from_ascii doesn't return number of digits
+                            /* address_mac_from_ascii doesn't return number of
+                             * digits
                              * - we have to discard until ) */
 
                             DISCARD_WHILE(c != ')');

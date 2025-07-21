@@ -1,32 +1,13 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Methods to send various BACnet Router Network Layer Messages.
+ * @author Tom Brennan <tbrennan3@users.sourceforge.net>
+ * @date 2010
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacaddr.h"
@@ -41,15 +22,12 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
 
-/** @file s_router.c  Methods to send various BACnet Router Network Layer
- * Messages. */
-
 /** Function to encode and send any supported Network Layer Message.
  * The payload for the message is encoded from information in the iArgs[] array.
  * The contents of iArgs are are, per message type:
  * - NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK: Single int for DNET requested
  * - NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK: Array of DNET(s) to send,
- * 		terminated with -1
+ *      terminated with -1
  * - NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK: array of 2 ints,
  *      first is reason, second is DNET of interest
  * - NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK: same as I-Am-Router msg
@@ -65,14 +43,15 @@
  *                   the type of message.
  * @return Number of bytes sent, or <=0 if no message was sent.
  */
-int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+int Send_Network_Layer_Message(
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     BACNET_ADDRESS *dst,
-    int *iArgs)
+    const int *iArgs)
 {
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
-    int *pVal = iArgs; /* Start with first value */
+    const int *pVal = iArgs; /* Start with first value */
     bool data_expecting_reply = false;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS bcastDest;
@@ -90,8 +69,9 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     if (network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE) {
         data_expecting_reply = true; /* DER in this one case */
     }
-    npdu_encode_npdu_network(&npdu_data, network_message_type,
-        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_network(
+        &npdu_data, network_message_type, data_expecting_reply,
+        MESSAGE_PRIORITY_NORMAL);
 
     /* We don't need src information, since a message can't originate from
      * our downstream BACnet network.
@@ -173,30 +153,28 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
             break;
 
         default:
-            debug_printf("Not sent: %s message unsupported \n",
+            debug_printf(
+                "Not sent: %s message unsupported \n",
                 bactext_network_layer_msg_name(network_message_type));
             return 0;
     }
 
     if (dst != NULL) {
-        debug_printf("Sending %s message to BACnet network %u \n",
+        debug_printf(
+            "Sending %s message to BACnet network %u \n",
             bactext_network_layer_msg_name(network_message_type), dst->net);
     } else {
-        debug_printf("Sending %s message to local BACnet network \n",
+        debug_printf(
+            "Sending %s message to local BACnet network \n",
             bactext_network_layer_msg_name(network_message_type));
     }
-
     /* Now send the message */
     bytes_sent = datalink_send_pdu(
         dst, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
     if (bytes_sent <= 0) {
-        int wasErrno = errno; /* preserve the errno */
-        debug_printf("Failed to send %s message (%s)!\n",
-            bactext_network_layer_msg_name(network_message_type),
-            strerror(wasErrno));
+        debug_perror("Failed to send message");
     }
-#endif
+
     return bytes_sent;
 }
 
@@ -230,7 +208,7 @@ void Send_I_Am_Router_To_Network(const int DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
     Send_Network_Layer_Message(
-        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, NULL, (int *)DNET_list);
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, NULL, DNET_list);
 }
 
 /** Finds a specific router, or all reachable BACnet networks.
@@ -251,7 +229,7 @@ void Send_Reject_Message_To_Network(
     iArgs[1] = dnet;
     Send_Network_Layer_Message(
         NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, dst, iArgs);
-    debug_printf("  Reject Reason=%d, DNET=%u\n", reject_reason, dnet);
+    debug_printf("Reject Reason=%d, DNET=%u\n", reject_reason, dnet);
 }
 
 /** Send an Initialize Routing Table message, built from an optional DNET[]
@@ -273,8 +251,7 @@ void Send_Reject_Message_To_Network(
 void Send_Initialize_Routing_Table(BACNET_ADDRESS *dst, const int DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
-    Send_Network_Layer_Message(
-        NETWORK_MESSAGE_INIT_RT_TABLE, dst, (int *)DNET_list);
+    Send_Network_Layer_Message(NETWORK_MESSAGE_INIT_RT_TABLE, dst, DNET_list);
 }
 
 /** Sends our Routing Table, built from our DNET[] array, as an ACK.
@@ -298,7 +275,7 @@ void Send_Initialize_Routing_Table_Ack(
     BACNET_ADDRESS *dst, const int DNET_list[])
 {
     Send_Network_Layer_Message(
-        NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst, (int *)DNET_list);
+        NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst, DNET_list);
 }
 
 /**

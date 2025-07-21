@@ -1,51 +1,34 @@
-/**************************************************************************
- *
- * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief AtomicWriteFile-Request service handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacstr.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/awf.h"
 /* basic objects, services, TSM, and datalink */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
 #endif
-
-/** @file h_awf.c  Handles Atomic Write File request. */
 
 /*
 from BACnet SSPC-135-2004
@@ -77,7 +60,8 @@ standard.
 */
 
 #if defined(BACFILE)
-void handler_atomic_write_file(uint8_t *service_request,
+void handler_atomic_write_file(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -92,31 +76,32 @@ void handler_atomic_write_file(uint8_t *service_request,
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
-#if PRINT_ENABLED
-    fprintf(stderr, "Received AtomicWriteFile Request!\n");
-#endif
+    debug_print("Received AtomicWriteFile Request!\n");
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
-#if PRINT_ENABLED
-        fprintf(stderr, "Segmented Message. Sending Abort!\n");
-#endif
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_print("AWF: Missing Required Parameter. Sending Reject!\n");
+        goto AWF_ABORT;
+    } else if (service_data->segmented_message) {
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        debug_print("AWF:Segmented Message. Sending Abort!\n");
         goto AWF_ABORT;
     }
     len = awf_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
     if (len < 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "Bad Encoding. Sending Abort!\n");
-#endif
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
+        debug_print("AWF: Bad Encoding. Sending Abort!\n");
         goto AWF_ABORT;
     }
     if (data.object_type == OBJECT_FILE) {
@@ -124,13 +109,13 @@ void handler_atomic_write_file(uint8_t *service_request,
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (bacfile_write_stream_data(&data)) {
-#if PRINT_ENABLED
-                fprintf(stderr, "AWF: Stream offset %d, %d bytes\n",
+                debug_fprintf(
+                    stderr, "AWF: Stream offset %d, %d bytes\n",
                     data.type.stream.fileStartPosition,
                     (int)octetstring_length(&data.fileData[0]));
-#endif
-                len = awf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
+                len = awf_ack_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
@@ -138,13 +123,13 @@ void handler_atomic_write_file(uint8_t *service_request,
             }
         } else if (data.access == FILE_RECORD_ACCESS) {
             if (bacfile_write_record_data(&data)) {
-#if PRINT_ENABLED
-                fprintf(stderr, "AWF: StartRecord %d, RecordCount %u\n",
+                debug_fprintf(
+                    stderr, "AWF: StartRecord %d, RecordCount %u\n",
                     data.type.record.fileStartRecord,
                     data.type.record.returnedRecordCount);
-#endif
-                len = awf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
+                len = awf_ack_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
@@ -154,9 +139,7 @@ void handler_atomic_write_file(uint8_t *service_request,
             error = true;
             error_class = ERROR_CLASS_SERVICES;
             error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
-#if PRINT_ENABLED
-            fprintf(stderr, "Record Access Requested. Sending Error!\n");
-#endif
+            debug_print("AWF: Record Access Requested. Sending Error!\n");
         }
     } else {
         error = true;
@@ -164,19 +147,17 @@ void handler_atomic_write_file(uint8_t *service_request,
         error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
     }
     if (error) {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-            error_class, error_code);
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, error_class, error_code);
     }
 AWF_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
     if (bytes_sent <= 0) {
-        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("AWF: Failed to send PDU\n");
     }
-#endif
 
     return;
 }

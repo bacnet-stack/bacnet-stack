@@ -26,9 +26,7 @@ static void testAccessZone(void)
 #endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
+    int len = 0, test_len = 0;
     uint32_t decoded_instance = 0;
     BACNET_OBJECT_TYPE decoded_type = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
@@ -42,9 +40,9 @@ static void testAccessZone(void)
     rpdata.array_index = BACNET_ARRAY_ALL;
     len = Access_Zone_Read_Property(&rpdata);
     zassert_not_equal(len, 0, NULL);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    zassert_equal(tag_number, BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
-    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    test_len = bacnet_object_id_application_decode(
+        apdu, len, &decoded_type, &decoded_instance);
+    zassert_not_equal(test_len, BACNET_STATUS_ERROR, NULL);
     zassert_equal(decoded_type, rpdata.object_type, NULL);
     zassert_equal(decoded_instance, rpdata.object_instance, NULL);
 
@@ -54,15 +52,12 @@ static void testAccessZone(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(access_zone_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(access_zone_tests,
-     ztest_unit_test(testAccessZone)
-     );
+    ztest_test_suite(access_zone_tests, ztest_unit_test(testAccessZone));
 
     ztest_run_test_suite(access_zone_tests);
 }

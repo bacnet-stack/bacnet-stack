@@ -10,7 +10,7 @@
 
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/crc.h>
-#include <bacnet/bytes.h>
+#include <bacnet/basic/sys/bytes.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -135,18 +135,15 @@ static void testCRC16CreateTable(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(crc_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(crc_tests,
-     ztest_unit_test(testCRC8),
-     ztest_unit_test(testCRC16),
-     ztest_unit_test(testCRC8CreateTable),
-     ztest_unit_test(testCRC16CreateTable)
-     );
+    ztest_test_suite(
+        crc_tests, ztest_unit_test(testCRC8), ztest_unit_test(testCRC16),
+        ztest_unit_test(testCRC8CreateTable),
+        ztest_unit_test(testCRC16CreateTable));
 
     ztest_run_test_suite(crc_tests);
 }

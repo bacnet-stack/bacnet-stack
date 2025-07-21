@@ -1,43 +1,26 @@
-/*************************************************************************
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line application for a BACnet ConfirmedPrivateTransfer
+ * service.  This application is a test program for the BACnet stack.
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <time.h> /* for time */
 #include <ctype.h> /* for tupper */
 #if defined(WIN32) || defined(__BORLANDC__)
 #include <conio.h>
 #endif
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
@@ -52,11 +35,6 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
-
-#if defined(__BORLANDC__)
-#define _kbhit kbhit
-#define _stricmp stricmp
-#endif
 
 #define MY_MAX_STR 32
 #define MY_MAX_BLOCK 8
@@ -85,7 +63,8 @@ static int Target_Mode = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -93,14 +72,15 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
-    printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name((int)error_class),
+    printf(
+        "BACnet Error: %s: %s\r\n", bactext_error_class_name((int)error_class),
         bactext_error_code_name((int)error_code));
     /*    Error_Detected = true; */
 }
 
 /* complex error reply function */
-static void MyPrivateTransferErrorHandler(BACNET_ADDRESS *src,
+static void MyPrivateTransferErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
     uint8_t *service_request,
@@ -125,13 +105,14 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
-    printf("BACnet Reject: %s\r\n",
+    printf(
+        "BACnet Reject: %s\r\n",
         bactext_reject_reason_name((int)reject_reason));
     Error_Detected = true;
 }
@@ -201,8 +182,9 @@ int main(int argc, char *argv[])
     if (((argc != 2) && (argc != 3)) ||
         ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
         printf("%s\n", argv[0]);
-        printf("Usage: %s server local-device-instance\r\n       or\r\n"
-               "       %s remote-device-instance\r\n",
+        printf(
+            "Usage: %s server local-device-instance\r\n       or\r\n"
+            "       %s remote-device-instance\r\n",
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf(
@@ -228,7 +210,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     /* decode the command line parameters */
-    if (_stricmp(argv[1], "server") == 0) {
+    if (bacnet_stricmp(argv[1], "server") == 0) {
         Target_Mode = 1;
     } else {
         Target_Mode = 0;
@@ -237,7 +219,8 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1 + Target_Mode], NULL, 0);
 
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -268,7 +251,6 @@ int main(int argc, char *argv[])
 
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
             /* process */
             if (pdu_len) {
                 npdu_handler(&src, &Rx_Buf[0], pdu_len);
@@ -279,8 +261,8 @@ int main(int argc, char *argv[])
                 last_seconds = current_seconds;
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
+                datalink_maintenance_timer(current_seconds - last_seconds);
             }
-
             if (_kbhit()) {
                 iKey = toupper(_getch());
                 if (iKey == 'Q') {
@@ -313,6 +295,7 @@ int main(int argc, char *argv[])
             if (current_seconds != last_seconds) {
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
+                datalink_maintenance_timer(current_seconds - last_seconds);
             }
             if (Error_Detected) {
                 break;
@@ -366,8 +349,9 @@ int main(int argc, char *argv[])
                                 case 3:
                                 case 5:
                                 case 7:
-                                    printf("Requesting block %d with invalid "
-                                           "Vendor ID\n",
+                                    printf(
+                                        "Requesting block %d with invalid "
+                                        "Vendor ID\n",
                                         iCount);
                                     invoke_id = Send_Private_Transfer_Request(
                                         Target_Device_Object_Instance,

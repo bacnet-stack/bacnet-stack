@@ -1,0 +1,92 @@
+name: BACNet/SC linux tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  job_bsc_tests_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout BACnet Stack
+        uses: actions/checkout@v4
+      - name: Checkout libwebsockets
+        uses: actions/checkout@v4
+        with:
+          repository: warmcat/libwebsockets
+          ref: v4.3-stable
+          path: libwebsockets
+      - name: Create Build Environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qq libconfig-dev
+          sudo apt-get install -qq libcap-dev
+          sudo apt-get install -qq libssl-dev
+          sudo apt-get install -qq libuv1-dev
+          bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+          sudo bash -c 'cd libwebsockets;cd build;make install'
+      - name: Build and run bsc_event test
+        run: |
+          pwd
+          cd ./test/ports/linux/bsc_event
+          mkdir build
+          cd build
+          cmake ..
+          make
+          ./test_bsc_event
+      - name: Build and run bvlc-sc test
+        run: |
+          pwd
+          cd ./test/bacnet/datalink/bvlc-sc
+          mkdir build
+          cd build
+          cmake ..
+          make
+          ./test_bvlc-sc
+      - name: Build and run websockets test
+        run: |
+          pwd
+          cd ./test/bacnet/datalink/websockets
+          mkdir build
+          cd build
+          cmake ..
+          make
+          ./test_websockets
+      - name: Build and run bsc-socket test
+        run: |
+          pwd
+          cd ./test/bacnet/datalink/bsc-socket
+          mkdir build
+          cd build
+          cmake ..
+          make
+          ./test_bsc-socket
+      - name: Build and run hub-sc test
+        run: |
+          pwd
+          cd ./test/bacnet/datalink/hub-sc
+          mkdir build
+          cd build
+          cmake ..
+          make
+          ./test_hub-sc
+      - name: Build and run bsc-node test
+        run: |
+          cd ./test/bacnet/datalink/bsc-node
+          mkdir build
+          cd build
+          cmake ..
+          make
+          ./test_bsc-node
+      - name: Build and run bsc-datalink test
+        run: |
+          cd ./test/bacnet/datalink/bsc-datalink
+          mkdir build
+          cd build
+          cmake ..
+          make
+          ./test_bsc-datalink

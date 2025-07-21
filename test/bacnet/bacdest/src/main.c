@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacdest.h>
 
 /**
@@ -22,9 +22,8 @@
 /**
  * @brief Test
  */
-static void testBACnetRecipientData(
-    BACNET_RECIPIENT *data1,
-    BACNET_RECIPIENT *data2)
+static void
+testBACnetRecipientData(BACNET_RECIPIENT *data1, BACNET_RECIPIENT *data2)
 {
     unsigned i = 0;
 
@@ -34,32 +33,30 @@ static void testBACnetRecipientData(
             zassert_equal(
                 data1->type.device.type, data2->type.device.type, NULL);
             zassert_equal(
-                data1->type.device.instance,
-                    data2->type.device.instance, NULL);
+                data1->type.device.instance, data2->type.device.instance, NULL);
         } else if (data1->tag == BACNET_RECIPIENT_TAG_ADDRESS) {
             zassert_equal(
                 data1->type.address.net, data2->type.address.net, NULL);
             if (data1->type.address.net == BACNET_BROADCAST_NETWORK) {
                 zassert_equal(
-                    data1->type.address.mac_len,
-                        data2->type.address.mac_len, NULL);
+                    data1->type.address.mac_len, data2->type.address.mac_len,
+                    NULL);
             } else if (data1->type.address.net) {
                 zassert_equal(
-                    data1->type.address.len,
-                        data2->type.address.len, NULL);
+                    data1->type.address.len, data2->type.address.len, NULL);
                 for (i = 0; i < data1->type.address.len; i++) {
                     zassert_equal(
-                        data1->type.address.adr[i],
-                            data2->type.address.adr[i], NULL);
+                        data1->type.address.adr[i], data2->type.address.adr[i],
+                        NULL);
                 }
             } else {
                 zassert_equal(
-                    data1->type.address.mac_len,
-                        data2->type.address.mac_len, NULL);
+                    data1->type.address.mac_len, data2->type.address.mac_len,
+                    NULL);
                 for (i = 0; i < data1->type.address.mac_len; i++) {
                     zassert_equal(
-                        data1->type.address.mac[i],
-                            data2->type.address.mac[i], NULL);
+                        data1->type.address.mac[i], data2->type.address.mac[i],
+                        NULL);
                 }
             }
         } else {
@@ -76,40 +73,46 @@ static void testBACnetDestination(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_DESTINATION destination = { 0 }, test_destination = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+    int apdu_len = 0, null_len = 0, test_len = 0;
 
     destination.Recipient.tag = BACNET_RECIPIENT_TAG_DEVICE;
+    destination.Recipient.type.device.type = OBJECT_DEVICE;
+    destination.Recipient.type.device.instance = 1234;
     null_len = bacnet_destination_encode(NULL, &destination);
     apdu_len = bacnet_destination_encode(apdu, &destination);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = bacnet_destination_decode(apdu, apdu_len,
-        &test_destination);
+    test_len = bacnet_destination_decode(apdu, apdu_len, &test_destination);
     zassert_equal(apdu_len, test_len, NULL);
+    testBACnetRecipientData(
+        &destination.Recipient, &test_destination.Recipient);
 
     destination.Recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+    destination.Recipient.type.address.net = 1234;
+    destination.Recipient.type.address.len = 6;
+    destination.Recipient.type.address.adr[0] = 1;
+    destination.Recipient.type.address.adr[1] = 2;
+    destination.Recipient.type.address.adr[2] = 3;
+    destination.Recipient.type.address.adr[3] = 4;
+    destination.Recipient.type.address.adr[4] = 5;
+    destination.Recipient.type.address.adr[5] = 6;
     null_len = bacnet_destination_encode(NULL, &destination);
     apdu_len = bacnet_destination_encode(apdu, &destination);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = bacnet_destination_decode(apdu, apdu_len,
-        &test_destination);
+    test_len = bacnet_destination_decode(apdu, apdu_len, &test_destination);
     zassert_equal(test_len, apdu_len, NULL);
 
     null_len = bacnet_destination_encode(NULL, &destination);
     apdu_len = bacnet_destination_encode(apdu, &destination);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = bacnet_destination_decode(apdu, apdu_len,
-        &test_destination);
+    test_len = bacnet_destination_decode(apdu, apdu_len, &test_destination);
+    zassert_equal(test_len, apdu_len, NULL);
+    test_len = bacnet_destination_decode(apdu, apdu_len, NULL);
     zassert_equal(test_len, apdu_len, NULL);
 
     /* decoding, some negative tests */
-    test_len = bacnet_destination_decode(NULL, apdu_len,
-        &test_destination);
+    test_len = bacnet_destination_decode(NULL, apdu_len, &test_destination);
     zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
-    test_len = bacnet_destination_decode(apdu, 0,
-        &test_destination);
-    zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
-    test_len = bacnet_destination_decode(apdu, apdu_len,
-        NULL);
+    test_len = bacnet_destination_decode(apdu, 0, &test_destination);
     zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
 }
 /**
@@ -117,8 +120,8 @@ static void testBACnetDestination(void)
  */
 
 /**
-* Unit Test for ASCII conversion
-*/
+ * Unit Test for ASCII conversion
+ */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacnet_destination_tests, test_BACnetDestination_ASCII)
 #else
@@ -126,15 +129,15 @@ static void test_BACnetDestination_ASCII(void)
 #endif
 {
     BACNET_DESTINATION destination = { 0 }, test_destination = { 0 };
-    int len = 0, test_len = 0;
+    int len = 0, test_len = 0, null_len = 0;
     const char *ascii = "("
-        "ValidDays=[1,2,3,4,5,6,7];"
-        "FromTime=0:00:00.0;ToTime=23:59:59.99;"
-        "Recipient=Device(type=8,instance=4194303);"
-        "ProcessIdentifier=0;"
-        "ConfirmedNotify=false;"
-        "Transitions=[]"
-        ")";
+                        "ValidDays=[1,2,3,4,5,6,7];"
+                        "FromTime=0:00:00.0;ToTime=23:59:59.99;"
+                        "Recipient=Device(type=8,instance=4194303);"
+                        "ProcessIdentifier=0;"
+                        "ConfirmedNotify=false;"
+                        "Transitions=[]"
+                        ")";
     bool status = false;
     char *test_ascii = NULL;
 
@@ -144,17 +147,21 @@ static void test_BACnetDestination_ASCII(void)
     status = bacnet_destination_same(&destination, &test_destination);
     zassert_true(status, NULL);
     /* get the length */
-    len = bacnet_destination_to_ascii(&test_destination, NULL, 0);
-    if (len > 0) {
-        test_ascii = calloc(len, 1);
+    null_len = bacnet_destination_to_ascii(&test_destination, NULL, 0);
+    if (null_len > 0) {
+        test_ascii = calloc(null_len, 1);
         if (test_ascii) {
             test_len = bacnet_destination_to_ascii(
-                &test_destination, test_ascii, len);
-            zassert_equal(len, test_len, NULL);
+                &test_destination, test_ascii, null_len);
+            zassert_equal(null_len, test_len, NULL);
+            while (--test_len) {
+                len = bacnet_destination_to_ascii(
+                    &test_destination, test_ascii, test_len);
+                zassert_equal(len, null_len, NULL);
+            }
             free(test_ascii);
         }
     }
-
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -162,10 +169,9 @@ ZTEST_SUITE(bacnet_destination_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacnet_destination_tests,
-     ztest_unit_test(testBACnetDestination),
-     ztest_unit_test(test_BACnetDestination_ASCII)
-     );
+    ztest_test_suite(
+        bacnet_destination_tests, ztest_unit_test(testBACnetDestination),
+        ztest_unit_test(test_BACnetDestination_ASCII));
 
     ztest_run_test_suite(bacnet_destination_tests);
 }

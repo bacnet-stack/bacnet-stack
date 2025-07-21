@@ -1,30 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief  Send a ConfirmedEventNotification Request.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 #include "bacnet/event.h"
 #include "bacnet/dcc.h"
@@ -33,9 +15,8 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_cevent.c  Send a ConfirmedEventNotification Request. */
 
 /** Sends an Confirmed Alarm/Event Notification.
  * @ingroup EVNOTFCN
@@ -47,16 +28,15 @@
  * @return invoke id of outgoing message, or 0 if communication is disabled,
  *         or no tsm slot is available.
  */
-uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
+uint8_t Send_CEvent_Notify_Address(
+    uint8_t *pdu,
     uint16_t pdu_size,
-    BACNET_EVENT_NOTIFICATION_DATA *data,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
     BACNET_ADDRESS *dest)
 {
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
     uint8_t invoke_id = 0;
@@ -85,25 +65,18 @@ uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
         if ((uint16_t)pdu_len < pdu_size) {
             tsm_set_confirmed_unsegmented_transaction(
                 invoke_id, dest, &npdu_data, pdu, (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
-#if PRINT_ENABLED
+            bytes_sent = datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
             if (bytes_sent <= 0) {
-                fprintf(stderr,
-                    "Failed to Send ConfirmedEventNotification Request (%s)!\n",
-                    strerror(errno));
+                debug_perror(
+                    "Failed to Send ConfirmedEventNotification Request");
             }
-#endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(stderr,
+            debug_fprintf(
+                stderr,
                 "Failed to Send ConfirmedEventNotification Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 
@@ -119,7 +92,7 @@ uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
  *         or no tsm slot is available.
  */
 uint8_t Send_CEvent_Notify(
-    uint32_t device_id, BACNET_EVENT_NOTIFICATION_DATA *data)
+    uint32_t device_id, const BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     BACNET_ADDRESS dest = { 0 };
     unsigned max_apdu = 0;

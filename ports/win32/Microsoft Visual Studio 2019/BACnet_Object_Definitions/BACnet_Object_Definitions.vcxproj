@@ -178,10 +178,12 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ai.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ao.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\av.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\auditlog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bacfile.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bi.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bo.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\calendar.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\channel.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\command.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\csv.c" />
@@ -196,13 +198,17 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\nc.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\osv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\piv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\program.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ai.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ao.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\av.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\auditlog.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bacfile.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bi.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bo.h" />

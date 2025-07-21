@@ -1,51 +1,14 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2004
  * @brief  Generic ring buffer library for deeply embedded system.
- *
- * @section LICENSE
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- * The Free Software Foundation, Inc.
- * 59 Temple Place - Suite 330
- * Boston, MA  02111-1307
- * USA.
- *
- * As a special exception, if other files instantiate templates or
- * use macros or inline functions from this file, or you compile
- * this file and link it with other works to produce a work based
- * on this file, this file does not by itself cause the resulting
- * work to be covered by the GNU General Public License. However
- * the source code for this file must still be made available in
- * accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work
- * based on this file might be covered by the GNU General Public
- * License.
- *
- * @section DESCRIPTION
- *
- * Generic ring buffer library for deeply embedded system.
- * It uses a data store whose size is a power of 2 (8, 16, 32, 64, ...)
- * and doesn't waste any data bytes.  It has very low overhead, and
- * utilizes modulo for indexing the data in the data store.
- * It uses separate variables for consumer and producer so it can
- * be used in multithreaded environment.
- *
- * See the unit tests for usage examples.
- *
+ * @details Generic ring buffer library that uses a data store whose size
+ * is a power of 2 (8, 16, 32, 64, ...) and doesn't waste any data bytes.
+ * It has very low overhead, and utilizes modulo for indexing the data
+ * in the data store. The ring buffer uses separate variables for
+ * consumer and producer so it can be used in multithreaded environment.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stddef.h>
 #include <stdbool.h>
@@ -187,7 +150,8 @@ volatile void *Ringbuf_Peek(RING_BUFFER const *b)
  * @param  data_element - find the next element from this one
  * @return pointer to the data, or NULL if nothing in the list
  */
-volatile void *Ringbuf_Peek_Next(RING_BUFFER const *b, uint8_t *data_element)
+volatile void *
+Ringbuf_Peek_Next(RING_BUFFER const *b, const uint8_t *data_element)
 {
     unsigned index; /* list index */
     volatile uint8_t *this_element;
@@ -248,7 +212,7 @@ bool Ringbuf_Pop(RING_BUFFER *b, uint8_t *data_element)
  * @return true if data was copied, false if list is empty
  */
 bool Ringbuf_Pop_Element(
-    RING_BUFFER *b, uint8_t *this_element, uint8_t *data_element)
+    RING_BUFFER *b, const uint8_t *this_element, uint8_t *data_element)
 {
     bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -299,7 +263,7 @@ bool Ringbuf_Pop_Element(
  * @param  data_element - one element that is copied to the ring buffer
  * @return true on successful add, false if not added
  */
-bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
+bool Ringbuf_Put(RING_BUFFER *b, const uint8_t *data_element)
 {
     bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -333,7 +297,7 @@ bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
  * @param  data_element - one element to copy to the front of the ring
  * @return true on successful add, false if not added
  */
-bool Ringbuf_Put_Front(RING_BUFFER *b, uint8_t *data_element)
+bool Ringbuf_Put_Front(RING_BUFFER *b, const uint8_t *data_element)
 {
     bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -388,7 +352,7 @@ volatile void *Ringbuf_Data_Peek(RING_BUFFER *b)
  * @return true if the buffer has space and the data element points to the
  *              same memory previously peeked.
  */
-bool Ringbuf_Data_Put(RING_BUFFER *b, volatile uint8_t *data_element)
+bool Ringbuf_Data_Put(RING_BUFFER *b, const volatile uint8_t *data_element)
 {
     bool status = false;
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -408,6 +372,23 @@ bool Ringbuf_Data_Put(RING_BUFFER *b, volatile uint8_t *data_element)
     }
 
     return status;
+}
+
+/**
+ * Gets the data size of each element in the ring buffer
+ *
+ * @param  b - pointer to RING_BUFFER structure
+ * @return size of each element in the ring buffer
+ */
+unsigned Ringbuf_Data_Size(RING_BUFFER const *b)
+{
+    unsigned size = 0;
+
+    if (b) {
+        size = b->element_size;
+    }
+
+    return size;
 }
 
 /**
@@ -431,10 +412,11 @@ static bool isPowerOfTwo(unsigned int x)
  * @param  buffer - pointer to a data buffer that is used to store the ring data
  * @param  element_size - size of one element in the data block
  * @param  element_count - number elements in the data block
- *
  * @return  true if ring buffer was initialized
+ * @deprecated  Use Ringbuf_Initialize() instead
  */
-bool Ringbuf_Init(RING_BUFFER *b,
+bool Ringbuf_Init(
+    RING_BUFFER *b,
     volatile uint8_t *buffer,
     unsigned element_size,
     unsigned element_count)
@@ -453,4 +435,30 @@ bool Ringbuf_Init(RING_BUFFER *b,
     }
 
     return status;
+}
+
+/**
+ * Configures the ring buffer data buffer.  Note that the element_count
+ * parameter must be a power of two.
+ *
+ * @param  b - pointer to RING_BUFFER structure
+ * @param  buffer - pointer to a data buffer that is used to store the ring data
+ * @param  buffer_size - size of the data buffer
+ * @param  element_size - size of one element in the data block
+ * @param  element_count - number elements in the data block
+ *
+ * @return  true if ring buffer was initialized
+ */
+bool Ringbuf_Initialize(
+    RING_BUFFER *b,
+    volatile uint8_t *buffer,
+    unsigned buffer_size,
+    unsigned element_size,
+    unsigned element_count)
+{
+    if ((element_size * element_count) <= buffer_size) {
+        return Ringbuf_Init(b, buffer, element_size, element_count);
+    }
+
+    return false;
 }

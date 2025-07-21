@@ -1,36 +1,19 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic AlarmAcknowledgment service Handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @author John Minack <minack@users.sourceforge.net>
+ * @date 2005, 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bactext.h"
@@ -38,9 +21,11 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/alarm_ack.h"
+#include "bacnet/reject.h"
 /* basic objects, services, TSM, and datalink */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 
@@ -72,16 +57,15 @@ void handler_alarm_ack_set(
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_alarm_ack(uint8_t *service_request,
+void handler_alarm_ack(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     int ack_result = 0;
     BACNET_ADDRESS my_address;
     BACNET_NPDU_DATA npdu_data;
@@ -90,112 +74,93 @@ void handler_alarm_ack(uint8_t *service_request,
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_print("Alarm Ack: Missing Required Parameter. Sending Reject!\n");
+        goto AA_ABORT;
+    } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
-#if PRINT_ENABLED
-        fprintf(stderr, "Alarm Ack: Segmented message.  Sending Abort!\n");
-#endif
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        debug_print("Alarm Ack: Segmented message.  Sending Abort!\n");
         goto AA_ABORT;
     }
 
     len = alarm_ack_decode_service_request(service_request, service_len, &data);
-#if PRINT_ENABLED
-    if (len <= 0)
-        fprintf(stderr, "Alarm Ack: Unable to decode Request!\n");
-#endif
+    if (len <= 0) {
+        debug_print("Alarm Ack: Unable to decode Request!\n");
+    }
     if (len < 0) {
         /* bad decoding - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "Alarm Ack: Bad Encoding.  Sending Abort!\n");
-#endif
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
+        debug_print("Alarm Ack: Bad Encoding.  Sending Abort!\n");
         goto AA_ABORT;
     }
-#if PRINT_ENABLED
-    fprintf(stderr,
+    debug_fprintf(
+        stderr,
         "Alarm Ack Operation: Received acknowledge for object id (%d, %lu) "
         "from %s for process id %lu \n",
         data.eventObjectIdentifier.type,
         (unsigned long)data.eventObjectIdentifier.instance,
         data.ackSource.value, (unsigned long)data.ackProcessIdentifier);
-#endif
-
-    /* 	BACnet Testing Observed Incident oi00105
-            ACK of a non-existent object returned the incorrect error code
-            Revealed by BACnet Test Client v1.8.16 (
-       www.bac-test.com/bacnet-test-client-download ) BC 135.1: 9.1.3.3-A Any
-       discussions can be directed to edward@bac-test.com */
-    if (!Device_Valid_Object_Id(data.eventObjectIdentifier.type,
+    if (!Device_Valid_Object_Id(
+            data.eventObjectIdentifier.type,
             data.eventObjectIdentifier.instance)) {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
-            ERROR_CLASS_OBJECT, ERROR_CODE_UNKNOWN_OBJECT);
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT,
+            ERROR_CODE_UNKNOWN_OBJECT);
     } else if (Alarm_Ack[data.eventObjectIdentifier.type]) {
         ack_result =
             Alarm_Ack[data.eventObjectIdentifier.type](&data, &error_code);
-
         switch (ack_result) {
             case 1:
-                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = encode_simple_ack(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Alarm Acknowledge: "
-                    "Sending Simple Ack!\n");
-#endif
+                debug_print("Alarm Acknowledge: Sending Simple Ack!\n");
                 break;
 
             case -1:
-                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = bacerror_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT,
                     error_code);
-#if PRINT_ENABLED
-                fprintf(stderr, "Alarm Acknowledge: error %s!\n",
+                debug_fprintf(
+                    stderr, "Alarm Acknowledge: error %s!\n",
                     bactext_error_code_name(error_code));
-#endif
                 break;
 
             default:
-                len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-                fprintf(stderr, "Alarm Acknowledge: abort other!\n");
-#endif
+                len = abort_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    ABORT_REASON_OTHER, true);
+                debug_print("Alarm Acknowledge: abort other!\n");
                 break;
         }
     } else {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
-            ERROR_CLASS_OBJECT, ERROR_CODE_NO_ALARM_CONFIGURED);
-#if PRINT_ENABLED
-        fprintf(stderr, "Alarm Acknowledge: error %s!\n",
-            bactext_error_code_name(ERROR_CODE_NO_ALARM_CONFIGURED));
-#endif
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT,
+            ERROR_CODE_NO_ALARM_CONFIGURED);
+        debug_print("Alarm Acknowledge: No Alarm Configured!\n");
     }
 
 AA_ABORT:
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Alarm Acknowledge: "
-            "Failed to send PDU (%s)!\n",
-            strerror(errno));
-#endif
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("Alarm Acknowledge: Failed to send PDU");
+    }
 
     return;
 }

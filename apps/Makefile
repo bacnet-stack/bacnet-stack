@@ -14,7 +14,7 @@ BACNET_DEFINES ?=
 BACNET_LIB_DIR = $(realpath ./lib)
 BACNET_LIB_NAME = bacnet
 BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
-BACNET_LIB ?= -L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+BACNET_LIB ?= -L$(BACNET_LIB_DIR) -l$(BACNET_LIB_NAME)
 
 # choose a datalink to build the example applications
 # Use BACDL=mstp or BACDL=bip and BBMD=server when invoking make
@@ -35,8 +35,21 @@ endif
 ifeq (${BACDL},bip6)
 BACDL_DEFINE=-DBACDL_BIP6=1
 endif
+ifeq (${BACDL},bsc)
+BACDL_DEFINE=-DBACDL_BSC=1
+BACNET_DEFINE=-DBACFILE=1
+endif
 ifeq (${BACDL},none)
 BACDL_DEFINE=-DBACDL_NONE=1
+endif
+ifeq (${BACDL},bip-mstp)
+BACDL_DEFINE=-DBACDL_ROUTER=1
+endif
+ifeq (${BACDL},bip-bip6)
+BACDL_DEFINE=-DBACDL_ROUTER=1
+endif
+ifeq (${BACDL},all)
+BACDL_DEFINE=-DBACDL_ALL=1
 endif
 ifeq (${BACDL},)
 BACDL_DEFINE ?= -DBACDL_BIP=1
@@ -50,6 +63,9 @@ ifeq (${BBMD},server)
 BBMD_DEFINE = -DBBMD_ENABLED=1
 endif
 ifeq (${BBMD},client)
+BBMD_DEFINE = -DBBMD_ENABLED=0 -DBBMD_CLIENT_ENABLED
+endif
+ifeq (${BBMD},full)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 
@@ -73,6 +89,12 @@ ifeq (${BACNET_PORT},)
 		ifeq ($(UNAME_S),Darwin)
 			BACNET_PORT = bsd
 		endif
+		ifeq ($(UNAME_S),FreeBSD)
+			BACNET_PORT = bsd
+		endif
+		ifeq ($(UNAME_S),OpenBSD)
+			BACNET_PORT = bsd
+		endif
 	endif
 endif
 
@@ -90,11 +112,20 @@ ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsockets libssl libcrypto and lcap to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto -lcap
+endif
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsockets libssl and libcrypto to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto
+endif
+CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
@@ -126,13 +157,17 @@ CSTANDARD ?= -std=gnu89
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion -Wparentheses
-WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
-WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
-WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -pedantic
+WARNING_ALL += -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default
+WARNING_ALL += -Wunused-variable
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-WARNING_ALL += -Wno-long-long -Wno-implicit-fallthrough -Wno-attributes
-#WARNING_ALL += -Wredundant-decls
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
 # dead code removal
@@ -144,10 +179,19 @@ BACNET_DEFINES += -DBIP_DEBUG
 endif
 endif
 
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
+
+ifeq (${NOTIFY},false)
+# disable intrinsic reporting
+else
+BACNET_DEFINES += -DINTRINSIC_REPORTING
+endif
+
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
-BACNET_DEFINES += -DBACFILE
-BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
@@ -157,7 +201,7 @@ INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += $(CSTANDARD)
 ifneq (${BACNET_LIB},)
-LFLAGS += -Wl,$(BACNET_LIB)
+LFLAGS += $(BACNET_LIB)
 endif
 # BACnet library depends on system flags.
 # System flags must go after BACnet library flags.
@@ -178,7 +222,8 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object
+	who-am-i you-are apdu writegroup \
+	delete-object server-discover server-basic server-mini
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -197,29 +242,30 @@ ifeq (${BACNET_PORT},win32)
 	SUBDIRS += mstpcap mstpcrc
 endif
 
+ifeq (${BACNET_PORT},bsd)
+	SUBDIRS += mstpcap mstpcrc
+endif
 
 #####
 # Define target-specific fuzzing flags
 #####
 
 # AFL
-fuzz-afl: CC=afl-gcc 
+fuzz-afl: CC=afl-gcc
 fuzz-afl: FUZZ_FLAGS=-DFUZZING=1
 fuzz-afl: LFLAGS += $(FUZZ_FLAGS)
 fuzz-afl: CFLAGS += $(FUZZ_FLAGS)
 fuzz-afl: export AFL_USE_ASAN=1
 
 # LIBFUZZER
-fuzz-libfuzzer: CC=clang 
+fuzz-libfuzzer: CC=clang
 fuzz-libfuzzer: FUZZ_FLAGS=-DFUZZING=1 -fsanitize=fuzzer,address -g3 -Og -fno-optimize-sibling-calls -fno-omit-frame-pointer
 fuzz-libfuzzer: LFLAGS += $(FUZZ_FLAGS)
 fuzz-libfuzzer: CFLAGS += $(FUZZ_FLAGS)
 
-
 #####
 # Fuzz setup end
 #####
-
 
 .PHONY: all clean
 TARGETS = all clean
@@ -234,6 +280,9 @@ lib: lib/Makefile Makefile $(BACNET_LIB_TARGET)
 
 $(BACNET_LIB_TARGET):
 	$(MAKE) -B -C lib
+
+clean:
+	$(MAKE) -C lib clean
 
 .PHONY: gateway
 gateway: $(BACNET_LIB_TARGET)
@@ -251,8 +300,24 @@ ack-alarm: $(BACNET_LIB_TARGET)
 add-list-element: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@ clean all
 
+.PHONY: apdu
+apdu: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -B -C $@
+
+.PHONY: create-object
+create-object: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: dcc
 dcc: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: delete-object
+delete-object: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: epics
@@ -299,6 +364,10 @@ mstpcap:
 mstpcrc:
 	$(MAKE) -B -C $@
 
+.PHONY: piface
+piface:
+	$(MAKE) -B -C $@
+
 .PHONY: ptransfer
 ptransfer: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
@@ -343,8 +412,20 @@ scov: $(BACNET_LIB_TARGET)
 server: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: server-basic
+server-basic: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: server-client
 server-client: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: server-discover
+server-discover: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: server-mini
+server-mini: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: timesync
@@ -355,8 +436,20 @@ timesync: $(BACNET_LIB_TARGET)
 uevent: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: uptransfer
+uptransfer: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: whois
 whois: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: who-am-i
+who-am-i: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: you-are
+you-are: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: writebdt
@@ -368,16 +461,24 @@ writefile: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: router
-router: $(BACNET_LIB_TARGET)
+router:
 	$(MAKE) -B -C $@
 
 .PHONY: router-ipv6
 router-ipv6: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: router-ipv6-clean
+router-ipv6-clean:
+	$(MAKE) -C router-ipv6 clean
+
 .PHONY: router-mstp
 router-mstp: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
+
+.PHONY: router-mstp-clean
+router-mstp-clean:
+	$(MAKE) -C router-mstp clean
 
 .PHONY: fuzz-libfuzzer
 fuzz-libfuzzer: $(BACNET_LIB_TARGET)
@@ -391,3 +492,10 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: writegroup
+writegroup: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: sc-hub
+sc-hub: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@

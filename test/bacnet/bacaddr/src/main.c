@@ -21,7 +21,6 @@ static void test_BACNET_ADDRESS(void)
 #endif
 {
     BACNET_ADDRESS src = { 0 }, dest = { 0 };
-    BACNET_ADDRESS test_src = { 0 }, test_dest = { 0 };
     BACNET_MAC_ADDRESS mac = { 0 }, adr = { 0 };
     uint16_t dnet = 0;
     bool status = false;
@@ -84,7 +83,7 @@ static void test_BACNET_ADDRESS(void)
     status = bacnet_address_init(&dest, &mac, dnet, &adr);
     zassert_true(status, NULL);
     status = bacnet_address_init(&src, &mac, dnet, &adr);
-    src.adr[MAX_MAC_LEN-1] = 1;
+    src.adr[MAX_MAC_LEN - 1] = 1;
     status = bacnet_address_same(&dest, &src);
     zassert_false(status, NULL);
     /* mac_len is different */
@@ -99,6 +98,14 @@ static void test_BACNET_ADDRESS(void)
     dest.mac_len = 1;
     status = bacnet_address_same(&dest, &src);
     zassert_false(status, NULL);
+    /* only setting a DNET address */
+    dnet = 1234;
+    status = bacnet_address_init(&dest, NULL, dnet, NULL);
+    zassert_true(status, NULL);
+    status = bacnet_address_init(&src, NULL, dnet, NULL);
+    zassert_true(status, NULL);
+    status = bacnet_address_same(&dest, &src);
+    zassert_true(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -178,7 +185,69 @@ static void test_BACNET_MAC_ADDRESS(void)
     zassert_false(status, NULL);
     status = bacnet_address_mac_from_ascii(&dest, NULL);
     zassert_false(status, NULL);
- }
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_address_tests, test_BACnetAddress_Codec)
+#else
+static void test_BACnetAddress_Codec(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU];
+    BACNET_ADDRESS value = { 0 }, test_value = { 0 };
+    uint8_t tag_number, wrong_tag_number;
+    int len, test_len;
+
+    value.mac[0] = 1;
+    value.mac[1] = 2;
+    value.mac[2] = 3;
+    value.mac[3] = 4;
+    value.mac[4] = 0xba;
+    value.mac[5] = 0xc0;
+    value.mac_len = 6;
+    value.net = 0;
+    len = encode_bacnet_address(NULL, &value);
+    test_len = encode_bacnet_address(apdu, &value);
+    zassert_true(len > 0, NULL);
+    zassert_true(test_len > 0, NULL);
+    zassert_equal(len, test_len, "len=%d test_len=%d", len, test_len);
+    test_len = bacnet_address_decode(apdu, sizeof(apdu), &test_value);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(value.net, test_value.net, NULL);
+    zassert_equal(value.mac_len, test_value.mac_len, NULL);
+    zassert_equal(value.mac_len, 6, NULL);
+    test_len = bacnet_address_decode(apdu, sizeof(apdu), NULL);
+    zassert_equal(len, test_len, NULL);
+    tag_number = 1;
+    len = encode_context_bacnet_address(NULL, tag_number, &value);
+    test_len = encode_context_bacnet_address(apdu, tag_number, &value);
+    zassert_true(len > 0, NULL);
+    zassert_true(test_len > 0, NULL);
+    zassert_equal(len, test_len, NULL);
+    test_len = bacnet_address_context_decode(
+        apdu, sizeof(apdu), tag_number, &test_value);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(value.net, test_value.net, NULL);
+    zassert_equal(value.mac_len, test_value.mac_len, NULL);
+    zassert_equal(value.mac_len, 6, NULL);
+    test_len = bacnet_address_context_decode(
+        apdu, sizeof(apdu), tag_number, &test_value);
+    /* negative tests - NULL value */
+    test_len =
+        bacnet_address_context_decode(apdu, sizeof(apdu), tag_number, NULL);
+    zassert_equal(len, test_len, NULL);
+    /* negative tests - wrong tag number */
+    wrong_tag_number = 4;
+    test_len = bacnet_address_context_decode(
+        apdu, sizeof(apdu), wrong_tag_number, &test_value);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    /* negative tests - apdu too short */
+    while (len) {
+        len--;
+        test_len = bacnet_address_context_decode(apdu, len, tag_number, NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
+}
 
 /**
  * @}
@@ -188,10 +257,10 @@ ZTEST_SUITE(bacnet_address_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacnet_address_tests,
-     ztest_unit_test(test_BACNET_ADDRESS),
-     ztest_unit_test(test_BACNET_MAC_ADDRESS)
-     );
+    ztest_test_suite(
+        bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
+        ztest_unit_test(test_BACNET_MAC_ADDRESS),
+        ztest_unit_test(test_BACnetAddress_Codec));
 
     ztest_run_test_suite(bacnet_address_tests);
 }

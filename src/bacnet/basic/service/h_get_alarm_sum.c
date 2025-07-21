@@ -1,44 +1,28 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic GetAlarmSummary-Request service handler
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 /* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
-
-/** @file h_alarm_sum.c  Handles Get Alarm Summary request. */
 
 static get_alarm_summary_function Get_Alarm_Summary[MAX_BACNET_OBJECT_TYPE];
 
@@ -50,7 +34,8 @@ void handler_get_alarm_summary_set(
     }
 }
 
-void handler_get_alarm_summary(uint8_t *service_request,
+void handler_get_alarm_summary(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -71,20 +56,25 @@ void handler_get_alarm_summary(uint8_t *service_request,
     (void)service_len;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
+    if (service_len == 0) {
+        apdu_len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_print("GetAlarmSummary: Missing Required Parameter. "
+                    "Sending Reject!\n");
+        goto GET_ALARM_SUMMARY_ABORT;
+    } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
-#if PRINT_ENABLED
-        fprintf(stderr, "GetAlarmSummary: Segmented message. Sending Abort!\n");
-#endif
+        apdu_len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        debug_print("GetAlarmSummary: Segmented message. "
+                    "Sending Abort!\n");
         goto GET_ALARM_SUMMARY_ABORT;
     }
-
     /* init header */
     apdu_len = get_alarm_summary_ack_encode_apdu_init(
         &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
@@ -109,43 +99,30 @@ void handler_get_alarm_summary(uint8_t *service_request,
             }
         }
     }
-
-#if PRINT_ENABLED
-    fprintf(stderr, "GetAlarmSummary: Sending response!\n");
-#endif
-
+    debug_print("GetAlarmSummary: Sending response!\n");
 GET_ALARM_SUMMARY_ERROR:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
-            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
+            apdu_len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-            fprintf(
-                stderr, "GetAlarmSummary: Reply too big to fit into APDU!\n");
-#endif
+            debug_print("GetAlarmSummary: Reply too big to fit into APDU!\n");
         } else {
-            apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
-                ERROR_CLASS_PROPERTY, ERROR_CODE_OTHER);
-#if PRINT_ENABLED
-            fprintf(stderr, "GetAlarmSummary: Sending Error!\n");
-#endif
+            apdu_len = bacerror_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_GET_ALARM_SUMMARY, ERROR_CLASS_PROPERTY,
+                ERROR_CODE_OTHER);
+            debug_print("GetAlarmSummary: Sending Error!\n");
         }
     }
-
 GET_ALARM_SUMMARY_ABORT:
     pdu_len += apdu_len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
     if (bytes_sent <= 0) {
-        /*fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno)); */
+        debug_perror("GetAlarmSummary: Failed to send PDU");
     }
-#else
-    bytes_sent = bytes_sent;
-#endif
 
     return;
 }

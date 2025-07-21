@@ -25,13 +25,12 @@ ZTEST(lso_tests, testLSO)
 static void testLSO(void)
 #endif
 {
-    uint8_t apdu[1000];
-    int len;
+    uint8_t apdu[1000] = { 0 };
+    uint8_t invoke_id = 100;
+    int apdu_len = 0, null_len = 0, test_len = 0;
 
-    BACNET_LSO_DATA data;
-    BACNET_LSO_DATA rxdata;
-
-    memset(&rxdata, 0, sizeof(rxdata));
+    BACNET_LSO_DATA data = { 0 };
+    BACNET_LSO_DATA test_data = { 0 };
 
     characterstring_init_ansi(&data.requestingSrc, "foobar");
     data.operation = LIFE_SAFETY_OP_RESET;
@@ -39,33 +38,36 @@ static void testLSO(void)
     data.use_target = true;
     data.targetObject.instance = 0x1000;
     data.targetObject.type = OBJECT_BINARY_INPUT;
-
-    len = lso_encode_apdu(apdu, 100, &data);
-
-    lso_decode_service_request(&apdu[4], len, &rxdata);
-
-    zassert_equal(data.operation, rxdata.operation, NULL);
-    zassert_equal(data.processId, rxdata.processId, NULL);
-    zassert_equal(data.use_target, rxdata.use_target, NULL);
-    zassert_equal(data.targetObject.instance, rxdata.targetObject.instance, NULL);
-    zassert_equal(data.targetObject.type, rxdata.targetObject.type, NULL);
+    /* encode/decode */
+    null_len = lso_encode_apdu(NULL, invoke_id, &data);
+    apdu_len = lso_encode_apdu(apdu, invoke_id, &data);
     zassert_equal(
-        memcmp(data.requestingSrc.value, rxdata.requestingSrc.value,
-            rxdata.requestingSrc.length), 0, NULL);
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    test_len = lso_decode_service_request(&apdu[4], apdu_len, &test_data);
+    zassert_true(test_len > 0, "test_len=%d", test_len);
+    /* check the values decoded */
+    zassert_equal(data.operation, test_data.operation, NULL);
+    zassert_equal(data.processId, test_data.processId, NULL);
+    zassert_equal(data.use_target, test_data.use_target, NULL);
+    zassert_equal(
+        data.targetObject.instance, test_data.targetObject.instance, NULL);
+    zassert_equal(data.targetObject.type, test_data.targetObject.type, NULL);
+    zassert_equal(
+        memcmp(
+            data.requestingSrc.value, test_data.requestingSrc.value,
+            test_data.requestingSrc.length),
+        0, NULL);
 }
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(lso_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(lso_tests,
-     ztest_unit_test(testLSO)
-     );
+    ztest_test_suite(lso_tests, ztest_unit_test(testLSO));
 
     ztest_run_test_suite(lso_tests);
 }

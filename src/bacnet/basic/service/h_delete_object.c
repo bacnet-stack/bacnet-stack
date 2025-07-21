@@ -3,17 +3,15 @@
  * @brief DeleteObject service application handlers
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -45,7 +43,8 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *  decoded from the APDU header of this message.
  */
-void handler_delete_object(uint8_t *service_request,
+void handler_delete_object(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -60,15 +59,23 @@ void handler_delete_object(uint8_t *service_request,
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_perror("DeleteObject: Received Request!\n");
-    if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
-        debug_perror("DeleteObject: Segmented message.  Sending Abort!\n");
+    debug_print("DeleteObject: Received Request!\n");
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_print("DeleteObject: Missing Required Parameter. "
+                    "Sending Reject!\n");
+        status = false;
+    } else if (service_data->segmented_message) {
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        debug_print("DeleteObject: Segmented message. "
+                    "Sending Abort!\n");
         status = false;
     }
     if (status) {
@@ -76,31 +83,33 @@ void handler_delete_object(uint8_t *service_request,
         len = delete_object_decode_service_request(
             service_request, service_len, &data);
         if (len > 0) {
-            debug_perror("DeleteObject: type=%lu instance=%lu\n",
+            debug_printf_stderr(
+                "DeleteObject: type=%lu instance=%lu\n",
                 (unsigned long)data.object_type,
                 (unsigned long)data.object_instance);
         } else {
-            debug_perror("DeleteObject: Unable to decode request!\n");
+            debug_print("DeleteObject: Unable to decode request!\n");
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, ABORT_REASON_OTHER, true);
-            debug_perror("DeleteObject: Bad Encoding. Sending Abort!\n");
+            len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                ABORT_REASON_OTHER, true);
+            debug_print("DeleteObject: Bad Encoding. Sending Abort!\n");
             status = false;
         }
         if (status) {
             if (Device_Delete_Object(&data)) {
-                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = encode_simple_ack(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_DELETE_OBJECT);
-                debug_perror("DeleteObject: Sending Simple Ack!\n");
+                debug_print("DeleteObject: Sending Simple Ack!\n");
             } else {
-                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_DELETE_OBJECT,
-                    data.error_class, data.error_code);
-                debug_perror("DeleteObject: Sending Error!\n");
+                len = bacerror_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    SERVICE_CONFIRMED_DELETE_OBJECT, data.error_class,
+                    data.error_code);
+                debug_print("DeleteObject: Sending Error!\n");
             }
         }
     }
@@ -111,8 +120,7 @@ void handler_delete_object(uint8_t *service_request,
             src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     }
     if (bytes_sent <= 0) {
-        debug_perror(
-            "DeleteObject: Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("DeleteObject: Failed to send PDU");
     }
 
     return;

@@ -1,16 +1,16 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
+/**
+ * @file
+ * @brief Unit test for object
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date April 2024
+ * @section LICENSE
  *
  * SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
-#include <bacnet/basic/object/bi.h>
 #include <bacnet/bactext.h>
+#include <bacnet/basic/object/bi.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -26,50 +26,36 @@ ZTEST(bi_tests, testBinaryInput)
 static void testBinaryInput(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = {0};
-    const int *required_property = NULL;
-    const uint32_t instance = 1;
+    bool status = false;
+    unsigned count = 0;
+    uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
+    const int skip_fail_property_list[] = { -1 };
 
     Binary_Input_Init();
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_BINARY_INPUT;
-    rpdata.object_instance = instance;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-
-    Binary_Input_Property_Lists(&required_property, NULL, NULL);
-    while ((*required_property) >= 0) {
-        rpdata.object_property = *required_property;
-        len = Binary_Input_Read_Property(&rpdata);
-        zassert_true(len >= 0, NULL);
-        if (len >= 0) {
-            test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_type, rpdata.object_property);
-            if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            zassert_equal(len, test_len, NULL);
-        }
-        required_property++;
-    }
+    object_instance = Binary_Input_Create(object_instance);
+    count = Binary_Input_Count();
+    zassert_true(count == 1, NULL);
+    test_object_instance = Binary_Input_Index_To_Instance(0);
+    zassert_equal(object_instance, test_object_instance, NULL);
+    bacnet_object_properties_read_write_test(
+        OBJECT_BINARY_INPUT, object_instance, Binary_Input_Property_Lists,
+        Binary_Input_Read_Property, Binary_Input_Write_Property,
+        skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance, Binary_Input_Name_Set, Binary_Input_Name_ASCII);
+    status = Binary_Input_Delete(object_instance);
+    zassert_true(status, NULL);
 }
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bi_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bi_tests,
-     ztest_unit_test(testBinaryInput)
-     );
+    ztest_test_suite(bi_tests, ztest_unit_test(testBinaryInput));
 
     ztest_run_test_suite(bi_tests);
 }

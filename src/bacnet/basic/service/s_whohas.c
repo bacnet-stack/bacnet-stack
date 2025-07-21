@@ -1,33 +1,16 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send BACnet Who-Has requests
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -37,13 +20,13 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-/** @file s_whohas.c  Send Who-Has requests. */
-
-/** Send a Who-Has request for a device which has a named Object.
- * @ingroup DMDOB
+/**
+ * @brief Send a Who-Has request for a device which has a named Object.
+ * @ingroup BIBB-DM-DOB-A
  * If low_limit and high_limit both are -1, then the device ID range is
  * unlimited. If low_limit and high_limit have the same non-negative value, then
  * only that device will respond. Otherwise, low_limit must be less than
@@ -58,9 +41,7 @@ void Send_WhoHas_Name(
     int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -85,20 +66,17 @@ void Send_WhoHas_Name(
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
     /* send the data */
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(
-            stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
-#endif
+    bytes_sent = datalink_send_pdu(
+        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("Failed to Send Who-Has Request");
+    }
 }
 
-/** Send a Who-Has request for a device which has a specific Object type and ID.
- * @ingroup DMDOB
+/**
+ * @brief Send a Who-Has request for a device which has a specific
+ * Object type and ID.
+ * @ingroup BIBB-DM-DOB-A
  * If low_limit and high_limit both are -1, then the device ID range is
  * unlimited. If low_limit and high_limit have the same non-negative value, then
  * only that device will respond. Otherwise, low_limit must be less than
@@ -108,7 +86,8 @@ void Send_WhoHas_Name(
  * @param object_type [in] The BACNET_OBJECT_TYPE of the desired Object.
  * @param object_instance [in] The ID of the desired Object.
  */
-void Send_WhoHas_Object(int32_t low_limit,
+void Send_WhoHas_Object(
+    int32_t low_limit,
     int32_t high_limit,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
@@ -116,9 +95,7 @@ void Send_WhoHas_Object(int32_t low_limit,
     int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -134,7 +111,6 @@ void Send_WhoHas_Object(int32_t low_limit,
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
-
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
     data.high_limit = high_limit;
@@ -143,14 +119,9 @@ void Send_WhoHas_Object(int32_t low_limit,
     data.object.identifier.instance = object_instance;
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(
-            stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
-#endif
+    bytes_sent = datalink_send_pdu(
+        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("Failed to Send Who-Has Request");
+    }
 }

@@ -1,36 +1,13 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnetDate, BACnetTime, BACnetDateTime, BACnetDateRange complex data
+ *  type encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -84,7 +61,7 @@ bool datetime_ymd_is_valid(uint16_t year, uint8_t month, uint8_t day)
  * @param bdate - BACnet date structure
  * @return true if the date is valid
  */
-bool datetime_date_is_valid(BACNET_DATE *bdate)
+bool datetime_date_is_valid(const BACNET_DATE *bdate)
 {
     bool status = false; /* true if value date */
 
@@ -141,7 +118,7 @@ void datetime_day_of_year_into_date(
  * @param bdate - BACnet date structure
  * @return number of days since Jan 1 (inclusive) of the given year
  */
-uint32_t datetime_day_of_year(BACNET_DATE *bdate)
+uint32_t datetime_day_of_year(const BACNET_DATE *bdate)
 {
     uint32_t days = 0;
 
@@ -160,25 +137,16 @@ uint32_t datetime_day_of_year(BACNET_DATE *bdate)
  * @param day - day of month (1-31)
  * @return number of days since epoch, or 0 if out of range
  */
-uint32_t datetime_ymd_to_days_since_epoch(
-    uint16_t year, uint8_t month, uint8_t day)
+uint32_t
+datetime_ymd_to_days_since_epoch(uint16_t year, uint8_t month, uint8_t day)
 {
     uint32_t days = 0; /* return value */
-    uint16_t years = 0; /* loop counter for years */
 
     if (datetime_ymd_is_valid(year, month, day)) {
-        for (years = BACNET_DATE_YEAR_EPOCH; years < year; years++) {
-            days += 365;
-            if (days_is_leap_year(years)) {
-                days++;
-            }
-        }
-        days += datetime_ymd_day_of_year(year, month, day);
-        /* 'days since' is one less */
-        days -= 1;
+        days = days_since_epoch(BACNET_DATE_YEAR_EPOCH, year, month, day);
     }
 
-    return (days);
+    return days;
 }
 
 /**
@@ -187,7 +155,7 @@ uint32_t datetime_ymd_to_days_since_epoch(
  * @param bdate - BACnet date structure
  * @return number of days since epoch, or 0 if out of range
  */
-uint32_t datetime_days_since_epoch(BACNET_DATE *bdate)
+uint32_t datetime_days_since_epoch(const BACNET_DATE *bdate)
 {
     uint32_t days = 0;
 
@@ -271,11 +239,9 @@ void datetime_days_since_epoch_into_date(uint32_t days, BACNET_DATE *bdate)
  */
 uint8_t datetime_day_of_week(uint16_t year, uint8_t month, uint8_t day)
 {
-    uint8_t dow = (uint8_t)BACNET_DAY_OF_WEEK_EPOCH;
-
-    dow += (datetime_ymd_to_days_since_epoch(year, month, day) % 7);
-
-    return dow;
+    return days_of_week(
+        BACNET_DAY_OF_WEEK_EPOCH,
+        datetime_ymd_to_days_since_epoch(year, month, day));
 }
 
 /**
@@ -284,7 +250,7 @@ uint8_t datetime_day_of_week(uint16_t year, uint8_t month, uint8_t day)
  * @param btime - pointer to a BACNET_TIME structure
  * @return true if the time is valid
  */
-bool datetime_time_is_valid(BACNET_TIME *btime)
+bool datetime_time_is_valid(const BACNET_TIME *btime)
 {
     bool status = false;
 
@@ -306,7 +272,7 @@ bool datetime_time_is_valid(BACNET_TIME *btime)
  *
  * @return true if the date and time are valid
  */
-bool datetime_is_valid(BACNET_DATE *bdate, BACNET_TIME *btime)
+bool datetime_is_valid(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     return datetime_date_is_valid(bdate) && datetime_time_is_valid(btime);
 }
@@ -319,9 +285,9 @@ bool datetime_is_valid(BACNET_DATE *bdate, BACNET_TIME *btime)
  * @param date1 - Pointer to a BACNET_DATE structure
  * @param date2 - Pointer to a BACNET_DATE structure
  *
- * @return -/0/+
+ * @return -/0=same/+
  */
-int datetime_compare_date(BACNET_DATE *date1, BACNET_DATE *date2)
+int datetime_compare_date(const BACNET_DATE *date1, const BACNET_DATE *date2)
 {
     int diff = 0;
 
@@ -348,7 +314,7 @@ int datetime_compare_date(BACNET_DATE *date1, BACNET_DATE *date2)
  *
  * @return -/0/+
  */
-int datetime_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
+int datetime_compare_time(const BACNET_TIME *time1, const BACNET_TIME *time2)
 {
     int diff = 0;
 
@@ -378,7 +344,8 @@ int datetime_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
  *
  * @return -/0/+
  */
-int datetime_compare(BACNET_DATE_TIME *datetime1, BACNET_DATE_TIME *datetime2)
+int datetime_compare(
+    const BACNET_DATE_TIME *datetime1, const BACNET_DATE_TIME *datetime2)
 {
     int diff = 0;
 
@@ -390,7 +357,8 @@ int datetime_compare(BACNET_DATE_TIME *datetime1, BACNET_DATE_TIME *datetime2)
     return diff;
 }
 
-int datetime_wildcard_compare_date(BACNET_DATE *date1, BACNET_DATE *date2)
+int datetime_wildcard_compare_date(
+    const BACNET_DATE *date1, const BACNET_DATE *date2)
 {
     int diff = 0;
 
@@ -414,7 +382,8 @@ int datetime_wildcard_compare_date(BACNET_DATE *date1, BACNET_DATE *date2)
     return diff;
 }
 
-int datetime_wildcard_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
+int datetime_wildcard_compare_time(
+    const BACNET_TIME *time1, const BACNET_TIME *time2)
 {
     int diff = 0;
 
@@ -444,7 +413,7 @@ int datetime_wildcard_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
 }
 
 int datetime_wildcard_compare(
-    BACNET_DATE_TIME *datetime1, BACNET_DATE_TIME *datetime2)
+    const BACNET_DATE_TIME *datetime1, const BACNET_DATE_TIME *datetime2)
 {
     int diff = 0;
 
@@ -457,7 +426,7 @@ int datetime_wildcard_compare(
     return diff;
 }
 
-void datetime_copy_date(BACNET_DATE *dest_date, BACNET_DATE *src_date)
+void datetime_copy_date(BACNET_DATE *dest_date, const BACNET_DATE *src_date)
 {
     if (dest_date && src_date) {
         dest_date->year = src_date->year;
@@ -467,7 +436,7 @@ void datetime_copy_date(BACNET_DATE *dest_date, BACNET_DATE *src_date)
     }
 }
 
-void datetime_copy_time(BACNET_TIME *dest_time, BACNET_TIME *src_time)
+void datetime_copy_time(BACNET_TIME *dest_time, const BACNET_TIME *src_time)
 {
     if (dest_time && src_time) {
         dest_time->hour = src_time->hour;
@@ -478,7 +447,7 @@ void datetime_copy_time(BACNET_TIME *dest_time, BACNET_TIME *src_time)
 }
 
 void datetime_copy(
-    BACNET_DATE_TIME *dest_datetime, BACNET_DATE_TIME *src_datetime)
+    BACNET_DATE_TIME *dest_datetime, const BACNET_DATE_TIME *src_datetime)
 {
     datetime_copy_time(&dest_datetime->time, &src_datetime->time);
     datetime_copy_date(&dest_datetime->date, &src_datetime->date);
@@ -495,7 +464,8 @@ void datetime_set_date(
     }
 }
 
-void datetime_set_time(BACNET_TIME *btime,
+void datetime_set_time(
+    BACNET_TIME *btime,
     uint8_t hour,
     uint8_t minute,
     uint8_t seconds,
@@ -510,7 +480,9 @@ void datetime_set_time(BACNET_TIME *btime,
 }
 
 void datetime_set(
-    BACNET_DATE_TIME *bdatetime, BACNET_DATE *bdate, BACNET_TIME *btime)
+    BACNET_DATE_TIME *bdatetime,
+    const BACNET_DATE *bdate,
+    const BACNET_TIME *btime)
 {
     if (bdate && btime && bdatetime) {
         bdatetime->time.hour = btime->hour;
@@ -524,7 +496,8 @@ void datetime_set(
     }
 }
 
-void datetime_set_values(BACNET_DATE_TIME *bdatetime,
+void datetime_set_values(
+    BACNET_DATE_TIME *bdatetime,
     uint16_t year,
     uint8_t month,
     uint8_t day,
@@ -599,7 +572,7 @@ void datetime_seconds_since_midnight_into_time(
  *
  * @return seconds since midnight
  */
-uint32_t datetime_seconds_since_midnight(BACNET_TIME *btime)
+uint32_t datetime_seconds_since_midnight(const BACNET_TIME *btime)
 {
     uint32_t seconds = 0;
 
@@ -617,7 +590,7 @@ uint32_t datetime_seconds_since_midnight(BACNET_TIME *btime)
  *
  * @return minutes since midnight
  */
-uint16_t datetime_minutes_since_midnight(BACNET_TIME *btime)
+uint16_t datetime_minutes_since_midnight(const BACNET_TIME *btime)
 {
     uint32_t minutes = 0;
 
@@ -674,8 +647,9 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
     }
 
     /* convert bdatetime from seconds and days */
-    datetime_hms_from_seconds_since_midnight(bdatetime_minutes * 60,
-        &bdatetime->time.hour, &bdatetime->time.min, NULL);
+    datetime_hms_from_seconds_since_midnight(
+        bdatetime_minutes * 60, &bdatetime->time.hour, &bdatetime->time.min,
+        NULL);
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
 }
 
@@ -684,7 +658,7 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
  * @param bdatetime [in] the starting date and time
  * @return seconds since epoch
  */
-bacnet_time_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
+bacnet_time_t datetime_seconds_since_epoch(const BACNET_DATE_TIME *bdatetime)
 {
     bacnet_time_t seconds = 0;
     uint32_t days = 0;
@@ -736,7 +710,7 @@ bacnet_time_t datetime_seconds_since_epoch_max(void)
 }
 
 /* Returns true if year is a wildcard */
-bool datetime_wildcard_year(BACNET_DATE *bdate)
+bool datetime_wildcard_year(const BACNET_DATE *bdate)
 {
     bool wildcard_present = false;
 
@@ -758,7 +732,7 @@ void datetime_wildcard_year_set(BACNET_DATE *bdate)
 }
 
 /* Returns true if month is a wildcard */
-bool datetime_wildcard_month(BACNET_DATE *bdate)
+bool datetime_wildcard_month(const BACNET_DATE *bdate)
 {
     bool wildcard_present = false;
 
@@ -780,7 +754,7 @@ void datetime_wildcard_month_set(BACNET_DATE *bdate)
 }
 
 /* Returns true if day is a wildcard */
-bool datetime_wildcard_day(BACNET_DATE *bdate)
+bool datetime_wildcard_day(const BACNET_DATE *bdate)
 {
     bool wildcard_present = false;
 
@@ -802,7 +776,7 @@ void datetime_wildcard_day_set(BACNET_DATE *bdate)
 }
 
 /* Returns true if weekday is a wildcard */
-bool datetime_wildcard_weekday(BACNET_DATE *bdate)
+bool datetime_wildcard_weekday(const BACNET_DATE *bdate)
 {
     bool wildcard_present = false;
 
@@ -824,7 +798,7 @@ void datetime_wildcard_weekday_set(BACNET_DATE *bdate)
 }
 
 /* Returns true if hour is a wildcard */
-bool datetime_wildcard_hour(BACNET_TIME *btime)
+bool datetime_wildcard_hour(const BACNET_TIME *btime)
 {
     bool wildcard_present = false;
 
@@ -846,7 +820,7 @@ void datetime_wildcard_hour_set(BACNET_TIME *btime)
 }
 
 /* Returns true if minute is a wildcard */
-bool datetime_wildcard_minute(BACNET_TIME *btime)
+bool datetime_wildcard_minute(const BACNET_TIME *btime)
 {
     bool wildcard_present = false;
 
@@ -868,7 +842,7 @@ void datetime_wildcard_minute_set(BACNET_TIME *btime)
 }
 
 /* Returns true if seconds is wildcard */
-bool datetime_wildcard_second(BACNET_TIME *btime)
+bool datetime_wildcard_second(const BACNET_TIME *btime)
 {
     bool wildcard_present = false;
 
@@ -890,7 +864,7 @@ void datetime_wildcard_second_set(BACNET_TIME *btime)
 }
 
 /* Returns true if hundredths is a wildcard */
-bool datetime_wildcard_hundredths(BACNET_TIME *btime)
+bool datetime_wildcard_hundredths(const BACNET_TIME *btime)
 {
     bool wildcard_present = false;
 
@@ -911,7 +885,7 @@ void datetime_wildcard_hundredths_set(BACNET_TIME *btime)
     }
 }
 
-bool datetime_wildcard(BACNET_DATE_TIME *bdatetime)
+bool datetime_wildcard(const BACNET_DATE_TIME *bdatetime)
 {
     bool wildcard_present = false;
 
@@ -935,7 +909,7 @@ bool datetime_wildcard(BACNET_DATE_TIME *bdatetime)
  * on it's own.  Also checks for special day and month values.  Used in
  * trendlog object.
  */
-bool datetime_wildcard_present(BACNET_DATE_TIME *bdatetime)
+bool datetime_wildcard_present(const BACNET_DATE_TIME *bdatetime)
 {
     bool wildcard_present = false;
 
@@ -992,8 +966,9 @@ void datetime_wildcard_set(BACNET_DATE_TIME *bdatetime)
  *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
-bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
-    BACNET_DATE_TIME *utc_time,
+bool datetime_utc_to_local(
+    BACNET_DATE_TIME *local_time,
+    const BACNET_DATE_TIME *utc_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
 {
@@ -1024,8 +999,9 @@ bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
  *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
-bool datetime_local_to_utc(BACNET_DATE_TIME *utc_time,
-    BACNET_DATE_TIME *local_time,
+bool datetime_local_to_utc(
+    BACNET_DATE_TIME *utc_time,
+    const BACNET_DATE_TIME *local_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
 {
@@ -1043,83 +1019,320 @@ bool datetime_local_to_utc(BACNET_DATE_TIME *utc_time,
     return status;
 }
 
-int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
+/**
+ * @brief Encode a BACnetDateTime complex data type
+ *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
+ *
+ *  BACnetDateTime ::= SEQUENCE {
+ *      date Date, -- see Clause 20.2.12 for restrictions
+ *      time Time -- see Clause 20.2.13 for restrictions
+ *  }
+ *
+ * @param apdu  buffer to be encoded, or NULL for length
+ * @param value The value to be encoded.
+ * @return the number of apdu bytes encoded
+ */
+int bacapp_encode_datetime(uint8_t *apdu, const BACNET_DATE_TIME *value)
 {
     int len = 0;
     int apdu_len = 0;
 
-    if (apdu && value) {
-        len = encode_application_date(&apdu[0], &value->date);
+    if (value) {
+        len = encode_application_date(apdu, &value->date);
+        if (apdu) {
+            apdu += len;
+        }
         apdu_len += len;
-
-        len = encode_application_time(&apdu[apdu_len], &value->time);
+        len = encode_application_time(apdu, &value->time);
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
+/**
+ * @brief Encode a context tagged BACnetDateTime complex data type
+ * @param apdu  buffer to be encoded, or NULL for length
+ * @param tag_number - context tag number to be encoded
+ * @param value The value to be encoded.
+ * @return the number of apdu bytes encoded
+ */
 int bacapp_encode_context_datetime(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DATE_TIME *value)
 {
     int len = 0;
     int apdu_len = 0;
 
-    if (apdu && value) {
-        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+    if (value) {
+        len = encode_opening_tag(apdu, tag_number);
         apdu_len += len;
-
-        len = bacapp_encode_datetime(&apdu[apdu_len], value);
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacapp_encode_datetime(apdu, value);
         apdu_len += len;
-
-        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
-int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
+/**
+ * @brief Decodes a BACnetDateTime value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_datetime_decode(
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_TIME *value)
 {
     int len = 0;
-    int section_len;
+    int apdu_len = 0;
+    BACNET_DATE *bdate = NULL;
+    BACNET_TIME *btime = NULL;
 
-    if (-1 ==
-        (section_len = decode_application_date(&apdu[len], &value->date))) {
-        return -1;
+    if (value) {
+        bdate = &value->date;
     }
-    len += section_len;
-
-    if (-1 ==
-        (section_len = decode_application_time(&apdu[len], &value->time))) {
-        return -1;
+    len = bacnet_date_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, bdate);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
     }
+    apdu_len += len;
+    if (value) {
+        btime = &value->time;
+    }
+    len = bacnet_time_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, btime);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
 
-    len += section_len;
-
-    return len;
+    return apdu_len;
 }
 
-int bacapp_decode_context_datetime(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
+int bacapp_decode_datetime(const uint8_t *apdu, BACNET_DATE_TIME *value)
+{
+    return bacnet_datetime_decode(apdu, MAX_APDU, value);
+}
+
+/**
+ * @brief Decodes a context tagged BACnetDateTime value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_number - context tag number to be encoded
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_datetime_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DATE_TIME *value)
 {
     int apdu_len = 0;
     int len;
 
-    if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len++;
-    } else {
-        return -1;
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_datetime_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a context tagged BACnetDateTime value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param tag_number - context tag number to be encoded
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ * @deprecated - use bacnet_datetime_context_decode() instead
+ */
+int bacapp_decode_context_datetime(
+    const uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
+{
+    return bacnet_datetime_context_decode(apdu, MAX_APDU, tag_number, value);
+}
+
+/**
+ * @brief Compare BACnetDateRange complex data types
+ * @param value1 - complex data value 1 structure
+ * @param value2 - complex data value 2 structure
+ * @return true if the two complex data values are the same
+ */
+bool bacnet_daterange_same(
+    const BACNET_DATE_RANGE *value1, const BACNET_DATE_RANGE *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        if ((datetime_compare_date(&value1->startdate, &value2->startdate) ==
+             0) &&
+            (datetime_compare_date(&value1->enddate, &value2->enddate) == 0)) {
+            status = true;
+        }
     }
 
-    if (-1 == (len = bacapp_decode_datetime(&apdu[apdu_len], value))) {
-        return -1;
-    } else {
+    return status;
+}
+
+/**
+ * @brief Encode BACnetDateRange complex data type
+ *
+ * BACnetDateRange ::= SEQUENCE { -- see Clause 20.2.12 for restrictions
+ *   start-date Date,
+ *   end-date Date
+ * }
+ *
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param value - value to encode
+ * @return number of bytes emitted, BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_encode(uint8_t *apdu, const BACNET_DATE_RANGE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    len = encode_application_date(apdu, &value->startdate);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+
+    len = encode_application_date(apdu, &value->enddate);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode BACnetDateRange complex data type
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param apdu_size - apdu buffer size
+ * @param value - value to decode
+ * @return number of bytes emitted, BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_decode(
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_RANGE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!apdu || !value) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_date_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &value->startdate);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_date_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &value->enddate);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode daterange with context tag
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param tag_number - context tag number
+ * @param value - value to encode
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DATE_RANGE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (value) {
+        len = encode_opening_tag(apdu, tag_number);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacnet_daterange_encode(apdu, value);
+        if (len <= 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
 
-    if (decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len++;
-    } else {
+    return apdu_len;
+}
+
+/**
+ * @brief Decode BACnetDateRange complex data with context tag
+ * @param apdu - apdu buffer to decode
+ * @param apdu_size - apdu buffer size
+ * @param tag_number - context tag number
+ * @param value - value to encode
+ * @return number of bytes decoded, BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DATE_RANGE *value)
+{
+    int apdu_len = 0;
+    int len = 0;
+
+    if (!apdu || !value) {
         return -1;
+    }
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_daterange_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        apdu_len += len;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
     }
     return apdu_len;
 }
@@ -1150,6 +1363,28 @@ bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii)
     }
 
     return status;
+}
+
+/**
+ * @brief Print the date as an ascii string 2021/12/31
+ * @param bdate - pointer to a BACnetDate
+ * @param str - pointer to the string, or NULL for length only
+ * @param str_size - size of the string, or 0 for length only
+ * @return number of characters printed
+ */
+int datetime_date_to_ascii(const BACNET_DATE *bdate, char *str, size_t str_size)
+{
+    int str_len = 0;
+
+    if (!bdate) {
+        return 0;
+    }
+    /* 2021/12/31 */
+    str_len = snprintf(
+        str, str_size, "%04u/%02u/%02u", (unsigned)bdate->year,
+        (unsigned)bdate->month, (unsigned)bdate->day);
+
+    return str_len;
 }
 
 /**
@@ -1187,4 +1422,82 @@ bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii)
     }
 
     return status;
+}
+
+/**
+ * @brief Print the time as an ascii string 23:59:59.99
+ * @param btime - pointer to a BACnetTime
+ * @param str - pointer to the string, or NULL for length only
+ * @param str_size - size of the string, or 0 for length only
+ * @return number of characters printed
+ */
+int datetime_time_to_ascii(const BACNET_TIME *btime, char *str, size_t str_size)
+{
+    int str_len = 0;
+
+    if (!btime) {
+        return 0;
+    }
+    /* 23:59:59.99 */
+    str_len = snprintf(
+        str, str_size, "%02u:%02u:%02u.%02u", (unsigned)btime->hour,
+        (unsigned)btime->min, (unsigned)btime->sec,
+        (unsigned)btime->hundredths);
+
+    return str_len;
+}
+
+/**
+ * @brief Parse an ascii string for the date+time 2021/12/31-23:59:59.99
+ * @param bdate - #BACNET_DATE_TIME structure
+ * @param argv - C string with date+time formatted 2021/12/31-23:59:59.99
+ * @return true if parsed successfully
+ */
+bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii)
+{
+    bool status = false;
+    int year, month, day;
+    int hour = 0, min = 0, sec = 0, hundredths = 0;
+    int count = 0;
+
+    count = sscanf(
+        ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d", &year, &month, &day, &hour, &min,
+        &sec, &hundredths);
+    if (count >= 3) {
+        datetime_set_date(
+            &bdatetime->date, (uint16_t)year, (uint8_t)month, (uint8_t)day);
+        bdatetime->time.hour = (uint8_t)hour;
+        bdatetime->time.min = (uint8_t)min;
+        bdatetime->time.sec = (uint8_t)sec;
+        bdatetime->time.hundredths = (uint8_t)hundredths;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Print the date and time as an ascii string 2021/12/31-23:59:59.99
+ * @param btime - pointer to a BACnetTime
+ * @param str - pointer to the string, or NULL for length only
+ * @param str_size - size of the string, or 0 for length only
+ * @return number of characters printed
+ */
+int datetime_to_ascii(
+    const BACNET_DATE_TIME *bdatetime, char *str, size_t str_size)
+{
+    int str_len = 0;
+
+    if (!bdatetime) {
+        return 0;
+    }
+    /* 2021/12/31-23:59:59.99 */
+    str_len = snprintf(
+        str, str_size, "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
+        (unsigned)bdatetime->date.year, (unsigned)bdatetime->date.month,
+        (unsigned)bdatetime->date.day, (unsigned)bdatetime->time.hour,
+        (unsigned)bdatetime->time.min, (unsigned)bdatetime->time.sec,
+        (unsigned)bdatetime->time.hundredths);
+
+    return str_len;
 }

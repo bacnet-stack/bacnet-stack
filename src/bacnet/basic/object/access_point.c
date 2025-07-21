@@ -1,38 +1,18 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* Access Point Objects - customize for your use */
-
+/**
+ * @file
+ * @brief A basic BACnet Access Point Objects implementation.
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "access_point.h"
 #include "bacnet/basic/services.h"
@@ -42,13 +22,26 @@ static bool Access_Point_Initialized = false;
 static ACCESS_POINT_DESCR ap_descr[MAX_ACCESS_POINTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_STATUS_FLAGS, PROP_EVENT_STATE,
-    PROP_RELIABILITY, PROP_OUT_OF_SERVICE, PROP_AUTHENTICATION_STATUS,
-    PROP_ACTIVE_AUTHENTICATION_POLICY, PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
-    PROP_AUTHORIZATION_MODE, PROP_ACCESS_EVENT, PROP_ACCESS_EVENT_TAG,
-    PROP_ACCESS_EVENT_TIME, PROP_ACCESS_EVENT_CREDENTIAL, PROP_ACCESS_DOORS,
-    PROP_PRIORITY_FOR_WRITING, -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_AUTHENTICATION_STATUS,
+    PROP_ACTIVE_AUTHENTICATION_POLICY,
+    PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
+    PROP_AUTHORIZATION_MODE,
+    PROP_ACCESS_EVENT,
+    PROP_ACCESS_EVENT_TAG,
+    PROP_ACCESS_EVENT_TIME,
+    PROP_ACCESS_EVENT_CREDENTIAL,
+    PROP_ACCESS_DOORS,
+    PROP_PRIORITY_FOR_WRITING,
+    -1
+};
 
 static const int Properties_Optional[] = { -1 };
 
@@ -142,13 +135,14 @@ unsigned Access_Point_Instance_To_Index(uint32_t object_instance)
 bool Access_Point_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ACCESS_POINTS) {
-        sprintf(
-            text_string, "ACCESS POINT %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(
+            text, sizeof(text), "ACCESS POINT %lu",
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
@@ -239,7 +233,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ap_descr[object_index].active_authentication_policy);
             break;
         case PROP_NUMBER_OF_AUTHENTICATION_POLICIES:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 ap_descr[object_index].number_of_authentication_policies);
             break;
         case PROP_AUTHORIZATION_MODE:
@@ -281,7 +276,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 }
             } else {
                 if (rpdata->array_index <= ap_descr[object_index].num_doors) {
-                    apdu_len = bacapp_encode_device_obj_ref(&apdu[0],
+                    apdu_len = bacapp_encode_device_obj_ref(
+                        &apdu[0],
                         &ap_descr[object_index]
                              .access_doors[rpdata->array_index - 1]);
                 } else {
@@ -291,18 +287,15 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 }
             }
             break;
+        case PROP_PRIORITY_FOR_WRITING:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ap_descr[object_index].priority_for_writing);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-    }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACCESS_DOORS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -313,7 +306,7 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -325,38 +318,25 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_ACCESS_DOORS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
-
     switch (wp_data->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_RELIABILITY:
         case PROP_OUT_OF_SERVICE:
-        case PROP_AUTHENTICATION_STATUS:
-        case PROP_ACTIVE_AUTHENTICATION_POLICY:
-        case PROP_NUMBER_OF_AUTHENTICATION_POLICIES:
-        case PROP_AUTHORIZATION_MODE:
-        case PROP_ACCESS_EVENT:
-        case PROP_ACCESS_EVENT_TAG:
-        case PROP_ACCESS_EVENT_TIME:
-        case PROP_ACCESS_EVENT_CREDENTIAL:
-        case PROP_ACCESS_DOORS:
-        case PROP_PRIORITY_FOR_WRITING:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Access_Point_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
+            }
             break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

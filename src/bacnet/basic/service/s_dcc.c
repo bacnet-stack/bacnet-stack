@@ -1,33 +1,16 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief  Send a Device Communication Control (DCC) request.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -36,10 +19,9 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_dcc.c  Send a Device Communication Control (DCC) request. */
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/datalink.h"
 
 /** Sends a Device Communication Control (DCC) request.
  * @ingroup DMDCC
@@ -51,12 +33,12 @@
  * @param password [in] Optional password, up to 20 chars.
  * @return The invokeID of the transmitted message, or 0 on failure.
  */
-
-uint8_t Send_Device_Communication_Control_Request(uint32_t device_id,
-    uint16_t timeDuration, /* 0=optional */
+uint8_t Send_Device_Communication_Control_Request(
+    uint32_t device_id,
+    uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE state,
-    char *password)
-{ /* NULL=optional */
+    const char *password)
+{
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
     unsigned max_apdu = 0;
@@ -64,9 +46,7 @@ uint8_t Send_Device_Communication_Control_Request(uint32_t device_id,
     bool status = false;
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_CHARACTER_STRING password_string;
     BACNET_NPDU_DATA npdu_data;
 
@@ -89,8 +69,9 @@ uint8_t Send_Device_Communication_Control_Request(uint32_t device_id,
             &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
         characterstring_init_ansi(&password_string, password);
-        len = dcc_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
-            timeDuration, state, password ? &password_string : NULL);
+        len = dcc_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], invoke_id, timeDuration, state,
+            password ? &password_string : NULL);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
@@ -98,27 +79,22 @@ uint8_t Send_Device_Communication_Control_Request(uint32_t device_id,
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(
-                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr,
-                    "Failed to Send DeviceCommunicationControl Request (%s)!\n",
-                    strerror(errno));
-#endif
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
+            bytes_sent = datalink_send_pdu(
+                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+            if (bytes_sent <= 0) {
+                debug_perror(
+                    "Failed to Send DeviceCommunicationControl Request");
+            }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(stderr,
+            debug_fprintf(
+                stderr,
                 "Failed to Send DeviceCommunicationControl Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

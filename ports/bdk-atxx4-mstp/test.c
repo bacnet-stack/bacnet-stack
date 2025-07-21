@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stdint.h>
@@ -33,6 +16,7 @@
 #include "rs485.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "seeprom.h"
+#include "spi-master.h"
 #include "nvdata.h"
 /* me */
 #include "test.h"
@@ -64,6 +48,7 @@ void test_init(void)
 #else
     BIT_SET(DDRB, DDB0);
 #endif
+    spi_master_init();
 }
 
 /**
@@ -154,7 +139,7 @@ void test_task(void)
 
     if (mstimer_expired(&Test_Timer)) {
         mstimer_reset(&Test_Timer);
-        sprintf(Send_Buffer, "BACnet: 0000000\r\n");
+        snprintf(Send_Buffer, sizeof(Send_Buffer), "BACnet: 0000000\r\n");
         MSTP_MAC_Address = input_address();
         Send_Buffer[8] = (MSTP_MAC_Address & BIT(0)) ? '1' : '0';
         Send_Buffer[9] = (MSTP_MAC_Address & BIT(1)) ? '1' : '0';
@@ -198,18 +183,22 @@ void test_task(void)
                 break;
             case 'e':
                 seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *)&id, 2);
-                sprintf(Send_Buffer, "\r\n%04X", id);
+                snprintf(Send_Buffer, sizeof(Send_Buffer), "\r\n%04X", id);
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'b':
-                sprintf(Send_Buffer, "\r\n%lubps",
+                snprintf(Send_Buffer, sizeof(Send_Buffer), "\r\n%lubps",
                     (unsigned long)rs485_baud_rate());
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'm':
-                sprintf(
-                    Send_Buffer, "\r\nMax:%u", (unsigned)dlmstp_max_master());
+                snprintf(Send_Buffer, sizeof(Send_Buffer),
+                    "\r\nMax:%u", (unsigned)dlmstp_max_master());
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
+                break;
+            case 's':
+                data_register = spi_master_transfer(0xBA);
+                snprintf(Send_Buffer, sizeof(Send_Buffer), "\r\nSPI:%02Xh", data_register);
                 break;
             default:
                 break;

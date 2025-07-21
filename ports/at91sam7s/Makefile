@@ -22,7 +22,11 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 BACNET_FLAGS += -DPRINT_ENABLED=0
 BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DCRC_USE_TABLE
-#BACNET_FLAGS += -DDLMSTP_TEST
+BACNET_FLAGS += -DBACAPP_MINIMAL
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 BACNET_SRC = ../../src
 BACNET_CORE = $(BACNET_SRC)/bacnet
@@ -34,9 +38,27 @@ CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -g
 CFLAGS += -mno-thumb-interwork
 # dead code removal
 CFLAGS += -fdata-sections -ffunction-sections
-# warning control
-CFLAGS += -Wall
-CFLAGS += -Wno-char-subscripts
+# C standard to use for compiler
+CSTANDARD = -std=gnu11
+CFLAGS += $(CSTANDARD)
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
+# the older Atmel SDK does not meet coding guidelines
+WARNING_ALL += -Wno-comment -Wno-missing-braces
+WARNING_ALL += -Wno-unused-variable -Wno-char-subscripts
+# fix later
+WARNING_ALL += -Wno-unused-parameter
+WARNING_ALL += -Wno-type-limits
+WARNING_ALL += -Wno-redundant-decls
+#WARNING_ALL += -Werror
+CFLAGS += $(WARNING_ALL)
 
 LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
@@ -84,6 +106,7 @@ DEMOSRC = ai.c \
 	$(BACNET_BASIC)/service/s_ihave.c
 
 CORESRC = $(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -111,6 +134,8 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/weeklyschedule.c \
 	$(BACNET_CORE)/dailyschedule.c \
 	$(BACNET_CORE)/bactimevalue.c \
+	$(BACNET_CORE)/calendar_entry.c \
+	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c

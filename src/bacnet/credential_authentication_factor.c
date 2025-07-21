@@ -1,38 +1,22 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief BACnetCredentialAuthenticationFactor encode and decode functions
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdint.h>
 #include "bacnet/credential_authentication_factor.h"
 #include "bacnet/bacdcode.h"
 
 int bacapp_encode_credential_authentication_factor(
-    uint8_t *apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
+    uint8_t *apdu, const BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
 {
     int len;
     int apdu_len = 0;
 
-    len = encode_context_enumerated(&apdu[apdu_len], 0, caf->disable);
+    len = encode_context_enumerated(&apdu[apdu_len], 0, factor->disable);
     if (len < 0) {
         return -1;
     } else {
@@ -40,7 +24,7 @@ int bacapp_encode_credential_authentication_factor(
     }
 
     len = bacapp_encode_context_authentication_factor(
-        &apdu[apdu_len], 1, &caf->authentication_factor);
+        &apdu[apdu_len], 1, &factor->authentication_factor);
     if (len < 0) {
         return -1;
     } else {
@@ -51,7 +35,9 @@ int bacapp_encode_credential_authentication_factor(
 }
 
 int bacapp_encode_context_credential_authentication_factor(
-    uint8_t *apdu, uint8_t tag, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
+    uint8_t *apdu,
+    uint8_t tag,
+    const BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
 {
     int len;
     int apdu_len = 0;
@@ -59,7 +45,8 @@ int bacapp_encode_context_credential_authentication_factor(
     len = encode_opening_tag(&apdu[apdu_len], tag);
     apdu_len += len;
 
-    len = bacapp_encode_credential_authentication_factor(&apdu[apdu_len], caf);
+    len =
+        bacapp_encode_credential_authentication_factor(&apdu[apdu_len], factor);
     apdu_len += len;
 
     len = encode_closing_tag(&apdu[apdu_len], tag);
@@ -69,11 +56,11 @@ int bacapp_encode_context_credential_authentication_factor(
 }
 
 int bacapp_decode_credential_authentication_factor(
-    uint8_t *apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
+    const uint8_t *apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
 {
     int len;
     int apdu_len = 0;
-    uint32_t disable = caf->disable;
+    uint32_t disable = factor->disable;
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
         len = decode_context_enumerated(&apdu[apdu_len], 0, &disable);
@@ -81,7 +68,8 @@ int bacapp_decode_credential_authentication_factor(
             return -1;
         } else if (disable < ACCESS_AUTHENTICATION_FACTOR_DISABLE_MAX) {
             apdu_len += len;
-            caf->disable = (BACNET_ACCESS_AUTHENTICATION_FACTOR_DISABLE)disable;
+            factor->disable =
+                (BACNET_ACCESS_AUTHENTICATION_FACTOR_DISABLE)disable;
         } else {
             return -1;
         }
@@ -91,7 +79,7 @@ int bacapp_decode_credential_authentication_factor(
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
         len = bacapp_decode_context_authentication_factor(
-            &apdu[apdu_len], 1, &caf->authentication_factor);
+            &apdu[apdu_len], 1, &factor->authentication_factor);
         if (len < 0) {
             return -1;
         } else {
@@ -105,7 +93,9 @@ int bacapp_decode_credential_authentication_factor(
 }
 
 int bacapp_decode_context_credential_authentication_factor(
-    uint8_t *apdu, uint8_t tag, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
+    const uint8_t *apdu,
+    uint8_t tag,
+    BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
 {
     int len = 0;
     int section_length;
@@ -113,7 +103,7 @@ int bacapp_decode_context_credential_authentication_factor(
     if (decode_is_opening_tag_number(&apdu[len], tag)) {
         len++;
         section_length =
-            bacapp_decode_credential_authentication_factor(&apdu[len], caf);
+            bacapp_decode_credential_authentication_factor(&apdu[len], factor);
 
         if (section_length == -1) {
             len = -1;

@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-/* linux Ethernet/IP specific */
+/**
+ * @file
+ * @brief Initializes BACnet/IP interface (Linux).
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <asm/types.h>
 #include <netinet/ether.h>
 #include <netinet/in.h>
@@ -49,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 /* BACnet specific */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -56,8 +30,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
-
-/** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 
 /* unix sockets */
 static int BIP_Socket = -1;
@@ -73,6 +45,9 @@ static uint16_t BIP_Port;
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
 static struct in_addr BIP_Broadcast_Addr;
+/* broadcast binding mechanism */
+static bool BIP_Broadcast_Binding_Address_Override;
+static struct in_addr BIP_Broadcast_Binding_Address;
 /* enable debugging */
 static bool BIP_Debug = false;
 /* interface name */
@@ -83,13 +58,15 @@ static char BIP_Interface_Name[IF_NAMESIZE] = { 0 };
  * @param str - debug info string
  * @param addr - IPv4 address
  */
-static void debug_print_ipv4(const char *str,
+static void debug_print_ipv4(
+    const char *str,
     const struct in_addr *addr,
     const unsigned int port,
     const unsigned int count)
 {
     if (BIP_Debug) {
-        fprintf(stderr, "BIP: %s %s:%hu (%u bytes)\n", str, inet_ntoa(*addr),
+        fprintf(
+            stderr, "BIP: %s %s:%hu (%u bytes)\n", str, inet_ntoa(*addr),
             ntohs(port), count);
         fflush(stderr);
     }
@@ -201,7 +178,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  *
  * @param addr - network IPv4 address
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     /* not something we do within this driver */
     (void)addr;
@@ -228,7 +205,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param addr - network IPv4 address
  * @return true if the address was set
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     /* not something we do within this driver */
     (void)addr;
@@ -269,7 +246,6 @@ uint8_t bip_get_subnet_prefix(void)
 {
     uint32_t address = 0;
     uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
@@ -277,8 +253,7 @@ uint8_t bip_get_subnet_prefix(void)
     broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
-        test_broadcast = (address & mask) | (~mask);
-        if (test_broadcast == broadcast) {
+        if ((address | mask) == broadcast) {
             break;
         }
         mask = mask << 1;
@@ -296,9 +271,10 @@ uint8_t bip_get_subnet_prefix(void)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
 
@@ -317,8 +293,9 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     /* Send the packet */
     debug_print_ipv4(
         "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
-    return sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
-        (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
+    return sendto(
+        BIP_Socket, (const char *)mtu, mtu_len, 0, (struct sockaddr *)&bip_dest,
+        sizeof(struct sockaddr));
 }
 
 /**
@@ -369,10 +346,11 @@ uint16_t bip_receive(
 
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
-            BIP_Broadcast_Socket;
-        received_bytes = recvfrom(socket, (char *)&npdu[0], max_npdu, 0,
-            (struct sockaddr *)&sin, &sin_len);
+        socket =
+            FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket : BIP_Broadcast_Socket;
+        received_bytes = recvfrom(
+            socket, (char *)&npdu[0], max_npdu, 0, (struct sockaddr *)&sin,
+            &sin_len);
     } else {
         return 0;
     }
@@ -409,9 +387,11 @@ uint16_t bip_receive(
     debug_print_ipv4(
         "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
-    offset = socket == BIP_Socket ?
-        bvlc_handler(&addr, src, npdu, received_bytes) :
-        bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
+    if (socket == BIP_Socket) {
+        offset = bvlc_handler(&addr, src, npdu, received_bytes);
+    } else {
+        offset = bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
+    }
     if (offset > 0) {
         npdu_len = received_bytes - offset;
         debug_print_ipv4(
@@ -443,9 +423,10 @@ uint16_t bip_receive(
  * @param mtu - the bytes of data to send
  * @param mtu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
-int bip_send_pdu(BACNET_ADDRESS *dest,
+int bip_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -488,12 +469,13 @@ bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr)
  * @param request - the ioctl() request
  * @return 0 on success, else the error from the ioctl() call.
  */
-static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
+static int
+get_local_ifr_ioctl(const char *ifname, struct ifreq *ifr, int request)
 {
     int fd;
     int rv; /* return value */
 
-    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
+    snprintf(ifr->ifr_name, sizeof(ifr->ifr_name), "%s", ifname);
     ifr->ifr_name[sizeof(ifr->ifr_name) - 1] = 0;
 
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -514,9 +496,10 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
  * @param request - the ioctl() request
  * @return 0 on success, else the error from the ioctl() call.
  */
-int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
+int bip_get_local_address_ioctl(
+    const char *ifname, struct in_addr *addr, uint32_t request)
 {
-    struct ifreq ifr = { { { 0 } }, { { 0 } } };
+    struct ifreq ifr = { 0 };
     struct sockaddr_in *tcpip_address;
     int rv; /* return value */
 
@@ -546,8 +529,8 @@ struct route_info {
  * @param pId - process identifier of our specific request response
  * @return number of bytes placed into the buffer
  */
-static int readNlSock(
-    int sockFd, char *bufPtr, size_t buf_size, int seqNum, int pId)
+static int
+readNlSock(int sockFd, char *bufPtr, size_t buf_size, int seqNum, int pId)
 {
     struct nlmsghdr *nlHdr;
     int readLen = 0, msgLen = 0;
@@ -594,7 +577,8 @@ static char *ntoa(uint32_t addr)
 {
     static char buffer[18];
 
-    sprintf(buffer, "%d.%d.%d.%d", (addr & 0x000000FF),
+    snprintf(
+        buffer, sizeof(buffer), "%d.%d.%d.%d", (addr & 0x000000FF),
         (addr & 0x0000FF00) >> 8, (addr & 0x00FF0000) >> 16,
         (addr & 0xFF000000) >> 24);
 
@@ -609,18 +593,21 @@ static void printRoute(struct route_info *rtInfo)
 {
     if (BIP_Debug) {
         /* Print Destination address */
-        fprintf(stderr, "%s\t",
+        fprintf(
+            stderr, "%s\t",
             rtInfo->dstAddr ? ntoa(rtInfo->dstAddr) : "0.0.0.0  ");
 
         /* Print Gateway address */
-        fprintf(stderr, "%s\t",
+        fprintf(
+            stderr, "%s\t",
             rtInfo->gateWay ? ntoa(rtInfo->gateWay) : "*.*.*.*");
 
         /* Print Interface Name */
         fprintf(stderr, "%s\t", rtInfo->ifName);
 
         /* Print Source address */
-        fprintf(stderr, "%s\n",
+        fprintf(
+            stderr, "%s\n",
             rtInfo->srcAddr ? ntoa(rtInfo->srcAddr) : "*.*.*.*");
     }
 }
@@ -640,8 +627,9 @@ static void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo)
 
     /* If the route is not for AF_INET or does not belong to main routing table
     then return. */
-    if ((rtMsg->rtm_family != AF_INET) || (rtMsg->rtm_table != RT_TABLE_MAIN))
+    if ((rtMsg->rtm_family != AF_INET) || (rtMsg->rtm_table != RT_TABLE_MAIN)) {
         return;
+    }
 
     /* get the rtattr field */
     rtAttr = (struct rtattr *)RTM_RTA(rtMsg);
@@ -720,7 +708,8 @@ static char *ifname_default(void)
         if (BIP_Interface_Name[0] == 0) {
             if ((rtInfo->dstAddr == 0) && (rtInfo->ifName[0] != 0)) {
                 /* default route */
-                memcpy(BIP_Interface_Name, rtInfo->ifName,
+                memcpy(
+                    BIP_Interface_Name, rtInfo->ifName,
                     sizeof(BIP_Interface_Name));
             }
         }
@@ -749,13 +738,26 @@ int bip_get_local_netmask(struct in_addr *netmask)
     return rv;
 }
 
+/**
+ * @brief Set the broadcast socket binding address
+ * @param baddr The broadcast socket binding address, in host order.
+ * @return 0 on success
+ */
+int bip_set_broadcast_binding(const char *ip4_broadcast)
+{
+    BIP_Broadcast_Binding_Address.s_addr = inet_addr(ip4_broadcast);
+    BIP_Broadcast_Binding_Address_Override = true;
+
+    return 0;
+}
+
 /** Gets the local IP address and local broadcast address from the system,
  *  and saves it into the BACnet/IP data structures.
  *
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     struct in_addr local_address;
     struct in_addr netmask;
@@ -773,6 +775,29 @@ void bip_set_interface(char *ifname)
         fflush(stderr);
     }
     /* setup local broadcast address */
+#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
+    long broadcast_address;
+    long net_address;
+
+    broadcast_address = 0;
+    net_address = local_address.s_addr;
+    if (IN_CLASSA(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSA_HOST) | IN_CLASSA_HOST;
+    } else if (IN_CLASSB(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSB_HOST) | IN_CLASSB_HOST;
+    } else if (IN_CLASSC(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSC_HOST) | IN_CLASSC_HOST;
+    } else if (IN_CLASSD(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
+    } else {
+        broadcast_address = INADDR_BROADCAST;
+    }
+    BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
+#else
     rv = bip_get_local_address_ioctl(ifname, &netmask, SIOCGIFNETMASK);
     if (rv < 0) {
         BIP_Broadcast_Addr.s_addr = ~0;
@@ -780,16 +805,24 @@ void bip_set_interface(char *ifname)
         BIP_Broadcast_Addr = local_address;
         BIP_Broadcast_Addr.s_addr |= (~netmask.s_addr);
     }
+#endif
     if (BIP_Debug) {
-        fprintf(stderr, "BIP: Broadcast Address: %s\n",
+        fprintf(
+            stderr, "BIP: Broadcast Address: %s\n",
             inet_ntoa(BIP_Broadcast_Addr));
-        fprintf(stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
+        fprintf(
+            stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
             ntohs(BIP_Port));
         fflush(stderr);
     }
 }
 
-static int createSocket(struct sockaddr_in *sin)
+const char *bip_get_interface(void)
+{
+    return BIP_Interface_Name;
+}
+
+static int createSocket(const struct sockaddr_in *sin)
 {
     int status = 0; /* return from socket lib calls */
     int sockopt = 0;
@@ -817,9 +850,14 @@ static int createSocket(struct sockaddr_in *sin)
         return status;
     }
     /* Bind to the proper interface to send without default gateway */
-    setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
+    status = setsockopt(
+        sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
         strlen(BIP_Interface_Name));
-
+    if (status < 0) {
+        if (BIP_Debug) {
+            perror("SO_BINDTODEVICE: ");
+        }
+    }
     /* bind the socket to the local port number and IP address */
     status =
         bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
@@ -852,15 +890,18 @@ bool bip_init(char *ifname)
 {
     struct sockaddr_in sin;
     int sock_fd = -1;
+    struct sockaddr_in broadcast_sin_config;
+    int broadcast_sock_fd;
 
     if (ifname) {
-        strncpy(BIP_Interface_Name, ifname, sizeof(BIP_Interface_Name));
+        snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", ifname);
         bip_set_interface(ifname);
     } else {
         bip_set_interface(ifname_default());
     }
     if (BIP_Address.s_addr == 0) {
-        fprintf(stderr, "BIP: Failed to get an IP address from %s!\n",
+        fprintf(
+            stderr, "BIP: Failed to get an IP address from %s!\n",
             BIP_Interface_Name);
         fflush(stderr);
         return false;
@@ -877,11 +918,35 @@ bool bip_init(char *ifname)
         return false;
     }
 
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sock_fd = createSocket(&sin);
-    BIP_Broadcast_Socket = sock_fd;
-    if (sock_fd < 0) {
-        return false;
+    broadcast_sin_config.sin_family = AF_INET;
+    broadcast_sin_config.sin_port = BIP_Port;
+    memset(
+        &(broadcast_sin_config.sin_zero), '\0',
+        sizeof(broadcast_sin_config.sin_zero));
+    if (BIP_Broadcast_Binding_Address_Override) {
+        broadcast_sin_config.sin_addr.s_addr =
+            BIP_Broadcast_Binding_Address.s_addr;
+    } else {
+#if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
+        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_ANY);
+#elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
+        broadcast_sin_config.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+#else
+        broadcast_sin_config.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
+#endif
+    }
+    if (broadcast_sin_config.sin_addr.s_addr == BIP_Address.s_addr) {
+        /* handle the case when a network interface on the system
+           reports the interface's unicast IP address as being
+           the same as its broadcast IP address */
+        BIP_Broadcast_Socket = BIP_Socket;
+    } else {
+        broadcast_sock_fd = createSocket(&broadcast_sin_config);
+        BIP_Broadcast_Socket = broadcast_sock_fd;
+        if (broadcast_sock_fd < 0) {
+            bip_cleanup();
+            return false;
+        }
     }
 
     bvlc_init();
@@ -912,6 +977,9 @@ void bip_cleanup(void)
         close(BIP_Broadcast_Socket);
     }
     BIP_Broadcast_Socket = -1;
+    /* these were set non-zero during interface configuration */
+    BIP_Address.s_addr = 0;
+    BIP_Broadcast_Addr.s_addr = 0;
 
     return;
 }

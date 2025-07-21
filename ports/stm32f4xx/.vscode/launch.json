@@ -1,0 +1,53 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug with OpenOCD",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build/bacnet-mstp.elf",
+            "servertype": "openocd",
+            "device": "STM32F429ZI",
+            "serialNumber": "",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f4x.cfg"
+            ],
+            "searchDir": [],
+            "svdFile": "${workspaceRoot}/stm32f429.svd",
+            "runToEntryPoint": "main",
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 1
+            },
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 8000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    {
+                        "type": "console",
+                        "label": "ITM",
+                        "port": 0
+                    }
+                ]
+            },
+            "preLaunchCommands": [
+                //  guarantee the halt at soon as possible after reset
+                "monitor reset",
+                "monitor sleep 2000",
+                "monitor reset halt",
+                // synchronize GDB to the state of the target after reset
+                "monitor gdb_sync",
+                "stepi"
+            ],
+            "postLaunchCommands": [
+                "monitor reset init",
+                "monitor sleep 200"
+            ],
+            "showDevDebugOutput": "raw"
+        }
+    ]
+}

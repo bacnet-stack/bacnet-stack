@@ -5,8 +5,6 @@
  */
 
 #include "bacnet/bacerror.h"
-
-#include <errno.h>
 #include <zephyr/fff.h>
 #include <zephyr/ztest.h>
 #include <zephyr/sys/util.h>
@@ -28,7 +26,7 @@
         CONTEXTTYPE *const contexts = CONTAINER_OF(                    \
             FUNCNAME##_fake.return_val_seq, CONTEXTTYPE, RESULTFIELD); \
         size_t const seq_idx = (FUNCNAME##_fake.return_val_seq_idx <   \
-                                   FUNCNAME##_fake.return_val_seq_len) \
+                                FUNCNAME##_fake.return_val_seq_len)    \
             ? FUNCNAME##_fake.return_val_seq_idx++                     \
             : FUNCNAME##_fake.return_val_seq_idx - 1;                  \
         CONTEXTTYPE *const CONTEXTPTRNAME = &contexts[seq_idx];        \
@@ -54,15 +52,16 @@ struct encode_application_enumerated_custom_fake_context {
 
     /* Written to client by custom fake */
     const uint8_t *const encoded_enumerated;
-    int const encoded_enumerated_len;
+    const int encoded_enumerated_len;
 
     int result;
 };
 
-static int encode_application_enumerated_custom_fake(
-    uint8_t *apdu, uint32_t enumerated)
+static int
+encode_application_enumerated_custom_fake(uint8_t *apdu, uint32_t enumerated)
 {
-    RETURN_HANDLED_CONTEXT(encode_application_enumerated,
+    RETURN_HANDLED_CONTEXT(
+        encode_application_enumerated,
         struct encode_application_enumerated_custom_fake_context,
         result, /* return field name in _fake_context struct */
         context, /* Name of context ptr variable used below */
@@ -70,7 +69,8 @@ static int encode_application_enumerated_custom_fake(
             if (context != NULL) {
                 if (context->result == 0) {
                     if (apdu != NULL) {
-                        memcpy(apdu, context->encoded_enumerated,
+                        memcpy(
+                            apdu, context->encoded_enumerated,
                             context->encoded_enumerated_len);
                     }
                 }
@@ -86,26 +86,29 @@ struct decode_tag_number_and_value_custom_fake_context {
     uint8_t *const apdu_expected;
 
     /* Written to client by custom fake */
-    uint8_t const tag_number;
-    uint32_t const value;
+    const uint8_t tag_number;
+    const uint32_t value;
 
     int result;
 };
 
 static int decode_tag_number_and_value_custom_fake(
-    uint8_t *apdu, uint8_t *tag_number, uint32_t *value)
+    const uint8_t *apdu, uint8_t *tag_number, uint32_t *value)
 {
-    RETURN_HANDLED_CONTEXT(decode_tag_number_and_value,
+    RETURN_HANDLED_CONTEXT(
+        decode_tag_number_and_value,
         struct decode_tag_number_and_value_custom_fake_context,
         result, /* return field name in _fake_context struct */
         context, /* Name of context ptr variable used below */
         {
             if (context != NULL) {
                 if (context->result > 0) {
-                    if (tag_number != NULL)
+                    if (tag_number != NULL) {
                         *tag_number = context->tag_number;
-                    if (value != NULL)
+                    }
+                    if (value != NULL) {
                         *value = context->value;
+                    }
                 }
 
                 return context->result;
@@ -119,23 +122,24 @@ struct decode_enumerated_custom_fake_context {
     uint8_t *const apdu_expected;
 
     /* Written to client by custom fake */
-    uint32_t const value;
+    const uint32_t value;
 
     int result;
 };
 
 static int decode_enumerated_custom_fake(
-    uint8_t *apdu, uint32_t len_value, uint32_t *value)
+    const uint8_t *apdu, uint32_t len_value, uint32_t *value)
 {
-    RETURN_HANDLED_CONTEXT(decode_enumerated,
-        struct decode_enumerated_custom_fake_context,
+    RETURN_HANDLED_CONTEXT(
+        decode_enumerated, struct decode_enumerated_custom_fake_context,
         result, /* return field name in _fake_context struct */
         context, /* Name of context ptr variable used below */
         {
             if (context != NULL) {
                 if (context->result > 0) {
-                    if (value != NULL)
+                    if (value != NULL) {
                         *value = context->value;
+                    }
                 }
 
                 return context->result;
@@ -149,7 +153,11 @@ static int decode_enumerated_custom_fake(
  * Tests:
  */
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_bacerror_encode_apdu)
+#else
 static void test_bacerror_encode_apdu(void)
+#endif
 {
     uint8_t test_apdu[32] = { 0 };
 
@@ -272,7 +280,8 @@ static void test_bacerror_encode_apdu(void)
     for (int i = 0; i < ARRAY_SIZE(test_cases); ++i) {
         const struct test_case *const tc = &test_cases[i];
 
-        printk("Checking test_cases[%i]: %s\n", i,
+        printk(
+            "Checking test_cases[%i]: %s\n", i,
             (tc->description_oneliner != NULL) ? tc->description_oneliner : "");
 
         /*
@@ -292,7 +301,8 @@ static void test_bacerror_encode_apdu(void)
          */
         encode_application_enumerated_fake.return_val =
             -E2BIG; /* for excessive calls */
-        SET_RETURN_SEQ(encode_application_enumerated,
+        SET_RETURN_SEQ(
+            encode_application_enumerated,
             &tc->encode_application_enumerated_custom_fake_contexts[0].result,
             tc->encode_application_enumerated_custom_fake_contexts_len);
         encode_application_enumerated_fake.custom_fake =
@@ -303,8 +313,9 @@ static void test_bacerror_encode_apdu(void)
         /*
          * Call code_under_test
          */
-        int result = bacerror_encode_apdu(tc->apdu, tc->invoke_id, tc->service,
-            tc->error_class, tc->error_code);
+        int result = bacerror_encode_apdu(
+            tc->apdu, tc->invoke_id, tc->service, tc->error_class,
+            tc->error_code);
 
         /*
          * Verify expected behavior of code_under_test:
@@ -328,15 +339,18 @@ static void test_bacerror_encode_apdu(void)
             ? 0
             : tc->encode_application_enumerated_custom_fake_contexts_len - 1;
 
-        zassert_equal(encode_application_enumerated_fake.call_count,
+        zassert_equal(
+            encode_application_enumerated_fake.call_count,
             encode_application_enumerated_fake_call_count_expected, NULL);
         for (int j = 0;
              j < encode_application_enumerated_fake_call_count_expected; ++j) {
-            zassert_equal(encode_application_enumerated_fake.arg0_history[j],
+            zassert_equal(
+                encode_application_enumerated_fake.arg0_history[j],
                 tc->encode_application_enumerated_custom_fake_contexts[j]
                     .apdu_expected,
                 NULL);
-            zassert_equal(encode_application_enumerated_fake.arg1_history[j],
+            zassert_equal(
+                encode_application_enumerated_fake.arg1_history[j],
                 tc->encode_application_enumerated_custom_fake_contexts[j]
                     .value_expected,
                 NULL);
@@ -358,7 +372,11 @@ static void test_bacerror_encode_apdu(void)
     }
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacerror, test_bacerror_decode_error_class_and_code)
+#else
 static void test_bacerror_decode_error_class_and_code(void)
+#endif
 {
 #if !BACNET_SVC_SERVER
     uint8_t test_apdu[32] = { 0 };
@@ -461,7 +479,8 @@ static void test_bacerror_decode_error_class_and_code(void)
 
             .expected_call_history =
                 (void *[]) {
-                    decode_tag_number_and_value, NULL, /* mark end of array */
+                    bacnet_enumerated_application_decode,
+                    NULL, /* mark end of array */
                 },
 
             .decode_tag_number_and_value_custom_fake_contexts_len = 2,
@@ -975,7 +994,8 @@ static void test_bacerror_decode_error_class_and_code(void)
     for (int i = 0; i < ARRAY_SIZE(test_cases); ++i) {
         const struct test_case *const tc = &test_cases[i];
 
-        printk("Checking test_cases[%i]: %s\n", i,
+        printk(
+            "Checking test_cases[%i]: %s\n", i,
             (tc->description_oneliner != NULL) ? tc->description_oneliner : "");
 
         /*
@@ -995,14 +1015,16 @@ static void test_bacerror_decode_error_class_and_code(void)
          */
         decode_tag_number_and_value_fake.return_val =
             -E2BIG; /* for excessive calls */
-        SET_RETURN_SEQ(decode_tag_number_and_value,
+        SET_RETURN_SEQ(
+            decode_tag_number_and_value,
             &tc->decode_tag_number_and_value_custom_fake_contexts[0].result,
             tc->decode_tag_number_and_value_custom_fake_contexts_len);
         decode_tag_number_and_value_fake.custom_fake =
             decode_tag_number_and_value_custom_fake;
 
         decode_enumerated_fake.return_val = -E2BIG; /* for excessive calls */
-        SET_RETURN_SEQ(decode_enumerated,
+        SET_RETURN_SEQ(
+            decode_enumerated,
             &tc->decode_enumerated_custom_fake_contexts[0].result,
             tc->decode_enumerated_custom_fake_contexts_len);
         decode_enumerated_fake.custom_fake = decode_enumerated_custom_fake;
@@ -1056,11 +1078,13 @@ static void test_bacerror_decode_error_class_and_code(void)
             ? 0
             : tc->decode_tag_number_and_value_custom_fake_contexts_len - 1;
 
-        zassert_equal(decode_tag_number_and_value_fake.call_count,
+        zassert_equal(
+            decode_tag_number_and_value_fake.call_count,
             decode_tag_number_and_value_fake_call_count_expected, NULL);
         for (int j = 0;
              j < decode_tag_number_and_value_fake_call_count_expected; ++j) {
-            zassert_equal(decode_tag_number_and_value_fake.arg0_history[j],
+            zassert_equal(
+                decode_tag_number_and_value_fake.arg0_history[j],
                 tc->decode_tag_number_and_value_custom_fake_contexts[j]
                     .apdu_expected,
                 NULL);
@@ -1075,13 +1099,16 @@ static void test_bacerror_decode_error_class_and_code(void)
             ? 0
             : tc->decode_enumerated_custom_fake_contexts_len - 1;
 
-        zassert_equal(decode_enumerated_fake.call_count,
+        zassert_equal(
+            decode_enumerated_fake.call_count,
             decode_enumerated_fake_call_count_expected, NULL);
         for (int j = 0; j < decode_enumerated_fake_call_count_expected; ++j) {
-            zassert_equal(decode_enumerated_fake.arg0_history[j],
+            zassert_equal(
+                decode_enumerated_fake.arg0_history[j],
                 tc->decode_enumerated_custom_fake_contexts[j].apdu_expected,
                 NULL);
-            zassert_equal(decode_enumerated_fake.arg1_history[j],
+            zassert_equal(
+                decode_enumerated_fake.arg1_history[j],
                 tc->decode_tag_number_and_value_custom_fake_contexts[j].value,
                 NULL);
             zassert_not_null(decode_enumerated_fake.arg2_history[j], NULL);
@@ -1118,10 +1145,14 @@ static void test_bacerror_decode_error_class_and_code(void)
 #endif
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST_SUITE(bacnet_error, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(bacnet_bacerror,
-        ztest_unit_test(test_bacerror_encode_apdu),
+    ztest_test_suite(
+        bacnet_bacerror, ztest_unit_test(test_bacerror_encode_apdu),
         ztest_unit_test(test_bacerror_decode_error_class_and_code));
     ztest_run_test_suite(bacnet_bacerror);
 }
+#endif

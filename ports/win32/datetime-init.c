@@ -51,6 +51,8 @@ int gettimeofday(struct timeval *tp, void *tzp)
 {
     static int tzflag = 0;
     struct timezone *tz;
+    long tz_seconds = 0;
+    int tz_hours = 0;
     /* start calendar time in microseconds */
     static LONGLONG usec_timer = 0;
     LONGLONG usec_elapsed = 0;
@@ -86,13 +88,30 @@ int gettimeofday(struct timeval *tp, void *tzp)
             tzflag++;
         }
         tz = tzp;
-        tz->tz_minuteswest = _timezone / 60;
-        tz->tz_dsttime = _daylight;
+        (void)_get_timezone(&tz_seconds);
+        tz->tz_minuteswest = tz_seconds / 60;
+        (void)_get_daylight(&tz_hours);
+        tz->tz_dsttime = tz_hours;
     }
 
     return 0;
 }
 #endif
+
+/**
+ * @brief Set offset from the system clock.
+ * @param bdate BACnet Date structure to hold local time
+ * @param btime BACnet Time structure to hold local time
+ * @param utc - True for UTC sync, False for Local time
+ * @return True if time is set
+ */
+void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+{
+    (void)bdate;
+    (void)btime;
+    (void)utc;
+    return;
+}
 
 /**
  * @brief Get the date, time, timezone, and UTC offset from system
@@ -103,7 +122,8 @@ int gettimeofday(struct timeval *tp, void *tzp)
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
-bool datetime_local(BACNET_DATE *bdate,
+bool datetime_local(
+    BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active)
@@ -111,13 +131,16 @@ bool datetime_local(BACNET_DATE *bdate,
     bool status = false;
     struct tm *tblock = NULL;
 #if defined(_MSC_VER)
-    time_t tTemp;
+    struct tm newtime = { 0 };
+    __time64_t long_time = 0;
 #else
     struct timeval tv;
 #endif
+
 #if defined(_MSC_VER)
-    time(&tTemp);
-    tblock = (struct tm *)localtime(&tTemp);
+    _time64(&long_time);
+    (void)localtime_s(&newtime, &long_time);
+    tblock = &newtime;
 #else
     if (gettimeofday(&tv, NULL) == 0) {
         tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
@@ -137,15 +160,17 @@ bool datetime_local(BACNET_DATE *bdate,
          *   int    tm_yday  Day of year [0,365].
          *   int    tm_isdst Daylight Savings flag.
          */
-        datetime_set_date(bdate, (uint16_t)tblock->tm_year + 1900,
+        datetime_set_date(
+            bdate, (uint16_t)tblock->tm_year + 1900,
             (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
 #if !defined(_MSC_VER)
-        datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
-            (uint8_t)(tv.tv_usec / 10000));
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, (uint8_t)(tv.tv_usec / 10000));
 #else
-        datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec, 0);
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, 0);
 #endif
         if (dst_active) {
             /* The value of tm_isdst is:
@@ -163,7 +188,7 @@ bool datetime_local(BACNET_DATE *bdate,
             /* timezone is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
                 local standard time */
-            *utc_offset_minutes = timezone / 60;
+            *utc_offset_minutes = (int16_t)(timezone / 60);
         }
     }
 

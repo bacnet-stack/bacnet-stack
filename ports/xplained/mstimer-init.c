@@ -1,33 +1,9 @@
-/*
+/**
  * @file
- *
  * @brief 1ms timer configuration
- *
- * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
- *
- * Created: 10/24/2013 8:58:56 PM
- * Author: Steve
- *
- * @page License
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2013
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -44,17 +20,17 @@
 static volatile uint32_t Millisecond_Counter;
 
 /**
- * Handles an interrupt from a hardware millisecond timer
+ * Handles an interrupt from a hardware counter timer, every millisecond
  */
-static void my_counter_handler(void)
+static void mstimer_counter_handler(void)
 {
     Millisecond_Counter++;
 }
 
 /**
- * Handles an interrupt from a hardware millisecond timer
+ * Handles an interrupt from an overflow hardware timer, every millisecond
  */
-static void my_callback_handler(void)
+static void mstimer_overflow_handler(void)
 {
     /* callback might go too long; prevent re-entrency by disable IRQ source */
     tc_set_overflow_interrupt_level(&MS_TIMER_CALLBACK, TC_INT_LVL_OFF);
@@ -98,7 +74,7 @@ void mstimer_init(void)
 
     tc_enable(&MS_TIMER_CALLBACK);
     tc_set_overflow_interrupt_callback(&MS_TIMER_CALLBACK,
-        my_callback_handler);
+        mstimer_overflow_handler);
     tc_set_wgm(&MS_TIMER_CALLBACK, TC_WG_NORMAL);
     tc_write_count(&MS_TIMER_CALLBACK, 1);
     period = sysclk_get_peripheral_bus_hz(&MS_TIMER_CALLBACK);

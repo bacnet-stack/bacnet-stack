@@ -1,38 +1,28 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
-#ifndef DAILYSCHEDULE_H
-#define DAILYSCHEDULE_H
+/**
+ * @file
+ * @brief BACnetDailySchedule encode and decode functions
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_DAILY_SCHEDULE_H
+#define BACNET_DAILY_SCHEDULE_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactimevalue.h"
 
-/* arbitrary value, shall be unlimited for B-OWS but we don't care, 640k shall be enough */
+/* arbitrary value, shall be unlimited for B-OWS but we don't care, 640k shall
+ * be enough */
 /* however we try not to boost the bacnet application value structure size,  */
 /* so 7 x (this value) x sizeof(BACNET_TIME_VALUE) fits. */
-#define MAX_DAY_SCHEDULE_VALUES 40
+#ifndef BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE
+#define BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE 40
+#endif
 
 /*
     BACnetDailySchedule ::= SEQUENCE {
@@ -44,23 +34,31 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    typedef struct BACnet_Daily_Schedule {
-        BACNET_TIME_VALUE Time_Values[MAX_DAY_SCHEDULE_VALUES];
-        uint16_t TV_Count;      /* the number of time values actually used */
-    } BACNET_DAILY_SCHEDULE;
+typedef struct BACnet_Daily_Schedule {
+    BACNET_TIME_VALUE Time_Values[BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE];
+    uint16_t TV_Count; /* the number of time values actually used */
+} BACNET_DAILY_SCHEDULE;
 
-    /** Decode DailySchedule (sequence of times and values) */
-    BACNET_STACK_EXPORT
-    int bacnet_dailyschedule_decode(
-        uint8_t * apdu,
-        int max_apdu_len,
-        BACNET_DAILY_SCHEDULE * day);
+/** Decode DailySchedule (sequence of times and values) */
+BACNET_STACK_EXPORT
+int bacnet_dailyschedule_context_decode(
+    const uint8_t *apdu,
+    int max_apdu_len,
+    uint8_t tag_number,
+    BACNET_DAILY_SCHEDULE *day);
 
-    /** Encode DailySchedule (sequence of times and values) */
-    BACNET_STACK_EXPORT
-    int bacnet_dailyschedule_encode(
-        uint8_t * apdu,
-        BACNET_DAILY_SCHEDULE * day);
+/** Encode DailySchedule (sequence of times and values) */
+BACNET_STACK_EXPORT
+int bacnet_dailyschedule_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DAILY_SCHEDULE *day);
+
+BACNET_STACK_EXPORT
+bool bacnet_dailyschedule_same(
+    const BACNET_DAILY_SCHEDULE *a, const BACNET_DAILY_SCHEDULE *b);
+
+BACNET_STACK_EXPORT
+void bacnet_dailyschedule_copy(
+    BACNET_DAILY_SCHEDULE *dest, const BACNET_DAILY_SCHEDULE *src);
 
 #ifdef __cplusplus
 }

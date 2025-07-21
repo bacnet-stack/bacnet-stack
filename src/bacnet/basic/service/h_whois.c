@@ -2,33 +2,16 @@
  *
  * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/whois.h"
 #include "bacnet/iam.h"
@@ -55,12 +38,12 @@ void handler_who_is(
     len = whois_decode_service_request(
         service_request, service_len, &low_limit, &high_limit);
     if (len == 0) {
-        Send_I_Am(&Handler_Transmit_Buffer[0]);
+        Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
         if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
             (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
-            Send_I_Am(&Handler_Transmit_Buffer[0]);
+            Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
         }
     }
 
@@ -84,8 +67,8 @@ void handler_who_is_unicast(
 
     len = whois_decode_service_request(
         service_request, service_len, &low_limit, &high_limit);
-    /* If no limits, then always respond */
     if (len == 0) {
+        /* If no limits, then always respond */
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
@@ -96,6 +79,56 @@ void handler_who_is_unicast(
     }
 
     return;
+}
+
+/** Handler for Who-Is requests, with broadcast I-Am or Who-Am-I response.
+ * @ingroup DMDDB
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source (ignored).
+ */
+void handler_who_is_who_am_i_unicast(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
+{
+    int len = 0;
+    int32_t low_limit = 0;
+    int32_t high_limit = 0;
+    BACNET_CHARACTER_STRING model_name = { 0 }, serial_number = { 0 };
+
+    len = whois_decode_service_request(
+        service_request, service_len, &low_limit, &high_limit);
+    if (len == 0) {
+        if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+            /* The Who-Am-I service is also used to respond to a Who-Is
+               service request that uses the Device Object_Identifier
+               instance number of 4194303. */
+            characterstring_init_ansi(&model_name, Device_Model_Name());
+            characterstring_init_ansi(&serial_number, Device_Serial_Number());
+            Send_Who_Am_I_To_Network(
+                src, Device_Vendor_Identifier(), &model_name, &serial_number);
+        } else {
+            /* If no limits, then always respond */
+            Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+        }
+    } else if (len != BACNET_STATUS_ERROR) {
+        /* is my device id within the limits? */
+        if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
+            (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
+            if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+                /* The Who-Am-I service is also used to respond to a Who-Is
+                service request that uses the Device Object_Identifier
+                instance number of 4194303. */
+                characterstring_init_ansi(&model_name, Device_Model_Name());
+                characterstring_init_ansi(
+                    &serial_number, Device_Serial_Number());
+                Send_Who_Am_I_To_Network(
+                    src, Device_Vendor_Identifier(), &model_name,
+                    &serial_number);
+            } else {
+                Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+            }
+        }
+    }
 }
 
 #ifdef BAC_ROUTING /* was for BAC_ROUTING - delete in 2/2012 if still unused \
@@ -113,12 +146,13 @@ void handler_who_is_unicast(
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.
  * @param is_unicast [in] True if should send unicast response(s)
- * 			back to the src, else False if should broadcast
+ *          back to the src, else False if should broadcast
  * response(s).
  */
-static void check_who_is_for_routing(uint8_t *service_request,
+static void check_who_is_for_routing(
+    const uint8_t *service_request,
     uint16_t service_len,
-    BACNET_ADDRESS *src,
+    const BACNET_ADDRESS *src,
     bool is_unicast)
 {
     int len = 0;
@@ -144,10 +178,11 @@ static void check_who_is_for_routing(uint8_t *service_request,
         /* If len == 0, no limits and always respond */
         if ((len == 0) ||
             ((dev_instance >= low_limit) && (dev_instance <= high_limit))) {
-            if (is_unicast)
+            if (is_unicast) {
                 Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
-            else
-                Send_I_Am(&Handler_Transmit_Buffer[0]);
+            } else {
+                Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
+            }
         }
     }
 }
