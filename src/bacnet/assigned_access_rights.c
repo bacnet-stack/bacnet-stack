@@ -70,7 +70,6 @@ int bacapp_decode_assigned_access_rights(
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
-        // todo 1 - who's rename is this?
         len = decode_context_boolean2(&apdu[apdu_len], 1, &aar->enable);
         if (len < 0) {
             return -1;
