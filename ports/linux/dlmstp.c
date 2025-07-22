@@ -267,10 +267,7 @@ static bool dlmstp_compare_data_expecting_reply(
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
-            debug_printf(
-                "DLMSTP: DER Compare failed: "
-                "Reply has invalid PDU type: %d.\n",
-                reply.pdu_type);
+            /* A queued request, just look for another */
             return false;
     }
     if (request.invoke_id != reply.invoke_id) {
