@@ -806,8 +806,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
                     statistics.receive_valid_frame_counter,
                     statistics.receive_invalid_frame_counter,
                     statistics.transmit_frame_counter,
-                    statistics.transmit_pdu_counter,
                     statistics.receive_pdu_counter,
+                    statistics.transmit_pdu_counter,
                     statistics.lost_token_counter);
                 fflush(stderr);
 #endif
