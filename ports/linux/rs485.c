@@ -32,7 +32,6 @@
 #include <libgen.h>
 
 /* Local includes */
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/mstp.h"
 #include "rs485.h"
 #include "bacnet/basic/sys/fifo.h"

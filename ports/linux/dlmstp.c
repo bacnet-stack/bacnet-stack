@@ -1134,12 +1134,12 @@ bool dlmstp_init(char *ifname)
             "    or grant capability with \"setcap 'cap_sys_nice=eip'\"",
             ifname);
         rv = pthread_create(&hThread, NULL, dlmstp_thread, NULL);
-        if (rv != 0) {
-            fprintf(
-                stderr, "MS/TP Interface: %s\n Failed to start MS/TP thread.\n",
-                ifname);
-            exit(1);
-        }
+    }
+    if (rv != 0) {
+        fprintf(
+            stderr, "MS/TP Interface: %s\n Failed to start MS/TP thread.\n",
+            ifname);
+        exit(1);
     }
 
     return true;
