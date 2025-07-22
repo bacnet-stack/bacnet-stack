@@ -79,6 +79,11 @@ option(
   "compile with secure-connect support"
   OFF)
 
+option(
+  BACNET_SEGMENTATION_ENABLED
+  "enable segmentation"
+  ON)
+
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
         BACDL_ARCNET OR
@@ -651,6 +656,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/rp.h
   src/bacnet/rpm.c
   src/bacnet/rpm.h
+  $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:src/bacnet/segmentack.c>
+  $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:src/bacnet/segmentack.h>
   src/bacnet/timestamp.c
   src/bacnet/timestamp.h
   src/bacnet/timesync.c
@@ -699,6 +706,7 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
+  $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:BACNET_SEGMENTATION_ENABLED>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
@@ -1232,3 +1240,4 @@ message(STATUS "BACNET: BACDL_BSC:......................\"${BACDL_BSC}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
+message(STATUS "BACNET: BACNET_SEGMENTATION_ENABLED:....\"${BACNET_SEGMENTATION_ENABLED}\"")
