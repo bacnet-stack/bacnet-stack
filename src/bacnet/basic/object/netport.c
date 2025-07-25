@@ -4175,8 +4175,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = Network_Port_Virtual_MAC_Table_Encode(
                 rpdata->object_instance, apdu, apdu_size);
             break;
-
-            break;
 #ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
             apdu_len = encode_application_unsigned(
