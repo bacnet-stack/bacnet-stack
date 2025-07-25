@@ -415,3 +415,127 @@ int decode_context_bacnet_address(
 {
     return bacnet_address_context_decode(apdu, MAX_APDU, tag_number, value);
 }
+
+/**
+ * @brief Encode a BACnetVMACEntry value
+ *
+ * BACnetVMACEntry ::= SEQUENCE {
+ *   virtual-mac-address[0]OctetString, -- maximum size 6 octets
+ *   native-mac-address[1]OctetString
+ *
+ * @param apdu - buffer of data to be encoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - decoded value, if decoded (if not NULL)
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_vmac_entry_data_encode(uint8_t *apdu, const BACNET_VMAC_ENTRY *value)
+{
+    int apdu_len = 0, len;
+    BACNET_OCTET_STRING address = { 0 };
+
+    if (!value) {
+        return 0;
+    }
+    /* virtual-mac-address [0] OctetString */
+    octetstring_init(
+        &address, value->virtual_mac_address.adr,
+        value->virtual_mac_address.len);
+    len = encode_context_octet_string(apdu, 0, &address);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* native-mac-address */
+    octetstring_init(
+        &address, value->native_mac_address, value->native_mac_address_len);
+    len = encode_context_octet_string(apdu, 1, &address);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a BACnetVMACEntry value
+ * @param apdu - buffer of data to be encoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return the number of apdu bytes encoded, or 0 if not encoded
+ */
+int bacnet_vmac_entry_encode(
+    uint8_t *apdu, uint32_t apdu_size, const BACNET_VMAC_ENTRY *value)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = bacnet_vmac_entry_data_encode(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = bacnet_vmac_entry_data_encode(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a BACnetVMACEntry value from a buffer
+ *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
+ *
+ * BACnetVMACEntry ::= SEQUENCE {
+ *   virtual-mac-address [0] OctetString, -- maximum size 6 octets
+ *   native-mac-address [1] OctetString
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - decoded value, if decoded (if not NULL)
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_vmac_entry_decode(
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_VMAC_ENTRY *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+    uint8_t i = 0;
+    BACNET_OCTET_STRING mac_addr = { 0 };
+
+    /* virtual-mac-address [0] OctetString */
+    len = bacnet_octet_string_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &mac_addr);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        if (mac_addr.length > sizeof(value->virtual_mac_address.adr)) {
+            return BACNET_STATUS_ERROR;
+        }
+        /* bounds checking - passed! */
+        value->virtual_mac_address.len = mac_addr.length;
+        /* copy address */
+        for (i = 0; i < mac_addr.length; i++) {
+            value->virtual_mac_address.adr[i] = mac_addr.value[i];
+        }
+    }
+    apdu_len += len;
+    /* native-mac-address [1] OctetString */
+    len = bacnet_octet_string_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &mac_addr);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        if (mac_addr.length > sizeof(value->native_mac_address)) {
+            return BACNET_STATUS_ERROR;
+        }
+        /* bounds checking - passed! */
+        value->native_mac_address_len = mac_addr.length;
+        /* copy address */
+        for (i = 0; i < mac_addr.length; i++) {
+            value->native_mac_address[i] = mac_addr.value[i];
+        }
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}

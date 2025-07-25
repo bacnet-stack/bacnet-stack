@@ -35,6 +35,9 @@ unsigned int VMAC_Count(void);
 BACNET_STACK_EXPORT
 struct vmac_data *VMAC_Find_By_Key(uint32_t device_id);
 BACNET_STACK_EXPORT
+bool VMAC_Entry_By_Index(
+    int index, uint32_t *device_id, struct vmac_data *vmac);
+BACNET_STACK_EXPORT
 bool VMAC_Find_By_Data(const struct vmac_data *vmac, uint32_t *device_id);
 BACNET_STACK_EXPORT
 bool VMAC_Add(uint32_t device_id, const struct vmac_data *pVMAC);
