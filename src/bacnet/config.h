@@ -32,6 +32,7 @@
 #define BACDL_BIP
 #define BACDL_BIP6
 #define BACDL_BSC
+#define BACDL_ZIGBEE
 #endif
 
 #if defined(BACDL_ETHERNET)
@@ -67,6 +68,13 @@
 #endif
 
 #if defined(BACDL_BSC)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_ZIGBEE)
 #if defined(BACDL_SOME_DATALINK_ENABLED)
 #define BACDL_MULTIPLE 1
 #endif
@@ -137,6 +145,8 @@
 /* #define MAX_APDU 128 */
 #elif defined(BACDL_BIP6)
 #define MAX_APDU 1476
+#elif defined(BACDL_ZIGBEE)
+#define MAX_APDU 480
 #elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
 /* note: MS/TP extended frames can be up to 1476 bytes */
 #define MAX_APDU 480

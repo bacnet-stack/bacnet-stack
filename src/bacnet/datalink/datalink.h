@@ -104,6 +104,18 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
+#elif defined(BACDL_ZIGBEE) && !defined(BACDL_MULTIPLE)
+/* A BACnet/ZigBee Data Link Layer (BZLL) */
+#define MAX_MPDU BZLL_MPDU_MAX
+
+#define datalink_init bzll_init
+#define datalink_send_pdu bzll_send_pdu
+#define datalink_receive bzll_receive
+#define datalink_cleanup bzll_cleanup
+#define datalink_get_broadcast_address bzll_get_broadcast_address
+#define datalink_get_my_address bzll_get_my_address
+#define datalink_maintenance_timer bzll_maintenance_timer
+
 #elif defined(BACDL_BSC) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BVLC_SC_NPDU_SIZE_CONF
 
