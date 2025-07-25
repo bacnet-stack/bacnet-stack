@@ -965,7 +965,8 @@ bool Network_Port_MAC_Address_Set(
                 break;
             case PORT_TYPE_ZIGBEE:
                 mac_dest = &Object_List[index].Network.Zigbee.MAC_Address[0];
-                mac_len = sizeof(Object_List[index].Network.Zigbee.MAC_Address);
+                mac_size =
+                    sizeof(Object_List[index].Network.Zigbee.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
                 mac_dest = &Object_List[index].Network.MSTP.MAC_Address;
