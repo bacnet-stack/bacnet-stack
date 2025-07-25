@@ -497,7 +497,7 @@ int bacnet_vmac_entry_decode(
 {
     int len = 0;
     int apdu_len = 0;
-    uint8_t i = 0;
+    size_t i = 0;
     BACNET_OCTET_STRING mac_addr = { 0 };
 
     /* virtual-mac-address [0] OctetString */
