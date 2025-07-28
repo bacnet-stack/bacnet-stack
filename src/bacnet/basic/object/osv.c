@@ -20,7 +20,7 @@
 #include "bacnet/basic/object/osv.h"
 
 #ifndef MAX_OCTETSTRING_VALUES
-#define MAX_OCTETSTRING_VALUES 4
+#define MAX_OCTETSTRING_VALUES 1
 #endif
 
 static OCTETSTRING_VALUE_DESCR OSV_Descr[MAX_OCTETSTRING_VALUES];

@@ -20,7 +20,7 @@
 #include "bacnet/basic/object/schedule.h"
 
 #ifndef MAX_SCHEDULES
-#define MAX_SCHEDULES 4
+#define MAX_SCHEDULES 1
 #endif
 
 static SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];

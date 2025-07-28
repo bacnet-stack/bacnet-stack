@@ -16,7 +16,7 @@
 #include "bacnet/basic/object/acc.h"
 
 #ifndef MAX_ACCUMULATORS
-#define MAX_ACCUMULATORS 64
+#define MAX_ACCUMULATORS 1
 #endif
 
 struct object_data {

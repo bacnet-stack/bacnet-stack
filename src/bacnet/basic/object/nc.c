@@ -29,7 +29,7 @@
 #include "bacnet/datalink/datalink.h"
 
 #ifndef MAX_NOTIFICATION_CLASSES
-#define MAX_NOTIFICATION_CLASSES 2
+#define MAX_NOTIFICATION_CLASSES 13
 #endif
 
 #if defined(INTRINSIC_REPORTING)

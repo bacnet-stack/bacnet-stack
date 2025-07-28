@@ -575,18 +575,17 @@ bool Device_Objects_Property_List_Member(
    The properties that are constant can be hard coded
    into the read-property encoding. */
 
-static uint32_t Object_Instance_Number = 260001;
+static uint32_t Object_Instance_Number = 10117;
 static BACNET_CHARACTER_STRING My_Object_Name;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static const char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
-static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
-static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
+static char Model_Name[MAX_DEV_MOD_LEN + 1] = "VEMA BACtwin 1.1";
+static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.1";
 static char Firmware_Version[MAX_DEV_VER_LEN + 1] = BACNET_VERSION_TEXT;
-static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
-static char Description[MAX_DEV_DESC_LEN + 1] = "server";
-static char Serial_Number[MAX_DEV_DESC_LEN + 1] =
-    "BACnetDMcN56RBkeDJuNfxn3M44tfC2Y";
+static char Location[MAX_DEV_LOC_LEN + 1] = "Germany";
+static char Description[MAX_DEV_DESC_LEN + 1] = "VEMA BACtwin Testserver https://www.amev-online.de/AMEVInhalt/Planen/Gebaeudeautomation/BACtwin/";
+static char Serial_Number[MAX_DEV_DESC_LEN + 1] = "BACTwin001";
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -2404,7 +2403,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
 void Device_Init(object_functions_t *object_table)
 {
     struct object_functions *pObject = NULL;
-    characterstring_init_ansi(&My_Object_Name, "SimpleServer");
+    characterstring_init_ansi(&My_Object_Name, "ORTS-BAS_480_ASP01_#####_###_AS~01_#####_DEV01");
     datetime_init();
     if (object_table) {
         Object_Table = object_table;
@@ -2421,6 +2420,7 @@ void Device_Init(object_functions_t *object_table)
 #if (BACNET_PROTOCOL_REVISION >= 14)
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
+
 }
 
 bool DeviceGetRRInfo(

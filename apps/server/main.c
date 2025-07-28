@@ -56,6 +56,12 @@
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
 
+/* BACnet Object Instances */
+static uint32_t ai_instance;
+static uint32_t bi_instance;
+static uint32_t ao_instance;
+static uint32_t bo_instance;
+
 /* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the ServerDemo module.) */
 /** @addtogroup ServerDemo */
@@ -247,6 +253,25 @@ static void Init_Service_Handlers(void)
 #if defined(INTRINSIC_REPORTING)
     mstimer_set(&BACnet_Notification_Timer, NC_RESCAN_RECIPIENTS_SECS * 1000UL);
 #endif
+    ai_instance = Analog_Input_Create(10);
+    bo_instance = Binary_Output_Create(0);
+    bi_instance = Binary_Input_Create(10);
+
+    /* Configure Ventil Rückführwert */
+    Analog_Input_Name_Set(ai_instance, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_RW~01");
+    Analog_Input_Description_Set(ai_instance, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil Rückführwert");
+    Analog_Input_Units_Set(ai_instance, UNITS_PERCENT);
+    Analog_Input_Present_Value_Set(ai_instance, 22.5, BACNET_MAX_PRIORITY);
+
+
+    /* Configure Ventil Stellsignal */
+    ao_instance = Analog_Output_Create(10);
+    printf("AO instance %u\n", ao_instance);
+    /*FIXME: Auf ao_instance kann verzischtet werden*/
+    Analog_Output_Name_Set(ao_instance, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_ST~01");
+    Analog_Output_Description_Set(ao_instance, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil Stellsignal");
+    Analog_Output_Units_Set(ao_instance, UNITS_PERCENT);
+    Analog_Output_Present_Value_Set(ao_instance, 22.8, BACNET_MAX_PRIORITY);
 }
 
 static void print_usage(const char *filename)

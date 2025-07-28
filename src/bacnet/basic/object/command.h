@@ -17,7 +17,7 @@
 #include "bacnet/wp.h"
 
 #ifndef MAX_COMMANDS
-#define MAX_COMMANDS 4
+#define MAX_COMMANDS 1
 #endif
 
 #ifndef MAX_COMMAND_ACTIONS
