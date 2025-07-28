@@ -641,6 +641,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         (mstp_port->ReceivedValidFrame == true) &&
         (mstp_port->SourceAddress == mstp_port->This_Station)) {
         /* DuplicateNode */
+        mstp_port->This_Station = 255;
         mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
         mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
         /* ignore the frame */

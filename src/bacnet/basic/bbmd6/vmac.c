@@ -119,6 +119,45 @@ struct vmac_data *VMAC_Find_By_Key(uint32_t device_id)
     return Keylist_Data(VMAC_List, device_id);
 }
 
+/**
+ * Finds a VMAC in the list by seeking the list index
+ *
+ * @param index - Index that shall be returned
+ * @param device_id - BACnet device object instance number
+ *
+ * @return true if the device_id and vmac are found
+ */
+bool VMAC_Entry_By_Index(int index, uint32_t *device_id, struct vmac_data *vmac)
+{
+    bool status = false;
+    struct vmac_data *data;
+    KEY key = 0;
+    uint8_t i;
+
+    data = Keylist_Data_Index(VMAC_List, index);
+    if (data) {
+        /* virtual MAC is the Device ID */
+        status = Keylist_Index_Key(VMAC_List, index, &key);
+        if (status) {
+            if (device_id) {
+                *device_id = key;
+            }
+            if (vmac) {
+                for (i = 0; i < sizeof(vmac->mac); i++) {
+                    if (i < data->mac_len) {
+                        vmac->mac[i] = data->mac[i];
+                    } else {
+                        break;
+                    }
+                }
+                vmac->mac_len = data->mac_len;
+            }
+        }
+    }
+
+    return status;
+}
+
 /** Compare the VMAC address
  *
  * @param vmac1 - VMAC address that will be compared to vmac2

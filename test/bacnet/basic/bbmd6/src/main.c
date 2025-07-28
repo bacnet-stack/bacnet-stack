@@ -223,6 +223,9 @@ static void test_Execute_Virtual_Address_Resolution(void)
     uint32_t old_device_id = 0;
     int result = 0;
     int function_len = 0;
+    unsigned int count = 0;
+    int index = 0;
+    bool status = false;
 
     test_setup();
     mtu_len = bvlc6_encode_virtual_address_resolution(
@@ -272,6 +275,12 @@ static void test_Execute_Virtual_Address_Resolution(void)
     assert(result == 0);
     assert(bvlc6_get_function_code() == BVLC6_VIRTUAL_ADDRESS_RESOLUTION);
     assert(VMAC_Find_By_Key(TD.Device_ID) != NULL);
+
+    count = VMAC_Count();
+    for (index = 0; index < count; index++) {
+        status = VMAC_Entry_By_Index(index, &test_vmac_src, NULL);
+        assert(VMAC_Find_By_Key(test_vmac_src) != NULL);
+    }
 
     test_cleanup();
 }
