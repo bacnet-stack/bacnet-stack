@@ -20,6 +20,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACnet Zigbee Link Layer (BZLL) with stubs. (#1052)
 * Added a debug print when tsm retries. (#1040)
 * Added bvlc_delete_from_bbmd() API to unregister as a foreign device
   and become normal (not foreign). (#1041)
@@ -81,6 +82,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the ports/linux MS/TP by adding receive buffers, maximizing
+  the thread priority, locking the mutex, iterating over queued replies
+  to find a match, and sleeping before replying to enable the application
+  to provide a reply. (#1051)
+* Fixed the Microsoft Visual Studio compile environment. (#1050)
 * Fixed the use of uninitialized local variables in COV handlers. (#1049)
 * Fixed MS/TP zero-config FSM getting stuck when duplicate address is
   detected. (#1048)
@@ -115,8 +121,6 @@ The git repositories are hosted at the following sites:
   which was deemed errata by BACnet standard committee. (#980)
 * Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
 * Fixed network specific original broadcast for IP in apps/router. (#976)(#989)
-
-### Removed
 
 ## [1.4.1] - 2025-04-11
 
