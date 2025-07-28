@@ -53,6 +53,9 @@ void bzll_get_my_address(BACNET_ADDRESS *my_address);
 BACNET_STACK_EXPORT
 void bzll_get_broadcast_address(BACNET_ADDRESS *dest);
 
+BACNET_STACK_EXPORT
+void bzll_maintenance_timer(uint16_t seconds);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

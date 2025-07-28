@@ -31,7 +31,9 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #endif
-
+#if defined(BACDL_ZIGBEE)
+#include "bacnet/datalink/bzll.h"
+#endif
 #if defined(BACDL_BSC)
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bsc-datalink.h"

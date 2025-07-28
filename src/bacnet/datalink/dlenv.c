@@ -577,6 +577,34 @@ void dlenv_network_port_bip6_init(uint32_t instance)
 }
 
 /**
+ * Datalink network port object settings
+ */
+void dlenv_network_port_zigbee_init(uint32_t instance)
+{
+    BACNET_ADDRESS addr = { 0 };
+    char *pEnv = NULL;
+
+    pEnv = getenv("BACNET_ZIGBEE_DEBUG");
+    if (pEnv) {
+        dlenv_debug_enable();
+    }
+    Network_Port_Object_Instance_Number_Set(0, instance);
+    Network_Port_Name_Set(instance, "BACnet Zigbee Link Layer Port");
+    Network_Port_Type_Set(instance, PORT_TYPE_ZIGBEE);
+    addr.mac_len = encode_unsigned24(&addr.mac[0], instance);
+    Network_Port_MAC_Address_Set(instance, &addr.mac[0], addr.mac_len);
+    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    Network_Port_Link_Speed_Set(instance, 0.0);
+    Network_Port_Out_Of_Service_Set(instance, false);
+    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
+    Network_Port_APDU_Length_Set(instance, MAX_APDU);
+    Network_Port_Network_Number_Set(instance, 0);
+    /* last thing - clear pending changes - we don't want to set these
+       since they are already set */
+    Network_Port_Changes_Pending_Set(instance, false);
+}
+
+/**
  * @brief Datalink network port object settings
  */
 static void bacnet_secure_connect_network_port_init(uint32_t instance)
@@ -925,6 +953,9 @@ void dlenv_init(void)
 #elif defined(BACDL_ARCNET)
         datalink_set("arcnet");
         port_type = PORT_TYPE_ARCNET;
+#elif defined(BACDL_ZIGBEE)
+        datalink_set("zigbee");
+        port_type = PORT_TYPE_ZIGBEE;
 #elif defined(BACDL_BSC)
         datalink_set("bsc");
         port_type = PORT_TYPE_BSC;
@@ -946,6 +977,8 @@ void dlenv_init(void)
     port_type = PORT_TYPE_ETHERNET;
 #elif defined(BACDL_ARCNET)
     port_type = PORT_TYPE_ARCNET;
+#elif defined(BACDL_ZIGBEE)
+    port_type = PORT_TYPE_ZIGBEE;
 #elif defined(BACDL_BSC)
     port_type = PORT_TYPE_BSC;
 #else
@@ -962,6 +995,9 @@ void dlenv_init(void)
             break;
         case PORT_TYPE_BIP6:
             dlenv_network_port_bip6_init(Network_Port_Instance);
+            break;
+        case PORT_TYPE_ZIGBEE:
+            dlenv_network_port_zigbee_init(Network_Port_Instance);
             break;
         case PORT_TYPE_BSC:
             dlenv_network_port_bsc_init();
