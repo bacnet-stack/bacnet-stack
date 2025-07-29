@@ -1909,7 +1909,7 @@ BACNET_BINARY_PV Binary_Input_Alarm_Value(uint32_t object_instance)
 
     return alarm_value;
 }
-
+ 
 bool Binary_Input_Alarm_Value_Set(
     uint32_t object_instance, BACNET_BINARY_PV value)
 {

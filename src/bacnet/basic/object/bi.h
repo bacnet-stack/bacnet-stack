@@ -136,6 +136,7 @@ void Binary_Input_Cleanup(void);
 BACNET_STACK_EXPORT
 void Binary_Input_Init(void);
 
+#define BINARY_INPUT_INTRINSIC_REPORTING 1
 #if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
 BACNET_STACK_EXPORT
 bool Binary_Input_Event_Detection_Enable(uint32_t object_instance);

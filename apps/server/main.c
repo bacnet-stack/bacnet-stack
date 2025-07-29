@@ -18,6 +18,7 @@
 #include "bacnet/apdu.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactext.h"
+#include "bacnet/bacenum.h"
 #include "bacnet/dcc.h"
 #include "bacnet/getevent.h"
 #include "bacnet/iam.h"
@@ -35,6 +36,19 @@
 /* include the device object */
 #include "bacnet/basic/object/device.h"
 /* objects that have tasks inside them */
+#include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/ao.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bi.h"
+#include "bacnet/basic/object/bo.h"
+#include "bacnet/basic/object/bv.h"
+
+#include "bacnet/basic/object/calendar.h"
+
+#include "bacnet/basic/object/structured_view.h"
+#include "bacnet/basic/object/trendlog.h"
+#include "bacnet/basic/object/ms-input.h"
+
 #if (BACNET_PROTOCOL_REVISION >= 14)
 #include "bacnet/basic/object/lo.h"
 #include "bacnet/basic/object/channel.h"
@@ -55,12 +69,6 @@
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
-
-/* BACnet Object Instances */
-static uint32_t ai_instance;
-static uint32_t bi_instance;
-static uint32_t ao_instance;
-static uint32_t bo_instance;
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the ServerDemo module.) */
@@ -253,25 +261,50 @@ static void Init_Service_Handlers(void)
 #if defined(INTRINSIC_REPORTING)
     mstimer_set(&BACnet_Notification_Timer, NC_RESCAN_RECIPIENTS_SECS * 1000UL);
 #endif
-    ai_instance = Analog_Input_Create(10);
-    bo_instance = Binary_Output_Create(0);
-    bi_instance = Binary_Input_Create(10);
+    /*Configre Basic Objects*/ 
+    //Calendar_Create(1); schon da
+    Calendar_Name_Set(1,"ORTS-BAS_480_ASP42_#####_###_AS~01_#####_CAL01");
+    Calendar_Description_Set(1, "Gebäudeautomation Automationsschwerpunkt AS Kalender Feiertage");
+    Calendar_Create(2);
+    Calendar_Name_Set(2,"ORTS-BAS_480_ASP42_#####_###_AS~01_#####_CAL02");
+    Calendar_Description_Set(2, "Gebäudeautomation Automationsschwerpunkt AS Kalender Ferien");
 
-    /* Configure Ventil Rückführwert */
-    Analog_Input_Name_Set(ai_instance, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_RW~01");
-    Analog_Input_Description_Set(ai_instance, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil Rückführwert");
-    Analog_Input_Units_Set(ai_instance, UNITS_PERCENT);
-    Analog_Input_Present_Value_Set(ai_instance, 22.5, BACNET_MAX_PRIORITY);
+    //Binary_Input_Create(1); schon da
+    Binary_Input_Name_Set(1, "ORTS-BAS_480_ASP42_#####_###_SSK01_GS~01_RMA01");
+    Binary_Input_Description_Set(1, "Gebäudeautomation Automationsschwerpunkt Schaltschrank Öffnungsüberwachung");
+    Binary_Input_Inactive_Text_Set(1,"Zu"); Binary_Input_Active_Text_Set(1,"Auf"); 
+    Binary_Input_Polarity_Set(1,POLARITY_NORMAL);
+    Binary_Input_Alarm_Value_Set(1,BINARY_ACTIVE);
+    Binary_Input_Event_Detection_Enable_Set(1,true);
+    Binary_Input_Event_Enable_Set(1, 0b111);
 
+    /* Configure Ventil */
+    Analog_Input_Create(100);
+    Analog_Input_Name_Set(100, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_RW~01");
+    Analog_Input_Description_Set(100, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil Rückführwert");
+    Analog_Input_Units_Set(100, UNITS_PERCENT);
+    Analog_Input_Present_Value_Set(100, 22.5);
 
-    /* Configure Ventil Stellsignal */
-    ao_instance = Analog_Output_Create(10);
-    printf("AO instance %u\n", ao_instance);
-    /*FIXME: Auf ao_instance kann verzischtet werden*/
-    Analog_Output_Name_Set(ao_instance, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_ST~01");
-    Analog_Output_Description_Set(ao_instance, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil Stellsignal");
-    Analog_Output_Units_Set(ao_instance, UNITS_PERCENT);
-    Analog_Output_Present_Value_Set(ao_instance, 22.8, BACNET_MAX_PRIORITY);
+    Analog_Output_Create(100);
+    Analog_Output_Name_Set(100, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_ST~01");
+    Analog_Output_Description_Set(100, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil Stellsignal");
+    Analog_Output_Units_Set(100, UNITS_PERCENT);
+    Analog_Output_Present_Value_Set(100, 22.8, BACNET_MAX_PRIORITY);
+
+    Binary_Input_Create(100);
+    Binary_Input_Name_Set(100, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_LVB01_HDG01");
+    Binary_Input_Description_Set(100, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil LVB Hand stellen");
+    Binary_Input_Inactive_Text_Set(100,"Auto"); Binary_Input_Active_Text_Set(100,"Hand"); 
+    Binary_Input_Polarity_Set(100,POLARITY_NORMAL);
+    Binary_Input_Alarm_Value_Set(100,BINARY_INACTIVE);
+    Binary_Input_Event_Detection_Enable_Set(100,true);
+    Binary_Input_Event_Enable_Set(100, 0b111);
+
+    Structured_View_Create(100);
+    Structured_View_Name_Set(100, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_#####_SV~01");
+    Structured_View_Description_Set(100,"Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil");
+
+    //bo_instance = Binary_Output_Create(0);
 }
 
 static void print_usage(const char *filename)
