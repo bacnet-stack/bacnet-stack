@@ -984,6 +984,7 @@ static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
         mstp_port->DataRegister = 0xFF;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
+        mstp_port->ReceivedValidFrameNotForUs = false;
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
         mstp_port->SilenceTimerReset(NULL);
     }
@@ -1163,7 +1164,8 @@ int main(int argc, char *argv[])
         RS485_Check_UART_Data(mstp_port);
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
-        if (mstp_port->ReceivedValidFrame) {
+        if (mstp_port->ReceivedValidFrame ||
+            mstp_port->ReceivedValidFrameNotForUs) {
             write_received_packet(mstp_port, MSTP_HEADER_MAX);
             mstp_structure_init(mstp_port);
             packet_count++;

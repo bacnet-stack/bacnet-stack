@@ -372,7 +372,8 @@ uint16_t dlmstp_receive(
     }
     /* only do receive state machine while we don't have a frame */
     while ((MSTP_Port->ReceivedValidFrame == false) &&
-           (MSTP_Port->ReceivedInvalidFrame == false)) {
+           (MSTP_Port->ReceivedInvalidFrame == false) &&
+           (MSTP_Port->ReceivedValidFrameNotForUs == false)) {
         MSTP_Port->DataAvailable = driver->read(&data_register);
         if (MSTP_Port->DataAvailable) {
             MSTP_Port->DataRegister = data_register;
@@ -388,7 +389,8 @@ uint16_t dlmstp_receive(
             break;
         }
     }
-    if (MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame) {
+    if (MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame ||
+        MSTP_Port->ReceivedValidFrameNotForUs) {
         /* delay after reception before transmitting - per MS/TP spec */
         milliseconds = MSTP_Port->SilenceTimer(MSTP_Port);
         if (milliseconds < MSTP_Port->Tturnaround_timeout) {
@@ -400,6 +402,15 @@ uint16_t dlmstp_receive(
         user->Statistics.receive_valid_frame_counter++;
         if (user->Valid_Frame_Rx_Callback) {
             user->Valid_Frame_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
+    }
+    if (MSTP_Port->ReceivedValidFrameNotForUs) {
+        user->Statistics.receive_valid_frame_not_for_us_counter++;
+        if (user->Valid_Frame_Not_For_Us_Rx_Callback) {
+            user->Valid_Frame_Not_For_Us_Rx_Callback(
                 MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
                 MSTP_Port->FrameType, MSTP_Port->InputBuffer,
                 MSTP_Port->DataLength);
@@ -883,6 +894,25 @@ void dlmstp_set_frame_rx_complete_callback(
         return;
     }
     user->Valid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_frame_not_for_us_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Valid_Frame_Not_For_Us_Rx_Callback = cb_func;
 }
 
 /**
