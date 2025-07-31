@@ -100,7 +100,6 @@ void bzll_get_broadcast_address(BACNET_ADDRESS *dest)
  */
 void bzll_get_my_address(BACNET_ADDRESS *my_address)
 {
-    int i = 0;
     uint32_t instance;
 
     instance = Device_Object_Instance_Number();
