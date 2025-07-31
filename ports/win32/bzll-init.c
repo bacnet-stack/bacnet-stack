@@ -7,6 +7,7 @@
  */
 /* BACnet specific */
 #include "bacnet/bacdef.h"
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bzll.h"
 #include "bacnet/basic/sys/debug.h"

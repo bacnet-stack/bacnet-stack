@@ -75,7 +75,7 @@ bool BZLL_VMAC_Add(uint32_t device_id, const struct bzll_vmac_data *vmac)
         list_vmac = Keylist_Data(VMAC_List, device_id);
         if (list_vmac) {
             /* device ID already exists. Update MAC. */
-            memmove(list_vmac, &vmac, sizeof(struct bzll_vmac_data));
+            memmove(list_vmac, vmac, sizeof(struct bzll_vmac_data));
             found = true;
             status = true;
         }
