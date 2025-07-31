@@ -1159,9 +1159,9 @@ static char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {
-    uint16_t pdu_len = 0;
+    uint16_t pdu_len;
 
-    /* argv has the "COM4" or some other device */
+    /* argv has the "/dev/ttyUSB0" or some other device */
     if (argc > 1) {
         Network_Interface = argv[1];
     }
@@ -1176,6 +1176,7 @@ int main(int argc, char *argv[])
         MSTP_Create_And_Send_Frame(
             &MSTP_Port, FRAME_TYPE_TEST_REQUEST, MSTP_Port.SourceAddress,
             MSTP_Port.This_Station, NULL, 0);
+        (void)pdu_len;
     }
 
     return 0;
