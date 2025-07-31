@@ -75,6 +75,11 @@ option(
   ON)
 
 option(
+  BACDL_ZIGBEE
+  "compile with zigbee datalink support"
+  ON)
+
+option(
   BACDL_BSC
   "compile with secure-connect support"
   OFF)
@@ -84,6 +89,7 @@ if(NOT (BACDL_ETHERNET OR
         BACDL_ARCNET OR
         BACDL_BIP OR
         BACDL_BIP6 OR
+        BACDL_ZIGBEE OR
         BACDL_BSC OR
         BACDL_CUSTOM))
       add_definitions(-DBACDL_NONE)
@@ -295,6 +301,8 @@ add_library(${PROJECT_NAME}
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.c>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.h>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.c>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.h>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-socket.c>
@@ -693,6 +701,7 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
   $<$<BOOL:${BACDL_BSC}>:BACDL_BSC>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
+  $<$<BOOL:${BACDL_ZIGBEE}>:BACDL_ZIGBEE>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
@@ -733,6 +742,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ports/linux/datetime-init.c
     $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/linux/bzll-init.c>
     $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
@@ -761,6 +771,7 @@ elseif(WIN32)
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/win32/bzll-init.c>
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -808,6 +819,7 @@ elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
@@ -848,6 +860,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
@@ -1231,4 +1244,5 @@ message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
 message(STATUS "BACNET: BACDL_BSC:......................\"${BACDL_BSC}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
+message(STATUS "BACNET: BACDL_ZIGBEE:...................\"${BACDL_ZIGBEE}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")

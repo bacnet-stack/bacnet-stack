@@ -87,6 +87,8 @@ int bacnet_vmac_entry_encode(
 BACNET_STACK_EXPORT
 int bacnet_vmac_entry_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_VMAC_ENTRY *value);
+BACNET_STACK_EXPORT
+bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id);
 
 #ifdef __cplusplus
 }
