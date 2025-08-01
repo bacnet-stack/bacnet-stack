@@ -46,20 +46,20 @@ static OS_Keylist Object_List;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_FILE;
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int bacfile_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                                   PROP_OBJECT_NAME,
-                                                   PROP_OBJECT_TYPE,
-                                                   PROP_FILE_TYPE,
-                                                   PROP_FILE_SIZE,
-                                                   PROP_MODIFICATION_DATE,
-                                                   PROP_ARCHIVE,
-                                                   PROP_READ_ONLY,
-                                                   PROP_FILE_ACCESS_METHOD,
-                                                   -1 };
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_FILE_TYPE,
+                                           PROP_FILE_SIZE,
+                                           PROP_MODIFICATION_DATE,
+                                           PROP_ARCHIVE,
+                                           PROP_READ_ONLY,
+                                           PROP_FILE_ACCESS_METHOD,
+                                           -1 };
 
-static const int bacfile_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int bacfile_Properties_Proprietary[] = { -1 };
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * @brief Returns the list of required, optional, and proprietary properties.
@@ -75,13 +75,13 @@ void BACfile_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = bacfile_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = bacfile_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = bacfile_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
@@ -280,22 +280,233 @@ uint32_t bacfile_index_to_instance(unsigned find_index)
 }
 
 /**
- * @brief Determines the file size for a given file
- * @param  pFile - file handle
- * @return  file size in bytes, or 0 if not found
+ * @brief Callback function to write record data
  */
-static long fsize(FILE *pFile)
-{
-    long size = 0;
-    long origin = 0;
+static bool (*bacfile_write_record_data_cb)(
+    uint32_t, const char *, size_t, size_t, const uint8_t *, size_t) = NULL;
 
-    if (pFile) {
-        origin = ftell(pFile);
-        fseek(pFile, 0L, SEEK_END);
-        size = ftell(pFile);
-        fseek(pFile, origin, SEEK_SET);
+/**
+ * @brief Callback function to write record data
+ *
+ * @param object_instance - object-instance number of the object
+ * @param pFilename - name of the file to write to
+ * @param fileStartRecord - starting record number in the file
+ * @param record_index - index of the record to write
+ * @param buffer - data buffer to write
+ * @param buffer_size - size of the data buffer
+ * @return true if the record data was written successfully
+ * @return false if the record data could not be written
+ */
+static bool bacfile_write_record_data_callback(
+    uint32_t object_instance,
+    const char *pFilename,
+    size_t fileStartRecord,
+    size_t record_index,
+    const uint8_t *buffer,
+    size_t buffer_size)
+{
+    if (bacfile_write_record_data_cb) {
+        return bacfile_write_record_data_cb(
+            object_instance, pFilename, fileStartRecord, record_index, buffer,
+            buffer_size);
     }
-    return (size);
+
+    return false;
+}
+
+/**
+ * @brief Sets the callback function for writing record data
+ * @param callback - function pointer to the callback
+ */
+void bacfile_write_record_data_callback_set(bool (*callback)(
+    uint32_t, const char *, size_t, size_t, const uint8_t *, size_t))
+{
+    bacfile_write_record_data_cb = callback;
+}
+
+/**
+ * @brief Callback function to read record data
+ */
+static bool (*bacfile_read_record_data_cb)(
+    uint32_t, const char *, size_t, size_t, uint8_t *, size_t) = NULL;
+
+/**
+ * @brief Callback function to read record data
+ *
+ * @param object_instance - object-instance number of the object
+ * @param pFilename - name of the file to read from
+ * @param fileStartRecord - starting record number in the file
+ * @param record_index - index of the record to read
+ * @param buffer - data buffer to read into
+ * @param buffer_size - size of the data buffer
+ * @return true if the record data was read successfully
+ * @return false if the record data could not be read
+ */
+static bool bacfile_read_record_data_callback(
+    uint32_t object_instance,
+    const char *pFilename,
+    size_t fileStartRecord,
+    size_t record_index,
+    uint8_t *buffer,
+    size_t buffer_size)
+{
+    if (bacfile_read_record_data_cb) {
+        return bacfile_read_record_data_cb(
+            object_instance, pFilename, fileStartRecord, record_index, buffer,
+            buffer_size);
+    }
+
+    return false;
+}
+
+/**
+ * @brief Sets the callback function for reading record data
+ * @param callback - function pointer to the callback
+ */
+void bacfile_read_record_data_callback_set(
+    bool (*callback)(uint32_t, const char *, size_t, size_t, uint8_t *, size_t))
+{
+    bacfile_read_record_data_cb = callback;
+}
+
+/**
+ * @brief Callback function to write stream data
+ */
+static size_t (*bacfile_write_stream_data_cb)(
+    uint32_t, const char *, size_t, const uint8_t *, size_t) = NULL;
+
+/**
+ * @brief Callback function to write stream data
+ * @param object_instance - object-instance number of the object
+ * @param pFilename - name of the file to write to
+ * @param fileStartPosition - starting position in the file
+ * @param buffer - data buffer to write
+ * @param buffer_size - size of the data buffer
+ * @return number of bytes written, or 0 if not successful
+ */
+static size_t bacfile_write_stream_data_callback(
+    uint32_t object_instance,
+    const char *pFilename,
+    size_t fileStartPosition,
+    const uint8_t *buffer,
+    size_t buffer_size)
+{
+    if (bacfile_write_stream_data_cb) {
+        return bacfile_write_stream_data_cb(
+            object_instance, pFilename, fileStartPosition, buffer, buffer_size);
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Sets the callback function for writing stream data
+ * @param callback - function pointer to the callback
+ */
+void bacfile_write_stream_data_callback_set(
+    size_t (*callback)(uint32_t, const char *, size_t, const uint8_t *, size_t))
+{
+    bacfile_write_stream_data_cb = callback;
+}
+
+/**
+ * @brief Callback function to read stream data
+ */
+static size_t (*bacfile_read_stream_data_cb)(
+    uint32_t, const char *, size_t, uint8_t *, size_t) = NULL;
+
+/**
+ * @brief Callback function to read stream data
+ * @param object_instance - object-instance number of the object
+ * @param pFilename - name of the file to read from
+ * @param fileStartPosition - starting position in the file
+ * @param buffer - data buffer to read into
+ * @param buffer_size - size of the data buffer and number of bytes to read
+ * @return number of bytes read, or 0 if not successful
+ */
+static size_t bacfile_read_stream_data_callback(
+    uint32_t object_instance,
+    const char *pFilename,
+    size_t fileStartPosition,
+    uint8_t *buffer,
+    size_t buffer_size)
+{
+    if (bacfile_read_stream_data_cb) {
+        return bacfile_read_stream_data_cb(
+            object_instance, pFilename, fileStartPosition, buffer, buffer_size);
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Sets the callback function for reading stream data
+ * @param callback - function pointer to the callback
+ */
+void bacfile_read_stream_data_callback_set(
+    size_t (*callback)(uint32_t, const char *, size_t, uint8_t *, size_t))
+{
+    bacfile_read_stream_data_cb = callback;
+}
+
+/**
+ * @brief Callback function to get file size
+ */
+static size_t (*bacfile_file_size_cb)(uint32_t, const char *) = NULL;
+
+/**
+ * @brief Callback function to get file size
+ * @param object_instance - object-instance number of the object
+ * @param pFilename - name of the file to get the size of
+ * @return size of the file in bytes, or 0 if not found
+ */
+static size_t
+bacfile_file_size_callback(uint32_t object_instance, const char *pFilename)
+{
+    size_t file_size = 0;
+
+    if (bacfile_file_size_cb) {
+        file_size = bacfile_file_size_cb(object_instance, pFilename);
+    }
+
+    return file_size;
+}
+
+/**
+ * @brief Sets the callback function for getting file size
+ * @param callback - function pointer to the callback
+ */
+void bacfile_file_size_callback_set(size_t (*callback)(uint32_t, const char *))
+{
+    bacfile_file_size_cb = callback;
+}
+
+/**
+ * @brief Callback function to set file size
+ */
+static bool (*bacfile_file_size_set_cb)(uint32_t, const char *, size_t) = NULL;
+
+/**
+ * @brief Callback function to set file size
+ */
+bool bacfile_file_size_set_callback(
+    uint32_t object_instance, const char *pFilename, size_t file_size)
+{
+    if (bacfile_file_size_set_cb) {
+        return bacfile_file_size_set_cb(object_instance, pFilename, file_size);
+    }
+
+    return false;
+}
+
+/**
+ * @brief Sets the callback function for setting file size
+ * @param callback - function pointer to the callback
+ */
+void bacfile_file_size_set_callback_set(
+    bool (*callback)(uint32_t, const char *, size_t))
+{
+    bacfile_file_size_set_cb = callback;
 }
 
 /**
@@ -309,21 +520,12 @@ uint32_t
 bacfile_read(uint32_t object_instance, uint8_t *buffer, uint32_t buffer_size)
 {
     const char *pFilename = NULL;
-    FILE *pFile = NULL;
     long file_size = 0;
 
     pFilename = bacfile_pathname(object_instance);
     if (pFilename) {
-        pFile = fopen(pFilename, "rb");
-        if (pFile) {
-            file_size = fsize(pFile);
-            if (buffer && (buffer_size >= file_size)) {
-                if (fread(buffer, file_size, 1, pFile) == 0) {
-                    file_size = 0;
-                }
-            }
-            fclose(pFile);
-        }
+        file_size = bacfile_read_stream_data_callback(
+            object_instance, pFilename, 0, buffer, buffer_size);
     }
 
     return (uint32_t)file_size;
@@ -340,19 +542,12 @@ uint32_t bacfile_write(
     uint32_t object_instance, const uint8_t *buffer, uint32_t buffer_size)
 {
     const char *pFilename = NULL;
-    FILE *pFile = NULL;
     long file_size = 0;
 
     pFilename = bacfile_pathname(object_instance);
     if (pFilename) {
-        /* open the file as a clean slate when starting at 0 */
-        pFile = fopen(pFilename, "wb");
-        if (pFile) {
-            if (fwrite(buffer, buffer_size, 1, pFile) == 1) {
-                file_size = buffer_size;
-            }
-            fclose(pFile);
-        }
+        file_size = bacfile_write_stream_data_callback(
+            object_instance, pFilename, 0, buffer, buffer_size);
     }
 
     return (uint32_t)file_size;
@@ -366,19 +561,14 @@ uint32_t bacfile_write(
 BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 {
     const char *pFilename = NULL;
-    FILE *pFile = NULL;
     long file_position = 0;
     BACNET_UNSIGNED_INTEGER file_size = 0;
 
     pFilename = bacfile_pathname(object_instance);
     if (pFilename) {
-        pFile = fopen(pFilename, "rb");
-        if (pFile) {
-            file_position = fsize(pFile);
-            if (file_position >= 0) {
-                file_size = (BACNET_UNSIGNED_INTEGER)file_position;
-            }
-            fclose(pFile);
+        file_position = bacfile_file_size_callback(object_instance, pFilename);
+        if (file_position >= 0) {
+            file_size = (BACNET_UNSIGNED_INTEGER)file_position;
         }
     }
 
@@ -400,8 +590,8 @@ bool bacfile_file_size_set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->File_Access_Stream) {
-            (void)file_size;
-            /* FIXME: add clever POSIX file stuff here */
+            status = bacfile_file_size_set_callback(
+                object_instance, pObject->Pathname, file_size);
         }
     }
 
@@ -717,20 +907,16 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_DESCRIPTION:
-        case PROP_FILE_TYPE:
-        case PROP_MODIFICATION_DATE:
-        case PROP_READ_ONLY:
-        case PROP_FILE_ACCESS_METHOD:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -788,32 +974,57 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     const char *pFilename = NULL;
     bool found = false;
-    FILE *pFile = NULL;
     size_t len = 0;
+    size_t requestedOctetCount = 0;
 
     pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
         found = true;
-        pFile = fopen(pFilename, "rb");
-        if (pFile) {
-            (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            len = fread(
-                octetstring_value(&data->fileData[0]), 1,
-                data->type.stream.requestedOctetCount, pFile);
-            if (len < data->type.stream.requestedOctetCount) {
-                data->endOfFile = true;
-            } else {
-                data->endOfFile = false;
-            }
-            octetstring_truncate(&data->fileData[0], len);
-            fclose(pFile);
-        } else {
-            octetstring_truncate(&data->fileData[0], 0);
-            data->endOfFile = true;
+        requestedOctetCount = data->type.stream.requestedOctetCount;
+        if (requestedOctetCount > octetstring_capacity(&data->fileData[0])) {
+            requestedOctetCount = octetstring_capacity(&data->fileData[0]);
         }
+        len = bacfile_read_stream_data_callback(
+            data->object_instance, pFilename,
+            data->type.stream.fileStartPosition,
+            octetstring_value(&data->fileData[0]), requestedOctetCount);
+        if (len < requestedOctetCount) {
+            data->endOfFile = true;
+        } else {
+            data->endOfFile = false;
+        }
+        octetstring_truncate(&data->fileData[0], len);
     } else {
         octetstring_truncate(&data->fileData[0], 0);
         data->endOfFile = true;
+    }
+
+    return found;
+}
+
+bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
+{
+    const char *pFilename = NULL;
+    bool found = false;
+    bool status = false;
+    uint32_t i = 0;
+
+    pFilename = bacfile_pathname(data->object_instance);
+    if (pFilename) {
+        found = true;
+        data->endOfFile = false;
+        for (i = 0; i < data->type.record.RecordCount; i++) {
+            status = bacfile_read_record_data_callback(
+                data->object_instance, pFilename,
+                data->type.record.fileStartRecord, i,
+                octetstring_value(&data->fileData[i]),
+                octetstring_capacity(&data->fileData[i]));
+            if (!status) {
+                data->endOfFile = true;
+                data->type.record.RecordCount = i;
+                break;
+            }
+        }
     }
 
     return found;
@@ -823,159 +1034,105 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     const char *pFilename = NULL;
     bool found = false;
-    FILE *pFile = NULL;
+    size_t bytes_written = 0;
 
     pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
         found = true;
-        if (data->type.stream.fileStartPosition == 0) {
-            /* open the file as a clean slate when starting at 0 */
-            pFile = fopen(pFilename, "wb");
-        } else if (data->type.stream.fileStartPosition == -1) {
-            /* If 'File Start Position' parameter has the special
-               value -1, then the write operation shall be treated
-               as an append to the current end of file. */
-            pFile = fopen(pFilename, "ab+");
-        } else {
-            /* open for update */
-            pFile = fopen(pFilename, "rb+");
-        }
-        if (pFile) {
-            if (data->type.stream.fileStartPosition != -1) {
-                (void)fseek(
-                    pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            }
-            if (fwrite(
-                    octetstring_value(&data->fileData[0]),
-                    octetstring_length(&data->fileData[0]), 1, pFile) != 1) {
-                /* do something if it fails? */
-            }
-            fclose(pFile);
-        }
+        /* note: If 'File Start Position' parameter has the special
+           value -1, then the write operation shall be treated
+           as an append to the current end of file.
+           If the 'File Start Position' parameter is 0,
+           open the file as a clean slate. */
+        bytes_written = bacfile_write_stream_data_callback(
+            data->object_instance, pFilename,
+            data->type.stream.fileStartPosition,
+            octetstring_value(&data->fileData[0]),
+            octetstring_length(&data->fileData[0]));
     }
 
     return found;
 }
 
+/**
+ * @brief Write the data received to the file specified
+ * @param data - pointer to the data to write
+ * @return true - if successful
+ * @return false - if failed
+ */
 bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     const char *pFilename = NULL;
     bool found = false;
-    FILE *pFile = NULL;
-    uint32_t i = 0;
-    char dummy_data[FILE_RECORD_SIZE];
-    const char *pData = NULL;
+    size_t i = 0;
 
     pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
         found = true;
-        if (data->type.record.fileStartRecord == 0) {
-            /* open the file as a clean slate when starting at 0 */
-            pFile = fopen(pFilename, "wb");
-        } else if (data->type.record.fileStartRecord == -1) {
-            /* If 'File Start Record' parameter has the special
-               value -1, then the write operation shall be treated
-               as an append to the current end of file. */
-            pFile = fopen(pFilename, "ab+");
-        } else {
-            /* open for update */
-            pFile = fopen(pFilename, "rb+");
-        }
-        if (pFile) {
-            if ((data->type.record.fileStartRecord != -1) &&
-                (data->type.record.fileStartRecord > 0)) {
-                for (i = 0; i < (uint32_t)data->type.record.fileStartRecord;
-                     i++) {
-                    pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
-                    if ((pData == NULL) || feof(pFile)) {
-                        break;
-                    }
-                }
-            }
-            for (i = 0; i < data->type.record.returnedRecordCount; i++) {
-                if (fwrite(
-                        octetstring_value(
-                            (BACNET_OCTET_STRING *)&data->fileData[i]),
-                        octetstring_length(&data->fileData[i]), 1,
-                        pFile) != 1) {
-                    /* do something if it fails? */
-                }
-            }
-            fclose(pFile);
+        /* If 'File Start Record' parameter has the special
+            value -1, then the write operation shall be treated
+            as an append to the current end of file.
+            If the 'File Start Record' parameter is 0,
+            open the file as a clean slate. */
+        for (i = 0; i < data->type.record.returnedRecordCount; i++) {
+            bacfile_write_record_data_callback(
+                data->object_instance, pFilename,
+                data->type.record.fileStartRecord, i,
+                octetstring_value((BACNET_OCTET_STRING *)&data->fileData[i]),
+                octetstring_length(&data->fileData[i]));
         }
     }
 
     return found;
 }
 
+/**
+ * @brief Write the requested data received into the file specified
+ * @param instance - object-instance number of the object
+ * @param data - pointer to the data to write
+ * @return true - if successful
+ * @return false - if failed
+ */
 bool bacfile_read_ack_stream_data(
     uint32_t instance, const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
-    FILE *pFile = NULL;
     const char *pFilename = NULL;
 
     pFilename = bacfile_pathname(instance);
     if (pFilename) {
         found = true;
-        pFile = fopen(pFilename, "rb+");
-        if (pFile) {
-            (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            if (fwrite(
-                    octetstring_value(
-                        (BACNET_OCTET_STRING *)&data->fileData[0]),
-                    octetstring_length(&data->fileData[0]), 1, pFile) != 1) {
-#if PRINT_ENABLED
-                fprintf(
-                    stderr, "Failed to write to %s (%lu)!\n", pFilename,
-                    (unsigned long)instance);
-#endif
-            }
-            fclose(pFile);
-        }
+        bacfile_write_stream_data_callback(
+            instance, pFilename, data->type.stream.fileStartPosition,
+            octetstring_value((BACNET_OCTET_STRING *)&data->fileData[0]),
+            octetstring_length(&data->fileData[0]));
     }
 
     return found;
 }
 
+/**
+ * @brief Write the requested data received into the file specified
+ * @param instance - object-instance number of the object
+ * @param data - pointer to the data to write
+ * @return true - if successful
+ * @return false - if failed
+ */
 bool bacfile_read_ack_record_data(
     uint32_t instance, const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
-    FILE *pFile = NULL;
     const char *pFilename = NULL;
     uint32_t i = 0;
-    char dummy_data[MAX_OCTET_STRING_BYTES] = { 0 };
-    char *pData = NULL;
 
     pFilename = bacfile_pathname(instance);
     if (pFilename) {
         found = true;
-        pFile = fopen(pFilename, "rb+");
-        if (pFile) {
-            if (data->type.record.fileStartRecord > 0) {
-                for (i = 0; i < (uint32_t)data->type.record.fileStartRecord;
-                     i++) {
-                    pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
-                    if ((pData == NULL) || feof(pFile)) {
-                        break;
-                    }
-                }
-            }
-            for (i = 0; i < data->type.record.RecordCount; i++) {
-                if (fwrite(
-                        octetstring_value(
-                            (BACNET_OCTET_STRING *)&data->fileData[i]),
-                        octetstring_length(&data->fileData[i]), 1,
-                        pFile) != 1) {
-#if PRINT_ENABLED
-                    fprintf(
-                        stderr, "Failed to write to %s (%lu)!\n", pFilename,
-                        (unsigned long)instance);
-#endif
-                }
-            }
-            fclose(pFile);
+        for (i = 0; i < data->type.record.RecordCount; i++) {
+            bacfile_write_record_data_callback(
+                instance, pFilename, data->type.record.fileStartRecord, i,
+                octetstring_value((BACNET_OCTET_STRING *)&data->fileData[i]),
+                octetstring_length(&data->fileData[i]));
         }
     }
 

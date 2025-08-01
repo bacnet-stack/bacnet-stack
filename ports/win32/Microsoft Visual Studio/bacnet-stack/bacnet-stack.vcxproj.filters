@@ -594,6 +594,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\lighting_command.c">
       <Filter>Source Files\src\bacnet\basic\sys</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\ports\posix\bacfile-posix.c">
+      <Filter>Source Files\ports\posix</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\bip-init.c">
       <Filter>Source Files\ports\win32</Filter>
     </ClCompile>
@@ -925,6 +928,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\sbuf.h">
       <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\ports\posix\bacfile-posix.h">
+      <Filter>Source Files\ports\posix</Filter>
     </ClInclude>
     <ClInclude Include="..\..\bacport.h">
       <Filter>Source Files\ports\win32</Filter>

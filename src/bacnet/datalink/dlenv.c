@@ -31,6 +31,7 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/datalink/dlmstp.h"
+#include "bacfile-posix.h"
 
 /* enable debugging */
 static bool Datalink_Debug;
@@ -989,6 +990,9 @@ void dlenv_init(void)
     port_type = PORT_TYPE_NON_BACNET;
 #endif
 #endif
+    /* initialize the POSIX file objects */
+    bacfile_posix_init();
+    /* === Initialize the Network Port Object Here === */
     Network_Port_Type_Set(Network_Port_Instance, port_type);
     switch (port_type) {
         case PORT_TYPE_BIP:
