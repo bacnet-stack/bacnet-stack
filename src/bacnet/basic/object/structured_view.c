@@ -45,26 +45,26 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_NODE_TYPE, PROP_SUBORDINATE_LIST,
-    -1
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
+    PROP_NODE_TYPE,         PROP_SUBORDINATE_LIST, -1
 };
 
 static const int Properties_Optional[] = {
-    PROP_DESCRIPTION, PROP_NODE_SUBTYPE, PROP_SUBORDINATE_ANNOTATIONS,
-    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
+    PROP_NODE_SUBTYPE,
+    PROP_SUBORDINATE_ANNOTATIONS,
+    PROP_SUBORDINATE_NODE_TYPES,
+    PROP_SUBORDINATE_RELATIONSHIPS,
     PROP_DEFAULT_SUBORDINATE_RELATIONSHIP,
     PROP_REPRESENTS,
     -1
 };
 
-static const int Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.

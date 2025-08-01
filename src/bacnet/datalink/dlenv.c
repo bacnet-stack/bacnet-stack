@@ -31,6 +31,7 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/datalink/dlmstp.h"
+#include "bacfile-posix.h"
 
 /* enable debugging */
 static bool Datalink_Debug;
@@ -830,8 +831,9 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
                 dlmstp_fill_statistics(&statistics);
                 fprintf(
                     stderr,
-                    "MSTP: Frames Rx:%u/%u Tx:%u PDU Rx:%u Tx:%u Lost:%u\n",
+                    "MSTP: Frames Rx:%u/%u/%u Tx:%u PDU Rx:%u Tx:%u Lost:%u\n",
                     statistics.receive_valid_frame_counter,
+                    statistics.receive_valid_frame_not_for_us_counter,
                     statistics.receive_invalid_frame_counter,
                     statistics.transmit_frame_counter,
                     statistics.receive_pdu_counter,
@@ -989,6 +991,9 @@ void dlenv_init(void)
     port_type = PORT_TYPE_NON_BACNET;
 #endif
 #endif
+    /* initialize the POSIX file objects */
+    bacfile_posix_init();
+    /* === Initialize the Network Port Object Here === */
     Network_Port_Type_Set(Network_Port_Instance, port_type);
     switch (port_type) {
         case PORT_TYPE_BIP:

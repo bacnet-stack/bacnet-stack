@@ -17,6 +17,11 @@ string(REGEX REPLACE
     "/test"
     TST_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
+string(REGEX REPLACE
+    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/ports"
+    PORTS_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR})
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
@@ -34,6 +39,7 @@ add_compile_definitions(
 
 include_directories(
     ${SRC_DIR}
+    ${PORTS_DIR}/posix
     ${TST_DIR}/bacnet/basic/object/test
     ${TST_DIR}/ztest/include
     )
@@ -80,6 +86,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${PORTS_DIR}/posix/bacfile-posix.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${TST_DIR}/bacnet/basic/object/test/datetime_local.c

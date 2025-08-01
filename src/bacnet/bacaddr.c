@@ -539,3 +539,29 @@ int bacnet_vmac_entry_decode(
 
     return apdu_len;
 }
+
+/** Set a BACnet VMAC Address from a Device ID
+ *
+ * @param addr - BACnet address that be set
+ * @param device_id - 22-bit device ID
+ *
+ * @return true if the address is set
+ */
+bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
+{
+    bool status = false;
+    size_t i;
+
+    if (addr) {
+        encode_unsigned24(&addr->mac[0], device_id);
+        addr->mac_len = 3;
+        addr->net = 0;
+        addr->len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            addr->adr[i] = 0;
+        }
+        status = true;
+    }
+
+    return status;
+}

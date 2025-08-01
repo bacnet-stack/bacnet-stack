@@ -133,6 +133,7 @@ list(APPEND testdirs
   bacnet/basic/binding/address
   bacnet/basic/bbmd
   bacnet/basic/bbmd6
+  bacnet/basic/bzll
   # basic/object
   bacnet/basic/object/acc
   bacnet/basic/object/access_credential

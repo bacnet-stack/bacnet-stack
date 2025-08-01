@@ -20,6 +20,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACnet Zigbee VMAC table and unit test. (#1054)
 * Added BACnet Zigbee Link Layer (BZLL) with stubs. (#1052)
 * Added a debug print when tsm retries. (#1040)
 * Added bvlc_delete_from_bbmd() API to unregister as a foreign device
@@ -74,6 +75,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the bacnet file object to be storage agnostic by refactoring
+  and using callbacks. (#1056)
 * Changed ReadRange by-position and by-sequence encoding by refactoring
   into a common module. (#1028)
 * Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
@@ -82,6 +85,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Linux DLMSTP standalone test application Makefile. (#1055)
+* Fixed ISO C90 forbids mixed declarations and code warning.(#1053)
+* Fixed the MS/TP invalid frame counter that was incremented for valid
+  frames not for us.(#1053)
 * Fixed the ports/linux MS/TP by adding receive buffers, maximizing
   the thread priority, locking the mutex, iterating over queued replies
   to find a match, and sleeping before replying to enable the application

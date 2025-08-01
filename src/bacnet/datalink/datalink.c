@@ -276,7 +276,7 @@ void datalink_cleanup(void)
 #endif
 #if defined(BACDL_ZIGBEE)
         case DATALINK_ZIGBEE:
-            bytes = bzll_cleanup();
+            bzll_cleanup();
             break;
 #endif
 #if defined(BACDL_BSC)
@@ -321,7 +321,7 @@ void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
 #endif
 #if defined(BACDL_ZIGBEE)
         case DATALINK_ZIGBEE:
-            bytes = bzll_get_broadcast_address(dest);
+            bzll_get_broadcast_address(dest);
             break;
 #endif
 #if defined(BACDL_BSC)
@@ -366,7 +366,7 @@ void datalink_get_my_address(BACNET_ADDRESS *my_address)
 #endif
 #if defined(BACDL_ZIGBEE)
         case DATALINK_ZIGBEE:
-            bytes = bzll_get_my_address(my_address);
+            bzll_get_my_address(my_address);
             break;
 #endif
 #if defined(BACDL_BSC)

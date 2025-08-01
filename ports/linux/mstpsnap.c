@@ -283,6 +283,11 @@ int main(int argc, char *argv[])
             mstp_port->ReceivedValidFrame = false;
             snap_received_packet(mstp_port, sockfd);
             packet_count++;
+        } else if (mstp_port->ReceivedValidFrameNotForUs) {
+            mstp_port->ReceivedValidFrameNotForUs = false;
+            fprintf(stderr, "ReceivedValidFrameNotForUs\n");
+            snap_received_packet(mstp_port, sockfd);
+            packet_count++;
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
