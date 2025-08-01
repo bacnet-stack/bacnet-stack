@@ -289,7 +289,7 @@ uint32_t bacfile_index_to_instance(unsigned find_index)
  * @brief Callback function to write record data
  */
 static bool (*bacfile_write_record_data_cb)(
-    const char *, size_t, size_t, const uint8_t *, size_t) = NULL;
+    const char *, int32_t, size_t, const uint8_t *, size_t) = NULL;
 
 /**
  * @brief Callback function to write record data
