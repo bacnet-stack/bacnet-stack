@@ -138,6 +138,7 @@ endif
 
 # source file locations
 BACNET_PORT_DIR =  $(realpath ../ports/$(BACNET_PORT))
+BACNET_POSIX_DIR = $(realpath ../ports/posix)
 BACNET_SRC_DIR =  $(realpath ../src)
 
 # Compiler flag to set the C Standard level.
@@ -197,7 +198,7 @@ BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
 
 # put all the flags together
-INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
+INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR) -I$(BACNET_POSIX_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += $(CSTANDARD)
 ifneq (${BACNET_LIB},)

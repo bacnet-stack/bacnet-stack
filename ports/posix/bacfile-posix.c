@@ -44,8 +44,7 @@ static long fsize(FILE *pFile)
  * @param  pathname - name of the file to get the size for
  * @return  file size in bytes, or 0 if not found
  */
-static size_t
-bacfile_posix_file_size(uint32_t object_instance, const char *pathname)
+size_t bacfile_posix_file_size(uint32_t object_instance, const char *pathname)
 {
     FILE *pFile = NULL;
     long file_position = 0;
@@ -279,10 +278,12 @@ bool bacfile_posix_read_record_data(
  */
 void bacfile_posix_init(void)
 {
+#if defined(BACFILE)
     bacfile_write_stream_data_callback_set(bacfile_posix_write_stream_data);
     bacfile_read_stream_data_callback_set(bacfile_posix_read_stream_data);
     bacfile_write_record_data_callback_set(bacfile_posix_write_record_data);
     bacfile_read_record_data_callback_set(bacfile_posix_read_record_data);
     bacfile_file_size_callback_set(bacfile_posix_file_size);
     bacfile_file_size_set_callback_set(bacfile_posix_file_size_set);
+#endif
 }

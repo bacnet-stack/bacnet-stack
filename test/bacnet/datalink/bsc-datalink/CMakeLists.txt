@@ -47,6 +47,7 @@ add_compile_definitions(
 
 include_directories(
   ${SRC_DIR}
+  ${PORTS_DIR}/posix
   ${TST_DIR}/ztest/include
   )
 
@@ -197,6 +198,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   ${SRC_DIR}/bacnet/timestamp.c
   ${SRC_DIR}/bacnet/weeklyschedule.c
   ${SRC_DIR}/bacnet/wp.c
+  ${PORTS_DIR}/posix/bacfile-posix.c
   # Test and test library files
   ./src/main.c
   ${TST_DIR}/bacnet/basic/object/test/device_mock.c
