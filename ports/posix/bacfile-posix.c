@@ -90,7 +90,7 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
  */
 size_t bacfile_posix_read_stream_data(
     const char *pathname,
-    size_t fileStartPosition,
+    int32_t fileStartPosition,
     uint8_t *fileData,
     size_t fileDataLen)
 {
@@ -119,7 +119,7 @@ size_t bacfile_posix_read_stream_data(
  */
 size_t bacfile_posix_write_stream_data(
     const char *pathname,
-    size_t fileStartPosition,
+    int32_t fileStartPosition,
     const uint8_t *fileData,
     size_t fileDataLen)
 {
@@ -162,7 +162,7 @@ size_t bacfile_posix_write_stream_data(
  */
 bool bacfile_posix_write_record_data(
     const char *pathname,
-    size_t fileStartRecord,
+    int32_t fileStartRecord,
     size_t fileIndexRecord,
     const uint8_t *fileData,
     size_t fileDataLen)
@@ -221,7 +221,7 @@ bool bacfile_posix_write_record_data(
  */
 bool bacfile_posix_read_record_data(
     const char *pathname,
-    size_t fileStartRecord,
+    int32_t fileStartRecord,
     size_t fileIndexRecord,
     uint8_t *fileData,
     size_t fileDataLen)
