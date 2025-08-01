@@ -10019,7 +10019,9 @@ static void test_sc_parameters(void)
 
     // check
     zassert_equal(
-        bsc_conf.ca_cert_chain_size, sizeof(ca_cert) + ZERO_BYTE, NULL);
+        bsc_conf.ca_cert_chain_size, sizeof(ca_cert) + ZERO_BYTE,
+        "ca_cert=%zu actual=%zu", bsc_conf.ca_cert_chain_size,
+        sizeof(ca_cert) + ZERO_BYTE);
     zassert_mem_equal(bsc_conf.ca_cert_chain, ca_cert, sizeof(ca_cert), NULL);
     zassert_equal(
         bsc_conf.cert_chain_size, sizeof(server_cert) + ZERO_BYTE, NULL);
