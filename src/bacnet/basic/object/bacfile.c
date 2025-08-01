@@ -304,7 +304,7 @@ static bool (*bacfile_write_record_data_cb)(
  */
 static bool bacfile_write_record_data_callback(
     const char *pathname,
-    size_t fileStartRecord,
+    int32_t fileStartRecord,
     size_t record_index,
     const uint8_t *buffer,
     size_t buffer_size)
@@ -322,7 +322,7 @@ static bool bacfile_write_record_data_callback(
  * @param callback - function pointer to the callback
  */
 void bacfile_write_record_data_callback_set(
-    bool (*callback)(const char *, size_t, size_t, const uint8_t *, size_t))
+    bool (*callback)(const char *, int32_t, size_t, const uint8_t *, size_t))
 {
     bacfile_write_record_data_cb = callback;
 }
@@ -331,7 +331,7 @@ void bacfile_write_record_data_callback_set(
  * @brief Callback function to read record data
  */
 static bool (*bacfile_read_record_data_cb)(
-    const char *, size_t, size_t, uint8_t *, size_t) = NULL;
+    const char *, int32_t, size_t, uint8_t *, size_t) = NULL;
 
 /**
  * @brief Callback function to read record data
@@ -345,7 +345,7 @@ static bool (*bacfile_read_record_data_cb)(
  */
 static bool bacfile_read_record_data_callback(
     const char *pathname,
-    size_t fileStartRecord,
+    int32_t fileStartRecord,
     size_t record_index,
     uint8_t *buffer,
     size_t buffer_size)
@@ -363,7 +363,7 @@ static bool bacfile_read_record_data_callback(
  * @param callback - function pointer to the callback
  */
 void bacfile_read_record_data_callback_set(
-    bool (*callback)(const char *, size_t, size_t, uint8_t *, size_t))
+    bool (*callback)(const char *, int32_t, size_t, uint8_t *, size_t))
 {
     bacfile_read_record_data_cb = callback;
 }
@@ -372,7 +372,7 @@ void bacfile_read_record_data_callback_set(
  * @brief Callback function to write stream data
  */
 static size_t (*bacfile_write_stream_data_cb)(
-    const char *, size_t, const uint8_t *, size_t) = NULL;
+    const char *, int32_t, const uint8_t *, size_t) = NULL;
 
 /**
  * @brief Callback function to write stream data
@@ -384,7 +384,7 @@ static size_t (*bacfile_write_stream_data_cb)(
  */
 static size_t bacfile_write_stream_data_callback(
     const char *pathname,
-    size_t fileStartPosition,
+    int32_t fileStartPosition,
     const uint8_t *buffer,
     size_t buffer_size)
 {
@@ -401,7 +401,7 @@ static size_t bacfile_write_stream_data_callback(
  * @param callback - function pointer to the callback
  */
 void bacfile_write_stream_data_callback_set(
-    size_t (*callback)(const char *, size_t, const uint8_t *, size_t))
+    size_t (*callback)(const char *, int32_t, const uint8_t *, size_t))
 {
     bacfile_write_stream_data_cb = callback;
 }
@@ -410,7 +410,7 @@ void bacfile_write_stream_data_callback_set(
  * @brief Callback function to read stream data
  */
 static size_t (*bacfile_read_stream_data_cb)(
-    const char *, size_t, uint8_t *, size_t) = NULL;
+    const char *, int32_t, uint8_t *, size_t) = NULL;
 
 /**
  * @brief Callback function to read stream data
@@ -422,7 +422,7 @@ static size_t (*bacfile_read_stream_data_cb)(
  */
 static size_t bacfile_read_stream_data_callback(
     const char *pathname,
-    size_t fileStartPosition,
+    int32_t fileStartPosition,
     uint8_t *buffer,
     size_t buffer_size)
 {
@@ -439,7 +439,7 @@ static size_t bacfile_read_stream_data_callback(
  * @param callback - function pointer to the callback
  */
 void bacfile_read_stream_data_callback_set(
-    size_t (*callback)(const char *, size_t, uint8_t *, size_t))
+    size_t (*callback)(const char *, int32_t, uint8_t *, size_t))
 {
     bacfile_read_stream_data_cb = callback;
 }
