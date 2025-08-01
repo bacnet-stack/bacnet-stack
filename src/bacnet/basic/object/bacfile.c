@@ -46,18 +46,24 @@ static OS_Keylist Object_List;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_FILE;
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_FILE_TYPE,
-                                           PROP_FILE_SIZE,
-                                           PROP_MODIFICATION_DATE,
-                                           PROP_ARCHIVE,
-                                           PROP_READ_ONLY,
-                                           PROP_FILE_ACCESS_METHOD,
-                                           -1 };
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_FILE_TYPE,
+    PROP_FILE_SIZE,
+    PROP_MODIFICATION_DATE,
+    PROP_ARCHIVE,
+    PROP_READ_ONLY,
+    PROP_FILE_ACCESS_METHOD,
+    -1
+};
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 

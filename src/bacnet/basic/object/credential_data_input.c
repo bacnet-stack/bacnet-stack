@@ -25,6 +25,7 @@ static CREDENTIAL_DATA_INPUT_DESCR cdi_descr[MAX_CREDENTIAL_DATA_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
     PROP_STATUS_FLAGS,      PROP_RELIABILITY,
