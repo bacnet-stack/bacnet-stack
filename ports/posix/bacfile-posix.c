@@ -40,17 +40,15 @@ static long fsize(FILE *pFile)
 
 /**
  * @brief Determines the file size for a given file
- * @param  object_instance - object-instance number of the object
  * @param  pathname - name of the file to get the size for
  * @return  file size in bytes, or 0 if not found
  */
-size_t bacfile_posix_file_size(uint32_t object_instance, const char *pathname)
+size_t bacfile_posix_file_size(const char *pathname)
 {
     FILE *pFile = NULL;
     long file_position = 0;
     size_t file_size = 0;
 
-    (void)object_instance; /* unused parameter */
     if (pathname) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
@@ -67,17 +65,14 @@ size_t bacfile_posix_file_size(uint32_t object_instance, const char *pathname)
 
 /**
  * @brief Sets the file size property value
- * @param object_instance - object-instance number of the object
  * @param pathname - name of the file to set the size for
  * @param file_size - value of the file size property
  * @return true if file size is writable
  */
-bool bacfile_posix_file_size_set(
-    uint32_t object_instance, const char *pathname, size_t file_size)
+bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
 {
     bool status = false;
 
-    (void)object_instance; /* unused parameter */
     (void)pathname; /* unused parameter */
     (void)file_size; /* unused parameter */
     /* FIXME: add clever POSIX file stuff here */
@@ -87,7 +82,6 @@ bool bacfile_posix_file_size_set(
 
 /**
  * @brief Reads stream data from a file
- * @param object_instance - object-instance number of the object
  * @param pathname - name of the file to read from
  * @param fileStartPosition - starting position in the file
  * @param fileData - data buffer to read into
@@ -95,7 +89,6 @@ bool bacfile_posix_file_size_set(
  * @return number of bytes read, or 0 if not successful
  */
 size_t bacfile_posix_read_stream_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartPosition,
     uint8_t *fileData,
@@ -104,7 +97,6 @@ size_t bacfile_posix_read_stream_data(
     FILE *pFile = NULL;
     size_t len = 0;
 
-    (void)object_instance; /* unused parameter */
     if (pathname) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
@@ -119,7 +111,6 @@ size_t bacfile_posix_read_stream_data(
 
 /**
  * @brief Writes stream data to a file
- * @param object_instance - object-instance number of the object
  * @param pathname - name of the file to write to
  * @param fileStartPosition - starting position in the file
  * @param fileData - data buffer to write from
@@ -127,7 +118,6 @@ size_t bacfile_posix_read_stream_data(
  * @return number of bytes written, or 0 if not successful
  */
 size_t bacfile_posix_write_stream_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartPosition,
     const uint8_t *fileData,
@@ -136,7 +126,6 @@ size_t bacfile_posix_write_stream_data(
     size_t bytes_written = 0;
     FILE *pFile = NULL;
 
-    (void)object_instance; /* unused parameter */
     if (pathname) {
         if (fileStartPosition == 0) {
             /* open the file as a clean slate when starting at 0 */
@@ -164,7 +153,6 @@ size_t bacfile_posix_write_stream_data(
 
 /**
  * @brief Writes record data to a file
- * @param object_instance - object-instance number of the object
  * @param pathname - name of the file to write to
  * @param fileStartRecord - starting record in the file
  * @param fileIndexRecord - index of the record to read
@@ -173,7 +161,6 @@ size_t bacfile_posix_write_stream_data(
  * @return true if successful, false otherwise
  */
 bool bacfile_posix_write_record_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartRecord,
     size_t fileIndexRecord,
@@ -187,7 +174,6 @@ bool bacfile_posix_write_record_data(
     const char *pData = NULL;
     size_t fileSeekRecord = 0;
 
-    (void)object_instance; /* unused parameter */
     if (pathname) {
         if (fileStartRecord == 0) {
             /* open the file as a clean slate when starting at 0 */
@@ -226,7 +212,6 @@ bool bacfile_posix_write_record_data(
 
 /**
  * @brief Reads record data from a file
- * @param object_instance - object-instance number of the object
  * @param pathname - name of the file to read from
  * @param fileStartRecord - starting record in the file
  * @param fileIndexRecord - index of the record to read
@@ -235,7 +220,6 @@ bool bacfile_posix_write_record_data(
  * @return true if successful, false otherwise
  */
 bool bacfile_posix_read_record_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartRecord,
     size_t fileIndexRecord,
@@ -249,7 +233,6 @@ bool bacfile_posix_read_record_data(
     const char *pData = NULL;
     size_t fileSeekRecord = 0;
 
-    (void)object_instance; /* unused parameter */
     if (pathname) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
@@ -266,8 +249,8 @@ bool bacfile_posix_read_record_data(
                 memmove(fileData, &dummy_data[0], fileDataLen);
                 status = true;
             }
+            fclose(pFile);
         }
-        fclose(pFile);
     }
 
     return status;

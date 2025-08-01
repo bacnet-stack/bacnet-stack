@@ -118,22 +118,21 @@ uint32_t bacfile_write(
     uint32_t object_instance, const uint8_t *buffer, uint32_t buffer_size);
 
 BACNET_STACK_EXPORT
-void bacfile_write_stream_data_callback_set(size_t (*callback)(
-    uint32_t, const char *, size_t, const uint8_t *, size_t));
+void bacfile_write_stream_data_callback_set(
+    size_t (*callback)(const char *, size_t, const uint8_t *, size_t));
 BACNET_STACK_EXPORT
 void bacfile_read_stream_data_callback_set(
-    size_t (*callback)(uint32_t, const char *, size_t, uint8_t *, size_t));
+    size_t (*callback)(const char *, size_t, uint8_t *, size_t));
 BACNET_STACK_EXPORT
-void bacfile_write_record_data_callback_set(bool (*callback)(
-    uint32_t, const char *, size_t, size_t, const uint8_t *, size_t));
+void bacfile_write_record_data_callback_set(
+    bool (*callback)(const char *, size_t, size_t, const uint8_t *, size_t));
 BACNET_STACK_EXPORT
-void bacfile_read_record_data_callback_set(bool (*callback)(
-    uint32_t, const char *, size_t, size_t, uint8_t *, size_t));
+void bacfile_read_record_data_callback_set(
+    bool (*callback)(const char *, size_t, size_t, uint8_t *, size_t));
 BACNET_STACK_EXPORT
-void bacfile_file_size_callback_set(size_t (*callback)(uint32_t, const char *));
+void bacfile_file_size_callback_set(size_t (*callback)(const char *));
 BACNET_STACK_EXPORT
-void bacfile_file_size_set_callback_set(
-    bool (*callback)(uint32_t, const char *, size_t));
+void bacfile_file_size_set_callback_set(bool (*callback)(const char *, size_t));
 
 BACNET_STACK_EXPORT
 uint32_t bacfile_create(uint32_t object_instance);

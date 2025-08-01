@@ -15,27 +15,23 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-size_t bacfile_posix_file_size(uint32_t object_instance, const char *pathname);
+size_t bacfile_posix_file_size(const char *pathname);
 BACNET_STACK_EXPORT
-bool bacfile_posix_file_size_set(
-    uint32_t object_instance, const char *pathname, size_t file_size);
+bool bacfile_posix_file_size_set(const char *pathname, size_t file_size);
 BACNET_STACK_EXPORT
 size_t bacfile_posix_read_stream_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartPosition,
     uint8_t *fileData,
     size_t fileDataLen);
 BACNET_STACK_EXPORT
 size_t bacfile_posix_write_stream_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartPosition,
     const uint8_t *fileData,
     size_t fileDataLen);
 BACNET_STACK_EXPORT
 bool bacfile_posix_write_record_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartRecord,
     size_t fileIndexRecord,
@@ -43,7 +39,6 @@ bool bacfile_posix_write_record_data(
     size_t fileDataLen);
 BACNET_STACK_EXPORT
 bool bacfile_posix_read_record_data(
-    uint32_t object_instance,
     const char *pathname,
     size_t fileStartRecord,
     size_t fileIndexRecord,
