@@ -6,6 +6,7 @@ BACNET_LIB_DIR ?= $(realpath .)
 BACNET_LIB_TARGET ?= $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 BACNET_SRC_DIR ?= $(realpath ../../src)
 BACNET_PORT_DIR ?= $(realpath ../../ports/linux)
+BACNET_POSIX_DIR ?= $(realpath ../../ports/posix)
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 BACNET_DEFINES ?=
 
@@ -35,6 +36,7 @@ CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += -ffunction-sections -fdata-sections
 
 APPS_ENVIRONMENT_SRC = \
+	$(BACNET_POSIX_DIR)/bacfile-posix.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c
 
 PORT_ARCNET_SRC = \

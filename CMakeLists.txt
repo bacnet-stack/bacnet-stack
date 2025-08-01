@@ -736,10 +736,13 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
   add_compile_definitions(BACNET_PORT=linux)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
     ports/linux/datetime-init.c
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
     $<$<BOOL:${BACDL_ZIGBEE}>:ports/linux/bzll-init.c>
@@ -767,8 +770,12 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:ws2_32>
     $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:iphlpapi>)
 
+  include_directories(ports/posix)
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
     $<$<BOOL:${BACDL_ZIGBEE}>:ports/win32/bzll-init.c>
@@ -815,9 +822,12 @@ elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
     $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
@@ -856,9 +866,12 @@ elseif(APPLE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
     $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
