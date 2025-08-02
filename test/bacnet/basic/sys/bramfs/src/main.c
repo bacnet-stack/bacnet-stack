@@ -100,6 +100,27 @@ static void testBRAMFS(void)
         "Failed to set file size to 0");
     file_size = bacfile_ramfs_file_size(pathname);
     zassert_equal(file_size, 0, "File size should be 0 after shrinking");
+    /* check a NULL pathname */
+    file_size = bacfile_ramfs_file_size(NULL);
+    zassert_equal(file_size, 0, "File size should be 0 on a null pathname");
+
+    /* append data to the end of the file */
+    fileStartPosition = 5;
+    file_size = bacfile_ramfs_write_stream_data(
+        pathname, fileStartPosition, file_data, sizeof(file_data));
+    zassert_equal(file_size, sizeof(file_data), "file_size=%zu", file_size);
+    file_size = bacfile_ramfs_read_stream_data(
+        pathname, fileStartPosition, test_file_data, sizeof(test_file_data));
+    zassert_equal(file_size, sizeof(file_data), "file_size=%zu", file_size);
+    zassert_true(
+        memcmp(test_file_data, file_data, sizeof(file_data)) == 0,
+        "File data should match written data at position %d",
+        fileStartPosition);
+    file_size = bacfile_ramfs_file_size(pathname);
+    zassert_equal(
+        file_size, sizeof(file_data) + fileStartPosition,
+        "File size should be %u after appending",
+        sizeof(file_data) + fileStartPosition);
 }
 /**
  * @}
