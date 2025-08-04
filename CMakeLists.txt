@@ -551,6 +551,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
+  src/bacnet/basic/sys/bramfs.c
+  src/bacnet/basic/sys/bramfs.h
   src/bacnet/basic/sys/color_rgb.c
   src/bacnet/basic/sys/color_rgb.h
   src/bacnet/basic/sys/days.c
