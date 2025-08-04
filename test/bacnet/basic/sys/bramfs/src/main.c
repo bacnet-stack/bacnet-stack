@@ -6,6 +6,7 @@
  */
 #include <limits.h>
 #include <zephyr/ztest.h>
+#include <bacnet/bacstr.h>
 #include <bacnet/basic/sys/bramfs.h>
 
 /**
@@ -17,9 +18,9 @@
  * @brief Unit Test for the BACnet RAM File System (BRAMFS)
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(bramfs_tests, testBRAMFS)
+ZTEST(bramfs_tests, test_BRAMFS_stream)
 #else
-static void testBRAMFS(void)
+static void test_BRAMFS_stream(void)
 #endif
 {
     const char *pathname = "testfile.txt";
@@ -121,7 +122,91 @@ static void testBRAMFS(void)
         file_size, sizeof(file_data) + fileStartPosition,
         "File size should be %u after appending",
         sizeof(file_data) + fileStartPosition);
+    bacfile_ramfs_deinit();
 }
+
+/**
+ * @brief Unit Test for the BACnet RAM File System (BRAMFS)
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_records)
+#else
+static void test_BRAMFS_records(void)
+#endif
+{
+    const char *pathname = "testfile.txt";
+    bool status = false;
+    char record_1[] = { "This is the first record in the file." };
+    char record_2[] = { "This is the second record in the file." };
+    char record_3[] = { "This is the third record in the file." };
+    size_t record_len = 0;
+
+    /* Initialize the BRAMFS */
+    bacfile_ramfs_init();
+
+    /* no data in the file - expect failure */
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 0, (uint8_t *)record_1, record_len);
+    zassert_false(status, "Read record 1 should fail on empty file");
+
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 1, (uint8_t *)record_2, record_len);
+    zassert_false(status, "Read record 2 should fail on empty file");
+
+    record_len = bacnet_strnlen(record_3, sizeof(record_3));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 2, (uint8_t *)record_3, record_len);
+    zassert_false(status, "Read record 3 should fail on empty file");
+
+    /* write the first record */
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_write_record_data(
+        pathname, 0, 0, (const uint8_t *)record_1, record_len);
+    zassert_true(status, "Write record 1 should succeed");
+    /* read the first record */
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 0, (uint8_t *)record_1, record_len);
+    zassert_true(status, "Read record 1 should succeed");
+    zassert_true(
+        memcmp(record_1, record_1, record_len) == 0,
+        "Record 1 data should match written data");
+    /* write the second record as an append */
+    record_len = bacnet_strnlen(record_2, sizeof(record_2));
+    status = bacfile_ramfs_write_record_data(
+        pathname, -1, 1, (const uint8_t *)record_2, record_len);
+    zassert_true(status, "Write record 2 should succeed");
+    /* read the second record */
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 1, (uint8_t *)record_2, record_len);
+    zassert_true(status, "Read record 2 should succeed");
+    zassert_true(
+        memcmp(record_2, record_2, record_len) == 0,
+        "Record 2 data should match written data");
+    /* overwrite the third record at index 1 */
+    record_len = bacnet_strnlen(record_3, sizeof(record_3));
+    status = bacfile_ramfs_write_record_data(
+        pathname, 0, 1, (const uint8_t *)record_3, record_len);
+    zassert_true(status, "Write record 3 should succeed");
+    /* read the third record */
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 1, (uint8_t *)record_2, record_len);
+    zassert_true(status, "Read record 2 should succeed");
+    zassert_true(
+        memcmp(record_2, record_3, record_len) == 0,
+        "Record 2 data should match written record 3 data");
+    /* read the first record again */
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 0, (uint8_t *)record_1, record_len);
+    zassert_true(status, "Read record 1 should succeed");
+    zassert_true(
+        memcmp(record_1, record_1, record_len) == 0,
+        "Record 1 data should match written data");
+    bacfile_ramfs_deinit();
+}
+
 /**
  * @}
  */
@@ -131,7 +216,9 @@ ZTEST_SUITE(bramfs_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bramfs_tests, ztest_unit_test(testBRAMFS));
+    ztest_test_suite(
+        bramfs_tests, ztest_unit_test(test_BRAMFS_stream),
+        ztest_unit_test(test_BRAMFS_records));
 
     ztest_run_test_suite(bramfs_tests);
 }

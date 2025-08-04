@@ -33,6 +33,8 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/sys/bramfs.c
+    # BACnet library files
+    ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/datalink/cobs.c
     # Support files and stubs (pathname alphabetical)

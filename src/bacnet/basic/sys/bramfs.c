@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief A RAM file system BACnet File Object implementation.
+ * @brief A dynamic RAM file system BACnet File Object implementation.
  * @author Steve Karg
  * @date 2025
  * @copyright SPDX-License-Identifier: MIT
@@ -17,17 +17,12 @@
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/datalink/cobs.h"
 
-#ifndef FILE_RECORD_SIZE
-#define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
-#endif
-
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist File_List;
 
 struct file_data {
     size_t size; /* size of the file in bytes */
     char *data; /* data buffer */
-    OS_Keylist record_list; /* for record data */
 };
 #define CRC32K_INITIAL_VALUE (0xFFFFFFFF)
 
@@ -230,7 +225,7 @@ static size_t record_count(const char *records)
 
     if (records) {
         do {
-            len = strlen(records);
+            len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
             if (len > 0) {
                 count++;
                 records = records + len + 1;
@@ -244,22 +239,22 @@ static size_t record_count(const char *records)
 /**
  * @brief Get the specific record at index 0..N
  * @param records - string of null-terminated records
- * @param record_index - record index number 1..N of the records
+ * @param record_index - record index number 0..N of the records
  * @return record, or NULL
  */
-static char *record_by_index(const char *records, size_t index)
+static char *record_by_index(char *records, size_t index)
 {
     size_t count = 0;
     int len = 0;
 
     if (records) {
         do {
-            len = strlen(records);
+            len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
             if (len > 0) {
-                count++;
                 if (index == count) {
                     return records;
                 }
+                count++;
                 records = records + len + 1;
             }
         } while (len > 0);
@@ -290,34 +285,69 @@ bool bacfile_ramfs_write_record_data(
     struct file_data *pFile;
     char *record;
     size_t record_len;
-    KEY key;
+    size_t tail_record_len;
+    char fileDataStr[MAX_OCTET_STRING_BYTES + 1] = {
+        0
+    }; /* +1 for null terminator */
+    size_t fileDataStrLen = 0;
 
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
-        /* read the records from the datablock into a Keylist.
-           This allows for easy access to the records by index,
-           and also allows for adding or inserting new records
-           or deleting records. Then loop through the records
-           and write the content to the data block. */
-        pFile->record_list = Keylist_Create();
         fileRecordCount = record_count(pFile->data);
-        for (key = 0; key < fileRecordCount; key++) {
-            record = record_by_index(pFile->data, key);
-            if (record) {
-                Keylist_Data_Add(pFile->record_list, key, record);
-            }
-        }
         if (fileStartRecord == -1) {
             /* If 'File Start Record' parameter has the special
                value -1, then the write operation shall be treated
-               as an append to the current end of file. */
+               as an append to the current end of file,
+               and fileIndexRecord can be ignored. */
             fileSeekRecord = fileRecordCount;
         } else {
             fileSeekRecord = fileStartRecord + fileIndexRecord;
+            if (fileSeekRecord > fileRecordCount) {
+                /* cannot write more than 1 record beyond the end of the file */
+                return false;
+            }
         }
-        key = fileSeekRecord;
-        /* fixme: fileData needs to be NULL or newline terminated */
-        Keylist_Data_Add(pFile->record_list, key, fileData);
+        /* sanitize the incoming record; assume from an octetstring */
+        fileDataStrLen = min(fileDataLen, MAX_OCTET_STRING_BYTES);
+        memcpy(fileDataStr, fileData, fileDataStrLen);
+        fileDataStr[fileDataStrLen] = 0; /* null-terminate */
+        if (fileDataStrLen == 0) {
+            return false; /* nothing to write */
+        }
+        if (fileSeekRecord < fileRecordCount) {
+            /* find the old record length */
+            record = record_by_index(pFile->data, fileSeekRecord);
+            record_len = bacnet_strnlen(record, MAX_OCTET_STRING_BYTES);
+            tail_record_len = pFile->size - (record - pFile->data) - record_len;
+            /* reallocate file to make room for new record */
+            record = realloc(
+                pFile->data, pFile->size - record_len + fileDataStrLen + 1);
+            if (!record) {
+                return false; /* out of memory */
+            }
+            pFile->data = record;
+            /* find the old record position after a realloc */
+            record = record_by_index(pFile->data, fileSeekRecord);
+            /* move all existing records after the inserted record */
+            if (tail_record_len > 0) {
+                memmove(
+                    record + fileDataStrLen, record + record_len,
+                    tail_record_len);
+            }
+        } else {
+            /* extend the file by this one record */
+            record = realloc(pFile->data, pFile->size + fileDataStrLen + 1);
+            if (!record) {
+                return false; /* out of memory */
+            }
+            pFile->data = record;
+            record = pFile->data + pFile->size;
+            pFile->size += fileDataStrLen + 1; /* +1 for the null terminator */
+        }
+        /* copy new record data into file */
+        memmove(record, fileDataStr, fileDataStrLen);
+        record[fileDataStrLen] = 0; /* null-terminate */
+        status = true;
     }
 
     return status;
@@ -351,8 +381,8 @@ bool bacfile_ramfs_read_record_data(
         /* seek to the start record */
         record = record_by_index(pFile->data, fileSeekRecord);
         if (record) {
-            record_len = strlen(record);
-            if (record_len > 0 && record_len <= fileDataLen) {
+            record_len = bacnet_strnlen(record, MAX_OCTET_STRING_BYTES);
+            if ((record_len > 0) && (record_len <= fileDataLen)) {
                 /* copy the record data */
                 memcpy(fileData, record, record_len);
                 status = true;
@@ -361,6 +391,25 @@ bool bacfile_ramfs_read_record_data(
     }
 
     return status;
+}
+
+/**
+ * @brief Deletes the files and their data
+ */
+void bacfile_ramfs_deinit(void)
+{
+    struct file_data *pFile = NULL;
+
+    if (File_List) {
+        do {
+            pFile = Keylist_Data_Pop(File_List);
+            if (pFile) {
+                free(pFile);
+            }
+        } while (pFile);
+        Keylist_Delete(File_List);
+        File_List = NULL;
+    }
 }
 
 /**

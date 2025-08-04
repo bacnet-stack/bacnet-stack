@@ -44,6 +44,9 @@ bool bacfile_ramfs_read_record_data(
     size_t fileIndexRecord,
     uint8_t *fileData,
     size_t fileDataLen);
+
+BACNET_STACK_EXPORT
+void bacfile_ramfs_deinit(void);
 BACNET_STACK_EXPORT
 void bacfile_ramfs_init(void);
 
