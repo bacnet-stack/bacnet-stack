@@ -194,7 +194,9 @@ bool bacfile_object_name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "FILE %u", object_instance);
+            snprintf(
+                name_text, sizeof(name_text), "FILE %lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -265,7 +267,7 @@ bool bacfile_valid_instance(uint32_t object_instance)
  * @brief Determines the number of objects
  * @return  Number of objects
  */
-uint32_t bacfile_count(void)
+unsigned bacfile_count(void)
 {
     return Keylist_Count(Object_List);
 }
