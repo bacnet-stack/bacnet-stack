@@ -103,15 +103,12 @@ size_t bacfile_ramfs_file_size(const char *pathname)
 bool bacfile_ramfs_file_size_set(const char *pathname, size_t new_size)
 {
     struct file_data *pFile;
-    size_t old_size;
-    char *old_data, *new_data;
+    char *new_data;
 
     bool status = false;
 
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
-        old_size = pFile->size;
-        old_data = pFile->data;
         new_data = realloc(pFile->data, new_size);
         if (new_data) {
             pFile->data = new_data;
