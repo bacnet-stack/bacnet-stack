@@ -171,13 +171,15 @@ size_t bacfile_ramfs_write_stream_data(
     size_t bytes_written = 0;
     struct file_data *pFile;
     size_t old_size;
+    char *new_data = NULL;
 
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
         if (fileStartPosition == 0) {
             /* open the file as a clean slate when starting at 0 */
-            pFile->data = realloc(pFile->data, fileDataLen);
-            if (pFile->data) {
+            new_data = realloc(pFile->data, fileDataLen);
+            if (new_data) {
+                pFile->data = new_data;
                 memcpy(pFile->data, fileData, fileDataLen);
                 pFile->size = fileDataLen;
                 bytes_written = fileDataLen;
@@ -188,8 +190,9 @@ size_t bacfile_ramfs_write_stream_data(
                as an append to the current end of file. */
             old_size = pFile->size;
             pFile->size += fileDataLen;
-            pFile->data = realloc(pFile->data, pFile->size);
-            if (pFile->data) {
+            new_data = realloc(pFile->data, pFile->size);
+            if (new_data) {
+                pFile->data = new_data;
                 memcpy(pFile->data + old_size, fileData, fileDataLen);
                 bytes_written = fileDataLen;
             }
@@ -197,13 +200,16 @@ size_t bacfile_ramfs_write_stream_data(
             /* open for update */
             if (fileStartPosition + fileDataLen > pFile->size) {
                 /* extend the file size */
-                pFile->data =
+                new_data =
                     realloc(pFile->data, fileStartPosition + fileDataLen);
-                if (pFile->data) {
+                if (new_data) {
+                    pFile->data = new_data;
                     pFile->size = fileStartPosition + fileDataLen;
+                    memcpy(
+                        pFile->data + fileStartPosition, fileData, fileDataLen);
+                    bytes_written = fileDataLen;
                 }
-            }
-            if (pFile->data) {
+            } else {
                 memcpy(pFile->data + fileStartPosition, fileData, fileDataLen);
                 bytes_written = fileDataLen;
             }
