@@ -25,8 +25,9 @@
 static OS_Keylist File_List;
 
 struct file_data {
-    size_t size;
-    char *data;
+    size_t size; /* size of the file in bytes */
+    char *data; /* data buffer */
+    OS_Keylist record_list; /* for record data */
 };
 #define CRC32K_INITIAL_VALUE (0xFFFFFFFF)
 
@@ -38,10 +39,10 @@ struct file_data {
 static uint32_t pathname_crc32k(const char *pathname)
 {
     uint32_t crc32K = CRC32K_INITIAL_VALUE;
-    size_t len;
+    size_t len, i;
 
     len = strlen(pathname);
-    for (size_t i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         crc32K = cobs_crc32k(pathname[i], crc32K);
     }
 
@@ -218,6 +219,56 @@ size_t bacfile_ramfs_write_stream_data(
 }
 
 /**
+ * @brief Count the number of records in a file
+ * @param records - string of null-terminated records
+ * @return number of records
+ */
+static size_t record_count(const char *records)
+{
+    size_t count = 0;
+    int len = 0;
+
+    if (records) {
+        do {
+            len = strlen(records);
+            if (len > 0) {
+                count++;
+                records = records + len + 1;
+            }
+        } while (len > 0);
+    }
+
+    return count;
+}
+
+/**
+ * @brief Get the specific record at index 0..N
+ * @param records - string of null-terminated records
+ * @param record_index - record index number 1..N of the records
+ * @return record, or NULL
+ */
+static char *record_by_index(const char *records, size_t index)
+{
+    size_t count = 0;
+    int len = 0;
+
+    if (records) {
+        do {
+            len = strlen(records);
+            if (len > 0) {
+                count++;
+                if (index == count) {
+                    return records;
+                }
+                records = records + len + 1;
+            }
+        } while (len > 0);
+    }
+
+    return NULL;
+}
+
+/**
  * @brief Writes record data to a file
  * @param pathname - name of the file to write to
  * @param fileStartRecord - starting record in the file
@@ -234,13 +285,40 @@ bool bacfile_ramfs_write_record_data(
     size_t fileDataLen)
 {
     bool status = false;
+    size_t fileSeekRecord;
+    size_t fileRecordCount;
+    struct file_data *pFile;
+    char *record;
+    size_t record_len;
+    KEY key;
 
-    /* not implemented */
-    (void)pathname; /* unused parameter */
-    (void)fileStartRecord; /* unused parameter */
-    (void)fileIndexRecord; /* unused parameter */
-    (void)fileData; /* unused parameter */
-    (void)fileDataLen; /* unused parameter */
+    pFile = bacfile_ramfs_open(pathname);
+    if (pFile) {
+        /* read the records from the datablock into a Keylist.
+           This allows for easy access to the records by index,
+           and also allows for adding or inserting new records
+           or deleting records. Then loop through the records
+           and write the content to the data block. */
+        pFile->record_list = Keylist_Create();
+        fileRecordCount = record_count(pFile->data);
+        for (key = 0; key < fileRecordCount; key++) {
+            record = record_by_index(pFile->data, key);
+            if (record) {
+                Keylist_Data_Add(pFile->record_list, key, record);
+            }
+        }
+        if (fileStartRecord == -1) {
+            /* If 'File Start Record' parameter has the special
+               value -1, then the write operation shall be treated
+               as an append to the current end of file. */
+            fileSeekRecord = fileRecordCount;
+        } else {
+            fileSeekRecord = fileStartRecord + fileIndexRecord;
+        }
+        key = fileSeekRecord;
+        /* fixme: fileData needs to be NULL or newline terminated */
+        Keylist_Data_Add(pFile->record_list, key, fileData);
+    }
 
     return status;
 }
@@ -262,13 +340,25 @@ bool bacfile_ramfs_read_record_data(
     size_t fileDataLen)
 {
     bool status = false;
+    size_t fileSeekRecord;
+    struct file_data *pFile;
+    char *record;
+    size_t record_len;
 
-    /* not implemented */
-    (void)pathname; /* unused parameter */
-    (void)fileStartRecord; /* unused parameter */
-    (void)fileIndexRecord; /* unused parameter */
-    (void)fileData; /* unused parameter */
-    (void)fileDataLen; /* unused parameter */
+    pFile = bacfile_ramfs_open(pathname);
+    if (pFile) {
+        fileSeekRecord = fileStartRecord + fileIndexRecord;
+        /* seek to the start record */
+        record = record_by_index(pFile->data, fileSeekRecord);
+        if (record) {
+            record_len = strlen(record);
+            if (record_len > 0 && record_len <= fileDataLen) {
+                /* copy the record data */
+                memcpy(fileData, record, record_len);
+                status = true;
+            }
+        }
+    }
 
     return status;
 }
