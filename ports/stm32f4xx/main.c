@@ -15,7 +15,10 @@
 #include "stm32f4xx_rcc.h"
 #include "stm32f4xx_rng.h"
 #include "system_stm32f4xx.h"
+#include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/program.h"
+#include "bacnet/basic/sys/bramfs.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/datalink/datalink.h"
@@ -165,11 +168,31 @@ int main(void)
     }
     /* initialize application layer*/
     bacnet_init();
-    /* configure a program */
+    bacfile_ramfs_init();
+    /* configure the program object and loop time */
     Program_UBASIC_Init(10);
+    /* create the uBASIC programs and link to file objects */
+    bacfile_create(1);
+    bacfile_pathname_set(1, "/program1.bas");
+    Program_Instance_Of_Set(1, bacfile_pathname(1));
+    bacfile_write(
+        1, (const uint8_t *)UBASIC_Program_1, strlen(UBASIC_Program_1));
     Program_UBASIC_Create(1, &UBASIC_Data[0], UBASIC_Program_1);
+
     Program_UBASIC_Create(2, &UBASIC_Data[1], UBASIC_Program_2);
+    bacfile_create(2);
+    bacfile_pathname_set(2, "/program2.bas");
+    Program_Instance_Of_Set(2, bacfile_pathname(2));
+    bacfile_write(
+        2, (const uint8_t *)UBASIC_Program_2, strlen(UBASIC_Program_2));
+
     Program_UBASIC_Create(3, &UBASIC_Data[2], UBASIC_Program_3);
+    bacfile_create(3);
+    bacfile_pathname_set(3, "/program3.bas");
+    Program_Instance_Of_Set(3, bacfile_pathname(3));
+    bacfile_write(
+        3, (const uint8_t *)UBASIC_Program_3, strlen(UBASIC_Program_3));
+
     for (;;) {
         led_task();
         bacnet_task();

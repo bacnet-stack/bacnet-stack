@@ -166,6 +166,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/object/ms-input.c
     ${LIBRARY_BACNET_BASIC}/object/mso.c
     ${LIBRARY_BACNET_BASIC}/object/msv.c
+    ${LIBRARY_BACNET_BASIC}/object/bacfile.c
     ${LIBRARY_BACNET_BASIC}/object/program.c
     ${LIBRARY_BACNET_BASIC}/program/ubasic/ubasic.c
     ${LIBRARY_BACNET_BASIC}/program/ubasic/tokenizer.c
@@ -183,7 +184,9 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/h_noserv.c
     ${LIBRARY_BACNET_BASIC}/service/s_iam.c
     ${LIBRARY_BACNET_BASIC}/service/s_ihave.c
+    ${LIBRARY_BACNET_BASIC}/service/h_arf.c
     ${LIBRARY_BACNET_BASIC}/tsm/tsm.c
+    ${LIBRARY_BACNET_BASIC}/sys/bramfs.c
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
     ${LIBRARY_BACNET_BASIC}/sys/datetime_mstimer.c
     ${LIBRARY_BACNET_BASIC}/sys/days.c
@@ -194,6 +197,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
 
     ${LIBRARY_BACNET_CORE}/abort.c
+    ${LIBRARY_BACNET_CORE}/arf.c
     ${LIBRARY_BACNET_CORE}/bacaction.c
     ${LIBRARY_BACNET_CORE}/bacaddr.c
     ${LIBRARY_BACNET_CORE}/bacapp.c
@@ -252,6 +256,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DMAX_APDU=480
     -DBIG_ENDIAN=0
     -DMAX_TSM_TRANSACTIONS=1
+    -DBACFILE
     -DBACAPP_MINIMAL
 )
 
