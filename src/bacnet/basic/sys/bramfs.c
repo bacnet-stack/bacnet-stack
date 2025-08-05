@@ -109,10 +109,18 @@ bool bacfile_ramfs_file_size_set(const char *pathname, size_t new_size)
 
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
-        new_data = realloc(pFile->data, new_size);
-        if (new_data) {
-            pFile->data = new_data;
-            pFile->size = new_size;
+        if (new_size > 0) {
+            new_data = realloc(pFile->data, new_size);
+            if (new_data) {
+                pFile->data = new_data;
+                pFile->size = new_size;
+                status = true;
+            }
+        } else {
+            /* free the data */
+            free(pFile->data);
+            pFile->data = NULL;
+            pFile->size = 0;
             status = true;
         }
     }
