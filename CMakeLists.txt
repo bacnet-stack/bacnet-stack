@@ -553,6 +553,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/sys/bigend.h
   src/bacnet/basic/sys/bramfs.c
   src/bacnet/basic/sys/bramfs.h
+  src/bacnet/basic/sys/bsramfs.c
+  src/bacnet/basic/sys/bsramfs.h
   src/bacnet/basic/sys/color_rgb.c
   src/bacnet/basic/sys/color_rgb.h
   src/bacnet/basic/sys/days.c
