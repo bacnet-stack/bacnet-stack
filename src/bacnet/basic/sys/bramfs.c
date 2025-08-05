@@ -81,6 +81,24 @@ static struct file_data *bacfile_ramfs_open(const char *pathname)
  * @param  pathname - name of the file to get the size for
  * @return  file size in bytes, or 0 if not found
  */
+const char *bacfile_ramfs_file_data(const char *pathname)
+{
+    struct file_data *pFile;
+    const char *file_data = NULL;
+
+    pFile = bacfile_ramfs_open(pathname);
+    if (pFile) {
+        file_data = pFile->data;
+    }
+
+    return file_data;
+}
+
+/**
+ * @brief Determines the file size for a given file
+ * @param  pathname - name of the file to get the size for
+ * @return  file size in bytes, or 0 if not found
+ */
 size_t bacfile_ramfs_file_size(const char *pathname)
 {
     struct file_data *pFile;

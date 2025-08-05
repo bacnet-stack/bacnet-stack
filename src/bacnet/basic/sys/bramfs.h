@@ -15,6 +15,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
+const char *bacfile_ramfs_file_data(const char *pathname);
+BACNET_STACK_EXPORT
 size_t bacfile_ramfs_file_size(const char *pathname);
 BACNET_STACK_EXPORT
 bool bacfile_ramfs_file_size_set(const char *pathname, size_t file_size);
