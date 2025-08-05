@@ -1024,12 +1024,22 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     return found;
 }
 
+/**
+ * @brief Write the data received to the file specified
+ * @param data - pointer to the data to write
+ * @return true - if successful
+ * @return false - if failed or access denied
+ */
 bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     const char *pathname = NULL;
     bool status = false;
     size_t bytes_written = 0;
 
+    if (bacfile_read_only(data->object_instance)) {
+        /* if the file is read-only, then we cannot write to it */
+        return false;
+    }
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         status = true;
@@ -1054,7 +1064,7 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
  * @brief Write the data received to the file specified
  * @param data - pointer to the data to write
  * @return true - if successful
- * @return false - if failed
+ * @return false - if failed or access denied
  */
 bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
@@ -1062,6 +1072,10 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
     bool found = false;
     size_t i = 0;
 
+    if (bacfile_read_only(data->object_instance)) {
+        /* if the file is read-only, then we cannot write to it */
+        return false;
+    }
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
