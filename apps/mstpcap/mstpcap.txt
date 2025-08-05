@@ -149,13 +149,18 @@ to be 300 baud.
 
 So to capture at 76800 baud type: mstpcap.exe COM2 300
 
+Windows 11 (from edward@bac-test.com)
+Using Waveshare USB to RS485 converter on COM4: https://www.waveshare.com/product/usb-to-rs485-b.htm
+Inside Visual Studio in debug mode, Setting project properties -> Debugging -> Command line arguments to COM4
+Worked just fine capturing at 38400 baud.
+
 Linux (used with Debian Lenny and Fedora 15)
 http://www.connecttech.com/KnowledgeDatabase/kdb309.htm
 As root:
 Change USB so I can use it later as normal user:
 # chmod 777 /dev/ttyUSB0  -
 Print current info about the device:
-# setserial /dev/ttyUSB0 –a
+# setserial /dev/ttyUSB0 â€“a
 /dev/ttyUSB0, Line 0, UART: unknown, Port: 0x0000, IRQ: 0
        Baud_base: 24000000, close_delay: 0, divisor: 0
        closing_wait: infinte
@@ -166,7 +171,7 @@ Make custom speed:
 24000000/312 gives 76923 baudrate:
 # setserial /dev/ttyUSB0 divisor 312
 Print to make sure changes got applied:
-# setserial /dev/ttyUSB0 –a
+# setserial /dev/ttyUSB0 â€“a
 /dev/ttyUSB0, Line 0, UART: unknown, Port: 0x0000, IRQ: 0
        Baud_base: 24000000, close_delay: 0, divisor: 312
        closing_wait: infinte

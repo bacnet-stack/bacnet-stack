@@ -14,15 +14,15 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Source Files\apps">
-      <UniqueIdentifier>{9f8c7149-3e7a-4583-9890-03c4b43a07cc}</UniqueIdentifier>
+      <UniqueIdentifier>{231f6413-ac4d-4437-a8ab-940d842530d7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\apps\server">
-      <UniqueIdentifier>{ac1fb1f1-4757-4d60-a208-6553d0ff76c6}</UniqueIdentifier>
+    <Filter Include="Source Files\apps\writeprop">
+      <UniqueIdentifier>{144a06d4-05e8-4e9d-9dc3-f390ea1d3a66}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\apps\server\main.c">
-      <Filter>Source Files\apps\server</Filter>
+    <ClCompile Include="..\..\..\..\apps\writeprop\main.c">
+      <Filter>Source Files\apps\writeprop</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

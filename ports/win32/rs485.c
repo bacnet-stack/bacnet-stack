@@ -252,12 +252,22 @@ static void RS485_Cleanup(void)
  *****************************************************************************/
 void RS485_Initialize(void)
 {
-    RS485_Handle = CreateFile(
-        RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
-        /*FILE_FLAG_OVERLAPPED */ 0, 0);
+    // Convert RS485_Port_Name (char*) to wide string (wchar_t*) for CreateFileW
+    wchar_t wRS485_Port_Name[256];
+    size_t converted = 0;
+    mbstowcs_s(&converted, wRS485_Port_Name, sizeof(wRS485_Port_Name) / sizeof(wchar_t), RS485_Port_Name, _TRUNCATE);
+
+    RS485_Handle = CreateFileW(
+        wRS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
+        /* FILE_FLAG_OVERLAPPED*/ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "RS485 unable to open %s\n", RS485_Port_Name);
+        DWORD err = GetLastError();
+        fprintf(stderr, "RS485 unable to open %s (Error %lu)\n", RS485_Port_Name, err);
         RS485_Print_Error();
+        // Additional troubleshooting output
+        if (strncmp(RS485_Port_Name, "\\\\.\\COM", 7) != 0) {
+            fprintf(stderr, "Warning: Port name format may be incorrect: %s\n", RS485_Port_Name);
+        }
         exit(1);
     }
     if (!GetCommTimeouts(RS485_Handle, &RS485_Timeouts)) {
