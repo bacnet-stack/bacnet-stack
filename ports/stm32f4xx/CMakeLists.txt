@@ -186,7 +186,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/s_ihave.c
     ${LIBRARY_BACNET_BASIC}/service/h_arf.c
     ${LIBRARY_BACNET_BASIC}/tsm/tsm.c
-    ${LIBRARY_BACNET_BASIC}/sys/bramfs.c
+    ${LIBRARY_BACNET_BASIC}/sys/bsramfs.c
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
     ${LIBRARY_BACNET_BASIC}/sys/datetime_mstimer.c
     ${LIBRARY_BACNET_BASIC}/sys/days.c
