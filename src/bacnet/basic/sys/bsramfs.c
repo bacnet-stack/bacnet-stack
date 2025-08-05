@@ -14,7 +14,7 @@
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/sys/bsramfs.h"
 
-static struct bacnet_file_sramfs_data *File_List = NULL;
+static struct bacnet_file_sramfs_data *File_List;
 
 bool bacfile_sramfs_add(struct bacnet_file_sramfs_data *file_data)
 {
@@ -46,22 +46,22 @@ bool bacfile_sramfs_add(struct bacnet_file_sramfs_data *file_data)
  */
 static struct bacnet_file_sramfs_data *bacfile_sramfs_open(const char *pathname)
 {
-    struct bacnet_file_sramfs_data *head = NULL;
-    uint32_t crc32K;
-    int index;
+    struct bacnet_file_sramfs_data *head;
 
     if (!pathname || pathname[0] == 0) {
         return NULL; /* invalid pathname */
     }
     head = File_List;
     while (head) {
-        if (strcmp(head->pathname, pathname) == 0) {
-            return head; /* found the file */
+        if (head->pathname) {
+            if (strcmp(head->pathname, pathname) == 0) {
+                return head; /* found the file */
+            }
         }
         head = head->next;
     }
 
-    return head;
+    return NULL;
 }
 
 /**
@@ -129,29 +129,6 @@ size_t bacfile_sramfs_read_stream_data(
     }
 
     return len;
-}
-
-/**
- * @brief Count the number of records in a file
- * @param records - string of null-terminated records
- * @return number of records
- */
-static size_t record_count(const char *records)
-{
-    size_t count = 0;
-    int len = 0;
-
-    if (records) {
-        do {
-            len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
-            if (len > 0) {
-                count++;
-                records = records + len + 1;
-            }
-        } while (len > 0);
-    }
-
-    return count;
 }
 
 /**
