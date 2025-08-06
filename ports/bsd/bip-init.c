@@ -696,6 +696,7 @@ bool bip_init(char *ifname)
     int sock_fd = -1;
     struct sockaddr_in broadcast_sin_config;
     int broadcast_sock_fd;
+    const char *bbmd_address_str = getenv("BACNET_BBMD_ADDRESS");
 
     if (ifname) {
         snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", ifname);
@@ -709,6 +710,11 @@ bool bip_init(char *ifname)
             BIP_Interface_Name);
         fflush(stderr);
         return false;
+    }
+
+    if (bbmd_address_str && bbmd_address_str[0]) {
+        /* unicast broadcast to a BBMD */
+        BIP_Broadcast_Addr.s_addr = inet_addr(bbmd_address_str);
     }
 
     sin.sin_family = AF_INET;
@@ -739,10 +745,9 @@ bool bip_init(char *ifname)
         broadcast_sin_config.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
 #endif
     }
-    if (broadcast_sin_config.sin_addr.s_addr == BIP_Address.s_addr) {
-        /* handle the case when a network interface on the system
-           reports the interface's unicast IP address as being
-           the same as its broadcast IP address */
+    if ((broadcast_sin_config.sin_addr.s_addr == BIP_Address.s_addr) ||
+        (bbmd_address_str && bbmd_address_str[0])) {
+        /* handle P2P or BBMD with a single socket */
         BIP_Broadcast_Socket = BIP_Socket;
     } else {
         broadcast_sock_fd = createSocket(&broadcast_sin_config);
