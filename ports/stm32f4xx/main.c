@@ -184,11 +184,12 @@ int main(void)
     Static_Files[2].size = strlen(UBASIC_Program_3);
     Static_Files[2].pathname = "/program3.bas";
     for (i = 0; i < ARRAY_SIZE(Static_Files); i++) {
-        bacfile_sramfs_add(&Static_Files[i]);
         bacfile_create(1 + i);
         bacfile_pathname_set(1 + i, Static_Files[i].pathname);
-        Program_Instance_Of_Set(1 + i, Static_Files[i].pathname);
+        bacfile_read_only_set(1 + i, true);
+        bacfile_sramfs_add(&Static_Files[i]);
         Program_UBASIC_Create(1 + i, &UBASIC_Data[i], Static_Files[i].data);
+        Program_Instance_Of_Set(1 + i, Static_Files[i].pathname);
     }
     /* loop forever */
     for (;;) {
