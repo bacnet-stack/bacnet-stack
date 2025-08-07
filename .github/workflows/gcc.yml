@@ -311,3 +311,18 @@ jobs:
         gcc --version
         make clean
         make LEGACY=true BUILD=pipeline blinkt
+
+  gtk-discover:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential libgtk-3-dev
+    - name: Build BACnet GTK Discover Demo
+      run: |
+        gcc --version
+        make clean
+        make gtk-discover

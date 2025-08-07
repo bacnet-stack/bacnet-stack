@@ -500,3 +500,7 @@ writegroup: $(BACNET_LIB_TARGET)
 .PHONY: sc-hub
 sc-hub: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
+
+.PHONY: gtk-discover
+gtk-discover: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
