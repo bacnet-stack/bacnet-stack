@@ -1,6 +1,7 @@
 # BACnet GTK Discovery Application
 
-A GTK-based graphical application for discovering BACnet devices, objects, and properties on a network.
+A GTK-based graphical application for discovering BACnet devices, objects,
+and properties on a network.
 
 ## Features
 
@@ -41,41 +42,21 @@ sudo zypper install gtk3-devel pkg-config
 sudo pacman -S gtk3 pkgconfig
 ```
 
-### BACnet Stack Library
-
-The BACnet stack library must be built first. From the project root:
-
-```bash
-make -C apps/lib all
-```
-
 ## Building
 
-1. Navigate to the gtk-discover directory:
-   ```bash
-   cd apps/gtk-discover
-   ```
+The BACnet stack library must be built first.
+The apps/Makefile helps with the various options.
+From the project root folder:
 
-2. Build the application:
-   ```bash
-   make all BACDL=bip
-   ```
-
-   Or for MS/TP datalink:
-   ```bash
-   make all BACDL=mstp
-   ```
-
-3. For debug build:
-   ```bash
-   make debug BACDL=bip
-   ```
+```bash
+make gtk-discover
+```
 
 ## Running
 
 Execute the built application:
 ```bash
-./bacnet-gtk-discovery
+./bin/bacdiscover-gtk
 ```
 
 ## Usage

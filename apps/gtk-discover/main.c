@@ -673,7 +673,7 @@ static void bacnet_server_init(void)
     bacnet_timeout_id = g_timeout_add(100, bacnet_task_timeout, NULL);
 
     bacnet_initialized = true;
-    printf("Simple BACnet stack initialized\n");
+    printf("BACnet Stack initialized\n");
 }
 
 /* Cleanup BACnet stack */
@@ -687,7 +687,7 @@ static void bacnet_cleanup(void)
     if (bacnet_initialized) {
         datalink_cleanup();
         bacnet_initialized = false;
-        printf("BACnet stack cleanup completed\n");
+        printf("BACnet Stack cleanup completed\n");
     }
     bacnet_discover_cleanup();
 }

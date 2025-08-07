@@ -1,6 +1,6 @@
 # Makefile for BACnet GTK Device Discovery Application
 
-TARGET = bacnet-gtk-discovery
+TARGET = bacdiscover-gtk
 
 BACNET_SRC_DIR = $(realpath ../../src)
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
@@ -12,44 +12,24 @@ SOURCES = main.c \
 	$(BACNET_CLIENT_DIR)/bac-discover.c \
 	$(BACNET_CLIENT_DIR)/bac-rw.c
 
-# BACnet Stack Configuration
-BACNET_LIB_DIR = $(realpath ../lib)
-BACNET_LIB_NAME = bacnet
-BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
-BACNET_LIB = -L$(BACNET_LIB_DIR) -l$(BACNET_LIB_NAME)
-
-# Default datalink (can be overridden)
-BACDL ?= bip
-ifeq (${BACDL},bip)
-BACDL_DEFINE=-DBACDL_BIP=1
-endif
-ifeq (${BACDL},mstp)
-BACDL_DEFINE=-DBACDL_MSTP=1
-endif
-ifeq (${BACDL},ethernet)
-BACDL_DEFINE=-DBACDL_ETHERNET=1
-endif
+# TARGET_EXT is defined in apps/Makefile as .exe or nothing
+TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 # GTK Configuration
 GTK_CFLAGS = $(shell pkg-config --cflags gtk+-3.0)
 GTK_LIBS = $(shell pkg-config --libs gtk+-3.0)
+LFLAGS += $(GTK_LIBS)
+CFLAGS += $(GTK_CFLAGS)
+CFLAGS += -std=gnu99
 
 # Check if GTK is available
 GTK_CHECK = $(shell pkg-config --exists gtk+-3.0 && echo "yes")
-
-# Compiler and flags
-CC ?= gcc
-CFLAGS += -Wall -Wextra -std=c99 $(GTK_CFLAGS) $(BACDL_DEFINE)
-LDFLAGS += $(GTK_LIBS) $(BACNET_LIB) -lm
-
-# Include paths
-INCLUDES = -I../../src
 
 # Object files
 OBJECTS = $(SOURCES:.c=.o)
 
 # Default target
-all: check-gtk $(TARGET)
+all: check-gtk ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
 # Check if GTK is available
 check-gtk:
@@ -63,24 +43,30 @@ ifneq ($(GTK_CHECK),yes)
 endif
 
 # Build the target
-$(TARGET): $(OBJECTS) $(BACNET_LIB_TARGET)
-	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
-
-# Build object files
-%.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+$(TARGET_BIN): $(OBJECTS) Makefile $(BACNET_LIB_TARGET)
+	$(CC) ${PFLAGS} $(OBJECTS) $(LFLAGS) -o $@
+	size $@
+	cp $@ ../../bin
 
 # Build BACnet library if needed
 $(BACNET_LIB_TARGET):
-	$(MAKE) -C $(BACNET_LIB_DIR) all
+	$(MAKE) -s -C $(BACNET_LIB_DIR) clean all
+
+# Build object files
+%.o: %.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+depend:
+	rm -f .depend
+	${CC} -MM ${CFLAGS} *.c >> .depend
 
 # Clean target
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f core ${TARGET_BIN} ${OBJECTS} $(TARGET).map ${BACNET_LIB_TARGET}
 
 # Install target (optional)
 install: $(TARGET)
-	install -D $(TARGET) $(DESTDIR)/usr/local/bin/$(TARGET)
+	install -D $(TARGET_BIN) $(DESTDIR)/usr/local/bin/$(TARGET_BIN)
 
 # Debug target
 debug: CFLAGS += -g -DDEBUG
@@ -97,10 +83,11 @@ help:
 	@echo ""
 	@echo "Prerequisites:"
 	@echo "  - GTK+ 3.0 development libraries"
-	@echo "  - BACnet stack library"
+	@echo "  - BACnet Stack library"
 	@echo ""
 	@echo "Example usage:"
 	@echo "  make all BACDL=bip    # Build with BACnet/IP datalink"
 	@echo "  make debug BACDL=mstp # Build debug version with MS/TP"
 
-.PHONY: all clean install debug help check-gtk
+.PHONY: all clean install debug help check-gtk depend include
+include: .depend
