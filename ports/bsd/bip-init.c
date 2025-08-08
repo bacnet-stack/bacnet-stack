@@ -630,9 +630,8 @@ void bip_set_interface(const char *ifname)
     if (rv < 0) {
         BIP_Broadcast_Addr.s_addr = ~0;
     } else {
-        BIP_Broadcast_Addr = local_address;
         if (BIP_Point_To_Point) {
-            BIP_Broadcast_Addr.s_addr = local_address;
+            BIP_Broadcast_Addr.s_addr = local_address.s_addr;
         } else {
             BIP_Broadcast_Addr.s_addr = broadcast_address.s_addr;
         }
