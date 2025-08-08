@@ -451,11 +451,15 @@ bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr)
 static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
 {
     void *addr_ptr = NULL;
-    if (sockaddr_ptr->sa_family == AF_INET) {
-        addr_ptr = &((struct sockaddr_in *)sockaddr_ptr)->sin_addr;
-    } else if (sockaddr_ptr->sa_family == AF_INET6) {
-        addr_ptr = &((struct sockaddr_in6 *)sockaddr_ptr)->sin6_addr;
+
+    if (sockaddr_ptr) {
+        if (sockaddr_ptr->sa_family == AF_INET) {
+            addr_ptr = &((struct sockaddr_in *)sockaddr_ptr)->sin_addr;
+        } else if (sockaddr_ptr->sa_family == AF_INET6) {
+            addr_ptr = &((struct sockaddr_in6 *)sockaddr_ptr)->sin6_addr;
+        }
     }
+
     return addr_ptr;
 }
 
@@ -505,9 +509,6 @@ int bip_get_local_address_ioctl(
     while (ifaddrs_ptr) {
         if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) &&
             (ifname && strcmp(ifaddrs_ptr->ifa_name, ifname) == 0)) {
-            if (!ifaddrs_ptr->ifa_addr) {
-                continue;
-            }
             switch (request) {
                 case SIOCGIFADDR:
                     addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_addr);
