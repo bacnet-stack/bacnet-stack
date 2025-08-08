@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=BACnet GTK Discovery
+Comment=Graphical discovery for BACnet devices, objects, and properties
+Exec=/usr/local/bin/bacdiscover-gtk
+Icon=network-workgroup
+Terminal=false
+Type=Application
+Categories=Network;Development;Utility;
+Keywords=BACnet;Building Automation;HVAC;Industrial;Network;Protocol;
+StartupNotify=true
+MimeType=application/x-bacnet;
+
+# Additional metadata
+GenericName=BACnet Device Discovery
+StartupWMClass=bacnet-gtk-discovery
+X-GNOME-UsesNotifications=true
