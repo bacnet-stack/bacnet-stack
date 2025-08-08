@@ -520,11 +520,11 @@ int bip_get_local_address_ioctl(
                         address associated with ifa_addr or ifa_dstaddr
                         will contain the destination address of the
                         point-to-point interface.*/
-                    if (ifaddrs_ptr->ifa_flags & IFF_BROADCAST) {
-                        addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_broadaddr);
-                    } else if (ifaddrs_ptr->ifa_flags & IFF_POINTOPOINT) {
+                    if (ifaddrs_ptr->ifa_flags & IFF_POINTOPOINT) {
                         BIP_Point_To_Point = true;
                         addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_dstaddr);
+                    } else {
+                        addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_broadaddr);
                     }
                     break;
                 case SIOCGIFNETMASK:
@@ -646,6 +646,11 @@ void bip_set_interface(const char *ifname)
             ntohs(BIP_Port));
         fflush(stderr);
     }
+}
+
+const char *bip_get_interface(void)
+{
+    return BIP_Interface_Name;
 }
 
 static int createSocket(const struct sockaddr_in *sin)
