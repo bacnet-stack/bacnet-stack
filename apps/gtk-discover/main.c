@@ -36,6 +36,8 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+/* Used ImageMagick: convert BACnet-Icon.svg bacnet-icon.xpm */
+#include "bacnet-icon.xpm"
 
 /* Global variables */
 static GtkWidget *main_window;
@@ -372,6 +374,8 @@ static void on_refresh_clicked(GtkButton *button, gpointer data)
     (void)data; /* unused parameter */
 
     gtk_list_store_clear(device_store);
+    gtk_list_store_clear(object_store);
+    gtk_list_store_clear(property_store);
     process_discovered_devices();
 }
 
@@ -517,12 +521,19 @@ static void create_main_window(void)
     GtkWidget *scrolled_window;
     GtkWidget *discover_button, *refresh_button;
     GtkToolItem *tool_item;
+    GdkPixbuf *icon_pixbuf;
 
     /* Create main window */
     main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(main_window), "BACnet Device Discovery");
     gtk_window_set_default_size(GTK_WINDOW(main_window), 1200, 800);
     gtk_container_set_border_width(GTK_CONTAINER(main_window), 5);
+
+    /* set the icon */
+    icon_pixbuf = gdk_pixbuf_new_from_xpm_data(bacnet_icon);
+    if (icon_pixbuf) {
+        gtk_window_set_icon(GTK_WINDOW(main_window), icon_pixbuf);
+    }
 
     /* Connect destroy signal */
     g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
@@ -670,7 +681,7 @@ static void bacnet_server_init(void)
     mstimer_set(&BACnet_TSM_Timer, 50);
 
     /* Start BACnet background processing */
-    bacnet_timeout_id = g_timeout_add(100, bacnet_task_timeout, NULL);
+    bacnet_timeout_id = g_timeout_add(10, bacnet_task_timeout, NULL);
 
     bacnet_initialized = true;
     printf("BACnet Stack initialized\n");
