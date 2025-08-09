@@ -22,6 +22,9 @@ LFLAGS += $(GTK_LIBS)
 CFLAGS += $(GTK_CFLAGS)
 CFLAGS += -std=gnu99
 
+# BACnet Library adjustments
+CFLAGS += -DTARGET_DATA_QUEUE_COUNT=128
+
 # Check if GTK is available
 GTK_CHECK = $(shell pkg-config --exists gtk+-3.0 && echo "yes")
 

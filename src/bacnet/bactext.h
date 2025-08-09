@@ -189,6 +189,13 @@ const char *bactext_result_flags_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_logging_type_name(unsigned index);
 
+BACNET_STACK_EXPORT
+const char *bactext_program_request_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_program_state_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_program_error_name(unsigned index);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

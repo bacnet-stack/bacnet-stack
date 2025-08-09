@@ -1752,11 +1752,13 @@ bool bactext_days_of_week_index(const char *search_name, unsigned *found_index)
         bacnet_days_of_week_names, search_name, found_index);
 }
 
-INDTEXT_DATA bacnet_notify_type_names[] = { { NOTIFY_ALARM, "alarm" },
-                                            { NOTIFY_EVENT, "event" },
-                                            { NOTIFY_ACK_NOTIFICATION,
-                                              "ack-notification" },
-                                            { 0, NULL } };
+INDTEXT_DATA bacnet_notify_type_names[] = {
+    /* BACnetNotifyType enumerations */
+    { NOTIFY_ALARM, "alarm" },
+    { NOTIFY_EVENT, "event" },
+    { NOTIFY_ACK_NOTIFICATION, "ack-notification" },
+    { 0, NULL }
+};
 
 const char *bactext_notify_type_name(unsigned index)
 {
@@ -2527,14 +2529,69 @@ const char *bactext_success_filter_name(unsigned index)
         bactext_success_filter_names, index, ASHRAE_Reserved_String);
 }
 
-INDTEXT_DATA bactext_logging_type_names[] = { { LOGGING_TYPE_POLLED, "polled" },
-                                              { LOGGING_TYPE_COV, "cov" },
-                                              { LOGGING_TYPE_TRIGGERED,
-                                                "triggered" },
-                                              { 0, NULL } };
+INDTEXT_DATA bactext_logging_type_names[] = {
+    /* BACnetLoggingType enumerations */
+    { LOGGING_TYPE_POLLED, "polled" },
+    { LOGGING_TYPE_COV, "cov" },
+    { LOGGING_TYPE_TRIGGERED, "triggered" },
+    { 0, NULL }
+};
 
 const char *bactext_logging_type_name(unsigned index)
 {
     return indtext_by_index_default(
         bactext_logging_type_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_program_request_names[] = {
+    { PROGRAM_REQUEST_READY, "ready" },
+    { PROGRAM_REQUEST_LOAD, "load" },
+    { PROGRAM_REQUEST_RUN, "run" },
+    { PROGRAM_REQUEST_HALT, "halt" },
+    { PROGRAM_REQUEST_RESTART, "restart" },
+    { PROGRAM_REQUEST_UNLOAD, "unload" },
+    { 0, NULL }
+};
+
+const char *bactext_program_request_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bactext_program_request_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_program_state_names[] = {
+    { PROGRAM_STATE_IDLE, "idle" },
+    { PROGRAM_STATE_LOADING, "loading" },
+    { PROGRAM_STATE_RUNNING, "running" },
+    { PROGRAM_STATE_WAITING, "waiting" },
+    { PROGRAM_STATE_HALTED, "halted" },
+    { PROGRAM_STATE_UNLOADING, "unloading" },
+    { 0, NULL }
+};
+
+const char *bactext_program_state_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bactext_program_state_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_program_error_names[] = {
+    { PROGRAM_ERROR_NORMAL, "normal" },
+    { PROGRAM_ERROR_LOAD_FAILED, "load-failed" },
+    { PROGRAM_ERROR_INTERNAL, "internal" },
+    { PROGRAM_ERROR_PROGRAM, "program" },
+    { PROGRAM_ERROR_OTHER, "other" },
+    { 0, NULL }
+};
+
+const char *bactext_program_error_name(unsigned index)
+{
+    if (index < PROGRAM_ERROR_PROPRIETARY_MIN) {
+        return indtext_by_index_default(
+            bactext_program_error_names, index, ASHRAE_Reserved_String);
+    } else if (index <= PROGRAM_ERROR_PROPRIETARY_MAX) {
+        return Vendor_Proprietary_String;
+    } else {
+        return "Invalid BACnetProgramError";
+    }
 }
