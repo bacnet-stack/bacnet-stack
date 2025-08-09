@@ -14,15 +14,15 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Source Files\apps">
-      <UniqueIdentifier>{9f8c7149-3e7a-4583-9890-03c4b43a07cc}</UniqueIdentifier>
+      <UniqueIdentifier>{696ecfbc-21ac-48f5-9f33-b0ad0824a353}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\apps\server">
-      <UniqueIdentifier>{ac1fb1f1-4757-4d60-a208-6553d0ff76c6}</UniqueIdentifier>
+    <Filter Include="Source Files\apps\server-mini">
+      <UniqueIdentifier>{10d6b416-c08d-46c3-9aed-cf7bc5db472d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\apps\server\main.c">
-      <Filter>Source Files\apps\server</Filter>
+    <ClCompile Include="..\..\..\..\apps\server-mini\main.c">
+      <Filter>Source Files\apps\server-mini</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

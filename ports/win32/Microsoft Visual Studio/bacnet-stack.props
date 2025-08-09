@@ -10,6 +10,7 @@
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>BACNET_STACK_STATIC_DEFINE;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup />
