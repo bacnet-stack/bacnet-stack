@@ -172,6 +172,8 @@ const char *bactext_network_port_type_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_network_number_quality_name(unsigned index);
 BACNET_STACK_EXPORT
+const char *bactext_protocol_level_name(unsigned index);
+BACNET_STACK_EXPORT
 const char *bactext_network_port_command_name(unsigned index);
 
 BACNET_STACK_EXPORT

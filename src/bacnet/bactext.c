@@ -2402,6 +2402,20 @@ const char *bactext_network_number_quality_name(unsigned index)
         bactext_network_number_quality_names, index, ASHRAE_Reserved_String);
 }
 
+INDTEXT_DATA bactext_protocol_level_names[] = {
+    { BACNET_PROTOCOL_LEVEL_PHYSICAL, "physical" },
+    { BACNET_PROTOCOL_LEVEL_PROTOCOL, "protocol" },
+    { BACNET_PROTOCOL_LEVEL_BACNET_APPLICATION, "bacnet-application" },
+    { BACNET_PROTOCOL_LEVEL_NON_BACNET_APPLICATION, "non-bacnet-application" },
+    { 0, NULL }
+};
+
+const char *bactext_protocol_level_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bactext_protocol_level_names, index, ASHRAE_Reserved_String);
+}
+
 INDTEXT_DATA bactext_network_port_command_names[] = {
     { PORT_COMMAND_IDLE, "idle" },
     { PORT_COMMAND_DISCARD_CHANGES, "discard-changes" },
