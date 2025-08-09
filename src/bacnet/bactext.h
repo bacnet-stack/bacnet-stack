@@ -126,6 +126,8 @@ BACNET_STACK_EXPORT
 const char *bactext_life_safety_operation_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_life_safety_state_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_silenced_state_name(unsigned index);
 
 BACNET_STACK_EXPORT
 const char *bactext_device_communications_name(unsigned index);
@@ -184,6 +186,8 @@ BACNET_STACK_EXPORT
 const char *bactext_success_filter_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_result_flags_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_logging_type_name(unsigned index);
 
 #ifdef __cplusplus
 }

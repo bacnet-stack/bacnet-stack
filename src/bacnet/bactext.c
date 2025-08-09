@@ -1968,6 +1968,16 @@ INDTEXT_DATA bacnet_node_type_names[] = {
     { BACNET_NODE_PROPERTY, "property" },
     { BACNET_NODE_FUNCTIONAL, "functional" },
     { BACNET_NODE_OTHER, "other" },
+    { BACNET_NODE_SUBSYSTEM, "subsystem" },
+    { BACNET_NODE_BUILDING, "building" },
+    { BACNET_NODE_FLOOR, "floor" },
+    { BACNET_NODE_SECTION, "section" },
+    { BACNET_NODE_MODULE, "module" },
+    { BACNET_NODE_TREE, "tree" },
+    { BACNET_NODE_MEMBER, "member" },
+    { BACNET_NODE_PROTOCOL, "protocol" },
+    { BACNET_NODE_ROOM, "room" },
+    { BACNET_NODE_ZONE, "zone" },
     { 0, NULL }
 };
 
@@ -2118,6 +2128,26 @@ const char *bactext_life_safety_state_name(unsigned index)
         return Vendor_Proprietary_String;
     } else {
         return "Invalid BACnetLifeSafetyState";
+    }
+}
+
+INDTEXT_DATA bactext_silenced_state_names[] = {
+    { SILENCED_STATE_UNSILENCED, "unsilenced" },
+    { SILENCED_STATE_AUDIBLE_SILENCED, "audible-silenced" },
+    { SILENCED_STATE_VISIBLE_SILENCED, "visible-silenced" },
+    { SILENCED_STATE_ALL_SILENCED, "all-silenced" },
+    { 0, NULL }
+};
+
+const char *bactext_silenced_state_name(unsigned index)
+{
+    if (index < SILENCED_STATE_PROPRIETARY_MIN) {
+        return indtext_by_index_default(
+            bactext_silenced_state_names, index, ASHRAE_Reserved_String);
+    } else if (index <= SILENCED_STATE_PROPRIETARY_MAX) {
+        return Vendor_Proprietary_String;
+    } else {
+        return "Invalid BACnetSilencedState";
     }
 }
 
@@ -2495,4 +2525,16 @@ const char *bactext_success_filter_name(unsigned index)
 {
     return indtext_by_index_default(
         bactext_success_filter_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_logging_type_names[] = { { LOGGING_TYPE_POLLED, "polled" },
+                                              { LOGGING_TYPE_COV, "cov" },
+                                              { LOGGING_TYPE_TRIGGERED,
+                                                "triggered" },
+                                              { 0, NULL } };
+
+const char *bactext_logging_type_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bactext_logging_type_names, index, ASHRAE_Reserved_String);
 }
