@@ -85,6 +85,18 @@ enum {
 };
 
 /**
+ * @brief function to use c-stack RAM to create a string within function scope
+ * @param PTR - a pointer to a local character pointer
+ * @param ... - vsprintf format specifiers and variable arguments
+ * @return Upon successful completion, the sprintf() function shall return
+ *  the number of bytes written to the PTR, excluding the terminating null byte.
+ *  If an output error was encountered, these functions shall return a negative
+ * value and set errno to indicate the error.
+ */
+#define asprintfa(PTR, ...) \
+    sprintf((*(PTR)) = alloca(1 + snprintf(NULL, 0, __VA_ARGS__)), __VA_ARGS__)
+
+/**
  * @brief Make a string from the MAC address
  * @param str - Buffer to hold the string representation
  * @param str_len -
@@ -247,6 +259,7 @@ static void add_discovered_properties_to_gui(
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     bool status = false;
     int str_len = 0;
+    char *property_string;
 
     property_count = bacnet_discover_object_property_count(
         device_id, object_type, object_instance);
@@ -254,6 +267,12 @@ static void add_discovered_properties_to_gui(
         gtk_list_store_append(property_store, &iter);
         bacnet_discover_object_property_identifier(
             device_id, object_type, object_instance, index, &property_id);
+        if (bactext_property_name_proprietary(property_id)) {
+            asprintfa(&property_string, "proprietary-%u", property_id);
+        } else {
+            asprintfa(
+                &property_string, "%s", bactext_property_name(property_id));
+        }
         status = bacnet_discover_property_value(
             device_id, object_type, object_instance, property_id, &value);
         if (status) {
@@ -268,8 +287,8 @@ static void add_discovered_properties_to_gui(
                 bacapp_snprintf_value(str, str_len + 1, &object_value);
                 gtk_list_store_set(
                     property_store, &iter, PROPERTY_COL_ID, property_id,
-                    PROPERTY_COL_NAME, bactext_property_name(property_id),
-                    PROPERTY_COL_VALUE, str, -1);
+                    PROPERTY_COL_NAME, property_string, PROPERTY_COL_VALUE, str,
+                    -1);
             } else {
                 status = false;
             }
@@ -277,8 +296,8 @@ static void add_discovered_properties_to_gui(
         if (!status) {
             gtk_list_store_set(
                 property_store, &iter, PROPERTY_COL_ID, property_id,
-                PROPERTY_COL_NAME, bactext_property_name(property_id),
-                PROPERTY_COL_VALUE, "-", -1);
+                PROPERTY_COL_NAME, property_string, PROPERTY_COL_VALUE, "-",
+                -1);
         }
     }
 }
