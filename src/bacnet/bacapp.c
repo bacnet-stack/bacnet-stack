@@ -2442,6 +2442,18 @@ static int bacapp_snprintf_enumerated(
                     break;
             }
             break;
+        case PROP_PROGRAM_CHANGE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_request_name(value));
+            break;
+        case PROP_PROGRAM_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_state_name(value));
+            break;
+        case PROP_REASON_FOR_HALT:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_error_name(value));
+            break;
         default:
             ret_val =
                 bacapp_snprintf(str, str_len, "%lu", (unsigned long)value);
