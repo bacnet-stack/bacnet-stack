@@ -951,32 +951,8 @@ int bacapp_encode_context_data_value(
                     value->type.Object_Id.instance);
                 break;
 #endif
-            case BACNET_APPLICATION_TAG_TIMESTAMP:
-            case BACNET_APPLICATION_TAG_DATETIME:
-            case BACNET_APPLICATION_TAG_DATERANGE:
-            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-            case BACNET_APPLICATION_TAG_XY_COLOR:
-            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
-            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
-            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
-            case BACNET_APPLICATION_TAG_HOST_N_PORT:
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
-            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
-            case BACNET_APPLICATION_TAG_DESTINATION:
-            case BACNET_APPLICATION_TAG_BDT_ENTRY:
-            case BACNET_APPLICATION_TAG_FDT_ENTRY:
-            case BACNET_APPLICATION_TAG_ACTION_COMMAND:
-            case BACNET_APPLICATION_TAG_LOG_RECORD:
-            case BACNET_APPLICATION_TAG_SCALE:
-            case BACNET_APPLICATION_TAG_SHED_LEVEL:
-            case BACNET_APPLICATION_TAG_ACCESS_RULE:
-            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
-            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
-            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
-            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
-                /* complex data is enclosed in open/close tags */
+            default:
+                /* non-primitive data is enclosed in open/close tags */
                 len = encode_opening_tag(apdu, context_tag_number);
                 apdu_len += len;
                 if (apdu) {
@@ -989,9 +965,6 @@ int bacapp_encode_context_data_value(
                 }
                 len = encode_closing_tag(apdu, context_tag_number);
                 apdu_len += len;
-                break;
-            default:
-                (void)len;
                 break;
         }
     }
