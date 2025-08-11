@@ -31,7 +31,7 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/datalink/dlmstp.h"
-#ifndef _MSC_VER
+#if defined(BACFILE)
 #include "bacfile-posix.h"
 #endif
 
@@ -993,8 +993,8 @@ void dlenv_init(void)
     port_type = PORT_TYPE_NON_BACNET;
 #endif
 #endif
+#if defined(BACFILE)
     /* initialize the POSIX file objects */
-#ifndef _MSC_VER
     bacfile_posix_init();
 #endif
     /* === Initialize the Network Port Object Here === */
