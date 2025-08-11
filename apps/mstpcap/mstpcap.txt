@@ -147,12 +147,21 @@ Locate the 10 27 which in my case were in 5th and 6th position and replace with
 This will make the RS485 go to 76800 baud (76923 baud) baud when you ask it
 to be 300 baud.
 
-So to capture at 76800 baud type: mstpcap.exe COM2 300
+So to capture at 76800 baud type:
 
-Windows 11 (from edward@bac-test.com)
-Using Waveshare USB to RS485 converter on COM4: https://www.waveshare.com/product/usb-to-rs485-b.htm
-Inside Visual Studio in debug mode, Setting project properties -> Debugging -> Command line arguments to COM4
-Worked just fine capturing at 38400 baud.
+From the command line:
+> mstpcap.exe COM2 300
+
+From Visual Studio in debug mode:
+Setting project properties -> Debugging -> Command line arguments to COM4
+
+Some USB to RS485 converters:
+
+Waveshare USB to RS485 converter
+https://www.waveshare.com/product/usb-to-rs485-b.htm
+
+B&B Electronics USB to RS485 converter USOPTL4 (isolated)
+https://www.advantech.com/
 
 Linux (used with Debian Lenny and Fedora 15)
 http://www.connecttech.com/KnowledgeDatabase/kdb309.htm
