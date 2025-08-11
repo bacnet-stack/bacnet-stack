@@ -78,7 +78,12 @@ enum {
 };
 
 enum {
+    PROPERTY_COL_DEVICE_ID,
+    PROPERTY_COL_OBJECT_TYPE,
+    PROPERTY_COL_OBJECT_ID,
     PROPERTY_COL_ID,
+    PROPERTY_COL_ARRAY_INDEX,
+    PROPERTY_COL_VALUE_TAG,
     PROPERTY_COL_NAME,
     PROPERTY_COL_VALUE,
     PROPERTY_NUM_COLS
@@ -254,6 +259,7 @@ static void add_discovered_properties_to_gui(
     GtkTreeIter iter;
     unsigned int property_count = 0;
     unsigned int index = 0;
+    uint32_t array_index = BACNET_ARRAY_ALL;
     uint32_t property_id = 0;
     BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
@@ -279,25 +285,31 @@ static void add_discovered_properties_to_gui(
             object_value.object_type = object_type;
             object_value.object_instance = object_instance;
             object_value.object_property = property_id;
-            object_value.array_index = BACNET_ARRAY_ALL;
+            object_value.array_index = array_index;
             object_value.value = &value;
             str_len = bacapp_snprintf_value(NULL, 0, &object_value);
             if (str_len > 0) {
                 char str[str_len + 1];
                 bacapp_snprintf_value(str, str_len + 1, &object_value);
                 gtk_list_store_set(
-                    property_store, &iter, PROPERTY_COL_ID, property_id,
-                    PROPERTY_COL_NAME, property_string, PROPERTY_COL_VALUE, str,
-                    -1);
+                    property_store, &iter, PROPERTY_COL_DEVICE_ID, device_id,
+                    PROPERTY_COL_OBJECT_TYPE, object_type,
+                    PROPERTY_COL_OBJECT_ID, object_instance, PROPERTY_COL_ID,
+                    property_id, PROPERTY_COL_ARRAY_INDEX, array_index,
+                    PROPERTY_COL_VALUE_TAG, value.tag, PROPERTY_COL_NAME,
+                    property_string, PROPERTY_COL_VALUE, str, -1);
             } else {
                 status = false;
             }
         }
         if (!status) {
             gtk_list_store_set(
-                property_store, &iter, PROPERTY_COL_ID, property_id,
-                PROPERTY_COL_NAME, property_string, PROPERTY_COL_VALUE, "-",
-                -1);
+                property_store, &iter, PROPERTY_COL_DEVICE_ID, device_id,
+                PROPERTY_COL_OBJECT_TYPE, object_type, PROPERTY_COL_OBJECT_ID,
+                object_instance, PROPERTY_COL_ID, property_id,
+                PROPERTY_COL_ARRAY_INDEX, array_index, PROPERTY_COL_VALUE_TAG,
+                value.tag, PROPERTY_COL_NAME, property_string,
+                PROPERTY_COL_VALUE, "-", -1);
         }
     }
 }
@@ -352,6 +364,60 @@ static void on_discover_devices_clicked(GtkButton *button, gpointer data)
     }
     /* discover */
     Send_WhoIs_Global(0, 4194303);
+}
+
+static void on_property_edited(
+    GtkCellRendererText *renderer,
+    gchar *path_string,
+    gchar *new_text,
+    gpointer user_data)
+{
+    GtkTreeModel *model = GTK_TREE_MODEL(user_data);
+    GtkTreeIter iter;
+    guint device_id;
+    guint object_type;
+    guint object_id;
+    guint property_id;
+    guint array_index;
+    guint value_tag;
+    bool status = false;
+    uint8_t invoke_id;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+
+    (void)renderer; /* unused parameter */
+    if (gtk_tree_model_get_iter_from_string(model, &iter, path_string)) {
+        gtk_tree_model_get(
+            model, &iter, PROPERTY_COL_DEVICE_ID, &device_id, -1);
+        gtk_tree_model_get(
+            model, &iter, PROPERTY_COL_OBJECT_TYPE, &object_type, -1);
+        gtk_tree_model_get(
+            model, &iter, PROPERTY_COL_OBJECT_ID, &object_id, -1);
+        gtk_tree_model_get(
+            model, &iter, PROPERTY_COL_ARRAY_INDEX, &array_index, -1);
+        gtk_tree_model_get(
+            model, &iter, PROPERTY_COL_VALUE_TAG, &value_tag, -1);
+        gtk_tree_model_get(model, &iter, PROPERTY_COL_ID, &property_id, -1);
+        /* write property */
+        status = bacapp_parse_application_data(value_tag, new_text, &value);
+        printf(
+            "Parsed %s-%u %s %s -> tag=%u %s\n",
+            bactext_object_type_name(object_type), object_id,
+            bactext_property_name(property_id), new_text, value_tag,
+            status ? "successfully" : "unsuccessfully");
+        if (status) {
+            invoke_id = Send_Write_Property_Request(
+                device_id, object_type, object_id, property_id, &value,
+                BACNET_NO_PRIORITY, array_index);
+            if (invoke_id) {
+                printf(
+                    "WriteProperty to Device %u %s-%u %s = %s\n", device_id,
+                    bactext_object_type_name(object_type), object_id,
+                    bactext_property_name(property_id), new_text);
+                gtk_list_store_set(
+                    property_store, &iter, PROPERTY_COL_VALUE, new_text, -1);
+            }
+        }
+    }
 }
 
 /**
@@ -507,9 +573,14 @@ static void setup_property_tree_view(void)
 
     /* Create list store */
     property_store = gtk_list_store_new(
-        PROPERTY_NUM_COLS, G_TYPE_UINT, /* Property ID */
-        G_TYPE_STRING, /* Property Name */
-        G_TYPE_STRING); /* Property Value */
+        PROPERTY_NUM_COLS, G_TYPE_UINT, /* PROPERTY_COL_DEVICE_ID */
+        G_TYPE_UINT, /* PROPERTY_COL_OBJECT_TYPE */
+        G_TYPE_UINT, /* PROPERTY_COL_OBJECT_ID */
+        G_TYPE_UINT, /* PROPERTY_COL_ID */
+        G_TYPE_UINT, /* PROPERTY_COL_ARRAY_INDEX */
+        G_TYPE_INT, /* PROPERTY_COL_VALUE_TAG */
+        G_TYPE_STRING, /* PROPERTY_COL_NAME */
+        G_TYPE_STRING); /* PROPERTY_COL_VALUE */
 
     /* Create tree view */
     property_tree_view =
@@ -526,6 +597,10 @@ static void setup_property_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Value", renderer, "text", PROPERTY_COL_VALUE, NULL);
+    g_object_set(renderer, "editable", TRUE, NULL);
+    g_signal_connect(
+        renderer, "edited", G_CALLBACK(on_property_edited),
+        GTK_TREE_MODEL(property_store));
     gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
 }
 
