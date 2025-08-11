@@ -39,7 +39,7 @@ const char *bacfile_name_ansi(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool bacfile_valid_instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
-uint32_t bacfile_count(void);
+unsigned bacfile_count(void);
 BACNET_STACK_EXPORT
 uint32_t bacfile_index_to_instance(unsigned find_index);
 BACNET_STACK_EXPORT

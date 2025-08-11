@@ -369,6 +369,10 @@ xplained-clean: ports/xplained/Makefile
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
 
+.PHONY: gtk-discover
+gtk-discover:
+	$(MAKE) LEGACY=true -s -C apps $@
+
 .PHONY: dlmstp-linux
 dlmstp-linux: ports/linux/dlmstp.mak
 	$(MAKE) -s -C ports/linux -f dlmstp.mak clean all

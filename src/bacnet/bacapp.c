@@ -2417,6 +2417,55 @@ static int bacapp_snprintf_enumerated(
             ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_lighting_in_progress(value));
             break;
+        case PROP_LOGGING_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_logging_type_name(value));
+            break;
+        case PROP_MODE:
+        case PROP_ACCEPTED_MODES:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_life_safety_mode_name(value));
+            break;
+        case PROP_OPERATION_EXPECTED:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_life_safety_operation_name(value));
+            break;
+        case PROP_TRACKING_VALUE:
+            switch (object_type) {
+                case OBJECT_LIFE_SAFETY_POINT:
+                case OBJECT_LIFE_SAFETY_ZONE:
+                    ret_val = bacapp_snprintf(
+                        str, str_len, "%s",
+                        bactext_life_safety_state_name(value));
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_PROGRAM_CHANGE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_request_name(value));
+            break;
+        case PROP_PROGRAM_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_state_name(value));
+            break;
+        case PROP_REASON_FOR_HALT:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_error_name(value));
+            break;
+        case PROP_NETWORK_NUMBER_QUALITY:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_network_number_quality_name(value));
+            break;
+        case PROP_NETWORK_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_network_port_type_name(value));
+            break;
+        case PROP_PROTOCOL_LEVEL:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_protocol_level_name(value));
+            break;
         default:
             ret_val =
                 bacapp_snprintf(str, str_len, "%lu", (unsigned long)value);
