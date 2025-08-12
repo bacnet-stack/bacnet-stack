@@ -81,7 +81,7 @@ static void strupper(char *str)
 void RS485_Set_Interface(char *ifname)
 {
     /* For COM ports greater than 9 you have to use a special syntax
-       for CreateFile. The syntax also works for COM ports 1-9. */
+       for CreateFileA. The syntax also works for COM ports 1-9. */
     /* http://support.microsoft.com/kb/115831 */
     if (ifname) {
         strupper(ifname);
@@ -112,7 +112,7 @@ bool RS485_Interface_Valid(unsigned port_number)
     char ifname[255] = "";
 
     snprintf(ifname, sizeof(ifname), "\\\\.\\COM%u", port_number);
-    h = CreateFile(
+    h = CreateFileA(
         ifname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     if (h == INVALID_HANDLE_VALUE) {
         err = GetLastError();
@@ -252,7 +252,7 @@ static void RS485_Cleanup(void)
  *****************************************************************************/
 void RS485_Initialize(void)
 {
-    RS485_Handle = CreateFile(
+    RS485_Handle = CreateFileA(
         RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
         /*FILE_FLAG_OVERLAPPED */ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
