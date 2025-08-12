@@ -1110,7 +1110,7 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  * @brief Handle encoding for the By Sequence option.
  * @note The fact that the buffer always has at least
  *  a single entry is used implicetly in the following
- *  implmentation as we don't have to handle the case
+ *  implementationas we don't have to handle the case
  *  of an empty buffer.
  * @param apdu - Pointer to the buffer to encode into.
  * @param pRequest - Pointer to the request data structure containing
@@ -1266,7 +1266,7 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 /**
  * @brief Handle encoding for the By Time option.
  * @note The fact that the buffer always has at least a single entry
- *  is used implicetly in the following implmentation as we don't
+ *  is used implicetly in the following implementationas we don't
  *  have to handle the case of an empty buffer.
  * @param apdu - Pointer to the buffer to encode into.
  * @param pRequest - Pointer to the request data structure containing
