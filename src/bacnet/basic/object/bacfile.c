@@ -194,7 +194,9 @@ bool bacfile_object_name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "FILE %u", object_instance);
+            snprintf(
+                name_text, sizeof(name_text), "FILE %lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -265,7 +267,7 @@ bool bacfile_valid_instance(uint32_t object_instance)
  * @brief Determines the number of objects
  * @return  Number of objects
  */
-uint32_t bacfile_count(void)
+unsigned bacfile_count(void)
 {
     return Keylist_Count(Object_List);
 }
@@ -1022,12 +1024,22 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     return found;
 }
 
+/**
+ * @brief Write the data received to the file specified
+ * @param data - pointer to the data to write
+ * @return true - if successful
+ * @return false - if failed or access denied
+ */
 bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     const char *pathname = NULL;
     bool status = false;
     size_t bytes_written = 0;
 
+    if (bacfile_read_only(data->object_instance)) {
+        /* if the file is read-only, then we cannot write to it */
+        return false;
+    }
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         status = true;
@@ -1052,7 +1064,7 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
  * @brief Write the data received to the file specified
  * @param data - pointer to the data to write
  * @return true - if successful
- * @return false - if failed
+ * @return false - if failed or access denied
  */
 bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
@@ -1060,6 +1072,10 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
     bool found = false;
     size_t i = 0;
 
+    if (bacfile_read_only(data->object_instance)) {
+        /* if the file is read-only, then we cannot write to it */
+        return false;
+    }
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;

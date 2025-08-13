@@ -61,6 +61,8 @@ void bacnet_init(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
 }
