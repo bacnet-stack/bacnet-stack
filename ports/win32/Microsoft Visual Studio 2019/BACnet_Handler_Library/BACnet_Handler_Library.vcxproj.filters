@@ -165,5 +165,8 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\ports\posix\bacfile-posix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

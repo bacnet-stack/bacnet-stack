@@ -596,26 +596,30 @@ void RS485_Print_Ports(void)
                         valid_port = true;
                         if (valid_port) {
                             /* print full absolute file path */
-                            printf("interface {value=/dev/%s}"
-                                   "{display=MS/TP Capture on /dev/%s}\n",
+                            printf(
+                                "interface {value=/dev/%s}"
+                                "{display=MS/TP Capture on /dev/%s}\n",
                                 namelist[n]->d_name, namelist[n]->d_name);
                         }
                     }
                 } else {
-                    snprintf(device_dir, sizeof(device_dir), "%s%s/device",
-                        sysdir, namelist[n]->d_name);
+                    snprintf(
+                        device_dir, sizeof(device_dir), "%s%s/device", sysdir,
+                        namelist[n]->d_name);
                     /* Stat the devicedir and handle it if it is a symlink */
                     if (lstat(device_dir, &st) == 0 && S_ISLNK(st.st_mode)) {
                         memset(buffer, 0, sizeof(buffer));
-                        snprintf(device_dir, sizeof(device_dir),
+                        snprintf(
+                            device_dir, sizeof(device_dir),
                             "%s%s/device/driver", sysdir, namelist[n]->d_name);
                         if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
                             valid_port = false;
                             driver_name = basename(buffer);
                             if (strcmp(driver_name, "serial8250") == 0) {
                                 /* serial8250-devices must be probed */
-                                snprintf(device_dir, sizeof(device_dir),
-                                    "/dev/%s", namelist[n]->d_name);
+                                snprintf(
+                                    device_dir, sizeof(device_dir), "/dev/%s",
+                                    namelist[n]->d_name);
                                 fd = open(
                                     device_dir, O_RDWR | O_NONBLOCK | O_NOCTTY);
                                 if (fd >= 0) {
@@ -627,8 +631,9 @@ void RS485_Print_Ports(void)
                             }
                             if (valid_port) {
                                 /* print full absolute file path */
-                                printf("interface {value=/dev/%s}"
-                                       "{display=MS/TP Capture on /dev/%s}\n",
+                                printf(
+                                    "interface {value=/dev/%s}"
+                                    "{display=MS/TP Capture on /dev/%s}\n",
                                     namelist[n]->d_name, namelist[n]->d_name);
                             }
                         }
@@ -675,7 +680,8 @@ static int openSerialPort(const char *const bsdPath)
 
     fileDescriptor = open(bsdPath, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fileDescriptor == -1) {
-        printf("Error opening serial port %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error opening serial port %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
         goto error;
     }
@@ -686,7 +692,8 @@ static int openSerialPort(const char *const bsdPath)
        <x-man-page//4/tty> and ioctl(2) <x-man-page//2/ioctl> for details.*/
 
     if (ioctl(fileDescriptor, TIOCEXCL) == -1) {
-        printf("Error setting TIOCEXCL on %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error setting TIOCEXCL on %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
         goto error;
     }
@@ -695,7 +702,8 @@ static int openSerialPort(const char *const bsdPath)
      will block. See fcntl(2) <x-man-page//2/fcntl> for details.*/
 
     if (fcntl(fileDescriptor, F_SETFL, 0) == -1) {
-        printf("Error clearing O_NONBLOCK %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error clearing O_NONBLOCK %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
         goto error;
     }
@@ -703,7 +711,8 @@ static int openSerialPort(const char *const bsdPath)
     /* Get the current options and save them so we can restore the default
      * settings later.*/
     if (tcgetattr(fileDescriptor, &RS485_oldtio) == -1) {
-        printf("Error getting tty attributes %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error getting tty attributes %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
         goto error;
     }
@@ -747,7 +756,8 @@ static int openSerialPort(const char *const bsdPath)
      * the input and output speed. */
 
     if (ioctl(fileDescriptor, IOSSIOSPEED, &speed) == -1) {
-        printf("Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
+        printf(
+            "Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
             bsdPath, strerror(errno), errno);
     }
 #endif
@@ -763,7 +773,8 @@ static int openSerialPort(const char *const bsdPath)
 
     /* Cause the new options to take effect immediately.*/
     if (tcsetattr(fileDescriptor, TCSANOW, &options) == -1) {
-        printf("Error setting tty attributes %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error setting tty attributes %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
         goto error;
     }
@@ -774,20 +785,23 @@ static int openSerialPort(const char *const bsdPath)
 
     /* Assert Data Terminal Ready (DTR) */
     if (ioctl(fileDescriptor, TIOCSDTR) == -1) {
-        printf("Error asserting DTR %s - %s(%d).\n", bsdPath, strerror(errno),
+        printf(
+            "Error asserting DTR %s - %s(%d).\n", bsdPath, strerror(errno),
             errno);
     }
 
     /* Clear Data Terminal Ready (DTR) */
     if (ioctl(fileDescriptor, TIOCCDTR) == -1) {
-        printf("Error clearing DTR %s - %s(%d).\n", bsdPath, strerror(errno),
+        printf(
+            "Error clearing DTR %s - %s(%d).\n", bsdPath, strerror(errno),
             errno);
     }
 
     /* Set the modem lines depending on the bits set in handshake */
     handshake = TIOCM_DTR | TIOCM_RTS | TIOCM_CTS | TIOCM_DSR;
     if (ioctl(fileDescriptor, TIOCMSET, &handshake) == -1) {
-        printf("Error setting handshake lines %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error setting handshake lines %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
     }
 
@@ -797,7 +811,8 @@ static int openSerialPort(const char *const bsdPath)
 
     /* Store the state of the modem lines in handshake */
     if (ioctl(fileDescriptor, TIOCMGET, &handshake) == -1) {
-        printf("Error getting handshake lines %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error getting handshake lines %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
     }
 
@@ -814,7 +829,8 @@ static int openSerialPort(const char *const bsdPath)
 
     if (ioctl(fileDescriptor, IOSSDATALAT, &mics) == -1) {
         /* set latency to 1 microsecond */
-        printf("Error setting read latency %s - %s(%d).\n", bsdPath,
+        printf(
+            "Error setting read latency %s - %s(%d).\n", bsdPath,
             strerror(errno), errno);
         goto error;
     }
@@ -846,7 +862,8 @@ static void closeSerialPort(int fileDescriptor)
        the state in which you found it. This is why the original termios struct
        was saved. */
     if (tcsetattr(fileDescriptor, TCSANOW, &RS485_oldtio) == -1) {
-        printf("Error resetting tty attributes - %s(%d).\n", strerror(errno),
+        printf(
+            "Error resetting tty attributes - %s(%d).\n", strerror(errno),
             errno);
     }
 

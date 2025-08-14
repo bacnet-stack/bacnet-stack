@@ -450,7 +450,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                                 mstp_port->ReceivedValidFrame = true;
                             } else {
                                 /* NotForUs */
-                                mstp_port->ReceivedInvalidFrame = true;
+                                mstp_port->ReceivedValidFrameNotForUs = true;
                             }
                             /* wait for the start of the next frame. */
                             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
@@ -563,25 +563,34 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                             &mstp_port->InputBuffer[mstp_port->Index + 1],
                             mstp_port->InputBufferSize, mstp_port->InputBuffer,
                             mstp_port->Index + 1);
-                        if ((mstp_port->DataLength > 0) &&
-                            (mstp_port->receive_state ==
-                             MSTP_RECEIVE_STATE_DATA)) {
+                        if (mstp_port->DataLength > 0) {
                             /* GoodCRC */
-                            mstp_port->ReceivedValidFrame = true;
+                            if (mstp_port->receive_state ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* ForUs */
+                                mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                mstp_port->ReceivedValidFrameNotForUs = true;
+                            }
                         } else {
-                            /* Done */
+                            /* BadCRC */
                             mstp_port->ReceivedInvalidFrame = true;
+                            printf_receive_error(
+                                "MSTP: Rx Data: BadCRC [%02X]\n",
+                                mstp_port->DataRegister);
                         }
                     } else {
                         /* STATE DATA CRC - no need for new state */
                         if (mstp_port->DataCRC == 0xF0B8) {
+                            /* GoodCRC */
                             if (mstp_port->receive_state ==
                                 MSTP_RECEIVE_STATE_DATA) {
-                                /* GoodCRC */
+                                /* ForUs */
                                 mstp_port->ReceivedValidFrame = true;
                             } else {
-                                /* Done */
-                                mstp_port->ReceivedInvalidFrame = true;
+                                /* NotForUs */
+                                mstp_port->ReceivedValidFrameNotForUs = true;
                             }
                         } else {
                             /* BadCRC */
@@ -641,6 +650,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         (mstp_port->ReceivedValidFrame == true) &&
         (mstp_port->SourceAddress == mstp_port->This_Station)) {
         /* DuplicateNode */
+        mstp_port->This_Station = 255;
         mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
         mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
         /* ignore the frame */
@@ -690,6 +700,11 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 /* invalid frame was received */
                 /* wait for the next frame - remain in IDLE */
                 mstp_port->ReceivedInvalidFrame = false;
+            } else if (mstp_port->ReceivedValidFrameNotForUs == true) {
+                /* ReceivedValidFrameNotForUs */
+                /* valid frame was received, but not for this node */
+                /* wait for the next frame - remain in IDLE */
+                mstp_port->ReceivedValidFrameNotForUs = false;
             } else if (mstp_port->ReceivedValidFrame == true) {
                 printf_master(
                     "MSTP: ReceivedValidFrame "
@@ -782,6 +797,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 /* set the receive frame flags to false in case we received
                    some bytes and had a timeout for some reason */
                 mstp_port->ReceivedInvalidFrame = false;
+                mstp_port->ReceivedValidFrameNotForUs = false;
                 mstp_port->ReceivedValidFrame = false;
                 transition_now = true;
             }
@@ -847,10 +863,11 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 /* of the initial value of FrameCount.) */
                 transition_now = true;
             } else {
-                if (mstp_port->ReceivedInvalidFrame == true) {
-                    /* InvalidFrame */
-                    /* error in frame reception */
+                if ((mstp_port->ReceivedInvalidFrame == true) ||
+                    (mstp_port->ReceivedValidFrameNotForUs == true)) {
+                    /* InvalidFrame in this state */
                     mstp_port->ReceivedInvalidFrame = false;
+                    mstp_port->ReceivedValidFrameNotForUs = false;
                     mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                     transition_now = true;
                 } else if (mstp_port->ReceivedValidFrame == true) {
@@ -1122,7 +1139,8 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
             } else if (
                 (mstp_port->SilenceTimer((void *)mstp_port) >
                  mstp_port->Tusage_timeout) ||
-                (mstp_port->ReceivedInvalidFrame == true)) {
+                (mstp_port->ReceivedInvalidFrame == true) ||
+                (mstp_port->ReceivedValidFrameNotForUs == true)) {
                 if (mstp_port->SoleMaster == true) {
                     /* SoleMaster */
                     /* There was no valid reply to the periodic poll  */
@@ -1168,6 +1186,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                     }
                 }
                 mstp_port->ReceivedInvalidFrame = false;
+                mstp_port->ReceivedValidFrameNotForUs = false;
             }
             break;
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
@@ -1245,6 +1264,10 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
         /* ReceivedInvalidFrame */
         /* invalid frame was received */
         mstp_port->ReceivedInvalidFrame = false;
+    } else if (mstp_port->ReceivedValidFrameNotForUs) {
+        /* ReceivedValidFrameNotForUs */
+        /* valid frame was received, but not for this node */
+        mstp_port->ReceivedValidFrameNotForUs = false;
     } else if (mstp_port->ReceivedValidFrame) {
         mstp_port->ReceivedValidFrame = false;
         switch (mstp_port->FrameType) {
@@ -1437,8 +1460,11 @@ static void MSTP_Zero_Config_State_Idle(struct mstp_port_struct_t *mstp_port)
         mstp_port->Poll_Count = 0;
         mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
     } else if (mstp_port->ReceivedInvalidFrame) {
-        /* InvalidFrame */
+        /* IdleInvalidFrame */
         mstp_port->ReceivedInvalidFrame = false;
+    } else if (mstp_port->ReceivedValidFrameNotForUs) {
+        /* IdleValidFrameNotForUs */
+        mstp_port->ReceivedValidFrameNotForUs = false;
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
@@ -1508,6 +1534,9 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->ReceivedInvalidFrame) {
         /* LurkInvalidFrame */
         mstp_port->ReceivedInvalidFrame = false;
+    } else if (mstp_port->ReceivedValidFrameNotForUs) {
+        /* LurkValidFrameNotForUs */
+        mstp_port->ReceivedValidFrameNotForUs = false;
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
@@ -1556,6 +1585,9 @@ static void MSTP_Zero_Config_State_Claim(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->ReceivedInvalidFrame) {
         /* ClaimInvalidFrame */
         mstp_port->ReceivedInvalidFrame = false;
+    } else if (mstp_port->ReceivedValidFrameNotForUs) {
+        /* ClaimValidFrameNotForUs */
+        mstp_port->ReceivedValidFrameNotForUs = false;
     } else if (mstp_port->Zero_Config_Silence > 0) {
         /* ClaimTimeout */
         if (mstp_port->SilenceTimer((void *)mstp_port) >
@@ -1616,6 +1648,9 @@ static void MSTP_Zero_Config_State_Confirm(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->ReceivedInvalidFrame) {
         /* ConfirmationInvalidFrame */
         mstp_port->ReceivedInvalidFrame = false;
+    } else if (mstp_port->ReceivedValidFrameNotForUs) {
+        /* ConfirmationValidFrameNotForUs */
+        mstp_port->ReceivedValidFrameNotForUs = false;
     } else if (
         mstp_port->SilenceTimer((void *)mstp_port) >=
         mstp_port->Treply_timeout) {

@@ -24,6 +24,7 @@ static ACCESS_USER_DESCR au_descr[MAX_ACCESS_USERS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_GLOBAL_IDENTIFIER, PROP_STATUS_FLAGS, PROP_RELIABILITY,
     PROP_USER_TYPE,         PROP_CREDENTIALS,  -1

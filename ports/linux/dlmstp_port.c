@@ -210,11 +210,13 @@ static void *dlmstp_receive_fsm_task(void *pArg)
     for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((mstp_port->ReceivedValidFrame == false) &&
+            (mstp_port->ReceivedValidFrameNotForUs == false) &&
             (mstp_port->ReceivedInvalidFrame == false)) {
             do {
                 RS485_Check_UART_Data(mstp_port);
                 MSTP_Receive_Frame_FSM((struct mstp_port_struct_t *)pArg);
                 received_frame = mstp_port->ReceivedValidFrame ||
+                    mstp_port->ReceivedValidFrameNotForUs ||
                     mstp_port->ReceivedInvalidFrame;
                 if (received_frame) {
                     pthread_cond_signal(&poSharedData->Received_Frame_Flag);
@@ -245,11 +247,13 @@ static void *dlmstp_master_fsm_task(void *pArg)
 
     for (;;) {
         if (mstp_port->ReceivedValidFrame == false &&
+            mstp_port->ReceivedValidFrameNotForUs == false &&
             mstp_port->ReceivedInvalidFrame == false) {
             RS485_Check_UART_Data(mstp_port);
             MSTP_Receive_Frame_FSM(mstp_port);
         }
-        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame) {
+        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame ||
+            mstp_port->ReceivedValidFrameNotForUs) {
             run_master = true;
         } else {
             silence = mstp_port->SilenceTimer(NULL);

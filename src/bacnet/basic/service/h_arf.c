@@ -157,7 +157,7 @@ void handler_atomic_read_file(
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                 error = true;
-            } else if (bacfile_read_stream_data(&data)) {
+            } else if (bacfile_read_record_data(&data)) {
                 debug_fprintf(
                     stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
                     (int)data.type.record.fileStartRecord,

@@ -57,7 +57,7 @@ struct object_data {
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    /* unordered list of properties */
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PROGRAM_STATE,
     PROP_PROGRAM_CHANGE,    PROP_STATUS_FLAGS,
@@ -65,7 +65,7 @@ static const int Properties_Required[] = {
 };
 
 static const int Properties_Optional[] = {
-    /* unordered list of properties */
+    /* unordered list of optional properties */
     PROP_REASON_FOR_HALT,
     PROP_DESCRIPTION_OF_HALT,
     PROP_PROGRAM_LOCATION,

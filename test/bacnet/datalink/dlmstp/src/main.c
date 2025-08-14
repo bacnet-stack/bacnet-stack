@@ -117,6 +117,9 @@ static void test_MSTP_Datalink(void)
         test_stats.receive_valid_frame_counter,
         MSTP_User.Statistics.receive_valid_frame_counter, NULL);
     zassert_equal(
+        test_stats.receive_valid_frame_not_for_us_counter,
+        MSTP_User.Statistics.receive_valid_frame_not_for_us_counter, NULL);
+    zassert_equal(
         test_stats.receive_invalid_frame_counter,
         MSTP_User.Statistics.receive_invalid_frame_counter, NULL);
     zassert_equal(

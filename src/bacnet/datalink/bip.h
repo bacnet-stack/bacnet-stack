@@ -36,6 +36,9 @@ BACNET_STACK_EXPORT
 void bip_set_interface(const char *ifname);
 
 BACNET_STACK_EXPORT
+const char *bip_get_interface(void);
+
+BACNET_STACK_EXPORT
 void bip_cleanup(void);
 
 /* common BACnet/IP functions */
