@@ -373,15 +373,18 @@ static void on_property_edited(
     gpointer user_data)
 {
     GtkTreeModel *model = GTK_TREE_MODEL(user_data);
-    GtkTreeIter iter;
-    guint device_id;
-    guint object_type;
-    guint object_id;
-    guint property_id;
-    guint array_index;
-    guint value_tag;
+    GtkTreeIter iter = { 0 };
+    guint device_id = 0;
+    guint object_type = 0;
+    guint object_id = 0;
+    guint property_id = 0;
+    guint array_index = 0;
+    long priority = BACNET_NO_PRIORITY;
+    guint value_tag = 0;
+    unsigned enumerated_value = 0;
     bool status = false;
     uint8_t invoke_id;
+    bool null_value = false;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     (void)renderer; /* unused parameter */
@@ -397,8 +400,43 @@ static void on_property_edited(
         gtk_tree_model_get(
             model, &iter, PROPERTY_COL_VALUE_TAG, &value_tag, -1);
         gtk_tree_model_get(model, &iter, PROPERTY_COL_ID, &property_id, -1);
-        /* write property */
-        status = bacapp_parse_application_data(value_tag, new_text, &value);
+        /* allow for optional priority using @ symbol for commandables */
+        if (property_list_commandable_member(object_type, property_id)) {
+            /* search the new_text for the @ symbol */
+            char *at_ptr = strchr(new_text, '@');
+            if (at_ptr) {
+                /* convert the priority value after the @ symbol
+                  into an integer */
+                priority = strtol(at_ptr + 1, NULL, 0);
+                if (priority < BACNET_MIN_PRIORITY) {
+                    priority = BACNET_NO_PRIORITY;
+                }
+                if (priority > BACNET_MAX_PRIORITY) {
+                    priority = BACNET_NO_PRIORITY;
+                }
+                /* null terminate the string at the @ symbol */
+                *at_ptr = 0;
+            }
+            /* check for case insensitive NULL string */
+            if (bacnet_strnicmp(new_text, "NULL", 4) == 0) {
+                null_value = true;
+            }
+        }
+        /* convert the string value into a tagged union value */
+        if (null_value) {
+            value.tag = BACNET_APPLICATION_TAG_NULL;
+            status = true;
+        } else if (value_tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+            status = bactext_object_property_strtoul(
+                (BACNET_OBJECT_TYPE)object_type,
+                (BACNET_PROPERTY_ID)property_id, new_text, &enumerated_value);
+            if (status) {
+                value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+                value.type.Enumerated = (uint32_t)enumerated_value;
+            }
+        } else {
+            status = bacapp_parse_application_data(value_tag, new_text, &value);
+        }
         printf(
             "Parsed %s-%u %s %s -> tag=%u %s\n",
             bactext_object_type_name(object_type), object_id,
@@ -407,7 +445,7 @@ static void on_property_edited(
         if (status) {
             invoke_id = Send_Write_Property_Request(
                 device_id, object_type, object_id, property_id, &value,
-                BACNET_NO_PRIORITY, array_index);
+                priority, array_index);
             if (invoke_id) {
                 printf(
                     "WriteProperty to Device %u %s-%u %s = %s\n", device_id,
