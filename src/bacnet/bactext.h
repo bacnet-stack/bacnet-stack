@@ -198,6 +198,15 @@ const char *bactext_program_state_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_program_error_name(unsigned index);
 
+BACNET_STACK_EXPORT
+bool bactext_strtoul(const char *search_name, unsigned *found_index);
+BACNET_STACK_EXPORT
+bool bactext_object_property_strtoul(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property,
+    const char *search_name,
+    unsigned *found_index);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
