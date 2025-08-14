@@ -12,7 +12,7 @@ jobs:
   bip-apps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -38,7 +38,7 @@ jobs:
   bip-no-bbmd-apps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -52,7 +52,7 @@ jobs:
   bip-client-bbmd-apps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -66,7 +66,7 @@ jobs:
   gateway:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -81,9 +81,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout BACnet Stack
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Checkout libwebsockets
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: warmcat/libwebsockets
         ref: v4.3-stable
@@ -109,9 +109,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout BACnet Stack
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Checkout libwebsockets
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: warmcat/libwebsockets
         ref: v4.3-stable
@@ -136,7 +136,7 @@ jobs:
   router-ipv6:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -150,7 +150,7 @@ jobs:
   router-mstp:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -164,7 +164,7 @@ jobs:
   bip6:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -178,7 +178,7 @@ jobs:
   mstp:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -192,7 +192,7 @@ jobs:
   ethernet:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -207,7 +207,7 @@ jobs:
   ports-arm-makefile:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -225,7 +225,7 @@ jobs:
   ports-arm-cmake:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -242,7 +242,7 @@ jobs:
   ports-avr:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -258,7 +258,7 @@ jobs:
   ports-lwip:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -271,7 +271,7 @@ jobs:
   mingw:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -294,7 +294,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build PiFace Demo
       run: |
         gcc --version
@@ -305,7 +305,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build Blinkt! Demo
       run: |
         gcc --version
@@ -316,7 +316,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq

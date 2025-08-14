@@ -454,15 +454,15 @@ static void named_pipe_create(const char *pipe_name)
     }
     /* create the pipe */
     while (Pipe_Handle == INVALID_HANDLE_VALUE) {
-        /* use CreateFile rather than CreateNamedPipe */
-        Pipe_Handle = CreateFile(
+        /* use CreateFileA rather than CreateNamedPipeA */
+        Pipe_Handle = CreateFileA(
             pipe_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0,
             NULL);
         if (Pipe_Handle != INVALID_HANDLE_VALUE) {
             break;
         }
         /* if an error occured at handle creation */
-        if (!WaitNamedPipe(pipe_name, 20000)) {
+        if (!WaitNamedPipeA(pipe_name, 20000)) {
             printf("Could not open pipe: waited for 20sec!\n"
                    "If this message was issued before the 20sec finished,\n"
                    "then the pipe doesn't exist!\n");

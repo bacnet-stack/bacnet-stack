@@ -20,6 +20,10 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added dynamic and static RAM file systems to use with file objects. (#1058)
+* Added check for read-only during AtomicWriteFile service API for
+  BACnet File object. (#1058)
+* Added simple project for GTK BACnet Discovery Application. (#1064) (#1065)  (#1070)
 * Added BACnet Zigbee VMAC table and unit test. (#1054)
 * Added BACnet Zigbee Link Layer (BZLL) with stubs. (#1052)
 * Added a debug print when tsm retries. (#1040)
@@ -75,6 +79,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Change stm32f4xx example to use static RAM file system. (#1058)
 * Changed the bacnet file object to be storage agnostic by refactoring
   and using callbacks. (#1056)
 * Changed ReadRange by-position and by-sequence encoding by refactoring
@@ -85,6 +90,23 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed win32 builds where UNICODE is defined. The code now uses CreateFileA
+  instead of CreateFile due to ANSI-C filenames. (#1076)
+* Fixed the usage of index vs instance in the basic trend log object
+  example. (#1074)
+* Fixed bacapp_encode_context_data_value() to enable all non-primative
+  value context encoding by removing the filter. (#1075)
+* Fixed point-to-point VPN tunnel sockets for BACnet/IP by using
+  IFF_POINTTOPOINT flag when getting the broadcast address. (#1066)
+* Fixed missing text sprintf for Network Port object BACnetNetworkType,
+  BACnetNetworkNumberQuality, and BACnetProtocolLevel enumerations. (#1069)
+* Fixed missing enumeration text for Program object: BACnetProgramError,
+  BACnetProgramState, and BACnetProgramRequest (#1068)
+* Fixed missing enumeration text for BACnetNodeType, BACnetSilencedState,
+  BACnetLoggingType (#1067)
+* Fixed bacfile_count() function return type (#1058)
+* Fixed the signed value for start position and start record in BACnet
+  file object abstraction. (#1057)
 * Fixed the Linux DLMSTP standalone test application Makefile. (#1055)
 * Fixed ISO C90 forbids mixed declarations and code warning.(#1053)
 * Fixed the MS/TP invalid frame counter that was incremented for valid
