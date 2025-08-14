@@ -11,6 +11,7 @@ SRC = main.c \
 	$(BACNET_SERVER_DIR)/bacnet_port.c \
 	$(BACNET_SERVER_DIR)/bacnet_port_ipv4.c \
 	$(BACNET_SERVER_DIR)/bacnet_port_ipv6.c \
+	$(BACNET_SERVER_DIR)/bacnet_port_mstp.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \

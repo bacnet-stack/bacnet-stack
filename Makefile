@@ -210,6 +210,10 @@ server:
 server-basic:
 	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
+.PHONY: server-basic-mstp
+server-basic-mstp:
+	$(MAKE) LEGACY=true NOTIFY=false BACDL=mstp -s -C apps server-basic
+
 .PHONY: server-client
 server-client:
 	$(MAKE) LEGACY=true -s -C apps $@
