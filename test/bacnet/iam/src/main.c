@@ -123,6 +123,26 @@ static void testIAm(void)
             test_len, BACNET_STATUS_ERROR, "apdu_len=%d test_len=%d", apdu_len,
             test_len);
     }
+    apdu_len = bacnet_iam_service_request_encode(
+        apdu, sizeof(apdu), device_id, max_apdu, segmentation, vendor_id);
+    zassert_not_equal(apdu_len, 0, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+    while (apdu_len) {
+        apdu_len--;
+        test_len = bacnet_iam_service_request_encode(
+            apdu, apdu_len, device_id, max_apdu, segmentation, vendor_id);
+        zassert_equal(test_len, 0, NULL);
+    }
+    /* internal bounds checking - segmentation enumeration */
+    apdu_len = bacnet_iam_request_encode(
+        &apdu[0], device_id, max_apdu, MAX_BACNET_SEGMENTATION, vendor_id);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len = bacnet_iam_request_decode(
+        &apdu[0], sizeof(apdu), &test_device_id, &test_max_apdu,
+        &test_segmentation, &test_vendor_id);
+    zassert_equal(
+        test_len, BACNET_STATUS_ERROR, "apdu_len=%d test_len=%d", apdu_len,
+        test_len);
 }
 /**
  * @}
