@@ -80,13 +80,13 @@ static void testIAm(void)
     zassert_equal(test_max_apdu, max_apdu, NULL);
     zassert_equal(test_segmentation, segmentation, NULL);
 
-    null_len =
-        iam_request_encode(NULL, device_id, max_apdu, segmentation, vendor_id);
-    apdu_len = iam_request_encode(
+    null_len = bacnet_iam_request_encode(
+        NULL, device_id, max_apdu, segmentation, vendor_id);
+    apdu_len = bacnet_iam_request_encode(
         &apdu[0], device_id, max_apdu, segmentation, vendor_id);
     zassert_not_equal(apdu_len, 0, NULL);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = iam_request_decode(
+    test_len = bacnet_iam_request_decode(
         &apdu[0], sizeof(apdu), &test_device_id, &test_max_apdu,
         &test_segmentation, &test_vendor_id);
     zassert_equal(test_len, apdu_len, NULL);
@@ -94,29 +94,29 @@ static void testIAm(void)
     zassert_equal(test_vendor_id, vendor_id, NULL);
     zassert_equal(test_max_apdu, max_apdu, NULL);
     zassert_equal(test_segmentation, segmentation, NULL);
-    test_len = iam_request_decode(
+    test_len = bacnet_iam_request_decode(
         NULL, apdu_len, &test_device_id, &test_max_apdu, &test_segmentation,
         &test_vendor_id);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    test_len = iam_request_decode(
+    test_len = bacnet_iam_request_decode(
         &apdu[0], apdu_len, NULL, &test_max_apdu, &test_segmentation,
         &test_vendor_id);
     zassert_equal(test_len, apdu_len, NULL);
-    test_len = iam_request_decode(
+    test_len = bacnet_iam_request_decode(
         &apdu[0], apdu_len, &test_device_id, NULL, &test_segmentation,
         &test_vendor_id);
     zassert_equal(test_len, apdu_len, NULL);
-    test_len = iam_request_decode(
+    test_len = bacnet_iam_request_decode(
         &apdu[0], apdu_len, &test_device_id, &test_max_apdu, NULL,
         &test_vendor_id);
     zassert_equal(test_len, apdu_len, NULL);
-    test_len = iam_request_decode(
+    test_len = bacnet_iam_request_decode(
         &apdu[0], apdu_len, &test_device_id, &test_max_apdu, &test_segmentation,
         NULL);
     zassert_equal(test_len, apdu_len, NULL);
     while (apdu_len) {
         apdu_len--;
-        test_len = iam_request_decode(
+        test_len = bacnet_iam_request_decode(
             &apdu[0], apdu_len, &test_device_id, &test_max_apdu,
             &test_segmentation, &test_vendor_id);
         zassert_equal(

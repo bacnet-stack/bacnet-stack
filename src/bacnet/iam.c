@@ -23,7 +23,7 @@
  * @param vendor_id  Vendor Id
  * @return Total length of the apdu, zero otherwise.
  */
-int iam_request_encode(
+int bacnet_iam_request_encode(
     uint8_t *apdu,
     uint32_t device_id,
     unsigned max_apdu,
@@ -50,6 +50,35 @@ int iam_request_encode(
     }
     len = encode_application_unsigned(apdu, vendor_id);
     apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the WriteGroup service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t bacnet_iam_service_request_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    uint32_t device_id,
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = bacnet_iam_request_encode(
+        NULL, device_id, max_apdu, segmentation, vendor_id);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = bacnet_iam_request_encode(
+            apdu, device_id, max_apdu, segmentation, vendor_id);
+    }
 
     return apdu_len;
 }
@@ -84,8 +113,8 @@ int iam_encode_apdu(
     if (apdu) {
         apdu += len;
     }
-    len =
-        iam_request_encode(apdu, device_id, max_apdu, segmentation, vendor_id);
+    len = bacnet_iam_request_encode(
+        apdu, device_id, max_apdu, segmentation, vendor_id);
     apdu_len += len;
 
     return apdu_len;
@@ -102,7 +131,7 @@ int iam_encode_apdu(
  * @param pVendor_id  Pointer to a variable taking the vendor id.
  * @return The number of bytes decoded , or #BACNET_STATUS_ERROR on error
  */
-int iam_request_decode(
+int bacnet_iam_request_decode(
     const uint8_t *apdu,
     unsigned apdu_size,
     uint32_t *pDevice_id,
@@ -189,6 +218,6 @@ int iam_decode_service_request(
     int *pSegmentation,
     uint16_t *pVendor_id)
 {
-    return iam_request_decode(
+    return bacnet_iam_request_decode(
         apdu, MAX_APDU, pDevice_id, pMax_apdu, pSegmentation, pVendor_id);
 }
