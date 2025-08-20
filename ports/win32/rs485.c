@@ -256,7 +256,10 @@ void RS485_Initialize(void)
         RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
         /*FILE_FLAG_OVERLAPPED */ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "RS485 unable to open %s\n", RS485_Port_Name);
+        DWORD err = GetLastError();
+        fprintf(
+            stderr, "RS485 unable to open %s (Error %lu)\n", RS485_Port_Name,
+            err);
         RS485_Print_Error();
         exit(1);
     }
