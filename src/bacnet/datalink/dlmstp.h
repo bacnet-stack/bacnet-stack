@@ -42,6 +42,8 @@ typedef struct dlmstp_statistics {
     uint32_t transmit_pdu_counter;
     uint32_t receive_pdu_counter;
     uint32_t lost_token_counter;
+    uint32_t bad_crc_counter;
+    uint32_t poll_for_master_counter;
 } DLMSTP_STATISTICS;
 
 #ifndef DLMSTP_MAX_INFO_FRAMES

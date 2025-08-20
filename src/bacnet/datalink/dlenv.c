@@ -831,14 +831,17 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
                 dlmstp_fill_statistics(&statistics);
                 fprintf(
                     stderr,
-                    "MSTP: Frames Rx:%u/%u/%u Tx:%u PDU Rx:%u Tx:%u Lost:%u\n",
+                    "MSTP: Frames Rx:%u/%u/%u Tx:%u PDU Rx:%u Tx:%u "
+                    "Lost:%u BadCRC:%u PFM:%u\n",
                     statistics.receive_valid_frame_counter,
                     statistics.receive_valid_frame_not_for_us_counter,
                     statistics.receive_invalid_frame_counter,
                     statistics.transmit_frame_counter,
                     statistics.receive_pdu_counter,
                     statistics.transmit_pdu_counter,
-                    statistics.lost_token_counter);
+                    statistics.lost_token_counter, statistics.bad_crc_counter,
+                    statistics.poll_for_master_counter);
+
                 fflush(stderr);
 #endif
             }
