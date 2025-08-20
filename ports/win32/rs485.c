@@ -261,12 +261,6 @@ void RS485_Initialize(void)
             stderr, "RS485 unable to open %s (Error %lu)\n", RS485_Port_Name,
             err);
         RS485_Print_Error();
-        // Additional troubleshooting output
-        if (strncmp(RS485_Port_Name, "\\\\.\\COM", 7) != 0) {
-            fprintf(
-                stderr, "Warning: Port name format may be incorrect: %s\n",
-                RS485_Port_Name);
-        }
         exit(1);
     }
     if (!GetCommTimeouts(RS485_Handle, &RS485_Timeouts)) {
