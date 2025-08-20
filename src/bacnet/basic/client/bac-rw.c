@@ -156,9 +156,9 @@ static void My_I_Am_Bind(
     bool found = false;
     bool bind = false;
 
-    (void)service_len;
-    len = iam_decode_service_request(
-        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
+    len = bacnet_iam_request_decode(
+        service_request, service_len, &device_id, &max_apdu, &segmentation,
+        &vendor_id);
     if (len > 0) {
         found = address_bind_request(device_id, NULL, NULL);
         if (!found) {
