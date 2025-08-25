@@ -1013,6 +1013,12 @@ bool dlmstp_init(char *ifname)
     pthread_condattr_t attr;
     int rv = 0;
 
+    if (ifname) {
+        RS485_Set_Interface(ifname);
+        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
+    } else {
+        ifname = RS485_Interface();
+    }
     pthread_condattr_init(&attr);
     // TODO use mach_absolute_time() <mach/mach_time.h> for MONOTONIC clock
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
@@ -1054,10 +1060,6 @@ bool dlmstp_init(char *ifname)
     clock_gettime(CLOCK_MONOTONIC, &Clock_Get_Time_Start);
     /* initialize hardware */
     mstimer_set(&Silence_Timer, 0);
-    if (ifname) {
-        RS485_Set_Interface(ifname);
-        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
-    }
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
