@@ -120,6 +120,10 @@ extern "C" {
 BACNET_STACK_EXPORT
 bool dlmstp_init(char *ifname);
 BACNET_STACK_EXPORT
+void dlmstp_set_interface(const char *ifname);
+BACNET_STACK_EXPORT
+const char *dlmstp_get_interface(void);
+BACNET_STACK_EXPORT
 void dlmstp_reset(void);
 BACNET_STACK_EXPORT
 void dlmstp_cleanup(void);

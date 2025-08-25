@@ -74,6 +74,7 @@ static dlmstp_hook_frame_rx_complete_cb Valid_Frame_Rx_Callback;
 static dlmstp_hook_frame_rx_complete_cb Valid_Frame_Not_For_Us_Rx_Callback;
 static dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
 static DLMSTP_STATISTICS DLMSTP_Statistics;
+static bool DLMSTP_Initialized;
 
 /**
  * @brief Cleanup the MS/TP datalink
@@ -91,6 +92,7 @@ void dlmstp_cleanup(void)
     pthread_mutex_destroy(&Receive_Packet_Mutex);
     pthread_mutex_destroy(&Master_Done_Mutex);
     pthread_mutex_destroy(&Ring_Buffer_Mutex);
+    DLMSTP_Initialized = false;
 }
 
 /**
@@ -1018,6 +1020,27 @@ void dlmstp_silence_reset(void *arg)
 }
 
 /**
+ * @brief Configures the interface name
+ * @param ifname = the interface name
+ */
+void dlmstp_set_interface(const char *ifname)
+{
+    /* note: expects a constant char, or char from the heap */
+    if (ifname) {
+        RS485_Set_Interface((char *)ifname);
+    }
+}
+
+/**
+ * @brief Returns the interface name
+ * @return the interface name
+ */
+const char *dlmstp_get_interface(void)
+{
+    return RS485_Interface();
+}
+
+/**
  * @brief Initialize this MS/TP datalink
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
@@ -1029,6 +1052,17 @@ bool dlmstp_init(char *ifname)
     pthread_condattr_t attr;
     int rv = 0;
 
+    if (DLMSTP_Initialized) {
+        dlmstp_cleanup();
+        RS485_Cleanup();
+    }
+    DLMSTP_Initialized = true;
+    if (ifname) {
+        RS485_Set_Interface(ifname);
+        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
+    } else {
+        ifname = (char *)RS485_Interface();
+    }
     pthread_condattr_init(&attr);
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
         fprintf(
@@ -1070,10 +1104,6 @@ bool dlmstp_init(char *ifname)
     clock_gettime(CLOCK_MONOTONIC, &Clock_Get_Time_Start);
     /* initialize hardware */
     mstimer_set(&Silence_Timer, 0);
-    if (ifname) {
-        RS485_Set_Interface(ifname);
-        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
-    }
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);

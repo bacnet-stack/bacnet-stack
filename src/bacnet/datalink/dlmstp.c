@@ -1095,14 +1095,36 @@ void dlmstp_silence_reset(void *arg)
 }
 
 /**
+ * @brief set the MS/TP datalink interface
+ * @param ifname - interface name to set
+ */
+void dlmstp_set_interface(const char *ifname)
+{
+    MSTP_Port = (struct mstp_port_struct_t *)ifname;
+}
+
+/**
+ * @brief get the MS/TP datalink intferface name
+ * @return interface name
+ */
+const char *dlmstp_get_interface(void)
+{
+    return (const char *)MSTP_Port;
+}
+
+/**
  * @brief Initialize this MS/TP datalink
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
  */
 bool dlmstp_init(char *ifname)
 {
+    bool status = false;
     struct dlmstp_user_data_t *user;
-    MSTP_Port = (struct mstp_port_struct_t *)ifname;
+
+    if (ifname) {
+        MSTP_Port = (struct mstp_port_struct_t *)ifname;
+    }
     if (MSTP_Port) {
         MSTP_Port->SilenceTimer = dlmstp_silence_milliseconds;
         MSTP_Port->SilenceTimerReset = dlmstp_silence_reset;
@@ -1119,7 +1141,8 @@ bool dlmstp_init(char *ifname)
             MSTP_Init(MSTP_Port);
             user->Initialized = true;
         }
+        status = true;
     }
 
-    return true;
+    return status;
 }
