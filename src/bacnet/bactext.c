@@ -14,29 +14,47 @@
 static const char *ASHRAE_Reserved_String = "Reserved for Use by ASHRAE";
 static const char *Vendor_Proprietary_String = "Vendor Proprietary Value";
 
-/* Search for a text value first based on the corresponding text list, then by
- * attempting to convert to an integer value. */
-static bool bactext_strtol_index(
-    INDTEXT_DATA *istring, const char *search_name, unsigned *found_index)
+/**
+ * @brief Attempt to convert a numeric string into a unsigned long integer
+ * @param search_name - string to convert
+ * @param found_index - where to put the converted value
+ * @return true if converted and found_index is set
+ * @return false if not converted and found_index is not set
+ */
+bool bactext_strtoul(const char *search_name, unsigned *found_index)
 {
     char *endptr;
-    long value;
+    unsigned long value;
 
+    value = strtoul(search_name, &endptr, 0);
+    if (endptr == search_name) {
+        /* No digits found */
+        return false;
+    }
+    if (value == ULONG_MAX) {
+        /* If the correct value is outside the range of representable values,
+           {ULONG_MAX} shall be returned */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    *found_index = (unsigned)value;
+
+    return true;
+}
+
+/* Search for a text value first based on the corresponding text list, then by
+ * attempting to convert to an integer value. */
+static bool bactext_strtoul_index(
+    INDTEXT_DATA *istring, const char *search_name, unsigned *found_index)
+{
     if (indtext_by_istring(istring, search_name, found_index) == true) {
         return true;
-    } else {
-        value = strtol(search_name, &endptr, 0);
-        if (endptr == search_name) {
-            /* No digits found */
-            return false;
-        } else if (*endptr != '\0') {
-            /* Extra text found */
-            return false;
-        } else {
-            *found_index = (unsigned)value;
-            return true;
-        }
     }
+
+    return bactext_strtoul(search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_confirmed_service_names[] = {
@@ -252,7 +270,7 @@ bool bactext_object_type_index(const char *search_name, unsigned *found_index)
 
 bool bactext_object_type_strtol(const char *search_name, unsigned *found_index)
 {
-    return bactext_strtol_index(
+    return bactext_strtoul_index(
         bacnet_object_type_names, search_name, found_index);
 }
 
@@ -850,7 +868,7 @@ bool bactext_property_index(const char *search_name, unsigned *found_index)
 
 bool bactext_property_strtol(const char *search_name, unsigned *found_index)
 {
-    return bactext_strtol_index(
+    return bactext_strtoul_index(
         bacnet_property_names, search_name, found_index);
 }
 
@@ -1816,7 +1834,7 @@ bool bactext_event_state_index(const char *search_name, unsigned *found_index)
 
 bool bactext_event_state_strtol(const char *search_name, unsigned *found_index)
 {
-    return bactext_strtol_index(
+    return bactext_strtoul_index(
         bacnet_event_state_names, search_name, found_index);
 }
 
@@ -2082,7 +2100,7 @@ const char *bactext_life_safety_operation_name(unsigned index)
     }
 }
 
-INDTEXT_DATA life_safety_state_names[] = {
+INDTEXT_DATA bactext_life_safety_state_names[] = {
     { LIFE_SAFETY_STATE_QUIET, "quiet" },
     { LIFE_SAFETY_STATE_PRE_ALARM, "pre-alarm" },
     { LIFE_SAFETY_STATE_ALARM, "alarm" },
@@ -2125,7 +2143,7 @@ const char *bactext_life_safety_state_name(unsigned index)
 {
     if (index < LIFE_SAFETY_STATE_PROPRIETARY_MIN) {
         return indtext_by_index_default(
-            life_safety_state_names, index, ASHRAE_Reserved_String);
+            bactext_life_safety_state_names, index, ASHRAE_Reserved_String);
     } else if (index <= LIFE_SAFETY_STATE_PROPRIETARY_MAX) {
         return Vendor_Proprietary_String;
     } else {
@@ -2153,7 +2171,7 @@ const char *bactext_silenced_state_name(unsigned index)
     }
 }
 
-INDTEXT_DATA lighting_in_progress[] = {
+INDTEXT_DATA bacnet_lighting_in_progress_names[] = {
     { BACNET_LIGHTING_IDLE, "idle" },
     { BACNET_LIGHTING_FADE_ACTIVE, "fade" },
     { BACNET_LIGHTING_RAMP_ACTIVE, "ramp" },
@@ -2167,13 +2185,13 @@ const char *bactext_lighting_in_progress(unsigned index)
 {
     if (index < MAX_BACNET_LIGHTING_IN_PROGRESS) {
         return indtext_by_index_default(
-            lighting_in_progress, index, ASHRAE_Reserved_String);
+            bacnet_lighting_in_progress_names, index, ASHRAE_Reserved_String);
     } else {
         return "Invalid BACnetLightingInProgress";
     }
 }
 
-INDTEXT_DATA lighting_transition[] = {
+INDTEXT_DATA bacnet_lighting_transition_names[] = {
     { BACNET_LIGHTING_TRANSITION_NONE, "none" },
     { BACNET_LIGHTING_TRANSITION_FADE, "fade" },
     { BACNET_LIGHTING_TRANSITION_RAMP, "ramp" },
@@ -2184,7 +2202,7 @@ const char *bactext_lighting_transition(unsigned index)
 {
     if (index < BACNET_LIGHTING_TRANSITION_PROPRIETARY_MIN) {
         return indtext_by_index_default(
-            lighting_transition, index, ASHRAE_Reserved_String);
+            bacnet_lighting_transition_names, index, ASHRAE_Reserved_String);
     } else if (index <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_MAX) {
         return Vendor_Proprietary_String;
     } else {
@@ -2222,7 +2240,7 @@ const char *bactext_lighting_operation_name(unsigned index)
 bool bactext_lighting_operation_strtol(
     const char *search_name, unsigned *found_index)
 {
-    return bactext_strtol_index(
+    return bactext_strtoul_index(
         bacnet_lighting_operation_names, search_name, found_index);
 }
 
@@ -2252,7 +2270,7 @@ const char *bactext_binary_lighting_pv_name(unsigned index)
 bool bactext_binary_lighting_pv_names_strtol(
     const char *search_name, unsigned *found_index)
 {
-    return bactext_strtol_index(
+    return bactext_strtoul_index(
         bacnet_binary_lighting_pv_names, search_name, found_index);
 }
 
@@ -2608,4 +2626,151 @@ const char *bactext_program_error_name(unsigned index)
     } else {
         return "Invalid BACnetProgramError";
     }
+}
+
+/**
+ * @brief For a given enumerated object property string,
+ *  find the enumeration value
+ * @param object_type - object type identifier
+ * @param property - object property identifier
+ * @param search_name - text string for which is searched
+ * @param found_index - if found, the value is set to this variable
+ * @return true if the string is found and found_index is set
+ * @return false if the string is not found and found_index is not set
+ */
+bool bactext_object_property_strtoul(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property,
+    const char *search_name,
+    unsigned *found_index)
+{
+    bool status = false;
+
+    switch (object_property) {
+        case PROP_PROPERTY_LIST:
+            status = bactext_strtoul_index(
+                bacnet_property_names, search_name, found_index);
+            break;
+        case PROP_OBJECT_TYPE:
+            status = bactext_strtoul_index(
+                bacnet_object_type_names, search_name, found_index);
+            break;
+        case PROP_EVENT_STATE:
+            status = bactext_strtoul_index(
+                bacnet_event_state_names, search_name, found_index);
+            break;
+        case PROP_UNITS:
+            status = bactext_strtoul_index(
+                bacnet_engineering_unit_names, search_name, found_index);
+            break;
+        case PROP_POLARITY:
+            status = bactext_strtoul_index(
+                bacnet_binary_polarity_names, search_name, found_index);
+            break;
+        case PROP_PRESENT_VALUE:
+        case PROP_RELINQUISH_DEFAULT:
+            switch (object_type) {
+                case OBJECT_BINARY_INPUT:
+                case OBJECT_BINARY_OUTPUT:
+                case OBJECT_BINARY_VALUE:
+                    status = bactext_strtoul_index(
+                        bacnet_binary_present_value_names, search_name,
+                        found_index);
+                    break;
+                case OBJECT_BINARY_LIGHTING_OUTPUT:
+                    status = bactext_strtoul_index(
+                        bacnet_binary_lighting_pv_names, search_name,
+                        found_index);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_RELIABILITY:
+            status = bactext_strtoul_index(
+                bacnet_reliability_names, search_name, found_index);
+            break;
+        case PROP_SYSTEM_STATUS:
+            status = bactext_strtoul_index(
+                bacnet_device_status_names, search_name, found_index);
+            break;
+        case PROP_SEGMENTATION_SUPPORTED:
+            status = bactext_strtoul_index(
+                bacnet_segmentation_names, search_name, found_index);
+            break;
+        case PROP_NODE_TYPE:
+            status = bactext_strtoul_index(
+                bacnet_node_type_names, search_name, found_index);
+            break;
+        case PROP_TRANSITION:
+            status = bactext_strtoul_index(
+                bacnet_lighting_transition_names, search_name, found_index);
+            break;
+        case PROP_IN_PROGRESS:
+            status = bactext_strtoul_index(
+                bacnet_lighting_in_progress_names, search_name, found_index);
+            break;
+        case PROP_LOGGING_TYPE:
+            status = bactext_strtoul_index(
+                bactext_logging_type_names, search_name, found_index);
+            break;
+        case PROP_MODE:
+        case PROP_ACCEPTED_MODES:
+            status = bactext_strtoul_index(
+                bactext_life_safety_mode_names, search_name, found_index);
+            break;
+        case PROP_OPERATION_EXPECTED:
+            status = bactext_strtoul_index(
+                bactext_life_safety_operation_names, search_name, found_index);
+            break;
+        case PROP_TRACKING_VALUE:
+            switch (object_type) {
+                case OBJECT_LIFE_SAFETY_POINT:
+                case OBJECT_LIFE_SAFETY_ZONE:
+                    status = bactext_strtoul_index(
+                        bactext_life_safety_state_names, search_name,
+                        found_index);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_PROGRAM_CHANGE:
+            status = bactext_strtoul_index(
+                bactext_program_request_names, search_name, found_index);
+            break;
+        case PROP_PROGRAM_STATE:
+            status = bactext_strtoul_index(
+                bactext_program_state_names, search_name, found_index);
+            break;
+        case PROP_REASON_FOR_HALT:
+            status = bactext_strtoul_index(
+                bactext_program_error_names, search_name, found_index);
+            break;
+        case PROP_NETWORK_NUMBER_QUALITY:
+            status = bactext_strtoul_index(
+                bactext_network_number_quality_names, search_name, found_index);
+            break;
+        case PROP_NETWORK_TYPE:
+            status = bactext_strtoul_index(
+                bactext_network_port_type_names, search_name, found_index);
+            break;
+        case PROP_PROTOCOL_LEVEL:
+            status = bactext_strtoul_index(
+                bactext_protocol_level_names, search_name, found_index);
+            break;
+        case PROP_EVENT_TYPE:
+            status = bactext_strtoul_index(
+                bacnet_event_type_names, search_name, found_index);
+            break;
+        case PROP_NOTIFY_TYPE:
+            status = bactext_strtoul_index(
+                bacnet_notify_type_names, search_name, found_index);
+            break;
+        default:
+            status = bactext_strtoul(search_name, found_index);
+            break;
+    }
+
+    return status;
 }

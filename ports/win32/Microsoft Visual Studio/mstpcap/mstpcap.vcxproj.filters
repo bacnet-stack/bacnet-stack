@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\apps">
+      <UniqueIdentifier>{6a5c5848-9792-4c3b-84c7-66be55afc20f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\apps\mstpcap">
+      <UniqueIdentifier>{6cad8ade-e34f-4800-b3dd-4a3f5ac319ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\bacnet">
+      <UniqueIdentifier>{a9bee495-5f86-4e77-bb65-a1bec6c213ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\bacnet\datalink">
+      <UniqueIdentifier>{8b97958e-ccdd-46b8-98e7-d08774f7c0da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ports">
+      <UniqueIdentifier>{d41fe73a-7526-45b8-8e68-cd90402b4604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ports\win32">
+      <UniqueIdentifier>{9bd2cdc8-8665-4365-a6ed-2123066c2018}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\apps\mstpcap\main.c">
+      <Filter>Source Files\apps\mstpcap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datetime.c">
+      <Filter>Source Files\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstp.c">
+      <Filter>Source Files\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstptext.c">
+      <Filter>Source Files\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rs485.c">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\apps\mstpcap\mstpcap.txt">
+      <Filter>Source Files\apps\mstpcap</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\src\bacnet\bytes.h">
+      <Filter>Source Files\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datetime.h">
+      <Filter>Source Files\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\iam.h">
+      <Filter>Source Files\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\version.h">
+      <Filter>Source Files\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\dlmstp.h">
+      <Filter>Source Files\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstp.h">
+      <Filter>Source Files\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstptext.h">
+      <Filter>Source Files\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\bacport.h">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rs485.h">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
