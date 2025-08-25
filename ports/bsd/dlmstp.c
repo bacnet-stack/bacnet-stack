@@ -1017,7 +1017,7 @@ bool dlmstp_init(char *ifname)
         RS485_Set_Interface(ifname);
         debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
     } else {
-        ifname = RS485_Interface();
+        ifname = (char *)RS485_Interface();
     }
     pthread_condattr_init(&attr);
     // TODO use mach_absolute_time() <mach/mach_time.h> for MONOTONIC clock
