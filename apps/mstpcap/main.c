@@ -136,7 +136,7 @@ static void mstp_monitor_i_am(uint8_t mac, const uint8_t *pdu, uint16_t pdu_len)
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
     int apdu_offset = 0;
-    uint16_t apdu_len = 0;
+    uint16_t apdu_len = 0, service_len = 0;
     const uint8_t *apdu = NULL;
     uint8_t pdu_type = 0;
     uint8_t service_choice = 0;
@@ -156,10 +156,12 @@ static void mstp_monitor_i_am(uint8_t mac, const uint8_t *pdu, uint16_t pdu_len)
                 (apdu_len >= 2)) {
                 service_choice = apdu[1];
                 service_request = &apdu[2];
+                service_len = apdu_len - 2;
                 if (service_choice == SERVICE_UNCONFIRMED_I_AM) {
-                    len = iam_decode_service_request(
-                        service_request, &device_id, NULL, NULL, NULL);
-                    if (len != -1) {
+                    len = bacnet_iam_request_decode(
+                        service_request, service_len, &device_id, NULL, NULL,
+                        NULL);
+                    if (len > 0) {
                         MSTP_Statistics[mac].device_id = device_id;
                     }
                 }
