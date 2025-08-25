@@ -16,10 +16,18 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured I-Am request encoding and decoding, and updated the example apps
+  and handlers to use secure version of I-Am decoder. (#1080)
 * Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
 
 ### Added
 
+* Added MS/TP datalink option to BACnet basic server example. (#1077)
+* Added fixups to Microsoft Visual Studio build: added server-mini, etc. (#1061)
+* Added WriteProperty to GTK Discover app.  For enumerated properties,
+  the property text is converted to an integer.  For commandable object
+  properties (present-value), priority is encoded after the value
+  or null using @ symbol.
 * Added dynamic and static RAM file systems to use with file objects. (#1058)
 * Added check for read-only during AtomicWriteFile service API for
   BACnet File object. (#1058)
