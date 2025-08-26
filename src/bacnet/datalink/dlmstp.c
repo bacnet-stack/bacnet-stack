@@ -400,6 +400,9 @@ uint16_t dlmstp_receive(
     }
     if (MSTP_Port->ReceivedValidFrame) {
         user->Statistics.receive_valid_frame_counter++;
+        if (MSTP_Port->FrameType == FRAME_TYPE_POLL_FOR_MASTER) {
+            user->Statistics.poll_for_master_counter++;
+        }
         if (user->Valid_Frame_Rx_Callback) {
             user->Valid_Frame_Rx_Callback(
                 MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
@@ -418,6 +421,11 @@ uint16_t dlmstp_receive(
     }
     if (MSTP_Port->ReceivedInvalidFrame) {
         user->Statistics.receive_invalid_frame_counter++;
+        if (MSTP_Port->HeaderCRC != 0x55) {
+            user->Statistics.bad_crc_counter++;
+        } else if (MSTP_Port->DataCRC != 0xF0B8) {
+            user->Statistics.bad_crc_counter++;
+        }
         if (user->Invalid_Frame_Rx_Callback) {
             user->Invalid_Frame_Rx_Callback(
                 MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
