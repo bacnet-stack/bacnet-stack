@@ -2,6 +2,7 @@
  * @file
  * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
  * @author Ed Hague <edward@bac-test.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2011, 2018
  * @brief A basic BACnet Notification Class object
  * @copyright SPDX-License-Identifier: MIT
@@ -38,28 +39,28 @@ static NOTIFICATION_CLASS_INFO NC_Info[MAX_NOTIFICATION_CLASSES];
 static uint8_t Event_Buffer[MAX_APDU];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Notification_Properties_Required[] = {
+static const int Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
     PROP_PRIORITY,          PROP_ACK_REQUIRED,
     PROP_RECIPIENT_LIST,    -1
 };
 
-static const int Notification_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Notification_Properties_Proprietary[] = { -1 };
+static const int Properties_Proprietary[] = { -1 };
 
 void Notification_Class_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = Notification_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = Notification_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Notification_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
     return;
 }
@@ -430,19 +431,16 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             status = true;
             break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_DESCRIPTION:
-        case PROP_NOTIFICATION_CLASS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
-
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

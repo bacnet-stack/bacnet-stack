@@ -204,6 +204,50 @@ static void test_Notification_Class_Priority(void)
         priority_array[1], 255, "priority_array[1]=%u", priority_array[1]);
     zassert_equal(
         priority_array[2], 255, "priority_array[2]=%u", priority_array[2]);
+
+    priority_array[0] = 1;
+    priority_array[1] = 2;
+    priority_array[2] = 3;
+    Notification_Class_Set_Priorities(instance, priority_array);
+    Notification_Class_Get_Priorities(instance, priority_array);
+    zassert_equal(
+        priority_array[0], 1, "priority_array[0]=%u", priority_array[0]);
+    zassert_equal(
+        priority_array[1], 2, "priority_array[1]=%u", priority_array[1]);
+    zassert_equal(
+        priority_array[2], 3, "priority_array[2]=%u", priority_array[2]);
+
+    return;
+}
+
+/**
+ * @brief Test
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(notification_class_tests, test_Notification_Class_Ack_Required)
+#else
+static void test_Notification_Class_Ack_Required(void)
+#endif
+{
+    const uint32_t instance = 1;
+    bool status = false;
+    uint8_t ack_required = 0;
+
+    Notification_Class_Init();
+    status = Notification_Class_Valid_Instance(instance);
+    zassert_true(status, NULL);
+
+    /* API testing */
+    Notification_Class_Get_Ack_Required(BACNET_MAX_INSTANCE, &ack_required);
+    zassert_equal(ack_required, 0, "ack_required=%u", ack_required);
+    Notification_Class_Get_Ack_Required(instance, &ack_required);
+    zassert_equal(ack_required, 0, "ack_required=%u", ack_required);
+
+    Notification_Class_Set_Ack_Required(instance, 1);
+    Notification_Class_Get_Ack_Required(instance, &ack_required);
+    zassert_equal(ack_required, 1, "ack_required=%u", ack_required);
+
+    return;
 }
 
 /**
@@ -218,14 +262,20 @@ static void test_Notification_Class_Recipient_List(void)
     const uint32_t instance = 1;
     bool status = false;
     BACNET_LIST_ELEMENT_DATA list_element = { 0 };
+    BACNET_DESTINATION destination = { 0 };
+    BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0;
     int err = 0;
 
     Notification_Class_Init();
     status = Notification_Class_Valid_Instance(instance);
     zassert_true(status, NULL);
 
+    /* invalid element */
     err = Notification_Class_Add_List_Element(NULL);
     zassert_equal(err, BACNET_STATUS_ABORT, NULL);
+    /* valid element, invalid object property type (not a list) */
     list_element.object_type = OBJECT_NOTIFICATION_CLASS;
     list_element.object_instance = instance;
     list_element.object_property = PROP_ALL;
@@ -238,6 +288,118 @@ static void test_Notification_Class_Recipient_List(void)
     zassert_equal(list_element.error_class, ERROR_CLASS_SERVICES, NULL);
     zassert_equal(
         list_element.error_code, ERROR_CODE_PROPERTY_IS_NOT_A_LIST, NULL);
+    /* valid element, valid property, array element (object is not an array) */
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.array_index = 0;
+    err = Notification_Class_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(list_element.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(
+        list_element.error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, NULL);
+    /* valid element, valid property, invalid instance */
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.object_instance = BACNET_MAX_INSTANCE;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    err = Notification_Class_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(list_element.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(list_element.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+    /* valid element, valid property, valid instance, no data */
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.object_instance = instance;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    list_element.application_data = NULL;
+    list_element.application_data_len = 0;
+    err = Notification_Class_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, NULL);
+    /* valid element with application data */
+    for (unsigned i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++) {
+        bitstring_set_bit(&destination.ValidDays, i, true);
+    }
+    datetime_set_time(&destination.FromTime, 0, 0, 0, 0);
+    datetime_set_time(&destination.ToTime, 23, 59, 59, 99);
+    destination.ProcessIdentifier = 1;
+    destination.ConfirmedNotify = true;
+    bacnet_recipient_device_set(&destination.Recipient, OBJECT_DEVICE, 1);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_OFFNORMAL, true);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_FAULT, true);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_NORMAL, true);
+    len = bacnet_destination_encode(apdu, &destination);
+    list_element.application_data = apdu;
+    list_element.application_data_len = len;
+    err = Notification_Class_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, NULL);
+    /* add a second recipient */
+    bacnet_recipient_device_set(&destination.Recipient, OBJECT_DEVICE, 2);
+    destination.ProcessIdentifier = 2;
+    err = Notification_Class_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, NULL);
+    /* remove a recipient */
+    bacnet_recipient_device_set(&destination.Recipient, OBJECT_DEVICE, 1);
+    destination.ProcessIdentifier = 1;
+    err = Notification_Class_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, NULL);
+    /* negative tests */
+    err = Notification_Class_Remove_List_Element(NULL);
+    zassert_equal(err, BACNET_STATUS_ABORT, NULL);
+    /* invalid property */
+    list_element.object_property = PROP_ALL;
+    err = Notification_Class_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(list_element.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(
+        list_element.error_code, ERROR_CODE_PROPERTY_IS_NOT_A_LIST, NULL);
+    /* invalid array */
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.array_index = 0;
+    err = Notification_Class_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(list_element.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(
+        list_element.error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, NULL);
+    /* invalid instance */
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    list_element.object_instance = BACNET_MAX_INSTANCE;
+    err = Notification_Class_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(list_element.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(list_element.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+
+    status =
+        Notification_Class_Get_Recipient_List(instance, &recipient_list[0]);
+    zassert_true(status, NULL);
+    status = Notification_Class_Get_Recipient_List(
+        BACNET_MAX_INSTANCE, &recipient_list[0]);
+    zassert_false(status, NULL);
+    status =
+        Notification_Class_Set_Recipient_List(instance, &recipient_list[0]);
+    zassert_true(status, NULL);
+    status = Notification_Class_Set_Recipient_List(
+        BACNET_MAX_INSTANCE, &recipient_list[0]);
+    zassert_false(status, NULL);
+
+    Notification_Class_find_recipient();
+}
+
+/**
+ * @brief Test
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(notification_class_tests, test_Notification_Class_Common_Reporting)
+#else
+static void test_Notification_Class_Common_Reporting(void)
+#endif
+{
+    const uint32_t instance = 1;
+    bool status = false;
+    BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
+
+    Notification_Class_Init();
+    status = Notification_Class_Valid_Instance(instance);
+    zassert_true(status, NULL);
+
+    Notification_Class_common_reporting_function(&event_data);
 }
 
 /**
@@ -253,7 +415,9 @@ void test_main(void)
         notification_class_tests,
         ztest_unit_test(test_Notification_Class_Read_Write_Property),
         ztest_unit_test(test_Notification_Class_Priority),
-        ztest_unit_test(test_Notification_Class_Recipient_List));
+        ztest_unit_test(test_Notification_Class_Ack_Required),
+        ztest_unit_test(test_Notification_Class_Recipient_List),
+        ztest_unit_test(test_Notification_Class_Common_Reporting));
 
     ztest_run_test_suite(notification_class_tests);
 }
