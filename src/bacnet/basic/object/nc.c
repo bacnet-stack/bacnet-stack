@@ -248,6 +248,7 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
+                    /* unused slot denoted by wildcard */
                     apdu_len += bacnet_destination_encode(NULL, Destination);
                 }
             }
@@ -266,6 +267,7 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
+                    /* unused slot denoted by wildcard */
                     apdu_len +=
                         bacnet_destination_encode(&apdu[apdu_len], Destination);
                 }
@@ -673,6 +675,7 @@ void Notification_Class_common_reporting_function(
     pBacDest = &CurrentNotify->Recipient_List[0];
     for (index = 0; index < NC_MAX_RECIPIENTS; index++, pBacDest++) {
         if (bacnet_recipient_device_wildcard(&pBacDest->Recipient)) {
+            /* unused slots denoted by wildcard */
             continue;
         }
         if (IsRecipientActive(pBacDest, event_data->toState)) {
@@ -827,6 +830,7 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
         d1 = &notification->Recipient_List[index];
         r1 = &d1->Recipient;
         if (!bacnet_recipient_device_wildcard(r1)) {
+            /* unused slots denoted by wildcard */
             element_count++;
         }
     }
@@ -836,7 +840,8 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     application_data_len = list_element->application_data_len;
     while (application_data_len > 0) {
         len = bacnet_destination_decode(
-            application_data, application_data_len, &recipient_list[index]);
+            application_data, application_data_len,
+            &recipient_list[new_element_count]);
         if (len > 0) {
             new_element_count++;
             application_data_len -= len;
@@ -907,7 +912,8 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
                 BACNET_RECIPIENT *r2;
                 d2 = &notification->Recipient_List[j];
                 r2 = &d2->Recipient;
-                if (!bacnet_recipient_device_wildcard(r2)) {
+                if (bacnet_recipient_device_wildcard(r2)) {
+                    /* unused slot denoted by wildcard */
                     bacnet_destination_copy(d2, d1);
                     break;
                 }
@@ -984,6 +990,7 @@ int Notification_Class_Remove_List_Element(
         d1 = &notification->Recipient_List[index];
         r1 = &d1->Recipient;
         if (!bacnet_recipient_device_wildcard(r1)) {
+            /* unused slot denoted by wildcard */
             element_count++;
         }
     }
@@ -992,7 +999,8 @@ int Notification_Class_Remove_List_Element(
     application_data_len = list_element->application_data_len;
     while (application_data_len > 0) {
         len = bacnet_destination_decode(
-            application_data, application_data_len, &recipient_list[index]);
+            application_data, application_data_len,
+            &recipient_list[remove_element_count]);
         if (len > 0) {
             remove_element_count++;
             application_data_len -= len;
