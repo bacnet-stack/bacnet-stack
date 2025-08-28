@@ -435,9 +435,8 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
     DLMSTP_PACKET *pkt;
 
     pthread_mutex_lock(&Receive_Packet_Mutex);
-==== BASE ====
-    if (Receive_Packet.ready) {
-==== BASE ====
+    pkt = (DLMSTP_PACKET *)Ringbuf_Data_Peek(&Receive_Queue);
+    if (!pkt) {
         debug_printf("MS/TP: Dropped! Not Ready.\n");
     } else {
         /* bounds check - maybe this should send an abort? */

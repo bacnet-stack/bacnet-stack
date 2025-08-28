@@ -32,7 +32,6 @@
 #include <libgen.h>
 
 /* Local includes */
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/mstp.h"
 #include "rs485.h"
 #include "bacnet/basic/sys/fifo.h"
@@ -251,8 +250,6 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     int handle = RS485_Handle;
     SHARED_MSTP_DATA *poSharedData;
     FIFO_BUFFER *fifo = &Rx_FIFO;
-    waiter.tv_sec = 0;
-    waiter.tv_usec = 5000;
 
     waiter.tv_sec = 0;
     waiter.tv_usec = 5000;
