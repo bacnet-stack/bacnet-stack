@@ -126,6 +126,8 @@ BACNET_STACK_EXPORT
 const char *bactext_life_safety_operation_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_life_safety_state_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_silenced_state_name(unsigned index);
 
 BACNET_STACK_EXPORT
 const char *bactext_device_communications_name(unsigned index);
@@ -170,6 +172,8 @@ const char *bactext_network_port_type_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_network_number_quality_name(unsigned index);
 BACNET_STACK_EXPORT
+const char *bactext_protocol_level_name(unsigned index);
+BACNET_STACK_EXPORT
 const char *bactext_network_port_command_name(unsigned index);
 
 BACNET_STACK_EXPORT
@@ -184,6 +188,24 @@ BACNET_STACK_EXPORT
 const char *bactext_success_filter_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_result_flags_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_logging_type_name(unsigned index);
+
+BACNET_STACK_EXPORT
+const char *bactext_program_request_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_program_state_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_program_error_name(unsigned index);
+
+BACNET_STACK_EXPORT
+bool bactext_strtoul(const char *search_name, unsigned *found_index);
+BACNET_STACK_EXPORT
+bool bactext_object_property_strtoul(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property,
+    const char *search_name,
+    unsigned *found_index);
 
 #ifdef __cplusplus
 }

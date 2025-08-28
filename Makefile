@@ -210,6 +210,10 @@ server:
 server-basic:
 	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
+.PHONY: server-basic-mstp
+server-basic-mstp:
+	$(MAKE) LEGACY=true NOTIFY=false BACDL=mstp -s -C apps server-basic
+
 .PHONY: server-client
 server-client:
 	$(MAKE) LEGACY=true -s -C apps $@
@@ -369,6 +373,14 @@ xplained-clean: ports/xplained/Makefile
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
 
+.PHONY: gtk-discover
+gtk-discover:
+	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: dlmstp-linux
+dlmstp-linux: ports/linux/dlmstp.mak
+	$(MAKE) -s -C ports/linux -f dlmstp.mak clean all
+
 .PHONY: lwip
 lwip: ports/lwip/Makefile
 	$(MAKE) -s -C ports/lwip clean all
@@ -520,6 +532,8 @@ clean: ports-clean
 	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
+	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean
+	$(MAKE) -s -C ports/linux -f dlmstp.mak clean
 	rm -rf ./build
 
 .PHONY: test

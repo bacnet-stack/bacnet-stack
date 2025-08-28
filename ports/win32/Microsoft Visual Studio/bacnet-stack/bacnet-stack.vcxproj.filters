@@ -49,6 +49,9 @@
     <Filter Include="Source Files\ports\win32">
       <UniqueIdentifier>{dafdfbc0-5a48-441c-8682-4d5423832141}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\npdu">
+      <UniqueIdentifier>{6c7abd41-d9bc-4212-b651-29a3e656b76f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\bacnet\abort.c">
@@ -662,6 +665,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\youare.c">
       <Filter>Source Files\src\bacnet\basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\ports\posix\bacfile-posix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.c">
+      <Filter>Source Files\src\bacnet\basic\npdu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1312,6 +1321,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\youare.h">
       <Filter>Source Files\src\bacnet\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\ports\posix\bacfile-posix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.h">
+      <Filter>Source Files\src\bacnet\basic\npdu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

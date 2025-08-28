@@ -45,6 +45,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\bactimevalue.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\binding\address.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\acc.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_credential.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_door.c" />
@@ -219,6 +220,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\wpm.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\write_group.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\youare.c" />
+    <ClCompile Include="..\..\..\..\ports\posix\bacfile-posix.c" />
     <ClCompile Include="..\..\bip-init.c" />
     <ClCompile Include="..\..\datetime-init.c" />
     <ClCompile Include="..\..\mstimer-init.c" />
@@ -254,6 +256,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\bactimevalue.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\binding\address.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\acc.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_credential.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_door.h" />
@@ -439,6 +442,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\wpm.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\write_group.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\youare.h" />
+    <ClInclude Include="..\..\..\..\ports\posix\bacfile-posix.h" />
     <ClInclude Include="..\..\bacport.h" />
     <ClInclude Include="..\..\rs485.h" />
   </ItemGroup>
@@ -515,8 +519,6 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>

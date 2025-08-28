@@ -133,6 +133,7 @@ list(APPEND testdirs
   bacnet/basic/binding/address
   bacnet/basic/bbmd
   bacnet/basic/bbmd6
+  bacnet/basic/bzll
   # basic/object
   bacnet/basic/object/acc
   bacnet/basic/object/access_credential
@@ -180,6 +181,8 @@ list(APPEND testdirs
   # basic/program
   bacnet/basic/program/ubasic
   # basic/sys
+  bacnet/basic/sys/bramfs
+  bacnet/basic/sys/bsramfs
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
   bacnet/basic/sys/dst

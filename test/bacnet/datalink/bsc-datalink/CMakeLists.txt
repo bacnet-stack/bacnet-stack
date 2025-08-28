@@ -27,8 +27,8 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
   BIG_ENDIAN=0
   CONFIG_ZTEST=1
-  BACDL_BSC
   MAX_BACFILES=4
+  BACFILE=1
   BSC_CONF_WSURL_MAX_LEN=128
   BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN=128
   BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM=3
@@ -47,6 +47,7 @@ add_compile_definitions(
 
 include_directories(
   ${SRC_DIR}
+  ${PORTS_DIR}/posix
   ${TST_DIR}/ztest/include
   )
 
@@ -197,6 +198,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   ${SRC_DIR}/bacnet/timestamp.c
   ${SRC_DIR}/bacnet/weeklyschedule.c
   ${SRC_DIR}/bacnet/wp.c
+  ${PORTS_DIR}/posix/bacfile-posix.c
   # Test and test library files
   ./src/main.c
   ${TST_DIR}/bacnet/basic/object/test/device_mock.c

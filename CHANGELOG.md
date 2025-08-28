@@ -16,10 +16,24 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured I-Am request encoding and decoding, and updated the example apps
+  and handlers to use secure version of I-Am decoder. (#1080)
 * Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
 
 ### Added
 
+* Added MS/TP datalink option to BACnet basic server example. (#1077)
+* Added fixups to Microsoft Visual Studio build: added server-mini, etc. (#1061)
+* Added WriteProperty to GTK Discover app.  For enumerated properties,
+  the property text is converted to an integer.  For commandable object
+  properties (present-value), priority is encoded after the value
+  or null using @ symbol.
+* Added dynamic and static RAM file systems to use with file objects. (#1058)
+* Added check for read-only during AtomicWriteFile service API for
+  BACnet File object. (#1058)
+* Added simple project for GTK BACnet Discovery Application. (#1064) (#1065)  (#1070)
+* Added BACnet Zigbee VMAC table and unit test. (#1054)
+* Added BACnet Zigbee Link Layer (BZLL) with stubs. (#1052)
 * Added a debug print when tsm retries. (#1040)
 * Added bvlc_delete_from_bbmd() API to unregister as a foreign device
   and become normal (not foreign). (#1041)
@@ -73,6 +87,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Change stm32f4xx example to use static RAM file system. (#1058)
+* Changed the bacnet file object to be storage agnostic by refactoring
+  and using callbacks. (#1056)
 * Changed ReadRange by-position and by-sequence encoding by refactoring
   into a common module. (#1028)
 * Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
@@ -81,6 +98,32 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed win32 builds where UNICODE is defined. The code now uses CreateFileA
+  instead of CreateFile due to ANSI-C filenames. (#1076)
+* Fixed the usage of index vs instance in the basic trend log object
+  example. (#1074)
+* Fixed bacapp_encode_context_data_value() to enable all non-primative
+  value context encoding by removing the filter. (#1075)
+* Fixed point-to-point VPN tunnel sockets for BACnet/IP by using
+  IFF_POINTTOPOINT flag when getting the broadcast address. (#1066)
+* Fixed missing text sprintf for Network Port object BACnetNetworkType,
+  BACnetNetworkNumberQuality, and BACnetProtocolLevel enumerations. (#1069)
+* Fixed missing enumeration text for Program object: BACnetProgramError,
+  BACnetProgramState, and BACnetProgramRequest (#1068)
+* Fixed missing enumeration text for BACnetNodeType, BACnetSilencedState,
+  BACnetLoggingType (#1067)
+* Fixed bacfile_count() function return type (#1058)
+* Fixed the signed value for start position and start record in BACnet
+  file object abstraction. (#1057)
+* Fixed the Linux DLMSTP standalone test application Makefile. (#1055)
+* Fixed ISO C90 forbids mixed declarations and code warning.(#1053)
+* Fixed the MS/TP invalid frame counter that was incremented for valid
+  frames not for us.(#1053)
+* Fixed the ports/linux MS/TP by adding receive buffers, maximizing
+  the thread priority, locking the mutex, iterating over queued replies
+  to find a match, and sleeping before replying to enable the application
+  to provide a reply. (#1051)
+* Fixed the Microsoft Visual Studio compile environment. (#1050)
 * Fixed the use of uninitialized local variables in COV handlers. (#1049)
 * Fixed MS/TP zero-config FSM getting stuck when duplicate address is
   detected. (#1048)
@@ -115,8 +158,6 @@ The git repositories are hosted at the following sites:
   which was deemed errata by BACnet standard committee. (#980)
 * Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
 * Fixed network specific original broadcast for IP in apps/router. (#976)(#989)
-
-### Removed
 
 ## [1.4.1] - 2025-04-11
 

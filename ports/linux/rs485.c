@@ -249,16 +249,18 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     uint8_t buf[2048];
     ssize_t n;
     int handle = RS485_Handle;
+    SHARED_MSTP_DATA *poSharedData;
     FIFO_BUFFER *fifo = &Rx_FIFO;
     waiter.tv_sec = 0;
     waiter.tv_usec = 5000;
 
-    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
+    waiter.tv_sec = 0;
+    waiter.tv_usec = 5000;
+    poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
     if (poSharedData) {
         handle = poSharedData->RS485_Handle;
         fifo = &poSharedData->Rx_FIFO;
     }
-
     if (mstp_port->ReceiveError == true) {
         /* do nothing but wait for state machine to clear the error */
     } else if (mstp_port->DataAvailable == false) {

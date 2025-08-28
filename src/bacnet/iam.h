@@ -36,6 +36,32 @@ int iam_decode_service_request(
     int *pSegmentation,
     uint16_t *pVendor_id);
 
+BACNET_STACK_EXPORT
+int bacnet_iam_request_decode(
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    uint32_t *pDevice_id,
+    unsigned *pMax_apdu,
+    int *pSegmentation,
+    uint16_t *pVendor_id);
+
+BACNET_STACK_EXPORT
+int bacnet_iam_request_encode(
+    uint8_t *apdu,
+    uint32_t device_id,
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id);
+
+BACNET_STACK_EXPORT
+size_t bacnet_iam_service_request_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    uint32_t device_id,
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

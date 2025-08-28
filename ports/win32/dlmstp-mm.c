@@ -165,11 +165,13 @@ static void dlmstp_receive_fsm_task(void *pArg)
     while (TRUE) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
+            (MSTP_Port.ReceivedValidFrameNotForUs == false) &&
             (MSTP_Port.ReceivedInvalidFrame == false)) {
             do {
                 RS485_Check_UART_Data(&MSTP_Port);
                 MSTP_Receive_Frame_FSM(&MSTP_Port);
                 received_frame = MSTP_Port.ReceivedValidFrame ||
+                    MSTP_Port.ReceivedValidFrameNotForUs ||
                     MSTP_Port.ReceivedInvalidFrame;
                 if (received_frame) {
                     ReleaseSemaphore(Received_Frame_Flag, 1, NULL);

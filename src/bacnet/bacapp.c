@@ -951,32 +951,8 @@ int bacapp_encode_context_data_value(
                     value->type.Object_Id.instance);
                 break;
 #endif
-            case BACNET_APPLICATION_TAG_TIMESTAMP:
-            case BACNET_APPLICATION_TAG_DATETIME:
-            case BACNET_APPLICATION_TAG_DATERANGE:
-            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-            case BACNET_APPLICATION_TAG_XY_COLOR:
-            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
-            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
-            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
-            case BACNET_APPLICATION_TAG_HOST_N_PORT:
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
-            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
-            case BACNET_APPLICATION_TAG_DESTINATION:
-            case BACNET_APPLICATION_TAG_BDT_ENTRY:
-            case BACNET_APPLICATION_TAG_FDT_ENTRY:
-            case BACNET_APPLICATION_TAG_ACTION_COMMAND:
-            case BACNET_APPLICATION_TAG_LOG_RECORD:
-            case BACNET_APPLICATION_TAG_SCALE:
-            case BACNET_APPLICATION_TAG_SHED_LEVEL:
-            case BACNET_APPLICATION_TAG_ACCESS_RULE:
-            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
-            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
-            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
-            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
-                /* complex data is enclosed in open/close tags */
+            default:
+                /* non-primitive data is enclosed in open/close tags */
                 len = encode_opening_tag(apdu, context_tag_number);
                 apdu_len += len;
                 if (apdu) {
@@ -989,9 +965,6 @@ int bacapp_encode_context_data_value(
                 }
                 len = encode_closing_tag(apdu, context_tag_number);
                 apdu_len += len;
-                break;
-            default:
-                (void)len;
                 break;
         }
     }
@@ -2416,6 +2389,55 @@ static int bacapp_snprintf_enumerated(
         case PROP_IN_PROGRESS:
             ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_lighting_in_progress(value));
+            break;
+        case PROP_LOGGING_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_logging_type_name(value));
+            break;
+        case PROP_MODE:
+        case PROP_ACCEPTED_MODES:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_life_safety_mode_name(value));
+            break;
+        case PROP_OPERATION_EXPECTED:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_life_safety_operation_name(value));
+            break;
+        case PROP_TRACKING_VALUE:
+            switch (object_type) {
+                case OBJECT_LIFE_SAFETY_POINT:
+                case OBJECT_LIFE_SAFETY_ZONE:
+                    ret_val = bacapp_snprintf(
+                        str, str_len, "%s",
+                        bactext_life_safety_state_name(value));
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_PROGRAM_CHANGE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_request_name(value));
+            break;
+        case PROP_PROGRAM_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_state_name(value));
+            break;
+        case PROP_REASON_FOR_HALT:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_program_error_name(value));
+            break;
+        case PROP_NETWORK_NUMBER_QUALITY:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_network_number_quality_name(value));
+            break;
+        case PROP_NETWORK_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_network_port_type_name(value));
+            break;
+        case PROP_PROTOCOL_LEVEL:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_protocol_level_name(value));
             break;
         default:
             ret_val =

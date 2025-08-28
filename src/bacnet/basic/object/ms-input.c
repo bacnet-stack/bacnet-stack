@@ -48,13 +48,16 @@ static const char *Default_State_Text = "State 1\0"
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1
 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
-                                           PROP_STATE_TEXT, -1 };
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, PROP_RELIABILITY, PROP_STATE_TEXT, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 

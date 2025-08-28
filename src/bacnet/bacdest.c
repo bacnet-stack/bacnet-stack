@@ -95,6 +95,36 @@ bool bacnet_recipient_same(
 }
 
 /**
+ * @brief Set the BACnetRecipient complex data to a device
+ * @param dest - BACnetRecipient structure
+ * @param object_type - BACnetObjectType enumeration value
+ * @param instance - BACnetObjectInstance value
+ */
+void bacnet_recipient_device_set(
+    BACNET_RECIPIENT *dest, BACNET_OBJECT_TYPE object_type, uint32_t instance)
+{
+    if (dest) {
+        dest->tag = BACNET_RECIPIENT_TAG_DEVICE;
+        dest->type.device.type = object_type;
+        dest->type.device.instance = instance;
+    }
+}
+
+/**
+ * @brief Set the BACnetRecipient complex data to an address
+ * @param dest - BACnetRecipient structure
+ * @param address - BACnetAddress structure
+ */
+void bacnet_recipient_address_set(
+    BACNET_RECIPIENT *dest, const BACNET_ADDRESS *address)
+{
+    if (dest && address) {
+        dest->tag = BACNET_RECIPIENT_TAG_ADDRESS;
+        bacnet_address_copy(&dest->type.address, address);
+    }
+}
+
+/**
  * @brief Copy the BACnetRecipient complex data from src to dest
  * @param src - BACnetRecipient 1 structure
  * @param dest - BACnetRecipient 2 structure
