@@ -15,6 +15,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacreal.h"
 #include "bacnet/lighting.h"
+#include "bacnet/basic/sys/color_rgb.h"
 
 /** @file lighting.c  Manipulate BACnet lighting command values */
 
