@@ -1023,7 +1023,6 @@ Lighting_Command_Toggle_Default(struct object_data *pObject, unsigned priority)
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - property value to write
- * @param  priority - priority-array index value 1..16
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
@@ -1032,38 +1031,87 @@ Lighting_Command_Toggle_Default(struct object_data *pObject, unsigned priority)
 static bool Lighting_Output_Lighting_Command_Write(
     uint32_t object_instance,
     const BACNET_LIGHTING_COMMAND *value,
-    uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject;
+    unsigned priority;
 
     if (!value) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return status;
     }
-    if (priority == 6) {
-        /* Command priority 6 is reserved for use by Minimum On/Off
-            algorithm and may not be used for other purposes in any
-            object. */
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        return status;
-    }
-    if ((priority < BACNET_MIN_PRIORITY) || (priority > BACNET_MAX_PRIORITY)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return status;
+    if (value->use_priority) {
+        priority = value->priority;
+        if ((priority < BACNET_MIN_PRIORITY) ||
+            (priority > BACNET_MAX_PRIORITY)) {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            return status;
+        }
     }
     if (value->operation >= BACNET_LIGHTS_RESERVED_MIN) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return status;
     }
+    status = Lighting_Output_Lighting_Command_Set(object_instance, value);
+    if (!status) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the lighting-command.
+ *
+ * @note The Lighting_Command property shall indicate the last written
+ *  value or NONE if it has not yet been written.
+ *
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the lighting command value
+ *
+ * @return true if lighting command was retrieved
+ */
+bool Lighting_Output_Lighting_Command(
+    uint32_t object_instance, BACNET_LIGHTING_COMMAND *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        status = lighting_command_copy(value, &pObject->Last_Lighting_Command);
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the lighting-command.
+ *
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the lighting command value
+ *
+ * @return  true if lighting command was set
+ */
+bool Lighting_Output_Lighting_Command_Set(
+    uint32_t object_instance, const BACNET_LIGHTING_COMMAND *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+    unsigned priority;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (value->use_priority) {
+            priority = value->priority;
+        } else {
+            priority = pObject->Lighting_Command_Default_Priority;
+        }
         debug_printf(
             "LO[%u]: Lighting-Command@%u: %s\n", object_instance, priority,
             bactext_lighting_operation_name(value->operation));
@@ -1143,107 +1191,6 @@ static bool Lighting_Output_Lighting_Command_Write(
                 status = true;
                 break;
 #endif
-            default:
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                break;
-        }
-    } else {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, gets the lighting-command.
- *
- * @note The Lighting_Command property shall indicate the last written
- *  value or NONE if it has not yet been written.
- *
- * @param object_instance - object-instance number of the object
- * @param value - holds the lighting command value
- *
- * @return true if lighting command was retrieved
- */
-bool Lighting_Output_Lighting_Command(
-    uint32_t object_instance, BACNET_LIGHTING_COMMAND *value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        status = lighting_command_copy(value, &pObject->Last_Lighting_Command);
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, sets the lighting-command.
- *
- * @param object_instance - object-instance number of the object
- * @param value - holds the lighting command value
- *
- * @return  true if lighting command was set
- */
-bool Lighting_Output_Lighting_Command_Set(
-    uint32_t object_instance, const BACNET_LIGHTING_COMMAND *value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        switch (value->operation) {
-            case BACNET_LIGHTS_NONE:
-                status = true;
-                break;
-            case BACNET_LIGHTS_FADE_TO:
-                Lighting_Command_Fade_To(
-                    pObject, value->priority, value->target_level,
-                    value->fade_time);
-                status = true;
-                break;
-            case BACNET_LIGHTS_RAMP_TO:
-                Lighting_Command_Ramp_To(
-                    pObject, value->priority, value->target_level,
-                    value->ramp_rate);
-                status = true;
-                break;
-            case BACNET_LIGHTS_STEP_UP:
-            case BACNET_LIGHTS_STEP_DOWN:
-            case BACNET_LIGHTS_STEP_ON:
-            case BACNET_LIGHTS_STEP_OFF:
-                Lighting_Command_Step(
-                    pObject, value->priority, value->operation,
-                    value->step_increment);
-                status = true;
-                break;
-            case BACNET_LIGHTS_WARN:
-                /* Provides the same functionality as the
-                   WARN lighting command. */
-                Lighting_Command_Warn(pObject, value->priority);
-                status = true;
-                break;
-            case BACNET_LIGHTS_WARN_OFF:
-                /* Provides the same functionality as the
-                   WARN_OFF lighting command. */
-                Lighting_Command_Warn_Off(pObject, value->priority);
-                status = true;
-                break;
-            case BACNET_LIGHTS_WARN_RELINQUISH:
-                /* Provides the same functionality as the
-                   WARN_RELINQUISH lighting command. */
-                Lighting_Command_Warn_Relinquish(pObject, value->priority);
-                status = true;
-                break;
-            case BACNET_LIGHTS_STOP:
-                Lighting_Command_Stop(pObject, value->priority);
-                status = true;
-                break;
             default:
                 break;
         }
@@ -2453,8 +2400,7 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = Lighting_Output_Lighting_Command_Write(
                     wp_data->object_instance, &value.type.Lighting_Command,
-                    wp_data->priority, &wp_data->error_class,
-                    &wp_data->error_code);
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         case PROP_OUT_OF_SERVICE:
