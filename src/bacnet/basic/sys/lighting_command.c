@@ -59,6 +59,22 @@ void lighting_command_notification_add(
     } while (head);
 }
 
+float lighting_command_clamp_value(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    /* clamp value within trim values, if non-zero */
+    if (isless(value, 1.0f)) {
+        /* jump target to OFF if below normalized min */
+        value = 0.0f;
+    } else if (isgreater(value, data->High_Trim_Value)) {
+        value = data->High_Trim_Value;
+    } else if (isless(value, data->Low_Trim_Value)) {
+        value = data->Low_Trim_Value;
+    }
+
+    return value;
+}
+
 /**
  * @brief Callback for tracking value updates
  * @param  data - dimmer data
@@ -68,16 +84,11 @@ void lighting_command_notification_add(
 static void lighting_command_tracking_value_notify(
     struct bacnet_lighting_command_data *data, float old_value, float value)
 {
-    if (!data->Out_Of_Service) {
-        /* clamp value within trim values, if non-zero */
-        if (isless(value, 1.0f)) {
-            /* jump target to OFF if below normalized min */
-            value = 0.0f;
-        } else if (isgreater(value, data->High_Trim_Value)) {
-            value = data->High_Trim_Value;
-        } else if (isless(value, data->Low_Trim_Value)) {
-            value = data->Low_Trim_Value;
-        }
+    if (data->Overridden) {
+        value = lighting_command_clamp_value(data, data->Overridden_Value);
+        lighting_command_tracking_value_handler(data, old_value, value);
+    } else if (!data->Out_Of_Service) {
+        value = lighting_command_clamp_value(data, value);
         lighting_command_tracking_value_handler(data, old_value, value);
     } else {
         debug_printf(
@@ -505,6 +516,24 @@ static void lighting_command_blink_handler(
 }
 
 /**
+ * @brief Overrides the current lighting command if overridden is true
+ * @param data [in] dimmer data
+ */
+void lighting_command_override(struct bacnet_lighting_command_data *data)
+{
+    if (!data) {
+        return;
+    }
+    if (data->Overridden) {
+        lighting_command_tracking_value_notify(
+            data, data->Tracking_Value, data->Overridden_Value);
+    } else {
+        lighting_command_tracking_value_notify(
+            data, data->Tracking_Value, data->Tracking_Value);
+    }
+}
+
+/**
  * @brief Updates the dimmer tracking value per ramp or fade or step
  * @param data [in] dimmer data
  * @param milliseconds - number of milliseconds elapsed since previously
@@ -672,6 +701,8 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Max_Actual_Value = 100.0f;
     data->Low_Trim_Value = 1.0f;
     data->High_Trim_Value = 100.0f;
+    data->Overridden = false;
+    data->Overridden_Value = 0.0f;
     data->Blink.On_Value = 100.0f;
     data->Blink.Off_Value = 0.0f;
     data->Blink.End_Value = 0.0f;

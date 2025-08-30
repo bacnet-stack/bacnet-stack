@@ -45,12 +45,18 @@ bool Lighting_Output_Present_Value_Set(
 BACNET_STACK_EXPORT
 bool Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority);
-
 BACNET_STACK_EXPORT
 float Lighting_Output_Relinquish_Default(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Relinquish_Default_Set(
     uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
+bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Overridden_Clear(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Overridden_Status(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 bool Lighting_Output_Change_Of_Value(uint32_t instance);
