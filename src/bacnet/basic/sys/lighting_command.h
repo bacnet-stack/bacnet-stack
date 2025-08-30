@@ -91,6 +91,9 @@ void lighting_command_none(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
 void lighting_command_override(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
+float lighting_command_clamp_value(
+    struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
 void lighting_command_init(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
 void lighting_command_notification_add(

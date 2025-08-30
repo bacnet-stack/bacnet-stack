@@ -59,6 +59,22 @@ void lighting_command_notification_add(
     } while (head);
 }
 
+float lighting_command_clamp_value(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    /* clamp value within trim values, if non-zero */
+    if (isless(value, 1.0f)) {
+        /* jump target to OFF if below normalized min */
+        value = 0.0f;
+    } else if (isgreater(value, data->High_Trim_Value)) {
+        value = data->High_Trim_Value;
+    } else if (isless(value, data->Low_Trim_Value)) {
+        value = data->Low_Trim_Value;
+    }
+
+    return value;
+}
+
 /**
  * @brief Callback for tracking value updates
  * @param  data - dimmer data
@@ -69,18 +85,10 @@ static void lighting_command_tracking_value_notify(
     struct bacnet_lighting_command_data *data, float old_value, float value)
 {
     if (data->Overridden) {
-        value = data->Overridden_Value;
-    }
-    if (!data->Out_Of_Service) {
-        /* clamp value within trim values, if non-zero */
-        if (isless(value, 1.0f)) {
-            /* jump target to OFF if below normalized min */
-            value = 0.0f;
-        } else if (isgreater(value, data->High_Trim_Value)) {
-            value = data->High_Trim_Value;
-        } else if (isless(value, data->Low_Trim_Value)) {
-            value = data->Low_Trim_Value;
-        }
+        value = lighting_command_clamp_value(data, data->Overridden_Value);
+        lighting_command_tracking_value_handler(data, old_value, value);
+    } else if (!data->Out_Of_Service) {
+        value = lighting_command_clamp_value(data, value);
         lighting_command_tracking_value_handler(data, old_value, value);
     } else {
         debug_printf(
