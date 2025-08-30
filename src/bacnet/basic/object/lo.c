@@ -54,7 +54,6 @@ struct object_data {
     bool Blink_Warn_Enable : 1;
     bool Egress_Active : 1;
     bool Color_Override : 1;
-    bool Overridden : 1;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -1918,12 +1917,12 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
 {
     bool status = false;
     struct object_data *pObject;
-    uint32_t fade_time = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Overridden = true;
-        lighting_command_fade_to(&pObject->Lighting_Command, value, fade_time);
+        pObject->Lighting_Command.Overridden = true;
+        pObject->Lighting_Command.Overridden_Value = value;
+        lighting_command_override(&pObject->Lighting_Command);
         status = true;
     }
 
@@ -1939,18 +1938,11 @@ bool Lighting_Output_Overridden_Clear(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject;
-    float value;
-    uint32_t fade_time = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Overridden) {
-            pObject->Overridden = false;
-            /* update present-value to lighting command */
-            value = Priority_Array_Next_Value(pObject, 0);
-            lighting_command_fade_to(
-                &pObject->Lighting_Command, value, fade_time);
-        }
+        pObject->Lighting_Command.Overridden = false;
+        lighting_command_override(&pObject->Lighting_Command);
         status = true;
     }
 
@@ -1977,7 +1969,7 @@ bool Lighting_Output_Overridden_Status(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = pObject->Overridden;
+        status = pObject->Lighting_Command.Overridden;
     }
 
     return status;

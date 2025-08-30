@@ -51,9 +51,11 @@ typedef struct bacnet_lighting_command_data {
     float Max_Actual_Value;
     float High_Trim_Value;
     float Low_Trim_Value;
+    float Overridden_Value;
     BACNET_LIGHTING_COMMAND_WARN_DATA Blink;
     /* bits - in common area of structure */
     bool Out_Of_Service : 1;
+    bool Overridden : 1;
     /* key used with callback */
     uint32_t Key;
     struct lighting_command_notification Notification_Head;
@@ -86,6 +88,8 @@ BACNET_STACK_EXPORT
 void lighting_command_stop(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
 void lighting_command_none(struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_override(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
 void lighting_command_init(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT

@@ -187,6 +187,13 @@ static void test_lighting_command_command_unit(void)
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.High_Trim_Value), NULL);
     data.High_Trim_Value = data.Max_Actual_Value;
+    /* override */
+    data.Overridden = true;
+    data.Overridden_Value = 42.0f;
+    milliseconds = 10;
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, data.Overridden_Value), NULL);
+    data.Overridden = false;
 
     /* step UP - inhibit ON */
     target_step = 1.0f;
