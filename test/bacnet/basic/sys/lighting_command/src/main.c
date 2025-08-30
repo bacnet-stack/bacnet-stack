@@ -190,10 +190,11 @@ static void test_lighting_command_command_unit(void)
     /* override */
     data.Overridden = true;
     data.Overridden_Value = 42.0f;
-    milliseconds = 10;
-    lighting_command_timer(&data, milliseconds);
+    lighting_command_override(&data);
     zassert_true(is_float_equal(Tracking_Value, data.Overridden_Value), NULL);
     data.Overridden = false;
+    lighting_command_override(&data);
+    zassert_true(is_float_equal(Tracking_Value, data.Tracking_Value), NULL);
 
     /* step UP - inhibit ON */
     target_step = 1.0f;
