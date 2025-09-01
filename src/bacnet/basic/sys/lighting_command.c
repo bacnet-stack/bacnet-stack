@@ -87,7 +87,11 @@ static void lighting_command_tracking_value_notify(
     if (data->Overridden) {
         value = lighting_command_clamp_value(data, data->Overridden_Value);
         lighting_command_tracking_value_handler(data, old_value, value);
+        if (data->Overridden_Momentary) {
+            data->Overridden = false;
+        }
     } else if (!data->Out_Of_Service) {
+        data->Overridden_Momentary = false;
         value = lighting_command_clamp_value(data, value);
         lighting_command_tracking_value_handler(data, old_value, value);
     } else {

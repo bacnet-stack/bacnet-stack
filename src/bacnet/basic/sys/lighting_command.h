@@ -56,6 +56,7 @@ typedef struct bacnet_lighting_command_data {
     /* bits - in common area of structure */
     bool Out_Of_Service : 1;
     bool Overridden : 1;
+    bool Overridden_Momentary : 1;
     /* key used with callback */
     uint32_t Key;
     struct lighting_command_notification Notification_Head;

@@ -356,6 +356,20 @@ Present_Value_Relinquish(struct object_data *pObject, unsigned priority)
 }
 
 /**
+ * @brief Relinquish the present-value at every priority
+ * @param pObject [in] object instance
+ */
+static void Present_Value_Relinquish_All(struct object_data *pObject)
+{
+    if (pObject) {
+        for (unsigned priority = 1; priority <= BACNET_MAX_PRIORITY;
+             priority++) {
+            Present_Value_Relinquish(pObject, priority);
+        }
+    }
+}
+
+/**
  * For a given object instance, sets the present-value at a given
  * priority 1..16.
  *
@@ -1909,6 +1923,9 @@ static bool Lighting_Output_Relinquish_Default_Write(
 
 /**
  * @brief Set the overridden state of the lighting output
+ * @note For HOA (hand off-auto) control where the override
+ * is permanent and prevents lighting-command or present-value
+ * control of the output.
  * @param object_instance [in] BACnet object instance
  * @param value [in] new value to set
  * @return true if successful, false if not
@@ -1920,6 +1937,7 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        pObject->Lighting_Command.Overridden_Momentary = false;
         pObject->Lighting_Command.Overridden = true;
         pObject->Lighting_Command.Overridden_Value = value;
         lighting_command_override(&pObject->Lighting_Command);
@@ -1931,6 +1949,9 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
 
 /**
  * @brief Clear the overridden state of the lighting output
+ * @note For HOA (hand off-auto) control where the override
+ * is permanent and prevents lighting-command or present-value
+ * control of the output.
  * @param object_instance [in] BACnet object instance
  * @return true if successful, false if not
  */
@@ -1942,6 +1963,39 @@ bool Lighting_Output_Overridden_Clear(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Lighting_Command.Overridden = false;
+        pObject->Lighting_Command.Overridden_Momentary = false;
+        lighting_command_override(&pObject->Lighting_Command);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the overridden state of the lighting output
+ * @note For HOA (hand off-auto) control where the override
+ * is temporary until the next lighting-command or present-value
+ * is received from BACnet services.
+ * @param object_instance [in] BACnet object instance
+ * @param value [in] new value to set
+ * @return true if successful, false if not
+ */
+bool Lighting_Output_Overridden_Momentary(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        /* clear the priority array */
+        Present_Value_Relinquish_All(pObject);
+        pObject->Lighting_Command.Tracking_Value = pObject->Relinquish_Default;
+        pObject->Lighting_Command.In_Progress = BACNET_LIGHTING_IDLE;
+        pObject->Lighting_Command.Lighting_Operation = BACNET_LIGHTS_NONE;
+        /* set the override */
+        pObject->Lighting_Command.Overridden_Momentary = true;
+        pObject->Lighting_Command.Overridden = true;
+        pObject->Lighting_Command.Overridden_Value = value;
         lighting_command_override(&pObject->Lighting_Command);
         status = true;
     }
@@ -1969,7 +2023,8 @@ bool Lighting_Output_Overridden_Status(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = pObject->Lighting_Command.Overridden;
+        status = pObject->Lighting_Command.Overridden ||
+            pObject->Lighting_Command.Overridden_Momentary;
     }
 
     return status;

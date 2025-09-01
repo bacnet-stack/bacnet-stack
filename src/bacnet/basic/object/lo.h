@@ -57,6 +57,9 @@ BACNET_STACK_EXPORT
 bool Lighting_Output_Overridden_Clear(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Overridden_Status(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Overridden_Momentary(
+    uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
 bool Lighting_Output_Change_Of_Value(uint32_t instance);
