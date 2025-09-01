@@ -361,9 +361,9 @@ Present_Value_Relinquish(struct object_data *pObject, unsigned priority)
  */
 static void Present_Value_Relinquish_All(struct object_data *pObject)
 {
+    unsigned priority;
     if (pObject) {
-        for (unsigned priority = 1; priority <= BACNET_MAX_PRIORITY;
-             priority++) {
+        for (priority = 1; priority <= BACNET_MAX_PRIORITY; priority++) {
             Present_Value_Relinquish(pObject, priority);
         }
     }
