@@ -731,9 +731,11 @@ bool handler_cov_fsm(const bool reset)
                         &value_list[0], MAX_COV_PROPERTIES);
                     status = Device_Encode_Value_List(
                         object_type, object_instance, &value_list[0]);
+#if PRINT_ENABLED
                     fprintf(
                         stderr, "[%s %d %s]: status = %d\r\n", __FILE__,
                         __LINE__, __func__, status);
+#endif
                     if (status) {
                         status = cov_send_request(
                             &COV_Subscriptions[index], &value_list[0]);
