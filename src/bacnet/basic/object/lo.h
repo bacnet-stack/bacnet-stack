@@ -46,6 +46,8 @@ BACNET_STACK_EXPORT
 bool Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority);
 BACNET_STACK_EXPORT
+bool Lighting_Output_Present_Value_Relinquish_All(uint32_t object_instance);
+BACNET_STACK_EXPORT
 float Lighting_Output_Relinquish_Default(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Relinquish_Default_Set(

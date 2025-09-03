@@ -716,7 +716,8 @@ static bool Lighting_Output_Present_Value_Write(
  * @param  object_instance - object-instance number of the object
  * @param  priority - priority 1..16
  *
- * @return  true if values are within range and present-value is set.
+ * @return true if priority is within range and priority-array slot is
+ *  relinquished.
  */
 bool Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority)
@@ -751,6 +752,26 @@ bool Lighting_Output_Present_Value_Relinquish(
                 Lighting_Command_Fade_To(pObject, new_priority, value, 0);
             }
         }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, relinquishes the present-value
+ * at every priority 1..16.
+ * @param  object_instance - object-instance number of the object
+ * @return  true if values are within range and present-value is set.
+ */
+bool Lighting_Output_Present_Value_Relinquish_All(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        Present_Value_Relinquish_All(pObject);
+        status = true;
     }
 
     return status;
@@ -1939,8 +1960,7 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
     if (pObject) {
         pObject->Lighting_Command.Overridden_Momentary = false;
         pObject->Lighting_Command.Overridden = true;
-        pObject->Lighting_Command.Overridden_Value = value;
-        lighting_command_override(&pObject->Lighting_Command);
+        lighting_command_override(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -1958,13 +1978,15 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
 bool Lighting_Output_Overridden_Clear(uint32_t object_instance)
 {
     bool status = false;
+    float value;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Lighting_Command.Overridden = false;
         pObject->Lighting_Command.Overridden_Momentary = false;
-        lighting_command_override(&pObject->Lighting_Command);
+        value = Priority_Array_Next_Value(pObject, 0);
+        lighting_command_override(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -1987,16 +2009,10 @@ bool Lighting_Output_Overridden_Momentary(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        /* clear the priority array */
-        Present_Value_Relinquish_All(pObject);
-        pObject->Lighting_Command.Tracking_Value = pObject->Relinquish_Default;
-        pObject->Lighting_Command.In_Progress = BACNET_LIGHTING_IDLE;
-        pObject->Lighting_Command.Lighting_Operation = BACNET_LIGHTS_NONE;
         /* set the override */
         pObject->Lighting_Command.Overridden_Momentary = true;
         pObject->Lighting_Command.Overridden = true;
-        pObject->Lighting_Command.Overridden_Value = value;
-        lighting_command_override(&pObject->Lighting_Command);
+        lighting_command_override(&pObject->Lighting_Command, value);
         status = true;
     }
 

@@ -36,17 +36,25 @@ static void testLightingOutput(void)
     const uint32_t instance = 123;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     bool status = false;
-    unsigned index;
+    unsigned index, count;
     uint16_t milliseconds = 10;
+    uint32_t test_instance;
     const char *test_name = NULL;
     char *sample_name = "sample";
+    BACNET_LIGHTING_COMMAND lighting_command = { 0 };
 
     Lighting_Output_Init();
     Lighting_Output_Create(instance);
     status = Lighting_Output_Valid_Instance(instance);
     zassert_true(status, NULL);
+    status = Lighting_Output_Valid_Instance(BACNET_MAX_INSTANCE);
+    zassert_false(status, NULL);
     index = Lighting_Output_Instance_To_Index(instance);
     zassert_equal(index, 0, NULL);
+    count = Lighting_Output_Count();
+    zassert_equal(count, 1, NULL);
+    test_instance = Lighting_Output_Index_To_Instance(0);
+    zassert_equal(test_instance, instance, NULL);
 
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
@@ -142,6 +150,22 @@ static void testLightingOutput(void)
     zassert_true(status, NULL);
     test_name = Lighting_Output_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+    /* test local control API */
+    lighting_command.operation = BACNET_LIGHTS_NONE;
+    do {
+        status =
+            Lighting_Output_Lighting_Command_Set(instance, &lighting_command);
+        if (status) {
+            zassert_true(status, NULL);
+        } else {
+            printf(
+                "lighting-command operation[%d] %s not supported.\n",
+                lighting_command.operation,
+                bactext_lighting_operation_name(lighting_command.operation));
+        }
+        lighting_command.operation++;
+    } while (status);
+
     /* check the delete function */
     status = Lighting_Output_Delete(instance);
     zassert_true(status, NULL);
