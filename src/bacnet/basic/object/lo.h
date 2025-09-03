@@ -54,6 +54,29 @@ bool Lighting_Output_Relinquish_Default_Set(
     uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
+float Lighting_Output_Last_On_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Last_On_Value_Set(uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+float Lighting_Output_Default_On_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Default_On_Value_Set(
+    uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+float Lighting_Output_High_End_Trim(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_High_End_Trim_Set(uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+float Lighting_Output_Low_End_Trim(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Low_End_Trim_Set(uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+uint32_t Lighting_Output_Trim_Fade_Time(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Trim_Fade_Time_Set(
+    uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
 bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Overridden_Clear(uint32_t object_instance);

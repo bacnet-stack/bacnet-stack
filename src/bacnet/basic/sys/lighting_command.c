@@ -143,8 +143,10 @@ float lighting_command_operating_range_clamp(
         value = 0.0f;
     } else if (isgreater(value, data->High_Trim_Value)) {
         value = data->High_Trim_Value;
+        data->In_Progress = BACNET_LIGHTING_TRIM_ACTIVE;
     } else if (isless(value, data->Low_Trim_Value)) {
         value = data->Low_Trim_Value;
+        data->In_Progress = BACNET_LIGHTING_TRIM_ACTIVE;
     }
 
     return value;
@@ -226,6 +228,9 @@ static void lighting_command_tracking_value_event(
 {
     if (data->Overridden) {
         value = lighting_command_operating_range_clamp(data, value);
+        if (isgreaterequal(value, 1.0)) {
+            data->Last_On_Value = value;
+        }
         lighting_command_tracking_value_notify(data, old_value, value);
         if (data->Overridden_Momentary) {
             data->Overridden = false;
@@ -233,6 +238,9 @@ static void lighting_command_tracking_value_event(
     } else if (!data->Out_Of_Service) {
         data->Overridden_Momentary = false;
         value = lighting_command_operating_range_clamp(data, value);
+        if (isgreaterequal(value, 1.0)) {
+            data->Last_On_Value = value;
+        }
         lighting_command_tracking_value_notify(data, old_value, value);
     } else {
         debug_printf(
@@ -255,10 +263,8 @@ static void lighting_command_fade_handler(
     float target_value;
 
     old_value = data->Tracking_Value;
-    target_value = data->Target_Level;
-    /* clamp target within min/max */
     target_value =
-        lighting_command_normalized_on_range_clamp(data, target_value);
+        lighting_command_normalized_on_range_clamp(data, data->Target_Level);
     if ((milliseconds >= data->Fade_Time) ||
         (!islessgreater(data->Tracking_Value, target_value))) {
         /* stop fading */
@@ -493,18 +499,17 @@ lighting_command_step_off_handler(struct bacnet_lighting_command_data *data)
  * @note The WARN, WARN_RELINQUISH, and WARN_OFF lighting
  * commands, as well as writing one of the special values to the
  * Present_Value property, cause a blink-warn notification
- * to occur at the specified priority. A blink-warn
- * notification is used to warn the occupants that the lights
- * are about to turn off, giving the occupants the opportunity
- * to exit the space or to override the lights for a period of time.
+ * to occur. A blink-warn notification is used to warn the
+ * occupants that the lights are about to turn off, giving
+ * the occupants the opportunity to exit the space or to
+ * override the lights for a period of time.
  *
  * The actual blink-warn notification mechanism shall be a local matter.
  * The physical lights may blink once, multiple times, or
  * repeatedly. They may also go bright, go dim, or signal a notification
  * through some other means. In some circumstances, no blink-warn
  * notification will occur at all. The blink-warn notification
- * shall not be reflected in the priority array or the tracking
- * value.
+ * shall not be reflected in the tracking value.
  *
  * @param data [in] dimmer data
  * @param milliseconds - number of milliseconds elapsed
@@ -631,6 +636,12 @@ void lighting_command_timer(
         case BACNET_LIGHTS_STOP:
             data->In_Progress = BACNET_LIGHTING_IDLE;
             break;
+        case BACNET_LIGHTS_RESTORE_ON:
+        case BACNET_LIGHTS_DEFAULT_ON:
+        case BACNET_LIGHTS_TOGGLE_RESTORE:
+        case BACNET_LIGHTS_TOGGLE_DEFAULT:
+            lighting_command_fade_handler(data, milliseconds);
+            break;
         default:
             break;
     }
@@ -638,7 +649,7 @@ void lighting_command_timer(
 }
 
 /**
- * @brief Set the lighting command if the priority is active
+ * @brief Set the lighting command to perform a fade to value operation
  * @param data [in] dimmer data
  * @param value [in] BACnet lighting value
  * @param fade_time [in] BACnet lighting fade time
@@ -672,7 +683,7 @@ void lighting_command_ramp_to(
 }
 
 /**
- * @brief Set the lighting command if the priority is active
+ * @brief Set the lighting command to perform a step increment operation
  * @param data [in] dimmer object instance
  * @param operation [in] BACnet lighting operation
  * @param step_increment [in] BACnet lighting step increment value
@@ -692,7 +703,7 @@ void lighting_command_step(
 }
 
 /**
- * @brief Set the lighting command to blink mode
+ * @brief Set the lighting command to perform a blink operation
  * @param data [in] dimmer object instance
  * @param operation [in] BACnet lighting operation for blink warn
  * @param blink [in] BACnet blink data
@@ -720,7 +731,7 @@ void lighting_command_blink_warn(
 }
 
 /**
- * @brief Set the lighting command if the priority is active
+ * @brief Set the lighting command to perform a stop operation
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
  */
@@ -733,7 +744,7 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
 }
 
 /**
- * @brief Set the lighting command if the priority is active
+ * @brief Set the lighting command to perform no operations
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
  */
@@ -745,6 +756,82 @@ void lighting_command_none(struct bacnet_lighting_command_data *data)
     data->Lighting_Operation = BACNET_LIGHTS_NONE;
 }
 
+/**
+ * @brief Set the lighting command to perform a restore-on operation
+ * @param data [in] dimmer data
+ * @param fade_time [in] BACnet lighting fade time
+ */
+void lighting_command_restore_on(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time)
+{
+    if (!data) {
+        return;
+    }
+    data->Fade_Time = fade_time;
+    data->Lighting_Operation = BACNET_LIGHTS_RESTORE_ON;
+    data->Target_Level = data->Last_On_Value;
+}
+
+/**
+ * @brief Set the lighting command to perform a default-on operation
+ * @param data [in] dimmer data
+ * @param fade_time [in] BACnet lighting fade time
+ */
+void lighting_command_default_on(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time)
+{
+    if (!data) {
+        return;
+    }
+    data->Fade_Time = fade_time;
+    data->Lighting_Operation = BACNET_LIGHTS_DEFAULT_ON;
+    data->Target_Level = data->Default_On_Value;
+}
+
+/**
+ * @brief Set the lighting command to perform a toggle restore operation
+ * @param data [in] dimmer data
+ * @param fade_time [in] BACnet lighting fade time
+ */
+void lighting_command_toggle_restore(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time)
+{
+    if (!data) {
+        return;
+    }
+    data->Fade_Time = fade_time;
+    data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_RESTORE;
+    if (isless(data->Tracking_Value, 1.0f)) {
+        /* OFF: write the Last_On_Value */
+        data->Target_Level = data->Last_On_Value;
+    } else {
+        /* not OFF, write 0.0% */
+        data->Target_Level = 0.0f;
+    }
+}
+
+/**
+ * @brief Set the lighting command to perform a toggle default operation
+ * @param data [in] dimmer data
+ * @param fade_time [in] BACnet lighting fade time
+ */
+void lighting_command_toggle_default(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time)
+{
+    if (!data) {
+        return;
+    }
+    data->Fade_Time = fade_time;
+    data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_DEFAULT;
+    if (isless(data->Tracking_Value, 1.0f)) {
+        /* OFF: write the Default_On_Value */
+        data->Target_Level = data->Default_On_Value;
+    } else {
+        /* not OFF, write 0.0% */
+        data->Target_Level = 0.0f;
+    }
+}
+
 void lighting_command_init(struct bacnet_lighting_command_data *data)
 {
     if (!data) {
@@ -752,12 +839,14 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     }
     data->Tracking_Value = 0.0f;
     data->Lighting_Operation = BACNET_LIGHTS_NONE;
-    data->In_Progress = BACNET_LIGHTING_IDLE;
+    data->In_Progress = BACNET_LIGHTING_NOT_CONTROLLED;
     data->Out_Of_Service = false;
     data->Min_Actual_Value = 1.0f;
     data->Max_Actual_Value = 100.0f;
     data->Low_Trim_Value = 1.0f;
     data->High_Trim_Value = 100.0f;
+    data->Last_On_Value = 100.0f;
+    data->Default_On_Value = 100.0f;
     data->Overridden = false;
     data->Blink.On_Value = 100.0f;
     data->Blink.Off_Value = 0.0f;

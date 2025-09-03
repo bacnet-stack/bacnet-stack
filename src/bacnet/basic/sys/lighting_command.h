@@ -67,6 +67,8 @@ typedef struct bacnet_lighting_command_data {
     float Max_Actual_Value;
     float High_Trim_Value;
     float Low_Trim_Value;
+    float Default_On_Value;
+    float Last_On_Value;
     BACNET_LIGHTING_COMMAND_WARN_DATA Blink;
     /* bits - in common area of structure */
     bool Out_Of_Service : 1;
@@ -105,6 +107,19 @@ BACNET_STACK_EXPORT
 void lighting_command_stop(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
 void lighting_command_none(struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_restore_on(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time);
+BACNET_STACK_EXPORT
+void lighting_command_default_on(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time);
+BACNET_STACK_EXPORT
+void lighting_command_toggle_restore(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time);
+BACNET_STACK_EXPORT
+void lighting_command_toggle_default(
+    struct bacnet_lighting_command_data *data, uint32_t fade_time);
+
 BACNET_STACK_EXPORT
 void lighting_command_override(
     struct bacnet_lighting_command_data *data, float value);
