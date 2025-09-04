@@ -6,12 +6,40 @@
  */
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
+#include <bacnet/proplist.h>
 #include <bacnet/basic/object/lo.h>
 
 /**
  * @addtogroup bacnet_tests
  * @{
  */
+
+/**
+ * @brief compare two floating point values to 3 decimal places
+ *
+ * @param x1 - first comparison value
+ * @param x2 - second comparison value
+ * @return true if the value is the same to 3 decimal points
+ */
+static bool is_float_equal(float x1, float x2)
+{
+    return fabs(x1 - x2) < 0.001;
+}
+
+static float Test_Tracking_Value;
+/**
+ * @brief Callback for tracking value updates
+ * @param  key - key used to link to specific light
+ * @param  old_value - value prior to write
+ * @param  value - value of the write
+ */
+static void lighting_command_tracking_value_observer(
+    uint32_t key, float old_value, float value)
+{
+    (void)key;
+    (void)old_value;
+    Test_Tracking_Value = value;
+}
 
 /**
  * @brief Test
@@ -38,6 +66,11 @@ static void testLightingOutput(void)
     const char *test_name = NULL;
     char *sample_name = "sample";
     BACNET_LIGHTING_COMMAND lighting_command = { 0 };
+    BACNET_LIGHTING_IN_PROGRESS in_progress;
+    float real_value, test_real;
+    uint32_t unsigned_value, test_unsigned;
+    unsigned priority, test_priority;
+    BACNET_OBJECT_ID object_id, test_object_id;
 
     Lighting_Output_Init();
     Lighting_Output_Create(instance);
@@ -91,6 +124,27 @@ static void testLightingOutput(void)
                     wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                     "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
+            }
+            if (property_list_commandable_member(
+                    wpdata.object_type, wpdata.object_property)) {
+                wpdata.priority = 16;
+                status = Lighting_Output_Write_Property(&wpdata);
+                zassert_true(status, NULL);
+                wpdata.application_data_len =
+                    encode_application_null(wpdata.application_data);
+                wpdata.priority = 16;
+                status = Lighting_Output_Write_Property(&wpdata);
+                zassert_true(status, NULL);
+                wpdata.priority = 6;
+                status = Lighting_Output_Write_Property(&wpdata);
+                zassert_false(status, NULL);
+                zassert_equal(
+                    wpdata.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+                wpdata.priority = 0;
+                status = Lighting_Output_Write_Property(&wpdata);
+                zassert_false(status, NULL);
+                zassert_equal(
+                    wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
             }
         }
         pRequired++;
@@ -147,6 +201,11 @@ static void testLightingOutput(void)
     zassert_true(status, NULL);
     test_name = Lighting_Output_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+    /* test the ASCII description get/set */
+    status = Lighting_Output_Description_Set(instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Lighting_Output_Description(instance);
+    zassert_equal(test_name, sample_name, NULL);
     /* test local control API */
     lighting_command.operation = BACNET_LIGHTS_NONE;
     do {
@@ -170,10 +229,226 @@ static void testLightingOutput(void)
             lighting_command.operation++;
         }
     } while (lighting_command.operation <= BACNET_LIGHTS_PROPRIETARY_MAX);
+    /* test the present-value APIs */
+    Lighting_Output_Present_Value_Relinquish_All(instance);
+    real_value = 1.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    test_priority = Lighting_Output_Present_Value_Priority(instance);
+    zassert_equal(
+        priority, test_priority, "priority=%u test_priority=%u", priority,
+        test_priority);
+    Lighting_Output_Present_Value_Relinquish(instance, priority);
+    real_value = Lighting_Output_Relinquish_Default(instance);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    /* test the present-value special values */
+    status = Lighting_Output_Default_Fade_Time_Set(instance, 100);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Default_Ramp_Rate_Set(instance, 100.0f);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 0);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Default_Step_Increment_Set(instance, 1.0f);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Transition_Set(
+        instance, BACNET_LIGHTING_TRANSITION_NONE);
+    zassert_true(status, NULL);
+    real_value = -1.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    real_value = -2.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    real_value = -3.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    real_value = -4.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    real_value = -5.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    real_value = -6.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    real_value = -7.0;
+    priority = 8;
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    status = Lighting_Output_In_Progress_Set(
+        instance, BACNET_LIGHTING_NOT_CONTROLLED);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_NOT_CONTROLLED, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    /* tracking-value */
+    real_value = 100.0f;
+    status = Lighting_Output_Tracking_Value_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    /* blink-warn features */
+    status = Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, 65535);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Blink_Warn_Feature_Set(instance, -1.0f, 0, 65535);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Blink_Warn_Feature_Set(instance, 101.0f, 0, 65535);
+    zassert_true(status, NULL);
+    /* egress-time */
+    unsigned_value = 5 * 60;
+    status = Lighting_Output_Egress_Time_Set(instance, unsigned_value);
+    zassert_true(status, NULL);
+    test_unsigned = Lighting_Output_Egress_Time(instance);
+    zassert_equal(unsigned_value, test_unsigned, NULL);
+    /* default-fade-time */
+    unsigned_value = 5 * 60 * 1000;
+    status = Lighting_Output_Default_Fade_Time_Set(instance, unsigned_value);
+    zassert_true(status, NULL);
+    test_unsigned = Lighting_Output_Default_Fade_Time(instance);
+    zassert_equal(unsigned_value, test_unsigned, NULL);
+    /* default-ramp-rate */
+    real_value = 1.0f;
+    status = Lighting_Output_Default_Ramp_Rate_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Default_Ramp_Rate(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    /* default-step-increment */
+    real_value = 2.0f;
+    status = Lighting_Output_Default_Step_Increment_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Default_Step_Increment(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    /* relinquish-default */
+    real_value = 0.0f;
+    status = Lighting_Output_Relinquish_Default_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Relinquish_Default(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    /* overridden */
+    real_value = 88.0f;
+    status = Lighting_Output_Overridden_Set(instance, real_value);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Overridden_Status(instance);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, real_value), "value=%f test_value=%f",
+        real_value, test_real);
+    status = Lighting_Output_Present_Value_Set(instance, 99.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, real_value), "value=%f test_value=%f",
+        real_value, test_real);
+    real_value = Lighting_Output_Present_Value(instance);
+    status = Lighting_Output_Overridden_Clear(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    /* overridden-momentary */
+    real_value = 77.0f;
+    status = Lighting_Output_Overridden_Momentary(instance, real_value);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Overridden_Status(instance);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, real_value), "value=%f test_value=%f",
+        real_value, test_real);
+    status = Lighting_Output_Present_Value_Set(instance, 98.0f, priority);
+    Lighting_Output_Timer(instance, 10);
+    real_value = Lighting_Output_Present_Value(instance);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, real_value), "value=%f test_value=%f",
+        real_value, test_real);
+    /* color-override */
+    status = Lighting_Output_Color_Override_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Color_Override(instance);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Color_Override_Set(instance, false);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Color_Override(instance);
+    zassert_false(status, NULL);
+    /* color-reference */
+    object_id.instance = 1;
+    object_id.type = OBJECT_COLOR;
+    status = Lighting_Output_Color_Reference_Set(instance, &object_id);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Color_Reference(instance, &test_object_id);
+    zassert_true(status, NULL);
+    zassert_equal(object_id.instance, test_object_id.instance, NULL);
+    zassert_equal(object_id.type, test_object_id.type, NULL);
+    /* override-color-reference */
+    object_id.instance = 2;
+    object_id.type = OBJECT_COLOR;
+    status = Lighting_Output_Override_Color_Reference_Set(instance, &object_id);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Override_Color_Reference(instance, &test_object_id);
+    zassert_true(status, NULL);
+    zassert_equal(object_id.instance, test_object_id.instance, NULL);
+    zassert_equal(object_id.type, test_object_id.type, NULL);
+    /* tracking-value observer */
+    real_value = 95.0f;
+    Lighting_Output_Write_Present_Value_Callback_Set(
+        lighting_command_tracking_value_observer);
+    status = Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    zassert_true(is_float_equal(Test_Tracking_Value, real_value), NULL);
 
+    /* out-of-bounds */
+    test_instance = Lighting_Output_Create(BACNET_MAX_INSTANCE + 1);
+    zassert_equal(test_instance, BACNET_MAX_INSTANCE, NULL);
     /* check the delete function */
     status = Lighting_Output_Delete(instance);
     zassert_true(status, NULL);
+    test_instance = Lighting_Output_Create(BACNET_MAX_INSTANCE);
+    zassert_equal(test_instance, 1, NULL);
+    Lighting_Output_Cleanup();
 
     return;
 }

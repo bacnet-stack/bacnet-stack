@@ -588,6 +588,7 @@ void lighting_command_override(
         return;
     }
     old_value = data->Tracking_Value;
+    data->Tracking_Value = value;
     lighting_command_tracking_value_event(data, old_value, value);
 }
 

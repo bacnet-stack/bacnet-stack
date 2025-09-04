@@ -113,6 +113,18 @@ static const int Properties_Optional[] = {
 static const int Properties_Proprietary[] = { -1 };
 
 /**
+ * @brief compare two floating point values to 3 decimal places
+ *
+ * @param x1 - first comparison value
+ * @param x2 - second comparison value
+ * @return true if the value is the same to 3 decimal points
+ */
+static bool is_float_equal(float x1, float x2)
+{
+    return fabs(x1 - x2) < 0.001;
+}
+
+/**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
  *
@@ -691,7 +703,7 @@ Lighting_Command_Toggle_Restore(struct object_data *pObject, unsigned priority)
         return;
     }
     present_value = Priority_Array_Next_Value(pObject, 0);
-    if (!islessgreater(present_value, 0.0)) {
+    if (is_float_equal(present_value, 0.0)) {
         /* Prior to the execution of this command, if Present_Value is 0.0%,
            write the Last_On_Value to the specified slot in the priority
            array. */
@@ -719,7 +731,7 @@ Lighting_Command_Toggle_Default(struct object_data *pObject, unsigned priority)
         return;
     }
     present_value = Priority_Array_Next_Value(pObject, 0);
-    if (!islessgreater(present_value, 0.0)) {
+    if (is_float_equal(present_value, 0.0)) {
         /* Prior to the execution of this command, if Present_Value is 0.0%,
            write the Default_On_Value to the specified slot in the priority
            array. */
@@ -753,43 +765,42 @@ bool Lighting_Output_Present_Value_Set(
     if (pObject) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */)) {
-            priority--;
             /*  Note: Writing a special value has the same effect as writing
                 the corresponding lighting command and is subject to the same
                 restrictions. The special value itself is not written to the
                 priority array. */
-            if (!islessgreater(value, -1.0)) {
+            if (is_float_equal(value, -1.0)) {
                 /* Provides the same functionality as the
                    WARN lighting command. */
                 Lighting_Command_Warn(pObject, priority);
                 status = true;
-            } else if (!islessgreater(value, -2.0)) {
+            } else if (is_float_equal(value, -2.0)) {
                 /* Provides the same functionality as the
                    WARN_RELINQUISH lighting command. */
                 Lighting_Command_Warn_Relinquish(pObject, priority);
                 status = true;
-            } else if (!islessgreater(value, -3.0)) {
+            } else if (is_float_equal(value, -3.0)) {
                 /* Provides the same functionality as the
                    WARN_OFF lighting command. */
                 Lighting_Command_Warn_Off(pObject, priority);
                 status = true;
 #if (BACNET_PROTOCOL_REVISION >= 28)
-            } else if (!islessgreater(value, -4.0)) {
+            } else if (is_float_equal(value, -4.0)) {
                 /* Provides the same functionality as the
                    RESTORE_ON lighting command. */
                 Lighting_Command_Restore_On(pObject, priority);
                 status = true;
-            } else if (!islessgreater(value, -5.0)) {
+            } else if (is_float_equal(value, -5.0)) {
                 /* Provides the same functionality as the
                    DEFAULT_ON lighting command. */
                 Lighting_Command_Default_On(pObject, priority);
                 status = true;
-            } else if (!islessgreater(value, -6.0)) {
+            } else if (is_float_equal(value, -6.0)) {
                 /* Provides the same functionality as the
                    TOGGLE_RESTORE lighting command. */
                 Lighting_Command_Toggle_Restore(pObject, priority);
                 status = true;
-            } else if (!islessgreater(value, -7.0)) {
+            } else if (is_float_equal(value, -7.0)) {
                 /* Provides the same functionality as the
                    TOGGLE_DEFAULT lighting command. */
                 Lighting_Command_Toggle_Default(pObject, priority);
@@ -2566,6 +2577,7 @@ bool Lighting_Output_Color_Override_Set(uint32_t object_instance, bool value)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Color_Override = value;
+        status = true;
     }
 
     return status;
