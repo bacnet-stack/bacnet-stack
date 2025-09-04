@@ -3,7 +3,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @brief test BACnet MSTP datalink state machines
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <assert.h>
 #include <stdlib.h>

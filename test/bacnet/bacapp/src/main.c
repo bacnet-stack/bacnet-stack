@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief BACnet Application encoding and decoding API testing
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <stdint.h>
 #include <string.h>
 #include <zephyr/ztest.h>

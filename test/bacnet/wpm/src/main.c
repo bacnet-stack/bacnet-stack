@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/wpm.h>

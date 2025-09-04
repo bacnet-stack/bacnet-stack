@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2024
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef _BACNET_PROPERTY_TEST_H_
 #define _BACNET_PROPERTY_TEST_H_

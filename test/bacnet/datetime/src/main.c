@@ -1,14 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
-/* @file
- * @brief test BACnet integer encode/decode APIs
+/**
+ * @file
+ * @brief test BACnetDate and BACnetTime encoding and decoding API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>

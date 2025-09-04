@@ -232,7 +232,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
  *
  * @param ctx - socket context.
  * @param c - BACNet socket descriptor .
- * @param url - url to connect to. For example: wss://legrand.com:8080.
+ * @param url - url to connect to. For example: wss://example.com:8080.
  *
  * @return error code from BSC_SC_RET enum.
  *  The following error codes can be returned:
