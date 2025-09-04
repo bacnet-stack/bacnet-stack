@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * @copyright SPDX-License-Identifier: MIT
- */
-
 /* @file
  * @brief test BACnet Lighting Output object APIs
  * @date 2013
