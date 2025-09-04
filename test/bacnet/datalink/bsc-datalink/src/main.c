@@ -1,13 +1,14 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
-/* @file
+/**
+ * @file
  * @brief test of bsc-socket interface
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @author Patrick Grimm <patrick@lunatiki.de>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

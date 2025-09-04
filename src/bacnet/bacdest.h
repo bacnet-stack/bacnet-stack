@@ -82,6 +82,12 @@ void bacnet_destination_copy(
     BACNET_DESTINATION *dest, const BACNET_DESTINATION *src);
 
 BACNET_STACK_EXPORT
+void bacnet_recipient_device_set(
+    BACNET_RECIPIENT *dest, BACNET_OBJECT_TYPE object_type, uint32_t instance);
+BACNET_STACK_EXPORT
+void bacnet_recipient_address_set(
+    BACNET_RECIPIENT *dest, const BACNET_ADDRESS *address);
+BACNET_STACK_EXPORT
 void bacnet_recipient_copy(BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src);
 BACNET_STACK_EXPORT
 bool bacnet_recipient_same(

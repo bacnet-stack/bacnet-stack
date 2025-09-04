@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
-/* @file
+/**
+ * @file
  * @brief test BACnet COBS encode/decode APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2014
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 #include <stdlib.h>
 #include <bacnet/datalink/cobs.h>

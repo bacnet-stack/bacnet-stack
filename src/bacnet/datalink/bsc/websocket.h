@@ -147,7 +147,7 @@ typedef void (*BSC_WEBSOCKET_SRV_DISPATCH)(
  * @param type - type of BACNet/SC connection, check
  *    BSC_WEBSOCKET_CONNECTION_TYPE enum. According BACNet standard
  *    different type of connections require different websocket protocols.
- * @param url - BACNet/SC server URL. For example: wss://legrand.com:8080.
+ * @param url - BACNet/SC server URL. For example: wss://example.com:8080.
  * @param ca_cert - pointer to certificate authority (CA) cert in PEM or DER
  *                  format.
  * @param ca_cert_size - size in bytes of CA cert.

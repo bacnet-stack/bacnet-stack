@@ -1,7 +1,7 @@
 # BACnet Stack ChangeLog
 
 BACnet open source protocol stack C library for embedded systems,
-microcontrollers, Linux, MacOS, BSD, and Windows
+microcontrollers, Linux, macOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
 
@@ -22,6 +22,18 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added Lighting Output API to implement override for HOA control.
+  Integrated lighting command overridden behavior into the lighting
+  output object and added Overridden status flags API.
+  Added Lighting Output API to implement a momentary override
+  to the output that is cleared at the next lighting command. (#1086)
+* Added Trim_Fade_Time, High_End_Trim, Low_End_Trim, Last_On_Value
+  and Default_On_Value properties to lighting output object.
+  Added TRIM_ACTIVE flag to lighting command.
+  Added Last_On_Value and Default_On_Value
+  to lighting command for restore and toggle. (#1086)
+* Added bacnet_recipient_device_set() and bacnet_recipient_address_set()
+  API. (#1083)
 * Added MS/TP datalink option to BACnet basic server example. (#1077)
 * Added fixups to Microsoft Visual Studio build: added server-mini, etc. (#1061)
 * Added WriteProperty to GTK Discover app.  For enumerated properties,
@@ -98,6 +110,15 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Lighting_Command to ignore write priority and use its own. (#1086)
+* Fixed BACnetLightingOperation reserved range. (#1086)
+* Fixed missing prototype warning in lighting.c module.
+* Fixed AddListElement and RemoveListElement which were checking
+  the wrong return value from Device object. Fixed decoding of
+  ListElement Tag 0: Object ID instance. (#1083)
+* Fixed Notification_Class_Add_List_Element() and
+  Notification_Class_Remove_List_Element() element counter index
+  and empty slot detection. (#1083)
 * Fixed win32 builds where UNICODE is defined. The code now uses CreateFileA
   instead of CreateFile due to ANSI-C filenames. (#1076)
 * Fixed the usage of index vs instance in the basic trend log object

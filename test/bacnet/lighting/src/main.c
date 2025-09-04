@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Legrand North America, LLC.
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 
 /* @file
