@@ -1,7 +1,7 @@
 # BACnet Stack ChangeLog
 
 BACnet open source protocol stack C library for embedded systems,
-microcontrollers, Linux, MacOS, BSD, and Windows
+microcontrollers, Linux, macOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
 
@@ -22,6 +22,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added bacnet_recipient_device_set() and bacnet_recipient_address_set()
+  API. (#1083)
 * Added MS/TP datalink option to BACnet basic server example. (#1077)
 * Added fixups to Microsoft Visual Studio build: added server-mini, etc. (#1061)
 * Added WriteProperty to GTK Discover app.  For enumerated properties,
@@ -98,6 +100,13 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed missing prototype warning in lighting.c module.
+* Fixed AddListElement and RemoveListElement which were checking
+  the wrong return value from Device object. Fixed decoding of
+  ListElement Tag 0: Object ID instance. (#1083)
+* Fixed Notification_Class_Add_List_Element() and
+  Notification_Class_Remove_List_Element() element counter index
+  and empty slot detection. (#1083)
 * Fixed win32 builds where UNICODE is defined. The code now uses CreateFileA
   instead of CreateFile due to ANSI-C filenames. (#1076)
 * Fixed the usage of index vs instance in the basic trend log object

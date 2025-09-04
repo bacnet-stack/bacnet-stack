@@ -1,11 +1,9 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
+/**
+ * @file
+ * @brief test BACnet WriteProperty service encoding and decoding API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <math.h>
 #include <zephyr/ztest.h>

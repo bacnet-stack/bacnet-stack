@@ -1,7 +1,11 @@
 /* @file
  * @brief test BACnet Lighting Command encode/decode APIs
  * @date June 2022
- * @author Steve Karg <skarg@users.sourceforge.net>
+ * @brief tests sRGB to and from from CIE xy and brightness API
+ *
+ * @section LICENSE
+ * Copyright (c) 2022 Steve Karg <skarg@users.sourceforge.net>
+ *
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>

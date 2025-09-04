@@ -5,7 +5,7 @@
  * @date March 2025
  * @section LICENSE
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/program.h>
