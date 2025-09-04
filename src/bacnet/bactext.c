@@ -2222,6 +2222,10 @@ INDTEXT_DATA bacnet_lighting_operation_names[] = {
     { BACNET_LIGHTS_WARN_OFF, "warn-off" },
     { BACNET_LIGHTS_WARN_RELINQUISH, "warn-relinquish" },
     { BACNET_LIGHTS_STOP, "stop" },
+    { BACNET_LIGHTS_RESTORE_ON, "restore-on" },
+    { BACNET_LIGHTS_DEFAULT_ON, "default-on" },
+    { BACNET_LIGHTS_TOGGLE_RESTORE, "toggle-restore" },
+    { BACNET_LIGHTS_TOGGLE_DEFAULT, "toggle-default" },
     { 0, NULL }
 };
 
