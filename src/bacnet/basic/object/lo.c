@@ -638,6 +638,101 @@ static void Lighting_Command_Transition_Default(
     }
 }
 
+#if (BACNET_PROTOCOL_REVISION >= 28)
+/**
+ * @brief Set the lighting command if the priority is active
+ * @details Commands Present_Value to the value of the Last_On_Value property.
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Restore_On(struct object_data *pObject, unsigned priority)
+{
+    float value;
+
+    if (!pObject) {
+        return;
+    }
+    value = pObject->Lighting_Command.Last_On_Value;
+    Lighting_Command_Transition_Default(pObject, priority, value);
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @details Commands Present_Value to the value of the Default_On_Value
+ *  property.
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Default_On(struct object_data *pObject, unsigned priority)
+{
+    float value;
+
+    if (!pObject) {
+        return;
+    }
+    value = pObject->Lighting_Command.Default_On_Value;
+    Lighting_Command_Transition_Default(pObject, priority, value);
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @details Commands Present_Value to toggle its Last_On_Value
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Toggle_Restore(struct object_data *pObject, unsigned priority)
+{
+    float present_value, toggle_value;
+
+    if (!pObject) {
+        return;
+    }
+    present_value = Priority_Array_Next_Value(pObject, 0);
+    if (!islessgreater(present_value, 0.0)) {
+        /* Prior to the execution of this command, if Present_Value is 0.0%,
+           write the Last_On_Value to the specified slot in the priority
+           array. */
+        toggle_value = pObject->Lighting_Command.Last_On_Value;
+    } else {
+        /* Prior to the execution of this command, if Present_Value is not 0.0%,
+           write 0.0% to the specified slot in the priority array. */
+        toggle_value = 0.0f;
+    }
+    Lighting_Command_Transition_Default(pObject, priority, toggle_value);
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @details Commands Present_Value to change its “default on” level
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Toggle_Default(struct object_data *pObject, unsigned priority)
+{
+    float present_value, toggle_value;
+
+    if (!pObject) {
+        return;
+    }
+    present_value = Priority_Array_Next_Value(pObject, 0);
+    if (!islessgreater(present_value, 0.0)) {
+        /* Prior to the execution of this command, if Present_Value is 0.0%,
+           write the Default_On_Value to the specified slot in the priority
+           array. */
+        toggle_value = pObject->Lighting_Command.Default_On_Value;
+    } else {
+        /* Prior to the execution of this command, if Present_Value is not 0.0%,
+           write 0.0% to the specified slot in the priority array. */
+        toggle_value = 0.0f;
+    }
+    Lighting_Command_Transition_Default(pObject, priority, toggle_value);
+}
+#endif
+
 /**
  * For a given object instance-number, sets the present-value at a given
  * priority 1..16.
@@ -993,100 +1088,6 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     }
 }
 
-#if (BACNET_PROTOCOL_REVISION >= 28)
-/**
- * @brief Set the lighting command if the priority is active
- * @details Commands Present_Value to the value of the Last_On_Value property.
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
- */
-static void
-Lighting_Command_Restore_On(struct object_data *pObject, unsigned priority)
-{
-    float value;
-
-    if (!pObject) {
-        return;
-    }
-    value = pObject->Lighting_Command.Last_On_Value;
-    Lighting_Command_Transition_Default(pObject, priority, value);
-}
-
-/**
- * @brief Set the lighting command if the priority is active
- * @details Commands Present_Value to the value of the Default_On_Value
- *  property.
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
- */
-static void
-Lighting_Command_Default_On(struct object_data *pObject, unsigned priority)
-{
-    float value;
-
-    if (!pObject) {
-        return;
-    }
-    value = pObject->Lighting_Command.Default_On_Value;
-    Lighting_Command_Transition_Default(pObject, priority, value);
-}
-
-/**
- * @brief Set the lighting command if the priority is active
- * @details Commands Present_Value to toggle its Last_On_Value
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
- */
-static void
-Lighting_Command_Toggle_Restore(struct object_data *pObject, unsigned priority)
-{
-    unsigned current_priority;
-
-    if (!pObject) {
-        return;
-    }
-    if (!islessgreater(value, 0.0)) {
-        /* Prior to the execution of this command, if Present_Value is 0.0%,
-           write the Last_On_Value to the specified slot in the priority
-           array. */
-        toggle_value = pObject->Lighting_Command.Last_On_Value;
-    } else {
-        /* Prior to the execution of this command, if Present_Value is not 0.0%,
-           write 0.0% to the specified slot in the priority array. */
-        toggle_value = 0.0f;
-    }
-    Lighting_Command_Transition_Default(pObject, priority, toggle_value);
-}
-
-/**
- * @brief Set the lighting command if the priority is active
- * @details Commands Present_Value to change its “default on” level
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
- */
-static void
-Lighting_Command_Toggle_Default(struct object_data *pObject, unsigned priority)
-{
-    float present_value, toggle_value;
-
-    if (!pObject) {
-        return;
-    }
-    present_value = Priority_Array_Next_Value(pObject, 0);
-    if (!islessgreater(value, 0.0)) {
-        /* Prior to the execution of this command, if Present_Value is 0.0%,
-           write the Default_On_Value to the specified slot in the priority
-           array. */
-        toggle_value = pObject->Lighting_Command.Default_On_Value;
-    } else {
-        /* Prior to the execution of this command, if Present_Value is not 0.0%,
-           write 0.0% to the specified slot in the priority array. */
-        toggle_value = 0.0f;
-    }
-    Lighting_Command_Transition_Default(pObject, priority, toggle_value);
-}
-#endif
-
 /**
  * For a given object instance-number, writes the present-value
  *
@@ -1247,8 +1248,8 @@ bool Lighting_Output_Lighting_Command_Set(
                 Lighting_Command_Restore_On(pObject, priority);
                 status = true;
                 break;
-            case BACNET_LIGHTS_RESTORE_OFF:
-                Lighting_Command_Restore_Off(pObject, priority);
+            case BACNET_LIGHTS_DEFAULT_ON:
+                Lighting_Command_Default_On(pObject, priority);
                 status = true;
                 break;
             case BACNET_LIGHTS_TOGGLE_RESTORE:

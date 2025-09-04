@@ -137,6 +137,7 @@ static void testLightingOutput(void)
     rpdata.object_property = PROP_ALL;
     len = Lighting_Output_Read_Property(&rpdata);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    wpdata.object_property = PROP_ALL;
     status = Lighting_Output_Write_Property(&wpdata);
     zassert_false(status, NULL);
     /* check the dimming/ramping/stepping engine*/
@@ -163,8 +164,16 @@ static void testLightingOutput(void)
                 lighting_command.operation,
                 bactext_lighting_operation_name(lighting_command.operation));
         }
-        lighting_command.operation++;
-    } while (status);
+        if (lighting_command.operation == BACNET_LIGHTS_PROPRIETARY_MIN) {
+            /* skip to make testing faster */
+            lighting_command.operation = BACNET_LIGHTS_PROPRIETARY_MAX;
+        } else if (lighting_command.operation == BACNET_LIGHTS_RESERVED_MIN) {
+            /* skip to make testing faster */
+            lighting_command.operation = BACNET_LIGHTS_RESERVED_MAX;
+        } else {
+            lighting_command.operation++;
+        }
+    } while (lighting_command.operation <= BACNET_LIGHTS_PROPRIETARY_MAX);
 
     /* check the delete function */
     status = Lighting_Output_Delete(instance);
