@@ -256,14 +256,28 @@ static void testLightingOutput(void)
     status = Lighting_Output_Transition_Set(
         instance, BACNET_LIGHTING_TRANSITION_NONE);
     zassert_true(status, NULL);
+    /* WARN - start with lights on  */
     real_value = -1.0;
     priority = 8;
-    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    status = Lighting_Output_Present_Value_Set(instance, 100.0f, priority);
+    zassert_true(status, NULL);
     Lighting_Output_Timer(instance, 10);
     in_progress = Lighting_Output_In_Progress(instance);
     zassert_equal(
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
+    status = Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    zassert_true(status, NULL);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_OTHER, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    /* WARN RELINQUISH */
     real_value = -2.0;
     priority = 8;
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
