@@ -2406,7 +2406,7 @@ typedef enum BACnetLightingOperation {
     BACNET_LIGHTS_TOGGLE_RESTORE = 13,
     BACNET_LIGHTS_TOGGLE_DEFAULT = 14,
     BACNET_LIGHTS_RESERVED_MIN = 15,
-    BACNET_LIGHTS_RESERVED_MAX = 63,
+    BACNET_LIGHTS_RESERVED_MAX = 255,
     /* Enumerated values 0-255 are reserved for definition by ASHRAE.
        Enumerated values 256-65535 may be used by others subject to
        the procedures and constraints described in Clause 23 */
