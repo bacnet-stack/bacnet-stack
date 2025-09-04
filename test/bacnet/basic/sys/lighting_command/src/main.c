@@ -6,7 +6,7 @@
  * @section LICENSE
  * Copyright (c) 2022 Steve Karg <skarg@users.sourceforge.net>
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>
