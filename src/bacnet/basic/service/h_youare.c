@@ -7,7 +7,6 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -34,9 +33,7 @@ void handler_you_are_json_print(
     BACNET_CHARACTER_STRING model_name = { 0 };
     BACNET_CHARACTER_STRING serial_number = { 0 };
     BACNET_OCTET_STRING mac_address = { 0 };
-    char *model_name_string = NULL;
-    char *serial_number_string = NULL;
-    char *mac_address_string = NULL;
+    char name[MAX_CHARACTER_STRING_BYTES + 1] = { 0 };
 
     (void)src;
     len = you_are_request_decode(
@@ -45,28 +42,11 @@ void handler_you_are_json_print(
     if (len > 0) {
         debug_printf_stdout("{\n\"You-Are-Request\": {\n");
         debug_printf_stdout(" \"vendor-id\" : %u,\n", (unsigned)vendor_id);
-        len = bacapp_snprintf_character_string(NULL, 0, &model_name);
-        if (len > 0) {
-            model_name_string = calloc(sizeof(char), len + 1);
-            if (model_name_string) {
-                bacapp_snprintf_character_string(
-                    model_name_string, len + 1, &model_name);
-            }
-        }
-        debug_printf_stdout(
-            " \"model-name\" : %s,\n",
-            model_name_string ? model_name_string : "");
-        len = bacapp_snprintf_character_string(NULL, 0, &serial_number);
-        if (len > 0) {
-            serial_number_string = calloc(sizeof(char), len + 1);
-            if (serial_number_string) {
-                bacapp_snprintf_character_string(
-                    serial_number_string, len + 1, &serial_number);
-            }
-        }
-        debug_printf_stdout(
-            " \"serial-number\" : %s",
-            serial_number_string ? serial_number_string : "");
+        len = bacapp_snprintf_character_string(name, sizeof(name), &model_name);
+        debug_printf_stdout(" \"model-name\" : %s,\n", name);
+        len = bacapp_snprintf_character_string(
+            name, sizeof(name), &serial_number);
+        debug_printf_stdout(" \"serial-number\" : %s", name);
         if (device_id <= BACNET_MAX_INSTANCE) {
             debug_printf_stdout(",\n");
             debug_printf_stdout(
@@ -74,22 +54,11 @@ void handler_you_are_json_print(
         }
         if (mac_address.length > 0) {
             debug_printf_stdout(",\n");
-            len = bacapp_snprintf_octet_string(NULL, 0, &mac_address);
-            if (len > 0) {
-                mac_address_string = calloc(sizeof(char), len + 1);
-                if (mac_address_string) {
-                    bacapp_snprintf_octet_string(
-                        mac_address_string, len + 1, &mac_address);
-                }
-            }
-            debug_printf_stdout(
-                " \"device-mac-address\" : \"%s\"",
-                mac_address_string ? mac_address_string : "");
+            len =
+                bacapp_snprintf_octet_string(name, sizeof(name), &mac_address);
+            debug_printf_stdout(" \"device-mac-address\" : \"%s\"", name);
         }
         debug_printf_stdout("\n }\n}\n");
-        free(model_name_string);
-        free(serial_number_string);
-        free(mac_address_string);
     }
 
     return;
