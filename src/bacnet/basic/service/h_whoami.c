@@ -7,7 +7,6 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -31,8 +30,7 @@ void handler_who_am_i_json_print(
     uint16_t vendor_id = 0;
     BACNET_CHARACTER_STRING model_name = { 0 };
     BACNET_CHARACTER_STRING serial_number = { 0 };
-    char *model_name_string = NULL;
-    char *serial_number_string = NULL;
+    char name[MAX_CHARACTER_STRING_BYTES + 1] = { 0 };
 
     (void)src;
     len = who_am_i_request_decode(
@@ -40,31 +38,11 @@ void handler_who_am_i_json_print(
     if (len > 0) {
         debug_printf_stdout("{\n\"Who-Am-I-Request\": {\n");
         debug_printf_stdout(" \"vendor-id\" : %u,\n", (unsigned)vendor_id);
-        len = bacapp_snprintf_character_string(NULL, 0, &model_name);
-        if (len > 0) {
-            model_name_string = calloc(sizeof(char), len + 1);
-            if (model_name_string) {
-                bacapp_snprintf_character_string(
-                    model_name_string, len + 1, &model_name);
-            }
-        }
-        debug_printf_stdout(
-            " \"model-name\" : %s,\n",
-            model_name_string ? model_name_string : "");
-        len = bacapp_snprintf_character_string(NULL, 0, &serial_number);
-        if (len > 0) {
-            serial_number_string = calloc(sizeof(char), len + 1);
-            if (serial_number_string) {
-                bacapp_snprintf_character_string(
-                    serial_number_string, len + 1, &serial_number);
-            }
-        }
-        debug_printf_stdout(
-            " \"serial-number\" : %s",
-            serial_number_string ? serial_number_string : "");
+        bacapp_snprintf_character_string(name, sizeof(name), &model_name);
+        debug_printf_stdout(" \"model-name\" : %s,\n", name);
+        bacapp_snprintf_character_string(name, sizeof(name), &serial_number);
+        debug_printf_stdout(" \"serial-number\" : %s", name);
         debug_printf_stdout("\n }\n}\n");
-        free(model_name_string);
-        free(serial_number_string);
     }
 
     return;
