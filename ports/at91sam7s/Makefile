@@ -39,7 +39,9 @@ CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -g
 CFLAGS += -mno-thumb-interwork
 # dead code removal
 CFLAGS += -fdata-sections -ffunction-sections
-
+# C standard to use for compiler
+CSTANDARD = -std=gnu11
+CFLAGS += $(CSTANDARD)
 # enable all relevant warnings that find bugs
 WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
 WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
@@ -52,10 +54,12 @@ WARNING_ALL += -Wno-implicit-fallthrough
 # the older Atmel SDK does not meet coding guidelines
 WARNING_ALL += -Wno-comment -Wno-missing-braces
 WARNING_ALL += -Wno-unused-variable -Wno-char-subscripts
+# fix later
+WARNING_ALL += -Wno-unused-parameter
+WARNING_ALL += -Wno-type-limits
+WARNING_ALL += -Wno-redundant-decls
 #WARNING_ALL += -Werror
 CFLAGS += $(WARNING_ALL)
-
-CFLAGS += -Wno-char-subscripts
 
 LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler

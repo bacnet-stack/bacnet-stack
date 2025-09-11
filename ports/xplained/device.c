@@ -583,8 +583,13 @@ bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
     bool found = false;
 
     pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-        found = pObject->Object_Name(object_instance, object_name);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Name) {
+                found = pObject->Object_Name(object_instance, object_name);
+            }
+        }
     }
 
     return found;
@@ -752,13 +757,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -778,13 +776,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch ((int)wp_data->object_property) {

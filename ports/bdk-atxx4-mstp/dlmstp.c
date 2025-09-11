@@ -265,6 +265,7 @@ static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -275,7 +276,8 @@ static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
     }
     /* these services don't have service choice included */
     if ((reply.pdu_type != PDU_TYPE_REJECT) &&
-        (reply.pdu_type != PDU_TYPE_ABORT)) {
+        (reply.pdu_type != PDU_TYPE_ABORT) &&
+        (reply.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
         if (request.service_choice != reply.service_choice) {
             return false;
         }
@@ -1163,6 +1165,18 @@ static void MSTP_Slave_Node_FSM(void)
                     MSTP_Flag.ReceivePacketPending = true;
                 }
                 break;
+            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+                if ((DestinationAddress == MSTP_BROADCAST_ADDRESS) &&
+                    (npdu_confirmed_service(InputBuffer, DataLength))) {
+                    /* quietly discard any Confirmed-Request-PDU, whose
+                        destination address is a multicast or
+                        broadcast address, received from the
+                        network layer. */
+                } else {
+                    /* indicate successful reception to higher layer */
+                    MSTP_Flag.ReceivePacketPending = true;
+                }
+                break;
             case FRAME_TYPE_TEST_REQUEST:
                 MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, SourceAddress,
                     This_Station, &InputBuffer[0], DataLength);
@@ -1170,7 +1184,6 @@ static void MSTP_Slave_Node_FSM(void)
             case FRAME_TYPE_TOKEN:
             case FRAME_TYPE_POLL_FOR_MASTER:
             case FRAME_TYPE_TEST_RESPONSE:
-            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
             default:
                 break;
         }

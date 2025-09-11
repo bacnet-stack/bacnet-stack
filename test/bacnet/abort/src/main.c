@@ -1,13 +1,9 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
 /* @file
- * @brief test BACnet integer encode/decode APIs
+ * @brief test BACnet Abort message encode/decode APIs
+ * @date 2007
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 #include <bacnet/abort.h>
 
@@ -143,7 +139,7 @@ static void testAbortError(void)
     BACNET_ABORT_REASON abort_code;
     BACNET_ABORT_REASON test_abort_code;
 
-    for (i = 0; i < MAX_BACNET_ABORT_REASON; i++) {
+    for (i = 0; i < ABORT_REASON_RESERVED_MIN; i++) {
         abort_code = (BACNET_ABORT_REASON)i;
         error_code = abort_convert_to_error_code(abort_code);
         test_abort_code = abort_convert_error_code(error_code);

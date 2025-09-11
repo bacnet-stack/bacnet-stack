@@ -15,6 +15,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacreal.h"
 #include "bacnet/lighting.h"
+#include "bacnet/basic/sys/color_rgb.h"
 
 /** @file lighting.c  Manipulate BACnet lighting command values */
 
@@ -171,7 +172,7 @@ int lighting_command_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &enum_value);
     if (len > 0) {
         apdu_len += len;
-        if (unsigned_value <= BACNET_LIGHTS_PROPRIETARY_LAST) {
+        if (unsigned_value <= BACNET_LIGHTS_PROPRIETARY_MAX) {
             operation = (BACNET_LIGHTING_OPERATION)enum_value;
             if (data) {
                 data->operation = operation;

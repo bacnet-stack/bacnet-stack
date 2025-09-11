@@ -44,6 +44,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/baclog.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
@@ -57,6 +58,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/list_element.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
@@ -64,6 +66,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/channel_value.c
+    ${SRC_DIR}/bacnet/secure_connect.c
     # Test and test library files
     ./stubs.c
     ./src/main.c

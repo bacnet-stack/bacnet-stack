@@ -7,7 +7,7 @@
  *
  * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/bacfile.h>
@@ -64,6 +64,8 @@ static void test_BACnet_File_Object(void)
         }
         required_property++;
     }
+
+    bacfile_cleanup();
 
     return;
 }

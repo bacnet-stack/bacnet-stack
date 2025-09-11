@@ -18,6 +18,7 @@
 #include "bacnet/iam.h"
 #include "bacnet/version.h"
 #include "bacnet/datetime.h"
+#include "bacnet/bacstr.h"
 /* basic datalink, timer, and filename */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -27,10 +28,6 @@
 /* OS specific includes */
 #include "bacport.h"
 #include "rs485.h"
-
-#ifdef _WIN32
-#define strncasecmp(x, y, z) _strnicmp(x, y, z)
-#endif
 
 /* define our Data Link Type for libPCAP */
 #define DLT_BACNET_MS_TP (165)
@@ -139,7 +136,7 @@ static void mstp_monitor_i_am(uint8_t mac, const uint8_t *pdu, uint16_t pdu_len)
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
     int apdu_offset = 0;
-    uint16_t apdu_len = 0;
+    uint16_t apdu_len = 0, service_len = 0;
     const uint8_t *apdu = NULL;
     uint8_t pdu_type = 0;
     uint8_t service_choice = 0;
@@ -159,10 +156,12 @@ static void mstp_monitor_i_am(uint8_t mac, const uint8_t *pdu, uint16_t pdu_len)
                 (apdu_len >= 2)) {
                 service_choice = apdu[1];
                 service_request = &apdu[2];
+                service_len = apdu_len - 2;
                 if (service_choice == SERVICE_UNCONFIRMED_I_AM) {
-                    len = iam_decode_service_request(
-                        service_request, &device_id, NULL, NULL, NULL);
-                    if (len != -1) {
+                    len = bacnet_iam_request_decode(
+                        service_request, service_len, &device_id, NULL, NULL,
+                        NULL);
+                    if (len > 0) {
                         MSTP_Statistics[mac].device_id = device_id;
                     }
                 }
@@ -457,15 +456,15 @@ static void named_pipe_create(const char *pipe_name)
     }
     /* create the pipe */
     while (Pipe_Handle == INVALID_HANDLE_VALUE) {
-        /* use CreateFile rather than CreateNamedPipe */
-        Pipe_Handle = CreateFile(
+        /* use CreateFileA rather than CreateNamedPipeA */
+        Pipe_Handle = CreateFileA(
             pipe_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0,
             NULL);
         if (Pipe_Handle != INVALID_HANDLE_VALUE) {
             break;
         }
         /* if an error occured at handle creation */
-        if (!WaitNamedPipe(pipe_name, 20000)) {
+        if (!WaitNamedPipeA(pipe_name, 20000)) {
             printf("Could not open pipe: waited for 20sec!\n"
                    "If this message was issued before the 20sec finished,\n"
                    "then the pipe doesn't exist!\n");
@@ -987,6 +986,7 @@ static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
         mstp_port->DataRegister = 0xFF;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
+        mstp_port->ReceivedValidFrameNotForUs = false;
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
         mstp_port->SilenceTimerReset(NULL);
     }
@@ -1100,7 +1100,7 @@ int main(int argc, char *argv[])
             RS485_Set_Interface(argv[argi]);
         }
 #if defined(_WIN32)
-        if (strncasecmp(argv[argi], "com", 3) == 0) {
+        if (bacnet_strnicmp(argv[argi], "com", 3) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
             if ((argi + 1) < argc) {
@@ -1110,7 +1110,7 @@ int main(int argc, char *argv[])
             }
         }
 #else
-        if (strncasecmp(argv[argi], "/dev/", 5) == 0) {
+        if (bacnet_strnicmp(argv[argi], "/dev/", 5) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
             if ((argi + 1) < argc) {
@@ -1166,7 +1166,8 @@ int main(int argc, char *argv[])
         RS485_Check_UART_Data(mstp_port);
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
-        if (mstp_port->ReceivedValidFrame) {
+        if (mstp_port->ReceivedValidFrame ||
+            mstp_port->ReceivedValidFrameNotForUs) {
             write_received_packet(mstp_port, MSTP_HEADER_MAX);
             mstp_structure_init(mstp_port);
             packet_count++;

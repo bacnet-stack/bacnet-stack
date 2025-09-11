@@ -15,6 +15,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/wp.h"
+#include "bacnet/proplist.h"
 #include "bacnet/basic/object/access_credential.h"
 #include "bacnet/basic/services.h"
 
@@ -23,20 +24,23 @@ static bool Access_Credential_Initialized = false;
 static ACCESS_CREDENTIAL_DESCR ac_descr[MAX_ACCESS_CREDENTIALS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_GLOBAL_IDENTIFIER,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_RELIABILITY,
-                                           PROP_CREDENTIAL_STATUS,
-                                           PROP_REASON_FOR_DISABLE,
-                                           PROP_AUTHENTICATION_FACTORS,
-                                           PROP_ACTIVATION_TIME,
-                                           PROP_EXPIRATION_TIME,
-                                           PROP_CREDENTIAL_DISABLE,
-                                           PROP_ASSIGNED_ACCESS_RIGHTS,
-                                           -1 };
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_GLOBAL_IDENTIFIER,
+    PROP_STATUS_FLAGS,
+    PROP_RELIABILITY,
+    PROP_CREDENTIAL_STATUS,
+    PROP_REASON_FOR_DISABLE,
+    PROP_AUTHENTICATION_FACTORS,
+    PROP_ACTIVATION_TIME,
+    PROP_EXPIRATION_TIME,
+    PROP_CREDENTIAL_DISABLE,
+    PROP_ASSIGNED_ACCESS_RIGHTS,
+    -1
+};
 
 static const int Properties_Optional[] = { -1 };
 
@@ -303,15 +307,6 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_AUTHENTICATION_FACTORS) &&
-        (rpdata->object_property != PROP_ASSIGNED_ACCESS_RIGHTS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -334,14 +329,6 @@ bool Access_Credential_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_AUTHENTICATION_FACTORS) &&
-        (wp_data->object_property != PROP_ASSIGNED_ACCESS_RIGHTS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     object_index =
         Access_Credential_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
@@ -353,24 +340,16 @@ bool Access_Credential_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     value.type.Unsigned_Int;
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-        case PROP_CREDENTIAL_STATUS:
-        case PROP_REASON_FOR_DISABLE:
-        case PROP_AUTHENTICATION_FACTORS:
-        case PROP_ACTIVATION_TIME:
-        case PROP_EXPIRATION_TIME:
-        case PROP_CREDENTIAL_DISABLE:
-        case PROP_ASSIGNED_ACCESS_RIGHTS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

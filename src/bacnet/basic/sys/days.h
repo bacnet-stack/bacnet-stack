@@ -49,6 +49,9 @@ void days_since_epoch_to_date(
     uint8_t *pDay);
 
 BACNET_STACK_EXPORT
+uint8_t days_of_week(uint8_t epoch_day, uint32_t days);
+
+BACNET_STACK_EXPORT
 bool days_date_is_valid(uint16_t year, uint8_t month, uint8_t day);
 
 #ifdef __cplusplus

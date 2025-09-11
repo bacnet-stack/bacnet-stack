@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send BACnet Who-Has requests
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -19,13 +18,13 @@
 #include "bacnet/whohas.h"
 /* basic services, TSM, and datalink */
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-/** @file s_whohas.c  Send Who-Has requests. */
-
-/** Send a Who-Has request for a device which has a named Object.
- * @ingroup DMDOB
+/**
+ * @brief Send a Who-Has request for a device which has a named Object.
+ * @ingroup BIBB-DM-DOB-A
  * If low_limit and high_limit both are -1, then the device ID range is
  * unlimited. If low_limit and high_limit have the same non-negative value, then
  * only that device will respond. Otherwise, low_limit must be less than
@@ -40,9 +39,7 @@ void Send_WhoHas_Name(
     int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -67,21 +64,17 @@ void Send_WhoHas_Name(
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
     /* send the data */
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+    bytes_sent = datalink_send_pdu(
+        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        fprintf(
-            stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+        debug_perror("Failed to Send Who-Has Request");
     }
-#endif
 }
 
-/** Send a Who-Has request for a device which has a specific Object type and ID.
- * @ingroup DMDOB
+/**
+ * @brief Send a Who-Has request for a device which has a specific
+ * Object type and ID.
+ * @ingroup BIBB-DM-DOB-A
  * If low_limit and high_limit both are -1, then the device ID range is
  * unlimited. If low_limit and high_limit have the same non-negative value, then
  * only that device will respond. Otherwise, low_limit must be less than
@@ -100,9 +93,7 @@ void Send_WhoHas_Object(
     int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -118,7 +109,6 @@ void Send_WhoHas_Object(
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
-
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
     data.high_limit = high_limit;
@@ -127,15 +117,9 @@ void Send_WhoHas_Object(
     data.object.identifier.instance = object_instance;
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+    bytes_sent = datalink_send_pdu(
+        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        fprintf(
-            stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+        debug_perror("Failed to Send Who-Has Request");
     }
-#endif
 }

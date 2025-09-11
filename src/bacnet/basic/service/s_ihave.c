@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send an I-Have (property) message.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -21,9 +20,8 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_ihave.c  Send an I-Have (property) message. */
 
 /** Broadcast an I Have message.
  * @ingroup DMDOB
@@ -71,8 +69,6 @@ void Send_I_Have(
     bytes_sent = datalink_send_pdu(
         &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-        fprintf(stderr, "Failed to Send I-Have Reply (%s)!\n", strerror(errno));
-#endif
+        debug_perror("Failed to Send I-Have Reply");
     }
 }

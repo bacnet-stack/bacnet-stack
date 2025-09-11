@@ -1074,15 +1074,6 @@ int Load_Control_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_SHED_LEVEL_DESCRIPTIONS) &&
-        (rpdata->object_property != PROP_SHED_LEVELS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -1360,7 +1351,14 @@ static bool Load_Control_Shed_Levels_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     entry = Keylist_Data_Delete_By_Index(
                         pObject->Shed_Level_List, index);
                     key = (uint32_t)unsigned_value;
-                    Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                    index =
+                        Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                    if (index < 0) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        return false;
+                    }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1379,7 +1377,13 @@ static bool Load_Control_Shed_Levels_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 entry = Keylist_Data_Delete_By_Index(
                     pObject->Shed_Level_List, index);
                 key = (uint32_t)unsigned_value;
-                Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                index = Keylist_Data_Add(pObject->Shed_Level_List, key, entry);
+                if (index < 0) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    return false;
+                }
+
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1464,15 +1468,6 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_SHED_LEVELS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        debug_printf(
-            "Load_Control_Write_Property() failure detected point C\n");
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {

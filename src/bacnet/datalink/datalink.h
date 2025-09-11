@@ -31,6 +31,13 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #endif
+#if defined(BACDL_ZIGBEE)
+#include "bacnet/datalink/bzll.h"
+#endif
+#if defined(BACDL_BSC)
+#include "bacnet/datalink/bsc/bsc-conf.h"
+#include "bacnet/datalink/bsc/bsc-datalink.h"
+#endif
 
 #if defined(BACDL_ETHERNET) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU ETHERNET_MPDU_MAX
@@ -99,6 +106,29 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
+#elif defined(BACDL_ZIGBEE) && !defined(BACDL_MULTIPLE)
+/* A BACnet/ZigBee Data Link Layer (BZLL) */
+#define MAX_MPDU BZLL_MPDU_MAX
+
+#define datalink_init bzll_init
+#define datalink_send_pdu bzll_send_pdu
+#define datalink_receive bzll_receive
+#define datalink_cleanup bzll_cleanup
+#define datalink_get_broadcast_address bzll_get_broadcast_address
+#define datalink_get_my_address bzll_get_my_address
+#define datalink_maintenance_timer bzll_maintenance_timer
+
+#elif defined(BACDL_BSC) && !defined(BACDL_MULTIPLE)
+#define MAX_MPDU BVLC_SC_NPDU_SIZE_CONF
+
+#define datalink_init bsc_init
+#define datalink_send_pdu bsc_send_pdu
+#define datalink_receive bsc_receive
+#define datalink_cleanup bsc_cleanup
+#define datalink_get_broadcast_address bsc_get_broadcast_address
+#define datalink_get_my_address bsc_get_my_address
+#define datalink_maintenance_timer(s) bsc_maintenance_timer(s)
+
 #elif !defined(BACDL_TEST) /* Multiple, none or custom datalink */
 #include "bacnet/npdu.h"
 
@@ -163,8 +193,10 @@ void datalink_maintenance_timer(uint16_t seconds);
  * - BACDL_MSTP     -- for Clause 9 MASTER-SLAVE/TOKEN PASSING (MS/TP) LAN
  * - BACDL_BIP      -- for ANNEX J - BACnet/IPv4
  * - BACDL_BIP6     -- for ANNEX U - BACnet/IPv6
+ * - BACDL_BSC      -- for ANNEX AB - BACnet Secure Connect (BACnet/SC)
  * - BACDL_ALL      -- Unspecified for the build, so the transport can be
  *                     chosen at runtime from among these choices.
+ * - BACDL_MULTIPLE  -- For multiple transports enabled in the same application
  * - BACDL_NONE      -- Unspecified for the build for unit testing
  * - BACDL_CUSTOM    -- For externally linked datalink_xxx functions
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN

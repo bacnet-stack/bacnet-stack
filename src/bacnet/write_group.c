@@ -114,13 +114,13 @@ static int write_group_service_group_number_decode(
     len = bacnet_unsigned_context_decode(apdu, apdu_size, 0, &unsigned_value);
     if (len > 0) {
         /* This parameter is an unsigned integer in the
-           range 1 – 4294967295 that represents the control
+           range 1 - 4294967295 that represents the control
            group to be affected by this request.
            Control group zero shall never be used
            and shall be reserved. WriteGroup service
            requests containing a zero value for
            'Group Number' shall be ignored.*/
-        if ((unsigned_value > 4294967295) || (unsigned_value < 1)) {
+        if ((unsigned_value > 4294967295UL) || (unsigned_value < 1UL)) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
@@ -282,7 +282,7 @@ int bacnet_write_group_service_request_decode(
  *   change-list [2] SEQUENCE OF BACnetGroupChannelValue ::= SEQUENCE {
  *       channel [0] Unsigned16,
  *       overriding-priority [1] Unsigned (1..16) OPTIONAL,
- *       value BACnetChannelValue
+ *       value [2] BACnetChannelValue
  *   }
  *   inhibit-delay [3] BOOLEAN OPTIONAL
  * }
@@ -408,6 +408,9 @@ bool bacnet_write_group_same(
 
 /**
  * @brief Compare two BACnetGroupChannelValue value lists
+ * @param head1  Pointer to the first value list to compare
+ * @param head2  Pointer to the second value list to compare
+ * @return true if the values are the same, else false
  */
 bool bacnet_group_change_list_same(
     const BACNET_GROUP_CHANNEL_VALUE *head1,
@@ -464,7 +467,7 @@ bool bacnet_group_channel_value_same(
  * BACnetGroupChannelValue ::= SEQUENCE {
  *   channel [0] Unsigned16,
  *   overriding-priority [1] Unsigned (1..16) OPTIONAL,
- *   value BACnetChannelValue
+ *   value [2] BACnetChannelValue
  * }
  *
  * @param apdu  Pointer to the buffer for encoded values
@@ -495,8 +498,19 @@ int bacnet_group_channel_value_encode(
                 apdu += len;
             }
         }
-        /* value BACnetChannelValue */
+        /* value [2] BACnetChannelValue */
+        len = encode_opening_tag(apdu, 2);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* BACnetChannelValue */
         len = bacnet_channel_value_type_encode(apdu, &value->value);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, 2);
         apdu_len += len;
         if (apdu) {
             apdu += len;
@@ -514,7 +528,7 @@ int bacnet_group_channel_value_encode(
  * BACnetGroupChannelValue ::= SEQUENCE {
  *   channel [0] Unsigned16,
  *   overriding-priority [1] Unsigned (1..16) OPTIONAL,
- *   value BACnetChannelValue
+ *   value [2] BACnetChannelValue
  * }
  *
  * @param apdu  Pointer to the buffer for encoded values
@@ -566,12 +580,24 @@ int bacnet_group_channel_value_decode(
         }
     }
     /* value BACnetChannelValue */
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
     len = bacnet_channel_value_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &channel_value);
     if (len > 0) {
         if (value) {
             memcpy(&value->value, &channel_value, sizeof(BACNET_CHANNEL_VALUE));
         }
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
         apdu_len += len;
     } else {
         return BACNET_STATUS_ERROR;

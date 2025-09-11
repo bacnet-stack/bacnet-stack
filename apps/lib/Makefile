@@ -6,6 +6,8 @@ BACNET_LIB_DIR ?= $(realpath .)
 BACNET_LIB_TARGET ?= $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 BACNET_SRC_DIR ?= $(realpath ../../src)
 BACNET_PORT_DIR ?= $(realpath ../../ports/linux)
+BACNET_POSIX_DIR ?= $(realpath ../../ports/posix)
+BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 BACNET_DEFINES ?=
 
 #build for release (default) or debug
@@ -34,6 +36,7 @@ CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += -ffunction-sections -fdata-sections
 
 APPS_ENVIRONMENT_SRC = \
+	$(BACNET_POSIX_DIR)/bacfile-posix.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c
 
 PORT_ARCNET_SRC = \
@@ -41,33 +44,53 @@ PORT_ARCNET_SRC = \
 
 PORT_MSTP_SRC = \
 	$(BACNET_PORT_DIR)/rs485.c \
-	$(BACNET_PORT_DIR)/dlmstp.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/cobs.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
+	$(BACNET_PORT_DIR)/dlmstp.c
 
 PORT_ETHERNET_SRC = \
 	$(BACNET_PORT_DIR)/ethernet.c
 
+PORT_ZIGBEE_SRC = \
+	$(BACNET_PORT_DIR)/bzll-init.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/bzll/bzllvmac.c
+
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c
 
 PORT_BIP6_SRC = \
 	$(BACNET_PORT_DIR)/bip6.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c
+
+PORT_BSC_SRC = \
+	$(BACNET_PORT_DIR)/bip-init.c \
+	$(BACNET_PORT_DIR)/websocket-global.c \
+	$(BACNET_PORT_DIR)/websocket-srv.c \
+	$(BACNET_PORT_DIR)/websocket-cli.c \
+	$(BACNET_PORT_DIR)/bsc-event.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-datalink.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-hub-connector.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-hub-function.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-node-switch.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-node.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-socket.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-util.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bvlc-sc.c \
+	$(BACNET_OBJECT_DIR)/sc_netport.c \
+	$(BACNET_OBJECT_DIR)/bacfile.c \
+	$(BACNET_SRC_DIR)/bacnet/secure_connect.c
 
 PORT_ALL_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c \
 	$(PORT_ARCNET_SRC) \
 	$(PORT_MSTP_SRC) \
 	$(PORT_ETHERNET_SRC) \
+	$(PORT_ZIGBEE_SRC) \
 	$(PORT_BIP_SRC) \
-	$(PORT_BIP6_SRC)
+	$(PORT_BIP6_SRC) \
+	$(PORT_BSC_SRC)
 
 PORT_NONE_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c
@@ -87,8 +110,14 @@ endif
 ifeq (${BACDL_DEFINE},-DBACDL_ETHERNET=1)
 BACNET_PORT_SRC = ${PORT_ETHERNET_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
+ifeq (${BACDL_DEFINE},-DBACDL_ZIGBEE=1)
+BACNET_PORT_SRC = ${PORT_ZIGBEE_SRC} ${APPS_ENVIRONMENT_SRC}
+endif
 ifeq (${BACDL_DEFINE},-DBACDL_NONE=1)
 BACNET_PORT_SRC = ${PORT_NONE_SRC}
+endif
+ifeq (${BACDL_DEFINE},-DBACDL_BSC=1)
+BACNET_PORT_SRC = ${PORT_BSC_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_ALL=1)
 BACNET_PORT_SRC = ${PORT_ALL_SRC}
@@ -109,6 +138,13 @@ BACNET_PORT_SRC += \
 
 BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/cobs.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c
 
 BACNET_BASIC_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \

@@ -45,6 +45,8 @@ BACNET_STACK_EXPORT
 bool bitstring_bit(const BACNET_BIT_STRING *bit_string, uint8_t bit_number);
 BACNET_STACK_EXPORT
 uint8_t bitstring_bits_used(const BACNET_BIT_STRING *bit_string);
+BACNET_STACK_EXPORT
+bool bitstring_bits_used_set(BACNET_BIT_STRING *bit_string, uint8_t bits_used);
 /* returns the number of bytes that a bit string is using */
 BACNET_STACK_EXPORT
 uint8_t bitstring_bytes_used(const BACNET_BIT_STRING *bit_string);
@@ -81,13 +83,14 @@ BACNET_STACK_EXPORT
 bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING *char_string, const char *value);
 BACNET_STACK_EXPORT
-size_t characterstring_strnlen(const char *str, size_t maxlen);
-BACNET_STACK_EXPORT
 bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax);
 BACNET_STACK_EXPORT
 bool characterstring_copy(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING *src);
+BACNET_STACK_EXPORT
+size_t characterstring_copy_value(
+    char *dest, size_t dest_max_len, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
 bool characterstring_ansi_copy(
     char *dest, size_t dest_max_len, const BACNET_CHARACTER_STRING *src);
@@ -168,6 +171,13 @@ BACNET_STACK_EXPORT
 bool octetstring_value_same(
     const BACNET_OCTET_STRING *octet_string1,
     const BACNET_OCTET_STRING *octet_string2);
+
+BACNET_STACK_EXPORT
+int bacnet_stricmp(const char *a, const char *b);
+BACNET_STACK_EXPORT
+int bacnet_strnicmp(const char *a, const char *b, size_t length);
+BACNET_STACK_EXPORT
+size_t bacnet_strnlen(const char *str, size_t maxlen);
 
 #ifdef __cplusplus
 }

@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test Ring Buffer container API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <limits.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/sys/ringbuf.h>
@@ -45,7 +42,7 @@ static void testRingAroundBuffer(
     /* test the ring around the buffer */
     for (index = 0; index < element_count; index++) {
         for (count = 1; count < 4; count++) {
-            value = (index * count) % 255;
+            value = (index * count) % 256;
             for (data_index = 0; data_index < element_size; data_index++) {
                 data_element[data_index] = value;
             }
@@ -54,7 +51,7 @@ static void testRingAroundBuffer(
             zassert_equal(Ringbuf_Count(test_buffer), count, NULL);
         }
         for (count = 1; count < 4; count++) {
-            value = (index * count) % 255;
+            value = (index * count) % 256;
             test_data = Ringbuf_Peek(test_buffer);
             zassert_not_null(test_data, NULL);
             if (test_data) {
@@ -79,6 +76,7 @@ static void testRingAroundBuffer(
  */
 static void testRingBuf(
     uint8_t *data_store,
+    unsigned data_store_size,
     uint8_t *data_element,
     unsigned element_size,
     unsigned element_count)
@@ -89,8 +87,8 @@ static void testRingBuf(
     unsigned data_index;
     bool status;
 
-    status =
-        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status = Ringbuf_Initialize(
+        &test_buffer, data_store, data_store_size, element_size, element_count);
     if (!status) {
         return;
     }
@@ -176,7 +174,7 @@ static void testRingBufSizeSmall(void)
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
     testRingBuf(
-        data_store, data_element, sizeof(data_element),
+        data_store, sizeof(data_store), data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
 }
 
@@ -193,7 +191,7 @@ static void testRingBufSizeLarge(void)
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(99)];
 
     testRingBuf(
-        data_store, data_element, sizeof(data_element),
+        data_store, sizeof(data_store), data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
 }
 
@@ -211,8 +209,8 @@ static void testRingBufSizeInvalid(void)
     uint8_t data_store[sizeof(data_element) * 99];
 
     zassert_false(
-        Ringbuf_Init(
-            &test_buffer, data_store, sizeof(data_element),
+        Ringbuf_Initialize(
+            &test_buffer, data_store, sizeof(data_store), sizeof(data_element),
             sizeof(data_store) / sizeof(data_element)),
         NULL);
 }
@@ -242,6 +240,7 @@ static void testRingBufPowerOfTwo(void)
  */
 static bool testRingBufNextElement(
     uint8_t *data_store,
+    unsigned data_store_size,
     uint8_t *data_element,
     unsigned element_size,
     unsigned element_count)
@@ -251,8 +250,8 @@ static bool testRingBufNextElement(
     unsigned index;
     unsigned data_index;
     bool status;
-    status =
-        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status = Ringbuf_Initialize(
+        &test_buffer, data_store, data_store_size, element_size, element_count);
     if (!status) {
         return false;
     }
@@ -348,7 +347,7 @@ static void testRingBufNextElementSizeSmall(void)
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
     status = testRingBufNextElement(
-        data_store, data_element, sizeof(data_element),
+        data_store, sizeof(data_store), data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
     zassert_true(status, NULL);
 }

@@ -23,8 +23,8 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
-#define PRINTF debug_aprintf
-#define PRINTF_ERR debug_perror
+#define PRINTF debug_printf_stdout
+#define PRINTF_ERR debug_printf_stderr
 
 /** For debugging...
  * @param [in] data portion of the ACK
@@ -49,10 +49,9 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
         /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_known_property(
+            len = bacapp_decode_known_array_property(
                 application_data, (unsigned)application_data_len, &value,
-                data->object_type, data->object_property);
-
+                data->object_type, data->object_property, data->array_index);
             if (len < 0) {
                 PRINTF_ERR(
                     "RP Ack: unable to decode! %s:%s\n",

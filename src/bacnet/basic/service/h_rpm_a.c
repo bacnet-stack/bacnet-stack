@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic ReadPropertyMultile-Ack service handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -23,10 +23,8 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-#define PRINTF debug_aprintf
-#define PERROR debug_perror
-
-/** @file h_rpm_a.c  Handles Read Property Multiple Acknowledgments. */
+#define PRINTF debug_printf_stdout
+#define PERROR debug_printf_stderr
 
 /** Decode the received RPM data and make a linked list of the results.
  * @ingroup DSRPM
@@ -116,10 +114,11 @@ int rpm_ack_decode_service_request(
                 } else {
                     /* one or more (array or list) elements to decode */
                     while (value && (apdu_len > 0)) {
-                        len = bacapp_decode_known_property(
+                        len = bacapp_decode_known_array_property(
                             apdu, (unsigned)apdu_len, value,
                             rpm_object->object_type,
-                            rpm_property->propertyIdentifier);
+                            rpm_property->propertyIdentifier,
+                            rpm_property->propertyArrayIndex);
                         /* If len == 0 then it's an empty structure, which is
                          * OK. */
                         if (len < 0) {

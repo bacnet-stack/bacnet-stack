@@ -19,6 +19,10 @@
 /* BACnet Stack API */
 #include "bacnet/bacstr.h"
 
+#ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
+#define BACNET_USE_OCTETSTRING 1
+#endif
+
 #ifndef BACNET_STRING_UTF8_VALIDATION
 #define BACNET_STRING_UTF8_VALIDATION 1
 #endif
@@ -114,6 +118,24 @@ bool bitstring_bit(const BACNET_BIT_STRING *bit_string, uint8_t bit_number)
 uint8_t bitstring_bits_used(const BACNET_BIT_STRING *bit_string)
 {
     return (bit_string ? bit_string->bits_used : 0);
+}
+
+/**
+ * @brief Write the amount of bits used in the bit string structure.
+ * @param bit_string  Pointer to the bit string structure.
+ * @param bits_used Number of bits in this bitstring
+ * @return true on success or false on error.
+ */
+bool bitstring_bits_used_set(BACNET_BIT_STRING *bit_string, uint8_t bits_used)
+{
+    bool status = false;
+
+    if (bit_string) {
+        bit_string->bits_used = bits_used;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -394,31 +416,6 @@ bool characterstring_init(
 }
 
 /**
- * @brief Return the length of a string, within a maximum length
- * @note The strnlen function is non-standard and not available in
- * all libc implementations.  This function is a workaround for that.
- * @details The strnlen function computes the smaller of the number
- * of characters in the array pointed to by s, not including any
- * terminating null character, or the value of the maxlen argument.
- * The strnlen function examines no more than maxlen bytes of the
- * array pointed to by s.
- * @param s - string to check
- * @param maxlen - maximum length to check
- * @return The strnlen function returns the number of bytes that
- * precede the first null character in the array pointed to by s,
- * if s contains a null character within the first maxlen characters;
- * otherwise, it returns maxlen.
- */
-size_t characterstring_strnlen(const char *str, size_t maxlen)
-{
-    const char *p = memchr(str, 0, maxlen);
-    if (p == NULL) {
-        return maxlen;
-    }
-    return (p - str);
-}
-
-/**
  * Initialize a BACnet character string.
  * Returns false if the string exceeds capacity.
  * Initialize by using value=NULL
@@ -434,7 +431,7 @@ bool characterstring_init_ansi_safe(
 {
     return characterstring_init(
         char_string, CHARACTER_ANSI_X34, value,
-        value ? characterstring_strnlen(value, tmax) : 0);
+        value ? bacnet_strnlen(value, tmax) : 0);
 }
 
 /**
@@ -503,6 +500,35 @@ bool characterstring_ansi_copy(
     }
 
     return false;
+}
+
+/**
+ * @brief Copy a BACnetCharacterString into a buffer with null padding
+ * @param dest  Pointer to the destination buffer.
+ * @param dest_max_len  Size of the destination buffer.
+ * @param src  Pointer to the source BACnetCharacterString.
+ * @return Length of the copied BACnetCharacterString, or 0 if the string
+ *  exceeds the destination buffer size.
+ */
+size_t characterstring_copy_value(
+    char *dest, size_t dest_max_len, const BACNET_CHARACTER_STRING *src)
+{
+    size_t i = 0, length = 0;
+
+    if (dest && src) {
+        if (src->length < dest_max_len) {
+            length = src->length;
+            for (i = 0; i < dest_max_len; i++) {
+                if (i < src->length) {
+                    dest[i] = src->value[i];
+                } else {
+                    dest[i] = 0;
+                }
+            }
+        }
+    }
+
+    return length;
 }
 
 /**
@@ -1246,3 +1272,98 @@ bool octetstring_value_same(
     return false;
 }
 #endif
+
+/**
+ * @brief Compare two strings, case insensitive
+ * @param a - first string
+ * @param b - second string
+ * @return 0 if the strings are equal, non-zero if not
+ * @note The stricmp() function is not included in the C standard.
+ */
+int bacnet_stricmp(const char *a, const char *b)
+{
+    int twin_a, twin_b;
+
+    if (a == NULL) {
+        return -1;
+    }
+    if (b == NULL) {
+        return 1;
+    }
+    do {
+        twin_a = *(const unsigned char *)a;
+        twin_b = *(const unsigned char *)b;
+        twin_a = tolower(toupper(twin_a));
+        twin_b = tolower(toupper(twin_b));
+        a++;
+        b++;
+    } while ((twin_a == twin_b) && (twin_a != '\0'));
+
+    return twin_a - twin_b;
+}
+
+/**
+ * @brief Compare two strings, case insensitive, with length limit
+ * @details The strnicmp() function compares, at most, the first n characters
+ *  of string1 and string2 without sensitivity to case.
+ *
+ *  The function operates on null terminated strings.
+ *  The string arguments to the function are expected to contain
+ *  a null character (\0) marking the end of the string.
+ *
+ * @param a - first string
+ * @param b - second string
+ * @param length - maximum length to compare
+ * @return 0 if the strings are equal, non-zero if not
+ * @note The strnicmp() function is not included in the C standard.
+ */
+int bacnet_strnicmp(const char *a, const char *b, size_t length)
+{
+    int twin_a, twin_b;
+
+    if (length == 0) {
+        return 0;
+    }
+    if (a == NULL) {
+        return -1;
+    }
+    if (b == NULL) {
+        return 1;
+    }
+    do {
+        twin_a = *(const unsigned char *)a;
+        twin_b = *(const unsigned char *)b;
+        twin_a = tolower(toupper(twin_a));
+        twin_b = tolower(toupper(twin_b));
+        a++;
+        b++;
+        length--;
+    } while ((twin_a == twin_b) && (twin_a != '\0') && (length > 0));
+
+    return twin_a - twin_b;
+}
+
+/**
+ * @brief Return the length of a string, within a maximum length
+ * @note The strnlen function is non-standard and not available in
+ * all libc implementations.  This function is a workaround for that.
+ * @details The strnlen function computes the smaller of the number
+ * of characters in the array pointed to by s, not including any
+ * terminating null character, or the value of the maxlen argument.
+ * The strnlen function examines no more than maxlen bytes of the
+ * array pointed to by s.
+ * @param s - string to check
+ * @param maxlen - maximum length to check
+ * @return The strnlen function returns the number of bytes that
+ * precede the first null character in the array pointed to by s,
+ * if s contains a null character within the first maxlen characters;
+ * otherwise, it returns maxlen.
+ */
+size_t bacnet_strnlen(const char *str, size_t maxlen)
+{
+    const char *p = memchr(str, 0, maxlen);
+    if (p == NULL) {
+        return maxlen;
+    }
+    return (p - str);
+}

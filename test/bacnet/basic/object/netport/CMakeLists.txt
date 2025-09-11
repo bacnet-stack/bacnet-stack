@@ -7,7 +7,6 @@ project(test_${basename}
     VERSION 1.0.0
     LANGUAGES C)
 
-
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"
     "/src"
@@ -18,24 +17,41 @@ string(REGEX REPLACE
     "/test"
     TST_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
+string(REGEX REPLACE
+    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/ports"
+    PORTS_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR})
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
+    BACDL_ALL=1
+    BACNET_NETWORK_PORT_IP_DHCP_ENABLED=1
+    BACNET_SECURE_CONNECT_ROUTING_TABLE=1
+    BSC_CONF_HUB_FUNCTIONS_NUM=1
+    BSC_CONF_HUB_CONNECTORS_NUM=1
+    BACNET_SC_DIRECT_ACCEPT_URI_MAX=6
+    MAX_TSM_TRANSACTIONS=0
+    BSC_CONF_TX_PRE=0
     )
 
 include_directories(
     ${SRC_DIR}
+    ${PORTS_DIR}/posix
     ${TST_DIR}/bacnet/basic/object/test
     ${TST_DIR}/ztest/include
     )
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/sc_netport.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/arf.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
@@ -44,13 +60,11 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/baclog.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
-    ${SRC_DIR}/bacnet/basic/sys/bigend.c
-    ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datetime.c
-    ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
@@ -64,9 +78,20 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/channel_value.c
+    ${SRC_DIR}/bacnet/secure_connect.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/bigend.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bvlc6.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${PORTS_DIR}/posix/bacfile-posix.c
     # Test and test library files
-    ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/datetime_local.c
     ${TST_DIR}/bacnet/basic/object/test/property_test.c
+    ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

@@ -24,8 +24,8 @@
 
 /* This stack implements this version of BACnet */
 #define BACNET_PROTOCOL_VERSION 1
-/* Although this stack can implement a later revision,
- * sometimes another revision is desired */
+/* Although this stack can implement any revision,
+ * sometimes a specific revision is desired */
 #ifndef BACNET_PROTOCOL_REVISION
 #define BACNET_PROTOCOL_REVISION 24
 #endif
@@ -91,7 +91,7 @@
 #define MAX_ASHRAE_OBJECT_TYPE 57
 #define MAX_BACNET_SERVICES_SUPPORTED 41
 #elif (BACNET_PROTOCOL_REVISION == 18) || (BACNET_PROTOCOL_REVISION == 19)
-/* from 135-2016 version of the BACnet Standard */
+/* ANSI/ASHRAE 135-2016 */
 #define MAX_ASHRAE_OBJECT_TYPE 60
 #define MAX_BACNET_SERVICES_SUPPORTED 44
 #elif (BACNET_PROTOCOL_REVISION == 20) || (BACNET_PROTOCOL_REVISION == 21)
@@ -99,6 +99,8 @@
 #define MAX_ASHRAE_OBJECT_TYPE 63
 #define MAX_BACNET_SERVICES_SUPPORTED 47
 #elif (BACNET_PROTOCOL_REVISION == 22)
+/* Addendum 135-2016bj, 135-2016by, 135-2016bz  */
+/* ANSI/ASHRAE 135-2020 */
 #define MAX_ASHRAE_OBJECT_TYPE 63
 #define MAX_BACNET_SERVICES_SUPPORTED 47
 #elif (BACNET_PROTOCOL_REVISION == 23)
@@ -106,9 +108,34 @@
 #define MAX_ASHRAE_OBJECT_TYPE 63
 #define MAX_BACNET_SERVICES_SUPPORTED 47
 #elif (BACNET_PROTOCOL_REVISION == 24)
-/* Addendum 135-2020ca, 135-2020cc, 135-2020bv */
+/* Addendum 135-2020bv, 135-2020ca, 135-2020cc, 135-2020ce */
 #define MAX_ASHRAE_OBJECT_TYPE 65
 #define MAX_BACNET_SERVICES_SUPPORTED 49
+#elif (BACNET_PROTOCOL_REVISION == 25)
+/* Addendum 135-2020cf */
+#define MAX_ASHRAE_OBJECT_TYPE 65
+#define MAX_BACNET_SERVICES_SUPPORTED 49
+#elif (BACNET_PROTOCOL_REVISION == 26)
+/* Addendum 135-2020ch, 135-2020ck, 135-2020cn, 135-2020cq, 135-2020cs */
+#define MAX_ASHRAE_OBJECT_TYPE 65
+#define MAX_BACNET_SERVICES_SUPPORTED 49
+#elif (BACNET_PROTOCOL_REVISION == 27)
+/* Addendum 135-2020bx, 135-2020ci */
+#define MAX_ASHRAE_OBJECT_TYPE 65
+#define MAX_BACNET_SERVICES_SUPPORTED 49
+#elif (BACNET_PROTOCOL_REVISION == 28)
+/* Addendum 135-2020cj, 135-2020co */
+#define MAX_ASHRAE_OBJECT_TYPE 65
+#define MAX_BACNET_SERVICES_SUPPORTED 49
+#elif (BACNET_PROTOCOL_REVISION == 29)
+/* Addendum 135-2020cp Addition of Authentication and Authorization */
+/* ANSI/ASHRAE 135-2024 */
+#define MAX_ASHRAE_OBJECT_TYPE 65
+#define MAX_BACNET_SERVICES_SUPPORTED 50
+#elif (BACNET_PROTOCOL_REVISION == 30)
+/* Addendum 135-2020cm BACnet Energy Services Interface */
+#define MAX_ASHRAE_OBJECT_TYPE 65
+#define MAX_BACNET_SERVICES_SUPPORTED 50
 #else
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif
@@ -148,7 +175,9 @@ typedef uint32_t BACNET_ARRAY_INDEX;
    Ethernet = 6 bytes
    BACnet/IPv4 = 6 bytes
    LonTalk = 7 bytes
-   BACnet/IPv6 = 3 bytes (VMAC) */
+   BACnet/IPv6 = 3 bytes (VMAC)
+   BACnet/SC = 6 bytes (VMAC)
+   */
 #define MAX_MAC_LEN 7
 
 struct BACnet_Device_Address {

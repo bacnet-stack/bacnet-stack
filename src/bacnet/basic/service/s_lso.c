@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 John Minack <minack@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send BACnet Life Safety Operation message.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -24,11 +23,15 @@
 #include "bacnet/basic/services.h"
 /* basic services, TSM, binding, and datalink */
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/sys/debug.h"
 
-/** @file s_lso.c  Send BACnet Life Safety Operation message. */
-
-/* returns the invoke ID for confirmed request, or zero on failure */
-
+/**
+ * @brief Send a Life Safety Operation service message
+ * @ingroup BIBB-AE-LS-A
+ * @param device_id [in] ID of the destination device
+ * @param data [in] The data representing the Life Safety Operation
+ * @return invoke id of outgoing message, or 0 on failure.
+ */
 uint8_t
 Send_Life_Safety_Operation_Data(uint32_t device_id, const BACNET_LSO_DATA *data)
 {
@@ -39,15 +42,12 @@ Send_Life_Safety_Operation_Data(uint32_t device_id, const BACNET_LSO_DATA *data)
     bool status = false;
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_NPDU_DATA npdu_data;
 
     if (!dcc_communication_enabled()) {
         return 0;
     }
-
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
@@ -72,27 +72,18 @@ Send_Life_Safety_Operation_Data(uint32_t device_id, const BACNET_LSO_DATA *data)
             tsm_set_confirmed_unsegmented_transaction(
                 invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
                 (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(
-                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+            bytes_sent = datalink_send_pdu(
+                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                fprintf(
-                    stderr, "Failed to Send Life Safe Op Request (%s)!\n",
-                    strerror(errno));
+                debug_perror("Failed to Send Life Safe Op Request");
             }
-#endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send Life Safe Op Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

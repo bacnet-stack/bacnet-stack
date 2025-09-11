@@ -19,6 +19,7 @@
 #include "bacnet/bacaction.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
+#include "bacnet/baclog.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 #include "bacnet/lighting.h"
@@ -29,6 +30,7 @@
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
+#include "bacnet/secure_connect.h"
 
 #ifndef BACAPP_PRINT_ENABLED
 #if PRINT_ENABLED
@@ -168,6 +170,15 @@ typedef struct BACnet_Application_Data_Value {
 #if defined(BACAPP_CHANNEL_VALUE)
         BACNET_CHANNEL_VALUE Channel_Value;
 #endif
+#if defined(BACAPP_LOG_RECORD)
+        BACNET_LOG_RECORD Log_Record;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
+        BACNET_SC_FAILED_CONNECTION_REQUEST SC_Failed_Req;
+        BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS SC_Hub_Function_Status;
+        BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Status;
+        BACNET_SC_HUB_CONNECTION_STATUS SC_Hub_Status;
+#endif
     } type;
     /* simple linked list if needed */
     struct BACnet_Application_Data_Value *next;
@@ -232,6 +243,12 @@ int bacapp_property_value_encode(
 BACNET_STACK_EXPORT
 int bacapp_property_value_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+int bacapp_object_property_value_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_PROPERTY_VALUE *value,
+    BACNET_OBJECT_TYPE object_type);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_data(
@@ -318,6 +335,14 @@ int bacapp_decode_known_property(
     BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID property);
+BACNET_STACK_EXPORT
+int bacapp_decode_known_array_property(
+    const uint8_t *apdu,
+    int apdu_size,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID property,
+    uint32_t array_index);
 
 BACNET_STACK_EXPORT
 int bacapp_known_property_tag(
@@ -357,6 +382,10 @@ int bacapp_snprintf_value(
     char *str,
     size_t str_len,
     const BACNET_OBJECT_PROPERTY_VALUE *object_value);
+int bacapp_snprintf_octet_string(
+    char *str, size_t str_len, const BACNET_OCTET_STRING *value);
+int bacapp_snprintf_character_string(
+    char *str, size_t str_len, const BACNET_CHARACTER_STRING *value);
 
 BACNET_STACK_EXPORT
 bool bacapp_channel_value_copy(

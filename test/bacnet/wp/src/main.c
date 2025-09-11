@@ -1,11 +1,9 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
+/**
+ * @file
+ * @brief test BACnet WriteProperty service encoding and decoding API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <math.h>
 #include <zephyr/ztest.h>
@@ -63,11 +61,28 @@ static int wp_decode_apdu(
     return apdu_len;
 }
 
+static BACNET_UNSIGNED_INTEGER Test_Unsigned_Value;
+static uint32_t Test_Object_Instance;
+/**
+ * @brief API for setting a BACnet Unsigned Integer property value
+ * @param object_instance [in] Object instance number
+ * @param value [in] New value to set
+ * @return true if successful, else false
+ */
+static bool test_bacnet_property_unsigned_set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    Test_Object_Instance = object_instance;
+    Test_Unsigned_Value = value;
+    return true;
+}
+
 static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
 {
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA test_data = { 0 };
     BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
+    BACNET_UNSIGNED_INTEGER test_unsigned_value_max = 0;
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int null_len = 0;
@@ -125,6 +140,21 @@ static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             zassert_equal(
                 test_value.type.Unsigned_Int, value->type.Unsigned_Int, NULL);
+            test_unsigned_value_max = test_value.type.Unsigned_Int;
+            status = write_property_unsigned_decode(
+                &test_data, &test_value, test_bacnet_property_unsigned_set,
+                test_unsigned_value_max);
+            zassert_equal(status, true, NULL);
+            zassert_equal(
+                Test_Object_Instance, test_data.object_instance, NULL);
+            zassert_equal(Test_Unsigned_Value, value->type.Unsigned_Int, NULL);
+            if (test_value.type.Unsigned_Int != 0) {
+                test_unsigned_value_max = 0;
+                status = write_property_unsigned_decode(
+                    &test_data, &test_value, test_bacnet_property_unsigned_set,
+                    test_unsigned_value_max);
+                zassert_equal(status, false, NULL);
+            }
             break;
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             zassert_equal(
@@ -252,17 +282,63 @@ static void testWriteProperty(void)
     value.type.Object_Id.instance = BACNET_MAX_INSTANCE;
     testWritePropertyTag(&value);
 }
-/**
- * @}
- */
+
+static bool Is_Property_Member;
+bool test_write_property_member_of_object(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property)
+{
+    (void)object_type;
+    (void)object_instance;
+    (void)object_property;
+    return Is_Property_Member;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyNull)
+#else
+static void testWritePropertyNull(void)
+#endif
+{
+    bool bypass = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+
+    bypass = write_property_relinquish_bypass(NULL, NULL);
+    zassert_equal(bypass, false, NULL);
+    wp_data.object_type = OBJECT_ANALOG_VALUE;
+    wp_data.object_instance = 0;
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    wp_data.application_data_len =
+        encode_application_null(&wp_data.application_data[0]);
+    Is_Property_Member = true;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, false, NULL);
+    Is_Property_Member = false;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, true, NULL);
+    wp_data.object_type = OBJECT_CHANNEL;
+    Is_Property_Member = false;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, false, NULL);
+    wp_data.object_property = PROP_OUT_OF_SERVICE;
+    Is_Property_Member = true;
+    bypass = write_property_relinquish_bypass(
+        &wp_data, test_write_property_member_of_object);
+    zassert_equal(bypass, false, NULL);
+}
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(wp_tests, ztest_unit_test(testWriteProperty));
-
+    ztest_test_suite(
+        wp_tests, ztest_unit_test(testWriteProperty),
+        ztest_unit_test(testWritePropertyNull));
     ztest_run_test_suite(wp_tests);
 }
 #endif

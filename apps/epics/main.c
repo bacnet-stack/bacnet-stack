@@ -14,7 +14,6 @@
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
 #endif
-#include <errno.h>
 #include <assert.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -23,8 +22,8 @@
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
 #include "bacnet/npdu.h"
+#include "bacnet/abort.h"
 #include "bacnet/apdu.h"
-#include "bacport.h"
 #include "bacnet/whois.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
@@ -41,6 +40,7 @@
 #include "bacnet/datalink/bip.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 #include "bacepics.h"
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
@@ -202,12 +202,7 @@ static void MyAbortHandler(
 #endif
         Error_Detected = true;
         Last_Error_Class = ERROR_CLASS_SERVICES;
-        if (abort_reason < MAX_BACNET_ABORT_REASON) {
-            Last_Error_Code =
-                (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
-        } else {
-            Last_Error_Code = ERROR_CODE_ABORT_OTHER;
-        }
+        Last_Error_Code = abort_convert_to_error_code(abort_reason);
     }
 }
 
@@ -423,8 +418,9 @@ static bool PrettyPrintPropertyValue(
         /* eg, property == PROP_LOCAL_DATE
          * VTS needs (3-Aug-2011,4) or (8/3/11,4), so we'll use the
          * clearer, international form. */
-        strncpy(short_month, bactext_month_name(value->type.Date.month), 3);
-        short_month[3] = 0;
+        snprintf(
+            short_month, sizeof(short_month), "%s",
+            bactext_month_name(value->type.Date.month));
         fprintf(
             stream, "(%u-%3s-%u, %u)", (unsigned)value->type.Date.day,
             short_month, (unsigned)value->type.Date.year,

@@ -1,18 +1,20 @@
-/**************************************************************************
- *
- * Copyright (C) 2016 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Initializes BACnet/IP interface (Linux).
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <errno.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/config.h"
 #include "bacnet/datalink/bip6.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #if DEBUG_ENABLED
@@ -97,7 +99,7 @@ void bip6_set_interface(char *ifname)
     bool found = false;
 
     if (getifaddrs(&ifa) == -1) {
-        perror("BIP6: getifaddrs failed");
+        debug_perror("BIP6: getifaddrs failed");
         exit(1);
     }
     ifa_tmp = ifa;
@@ -109,7 +111,7 @@ void bip6_set_interface(char *ifname)
                 stdout, "BIP6: found interface: %s\n", ifa_tmp->ifa_name);
         }
         if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6) &&
-            (strcasecmp(ifa_tmp->ifa_name, ifname) == 0)) {
+            (bacnet_stricmp(ifa_tmp->ifa_name, ifname) == 0)) {
             sin = (struct sockaddr_in6 *)ifa_tmp->ifa_addr;
             bvlc6_address_set(
                 &BIP6_Addr, ntohs(sin->sin6_addr.s6_addr16[0]),
@@ -234,7 +236,7 @@ bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_mpdu(
     const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -278,7 +280,7 @@ int bip6_send_mpdu(
  * @param pdu - the bytes of data to send
  * @param pdu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_pdu(
     BACNET_ADDRESS *dest,
@@ -390,6 +392,62 @@ void bip6_cleanup(void)
     return;
 }
 
+/**
+ * @brief Join a multicast group
+ */
+void bip6_join_group(void)
+{
+    struct in6_addr broadcast_address = { 0 };
+    struct ipv6_mreq join_request = { 0 };
+    int status = 0; /* return from socket lib calls */
+
+    if (BIP6_Socket < 0) {
+        return;
+    }
+    /* join a multicast group */
+    memcpy(
+        &broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0],
+        IP6_ADDRESS_MAX);
+    memcpy(
+        &join_request.ipv6mr_multiaddr, &broadcast_address,
+        sizeof(struct in6_addr));
+    /* Let system not choose the interface */
+    join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
+    status = setsockopt(
+        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
+        sizeof(join_request));
+    if (status < 0) {
+        debug_perror("BIP6: setsockopt(IPV6_JOIN_GROUP)");
+    }
+}
+
+/**
+ * @brief Leave a multicast group
+ */
+void bip6_leave_group(void)
+{
+    struct in6_addr broadcast_address = { 0 };
+    struct ipv6_mreq leave_request = { 0 };
+    int status = 0; /* return from socket lib calls */
+
+    if (BIP6_Socket < 0) {
+        return;
+    }
+    /* leave a multicast address */
+    memcpy(
+        &broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0],
+        IP6_ADDRESS_MAX);
+    memcpy(
+        &leave_request.ipv6mr_multiaddr, &broadcast_address,
+        sizeof(struct in6_addr));
+    status = setsockopt(
+        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
+        sizeof(leave_request));
+    if (status < 0) {
+        debug_perror("BIP6: setsockopt(IPV6_LEAVE_GROUP)");
+    }
+}
+
 /** Initialize the BACnet/IP services at the given interface.
  * @ingroup DLBIP6
  * -# Gets the local IP address and local broadcast address from the system,
@@ -411,8 +469,6 @@ bool bip6_init(char *ifname)
 {
     int status = 0; /* return from socket lib calls */
     struct sockaddr_in6 server = { 0 };
-    struct in6_addr broadcast_address;
-    struct ipv6_mreq join_request;
     int sockopt = 0;
 
     if (ifname) {
@@ -452,22 +508,7 @@ bool bip6_init(char *ifname)
         BIP6_Socket = -1;
         return false;
     }
-    /* subscribe to a multicast address */
-    memcpy(
-        &broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0],
-        IP6_ADDRESS_MAX);
-    memcpy(
-        &join_request.ipv6mr_multiaddr, &broadcast_address,
-        sizeof(struct in6_addr));
-    /* Let system not choose the interface */
-    join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
-    status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
-        sizeof(join_request));
-    if (status < 0) {
-        perror("BIP: setsockopt(IPV6_JOIN_GROUP)");
-    }
-
+    bip6_join_group();
     /* bind the socket to the local port number and IP address */
     server.sin6_family = AF_INET6;
 #if 0
@@ -489,7 +530,7 @@ bool bip6_init(char *ifname)
     debug_print_ipv6("Binding->", &server.sin6_addr);
     status = bind(BIP6_Socket, (const void *)&server, sizeof(server));
     if (status < 0) {
-        perror("BIP: bind");
+        debug_perror("BIP6: bind");
         close(BIP6_Socket);
         BIP6_Socket = -1;
         return false;

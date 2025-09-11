@@ -156,9 +156,9 @@ static void My_I_Am_Bind(
     bool found = false;
     bool bind = false;
 
-    (void)service_len;
-    len = iam_decode_service_request(
-        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
+    len = bacnet_iam_request_decode(
+        service_request, service_len, &device_id, &max_apdu, &segmentation,
+        &vendor_id);
     if (len > 0) {
         found = address_bind_request(device_id, NULL, NULL);
         if (!found) {
@@ -234,9 +234,9 @@ static void bacnet_read_property_ack_process(
         apdu_len = rp_data->application_data_len;
         while (apdu_len) {
             bacapp_value_list_init(value, 1);
-            len = bacapp_decode_known_property(
+            len = bacapp_decode_known_array_property(
                 apdu, (unsigned)apdu_len, value, rp_data->object_type,
-                rp_data->object_property);
+                rp_data->object_property, rp_data->array_index);
             if (len > 0) {
                 if ((len < apdu_len) &&
                     (rp_data->array_index == BACNET_ARRAY_ALL)) {
@@ -896,9 +896,10 @@ uint16_t bacnet_read_write_vendor_id_filter(void)
  */
 void bacnet_read_write_init(void)
 {
-    Ringbuf_Init(
+    Ringbuf_Initialize(
         &Target_Data_Queue, (uint8_t *)&Target_Data_Buffer,
-        TARGET_DATA_QUEUE_SIZE, TARGET_DATA_QUEUE_COUNT);
+        sizeof(Target_Data_Buffer), TARGET_DATA_QUEUE_SIZE,
+        TARGET_DATA_QUEUE_COUNT);
     /* handle i-am to support binding to other devices */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, My_I_Am_Bind);
     /* handle the data coming back from confirmed requests */

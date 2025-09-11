@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.3.8
+  VERSION 1.4.1
   LANGUAGES C)
 
 #
@@ -25,6 +25,16 @@ option(
   ON)
 
 option(
+    BACNET_BUILD_SERVER_MINI_APP
+    "compile the server-mini app"
+    ON)
+
+option(
+  BACNET_BUILD_SERVER_BASIC_APP
+  "compile the server-basic app"
+  ON)
+
+  option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
@@ -64,13 +74,25 @@ option(
   "compile with ipv6 datalink support"
   ON)
 
+option(
+  BACDL_ZIGBEE
+  "compile with zigbee datalink support"
+  ON)
+
+option(
+  BACDL_BSC
+  "compile with secure-connect support"
+  OFF)
+
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
         BACDL_ARCNET OR
         BACDL_BIP OR
         BACDL_BIP6 OR
+        BACDL_ZIGBEE OR
+        BACDL_BSC OR
         BACDL_CUSTOM))
-  add_definitions(-DBACDL_NONE)
+      add_definitions(-DBACDL_NONE)
 endif()
 
 option(
@@ -78,7 +100,7 @@ option(
   "build with uci"
   OFF)
 
-set(BACNET_PROTOCOL_REVISION 19)
+set(BACNET_PROTOCOL_REVISION 24)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -105,7 +127,7 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD 99)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
@@ -174,6 +196,9 @@ elseif(MSVC)
 
   # Might be slower if builded with /Qspectre
   add_compile_options(/wd5045)
+
+  # format string expected in argument 3 is not a string literal. secure_connect.c:1414
+  add_compile_options(/wd4774)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -185,6 +210,15 @@ endif()
 #
 
 find_package(Threads)
+
+if(BACDL_BSC)
+  find_package(libwebsockets CONFIG REQUIRED)
+  find_package(PkgConfig)
+  pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
+  #libwebsocket need C99 with variadic-macros
+  add_compile_options(-Wno-variadic-macros)
+  find_package(OpenSSL)
+endif()
 
 if(UCI)
   FIND_PATH(uci_include_dir uci.h)
@@ -237,6 +271,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bacerror.h
   src/bacnet/bacint.c
   src/bacnet/bacint.h
+  src/bacnet/baclog.c
+  src/bacnet/baclog.h
   src/bacnet/bacprop.c
   src/bacnet/bacprop.h
   src/bacnet/bacpropstates.c
@@ -257,12 +293,32 @@ add_library(${PROJECT_NAME}
   src/bacnet/weeklyschedule.h
   src/bacnet/special_event.c
   src/bacnet/special_event.h
+  src/bacnet/secure_connect.c
+  src/bacnet/secure_connect.h
   $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
   $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.c>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-socket.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-socket.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-util.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-util.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-function.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-function.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node-switch.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node-switch.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-datalink.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-datalink.c>
   src/bacnet/basic/binding/address.c
   src/bacnet/basic/binding/address.h
   src/bacnet/basic/npdu/h_npdu.c
@@ -340,12 +396,16 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/nc.h
   src/bacnet/basic/object/netport.c
   src/bacnet/basic/object/netport.h
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/basic/object/sc_netport.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/basic/object/sc_netport.h>
   src/bacnet/basic/object/objects.c
   src/bacnet/basic/object/objects.h
   src/bacnet/basic/object/osv.c
   src/bacnet/basic/object/osv.h
   src/bacnet/basic/object/piv.c
   src/bacnet/basic/object/piv.h
+  src/bacnet/basic/object/program.c
+  src/bacnet/basic/object/program.h
   src/bacnet/basic/object/schedule.c
   src/bacnet/basic/object/schedule.h
   src/bacnet/basic/object/structured_view.c
@@ -414,6 +474,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_ucov.h
   src/bacnet/basic/service/h_upt.c
   src/bacnet/basic/service/h_upt.h
+  src/bacnet/basic/service/h_whoami.c
+  src/bacnet/basic/service/h_whoami.h
   src/bacnet/basic/service/h_whohas.c
   src/bacnet/basic/service/h_whohas.h
   src/bacnet/basic/service/h_whois.c
@@ -424,6 +486,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_wpm.h
   src/bacnet/basic/service/h_write_group.c
   src/bacnet/basic/service/h_write_group.h
+  src/bacnet/basic/service/h_youare.c
+  src/bacnet/basic/service/h_youare.h
   src/bacnet/basic/service/s_abort.c
   src/bacnet/basic/service/s_abort.h
   src/bacnet/basic/service/s_ack_alarm.c
@@ -472,6 +536,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_uevent.h
   src/bacnet/basic/service/s_upt.c
   src/bacnet/basic/service/s_upt.h
+  src/bacnet/basic/service/s_whoami.c
+  src/bacnet/basic/service/s_whoami.h
   src/bacnet/basic/service/s_whohas.c
   src/bacnet/basic/service/s_whohas.h
   src/bacnet/basic/service/s_whois.c
@@ -482,15 +548,23 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_wpm.h
   src/bacnet/basic/service/s_write_group.c
   src/bacnet/basic/service/s_write_group.h
+  src/bacnet/basic/service/s_youare.c
+  src/bacnet/basic/service/s_youare.h
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
+  src/bacnet/basic/sys/bramfs.c
+  src/bacnet/basic/sys/bramfs.h
+  src/bacnet/basic/sys/bsramfs.c
+  src/bacnet/basic/sys/bsramfs.h
   src/bacnet/basic/sys/color_rgb.c
   src/bacnet/basic/sys/color_rgb.h
   src/bacnet/basic/sys/days.c
   src/bacnet/basic/sys/days.h
   src/bacnet/basic/sys/debug.c
   src/bacnet/basic/sys/debug.h
+  src/bacnet/basic/sys/dst.c
+  src/bacnet/basic/sys/dst.h
   src/bacnet/basic/sys/fifo.c
   src/bacnet/basic/sys/fifo.h
   src/bacnet/basic/sys/filename.c
@@ -500,6 +574,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/sys/keylist.h
   src/bacnet/basic/sys/linear.c
   src/bacnet/basic/sys/linear.h
+  src/bacnet/basic/sys/lighting_command.c
+  src/bacnet/basic/sys/lighting_command.h
   src/bacnet/basic/sys/mstimer.c
   src/bacnet/basic/sys/mstimer.h
   src/bacnet/basic/sys/ringbuf.c
@@ -523,22 +599,22 @@ add_library(${PROJECT_NAME}
   src/bacnet/datalink/bacsec.c
   src/bacnet/datalink/bacsec.h
   src/bacnet/datalink/bip6.h
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
-  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
-  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
-  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
+  src/bacnet/datalink/bip.h
+  src/bacnet/datalink/bvlc6.c
+  src/bacnet/datalink/bvlc6.h
+  src/bacnet/datalink/bvlc.h
+  src/bacnet/datalink/bvlc.c
+  src/bacnet/datalink/crc.h
+  src/bacnet/datalink/crc.c
+  src/bacnet/datalink/cobs.h
+  src/bacnet/datalink/cobs.c
   src/bacnet/datalink/datalink.c
   src/bacnet/datalink/datalink.h
   src/bacnet/datalink/dlenv.c
   src/bacnet/datalink/dlenv.h
   src/bacnet/datalink/dlmstp.h
   src/bacnet/datalink/ethernet.h
-  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.c>
+  src/bacnet/datalink/mstp.c
   src/bacnet/datalink/mstpdef.h
   src/bacnet/datalink/mstp.h
   src/bacnet/datalink/mstptext.c
@@ -594,6 +670,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/timesync.c
   src/bacnet/timesync.h
   src/bacnet/version.h
+  src/bacnet/whoami.c
+  src/bacnet/whoami.h
   src/bacnet/whohas.c
   src/bacnet/whohas.h
   src/bacnet/whois.c
@@ -604,6 +682,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/wpm.h
   src/bacnet/write_group.c
   src/bacnet/write_group.h
+  src/bacnet/youare.c
+  src/bacnet/youare.h
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.c>
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.h>)
 target_sources(
@@ -625,7 +705,9 @@ target_compile_definitions(
   PUBLIC
   BACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
+  $<$<BOOL:${BACDL_BSC}>:BACDL_BSC>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
+  $<$<BOOL:${BACDL_ZIGBEE}>:BACDL_ZIGBEE>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
@@ -635,7 +717,12 @@ target_compile_definitions(
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
-target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+
+if(BACDL_BSC)
+  target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads ${LIB_WEBSOCKETS_LIBRARIES} )
+else()
+  target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+endif()
 
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
@@ -654,22 +741,33 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNET: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
+  add_compile_definitions(BACNET_PORT=linux)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
     ports/linux/datetime-init.c
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/linux/bzll-init.c>
     $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/termios2.h>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-srv.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-global.c>
     ports/linux/mstimer-init.c)
 
 elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+  add_compile_definitions(BACNET_PORT=win32)
 
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
@@ -678,16 +776,25 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:ws2_32>
     $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:iphlpapi>)
 
+  include_directories(ports/posix)
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/win32/bzll-init.c>
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
     ports/win32/mstimer-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
+    $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>
+    $<$<BOOL:${BACDL_BSC}>:ports/win32/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/win32/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/win32/websocket-srv.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/win32/websocket-global.c>)
 
   if(BACDL_ETHERNET)
     include(ExternalProject)
@@ -721,16 +828,24 @@ elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/dlmstp.c>
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
     ports/bsd/stdbool.h)
 
   if(BACDL_ETHERNET)
@@ -757,18 +872,53 @@ elseif(APPLE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
-    ports/bsd/bip-init.c
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
+    $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
+    $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/dlmstp.c>
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
     ports/bsd/stdbool.h)
+
+  if(BACDL_ETHERNET)
+    FIND_PATH(PCAP_INCLUDE pcap.h)
+    if(NOT PCAP_INCLUDE)
+      message(WARNING "BACNET: pcap.h header file not found")
+    else()
+      message(STATUS "BACNET: pcap Include:...................\"${PCAP_INCLUDE}\"")
+    endif()
+    FIND_LIBRARY(PCAP_LIBRARIES NAMES pcap)
+    if(NOT PCAP_LIBRARIES)
+      message(WARNING "BACNET: libpcap not found")
+    else()
+      message(STATUS "BACNET: pcap Lib:.......................\"${PCAP_LIBRARIES}\"")
+    endif()
+    if(PCAP_INCLUDE AND PCAP_LIBRARIES)
+      include_directories(${PCAP_INCLUDE})
+      link_libraries(${PCAP_LIBRARIES})
+      target_sources(${PROJECT_NAME} PRIVATE
+        ports/bsd/ethernet.c
+      )
+    endif()
+  endif()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>
-)
+  $<$<BOOL:${BACDL_BSC}>:${OPEN_SSL_DIR}/include>
+  )
 
 #
 # examples
@@ -804,12 +954,14 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(error apps/error/main.c)
   target_link_libraries(error PRIVATE ${PROJECT_NAME})
 
-  add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
-  target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
-  target_compile_options(gateway PRIVATE
-    # Unreachable code because we have endless loop.
-    $<$<C_COMPILER_ID:MSVC>:/wd4702>
-  )
+  if(BAC_ROUTING)
+    add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
+    target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+    target_compile_options(gateway PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif()
 
   add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
@@ -830,8 +982,6 @@ if(BACNET_STACK_BUILD_APPS)
       # NOTE: Might be that this example currently doesn't work on Windows because
       # of the following warning:
 
-      # 'strncasecmp': macro redefinition
-      $<$<C_COMPILER_ID:MSVC>:/wd4005>
       # 'gettimeofday' undefined; assuming extern returning int
       $<$<C_COMPILER_ID:MSVC>:/wd4013>
     )
@@ -850,6 +1000,28 @@ if(BACNET_STACK_BUILD_APPS)
     add_executable(piface apps/piface/main.c apps/piface/device.c)
     target_link_libraries(piface PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_PIFACE_APP)
+
+  if(BACNET_BUILD_SERVER_MINI_APP)
+    add_executable(bacmini apps/server-mini/main.c)
+    target_link_libraries(bacmini PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_SERVER_MINI_APP)
+
+  if(BACNET_BUILD_SERVER_BASIC_APP)
+    add_executable(bacbasic
+      apps/server-basic/main.c
+      src/bacnet/basic/server/bacnet_basic.c
+      src/bacnet/basic/server/bacnet_device.c
+      src/bacnet/basic/server/bacnet_port.c
+      src/bacnet/basic/server/bacnet_port_ipv4.c
+      src/bacnet/basic/server/bacnet_port_ipv6.c
+      src/bacnet/basic/server/bacnet_port_mstp.c
+    )
+    target_link_libraries(bacbasic PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacbasic PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif(BACNET_BUILD_SERVER_BASIC_APP)
 
   if(BACNET_BUILD_BACPOLL_APP)
     add_executable(bacpoll
@@ -876,7 +1048,7 @@ if(BACNET_STACK_BUILD_APPS)
     )
   endif(BACNET_BUILD_BACDISCOVER_APP)
 
-  if(BACDL_BIP)
+  if(BACDL_BIP AND (NOT BACDL_BSC))
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 
@@ -993,6 +1165,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
 
+  add_executable(whoami apps/who-am-i/main.c)
+  target_link_libraries(whoami PRIVATE ${PROJECT_NAME})
+
   add_executable(whohas apps/whohas/main.c)
   target_link_libraries(whohas PRIVATE ${PROJECT_NAME})
 
@@ -1019,6 +1194,13 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
+
+  add_executable(youare apps/you-are/main.c)
+  target_link_libraries(youare PRIVATE ${PROJECT_NAME})
+if(BACDL_BSC)
+  add_executable(sc-hub apps/sc-hub/main.c)
+  target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
+endif()
 endif()
 
 #
@@ -1079,6 +1261,8 @@ message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVI
 message(STATUS "BACNET: Selected datalinks:")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")
 message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
+message(STATUS "BACNET: BACDL_BSC:......................\"${BACDL_BSC}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
+message(STATUS "BACNET: BACDL_ZIGBEE:...................\"${BACDL_ZIGBEE}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")

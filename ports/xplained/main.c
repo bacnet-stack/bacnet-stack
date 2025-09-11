@@ -91,6 +91,11 @@ static void dlmstp_configure(void)
     } else {
         MSTP_Port.SlaveNodeEnabled = true;
     }
+    MSTP_Port.CheckAutoBaud = false;
+    if (!MSTP_Port.CheckAutoBaud) {
+        /* FIXME: get the baud rate from hardware DIP or from EEPROM */
+        dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
+    }
     MSTP_Zero_Config_UUID_Init(&MSTP_Port);
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;

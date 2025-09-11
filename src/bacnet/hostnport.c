@@ -375,6 +375,212 @@ bool host_n_port_copy(BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT *src)
 }
 
 /**
+ * @brief Initialize a BACnetHostNPort_Minimal structure for IP address
+ * @param host - BACnetHostNPort_Minimal structure
+ * @param port - port number
+ * @param address - BACnetHostAddress
+ */
+void host_n_port_minimal_ip_init(
+    BACNET_HOST_N_PORT_MINIMAL *host,
+    uint16_t port,
+    const uint8_t *address,
+    size_t address_len)
+{
+    unsigned i, imax;
+
+    if (host) {
+        host->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
+        host->host.ip_address.length = address_len;
+        imax = min(address_len, sizeof(host->host.ip_address.address));
+        if (address) {
+            for (i = 0; i < imax; i++) {
+                host->host.ip_address.address[i] = address[i];
+            }
+        } else {
+            for (i = 0; i < imax; i++) {
+                host->host.ip_address.address[i] = 0;
+            }
+        }
+        host->port = port;
+    }
+}
+
+/**
+ * @brief copy the BACnetHostNPort_Minimal complex data
+ * @param dest - destination structure
+ * @param src - source structure
+ * @return true if successfully copied
+ */
+bool host_n_port_minimal_copy(
+    BACNET_HOST_N_PORT_MINIMAL *dest, const BACNET_HOST_N_PORT_MINIMAL *src)
+{
+    bool status = false;
+    int i;
+
+    if (dest && src) {
+        dest->tag = src->tag;
+        dest->port = src->port;
+        if (src->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+            status = true;
+            dest->host.ip_address.length = src->host.ip_address.length;
+            for (i = 0; i < src->host.ip_address.length; i++) {
+                if (i < sizeof(dest->host.ip_address.address)) {
+                    dest->host.ip_address.address[i] =
+                        src->host.ip_address.address[i];
+                }
+            }
+        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+            status = true;
+            dest->host.name.length = src->host.name.length;
+            for (i = 0; i < src->host.name.length; i++) {
+                if (i < sizeof(dest->host.name.fqdn)) {
+                    dest->host.name.fqdn[i] = src->host.name.fqdn[i];
+                }
+            }
+        } else if (src->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Copy the BACnetHostNPort complex data from src to dst
+ * @param dst - destination structure
+ * @param src - source structure
+ * @return true if successfully copied
+ */
+bool host_n_port_from_minimal(
+    BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT_MINIMAL *src)
+{
+    bool status = false;
+
+    if (dst && src) {
+        switch (src->tag) {
+            case BACNET_HOST_ADDRESS_TAG_NONE:
+                dst->host_ip_address = false;
+                dst->host_name = false;
+                status = true;
+                break;
+            case BACNET_HOST_ADDRESS_TAG_IP_ADDRESS:
+                dst->host_ip_address = true;
+                dst->host_name = false;
+                octetstring_init(
+                    &dst->host.ip_address, src->host.ip_address.address,
+                    src->host.ip_address.length);
+                status = true;
+                break;
+            case BACNET_HOST_ADDRESS_TAG_NAME:
+                dst->host_ip_address = false;
+                dst->host_name = true;
+                characterstring_init(
+                    &dst->host.name, CHARACTER_ANSI_X34, src->host.name.fqdn,
+                    src->host.name.length);
+                status = true;
+                break;
+            default:
+                return false; /* invalid tag number */
+        }
+        if (status) {
+            dst->port = src->port;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Copy the BACnetHostNPort complex data from src to dst
+ * @param dst - destination structure
+ * @param src - source structure
+ * @return true if successfully copied
+ */
+bool host_n_port_to_minimal(
+    BACNET_HOST_N_PORT_MINIMAL *dst, const BACNET_HOST_N_PORT *src)
+{
+    bool status = false;
+
+    if (dst && src) {
+        if (src->host_ip_address) {
+            dst->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
+            dst->host.ip_address.length = octetstring_copy_value(
+                dst->host.ip_address.address,
+                min(sizeof(dst->host.ip_address.address),
+                    src->host.ip_address.length),
+                &src->host.ip_address);
+            if (dst->host.ip_address.length > 0) {
+                status = true;
+            }
+        } else if (src->host_name) {
+            dst->tag = BACNET_HOST_ADDRESS_TAG_NAME;
+            dst->host.name.length = characterstring_copy_value(
+                dst->host.name.fqdn, sizeof(dst->host.name.fqdn),
+                &src->host.name);
+            if (dst->host.name.length > 0) {
+                status = true;
+            }
+        } else {
+            dst->tag = BACNET_HOST_ADDRESS_TAG_NONE;
+            status = true;
+        }
+        dst->port = src->port;
+    }
+
+    return status;
+}
+
+bool host_n_port_minimal_same(
+    const BACNET_HOST_N_PORT_MINIMAL *dst,
+    const BACNET_HOST_N_PORT_MINIMAL *src)
+{
+    bool status = false;
+    int i;
+
+    if (dst && src) {
+        if (dst->tag == src->tag) {
+            if (dst->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+                if (dst->host.ip_address.length ==
+                    src->host.ip_address.length) {
+                    status = true;
+                    for (i = 0; i < dst->host.ip_address.length; i++) {
+                        if (i < sizeof(dst->host.ip_address.address)) {
+                            if (dst->host.ip_address.address[i] !=
+                                src->host.ip_address.address[i]) {
+                                status = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else if (dst->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+                if (dst->host.name.length == src->host.name.length) {
+                    status = true;
+                    for (i = 0; i < dst->host.name.length; i++) {
+                        if (i < sizeof(dst->host.name.fqdn)) {
+                            if (dst->host.name.fqdn[i] !=
+                                src->host.name.fqdn[i]) {
+                                status = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else if (dst->tag == BACNET_HOST_ADDRESS_TAG_NONE) {
+                status = true;
+            }
+            if (status) {
+                if (dst->port != src->port) {
+                    status = false;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief Compare the BACnetHostNPort complex data of src and dst
  * @param host1 - host 1 structure
  * @param host2 - host 2 structure
@@ -1158,4 +1364,103 @@ int bacnet_fdt_entry_to_ascii(
     }
 
     return len;
+}
+
+/**
+ * @brief Checks conformance of a hostname with:
+ *  RFC 1123: Requirements for Internet Hosts – application and support
+ *  RFC 2181: Clarifications to the DNS specification
+ *
+ *  Host software MUST handle host names of up to 63 characters and
+ *  SHOULD handle host names of up to 255 characters.
+ *
+ *  Whenever a user inputs the identity of an Internet host, it SHOULD
+ *  be possible to enter either (1) a host domain name or (2) an IP
+ *  address in dotted-decimal ("#.#.#.#") form.  The host SHOULD check
+ *  the string syntactically for a dotted-decimal number before
+ *  looking it up in the Domain Name System.
+ *
+ *  The DNS itself places only one restriction on the particular labels
+ *  that can be used to identify resource records.  That one restriction
+ *  relates to the length of the label and the full name.  The length of
+ *  any one label is limited to between 1 and 63 octets.  A full domain
+ *  name is limited to 255 octets (including the separators).  The zero
+ *  length full name is defined as representing the root of the DNS tree,
+ *  and is typically written and displayed as ".".  Those restrictions
+ *  aside, any binary string whatever can be used as the label of any
+ *  resource record.  Similarly, any binary string can serve as the value
+ *  of any record that includes a domain name as some or all of its value
+ *  (SOA, NS, MX, PTR, CNAME, and any others that may be added).
+ *
+ * @param hostname - hostname as BACNET_CHARACTER_STRING
+ * @return true if the host name conorms to RFC 1123, false otherwise
+ */
+bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
+{
+    int len;
+    const char *val;
+    int dot_count = 0;
+    int i = 0;
+    char c;
+    char fqdn_copy[255 + 1] = { 0 };
+    char *label = NULL;
+
+    len = characterstring_length(hostname);
+    /* Check length */
+    if ((len == 0) || (len > sizeof(fqdn_copy) - 1)) {
+        /* Invalid length */
+        return false;
+    }
+    /* Check if it looks like an IP address (basic check) */
+    val = characterstring_value(hostname);
+    for (i = 0; i < len; i++) {
+        if (val[i] == '.') {
+            dot_count++;
+        }
+    }
+    /* Check if it's a numeric pattern (like an incomplete IP) */
+    if (dot_count > 0 && strspn(val, "0123456789.") == len) {
+        /* Invalid: looks like an incomplete IP */
+        return false;
+    }
+    /* Check each character */
+    for (i = 0; i < len; i++) {
+        c = val[i];
+        if (!isalnum(c) && c != '-' && c != '.') {
+            /* Invalid character */
+            return false;
+        }
+        /* Check for starting and ending hyphens */
+        if (i == 0 && c == '-') {
+            /* Cannot start with a hyphen */
+            return false;
+        }
+        if (i == len - 1 && c == '-') {
+            /* Cannot end with a hyphen */
+            return false;
+        }
+        /* Check for consecutive periods or hyphens */
+        if (i > 0 &&
+            ((val[i] == '-' && val[i - 1] == '-') ||
+             (val[i] == '.' && val[i - 1] == '.'))) {
+            /* Invalid consecutive characters */
+            return false;
+        }
+    }
+    /* Make a copy to manipulate when checking each label */
+    strncpy(fqdn_copy, val, sizeof(fqdn_copy) - 1);
+    /* Split FQDN by '.' */
+    label = strtok(fqdn_copy, ".");
+    while (label != NULL) {
+        /* check for each label length not exceeding 63 characters */
+        if (strlen(label) > 63) {
+            /* Invalid label found */
+            return false;
+        }
+        /* Move to the next label */
+        label = strtok(NULL, ".");
+    }
+
+    /* Valid hostname */
+    return true;
 }

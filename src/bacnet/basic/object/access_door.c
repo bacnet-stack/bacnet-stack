@@ -22,20 +22,23 @@ static bool Access_Door_Initialized = false;
 static ACCESS_DOOR_DESCR ad_descr[MAX_ACCESS_DOORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_PRESENT_VALUE,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_EVENT_STATE,
-                                           PROP_RELIABILITY,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_PRIORITY_ARRAY,
-                                           PROP_RELINQUISH_DEFAULT,
-                                           PROP_DOOR_PULSE_TIME,
-                                           PROP_DOOR_EXTENDED_PULSE_TIME,
-                                           PROP_DOOR_OPEN_TOO_LONG_TIME,
-                                           -1 };
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    PROP_DOOR_PULSE_TIME,
+    PROP_DOOR_EXTENDED_PULSE_TIME,
+    PROP_DOOR_OPEN_TOO_LONG_TIME,
+    -1
+};
 
 static const int Properties_Optional[] = {
     PROP_DOOR_STATUS,      PROP_LOCK_STATUS,
@@ -416,13 +419,6 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -443,13 +439,6 @@ bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     object_index = Access_Door_Instance_To_Index(wp_data->object_instance);

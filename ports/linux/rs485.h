@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include "bacnet/datalink/mstp.h"
 
+#include <linux/serial.h> /* for serial_rs485 */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -38,6 +40,10 @@ BACNET_STACK_EXPORT
 uint32_t RS485_Get_Baud_Rate(void);
 BACNET_STACK_EXPORT
 bool RS485_Set_Baud_Rate(uint32_t baud);
+BACNET_STACK_EXPORT
+bool RS485_Get_Config(struct serial_rs485 *config);
+BACNET_STACK_EXPORT
+bool RS485_Set_Config(const struct serial_rs485 *config);
 
 BACNET_STACK_EXPORT
 void RS485_Cleanup(void);

@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 John Minack <minack@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send an Alarm Acknowledgment.
+ * @author John Minack <minack@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -23,9 +22,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
-
-/** @file s_ack_alarm.c  Send an Alarm Acknowledgment. */
-#define PRINTF debug_perror
 
 /** Sends an Confirmed Alarm Acknowledgment.
  *
@@ -76,15 +72,13 @@ uint8_t Send_Alarm_Acknowledgement_Address(
                 invoke_id, dest, &npdu_data, pdu, (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
             if (bytes_sent <= 0) {
-                PRINTF(
-                    "Failed to Send Alarm Ack Request (%s)!\n",
-                    strerror(errno));
+                debug_perror("Failed to Send Alarm Ack Request");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            PRINTF("Failed to Send Alarm Ack Request "
-                   "(exceeds destination maximum APDU)!\n");
+            debug_printf_stderr("Failed to Send Alarm Ack Request "
+                                "(exceeds destination maximum APDU)!\n");
         }
     }
 

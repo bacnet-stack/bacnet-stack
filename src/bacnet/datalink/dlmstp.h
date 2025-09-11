@@ -38,9 +38,12 @@ typedef struct dlmstp_statistics {
     uint32_t transmit_frame_counter;
     uint32_t receive_valid_frame_counter;
     uint32_t receive_invalid_frame_counter;
+    uint32_t receive_valid_frame_not_for_us_counter;
     uint32_t transmit_pdu_counter;
     uint32_t receive_pdu_counter;
     uint32_t lost_token_counter;
+    uint32_t bad_crc_counter;
+    uint32_t poll_for_master_counter;
 } DLMSTP_STATISTICS;
 
 #ifndef DLMSTP_MAX_INFO_FRAMES
@@ -82,20 +85,6 @@ struct dlmstp_rs485_driver {
     void (*silence_reset)(void);
 };
 
-/**
- * An example structure of user data for BACnet MS/TP
- */
-struct dlmstp_user_data_t {
-    struct dlmstp_statistics Statistics;
-    struct dlmstp_rs485_driver *RS485_Driver;
-    /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
-    RING_BUFFER PDU_Queue;
-    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
-    bool Initialized;
-    bool ReceivePacketPending;
-    void *Context;
-};
-
 /* callback to signify the receipt of a preamble */
 typedef void (*dlmstp_hook_frame_rx_start_cb)(void);
 
@@ -107,12 +96,35 @@ typedef void (*dlmstp_hook_frame_rx_complete_cb)(
     uint8_t *pdu,
     uint16_t pdu_len);
 
+/**
+ * An example structure of user data for BACnet MS/TP
+ */
+struct dlmstp_user_data_t {
+    struct dlmstp_statistics Statistics;
+    struct dlmstp_rs485_driver *RS485_Driver;
+    dlmstp_hook_frame_rx_start_cb Preamble_Callback;
+    dlmstp_hook_frame_rx_complete_cb Valid_Frame_Rx_Callback;
+    dlmstp_hook_frame_rx_complete_cb Valid_Frame_Not_For_Us_Rx_Callback;
+    dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
+    uint32_t Valid_Frame_Milliseconds;
+    /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
+    RING_BUFFER PDU_Queue;
+    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
+    bool Initialized;
+    bool ReceivePacketPending;
+    void *Context;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
 bool dlmstp_init(char *ifname);
+BACNET_STACK_EXPORT
+void dlmstp_set_interface(const char *ifname);
+BACNET_STACK_EXPORT
+const char *dlmstp_get_interface(void);
 BACNET_STACK_EXPORT
 void dlmstp_reset(void);
 BACNET_STACK_EXPORT
@@ -180,6 +192,24 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address);
 BACNET_STACK_EXPORT
 bool dlmstp_sole_master(void);
 BACNET_STACK_EXPORT
+bool dlmstp_slave_mode_enabled(void);
+BACNET_STACK_EXPORT
+bool dlmstp_slave_mode_enabled_set(bool flag);
+
+BACNET_STACK_EXPORT
+bool dlmstp_zero_config_enabled(void);
+BACNET_STACK_EXPORT
+bool dlmstp_zero_config_enabled_set(bool flag);
+BACNET_STACK_EXPORT
+bool dlmstp_check_auto_baud(void);
+BACNET_STACK_EXPORT
+bool dlmstp_check_auto_baud_set(bool flag);
+BACNET_STACK_EXPORT
+uint8_t dlmstp_zero_config_preferred_station(void);
+BACNET_STACK_EXPORT
+bool dlmstp_zero_config_preferred_station_set(uint8_t station);
+
+BACNET_STACK_EXPORT
 bool dlmstp_send_pdu_queue_empty(void);
 BACNET_STACK_EXPORT
 bool dlmstp_send_pdu_queue_full(void);
@@ -194,6 +224,11 @@ uint32_t dlmstp_silence_milliseconds(void *arg);
 BACNET_STACK_EXPORT
 void dlmstp_silence_reset(void *arg);
 
+BACNET_STACK_EXPORT
+uint32_t dlmstp_valid_frame_milliseconds(void *arg);
+BACNET_STACK_EXPORT
+void dlmstp_valid_frame_milliseconds_reset(void *arg);
+
 /* Set the callback function to be called on every valid received frame */
 /* This is not necessary for normal usage, but is helpful if the caller */
 /* needs to monitor traffic on the MS/TP bus */
@@ -201,6 +236,12 @@ void dlmstp_silence_reset(void *arg);
 /* interfering with bus timing */
 BACNET_STACK_EXPORT
 void dlmstp_set_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func);
+BACNET_STACK_EXPORT
+void dlmstp_set_frame_not_for_us_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func);
+BACNET_STACK_EXPORT
+void dlmstp_set_invalid_frame_rx_complete_callback(
     dlmstp_hook_frame_rx_complete_cb cb_func);
 
 /* Set the callback function to be called every time the start of a */

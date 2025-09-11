@@ -24,6 +24,7 @@ static ACCESS_ZONE_DESCR az_descr[MAX_ACCESS_ZONES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,     PROP_OBJECT_TYPE,
     PROP_GLOBAL_IDENTIFIER, PROP_OCCUPANCY_STATE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE,       PROP_RELIABILITY,     PROP_OUT_OF_SERVICE,
@@ -249,12 +250,6 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -275,12 +270,6 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /*  only array properties can have array options */
-    if ((wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     object_index = Access_Zone_Instance_To_Index(wp_data->object_instance);
@@ -306,21 +295,16 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_OCCUPANCY_STATE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_ENTRY_POINTS:
-        case PROP_EXIT_POINTS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

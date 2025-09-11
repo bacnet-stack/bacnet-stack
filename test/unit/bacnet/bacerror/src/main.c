@@ -1,12 +1,12 @@
-/*
- * Copyright (c) 2023 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: Apache-2.0
+/**
+ * @file
+ * @brief fakes for BACnet Error message encoding and decoding
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2023
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include "bacnet/bacerror.h"
-
-#include <errno.h>
 #include <zephyr/fff.h>
 #include <zephyr/ztest.h>
 #include <zephyr/sys/util.h>

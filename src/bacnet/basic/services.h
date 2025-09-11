@@ -51,11 +51,13 @@
 #include "bacnet/basic/service/h_ts.h"
 #include "bacnet/basic/service/h_ucov.h"
 #include "bacnet/basic/service/h_upt.h"
+#include "bacnet/basic/service/h_whoami.h"
 #include "bacnet/basic/service/h_whohas.h"
 #include "bacnet/basic/service/h_whois.h"
 #include "bacnet/basic/service/h_wp.h"
 #include "bacnet/basic/service/h_wpm.h"
 #include "bacnet/basic/service/h_write_group.h"
+#include "bacnet/basic/service/h_youare.h"
 
 /* application layer service send helpers */
 #include "bacnet/basic/service/s_abort.h"
@@ -82,11 +84,14 @@
 #include "bacnet/basic/service/s_ts.h"
 #include "bacnet/basic/service/s_uevent.h"
 #include "bacnet/basic/service/s_upt.h"
+#include "bacnet/basic/service/s_whoami.h"
 #include "bacnet/basic/service/s_whohas.h"
 #include "bacnet/basic/service/s_whois.h"
 #include "bacnet/basic/service/s_wp.h"
 #include "bacnet/basic/service/s_wpm.h"
 #include "bacnet/basic/service/s_write_group.h"
+#include "bacnet/basic/service/s_youare.h"
+#include "bacnet/basic/service/s_youare.h"
 
 /** @defgroup MISCHNDLR Miscellaneous Service Handlers
  * Various utilities and functions to support the service handlers

@@ -3,15 +3,12 @@
  * @brief DeleteObject service initiation
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -101,15 +98,12 @@ uint8_t Send_Delete_Object_Request(
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                debug_perror(
-                    "%s service: Failed to Send %i/%i (%s)!\n",
-                    bactext_confirmed_service_name(service), bytes_sent,
-                    pdu_len, strerror(errno));
+                debug_perror("DeleteObject: Failed to Send");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_perror(
+            debug_printf_stderr(
                 "%s service: Failed to Send "
                 "(exceeds destination maximum APDU)!\n",
                 bactext_confirmed_service_name(service));

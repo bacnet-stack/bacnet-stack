@@ -151,6 +151,9 @@ set(BACNET_PROJECT_SOURCE
     ${CMAKE_SOURCE_DIR}/mstimer-init.c
     ${CMAKE_SOURCE_DIR}/rs485.c
 
+    ${CMAKE_SOURCE_DIR}/program-ubasic.c
+    ${CMAKE_SOURCE_DIR}/ubasic-port.c
+
     ${CMAKE_SOURCE_DIR}/device.c
     ${CMAKE_SOURCE_DIR}/netport.c
 
@@ -163,6 +166,10 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/object/ms-input.c
     ${LIBRARY_BACNET_BASIC}/object/mso.c
     ${LIBRARY_BACNET_BASIC}/object/msv.c
+    ${LIBRARY_BACNET_BASIC}/object/bacfile.c
+    ${LIBRARY_BACNET_BASIC}/object/program.c
+    ${LIBRARY_BACNET_BASIC}/program/ubasic/ubasic.c
+    ${LIBRARY_BACNET_BASIC}/program/ubasic/tokenizer.c
 
     ${LIBRARY_BACNET_BASIC}/service/h_dcc.c
     ${LIBRARY_BACNET_BASIC}/service/h_apdu.c
@@ -170,20 +177,27 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/h_rd.c
     ${LIBRARY_BACNET_BASIC}/service/h_rp.c
     ${LIBRARY_BACNET_BASIC}/service/h_rpm.c
+    ${LIBRARY_BACNET_BASIC}/service/h_ts.c
     ${LIBRARY_BACNET_BASIC}/service/h_whohas.c
     ${LIBRARY_BACNET_BASIC}/service/h_whois.c
     ${LIBRARY_BACNET_BASIC}/service/h_wp.c
     ${LIBRARY_BACNET_BASIC}/service/h_noserv.c
     ${LIBRARY_BACNET_BASIC}/service/s_iam.c
     ${LIBRARY_BACNET_BASIC}/service/s_ihave.c
+    ${LIBRARY_BACNET_BASIC}/service/h_arf.c
     ${LIBRARY_BACNET_BASIC}/tsm/tsm.c
+    ${LIBRARY_BACNET_BASIC}/sys/bsramfs.c
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
+    ${LIBRARY_BACNET_BASIC}/sys/datetime_mstimer.c
+    ${LIBRARY_BACNET_BASIC}/sys/days.c
+    ${LIBRARY_BACNET_BASIC}/sys/dst.c
     ${LIBRARY_BACNET_BASIC}/sys/ringbuf.c
     ${LIBRARY_BACNET_BASIC}/sys/fifo.c
     ${LIBRARY_BACNET_BASIC}/sys/keylist.c
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
 
     ${LIBRARY_BACNET_CORE}/abort.c
+    ${LIBRARY_BACNET_CORE}/arf.c
     ${LIBRARY_BACNET_CORE}/bacaction.c
     ${LIBRARY_BACNET_CORE}/bacaddr.c
     ${LIBRARY_BACNET_CORE}/bacapp.c
@@ -214,6 +228,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/rp.c
     ${LIBRARY_BACNET_CORE}/rpm.c
     ${LIBRARY_BACNET_CORE}/timestamp.c
+    ${LIBRARY_BACNET_CORE}/timesync.c
     ${LIBRARY_BACNET_CORE}/weeklyschedule.c
     ${LIBRARY_BACNET_CORE}/dailyschedule.c
     ${LIBRARY_BACNET_CORE}/calendar_entry.c
@@ -241,6 +256,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DMAX_APDU=480
     -DBIG_ENDIAN=0
     -DMAX_TSM_TRANSACTIONS=1
+    -DBACFILE
     -DBACAPP_MINIMAL
 )
 

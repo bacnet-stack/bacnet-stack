@@ -1,27 +1,18 @@
 /**
  * @file
+ * @brief Get Event Request
  * @author Daniel Blazevic <daniel.blazevic@gmail.com>
  * @date 2014
- * @brief Get Event Request
- *
- * @section LICENSE
- *
- * Copyright (C) 2014 Daniel Blazevic <daniel.blazevic@gmail.com>
- *
- * SPDX-License-Identifier: MIT
- *
- * @section DESCRIPTION
- *
- * The GetEventInformation service is used by a client BACnet-user to obtain
- * a summary of all "active event states". The term "active event states"
- * refers to all event-initiating objects that have an Event_State property
- * whose value is not equal to NORMAL, or have an Acked_Transitions property,
- * which has at least one of the bits (TO-OFFNORMAL, TO-FAULT, TONORMAL)
- * set to FALSE.
+ * @copyright SPDX-License-Identifier: MIT
+ * @details The GetEventInformation service is used by a client BACnet-user
+ *  to obtain a summary of all "active event states".
+ *  The term "active event states" refers to all event-initiating objects
+ *  that have an Event_State property whose value is not equal to NORMAL,
+ *  or have an Acked_Transitions property, which has at least one of the
+ *  bits (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE.
  */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -33,6 +24,7 @@
 /* basic services, TSM, binding, and datalink */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 
@@ -46,9 +38,7 @@ uint8_t Send_Get_Event_Information_Address(
     uint8_t invoke_id = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
 
     /* is there a tsm available? */
     invoke_id = tsm_next_free_invokeID();
@@ -68,28 +58,18 @@ uint8_t Send_Get_Event_Information_Address(
             tsm_set_confirmed_unsegmented_transaction(
                 invoke_id, dest, &npdu_data, &Handler_Transmit_Buffer[0],
                 (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(
-                    dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+            bytes_sent = datalink_send_pdu(
+                dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                fprintf(
-                    stderr,
-                    "Failed to Send Get Event Information Request (%s)!\n",
-                    strerror(errno));
+                debug_perror("Failed to Send Get Event Information Request");
             }
-#endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send Get Event Information Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

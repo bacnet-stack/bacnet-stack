@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -110,9 +109,9 @@ static void my_i_am_handler(
     uint16_t vendor_id = 0;
     unsigned i = 0;
 
-    (void)service_len;
-    len = iam_decode_service_request(
-        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
+    len = bacnet_iam_request_decode(
+        service_request, service_len, &device_id, &max_apdu, &segmentation,
+        &vendor_id);
     if (BACnet_Debug_Enabled) {
         fprintf(stderr, "Received I-Am Request");
     }
@@ -182,6 +181,9 @@ static void init_service_handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, my_i_am_handler);
+    /* handle any Who-Am-I requests we receive */
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_AM_I, handler_who_am_i_json_print);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);

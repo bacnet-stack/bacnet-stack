@@ -16,7 +16,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <termios.h>
+#include "termios2.h"
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -77,14 +77,13 @@ typedef struct shared_mstp_data {
 
     /* handle returned from open() */
     int RS485_Handle;
-    /* baudrate settings are defined in <asm/termbits.h>, which is
-       included by <termios.h> */
+    /* baudrate */
     unsigned int RS485_Baud;
     /* serial port name, /dev/ttyS0,
        /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
     char *RS485_Port_Name;
     /* serial I/O settings */
-    struct termios RS485_oldtio;
+    struct termios2 RS485_oldtio2;
     /* some terminal I/O have RS-485 specific functionality */
     tcflag_t RS485MOD;
     /* Ring buffer for incoming bytes, in order to speed up the receiving. */

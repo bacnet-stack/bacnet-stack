@@ -35,6 +35,10 @@ endif
 ifeq (${BACDL},bip6)
 BACDL_DEFINE=-DBACDL_BIP6=1
 endif
+ifeq (${BACDL},bsc)
+BACDL_DEFINE=-DBACDL_BSC=1
+BACNET_DEFINE=-DBACFILE=1
+endif
 ifeq (${BACDL},none)
 BACDL_DEFINE=-DBACDL_NONE=1
 endif
@@ -108,11 +112,19 @@ ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsockets libssl libcrypto and lcap to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto -lcap
+endif
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsockets libssl and libcrypto to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto
+endif
 CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
@@ -126,6 +138,7 @@ endif
 
 # source file locations
 BACNET_PORT_DIR =  $(realpath ../ports/$(BACNET_PORT))
+BACNET_POSIX_DIR = $(realpath ../ports/posix)
 BACNET_SRC_DIR =  $(realpath ../src)
 
 # Compiler flag to set the C Standard level.
@@ -172,16 +185,20 @@ ifeq (${LEGACY},true)
 BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
+ifeq (${NOTIFY},false)
+# disable intrinsic reporting
+else
+BACNET_DEFINES += -DINTRINSIC_REPORTING
+endif
+
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
-BACNET_DEFINES += -DBACFILE
-BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
 
 # put all the flags together
-INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
+INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR) -I$(BACNET_POSIX_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += $(CSTANDARD)
 ifneq (${BACNET_LIB},)
@@ -206,7 +223,8 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object server-discover apdu writegroup
+	who-am-i you-are apdu writegroup \
+	delete-object server-discover server-basic server-mini
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -289,7 +307,7 @@ apdu: $(BACNET_LIB_TARGET)
 
 .PHONY: blinkt
 blinkt:
-	$(MAKE) -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: create-object
 create-object: $(BACNET_LIB_TARGET)
@@ -395,12 +413,20 @@ scov: $(BACNET_LIB_TARGET)
 server: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: server-basic
+server-basic: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: server-client
 server-client: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: server-discover
 server-discover: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: server-mini
+server-mini: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: timesync
@@ -417,6 +443,14 @@ uptransfer: $(BACNET_LIB_TARGET)
 
 .PHONY: whois
 whois: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: who-am-i
+who-am-i: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: you-are
+you-are: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: writebdt
@@ -461,4 +495,12 @@ writepropm: $(BACNET_LIB_TARGET)
 
 .PHONY: writegroup
 writegroup: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: sc-hub
+sc-hub: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: gtk-discover
+gtk-discover: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@

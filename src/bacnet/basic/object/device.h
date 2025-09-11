@@ -199,6 +199,8 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local);
 
 BACNET_STACK_EXPORT
 const char *Device_Vendor_Name(void);
+BACNET_STACK_EXPORT
+bool Device_Set_Vendor_Name(const char *name, size_t length);
 
 BACNET_STACK_EXPORT
 uint16_t Device_Vendor_Identifier(void);
@@ -212,6 +214,8 @@ bool Device_Set_Model_Name(const char *name, size_t length);
 
 BACNET_STACK_EXPORT
 const char *Device_Firmware_Revision(void);
+BACNET_STACK_EXPORT
+bool Device_Set_Firmware_Revision(const char *name, size_t length);
 
 BACNET_STACK_EXPORT
 const char *Device_Application_Software_Version(void);
@@ -232,6 +236,11 @@ BACNET_STACK_EXPORT
 const char *Device_Serial_Number(void);
 BACNET_STACK_EXPORT
 bool Device_Serial_Number_Set(const char *name, size_t length);
+
+BACNET_STACK_EXPORT
+void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart);
+BACNET_STACK_EXPORT
+bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart);
 
 /* some stack-centric constant values - no set methods */
 BACNET_STACK_EXPORT

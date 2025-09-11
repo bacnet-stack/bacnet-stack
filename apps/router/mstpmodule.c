@@ -15,7 +15,6 @@
 #include "mstpmodule.h"
 #include "bacnet/bacint.h"
 #include "dlmstp_port.h"
-#include <termios.h>
 
 void *dl_mstp_thread(void *pArgs)
 {
@@ -27,7 +26,6 @@ void *dl_mstp_thread(void *pArgs)
 
     shared_port_data.MSTP_Packets = 0;
     shared_port_data.RS485_Handle = -1;
-    shared_port_data.RS485_Baud = B38400;
     shared_port_data.RS485MOD = 0;
 
     switch (port->params.mstp_params.databits) {

@@ -69,6 +69,7 @@ address_cache
 **/out/*
 Obj/
 Release/
+libwebsockets/
 
 # cmake artifacts
 CMakeLists.txt.user
@@ -76,11 +77,14 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 CTestTestfile.cmake
-
+# zephyr artifacts
 /twister-out/*
 /test/build/
 /cmake-build-*
 /.idea
+
+# doxygen artifacts
+doc/output/html/
 
 # exclude the bin folder, except for some files
 bin/*
@@ -104,3 +108,4 @@ apps/piface/libmcp23s17/
 apps/piface/libpifacedigital/
 
 *.vcxproj.user
+.venv/

@@ -1,13 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- * Module Description:
- * Generate a periodic timer tick for use by generic timers in the code.
- *
- *************************************************************************/
+/**
+ * @file
+ * @brief Generate a periodic timer tick for use by generic timers in the code.
+ * @author Steve Karg
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/basic/sys/mstimer.h"
@@ -50,5 +47,4 @@ void mstimer_init(void)
             /* config error? return  1 = failed, 0 = successful */
         }
     }
-    NVIC_EnableIRQ(SysTick_IRQn);
 }

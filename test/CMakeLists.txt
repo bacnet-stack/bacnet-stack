@@ -30,6 +30,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
     add_compile_options(-Wno-sign-compare)
+    add_compile_options(-Wno-implicit-fallthrough)
 
     # Just noise from clang
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
@@ -43,6 +44,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-missing-declarations)
     add_compile_options(-Wno-unused-but-set-variable)
     add_compile_options(-Wno-write-strings)
+    add_compile_options(-Wno-implicit-fallthrough)
 
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
@@ -76,11 +78,13 @@ list(APPEND testdirs
   bacnet/awf
   bacnet/bacaddr
   bacnet/bacapp
+  bacnet/bacaudit
   bacnet/bacdcode
   bacnet/bacdevobjpropref
   bacnet/bacdest
   bacnet/bacerror
   bacnet/bacint
+  bacnet/baclog
   bacnet/bacpropstates
   bacnet/bacreal
   bacnet/bacstr
@@ -106,18 +110,22 @@ list(APPEND testdirs
   bacnet/property
   bacnet/ptransfer
   bacnet/rd
+  bacnet/readrange
   bacnet/reject
   bacnet/rp
   bacnet/rpm
+  bacnet/secure_connect
   bacnet/specialevent
   bacnet/timestamp
   bacnet/timesync
   bacnet/weeklyschedule
+  bacnet/whoami
   bacnet/whohas
   bacnet/whois
   bacnet/wp
   bacnet/wpm
   bacnet/write_group
+  bacnet/youare
   )
 
 # bacnet/basic/*
@@ -125,6 +133,7 @@ list(APPEND testdirs
   bacnet/basic/binding/address
   bacnet/basic/bbmd
   bacnet/basic/bbmd6
+  bacnet/basic/bzll
   # basic/object
   bacnet/basic/object/acc
   bacnet/basic/object/access_credential
@@ -136,6 +145,7 @@ list(APPEND testdirs
   bacnet/basic/object/ai
   bacnet/basic/object/ao
   bacnet/basic/object/av
+  bacnet/basic/object/auditlog
   bacnet/basic/object/bacfile
   bacnet/basic/object/bi
   bacnet/basic/object/bitstring_value
@@ -159,6 +169,7 @@ list(APPEND testdirs
   bacnet/basic/object/mso
   bacnet/basic/object/msv
   bacnet/basic/object/netport
+  bacnet/basic/object/program
   bacnet/basic/object/nc
   bacnet/basic/object/objects
   bacnet/basic/object/osv
@@ -167,9 +178,15 @@ list(APPEND testdirs
   bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
   bacnet/basic/object/trendlog
+  # basic/program
+  bacnet/basic/program/ubasic
   # basic/sys
+  bacnet/basic/sys/bramfs
+  bacnet/basic/sys/bsramfs
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
+  bacnet/basic/sys/dst
+  bacnet/basic/sys/lighting_command
   bacnet/basic/sys/fifo
   bacnet/basic/sys/filename
   bacnet/basic/sys/keylist
@@ -185,7 +202,44 @@ list(APPEND testdirs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
   bacnet/datalink/mstp
+  bacnet/datalink/dlmstp
+  bacnet/datalink/bvlc-sc
   )
+
+if(BACDL_BSC)
+message(STATUS "Added BACnet/SC websocket dependent tests")
+list(APPEND testdirs
+  bacnet/datalink/bsc-datalink
+  bacnet/datalink/bsc-node
+  bacnet/datalink/bsc-socket
+  bacnet/datalink/hub-sc
+  bacnet/datalink/websockets
+)
+endif()
+
+# ports tests
+if(ZEPHYR_BASE)
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined.")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Added ports specific tests for linux")
+
+  list(APPEND testdirs
+  ports/linux/bsc_event
+  )
+
+elseif(WIN32)
+  message(STATUS "Added ports specific tests for win32")
+
+  list(APPEND testdirs
+  ports/win32/bsc_event
+  )
+
+elseif(APPLE)
+  message(STATUS "Added ports specific tests for APPLE")
+  list(APPEND testdirs
+  ports/bsd/bsc_event
+  )
+endif()
 
 enable_testing()
 foreach(testdir IN ITEMS ${testdirs})

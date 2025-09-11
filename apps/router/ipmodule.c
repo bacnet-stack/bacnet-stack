@@ -176,9 +176,11 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
 
     /* bind the socket to the local port number */
     sin.sin_family = AF_INET;
-    /*    sin.sin_addr.s_addr, ip_data->local_addr.s_addr;// =
-     * htonl(INADDR_ANY); */
+#if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
+#else
+    sin.sin_addr.s_addr = ip_data->local_addr.s_addr;
+#endif
     sin.sin_port = ip_data->port;
 
     status = bind(
@@ -221,7 +223,12 @@ int dl_ip_send(
 
     data->buff[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
-    if (dest->net == BACNET_BROADCAST_NETWORK) {
+    /* note: this application only sets
+        dest->mac_len
+        dest->mac
+        dest->net
+        all other dest fields are set to zero and ignored */
+    if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
         /* broadcast */
         bip_dest.sin_addr.s_addr = data->broadcast_addr.s_addr;
         bip_dest.sin_port = data->port;
@@ -234,7 +241,6 @@ int dl_ip_send(
         /* invalid address */
         return -1;
     }
-
     buff_len = 2;
     buff_len += encode_unsigned16(
         &data->buff[buff_len], (uint16_t)(pdu_len + 4 /*inclusive */));

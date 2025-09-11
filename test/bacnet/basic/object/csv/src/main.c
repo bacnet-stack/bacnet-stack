@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date July 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 
 #include <zephyr/ztest.h>
@@ -30,10 +30,12 @@ static void testCharacterString_Value(void)
     const int *pProprietary = NULL;
     unsigned count = 0;
     bool status = false;
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
 
     CharacterString_Value_Init();
+    object_instance = CharacterString_Value_Create(object_instance);
     count = CharacterString_Value_Count();
-    zassert_true(count > 0, NULL);
+    zassert_true(count == 1, NULL);
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_CHARACTERSTRING_VALUE;
@@ -96,7 +98,7 @@ static void testCharacterString_Value(void)
 
 void test_main(void)
 {
-    ztest_test_suite(piv_tests, ztest_unit_test(testCharacterString_Value));
+    ztest_test_suite(csv_tests, ztest_unit_test(testCharacterString_Value));
 
-    ztest_run_test_suite(piv_tests);
+    ztest_run_test_suite(csv_tests);
 }

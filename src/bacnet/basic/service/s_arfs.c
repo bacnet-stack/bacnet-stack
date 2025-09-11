@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send part of an Atomic Read File Stream.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -21,9 +20,8 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_arfs.c  Send part of an Atomic Read File Stream. */
 
 uint8_t Send_Atomic_Read_File_Stream(
     uint32_t device_id,
@@ -39,9 +37,7 @@ uint8_t Send_Atomic_Read_File_Stream(
     bool status = false;
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_ATOMIC_READ_FILE_DATA data;
 
     /* if we are forbidden to send, don't send! */
@@ -79,27 +75,18 @@ uint8_t Send_Atomic_Read_File_Stream(
             tsm_set_confirmed_unsegmented_transaction(
                 invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
                 (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(
-                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+            bytes_sent = datalink_send_pdu(
+                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                fprintf(
-                    stderr, "Failed to Send AtomicReadFile Request (%s)!\n",
-                    strerror(errno));
+                debug_perror("Failed to Send AtomicReadFile Request");
             }
-#endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send AtomicReadFile Request "
                 "(payload exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet single precision REAL encode and decode functions
+ * @brief BACnet Channel Value data type encoding and decoding
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -558,13 +558,13 @@ bool bacnet_channel_value_from_ascii(
         return false;
     }
     if (!status) {
-        if (strcasecmp(argv, "null") == 0) {
+        if (bacnet_stricmp(argv, "null") == 0) {
             value->tag = BACNET_APPLICATION_TAG_NULL;
             status = true;
         }
     }
     if (!status) {
-        if (strcasecmp(argv, "true") == 0) {
+        if (bacnet_stricmp(argv, "true") == 0) {
             value->tag = BACNET_APPLICATION_TAG_BOOLEAN;
 #if defined(CHANNEL_BOOLEAN)
             value->type.Boolean = true;
@@ -573,7 +573,7 @@ bool bacnet_channel_value_from_ascii(
         }
     }
     if (!status) {
-        if (strcasecmp(argv, "false") == 0) {
+        if (bacnet_stricmp(argv, "false") == 0) {
             value->tag = BACNET_APPLICATION_TAG_BOOLEAN;
 #if defined(CHANNEL_BOOLEAN)
             value->type.Boolean = false;

@@ -7,7 +7,6 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -20,9 +19,17 @@
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
+/**
+ * @brief Sends a WriteGroup-Request
+ * @ingroup BIBB-DS-WG-A
+ * @param dest [in] BACNET_ADDRESS of the destination device
+ * @param data [in] The data representing the WriteGroup-Request
+ * @return bytes sent, or a negative value on error
+ */
 int Send_Write_Group(BACNET_ADDRESS *dest, const BACNET_WRITE_GROUP_DATA *data)
 {
     int len = 0;
@@ -51,11 +58,7 @@ int Send_Write_Group(BACNET_ADDRESS *dest, const BACNET_WRITE_GROUP_DATA *data)
     bytes_sent = datalink_send_pdu(
         dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-        fprintf(
-            stderr, "Failed to Send WriteGroup-Request (%s)!\n",
-            strerror(errno));
-#endif
+        debug_perror("Failed to Send WriteGroup-Request");
     }
 
     return bytes_sent;

@@ -4,7 +4,7 @@
  * @date April 2020
  * @brief Test file for a basic BBMD for BVLC IPv6 handler
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h> /* for standard i/o, like printing */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
@@ -73,7 +73,7 @@ uint16_t bip6_receive(
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_mpdu(
     const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -95,6 +95,14 @@ int bip6_send_mpdu(
     }
 
     return 0;
+}
+
+/**
+ * @brief Leave a multicast group
+ */
+void bip6_leave_group(void)
+{
+    return;
 }
 
 /** Return the Object Instance number for our (single) Device Object.
@@ -215,6 +223,9 @@ static void test_Execute_Virtual_Address_Resolution(void)
     uint32_t old_device_id = 0;
     int result = 0;
     int function_len = 0;
+    unsigned int count = 0;
+    int index = 0;
+    bool status = false;
 
     test_setup();
     mtu_len = bvlc6_encode_virtual_address_resolution(
@@ -264,6 +275,12 @@ static void test_Execute_Virtual_Address_Resolution(void)
     assert(result == 0);
     assert(bvlc6_get_function_code() == BVLC6_VIRTUAL_ADDRESS_RESOLUTION);
     assert(VMAC_Find_By_Key(TD.Device_ID) != NULL);
+
+    count = VMAC_Count();
+    for (index = 0; index < count; index++) {
+        status = VMAC_Entry_By_Index(index, &test_vmac_src, NULL);
+        assert(VMAC_Find_By_Key(test_vmac_src) != NULL);
+    }
 
     test_cleanup();
 }

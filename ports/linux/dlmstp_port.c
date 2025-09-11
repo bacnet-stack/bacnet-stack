@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Provides Linux-specific DataLink functions for MS/TP.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -15,7 +15,6 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacdef.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/mstp.h"
@@ -26,10 +25,6 @@
 #include "rs485.h"
 /* OS Specific include */
 #include "bacport.h"
-
-/** @file linux/dlmstp_port.c  Provides Linux-specific DataLink functions for
- * MS/TP.
- */
 
 #define BACNET_PDU_CONTROL_BYTE_OFFSET 1
 #define BACNET_DATA_EXPECTING_REPLY_BIT 2
@@ -102,7 +97,8 @@ void dlmstp_cleanup(void *poPort)
     }
 
     /* restore the old port settings */
-    tcsetattr(poSharedData->RS485_Handle, TCSANOW, &poSharedData->RS485_oldtio);
+    termios2_tcsetattr(
+        poSharedData->RS485_Handle, TCSANOW, &poSharedData->RS485_oldtio2);
     close(poSharedData->RS485_Handle);
 
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
@@ -214,11 +210,13 @@ static void *dlmstp_receive_fsm_task(void *pArg)
     for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((mstp_port->ReceivedValidFrame == false) &&
+            (mstp_port->ReceivedValidFrameNotForUs == false) &&
             (mstp_port->ReceivedInvalidFrame == false)) {
             do {
                 RS485_Check_UART_Data(mstp_port);
                 MSTP_Receive_Frame_FSM((struct mstp_port_struct_t *)pArg);
                 received_frame = mstp_port->ReceivedValidFrame ||
+                    mstp_port->ReceivedValidFrameNotForUs ||
                     mstp_port->ReceivedInvalidFrame;
                 if (received_frame) {
                     pthread_cond_signal(&poSharedData->Received_Frame_Flag);
@@ -249,11 +247,13 @@ static void *dlmstp_master_fsm_task(void *pArg)
 
     for (;;) {
         if (mstp_port->ReceivedValidFrame == false &&
+            mstp_port->ReceivedValidFrameNotForUs == false &&
             mstp_port->ReceivedInvalidFrame == false) {
             RS485_Check_UART_Data(mstp_port);
             MSTP_Receive_Frame_FSM(mstp_port);
         }
-        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame) {
+        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame ||
+            mstp_port->ReceivedValidFrameNotForUs) {
             run_master = true;
         } else {
             silence = mstp_port->SilenceTimer(NULL);
@@ -474,6 +474,7 @@ static bool dlmstp_compare_data_expecting_reply(
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -481,7 +482,8 @@ static bool dlmstp_compare_data_expecting_reply(
     }
     /* these don't have service choice included */
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        (reply.pdu_type == PDU_TYPE_ABORT) ||
+        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
             debug_printf("DLMSTP: DER Compare failed: "
                          "Invoke ID mismatch.\n");
@@ -771,7 +773,7 @@ bool dlmstp_init(void *poPort, char *ifname)
     unsigned long hThread = 0;
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
-    struct termios newtio;
+    struct termios2 newtio;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
     if (!mstp_port) {
         return false;
@@ -820,18 +822,22 @@ bool dlmstp_init(void *poPort, char *ifname)
     fcntl(poSharedData->RS485_Handle, F_SETFL, 0);
 #endif
     /* save current serial port settings */
-    tcgetattr(poSharedData->RS485_Handle, &poSharedData->RS485_oldtio);
+    termios2_tcgetattr(
+        poSharedData->RS485_Handle, &poSharedData->RS485_oldtio2);
     /* clear struct for new port settings */
-    bzero(&newtio, sizeof(newtio));
+    memset(&newtio, 0, sizeof(newtio));
     /*
-       BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
+       BOTHER: Set bps rate.
+       https://man7.org/linux/man-pages/man2/TCSETS.2const.html
        CRTSCTS : output hardware flow control (only used if the cable has
        all necessary lines. See sect. 7 of Serial-HOWTO)
-       CLOCAL  : local connection, no modem contol
+       CLOCAL  : local connection, no modem control
        CREAD   : enable receiving characters
      */
     newtio.c_cflag =
-        poSharedData->RS485_Baud | poSharedData->RS485MOD | CLOCAL | CREAD;
+        poSharedData->RS485MOD | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
+    newtio.c_ispeed = poSharedData->RS485_Baud;
+    newtio.c_ospeed = poSharedData->RS485_Baud;
     /* Raw input */
     newtio.c_iflag = 0;
     /* Raw output */
@@ -839,10 +845,10 @@ bool dlmstp_init(void *poPort, char *ifname)
     /* no processing */
     newtio.c_lflag = 0;
     /* activate the settings for the port after flushing I/O */
-    tcsetattr(poSharedData->RS485_Handle, TCSAFLUSH, &newtio);
+    termios2_tcsetattr(poSharedData->RS485_Handle, TCSAFLUSH, &newtio);
     /* flush any data waiting */
     usleep(200000);
-    tcflush(poSharedData->RS485_Handle, TCIOFLUSH);
+    termios2_tcflush(poSharedData->RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(
         &poSharedData->Rx_FIFO, poSharedData->Rx_Buffer,

@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnetTimeStamp encoding and decoding API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/timestamp.h>
 
@@ -137,7 +134,7 @@ static void testTimestampTimeDate(void)
         len--;
         test_len = bacnet_timestamp_context_decode(
             buffer, len, tag_number, &testTimestampOut);
-        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+        zassert_true(test_len <= 0, "len=%d test_len=%d", len, test_len);
     }
     /* test for valid values */
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);

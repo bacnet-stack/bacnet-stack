@@ -25,6 +25,7 @@
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+#include "bacnet/proplist.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */
@@ -54,23 +55,28 @@ static const char *Default_State_Text = "State 1\0"
                                         "State 2\0"
                                         "State 3\0";
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_PRESENT_VALUE,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_EVENT_STATE,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_NUMBER_OF_STATES,
-                                           PROP_PRIORITY_ARRAY,
-                                           PROP_RELINQUISH_DEFAULT,
+static const int Properties_Required[] = {
+    /* list of required properties in the object */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_NUMBER_OF_STATES,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
 #if (BACNET_PROTOCOL_REVISION >= 17)
-                                           PROP_CURRENT_COMMAND_PRIORITY,
+    PROP_CURRENT_COMMAND_PRIORITY,
 #endif
-                                           -1 };
+    -1
+};
 
-static const int Properties_Optional[] = { PROP_STATE_TEXT, PROP_DESCRIPTION,
-                                           -1 };
+static const int Properties_Optional[] = {
+    /* list of required properties in the object */
+    PROP_STATE_TEXT, PROP_DESCRIPTION, PROP_RELIABILITY, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -283,7 +289,7 @@ static int Multistate_Output_Priority_Array_Encode(
             apdu_len = encode_application_null(apdu);
         } else {
             value = pObject->Priority_Array[priority];
-            apdu_len = encode_application_enumerated(apdu, value);
+            apdu_len = encode_application_unsigned(apdu, value);
         }
     }
 
@@ -349,6 +355,58 @@ bool Multistate_Output_Relinquish_Default_Set(
     if (pObject) {
         pObject->Relinquish_Default = value;
         status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, writes the present-value to the
+ *  remote node
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog value
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Multistate_Output_Relinquish_Default_Write(
+    uint32_t object_instance,
+    uint32_t value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+    uint32_t old_value = 0;
+    uint32_t new_value = 0;
+    unsigned max_states = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        max_states = state_name_count(pObject->State_Text);
+        if ((value >= 1) && (value <= max_states)) {
+            old_value = Object_Present_Value(pObject);
+            Multistate_Output_Relinquish_Default_Set(object_instance, value);
+            if (pObject->Out_Of_Service) {
+                /* The physical point that the object represents
+                    is not in service. This means that changes to the
+                    Present_Value property are decoupled from the
+                    physical output when the value of Out_Of_Service
+                    is true. */
+            } else if (Multistate_Output_Write_Present_Value_Callback) {
+                new_value = Object_Present_Value(pObject);
+                Multistate_Output_Write_Present_Value_Callback(
+                    object_instance, old_value, new_value);
+            }
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;
@@ -928,6 +986,13 @@ int Multistate_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+    if (!property_lists_member(
+            Properties_Required, Properties_Optional, Properties_Proprietary,
+            rpdata->object_property)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+        return BACNET_STATUS_ERROR;
+    }
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
@@ -1018,7 +1083,6 @@ int Multistate_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-#if (BACNET_PROTOCOL_REVISION >= 17)
         case PROP_CURRENT_COMMAND_PRIORITY:
             i = Multistate_Output_Present_Value_Priority(
                 rpdata->object_instance);
@@ -1028,19 +1092,11 @@ int Multistate_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = encode_application_null(&apdu[0]);
             }
             break;
-#endif
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-    }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -1067,13 +1123,6 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_STATE_TEXT) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
@@ -1107,6 +1156,21 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 Multistate_Output_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
+            }
+            break;
+        case PROP_RELINQUISH_DEFAULT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = false;
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Multistate_Output_Relinquish_Default_Write(
+                        wp_data->object_instance, value.type.Unsigned_Int,
+                        &wp_data->error_class, &wp_data->error_code);
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:

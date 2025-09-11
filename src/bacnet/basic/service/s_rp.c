@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send BACnet ReadProperty-Request.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -22,12 +21,12 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/datalink.h"
 
-/** @file s_rp.c  Send Read Property request. */
-
-/** Sends a Read Property request
- * @ingroup DSRP
- *
+/**
+ * @brief Sends a Read Property request
+ * @ingroup BIBB-DS-RP-A
  * @param dest [in] BACNET_ADDRESS of the destination device
  * @param max_apdu [in]
  * @param object_type [in]  Type of the object whose property is to be read.
@@ -91,29 +90,24 @@ uint8_t Send_Read_Property_Request_Address(
             bytes_sent = datalink_send_pdu(
                 dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-                fprintf(
-                    stderr, "Failed to Send ReadProperty Request (%s)!\n",
-                    strerror(errno));
-#endif
+                debug_perror("Failed to Send ReadProperty Request");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send ReadProperty Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 
     return invoke_id;
 }
 
-/** Sends a Read Property request.
- * @ingroup DSRP
+/**
+ * @brief Sends a Read Property request.
+ * @ingroup BIBB-DS-RP-A
  *
  * @param device_id [in] ID of the destination device
  * @param object_type [in]  Type of the object whose property is to be read.

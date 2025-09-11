@@ -57,11 +57,6 @@ static const int Calendar_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int Calendar_Properties_Proprietary[] = { -1 };
 
-/* standard properties that are arrays for this object,
-   but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { PROP_PRIORITY_ARRAY, PROP_TAGS,
-                                              -1 };
-
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -241,7 +236,7 @@ Calendar_Date_List_Get(uint32_t object_instance, uint8_t index)
 bool Calendar_Date_List_Add(
     uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value)
 {
-    bool st = false;
+    int index = 0;
     BACNET_CALENDAR_ENTRY *entry;
     struct object_data *pObject;
 
@@ -254,12 +249,15 @@ bool Calendar_Date_List_Add(
     if (!entry) {
         return false;
     }
-
     *entry = *value;
-    st = Keylist_Data_Add(
+    index = Keylist_Data_Add(
         pObject->Date_List, Keylist_Count(pObject->Date_List), entry);
+    if (index < 0) {
+        free(entry);
+        return false;
+    }
 
-    return st;
+    return true;
 }
 
 /**
@@ -482,16 +480,6 @@ bool Calendar_Description_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
- * @brief Determine if the object property is a BACnetARRAY property
- * @param object_property - object-property to be checked
- * @return true if the property is a BACnetARRAY property
- */
-static bool BACnetARRAY_Property(int object_property)
-{
-    return property_list_member(BACnetARRAY_Properties, object_property);
-}
-
-/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -549,13 +537,6 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (!BACnetARRAY_Property(rpdata->object_property)) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -587,13 +568,6 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((!BACnetARRAY_Property(wp_data->object_property)) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {

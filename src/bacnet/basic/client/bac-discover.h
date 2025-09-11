@@ -115,6 +115,11 @@ BACNET_STACK_EXPORT
 uint16_t bacnet_discover_vendor_id(void);
 
 BACNET_STACK_EXPORT
+void bacnet_discover_dest_set(const BACNET_ADDRESS *dest);
+BACNET_STACK_EXPORT
+const BACNET_ADDRESS *bacnet_discover_dest(void);
+
+BACNET_STACK_EXPORT
 void bacnet_discover_seconds_set(unsigned int seconds);
 BACNET_STACK_EXPORT
 unsigned int bacnet_discover_seconds(void);

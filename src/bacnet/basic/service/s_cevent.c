@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief  Send a ConfirmedEventNotification Request.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 #include "bacnet/event.h"
 #include "bacnet/dcc.h"
@@ -15,9 +14,8 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_cevent.c  Send a ConfirmedEventNotification Request. */
 
 /** Sends an Confirmed Alarm/Event Notification.
  * @ingroup EVNOTFCN
@@ -37,9 +35,7 @@ uint8_t Send_CEvent_Notify_Address(
 {
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
     uint8_t invoke_id = 0;
@@ -68,27 +64,18 @@ uint8_t Send_CEvent_Notify_Address(
         if ((uint16_t)pdu_len < pdu_size) {
             tsm_set_confirmed_unsegmented_transaction(
                 invoke_id, dest, &npdu_data, pdu, (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
-#if PRINT_ENABLED
+            bytes_sent = datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
             if (bytes_sent <= 0) {
-                fprintf(
-                    stderr,
-                    "Failed to Send ConfirmedEventNotification Request (%s)!\n",
-                    strerror(errno));
+                debug_perror(
+                    "Failed to Send ConfirmedEventNotification Request");
             }
-#endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send ConfirmedEventNotification Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

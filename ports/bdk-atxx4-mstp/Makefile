@@ -80,6 +80,7 @@ HALSRC = main.c \
 	adc.c \
 	input.c \
 	serial.c \
+	spi-master.c \
 	rs485.c \
 	mstimer-init.c \
 	led.c \
@@ -183,12 +184,15 @@ ifeq (${SEEPROM},128)
 DEFINES += -DSEEPROM_PAGE_SIZE=64
 DEFINES += -DSEEPROM_WORD_ADDRESS_16BIT=1
 endif
+ifeq (${BDK_VERSION},2)
+DEFINES += -DBDK_VERSION=2
+endif
 ifeq (${BDK_VERSION},3)
 DEFINES += -DBDK_VERSION=3
 endif
-
-#ifdef
-
+ifeq (${BDK_VERSION},4)
+DEFINES += -DBDK_VERSION=4
+endif
 
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
@@ -226,6 +230,7 @@ BFLAGS += -DBACAPP_UNSIGNED
 BFLAGS += -DBACAPP_ENUMERATED
 BFLAGS += -DBACAPP_CHARACTER_STRING
 BFLAGS += -DBACAPP_OCTET_STRING
+BFLAGS += -DBACNET_USE_DOUBLE=0
 BFLAGS += -DWRITE_PROPERTY
 ifeq (${LEGACY},true)
 # disable deprecated function warnings for legacy builds
@@ -283,7 +288,7 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 AVRDUDE_FLAGS += -B 8
 
 # Fuse high byte (0=enable,1=disable):
-# 0x93 = 1 0 0 1   0 0 1 1
+# 0x93 = 1 0 0 1   0 0 1 1 - v3,v4 board
 # 0x17 = 0 0 0 1   0 0 1 1 - v1,v2 board
 # 0x17 = 0 0 0 1   0 1 1 1 - default
 #        ^ ^ ^ ^   ^ \+/ ^
@@ -297,7 +302,7 @@ AVRDUDE_FLAGS += -B 8
 #        +-------------------- OCDEN (Enable OCD)
 #
 # Fuse low byte (0=enable,1=disable):
-# 0xD7 = 1 1 0 1   0 1 1 1 - v3 board
+# 0xD7 = 1 1 0 1   0 1 1 1 - v3,v4 board
 # 0xE6 = 1 1 1 0   0 1 1 0 - v1,v2 board
 # 0x62 = 0 1 1 0   0 0 1 0 - default
 #        ^ ^ \+/   \--+--/

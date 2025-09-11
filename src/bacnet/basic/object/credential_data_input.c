@@ -25,6 +25,7 @@ static CREDENTIAL_DATA_INPUT_DESCR cdi_descr[MAX_CREDENTIAL_DATA_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
     PROP_STATUS_FLAGS,      PROP_RELIABILITY,
@@ -259,14 +260,6 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_SUPPORTED_FORMATS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -287,13 +280,6 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_SUPPORTED_FORMATS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     object_index =

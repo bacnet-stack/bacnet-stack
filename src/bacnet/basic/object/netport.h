@@ -13,9 +13,24 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/apdu.h"
+#include "bacnet/hostnport.h"
 #include "bacnet/readrange.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+
+/**
+ * @brief API for a network port object when changes need to be activated
+ * @param object_instance [in] Object instance number
+ * @return true if successful, else false
+ */
+typedef void (*bacnet_network_port_activate_changes)(uint32_t object_instance);
+
+/**
+ * @brief API for a network port object when changes need to be discarded
+ * @param object_instance [in] Object instance number
+ * @return true if successful, else false
+ */
+typedef void (*bacnet_network_port_discard_changes)(uint32_t object_instance);
 
 #ifdef __cplusplus
 extern "C" {
@@ -146,6 +161,19 @@ BACNET_STACK_EXPORT
 bool Network_Port_IP_DHCP_Enable(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value);
+BACNET_STACK_EXPORT
+void Network_Port_IP_DHCP_Server(
+    uint32_t object_instance, BACNET_OCTET_STRING *ip_address);
+BACNET_STACK_EXPORT
+bool Network_Port_IP_DHCP_Server_Set(
+    uint32_t object_instance, BACNET_OCTET_STRING *ip_address);
+BACNET_STACK_EXPORT
+bool Network_Port_IP_DHCP_Lease_Time_Set(
+    uint32_t object_instance, const uint32_t value);
+BACNET_STACK_EXPORT
+uint32_t Network_Port_IP_DHCP_Lease_Time(uint32_t object_instance);
+BACNET_STACK_EXPORT
+uint32_t Network_Port_IP_DHCP_Lease_Time_Remaining(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 bool Network_Port_IP_DNS_Server(
@@ -203,6 +231,13 @@ uint16_t Network_Port_Remote_BBMD_BIP_Port(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Remote_BBMD_BIP_Port_Set(
     uint32_t object_instance, uint16_t value);
+
+BACNET_STACK_EXPORT
+bool Network_Port_Remote_BBMD_Address(
+    uint32_t object_instance, BACNET_HOST_N_PORT *bbmd_address);
+BACNET_STACK_EXPORT
+bool Network_Port_Remote_BBMD_Address_Set(
+    uint32_t object_instance, const BACNET_HOST_N_PORT *bbmd_address);
 BACNET_STACK_EXPORT
 uint16_t Network_Port_Remote_BBMD_BIP_Lifetime(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -297,6 +332,8 @@ BACNET_STACK_EXPORT
 bool Network_Port_IPv6_Zone_Index(
     uint32_t object_instance, BACNET_CHARACTER_STRING *zone_index);
 BACNET_STACK_EXPORT
+const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance);
+BACNET_STACK_EXPORT
 bool Network_Port_IPv6_Gateway_Zone_Index_Set(
     uint32_t object_instance, char *zone_index);
 
@@ -318,7 +355,13 @@ bool Network_Port_Changes_Pending_Set(uint32_t instance, bool flag);
 BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Activate(uint32_t instance);
 BACNET_STACK_EXPORT
+void Network_Port_Changes_Pending_Activate_Callback_Set(
+    uint32_t instance, bacnet_network_port_activate_changes callback);
+BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Discard(uint32_t instance);
+BACNET_STACK_EXPORT
+void Network_Port_Changes_Pending_Discard_Callback_Set(
+    uint32_t instance, bacnet_network_port_discard_changes callback);
 
 BACNET_STACK_EXPORT
 bool Network_Port_Valid_Instance(uint32_t object_instance);

@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2023-June
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/automac.h>

@@ -1,9 +1,11 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief Mock for the BACnet/IPv6 datalink
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +17,14 @@ bool bip6_init(char *ifname)
 {
     ztest_check_expected_value(ifname);
     return ztest_get_return_value();
+}
+
+void bip6_join_group(void)
+{
+}
+
+void bip6_leave_group(void)
+{
 }
 
 void bip6_cleanup(void)

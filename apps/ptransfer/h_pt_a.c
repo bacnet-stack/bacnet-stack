@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -77,10 +76,9 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     }
 
     iLen += decode_character_string(&pData[iLen], len_value_type, &bsName);
-    strncpy(
-        (char *)Response.sMyString, characterstring_value(&bsName), MY_MAX_STR);
-    Response.sMyString[MY_MAX_STR] = '\0'; /* Make sure it is nul terminated */
-
+    snprintf(
+        (char *)Response.sMyString, MY_MAX_STR, "%s",
+        characterstring_value(&bsName));
     printf("Private Transfer Read Block Response\n");
     printf("Data Block: %d\n", (int)cBlockNum);
     printf("  First Byte  : %d\n", (int)Response.cMyByte1);

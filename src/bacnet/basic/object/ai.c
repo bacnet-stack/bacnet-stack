@@ -30,28 +30,36 @@ static OS_Keylist Object_List;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_ANALOG_INPUT;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE, PROP_UNITS, -1
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_UNITS,        -1
 };
 
 static const int Properties_Optional[] = {
-    PROP_DESCRIPTION, PROP_RELIABILITY,  PROP_COV_INCREMENT,
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
+    PROP_RELIABILITY,
+    PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
-    PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
-    PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
-    PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_HIGH_LIMIT,
+    PROP_LOW_LIMIT,
+    PROP_DEADBAND,
+    PROP_LIMIT_ENABLE,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_DETECTION_ENABLE,
 #endif
     -1
 };
 
-static const int Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -307,6 +315,7 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
+
     if (pObject) {
         state = pObject->Event_State;
     }
@@ -316,6 +325,52 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
 
     return state;
 }
+
+#if defined(INTRINSIC_REPORTING)
+/**
+ * For a given object instance-number, gets the event-detection-enable property
+ * value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-detection-enable property value
+ */
+bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
+{
+    bool retval = false;
+
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        retval = pObject->Event_Detection_Enable;
+    }
+
+    return retval;
+}
+
+/**
+ * For a given object instance-number, sets the event-detection-enable property
+ * value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-detection-enable property value
+ */
+bool Analog_Input_Event_Detection_Enable_Set(
+    uint32_t object_instance, bool value)
+{
+    bool retval = false;
+
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        pObject->Event_Detection_Enable = value;
+        retval = true;
+    }
+
+    return retval;
+}
+#endif
 
 /**
  * @brief For a given object instance-number, returns the description
@@ -375,6 +430,24 @@ BACNET_RELIABILITY Analog_Input_Reliability(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Input_Object_Fault(const struct analog_input_descr *pObject)
+{
+    bool fault = false;
+
+    if (pObject) {
+        if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
+            fault = true;
+        }
+    }
+
+    return fault;
+}
+
+/**
  * @brief For a given object instance-number, sets the reliability
  * @param  object_instance - object-instance number of the object
  * @param  value - reliability property value
@@ -384,15 +457,34 @@ bool Analog_Input_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value)
 {
     bool status = false;
+    bool fault = false;
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
+        fault = Analog_Input_Object_Fault(pObject);
         pObject->Reliability = value;
+        if (fault != Analog_Input_Object_Fault(pObject)) {
+            pObject->Changed = true;
+        }
         status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Input_Fault(uint32_t object_instance)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+
+    return Analog_Input_Object_Fault(pObject);
 }
 
 /**
@@ -641,6 +733,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     float real_value = (float)1.414;
+    bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
 #endif
@@ -680,13 +773,11 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_IN_ALARM,
                 pObject->Event_State != EVENT_STATE_NORMAL);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_FAULT,
-                pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED);
+            state = Analog_Input_Fault(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, state);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                pObject->Out_Of_Service);
+            state = Analog_Input_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -760,6 +851,10 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                                                                  : false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
+        case PROP_EVENT_DETECTION_ENABLE:
+            apdu_len = encode_application_boolean(
+                &apdu[0], pObject->Event_Detection_Enable);
+            break;
         case PROP_ACKED_TRANSITIONS:
             bitstring_init(&bit_string);
             bitstring_set_bit(
@@ -797,14 +892,6 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -838,13 +925,6 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     pObject = Analog_Input_Object(wp_data->object_instance);
@@ -1015,6 +1095,12 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     if (!CurrentAI) {
         return;
     }
+
+    /* check whether Intrinsic reporting is enabled */
+    if (!CurrentAI->Event_Detection_Enable) {
+        return; /* limits are not configured */
+    }
+
     if (CurrentAI->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
         CurrentAI->Ack_notify_data.bSendAckNotify = false;
@@ -1352,9 +1438,9 @@ int Analog_Input_Event_Information(
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
         IsNotAckedTransitions =
             (pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
              false);
     } else {
@@ -1602,6 +1688,8 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
             pObject->Changed = false;
             pObject->Event_State = EVENT_STATE_NORMAL;
 #if defined(INTRINSIC_REPORTING)
+            pObject->Event_Detection_Enable = true;
+            pObject->Time_Delay = 0;
             /* notification class not connected */
             pObject->Notification_Class = BACNET_MAX_INSTANCE;
             /* initialize Event time stamps using wildcards

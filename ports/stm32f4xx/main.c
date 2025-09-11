@@ -1,10 +1,10 @@
-/************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *************************************************************************/
+/**
+ * @file
+ * @brief Main function for the STM32F4xx NUCLEO board
+ * @author Steve Karg
+ * @date 2021
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -15,7 +15,10 @@
 #include "stm32f4xx_rcc.h"
 #include "stm32f4xx_rng.h"
 #include "system_stm32f4xx.h"
+#include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/program.h"
+#include "bacnet/basic/sys/bsramfs.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/datalink/datalink.h"
@@ -24,6 +27,7 @@
 #include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
+#include "program-ubasic.h"
 
 /* MS/TP port */
 static struct mstp_port_struct_t MSTP_Port;
@@ -40,6 +44,54 @@ static struct dlmstp_rs485_driver RS485_Driver = {
 static struct dlmstp_user_data_t MSTP_User_Data;
 static uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
 static uint8_t Output_Buffer[DLMSTP_MPDU_MAX];
+static const char *UBASIC_Program_1 =
+    /* program listing with either \0, \n, or ';' at the end of each line.
+       note: indentation is not required */
+    "println 'Demo - GPIO';"
+    ":loop;"
+    "  dwrite(3, 1);"
+    "  sleep (0.3);"
+    "  dwrite(3, 0);"
+    "  sleep (0.3);"
+    "goto loop;"
+    "end;";
+static const char *UBASIC_Program_2 =
+    /* program listing with either \0, \n, or ';' at the end of each line.
+       note: indentation is not required */
+    "println 'Demo - GPIO';"
+    ":loop;"
+    "  dwrite(2, 1);"
+    "  sleep (0.5);"
+    "  dwrite(2, 0);"
+    "  sleep (0.1);"
+    "goto loop;"
+    "end;";
+static const char *UBASIC_Program_3 =
+    /* program listing with either \0, \n, or ';' at the end of each line.
+       note: indentation is not required */
+    "println 'Demo - BACnet & GPIO';"
+    "bac_create(0, 1, 'ADC-1-AVG');"
+    "bac_create(0, 2, 'ADC-2-AVG');"
+    "bac_create(0, 3, 'ADC-1-RAW');"
+    "bac_create(0, 4, 'ADC-3-RAW');"
+    "bac_create(4, 1, 'LED-1');"
+    ":startover;"
+    "  a = aread(1);"
+    "  bac_write(0, 3, 85, a);"
+    "  c = avgw(a, c, 10);"
+    "  bac_write(0, 1, 85, c);"
+    "  b = aread(2);"
+    "  bac_write(0, 4, 85, b);"
+    "  d = avgw(b, d, 10);"
+    "  bac_write(0, 2, 85, d);"
+    "  h = bac_read(4, 1, 85);"
+    "  dwrite(1, (h % 2));"
+    "  sleep (0.2);"
+    "goto startover;"
+    "end;";
+/* uBASIC data tree for each program running */
+static struct ubasic_data UBASIC_Data[3];
+static struct bacnet_file_sramfs_data Static_Files[3];
 
 /**
  * @brief Called from _write() function from printf and friends
@@ -57,8 +109,7 @@ int __io_putchar(int ch)
  */
 int main(void)
 {
-    struct mstimer Blink_Timer;
-
+    size_t i;
     /*At this stage the microcontroller clock setting is already configured,
        this is done through SystemInit() function which is called from startup
        file (startup_stm32f4xx.s) before to branch to application main.
@@ -72,7 +123,6 @@ int main(void)
     mstimer_init();
     led_init();
     rs485_init();
-    mstimer_set(&Blink_Timer, 500);
     /* FIXME: get the device ID from EEPROM */
     Device_Set_Object_Instance_Number(103);
     /* seed stdlib rand() with device-id to get pseudo consistent
@@ -98,9 +148,12 @@ int main(void)
     MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
     MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
-    /* user data */
-    MSTP_Port.ZeroConfigEnabled = true;
+    /* choose from non-volatile configuration for zero-config or slave mode */
+    MSTP_Port.ZeroConfigEnabled = false;
+    MSTP_Port.Zero_Config_Preferred_Station = 0;
     MSTP_Port.SlaveNodeEnabled = false;
+    MSTP_Port.CheckAutoBaud = false;
+    /* user data */
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
     dlmstp_init((char *)&MSTP_Port);
@@ -109,19 +162,39 @@ int main(void)
         dlmstp_set_mac_address(255);
     } else {
         /* FIXME: get the address from hardware DIP or from EEPROM */
-        dlmstp_set_mac_address(1);
+        dlmstp_set_mac_address(63);
     }
-    /* FIXME: get the baud rate from hardware DIP or from EEPROM */
-    dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
+    if (!MSTP_Port.CheckAutoBaud) {
+        /* FIXME: get the baud rate from hardware DIP or from EEPROM */
+        dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
+    }
     /* initialize application layer*/
     bacnet_init();
+    bacfile_sramfs_init();
+    /* configure the program object and loop time */
+    Program_UBASIC_Init(10);
+    /* create the uBASIC programs and link to file objects */
+    Static_Files[0].data = (char *)UBASIC_Program_1;
+    Static_Files[0].size = strlen(UBASIC_Program_1);
+    Static_Files[0].pathname = "/program1.bas";
+    Static_Files[1].data = (char *)UBASIC_Program_2;
+    Static_Files[1].size = strlen(UBASIC_Program_2);
+    Static_Files[1].pathname = "/program2.bas";
+    Static_Files[2].data = (char *)UBASIC_Program_3;
+    Static_Files[2].size = strlen(UBASIC_Program_3);
+    Static_Files[2].pathname = "/program3.bas";
+    for (i = 0; i < ARRAY_SIZE(Static_Files); i++) {
+        bacfile_create(1 + i);
+        bacfile_pathname_set(1 + i, Static_Files[i].pathname);
+        bacfile_read_only_set(1 + i, true);
+        bacfile_sramfs_add(&Static_Files[i]);
+        Program_UBASIC_Create(1 + i, &UBASIC_Data[i], Static_Files[i].data);
+        Program_Instance_Of_Set(1 + i, Static_Files[i].pathname);
+    }
+    /* loop forever */
     for (;;) {
-        if (mstimer_expired(&Blink_Timer)) {
-            mstimer_reset(&Blink_Timer);
-            led_toggle(LED_LD3);
-            led_toggle(LED_RS485);
-        }
         led_task();
         bacnet_task();
+        Program_UBASIC_Task();
     }
 }

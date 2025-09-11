@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
-/* @file
+/**
+ * @file
  * @brief test BACnet COBS encode/decode APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2014
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 #include <stdlib.h>
 #include <bacnet/datalink/cobs.h>
@@ -38,7 +35,7 @@ static void test_COBS_Encode_Decode(void)
     size_t encoded_buffer_length, test_buffer_length;
 
     for (i = 2; i < sizeof(buffer); i++) {
-        buffer[i] = i % 0xff;
+        buffer[i] = i % 256;
     }
     encoded_buffer_length = cobs_frame_encode(
         encoded_buffer, sizeof(encoded_buffer), buffer, sizeof(buffer));

@@ -111,14 +111,16 @@ void dlmstp_cleanup(void *poShared);
 
 /* returns number of bytes sent on success, negative on failure */
 BACNET_STACK_EXPORT
-int dlmstp_send_pdu(void *poShared,
+int dlmstp_send_pdu(
+    void *poShared,
     BACNET_ADDRESS *dest, /* destination address */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len); /* number of bytes of data */
 
 /* returns the number of octets in the PDU, or zero on failure */
 BACNET_STACK_EXPORT
-uint16_t dlmstp_receive(void *poShared,
+uint16_t dlmstp_receive(
+    void *poShared,
     BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* PDU data */
     uint16_t max_pdu, /* amount of space available in the PDU  */
