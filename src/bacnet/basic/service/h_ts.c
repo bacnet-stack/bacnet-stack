@@ -26,32 +26,14 @@
 #ifndef MAX_TIME_SYNC_RECIPIENTS
 #define MAX_TIME_SYNC_RECIPIENTS 16
 #endif
-static BACNET_RECIPIENT_LIST Time_Sync_Recipients[MAX_TIME_SYNC_RECIPIENTS];
-static bool Align_Intervals;
-static uint32_t Interval_Minutes;
-static uint32_t Interval_Offset_Minutes;
+BACNET_RECIPIENT_LIST Time_Sync_Recipients[MAX_TIME_SYNC_RECIPIENTS];
 /* variable used for controlling when to
    automatically send a TimeSynchronization request */
 static BACNET_DATE_TIME Next_Sync_Time;
+static bool Align_Intervals;
+static uint32_t Interval_Minutes;
+static uint32_t Interval_Offset_Minutes;
 #endif
-static handler_timesync_callback Timesync_Callback;
-static handler_timesync_callback Timesync_UTC_Callback;
-
-/**
- * @brief Configure a BACnet TimeSync request callback
- */
-void handler_timesync_callback_set(handler_timesync_callback cb)
-{
-    Timesync_Callback = cb;
-}
-
-/**
- * @brief Configure a BACnet TimeSync request callback
- */
-void handler_timesync_utc_callback_set(handler_timesync_callback cb)
-{
-    Timesync_UTC_Callback = cb;
-}
 
 #if PRINT_ENABLED
 static void
@@ -94,21 +76,12 @@ void handler_timesync(
             fprintf(stderr, "Received Local TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
 #endif
-            if (Timesync_Callback) {
-                Timesync_Callback(&bdate, &btime);
-            }
         }
     }
 
     return;
 }
 
-/**
- * @brief Decode the timesync UTC service request
- * @param service_request [in] The contents of the service request.
- * @param service_len [in] The length of the service_request.
- * @param src [in] BACNET_ADDRESS of the source of the message
- */
 void handler_timesync_utc(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
@@ -134,6 +107,80 @@ void handler_timesync_utc(
 
     return;
 }
+
+#if defined(BACNET_TIME_MASTER)
+/**
+ * Sets the time sync interval in minutes
+ *
+ * @param flag
+ * This property, of type BOOLEAN, specifies whether (TRUE)
+ * or not (FALSE) clock-aligned periodic time synchronization is
+ * enabled. If periodic time synchronization is enabled and the
+ * time synchronization interval is a factor of (divides without
+ * remainder) an hour or day, then the beginning of the period
+ * specified for time synchronization shall be aligned to the hour or
+ * day, respectively. If this property is present, it shall be writable.
+ */
+bool handler_timesync_interval_align_set(bool flag)
+{
+    Align_Intervals = flag;
+
+    return true;
+}
+
+bool handler_timesync_interval_align(void)
+{
+    return Align_Intervals;
+}
+
+/**
+ * Sets the time sync interval in minutes
+ *
+ * @param minutes
+ * This property, of type Unsigned, specifies the periodic
+ * interval in minutes at which TimeSynchronization and
+ * UTCTimeSynchronization requests shall be sent. If this
+ * property has a value of zero, then periodic time synchronization is
+ * disabled. If this property is present, it shall be writable.
+ */
+bool handler_timesync_interval_set(uint32_t minutes)
+{
+    Interval_Minutes = minutes;
+
+    return true;
+}
+
+uint32_t handler_timesync_interval(void)
+{
+    return Interval_Minutes;
+}
+
+/**
+ * Sets the time sync interval offset value.
+ *
+ * @param minutes
+ * This property, of type Unsigned, specifies the offset in
+ * minutes from the beginning of the period specified for time
+ * synchronization until the actual time synchronization requests
+ * are sent. The offset used shall be the value of Interval_Offset
+ * modulo the value of Time_Synchronization_Interval;
+ * e.g., if Interval_Offset has the value 31 and
+ * Time_Synchronization_Interval is 30, the offset used shall be 1.
+ * Interval_Offset shall have no effect if Align_Intervals is
+ * FALSE. If this property is present, it shall be writable.
+ */
+bool handler_timesync_interval_offset_set(uint32_t minutes)
+{
+    Interval_Offset_Minutes = minutes;
+
+    return true;
+}
+
+uint32_t handler_timesync_interval_offset(void)
+{
+    return Interval_Offset_Minutes;
+}
+#endif
 
 #if defined(BACNET_TIME_MASTER)
 /** Handle a request to list all the timesync recipients.
@@ -170,115 +217,6 @@ bool handler_timesync_recipient_write(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #endif
 
 #if defined(BACNET_TIME_MASTER)
-/**
- * Sets the time sync interval in minutes
- *
- * @param flag
- * This property, of type BOOLEAN, specifies whether (TRUE)
- * or not (FALSE) clock-aligned periodic time synchronization is
- * enabled. If periodic time synchronization is enabled and the
- * time synchronization interval is a factor of (divides without
- * remainder) an hour or day, then the beginning of the period
- * specified for time synchronization shall be aligned to the hour or
- * day, respectively. If this property is present, it shall be writable.
- */
-bool handler_timesync_align_intervals_set(bool flag)
-{
-    Align_Intervals = flag;
-
-    return true;
-}
-#endif
-
-#if defined(BACNET_TIME_MASTER)
-/**
- * @brief Get the time sync align interval flag.
- * @return true if clock-aligned periodic time synchronization is enabled
- */
-bool handler_timesync_align_intervals(void)
-{
-    return Align_Intervals;
-}
-#endif
-
-#if defined(BACNET_TIME_MASTER)
-/**
- * Sets the time sync interval in minutes
- *
- * @param minutes
- * This property, of type Unsigned, specifies the periodic
- * interval in minutes at which TimeSynchronization and
- * UTCTimeSynchronization requests shall be sent. If this
- * property has a value of zero, then periodic time synchronization is
- * disabled. If this property is present, it shall be writable.
- * @note This property value must be a factor of 60 (hour) or 1440 (day).
- * @return true if the value was set, false if the value was out of range
- */
-bool handler_timesync_interval_set(uint32_t minutes)
-{
-    bool status = false;
-
-    if (minutes == 0) {
-        status = true;
-    } else if ((60 % minutes) == 0) {
-        status = true;
-    } else if ((1440 % minutes) == 0) {
-        status = true;
-    }
-    if (status) {
-        Interval_Minutes = minutes;
-    }
-
-    return status;
-}
-#endif
-
-#if defined(BACNET_TIME_MASTER)
-/**
- * @brief Get the time sync interval in minutes.
- * @return The time sync interval in minutes.
- */
-uint32_t handler_timesync_interval(void)
-{
-    return Interval_Minutes;
-}
-#endif
-
-#if defined(BACNET_TIME_MASTER)
-/**
- * Sets the time sync interval offset value.
- *
- * @param minutes
- * This property, of type Unsigned, specifies the offset in
- * minutes from the beginning of the period specified for time
- * synchronization until the actual time synchronization requests
- * are sent. The offset used shall be the value of Interval_Offset
- * modulo the value of Time_Synchronization_Interval;
- * e.g., if Interval_Offset has the value 31 and
- * Time_Synchronization_Interval is 30, the offset used shall be 1.
- * Interval_Offset shall have no effect if Align_Intervals is
- * FALSE. If this property is present, it shall be writable.
- */
-bool handler_timesync_interval_offset_set(uint32_t minutes)
-{
-    Interval_Offset_Minutes = minutes;
-
-    return true;
-}
-#endif
-
-#if defined(BACNET_TIME_MASTER)
-/**
- * @brief Get the time sync interval offset value.
- * @return The time sync interval offset value.
- */
-uint32_t handler_timesync_interval_offset(void)
-{
-    return Interval_Offset_Minutes;
-}
-#endif
-
-#if defined(BACNET_TIME_MASTER)
 static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 {
     unsigned index = 0;
@@ -302,9 +240,11 @@ static void handler_timesync_update(
     uint32_t delta_minutes = 0;
     uint32_t offset_minutes = 0;
     uint32_t interval = 0;
+    uint32_t interval_offset = 0;
 
     datetime_copy(&Next_Sync_Time, current_date_time);
-    if (Align_Intervals) {
+    if (handler_timesync_interval_align()) {
+        interval_offset = handler_timesync_interval_offset();
         /* If periodic time synchronization is enabled and
            the time synchronization interval is a factor of
            (divides without remainder) an hour or day, then
@@ -319,7 +259,7 @@ static void handler_timesync_update(
             interval = current_minutes / device_interval;
             interval++;
             next_minutes = interval * device_interval;
-            offset_minutes = Interval_Offset_Minutes % device_interval;
+            offset_minutes = interval_offset % device_interval;
             next_minutes += offset_minutes;
             delta_minutes = next_minutes - current_minutes;
             datetime_add_minutes(&Next_Sync_Time, delta_minutes);
@@ -335,7 +275,7 @@ static void handler_timesync_update(
             interval = current_minutes / device_interval;
             interval++;
             next_minutes = interval * device_interval;
-            offset_minutes = Interval_Offset_Minutes % device_interval;
+            offset_minutes = interval_offset % device_interval;
             next_minutes += offset_minutes;
             delta_minutes = next_minutes - current_minutes;
             datetime_add_minutes(&Next_Sync_Time, delta_minutes);
@@ -370,14 +310,16 @@ bool handler_timesync_recipient_address_set(
 void handler_timesync_task(BACNET_DATE_TIME *current_date_time)
 {
     int compare = 0;
+    uint32_t device_interval = 0;
 
-    if (Interval_Minutes) {
+    device_interval = handler_timesync_interval();
+    if (device_interval) {
         compare = datetime_compare(current_date_time, &Next_Sync_Time);
         /* if the date/times are the same, return is 0
            if date1 is before date2, returns negative
            if date1 is after date2, returns positive */
         if (compare >= 0) {
-            handler_timesync_update(Interval_Minutes, current_date_time);
+            handler_timesync_update(device_interval, current_date_time);
             handler_timesync_send(current_date_time);
         }
     }

@@ -98,7 +98,7 @@ void handler_delete_object(
             status = false;
         }
         if (status) {
-            if (Device_Delete_Object(&data)) {
+            if (handler_device_object_delete(&data)) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_DELETE_OBJECT);

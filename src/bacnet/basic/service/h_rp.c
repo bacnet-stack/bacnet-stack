@@ -87,31 +87,8 @@ void handler_read_property(
         if (len <= 0) {
             debug_print("RP: Unable to decode Request!\n");
         } else {
-            /* When the object-type in the Object Identifier parameter
-               contains the value DEVICE and the instance in the 'Object
-               Identifier' parameter contains the value 4194303, the responding
-               BACnet-user shall treat the Object Identifier as if it correctly
-               matched the local Device object. This allows the device instance
-               of a device that does not generate I-Am messages to be
-               determined. */
-            if ((rpdata.object_type == OBJECT_DEVICE) &&
-                (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
-                rpdata.object_instance = Device_Object_Instance_Number();
-            }
-#if (BACNET_PROTOCOL_REVISION >= 17)
-            /* When the object-type in the Object Identifier parameter
-               contains the value NETWORK_PORT and the instance in the 'Object
-               Identifier' parameter contains the value 4194303, the responding
-               BACnet-user shall treat the Object Identifier as if it correctly
-               matched the local Network Port object representing the network
-               port through which the request was received. This allows the
-               network port instance of the network port that was used to
-               receive the request to be determined. */
-            if ((rpdata.object_type == OBJECT_NETWORK_PORT) &&
-                (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
-                rpdata.object_instance = Network_Port_Index_To_Instance(0);
-            }
-#endif
+            rpdata.object_instance = handler_device_wildcard_instance_number(
+                rpdata.object_type, rpdata.object_instance);
             apdu_len = rp_ack_encode_apdu_init(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 &rpdata);

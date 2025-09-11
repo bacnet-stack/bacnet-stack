@@ -64,7 +64,6 @@
 #include "bacnet/basic/object/blo.h"
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/program.h"
-#endif
 #if (BACNET_PROTOCOL_REVISION >= 24)
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"

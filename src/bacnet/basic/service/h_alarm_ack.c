@@ -110,7 +110,7 @@ void handler_alarm_ack(
         data.eventObjectIdentifier.type,
         (unsigned long)data.eventObjectIdentifier.instance,
         data.ackSource.value, (unsigned long)data.ackProcessIdentifier);
-    if (!Device_Valid_Object_Id(
+    if (!handler_device_object_instance_valid(
             data.eventObjectIdentifier.type,
             data.eventObjectIdentifier.instance)) {
         len = bacerror_encode_apdu(

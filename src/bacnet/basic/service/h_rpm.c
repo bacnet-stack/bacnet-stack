@@ -317,7 +317,7 @@ void handler_read_property_multiple(
                         unsigned index = 0;
                         BACNET_PROPERTY_ID special_object_property;
 
-                        if (!Device_Valid_Object_Id(
+                        if (!handler_device_valid_object_instance(
                                 rpmdata.object_type, rpmdata.object_instance)) {
                             len = RPM_Encode_Property(
                                 &Handler_Transmit_Buffer[npdu_len],
@@ -377,7 +377,7 @@ void handler_read_property_multiple(
                             apdu_len += len;
                         } else {
                             special_object_property = rpmdata.object_property;
-                            Device_Objects_Property_List(
+                            handler_device_object_property_list(
                                 rpmdata.object_type, rpmdata.object_instance,
                                 &property_list);
                             property_count = RPM_Object_Property_Count(
@@ -391,7 +391,7 @@ void handler_read_property_multiple(
                                    an empty 'List of Results' shall be returned
                                    for the specified property, except if the
                                    object does not exist. */
-                                if (!Device_Valid_Object_Id(
+                                if (!handler_device_object_instance_valid(
                                         rpmdata.object_type,
                                         rpmdata.object_instance)) {
                                     len = RPM_Encode_Property(

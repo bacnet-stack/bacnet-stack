@@ -55,7 +55,7 @@ handler_write_property_relinquish_bypass(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 #if BACNET_PROTOCOL_REVISION >= 21
     status = write_property_relinquish_bypass(
-        wp_data, Device_Objects_Property_List_Member);
+        wp_data, handler_device_object_property_list_member);
 #endif
 
     return status;

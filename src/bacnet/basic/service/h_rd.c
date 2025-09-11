@@ -114,7 +114,7 @@ void handler_reinitialize_device(
             goto RD_ABORT;
         }
 #endif
-        if (Device_Reinitialize(&rd_data)) {
+        if (handler_device_reinitialize(&rd_data)) {
             len = encode_simple_ack(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_REINITIALIZE_DEVICE);

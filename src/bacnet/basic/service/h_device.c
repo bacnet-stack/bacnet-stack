@@ -186,8 +186,8 @@ void handler_device_vendor_identifier_set(uint16_t vendor_id)
  * @return Pointer to the group of object helper functions that implement this
  *         type of Object.
  */
-static struct object_functions *handler_device_object_functions(
-    BACNET_OBJECT_TYPE Object_Type)
+static struct object_functions *
+handler_device_object_functions(BACNET_OBJECT_TYPE Object_Type)
 {
     struct object_functions *pObject = NULL;
 
@@ -217,8 +217,8 @@ static struct object_functions *handler_device_object_functions(
  *         success, else a NULL pointer if the type of Object isn't supported
  *         or doesn't have a ReadRangeInfo function.
  */
-rr_info_function handler_device_object_read_range_info(
-    BACNET_OBJECT_TYPE object_type)
+rr_info_function
+handler_device_object_read_range_info(BACNET_OBJECT_TYPE object_type)
 {
     struct object_functions *pObject = NULL;
 
@@ -237,7 +237,8 @@ rr_info_function handler_device_object_read_range_info(
  *            list, separately, the Required, Optional, and Proprietary object
  *            properties with their counts.
  */
-void handler_device_object_property_list(BACNET_OBJECT_TYPE object_type,
+void handler_device_object_property_list(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     struct special_property_list_t *pPropertyList)
 {
@@ -255,8 +256,9 @@ void handler_device_object_property_list(BACNET_OBJECT_TYPE object_type,
 
     pObject = handler_device_object_functions(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
-        pObject->Object_RPM_List(&pPropertyList->Required.pList,
-            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
+        pObject->Object_RPM_List(
+            &pPropertyList->Required.pList, &pPropertyList->Optional.pList,
+            &pPropertyList->Proprietary.pList);
     }
 
     /* Fetch the counts if available otherwise zero them */
@@ -297,7 +299,7 @@ bool handler_device_object_property_list_member(
     (void)object_instance;
     pObject = handler_device_object_functions(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
-        pObject->Object_RPM_List(&pRequired,&pOptional, &pProprietary);
+        pObject->Object_RPM_List(&pRequired, &pOptional, &pProprietary);
     }
     found = property_list_member(pRequired, object_property);
     if (!found) {
@@ -656,8 +658,8 @@ int handler_device_object_list_element_encode(
         /* single element uses offset of zero,
            add 1 for BACnetARRAY which uses offset of one */
         array_index++;
-        found = handler_device_object_list_identifier(array_index, 
-            &object_type, &instance);
+        found = handler_device_object_list_identifier(
+            array_index, &object_type, &instance);
         if (found) {
             apdu_len =
                 encode_application_object_id(apdu, object_type, instance);
@@ -746,7 +748,8 @@ int handler_device_object_list_element_remove(
  * Object.
  * @return True on success or else False if not found.
  */
-bool handler_device_valid_object_name(BACNET_CHARACTER_STRING *object_name1,
+bool handler_device_valid_object_name(
+    const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
@@ -765,7 +768,7 @@ bool handler_device_valid_object_name(BACNET_CHARACTER_STRING *object_name1,
             pObject = handler_device_object_functions(type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
-                    characterstring_same(object_name1, &object_name2))) {
+                 characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -833,7 +836,8 @@ void handler_device_intrinsic_reporting(void)
  * @param object_name [out] The Object Name found for this child Object.
  * @return True on success or else False if not found.
  */
-bool handler_device_object_name_copy(BACNET_OBJECT_TYPE object_type,
+bool handler_device_object_name_copy(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_CHARACTER_STRING *object_name)
 {
@@ -876,7 +880,8 @@ bool handler_device_object_value_list_supported(BACNET_OBJECT_TYPE object_type)
  * @param [out] The value list
  * @return True if the object instance supports this feature and value changed.
  */
-bool handler_device_object_value_list(BACNET_OBJECT_TYPE object_type,
+bool handler_device_object_value_list(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE *value_list)
 {
@@ -947,8 +952,7 @@ void handler_device_object_cov_clear(
  * @brief Get the Device Object's services supported
  * @param The bit string representing the services supported
  */
-void handler_device_services_supported(
-    BACNET_BIT_STRING *bit_string)
+void handler_device_services_supported(BACNET_BIT_STRING *bit_string)
 {
     uint8_t i = 0;
 
@@ -956,7 +960,8 @@ void handler_device_services_supported(
     bitstring_init(bit_string);
     for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
         /* automatic lookup based on handlers set */
-        bitstring_set_bit(bit_string, i,
+        bitstring_set_bit(
+            bit_string, i,
             apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
     }
 }
@@ -965,8 +970,7 @@ void handler_device_services_supported(
  * @brief Get the Device Object's supported objects
  * @param The bit string representing the supported objects
  */
-void handler_device_object_types_supported(
-    BACNET_BIT_STRING *bit_string)
+void handler_device_object_types_supported(BACNET_BIT_STRING *bit_string)
 {
     unsigned i = 0;
     object_functions_t *pObject = NULL;
@@ -985,8 +989,7 @@ void handler_device_object_types_supported(
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
-            bitstring_set_bit(
-                bit_string, (uint8_t)pObject->Object_Type, true);
+            bitstring_set_bit(bit_string, (uint8_t)pObject->Object_Type, true);
         }
         pObject++;
     }
@@ -1035,8 +1038,9 @@ int handler_device_read_property_common(
     } else if (rpdata->object_property == PROP_PROPERTY_LIST) {
         handler_device_object_property_list(
             rpdata->object_type, rpdata->object_instance, &property_list);
-        apdu_len = property_list_encode(rpdata, property_list.Required.pList,
-            property_list.Optional.pList, property_list.Proprietary.pList);
+        apdu_len = property_list_encode(
+            rpdata, property_list.Required.pList, property_list.Optional.pList,
+            property_list.Proprietary.pList);
 #endif
     } else if (pObject->Object_Read_Property) {
         apdu_len = pObject->Object_Read_Property(rpdata);
@@ -1079,14 +1083,14 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string, 
-                "Default Device Description");
+            characterstring_init_ansi(
+                &char_string, "Default Device Description");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SYSTEM_STATUS:
-            apdu_len = encode_application_enumerated(&apdu[0], 
-                STATUS_OPERATIONAL);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], STATUS_OPERATIONAL);
             break;
         case PROP_VENDOR_NAME:
             characterstring_init_ansi(&char_string, "Default Vendor Name");
@@ -1102,13 +1106,14 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, "Default Firmware Revision");
+            characterstring_init_ansi(
+                &char_string, "Default Firmware Revision");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
             characterstring_init_ansi(
-                &char_string,  "Default Application Software Version");
+                &char_string, "Default Application Software Version");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -1118,12 +1123,12 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_PROTOCOL_VERSION:
-            apdu_len = encode_application_unsigned(
-                &apdu[0], BACNET_PROTOCOL_VERSION);
+            apdu_len =
+                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_VERSION);
             break;
         case PROP_PROTOCOL_REVISION:
-            apdu_len = encode_application_unsigned(
-                &apdu[0], BACNET_PROTOCOL_REVISION);
+            apdu_len =
+                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_REVISION);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             handler_device_services_supported(&bit_string);
@@ -1134,9 +1139,9 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OBJECT_LIST:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, handler_device_object_list_element_encode, 
-                1, apdu, apdu_max);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                handler_device_object_list_element_encode, 1, apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -1149,8 +1154,8 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], MAX_APDU);
             break;
         case PROP_SEGMENTATION_SUPPORTED:
-            apdu_len = encode_application_enumerated(
-                &apdu[0], SEGMENTATION_NONE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], SEGMENTATION_NONE);
             break;
         case PROP_APDU_TIMEOUT:
             apdu_len = encode_application_unsigned(&apdu[0], apdu_timeout());
@@ -1164,8 +1169,8 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif
             break;
         case PROP_DATABASE_REVISION:
-            apdu_len = encode_application_unsigned(&apdu[0], 
-                handler_device_object_database_revision());
+            apdu_len = encode_application_unsigned(
+                &apdu[0], handler_device_object_database_revision());
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -1241,7 +1246,8 @@ bool handler_device_object_create(BACNET_CREATE_OBJECT_DATA *data)
                 object for some other reason.*/
             data->error_class = ERROR_CLASS_OBJECT;
             data->error_code = ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED;
-        } else if (pObject->Object_Valid_Instance &&
+        } else if (
+            pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(data->object_instance)) {
             /* The object being created already exists */
             data->error_class = ERROR_CLASS_OBJECT;
@@ -1299,7 +1305,8 @@ bool handler_device_object_delete(BACNET_DELETE_OBJECT_DATA *data)
                 object for some reason.*/
             data->error_class = ERROR_CLASS_OBJECT;
             data->error_code = ERROR_CODE_OBJECT_DELETION_NOT_PERMITTED;
-        } else if (pObject->Object_Valid_Instance &&
+        } else if (
+            pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(data->object_instance)) {
             /* The object being deleted must already exist */
             status = pObject->Object_Delete(data->object_instance);

@@ -59,7 +59,6 @@ static uint32_t Interval_Offset_Minutes;
 /* Max_Master - rely on MS/TP subsystem, if there is one */
 /* Max_Info_Frames - rely on MS/TP subsystem, if there is one */
 /* Device_Address_Binding - required, but relies on binding cache */
-static uint32_t Database_Revision = 0;
 /* Configuration_Files */
 /* Last_Restore_Time */
 /* Backup_Failure_Timeout */
@@ -1122,14 +1121,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], Device_Protocol_Revision());
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
-            /* Note: list of services that are executed, not initiated. */
-            bitstring_init(&bit_string);
-            for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
-                /* automatic lookup based on handlers set */
-                bitstring_set_bit(
-                    &bit_string, (uint8_t)i,
-                    apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
-            }
+            handler_device_object_types_supported(&bit_string);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
@@ -1137,10 +1129,11 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OBJECT_LIST:
-            count = Device_Object_List_Count();
+            count = handler_device_object_list_count();
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                Device_Object_List_Element_Encode, count, apdu, apdu_size);
+                handler_device_object_list_element_encode, count, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;

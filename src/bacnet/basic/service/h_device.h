@@ -186,8 +186,8 @@ BACNET_STACK_EXPORT
 bool handler_device_reinitialize_backup_restore_enabled(void);
 
 BACNET_STACK_EXPORT
-rr_info_function handler_device_object_read_range_info(
-    BACNET_OBJECT_TYPE object_type);
+rr_info_function
+handler_device_object_read_range_info(BACNET_OBJECT_TYPE object_type);
 
 BACNET_STACK_EXPORT
 void handler_device_object_property_list(
@@ -224,11 +224,13 @@ int handler_device_object_list_element_remove(
     BACNET_LIST_ELEMENT_DATA *list_element);
 
 BACNET_STACK_EXPORT
-bool handler_device_valid_object_name(BACNET_CHARACTER_STRING *object_name1,
+bool handler_device_valid_object_name(
+    const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance);
 BACNET_STACK_EXPORT
-bool handler_device_object_name_copy(BACNET_OBJECT_TYPE object_type,
+bool handler_device_object_name_copy(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
@@ -236,12 +238,10 @@ bool handler_device_valid_object_instance(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-void handler_device_services_supported(
-    BACNET_BIT_STRING *bit_string);
+void handler_device_services_supported(BACNET_BIT_STRING *bit_string);
 
 BACNET_STACK_EXPORT
-void handler_device_object_types_supported(
-    BACNET_BIT_STRING *bit_string);
+void handler_device_object_types_supported(BACNET_BIT_STRING *bit_string);
 
 BACNET_STACK_EXPORT
 void handler_device_intrinsic_reporting(void);
@@ -249,7 +249,8 @@ void handler_device_intrinsic_reporting(void);
 BACNET_STACK_EXPORT
 bool handler_device_object_value_list_supported(BACNET_OBJECT_TYPE object_type);
 BACNET_STACK_EXPORT
-bool handler_device_object_value_list(BACNET_OBJECT_TYPE object_type,
+bool handler_device_object_value_list(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE *value_list);
 BACNET_STACK_EXPORT
@@ -260,15 +261,12 @@ void handler_device_object_cov_clear(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-int handler_device_read_property_default(
-    BACNET_READ_PROPERTY_DATA *rpdata);
+int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 int handler_device_read_property_common(
-    struct object_functions *pObject, 
-    BACNET_READ_PROPERTY_DATA *rpdata);
+    struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
-int handler_device_read_property(
-    BACNET_READ_PROPERTY_DATA *rpdata);
+int handler_device_read_property(BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
 bool handler_device_object_create(BACNET_CREATE_OBJECT_DATA *data);

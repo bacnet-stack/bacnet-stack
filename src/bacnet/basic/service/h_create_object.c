@@ -102,7 +102,7 @@ void handler_create_object(
                 debug_print("CreateObject: Sending Reject!\n");
             }
         } else {
-            if (Device_Create_Object(&data)) {
+            if (handler_device_object_create(&data)) {
                 len = create_object_ack_encode(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     &data);

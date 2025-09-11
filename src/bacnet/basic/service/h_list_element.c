@@ -101,7 +101,7 @@ void handler_add_list_element(
             status = false;
         }
         if (status) {
-            if (Device_Add_List_Element(&list_element) >= 0) {
+            if (handler_device_object_list_element_add(&list_element) >= 0) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ADD_LIST_ELEMENT);
@@ -201,7 +201,7 @@ void handler_remove_list_element(
             status = false;
         }
         if (status) {
-            if (Device_Remove_List_Element(&list_element) >= 0) {
+            if (handler_device_object_list_element_remove(&list_element) >= 0) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT);
