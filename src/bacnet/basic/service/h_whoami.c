@@ -38,10 +38,9 @@ void handler_who_am_i_json_print(
     if (len > 0) {
         debug_printf_stdout("{\n\"Who-Am-I-Request\": {\n");
         debug_printf_stdout(" \"vendor-id\" : %u,\n", (unsigned)vendor_id);
-        len = bacapp_snprintf_character_string(name, sizeof(name), &model_name);
+        bacapp_snprintf_character_string(name, sizeof(name), &model_name);
         debug_printf_stdout(" \"model-name\" : %s,\n", name);
-        len = bacapp_snprintf_character_string(
-            name, sizeof(name), &serial_number);
+        bacapp_snprintf_character_string(name, sizeof(name), &serial_number);
         debug_printf_stdout(" \"serial-number\" : %s", name);
         debug_printf_stdout("\n }\n}\n");
     }

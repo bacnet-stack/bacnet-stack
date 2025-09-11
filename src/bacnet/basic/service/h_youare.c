@@ -42,10 +42,9 @@ void handler_you_are_json_print(
     if (len > 0) {
         debug_printf_stdout("{\n\"You-Are-Request\": {\n");
         debug_printf_stdout(" \"vendor-id\" : %u,\n", (unsigned)vendor_id);
-        len = bacapp_snprintf_character_string(name, sizeof(name), &model_name);
+        bacapp_snprintf_character_string(name, sizeof(name), &model_name);
         debug_printf_stdout(" \"model-name\" : %s,\n", name);
-        len = bacapp_snprintf_character_string(
-            name, sizeof(name), &serial_number);
+        bacapp_snprintf_character_string(name, sizeof(name), &serial_number);
         debug_printf_stdout(" \"serial-number\" : %s", name);
         if (device_id <= BACNET_MAX_INSTANCE) {
             debug_printf_stdout(",\n");
@@ -54,8 +53,7 @@ void handler_you_are_json_print(
         }
         if (mac_address.length > 0) {
             debug_printf_stdout(",\n");
-            len =
-                bacapp_snprintf_octet_string(name, sizeof(name), &mac_address);
+            bacapp_snprintf_octet_string(name, sizeof(name), &mac_address);
             debug_printf_stdout(" \"device-mac-address\" : \"%s\"", name);
         }
         debug_printf_stdout("\n }\n}\n");
