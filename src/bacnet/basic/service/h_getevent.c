@@ -44,7 +44,7 @@ void ge_ack_print_data(
     printf("--------------- ------- --------------- ---------------\n");
     while (act_data) {
         printf(
-            "%u\t\t%u\t%u\t\t%s\n", device_id, act_data->objectIdentifier.type,
+            "%lu\t\t%u\t%lu\t\t%s\n", device_id, act_data->objectIdentifier.type,
             act_data->objectIdentifier.instance, state_strs[data->eventState]);
         act_data = act_data->next;
         count++;

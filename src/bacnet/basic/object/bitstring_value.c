@@ -495,7 +495,7 @@ bool BitString_Value_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "BITSTRING_VALUE-%u",
+                name_text, sizeof(name_text), "BITSTRING_VALUE-%lu",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }

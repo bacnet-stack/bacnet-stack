@@ -244,7 +244,7 @@ bool Load_Control_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "LOAD_CONTROL-%u",
+                name_text, sizeof(name_text), "LOAD_CONTROL-%lu",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }

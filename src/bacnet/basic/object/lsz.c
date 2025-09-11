@@ -209,7 +209,7 @@ bool Life_Safety_Zone_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "LIFE-SAFETY-ZONE-%u",
+                name_text, sizeof(name_text), "LIFE-SAFETY-ZONE-%lu",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
