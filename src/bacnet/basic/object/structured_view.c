@@ -177,8 +177,8 @@ bool Structured_View_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "Structured-View-%u",
-                object_instance);
+                name_text, sizeof(name_text), "Structured-View-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }

@@ -274,7 +274,9 @@ static void add_discovered_properties_to_gui(
         bacnet_discover_object_property_identifier(
             device_id, object_type, object_instance, index, &property_id);
         if (bactext_property_name_proprietary(property_id)) {
-            asprintfa(&property_string, "proprietary-%u", property_id);
+            asprintfa(
+                &property_string, "proprietary-%lu",
+                (unsigned long)property_id);
         } else {
             asprintfa(
                 &property_string, "%s", bactext_property_name(property_id));
