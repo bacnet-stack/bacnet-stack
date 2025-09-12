@@ -974,7 +974,7 @@ bool Lighting_Output_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[24] = "LIGHTING-OUTPUT-4194303";
+    char name_text[48] = "LIGHTING-OUTPUT-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -983,8 +983,8 @@ bool Lighting_Output_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "LIGHTING-OUTPUT-%u",
-                object_instance);
+                name_text, sizeof(name_text), "LIGHTING-OUTPUT-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }

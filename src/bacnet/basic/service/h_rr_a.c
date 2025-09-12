@@ -51,7 +51,7 @@ static void PrintReadRangeData(BACNET_READ_RANGE_DATA *data)
                 by others subject to the procedures and
                 constraints described in Clause 23. */
             debug_printf_stdout(
-                "    proprietary %u", (unsigned)data->object_property);
+                "    proprietary %lu", (unsigned long)data->object_property);
         }
         if (data->array_index == BACNET_ARRAY_ALL) {
             debug_printf_stdout(": ");
