@@ -168,7 +168,7 @@ bool Structured_View_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[24] = "Structured-View-4194303";
+    char name_text[48] = "Structured-View-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
