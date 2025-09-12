@@ -22,6 +22,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added MS/TP statistics counters for BadCRC and Poll-For-Master. (#1081)
 * Added Lighting Output API to implement override for HOA control.
   Integrated lighting command overridden behavior into the lighting
   output object and added Overridden status flags API.
@@ -99,6 +100,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed Who-Am-I and You-Are JSON handlers to eliminate dynamic
+  memory allocation for model and serial number strings,
+  improving memory management and simplifying code. (#1089)
 * Change stm32f4xx example to use static RAM file system. (#1058)
 * Changed the bacnet file object to be storage agnostic by refactoring
   and using callbacks. (#1056)
@@ -110,6 +114,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed copied code that no longer needs static function scope variables
+  for text names. (#1092)
+* Fixed compiler warning format '%u' expects argument of type 'unsigned int',
+  but argument 4 has type 'uint32_t' {aka 'long unsigned int'}
+  [-Werror=format=] by casting or increasing format specifier size
+  and casting. (#1092)
 * Fixed Lighting_Command to ignore write priority and use its own. (#1086)
 * Fixed BACnetLightingOperation reserved range. (#1086)
 * Fixed missing prototype warning in lighting.c module.
