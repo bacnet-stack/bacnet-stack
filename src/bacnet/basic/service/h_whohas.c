@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic Who-Has service handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -38,7 +38,7 @@ static void match_name_or_object(const BACNET_WHO_HAS_DATA *data)
             &data->object.name, &object_type, &object_instance);
         if (found) {
             Send_I_Have(
-                Device_Object_Instance_Number(),
+                handler_device_object_instance_number(),
                 (BACNET_OBJECT_TYPE)object_type, object_instance,
                 &data->object.name);
         }
@@ -49,7 +49,7 @@ static void match_name_or_object(const BACNET_WHO_HAS_DATA *data)
             data->object.identifier.instance, &object_name);
         if (found) {
             Send_I_Have(
-                Device_Object_Instance_Number(),
+                handler_device_object_instance_number(),
                 (BACNET_OBJECT_TYPE)data->object.identifier.type,
                 data->object.identifier.instance, &object_name);
         }
@@ -78,8 +78,10 @@ void handler_who_has(
         if ((data.low_limit == -1) || (data.high_limit == -1)) {
             directed_to_me = true;
         } else if (
-            (Device_Object_Instance_Number() >= (uint32_t)data.low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t)data.high_limit)) {
+            (handler_device_object_instance_number() >=
+             (uint32_t)data.low_limit) &&
+            (handler_device_object_instance_number() <=
+             (uint32_t)data.high_limit)) {
             directed_to_me = true;
         }
         if (directed_to_me) {

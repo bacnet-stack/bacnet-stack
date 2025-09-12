@@ -24,7 +24,6 @@
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
-#include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/server/bacnet_basic.h"
 #include "bacnet/basic/server/bacnet_port.h"

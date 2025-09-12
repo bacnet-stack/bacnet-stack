@@ -21,7 +21,6 @@
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
 /* basic objects and services */
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/keylist.h"

@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic Who-Is service handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -97,31 +97,35 @@ void handler_who_is_who_am_i_unicast(
     len = whois_decode_service_request(
         service_request, service_len, &low_limit, &high_limit);
     if (len == 0) {
-        if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+        if (handler_device_object_instance_number() == BACNET_MAX_INSTANCE) {
             /* The Who-Am-I service is also used to respond to a Who-Is
                service request that uses the Device Object_Identifier
                instance number of 4194303. */
-            characterstring_init_ansi(&model_name, Device_Model_Name());
-            characterstring_init_ansi(&serial_number, Device_Serial_Number());
+            handler_device_character_string_get(PROP_MODEL_NAME, &model_name);
+            handler_device_character_string_get(
+                PROP_SERIAL_NUMBER, &serial_number);
             Send_Who_Am_I_To_Network(
-                src, Device_Vendor_Identifier(), &model_name, &serial_number);
+                src, handler_device_vendor_identifier(), &model_name,
+                &serial_number);
         } else {
             /* If no limits, then always respond */
             Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
         }
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
-        if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
-            if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+        if ((handler_device_object_instance_number() >= (uint32_t)low_limit) &&
+            (handler_device_object_instance_number() <= (uint32_t)high_limit)) {
+            if (handler_device_object_instance_number() ==
+                BACNET_MAX_INSTANCE) {
                 /* The Who-Am-I service is also used to respond to a Who-Is
                 service request that uses the Device Object_Identifier
                 instance number of 4194303. */
-                characterstring_init_ansi(&model_name, Device_Model_Name());
-                characterstring_init_ansi(
-                    &serial_number, Device_Serial_Number());
+                handler_device_character_string_get(
+                    PROP_MODEL_NAME, &model_name);
+                handler_device_character_string_get(
+                    PROP_SERIAL_NUMBER, &serial_number);
                 Send_Who_Am_I_To_Network(
-                    src, Device_Vendor_Identifier(), &model_name,
+                    src, handler_device_vendor_identifier(), &model_name,
                     &serial_number);
             } else {
                 Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);

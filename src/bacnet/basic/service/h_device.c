@@ -1227,6 +1227,40 @@ int handler_device_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Get a character string property from parent or child object
+ * @param object_type [in] The BACNET_OBJECT_TYPE of the child Object.
+ * @param object_instance [in] The object instance number of the child Object.
+ * @param property [in] The property to be read
+ * @param object_name [out] The Object Name found for this child Object.
+ * @return True on success or else False if not found.
+ */
+bool handler_device_character_string_get(
+    BACNET_PROPERTY_ID property, BACNET_CHARACTER_STRING *object_name)
+{
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    uint8_t apdu[MAX_CHARACTER_STRING_BYTES + 6] = { 0 };
+    int apdu_len = 0, len;
+
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = Object_Instance_Number;
+    rpdata.object_property = property;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    apdu_len = handler_device_read_property(&rpdata);
+    if (apdu_len > 0) {
+        /* Successfully read the property */
+        len = bacnet_character_string_application_decode(
+            &apdu[0], apdu_len, object_name);
+        if (len > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * @brief Creates a child object, if supported
  * @ingroup ObjHelpers
  * @param data - CreateObject data, including error codes if failures

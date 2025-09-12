@@ -16,7 +16,6 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/schedule.h"
 
 #ifndef MAX_SCHEDULES

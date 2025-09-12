@@ -20,7 +20,6 @@
 #include <bacnet/npdu.h>
 #include <bacnet/apdu.h>
 #include <bacnet/datalink/datalink.h>
-#include <bacnet/basic/object/device.h>
 #include <bacnet/timestamp.h>
 /* me */
 #include <bacnet/basic/object/bacfile.h>

@@ -21,7 +21,6 @@
 #include "bacnet/event.h"
 #include "bacnet/wp.h"
 /* basic objects and services */
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/nc.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/services.h"
@@ -629,10 +628,10 @@ void Notification_Class_common_reporting_function(
         return;
     }
 
-    /* Initiating Device Identifier */
+    /* Initiating device identifier */
     event_data->initiatingObjectIdentifier.type = OBJECT_DEVICE;
     event_data->initiatingObjectIdentifier.instance =
-        Device_Object_Instance_Number();
+        handler_device_object_instance_number();
 
     /* Priority and AckRequired */
     switch (event_data->toState) {

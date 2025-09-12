@@ -25,7 +25,6 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
 #include <bacnet/basic/object/netport_internal.h>

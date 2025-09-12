@@ -16,7 +16,6 @@
 #include "bacnet/youare.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/object/device.h"
 
 /**
  * A basic handler for You-Are responses.
@@ -82,13 +81,14 @@ void handler_you_are_device_id_set(
         service_request, service_len, &device_id, &vendor_id, &model_name,
         &serial_number, NULL);
     if (len > 0) {
-        characterstring_init_ansi(&device_model_name, Device_Model_Name());
-        characterstring_init_ansi(
-            &device_serial_number, Device_Serial_Number());
-        if ((Device_Vendor_Identifier() == vendor_id) &&
+        handler_device_character_string_get(
+            PROP_MODEL_NAME, &device_model_name);
+        handler_device_character_string_get(
+            PROP_SERIAL_NUMBER, &device_serial_number);
+        if ((handler_device_vendor_identifier() == vendor_id) &&
             characterstring_same(&device_model_name, &model_name) &&
             characterstring_same(&device_serial_number, &serial_number)) {
-            Device_Set_Object_Instance_Number(device_id);
+            handler_device_object_instance_number_set(device_id);
         }
     }
 
