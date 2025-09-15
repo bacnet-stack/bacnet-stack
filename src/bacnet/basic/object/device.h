@@ -144,9 +144,9 @@ typedef struct object_functions {
 
 /* String Lengths - excluding any nul terminator */
 #define MAX_DEV_NAME_LEN 32
-#define MAX_DEV_LOC_LEN 64
-#define MAX_DEV_MOD_LEN 32
-#define MAX_DEV_VER_LEN 16
+#define MAX_DEV_LOC_LEN 255*4 /* 4 bytes max for a UTF8 code point */
+#define MAX_DEV_MOD_LEN 64
+#define MAX_DEV_VER_LEN 64
 #define MAX_DEV_DESC_LEN 64
 
 /** Structure to define the Object Properties common to all Objects. */
