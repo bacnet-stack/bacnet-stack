@@ -67,7 +67,7 @@ AVRDUDE_PORT := /dev/ttyUSB0
 endif
 
 # Source locations
-BACNET_SRC = ../../src
+BACNET_SRC = $(realpath ../../src)
 BACNET_CORE = $(BACNET_SRC)/bacnet
 BACNET_INCLUDE = $(BACNET_SRC)
 BACNET_BASIC = $(BACNET_CORE)/basic
@@ -147,25 +147,8 @@ CORESRC =  \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
 
-#	$(BACNET_CORE)/version.c
-#	$(BACNET_CORE)/bacprop.c \
-#	$(BACNET_CORE)/bactext.c \
-#	$(BACNET_CORE)/datetime.c \
-#	$(BACNET_CORE)/indtext.c \
-#	$(BACNET_CORE)/bigend.c \
-#	$(BACNET_CORE)/arf.c \
-#	$(BACNET_CORE)/awf.c \
-#	$(BACNET_CORE)/cov.c \
-#	$(BACNET_CORE)/iam/iam_client.c \
-#	$(BACNET_CORE)/ihave.c \
-#	$(BACNET_CORE)/timesync.c \
-#	$(BACNET_CORE)/whohas.c \
-#	$(BACNET_CORE)/filename.c \
-#	$(BACNET_CORE)/tsm.c \
-#	$(BACNET_CORE)/address.c \
-
 ## Include Directories
-INCLUDES = -I. -I$(BACNET_INCLUDE)
+INCLUDES = -I$(realpath .) -I$(BACNET_INCLUDE)
 
 # Source to Object conversion
 HALOBJ = $(HALSRC:%.c=%.o)

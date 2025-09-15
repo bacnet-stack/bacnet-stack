@@ -99,16 +99,17 @@ set(LIBRARY_BACNET_CORE "../../src/bacnet")
 set(LIBRARY_BACNET_BASIC "../../src/bacnet/basic")
 
 set(BACNET_PROJECT_SOURCE
-    ${CMAKE_SOURCE_DIR}/crt.s
-    ${CMAKE_SOURCE_DIR}/at91sam7s256.h
-    ${CMAKE_SOURCE_DIR}/board.h
     # CPU interfaces
+    ${CMAKE_SOURCE_DIR}/external/crt.s
+    ${CMAKE_SOURCE_DIR}/external/at91sam7s256.h
+    ${CMAKE_SOURCE_DIR}/external/init.c
+    ${CMAKE_SOURCE_DIR}/external/isr.c
+    ${CMAKE_SOURCE_DIR}/external/blinker.c
+    ${CMAKE_SOURCE_DIR}/external/timer.c
+    # Platform specific
+    ${CMAKE_SOURCE_DIR}/board.h
     ${CMAKE_SOURCE_DIR}/main.c
-    ${CMAKE_SOURCE_DIR}/init.c
-    ${CMAKE_SOURCE_DIR}/isr.c
-    ${CMAKE_SOURCE_DIR}/blinker.c
     ${CMAKE_SOURCE_DIR}/rs485.c
-    ${CMAKE_SOURCE_DIR}/timer.c
     # MSTP datalink
     ${CMAKE_SOURCE_DIR}/dlmstp.c
     # BACnet objects

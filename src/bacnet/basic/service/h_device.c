@@ -21,13 +21,37 @@
 #include "bacnet/basic/service/h_device.h"
 
 /* Object services */
-static object_functions_t *Object_Table;
-static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
-static uint32_t Database_Revision;
-static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static const char *Reinit_Password = "filister";
-static bool Reinitialize_Backup_Restore_Enabled;
-static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
+struct handler_device_object_info *Device_Object_Info;
+
+/**
+ * @brief Set Device Object Instance Info for our (single) Device Object.
+ * @param info [in] Pointer to the structure containing the object info
+ */
+void handler_device_object_info_set(struct handler_device_object_info *info)
+{
+    Device_Object_Info = info;
+}
+
+/**
+ * @brief Get Device Object Instance Info for our (single) Device Object.
+ * @return Pointer to the structure containing the object info
+ */
+struct handler_device_object_info *handler_device_object_info_get(void)
+{
+    return Device_Object_Info;
+}
+
+/**
+ * @brief Get Device Object table containing every object type
+ * @return Pointer to the object function table, or null if not set
+ */
+static struct object_functions *handler_device_object_table_get(void)
+{
+    if (Device_Object_Info == NULL) {
+        return NULL;
+    }
+    return Device_Object_Info->object_table;
+}
 
 /**
  * @brief Sets the ReinitializeDevice password
@@ -42,9 +66,12 @@ static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
  */
 bool handler_device_reinitialize_password_set(const char *password)
 {
-    Reinit_Password = password;
+    if (Device_Object_Info) {
+        Device_Object_Info->reinit_password = password;
+        return true;
+    }
 
-    return true;
+    return false;
 }
 
 /**
@@ -53,7 +80,9 @@ bool handler_device_reinitialize_password_set(const char *password)
  */
 void handler_device_reinitialize_backup_restore_enabled_set(bool enable)
 {
-    Reinitialize_Backup_Restore_Enabled = enable;
+    if (Device_Object_Info) {
+        Device_Object_Info->reinitialize_backup_restore_enabled = enable;
+    }
 }
 
 /**
@@ -62,7 +91,10 @@ void handler_device_reinitialize_backup_restore_enabled_set(bool enable)
  */
 bool handler_device_reinitialize_backup_restore_enabled(void)
 {
-    return Reinitialize_Backup_Restore_Enabled;
+    if (Device_Object_Info) {
+        return Device_Object_Info->reinitialize_backup_restore_enabled;
+    }
+    return false;
 }
 
 /** Commands a Device re-initialization, to a given state.
@@ -82,19 +114,23 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
     bool password_success = false;
+    const char *password = NULL;
 
+    if (!Device_Object_Info || !rd_data) {
+        return false;
+    }
+    password = Device_Object_Info->reinit_password;
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to
         20 characters. For those devices that require the password as a
         protection, the service request shall be denied if the parameter
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
-    if (Reinit_Password && strlen(Reinit_Password) > 0) {
+    if (password && strlen(password) > 0) {
         if (characterstring_length(&rd_data->password) > 20) {
             rd_data->error_class = ERROR_CLASS_SERVICES;
             rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-        } else if (characterstring_ansi_same(
-                       &rd_data->password, Reinit_Password)) {
+        } else if (characterstring_ansi_same(&rd_data->password, password)) {
             password_success = true;
         } else {
             rd_data->error_class = ERROR_CLASS_SECURITY;
@@ -111,7 +147,7 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
-                Reinitialize_State = rd_data->state;
+                Device_Object_Info->reinitialize_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_STARTBACKUP:
@@ -122,8 +158,9 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 if (dcc_communication_disabled()) {
                     rd_data->error_class = ERROR_CLASS_SERVICES;
                     rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
-                } else if (Reinitialize_Backup_Restore_Enabled) {
-                    Reinitialize_State = rd_data->state;
+                } else if (Device_Object_Info
+                               ->reinitialize_backup_restore_enabled) {
+                    Device_Object_Info->reinitialize_state = rd_data->state;
                     status = true;
                 } else {
                     rd_data->error_class = ERROR_CLASS_SERVICES;
@@ -147,7 +184,11 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
  */
 BACNET_REINITIALIZED_STATE handler_device_reinitialized_state(void)
 {
-    return Reinitialize_State;
+    if (Device_Object_Info) {
+        return Device_Object_Info->reinitialize_state;
+    }
+
+    return BACNET_REINIT_IDLE;
 }
 
 /**
@@ -156,7 +197,9 @@ BACNET_REINITIALIZED_STATE handler_device_reinitialized_state(void)
  */
 void handler_device_reinitialized_state_set(BACNET_REINITIALIZED_STATE state)
 {
-    Reinitialize_State = state;
+    if (Device_Object_Info) {
+        Device_Object_Info->reinitialize_state = state;
+    }
 }
 
 /** Returns the Vendor ID for this Device.
@@ -166,7 +209,10 @@ void handler_device_reinitialized_state_set(BACNET_REINITIALIZED_STATE state)
  */
 uint16_t handler_device_vendor_identifier(void)
 {
-    return Vendor_Identifier;
+    if (Device_Object_Info) {
+        return Device_Object_Info->vendor_identifier;
+    }
+    return BACNET_VENDOR_ID;
 }
 
 /**
@@ -175,7 +221,9 @@ uint16_t handler_device_vendor_identifier(void)
  */
 void handler_device_vendor_identifier_set(uint16_t vendor_id)
 {
-    Vendor_Identifier = vendor_id;
+    if (Device_Object_Info) {
+        Device_Object_Info->vendor_identifier = vendor_id;
+    }
 }
 
 /** Glue function to let the Device object, when called by a handler,
@@ -184,17 +232,17 @@ void handler_device_vendor_identifier_set(uint16_t vendor_id)
  * @param Object_Type [in] The type of BACnet Object the handler wants to
  * access.
  * @return Pointer to the group of object helper functions that implement this
- *         type of Object.
+ *         type of Object, or NULL if uninitialized
  */
 static struct object_functions *
 handler_device_object_functions(BACNET_OBJECT_TYPE Object_Type)
 {
     struct object_functions *pObject = NULL;
 
-    if (Object_Table == NULL) {
+    pObject = handler_device_object_table_get();
+    if (pObject == NULL) {
         return NULL;
     }
-    pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
         if (pObject->Object_Type == Object_Type) {
@@ -203,7 +251,7 @@ handler_device_object_functions(BACNET_OBJECT_TYPE Object_Type)
         pObject++;
     }
 
-    return (NULL);
+    return NULL;
 }
 
 /** Try to find a rr_info_function helper function for the requested object
@@ -223,7 +271,10 @@ handler_device_object_read_range_info(BACNET_OBJECT_TYPE object_type)
     struct object_functions *pObject = NULL;
 
     pObject = handler_device_object_functions(object_type);
-    return (pObject != NULL ? pObject->Object_RR_Info : NULL);
+    if (pObject) {
+        return pObject->Object_RR_Info;
+    }
+    return NULL;
 }
 
 /** For a given object type, returns the special property list.
@@ -288,7 +339,7 @@ void handler_device_object_property_list(
 bool handler_device_object_property_list_member(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    int object_property)
+    BACNET_PROPERTY_ID object_property)
 {
     bool found = false;
     struct object_functions *pObject = NULL;
@@ -321,7 +372,10 @@ bool handler_device_object_property_list_member(
  */
 uint32_t handler_device_object_instance_number(void)
 {
-    return Object_Instance_Number;
+    if (Device_Object_Info) {
+        return Device_Object_Info->instance_number;
+    }
+    return BACNET_MAX_INSTANCE;
 }
 
 /**
@@ -330,7 +384,9 @@ uint32_t handler_device_object_instance_number(void)
  */
 void handler_device_object_instance_number_set(uint32_t device_id)
 {
-    Object_Instance_Number = device_id;
+    if (Device_Object_Info) {
+        Device_Object_Info->instance_number = device_id;
+    }
 }
 
 /**
@@ -356,7 +412,7 @@ uint32_t handler_device_wildcard_instance_number(
         determined. */
     if ((object_type == OBJECT_DEVICE) &&
         (object_instance == BACNET_MAX_INSTANCE)) {
-        instance = Object_Instance_Number;
+        instance = handler_device_object_instance_number();
     }
 #if (BACNET_PROTOCOL_REVISION >= 17)
     /* When the object-type in the Object Identifier parameter
@@ -371,6 +427,8 @@ uint32_t handler_device_wildcard_instance_number(
         (object_instance == BACNET_MAX_INSTANCE)) {
         pObject = handler_device_object_functions(object_type);
         if ((pObject != NULL) && (pObject->Object_Index_To_Instance)) {
+            /* note: assumption that index 0 corresponds to the
+               home port */
             instance = pObject->Object_Index_To_Instance(0);
         }
     }
@@ -385,7 +443,11 @@ uint32_t handler_device_wildcard_instance_number(
  */
 uint32_t handler_device_object_database_revision(void)
 {
-    return Database_Revision;
+    if (Device_Object_Info) {
+        return Device_Object_Info->database_revision;
+    }
+
+    return 0;
 }
 
 /**
@@ -394,14 +456,18 @@ uint32_t handler_device_object_database_revision(void)
  */
 void handler_device_object_database_revision_set(uint32_t database_revision)
 {
-    Database_Revision = database_revision;
+    if (Device_Object_Info) {
+        Device_Object_Info->database_revision = database_revision;
+    }
 }
 /*
  * @brief increment the device object database revision by 1
  */
 void handler_device_object_database_revision_increment(void)
 {
-    Database_Revision++;
+    if (Device_Object_Info) {
+        Device_Object_Info->database_revision++;
+    }
 }
 
 /**
@@ -545,19 +611,20 @@ bool handler_device_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 /** Get the total count of objects supported by this Device Object.
  * @note Since many network clients depend on the object list
- *       for discovery, it must be consistent!
- * @return The count of objects, for all supported Object types.
+ *  for discovery, it must be consistent!
+ * @return The count of objects for all supported Object types, or zero
+ *  if there are no objects.
  */
 unsigned handler_device_object_list_count(void)
 {
     unsigned count = 0; /* number of objects */
     struct object_functions *pObject = NULL;
 
-    if (Object_Table == NULL) {
+    /* initialize the default return values */
+    pObject = handler_device_object_table_get();
+    if (pObject == NULL) {
         return 0;
     }
-    /* initialize the default return values */
-    pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Count) {
             count += pObject->Object_Count();
@@ -587,22 +654,16 @@ bool handler_device_object_list_identifier(
     uint32_t temp_index = 0;
     struct object_functions *pObject = NULL;
 
+    pObject = handler_device_object_table_get();
+    if (pObject == NULL) {
+        return false;
+    }
     /* array index zero is length - so invalid */
     if (array_index == 0) {
-        return status;
-    }
-    if (Object_Table == NULL) {
-        /* special case for default value - one device object */
-        if (array_index == 1) {
-            *object_type = OBJECT_DEVICE;
-            *instance = Object_Instance_Number;
-            status = true;
-        }
-        return status;
+        return false;
     }
     object_index = array_index - 1;
     /* initialize the default return values */
-    pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Count) {
             object_index -= count;
@@ -654,7 +715,7 @@ int handler_device_object_list_element_encode(
     uint32_t instance;
     bool found;
 
-    if (object_instance == Object_Instance_Number) {
+    if (object_instance == handler_device_object_instance_number()) {
         /* single element uses offset of zero,
            add 1 for BACnetARRAY which uses offset of one */
         array_index++;
@@ -975,9 +1036,6 @@ void handler_device_object_types_supported(BACNET_BIT_STRING *bit_string)
     unsigned i = 0;
     object_functions_t *pObject = NULL;
 
-    if (Object_Table == NULL) {
-        return;
-    }
     /* Note: this is the list of objects that can be in this device,
        not a list of objects that this device can access */
     bitstring_init(bit_string);
@@ -986,7 +1044,10 @@ void handler_device_object_types_supported(BACNET_BIT_STRING *bit_string)
         bitstring_set_bit(bit_string, (uint8_t)i, false);
     }
     /* set the object types with objects to supported */
-    pObject = Object_Table;
+    pObject = handler_device_object_table_get();
+    if (pObject == NULL) {
+        return;
+    }
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
             bitstring_set_bit(bit_string, (uint8_t)pObject->Object_Type, true);
@@ -1018,7 +1079,8 @@ int handler_device_read_property_common(
     }
     apdu = rpdata->application_data;
     if (property_list_common(rpdata->object_property)) {
-        apdu_len = property_list_common_encode(rpdata, Object_Instance_Number);
+        apdu_len = property_list_common_encode(
+            rpdata, handler_device_object_instance_number());
     } else if (rpdata->object_property == PROP_OBJECT_NAME) {
         /*  only array properties can have array options */
         if (rpdata->array_index != BACNET_ARRAY_ALL) {
@@ -1072,7 +1134,8 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
+                &apdu[0], OBJECT_DEVICE,
+                handler_device_object_instance_number());
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string, "Default Device Name");
@@ -1242,7 +1305,7 @@ bool handler_device_character_string_get(
     int apdu_len = 0, len;
 
     rpdata.object_type = OBJECT_DEVICE;
-    rpdata.object_instance = Object_Instance_Number;
+    rpdata.object_instance = handler_device_object_instance_number();
     rpdata.object_property = property;
     rpdata.array_index = BACNET_ARRAY_ALL;
     rpdata.application_data = &apdu[0];
@@ -1375,10 +1438,10 @@ void handler_device_timer(uint16_t milliseconds)
     unsigned count = 0;
     uint32_t instance;
 
-    if (Object_Table == NULL) {
+    pObject = handler_device_object_table_get();
+    if (pObject == NULL) {
         return;
     }
-    pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Count) {
             count = pObject->Object_Count();
@@ -1403,7 +1466,9 @@ void handler_device_timer(uint16_t milliseconds)
  */
 void handler_device_object_table_set(object_functions_t *object_table)
 {
-    Object_Table = object_table;
+    if (Device_Object_Info) {
+        Device_Object_Info->object_table = object_table;
+    }
 }
 
 /**
@@ -1413,10 +1478,10 @@ void handler_device_object_init(void)
 {
     object_functions_t *pObject;
 
-    if (Object_Table == NULL) {
+    pObject = handler_device_object_table_get();
+    if (pObject == NULL) {
         return;
     }
-    pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
             pObject->Object_Init();

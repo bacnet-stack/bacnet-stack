@@ -40,6 +40,10 @@ static uint32_t Own_Device_ID = 0xFFFFFFFF;
 #if !defined(MAX_ADDRESS_CACHE)
 #define MAX_ADDRESS_CACHE 255
 #endif
+#if (MAX_ADDRESS_CACHE == 0)
+#undef MAX_ADDRESS_CACHE
+#define MAX_ADDRESS_CACHE 1
+#endif
 
 static struct Address_Cache_Entry {
     uint8_t Flags;

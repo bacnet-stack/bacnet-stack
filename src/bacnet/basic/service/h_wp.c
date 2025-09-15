@@ -145,7 +145,7 @@ void handler_write_property(
                    the write shall be considered successful." */
             } else {
                 if (write_property_bacnet_array_valid(&wp_data)) {
-                    success = Device_Write_Property(&wp_data);
+                    success = handler_device_write_property(&wp_data);
                 }
             }
             if (success) {

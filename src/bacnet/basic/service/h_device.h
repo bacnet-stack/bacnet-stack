@@ -146,9 +146,25 @@ typedef struct object_functions {
     object_timer_function Object_Timer;
 } object_functions_t;
 
+struct handler_device_object_info {
+    struct object_functions *object_table;
+    uint32_t instance_number;
+    uint32_t database_revision;
+    uint16_t vendor_identifier;
+    BACNET_REINITIALIZED_STATE reinitialize_state;
+    const char *reinit_password;
+    bool reinitialize_backup_restore_enabled;
+    void *context;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
+void handler_device_object_info_set(struct handler_device_object_info *info);
+BACNET_STACK_EXPORT
+struct handler_device_object_info *handler_device_object_info_get(void);
 
 BACNET_STACK_EXPORT
 uint32_t handler_device_object_instance_number(void);
@@ -198,8 +214,7 @@ BACNET_STACK_EXPORT
 bool handler_device_object_property_list_member(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    int object_property);
-
+    BACNET_PROPERTY_ID object_property);
 BACNET_STACK_EXPORT
 bool handler_device_object_instance_valid(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance);

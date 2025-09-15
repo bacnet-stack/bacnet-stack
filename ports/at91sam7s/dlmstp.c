@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2010 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Basic Device Object Handler
+ * @author Steve Karg
+ * @date 2010
+ * @copyright GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>

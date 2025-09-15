@@ -356,6 +356,7 @@
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
+                    <state>$PROJ_DIR$\external</state>
                     <state>$PROJ_DIR$\..\..\src</state>
                 </option>
                 <option>
@@ -1211,9 +1212,6 @@
         <name>$PROJ_DIR$\bi.c</name>
     </file>
     <file>
-        <name>$PROJ_DIR$\blinker.c</name>
-    </file>
-    <file>
         <name>$PROJ_DIR$\bv.c</name>
     </file>
     <file>
@@ -1223,10 +1221,13 @@
         <name>$PROJ_DIR$\dlmstp.c</name>
     </file>
     <file>
-        <name>$PROJ_DIR$\init.c</name>
+        <name>$PROJ_DIR$\external\blinker.c</name>
     </file>
     <file>
-        <name>$PROJ_DIR$\isr.c</name>
+        <name>$PROJ_DIR$\external\init.c</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\external\isr.c</name>
     </file>
     <file>
         <name>$PROJ_DIR$\main.c</name>

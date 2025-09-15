@@ -29,10 +29,10 @@ ifeq (${LEGACY},true)
 BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
-BACNET_SRC = ../../src
+BACNET_SRC = $(realpath ../../src)
 BACNET_CORE = $(BACNET_SRC)/bacnet
 BACNET_BASIC = $(BACNET_CORE)/basic
-INCLUDES = -I. -I$(BACNET_SRC)
+INCLUDES = -I$(realpath .) -I$(realpath ./external) -I$(BACNET_SRC)
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
 CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -g
@@ -43,8 +43,10 @@ CFLAGS += -fdata-sections -ffunction-sections
 CSTANDARD = -std=gnu11
 CFLAGS += $(CSTANDARD)
 # enable all relevant warnings that find bugs
-WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
-WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+WARNING_ALL := -Wall -Wextra -pedantic
+WARNING_ALL += -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default
+WARNING_ALL += -Wunused-variable
 # don't warn about conversion, sign, compares, long long and attributes
 # since they are common in embedded
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
@@ -73,14 +75,13 @@ LDFLAGS += -Wl,--gc-sections,-static
 CPFLAGS = --output-target=binary
 ODFLAGS	= -x --syms
 
-
-ASRC = crt.s
+ASRC = external/crt.s
 
 PORTSRC = main.c \
-	timer.c \
-	isr.c \
-	init.c \
-	blinker.c \
+	external/timer.c \
+	external/isr.c \
+	external/init.c \
+	external/blinker.c \
 	rs485.c \
 	dlmstp.c
 
