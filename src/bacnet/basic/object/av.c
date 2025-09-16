@@ -1140,7 +1140,6 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
     float ExceededLimit = 0.0f;
     float PresentVal = 0.0f;
     bool SendNotify = false;
-    BACNET_DATE_TIME *bdatetime;
 
     CurrentAV = Analog_Value_Object(object_instance);
     if (!CurrentAV) {

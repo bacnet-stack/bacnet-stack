@@ -36,7 +36,8 @@
 static uint8_t MSTP_MAC_Address;
 /* timer for device communications control */
 static struct mstimer DCC_Timer;
-#define DCC_CYCLE_SECONDS 1
+/* task timer for object functionality */
+static struct mstimer Device_Object_Timer;
 
 static bool seeprom_version_test(void)
 {
@@ -118,8 +119,9 @@ void bacnet_init(void)
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
-    /* start the cyclic 1 second timer for DCC */
-    mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
+    /* configure the cyclic task timers */
+    mstimer_set(&DCC_Timer, 1000UL);
+    mstimer_set(&Device_Object_Timer, 1000UL);
     /* Hello World! */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
@@ -198,7 +200,11 @@ void bacnet_task(void)
     /* handle the communication timer */
     if (mstimer_expired(&DCC_Timer)) {
         mstimer_reset(&DCC_Timer);
-        dcc_timer_seconds(DCC_CYCLE_SECONDS);
+        dcc_timer_seconds(mstimer_interval(&DCC_Timer));
+    }
+    if (mstimer_expired(&Device_Object_Timer)) {
+        mstimer_reset(&Device_Object_Timer);
+        Device_Timer(mstimer_interval(&Device_Object_Timer));
     }
     /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);

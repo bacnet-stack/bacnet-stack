@@ -182,6 +182,7 @@ int main(void)
         millisecond_timer();
         if (!DCC_Timer) {
             dcc_timer_seconds(1);
+            Device_Timer(1000);
             DCC_Timer = 1000;
         }
         /* USART Tx turns the LED on, we turn it off */

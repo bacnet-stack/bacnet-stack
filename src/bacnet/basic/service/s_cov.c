@@ -18,6 +18,7 @@
 #include "bacnet/cov.h"
 /* basic services, TSM, binding, and datalink */
 #include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 

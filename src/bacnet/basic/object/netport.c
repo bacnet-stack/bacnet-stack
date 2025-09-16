@@ -19,6 +19,7 @@
 #include "bacnet/bacint.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/datetime.h"
+#include "bacnet/proplist.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/datalink/bvlc.h"

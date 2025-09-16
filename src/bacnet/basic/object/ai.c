@@ -1089,7 +1089,6 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     float ExceededLimit = 0.0f;
     float PresentVal = 0.0f;
     bool SendNotify = false;
-    BACNET_DATE_TIME *bdatetime;
 
     CurrentAI = Analog_Input_Object(object_instance);
     if (!CurrentAI) {

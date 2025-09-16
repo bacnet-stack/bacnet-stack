@@ -811,6 +811,15 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Updates all the object timers with elapsed milliseconds
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Device_Timer(uint16_t milliseconds)
+{
+    handler_device_timer(milliseconds);
+}
+
+/**
  * @brief Initialize the Device Object
  * @param object_table [in] The object table
  */
