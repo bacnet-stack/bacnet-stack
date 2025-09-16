@@ -117,6 +117,8 @@ BACNET_STACK_EXPORT
 void Lighting_Output_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
+bool Lighting_Output_Lighting_Command_Refresh(uint32_t object_instance);
+BACNET_STACK_EXPORT
 bool Lighting_Output_Lighting_Command_Set(
     uint32_t object_instance, const BACNET_LIGHTING_COMMAND *value);
 BACNET_STACK_EXPORT

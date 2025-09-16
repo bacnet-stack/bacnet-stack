@@ -593,6 +593,21 @@ void lighting_command_override(
 }
 
 /**
+ * @brief Refreshes the current lighting command at the tracking value
+ * @param data [in] dimmer data
+ */
+void lighting_command_refresh(struct bacnet_lighting_command_data *data)
+{
+    float value;
+
+    if (!data) {
+        return;
+    }
+    value = data->Tracking_Value;
+    lighting_command_tracking_value_event(data, value, value);
+}
+
+/**
  * @brief Updates the dimmer tracking value per ramp or fade or step
  * @param data [in] dimmer data
  * @param milliseconds - number of milliseconds elapsed since previously

@@ -254,6 +254,22 @@ static float Priority_Array_Value(
 }
 
 /**
+ * @brief Get the Relinquish Default property value of the lighting output
+ * @param object [in] BACnet object instance
+ * @return The relinquish-default value for this object
+ */
+static float Relinquish_Default_Value(const struct object_data *pObject)
+{
+    float value = 0.0;
+
+    if (pObject) {
+        value = pObject->Relinquish_Default;
+    }
+
+    return value;
+}
+
+/**
  * @brief Get the value of the next highest non-NULL priority, including
  *  Relinquish_Default
  * @param object [in] BACnet object instance
@@ -264,10 +280,10 @@ static float Priority_Array_Value(
 static float Priority_Array_Next_Value(
     const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
-    float real_value = 0.0;
-    unsigned p = 0;
+    float real_value;
+    unsigned p;
 
-    real_value = pObject->Relinquish_Default;
+    real_value = Relinquish_Default_Value(pObject);
     for (p = priority; p < BACNET_MAX_PRIORITY; p++) {
         if (Priority_Array_Active(pObject, p)) {
             real_value = pObject->Priority_Array[p];
@@ -883,14 +899,7 @@ bool Lighting_Output_Present_Value_Relinquish(
         status = Present_Value_Relinquish(pObject, priority);
         new_priority = Present_Value_Priority(pObject);
         if (status && (old_priority != new_priority)) {
-            if (new_priority > BACNET_MAX_PRIORITY) {
-                /* BACNET_LIGHTS_WARN_RELINQUISH? */
-                value =
-                    (float)Lighting_Output_Relinquish_Default(object_instance);
-            } else {
-                value = (float)Lighting_Output_Present_Value_Priority(
-                    object_instance);
-            }
+            value = Priority_Array_Next_Value(pObject, 0);
             /* we have priority - configure the Lighting Command */
             Lighting_Command_Transition_Default(pObject, new_priority, value);
         }
@@ -1278,6 +1287,26 @@ bool Lighting_Output_Lighting_Command_Set(
         if (status) {
             lighting_command_copy(&pObject->Last_Lighting_Command, value);
         }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, refreshes the tracking-value
+ * to the current lighting command value.
+ * @param object_instance - object-instance number of the object
+ * @return  true if lighting command was set
+ */
+bool Lighting_Output_Lighting_Command_Refresh(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        lighting_command_refresh(&pObject->Lighting_Command);
+        status = true;
     }
 
     return status;
@@ -1931,9 +1960,7 @@ float Lighting_Output_Relinquish_Default(uint32_t object_instance)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        value = pObject->Relinquish_Default;
-    }
+    value = Relinquish_Default_Value(pObject);
 
     return value;
 }
