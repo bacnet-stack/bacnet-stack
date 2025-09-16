@@ -18,7 +18,6 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bactext.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -188,7 +187,7 @@ static void routed_apdu_handler(
     int cursor = 0; /* Starting hint */
     bool bGotOne = false;
 
-    if (!Routed_Device_Is_Valid_Network(dest->net, DNET_list)) {
+    if (!handler_device_routed_is_valid_network(dest->net, DNET_list)) {
         /* We don't know how to reach this one.
          * The protocol doesn't specifically state this, but if this message
          * was broadcast to us, we should assume "someone else" is handling
@@ -217,7 +216,7 @@ static void routed_apdu_handler(
         return;
     }
 
-    while (Routed_Device_GetNext(dest, DNET_list, &cursor)) {
+    while (handler_device_routed_next(dest, DNET_list, &cursor)) {
         apdu_handler(src, apdu, apdu_len);
         bGotOne = true;
         if (cursor < 0) { /* If no more matches, */

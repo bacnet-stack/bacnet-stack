@@ -682,7 +682,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* We only support references to objects in ourself for now */
             if ((TempSource.deviceIdentifier.type == OBJECT_DEVICE) &&
                 (TempSource.deviceIdentifier.instance !=
-                 Device_Object_Instance_Number())) {
+                 handler_device_object_instance_number())) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code =
                     ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;

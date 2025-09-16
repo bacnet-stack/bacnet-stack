@@ -73,9 +73,6 @@ extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 extern bool
 Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
-/* may be overridden by outside table */
-static object_functions_t *Object_Table;
-
 /* clang-format off */
 static object_functions_t My_Object_Table[] = {
     { OBJECT_DEVICE, NULL /* Init - don't init Device or it will recourse! */,
@@ -512,16 +509,10 @@ bool Device_Objects_Property_List_Member(
     return found;
 }
 
-/* note: you really only need to define variables for
-   properties that are writable or that may change.
-   The properties that are constant can be hard coded
-   into the read-property encoding. */
-
-static uint32_t Object_Instance_Number = 260001;
+static struct handler_device_object_info Device_Object_Info;
 static BACNET_CHARACTER_STRING My_Object_Name;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static const char *Vendor_Name = BACNET_VENDOR_NAME;
-static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
 static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
 static char Firmware_Version[MAX_DEV_VER_LEN + 1] = BACNET_VERSION_TEXT;
@@ -566,9 +557,7 @@ static uint32_t Interval_Offset_Minutes;
 /* Auto_Slave_Discovery */
 /* Slave_Address_Binding */
 /* Profile_Name */
-static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "filister";
-static write_property_function Device_Write_Property_Store_Callback;
 
 #ifdef BAC_ROUTING
 static bool Device_Router_Mode = false;
@@ -644,7 +633,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
-                Reinitialize_State = rd_data->state;
+                Device_Object_Info.reinitialized_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_WARMSTART:
@@ -656,7 +645,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
-                Reinitialize_State = rd_data->state;
+                Device_Object_Info.reinitialized_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_STARTBACKUP:
@@ -679,7 +668,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                     Network_Port_Changes_Pending_Activate(
                         Network_Port_Index_To_Instance(i));
                 }
-                Reinitialize_State = rd_data->state;
+                Device_Object_Info.reinitialized_state = rd_data->state;
                 status = true;
                 break;
             default:
@@ -692,26 +681,44 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     return status;
 }
 
+/**
+ * @brief Return the last reinitialized state
+ * @return the last reinitialized state
+ */
 BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
 {
-    return Reinitialize_State;
+    return Device_Object_Info.reinitialized_state;
 }
 
+/**
+ * @brief Set the last reinitialized state
+ * @param state - the new reinitialized state
+ * @return true if the state was set
+ */
 bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state)
 {
-    Reinitialize_State = state;
+    Device_Object_Info.reinitialized_state = state;
     return true;
 }
 
+/**
+ * @brief Get the number of device objects
+ * @return the number of device objects
+ */
 unsigned Device_Count(void)
 {
     return 1;
 }
 
+/**
+ * @brief Map an index to an object instance number
+ * @param index - the index of the object
+ * @return the object instance number
+ */
 uint32_t Device_Index_To_Instance(unsigned index)
 {
     (void)index;
-    return Object_Instance_Number;
+    return Device_Object_Info.instance_number;
 }
 
 /* methods to manipulate the data */
@@ -728,20 +735,25 @@ uint32_t Device_Object_Instance_Number(void)
     if (Device_Router_Mode) {
         return Routed_Device_Object_Instance_Number();
     } else {
-        return Object_Instance_Number;
+        return Device_Object_Info.instance_number;
     }
 #else
-    return Object_Instance_Number;
+    return Device_Object_Info.instance_number;
 #endif
 }
 
+/**
+ * @brief Set the Object Instance number for our (single) Device Object.
+ * @param object_id - the new object instance number
+ * @return true if the object instance number was set
+ */
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
     bool status = true; /* return value */
 
     if (object_id <= BACNET_MAX_INSTANCE) {
         /* Make the change and update the database revision */
-        Object_Instance_Number = object_id;
+        Device_Object_Info.instance_number = object_id;
         Device_Inc_Database_Revision();
     } else {
         status = false;
@@ -750,23 +762,39 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
     return status;
 }
 
+/**
+ * @brief Validate an object instance number for our (single) Device Object.
+ * @param object_id - the object instance number to be verified
+ * @return true if the object instance number is valid for this device
+ */
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
-    return (Object_Instance_Number == object_id);
+    return (Device_Object_Info.instance_number == object_id);
 }
 
+/**
+ * @brief Return the Object Name for our (single) Device Object.
+ * @param object_instance - object instance number of the object
+ * @param object_name - pointer to the character string to be filled in
+ * @return true if the object name was returned
+ */
 bool Device_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
 
-    if (object_instance == Object_Instance_Number) {
+    if (object_instance == Device_Object_Info.instance_number) {
         status = characterstring_copy(object_name, &My_Object_Name);
     }
 
     return status;
 }
 
+/**
+ * @brief Set the Object Name for our (single) Device Object.
+ * @param object_name - pointer to the character string to be set
+ * @return true if the object name was set
+ */
 bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
@@ -780,6 +808,11 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
     return status;
 }
 
+/**
+ * @brief Initialize the Object Name for our (single) Device Object.
+ * @param value - pointer to the C-string to be set
+ * @return true if the object name was initialized
+ */
 bool Device_Object_Name_ANSI_Init(const char *value)
 {
     return characterstring_init_ansi(&My_Object_Name, value);
@@ -794,11 +827,21 @@ char *Device_Object_Name_ANSI(void)
     return (char *)characterstring_value(&My_Object_Name);
 }
 
+/**
+ * @brief Return the System Status for our (single) Device Object.
+ * @return The System Status enumeration value.
+ */
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
     return System_Status;
 }
 
+/**
+ * @brief Set the System Status for our (single) Device Object.
+ * @param status - the new system status
+ * @param local - true if the source is internal, false if external
+ * @return 0 if ok, -1 if bad value, -2 if not allowed
+ */
 int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
 {
     int result = 0; /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
@@ -862,6 +905,10 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
     return (result);
 }
 
+/**
+ * @brief Return the Vendor Name for this Device.
+ * @return The Vendor Name of this Device.
+ */
 const char *Device_Vendor_Name(void)
 {
     return Vendor_Name;
@@ -874,19 +921,34 @@ const char *Device_Vendor_Name(void)
  */
 uint16_t Device_Vendor_Identifier(void)
 {
-    return Vendor_Identifier;
+    return Device_Object_Info.vendor_identifier;
 }
 
+/**
+ * @brief Set the Vendor ID for this Device.
+ * @param vendor_id - the new Vendor ID
+ */
 void Device_Set_Vendor_Identifier(uint16_t vendor_id)
 {
-    Vendor_Identifier = vendor_id;
+    Device_Object_Info.vendor_identifier = vendor_id;
 }
 
+/**
+ * @brief Return the Model Name for this Device.
+ * @return The Model Name of this Device.
+ */
 const char *Device_Model_Name(void)
 {
     return Model_Name;
 }
 
+/**
+ * @brief Set the Model Name for this Device.
+ * @param name - the new Model Name
+ * @param length - the number of characters in the string
+ * @return true if the model name was set, false if the value was
+ *  too long to store in the object.
+ */
 bool Device_Set_Model_Name(const char *name, size_t length)
 {
     bool status = false; /*return value */
@@ -900,11 +962,22 @@ bool Device_Set_Model_Name(const char *name, size_t length)
     return status;
 }
 
+/**
+ * @brief Return the Firmware Revision for this Device.
+ * @return The Firmware Revision of this Device.
+ */
 const char *Device_Firmware_Revision(void)
 {
     return Firmware_Version;
 }
 
+/**
+ * @brief Set the Firmware Revision for this Device.
+ * @param name - the new Firmware Revision
+ * @param length - the number of characters in the string
+ * @return true if the firmware revision was set, false if the value was
+ *  too long to store in the object.
+ */
 bool Device_Set_Firmware_Revision(const char *name, size_t length)
 {
     bool status = false; /*return value */
@@ -918,11 +991,22 @@ bool Device_Set_Firmware_Revision(const char *name, size_t length)
     return status;
 }
 
+/**
+ * @brief Return the Application Software Version for this Device.
+ * @return The Application Software Version of this Device.
+ */
 const char *Device_Application_Software_Version(void)
 {
     return Application_Software_Version;
 }
 
+/**
+ * @brief Set the Application Software Version for this Device.
+ * @param name - the new Application Software Version
+ * @param length - the number of characters in the string
+ * @return true if the application software version was set, false if the
+ * value was too long to store in the object.
+ */
 bool Device_Set_Application_Software_Version(const char *name, size_t length)
 {
     bool status = false; /*return value */
@@ -1001,11 +1085,21 @@ bool Device_Serial_Number_Set(const char *str, size_t length)
     return status;
 }
 
+/**
+ * @brief Get the device time-of-device-restart property value.
+ * @param time_of_restart [out] The time-of-device-restart value.
+ */
 void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart)
 {
     bacapp_timestamp_copy(time_of_restart, &Time_Of_Device_Restart);
 }
 
+/**
+ * @brief Set the device time-of-device-restart property value.
+ * @param time_of_restart [in] The new time-of-device-restart value.
+ * @return true if the time-of-device-restart was set, false if the value was
+ *  NULL.
+ */
 bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart)
 {
     bool status = false;
@@ -1018,33 +1112,53 @@ bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart)
     return status;
 }
 
+/**
+ * @brief Return the Protocol Version for this Device.
+ * @return The Protocol Version of this Device.
+ */
 uint8_t Device_Protocol_Version(void)
 {
     return BACNET_PROTOCOL_VERSION;
 }
 
+/**
+ * @brief Return the Protocol Revision for this Device.
+ * @return The Protocol Revision of this Device.
+ */
 uint8_t Device_Protocol_Revision(void)
 {
     return BACNET_PROTOCOL_REVISION;
 }
 
+/**
+ * @brief Return the Segmentation Supported for this Device.
+ * @return The Segmentation Supported of this Device.
+ */
 BACNET_SEGMENTATION Device_Segmentation_Supported(void)
 {
     return SEGMENTATION_NONE;
 }
 
+/**
+ * @brief Return the Database Revision for this Device.
+ * @return The Database Revision of this Device.
+ */
 uint32_t Device_Database_Revision(void)
 {
     return handler_device_object_database_revision();
 }
 
+/**
+ * @brief Set the Database Revision for this Device.
+ * @param revision - the new Database Revision
+ */
 void Device_Set_Database_Revision(uint32_t revision)
 {
     handler_device_object_database_revision_set(revision);
 }
 
-/*
- * Shortcut for incrementing database revision as this is potentially
+/**
+ * @brief Shortcut for incrementing database revision as this is potentially
  * the most common operation if changing object names and ids is
  * implemented.
  */
@@ -1053,7 +1167,8 @@ void Device_Inc_Database_Revision(void)
     handler_device_object_database_revision_increment();
 }
 
-/** Get the total count of objects supported by this Device Object.
+/**
+ * @brief Get the total count of objects supported by this Device Object.
  * @note Since many network clients depend on the object list
  *       for discovery, it must be consistent!
  * @return The count of objects, for all supported Object types.
@@ -1063,7 +1178,8 @@ unsigned Device_Object_List_Count(void)
     return handler_device_object_list_count();
 }
 
-/** Lookup the Object at the given array index in the Device's Object List.
+/**
+ * @brief Find object at the given array index in the Device's Object List.
  * Even though we don't keep a single linear array of objects in the Device,
  * this method acts as though we do and works through a virtual, concatenated
  * array of all of our object type arrays.
@@ -1080,7 +1196,8 @@ bool Device_Object_List_Identifier(
         array_index, object_type, instance);
 }
 
-/** Determine if we have an object with the given object_name.
+/**
+ * @brief Determine if we have an object with the given object_name.
  * If the object_type and object_instance pointers are not null,
  * and the lookup succeeds, they will be given the resulting values.
  * @param object_name [in] The desired Object Name to look for.
@@ -1098,7 +1215,8 @@ bool Device_Valid_Object_Name(
         object_name, object_type, object_instance);
 }
 
-/** Determine if we have an object of this type and instance number.
+/**
+ * @brief Determine if we have an object of this type and instance number.
  * @param object_type [in] The desired BACNET_OBJECT_TYPE
  * @param object_instance [in] The object instance number to be looked up.
  * @return True if found, else False if no such Object in this device.
@@ -1109,7 +1227,8 @@ bool Device_Valid_Object_Id(
     return handler_device_object_instance_valid(object_type, object_instance);
 }
 
-/** Copy a child object's object_name value, given its ID.
+/**
+ * @brief Copy a child object's object_name value, given its ID.
  * @param object_type [in] The BACNET_OBJECT_TYPE of the child Object.
  * @param object_instance [in] The object instance number of the child Object.
  * @param object_name [out] The Object Name found for this child Object.
@@ -1124,12 +1243,20 @@ bool Device_Object_Name_Copy(
         object_type, object_instance, object_name);
 }
 
+/**
+ * @brief Update the current local date and time from the system clock.
+ */
 static void Update_Current_Time(void)
 {
     datetime_local(
         &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
 }
 
+/**
+ * @brief Get the current local date and time.
+ * @param DateTime - pointer to the BACNET_DATE_TIME structure
+ *                    to be filled in with the current date and time.
+ */
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
 {
     Update_Current_Time();
@@ -1138,6 +1265,10 @@ void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
     DateTime->time = Local_Time;
 }
 
+/**
+ * @brief Get the Device UTC Offset value.
+ * @return The Device UTC Offset value, in minutes.
+ */
 int32_t Device_UTC_Offset(void)
 {
     Update_Current_Time();
@@ -1145,11 +1276,19 @@ int32_t Device_UTC_Offset(void)
     return UTC_Offset;
 }
 
+/**
+ * @brief Set the Device UTC Offset value.
+ * @param offset - the new UTC Offset value, in minutes
+ */
 void Device_UTC_Offset_Set(int16_t offset)
 {
     UTC_Offset = offset;
 }
 
+/**
+ * @brief Get the Device Daylight Savings Status value.
+ * @return The Device Daylight Savings Status value, TRUE or FALSE.
+ */
 bool Device_Daylight_Savings_Status(void)
 {
     return Daylight_Savings_Status;
@@ -1175,14 +1314,17 @@ bool Device_Align_Intervals_Set(bool flag)
     return true;
 }
 
+/**
+ * @brief Get the Device Align Intervals value.
+ * @return The Device Align Intervals value, TRUE or FALSE.
+ */
 bool Device_Align_Intervals(void)
 {
     return Align_Intervals;
 }
 
 /**
- * Sets the time sync interval in minutes
- *
+ * @brief Sets the time sync interval in minutes
  * @param minutes
  * This property, of type Unsigned, specifies the periodic
  * interval in minutes at which TimeSynchronization and
@@ -1197,14 +1339,17 @@ bool Device_Time_Sync_Interval_Set(uint32_t minutes)
     return true;
 }
 
+/**
+ * @brief Get the Device Time Sync Interval value.
+ * @return The Device Time Sync Interval value, in minutes.
+ */
 uint32_t Device_Time_Sync_Interval(void)
 {
     return Interval_Minutes;
 }
 
 /**
- * Sets the time sync interval offset value.
- *
+ * @brief Sets the time sync interval offset value.
  * @param minutes
  * This property, of type Unsigned, specifies the offset in
  * minutes from the beginning of the period specified for time
@@ -1223,14 +1368,22 @@ bool Device_Interval_Offset_Set(uint32_t minutes)
     return true;
 }
 
+/**
+ * @brief Get the Device Interval Offset value.
+ * @return The Device Interval Offset value, in minutes.
+ */
 uint32_t Device_Interval_Offset(void)
 {
     return Interval_Offset_Minutes;
 }
 #endif
 
-/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
-   BACNET_STATUS_ABORT for abort message */
+/**
+ * @brief Read a property from the device.
+ * @param rpdata - The read property data structure.
+ * @return The length of the APDU encoded or BACNET_STATUS_ERROR for error or
+ *         BACNET_STATUS_ABORT for abort message.
+ */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -1249,7 +1402,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
+                &apdu[0], OBJECT_DEVICE, Device_Object_Info.instance_number);
             break;
         case PROP_OBJECT_NAME:
             apdu_len =
@@ -1272,7 +1425,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_VENDOR_IDENTIFIER:
-            apdu_len = encode_application_unsigned(&apdu[0], Vendor_Identifier);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Object_Info.vendor_identifier);
             break;
         case PROP_MODEL_NAME:
             characterstring_init_ansi(&char_string, Model_Name);
@@ -1418,21 +1572,25 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/** Looks up the requested Object and Property, and encodes its Value in an
- * APDU.
+/**
+ * @brief Reads the Object and Property value, and encodes it into an APDU.
  * @ingroup ObjIntf
- * If the Object or Property can't be found, sets the error class and code.
- *
  * @param rpdata [in,out] Structure with the desired Object and Property info
  *                 on entry, and APDU message on return.
  * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ *  which sets the error class and code.
  */
 int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     return handler_device_read_property(rpdata);
 }
 
-/* returns true if successful */
+/**
+ * @brief Write a property to the device.
+ * @param wp_data - The write property data structure.
+ * @return true if the property was written, else false
+ *  and the error_class and error_code are set.
+ */
 bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -1799,6 +1957,7 @@ void Device_Init(object_functions_t *object_table)
 {
     characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     datetime_init();
+    handler_device_object_info_set(&Device_Object_Info);
     if (object_table) {
         handler_device_object_table_set(object_table);
     } else {
@@ -1893,20 +2052,27 @@ void Device_Timer(uint16_t milliseconds)
  */
 void Routing_Device_Init(uint32_t first_object_instance)
 {
-    struct object_functions *pDevObject = NULL;
+    struct object_functions *pDevObject;
     Device_Router_Mode = true;
 
     /* Initialize with our preset strings */
     Add_Routed_Device(first_object_instance, &My_Object_Name, Description);
 
     /* Now substitute our routed versions of the main object functions. */
-    pDevObject = Object_Table;
+    pDevObject = handler_device_object_functions_get(OBJECT_DEVICE);
+    if (pDevObject == NULL) {
+        return;
+    }
     pDevObject->Object_Index_To_Instance = Routed_Device_Index_To_Instance;
     pDevObject->Object_Valid_Instance =
         Routed_Device_Valid_Object_Instance_Number;
     pDevObject->Object_Name = Routed_Device_Name;
     pDevObject->Object_Read_Property = Routed_Device_Read_Property_Local;
     pDevObject->Object_Write_Property = Routed_Device_Write_Property_Local;
+    handler_device_service_disabled_callback_set(
+        Routed_Device_Service_Disabled);
+    handler_device_routed_next_callback_set(Routed_Device_GetNext);
+    handler_device_routed_is_valid_network_callback_set(
+        Routed_Device_Is_Valid_Network);
 }
-
 #endif /* BAC_ROUTING */

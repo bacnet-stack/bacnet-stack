@@ -339,11 +339,7 @@ bool Routed_Device_Set_Description(const char *name, size_t length);
 BACNET_STACK_EXPORT
 void Routed_Device_Inc_Database_Revision(void);
 BACNET_STACK_EXPORT
-int Routed_Device_Service_Approval(
-    BACNET_SERVICES_SUPPORTED service,
-    int service_argument,
-    uint8_t *apdu_buff,
-    uint8_t invoke_id);
+bool Routed_Device_Service_Disabled(BACNET_SERVICES_SUPPORTED service);
 
 #ifdef __cplusplus
 }

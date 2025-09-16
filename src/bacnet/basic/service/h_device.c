@@ -42,18 +42,6 @@ struct handler_device_object_info *handler_device_object_info_get(void)
 }
 
 /**
- * @brief Get Device Object table containing every object type
- * @return Pointer to the object function table, or null if not set
- */
-static struct object_functions *handler_device_object_table_get(void)
-{
-    if (Device_Object_Info == NULL) {
-        return NULL;
-    }
-    return Device_Object_Info->object_table;
-}
-
-/**
  * @brief Sets the ReinitializeDevice password
  *
  * The password shall be a null terminated C string of up to
@@ -147,7 +135,7 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
-                Device_Object_Info->reinitialize_state = rd_data->state;
+                Device_Object_Info->reinitialized_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_STARTBACKUP:
@@ -160,7 +148,7 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                     rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
                 } else if (Device_Object_Info
                                ->reinitialize_backup_restore_enabled) {
-                    Device_Object_Info->reinitialize_state = rd_data->state;
+                    Device_Object_Info->reinitialized_state = rd_data->state;
                     status = true;
                 } else {
                     rd_data->error_class = ERROR_CLASS_SERVICES;
@@ -185,7 +173,7 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 BACNET_REINITIALIZED_STATE handler_device_reinitialized_state(void)
 {
     if (Device_Object_Info) {
-        return Device_Object_Info->reinitialize_state;
+        return Device_Object_Info->reinitialized_state;
     }
 
     return BACNET_REINIT_IDLE;
@@ -198,7 +186,7 @@ BACNET_REINITIALIZED_STATE handler_device_reinitialized_state(void)
 void handler_device_reinitialized_state_set(BACNET_REINITIALIZED_STATE state)
 {
     if (Device_Object_Info) {
-        Device_Object_Info->reinitialize_state = state;
+        Device_Object_Info->reinitialized_state = state;
     }
 }
 
@@ -226,16 +214,14 @@ void handler_device_vendor_identifier_set(uint16_t vendor_id)
     }
 }
 
-/** Glue function to let the Device object, when called by a handler,
- * lookup which Object type needs to be invoked.
- * @ingroup ObjHelpers
- * @param Object_Type [in] The type of BACnet Object the handler wants to
- * access.
+/**
+ * @brief Get the Object Functions for a given object type
+ * @param object_type [in] The BACNET_OBJECT_TYPE of the child Object.
  * @return Pointer to the group of object helper functions that implement this
  *         type of Object, or NULL if uninitialized
  */
-static struct object_functions *
-handler_device_object_functions(BACNET_OBJECT_TYPE Object_Type)
+struct object_functions *
+handler_device_object_functions_get(BACNET_OBJECT_TYPE Object_Type)
 {
     struct object_functions *pObject = NULL;
 
@@ -270,7 +256,7 @@ handler_device_object_read_range_info(BACNET_OBJECT_TYPE object_type)
 {
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if (pObject) {
         return pObject->Object_RR_Info;
     }
@@ -305,7 +291,7 @@ void handler_device_object_property_list(
      * to populate the pointers to the individual list counters.
      */
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
         pObject->Object_RPM_List(
             &pPropertyList->Required.pList, &pPropertyList->Optional.pList,
@@ -348,7 +334,7 @@ bool handler_device_object_property_list_member(
     const int *pProprietary = NULL;
 
     (void)object_instance;
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
         pObject->Object_RPM_List(&pRequired, &pOptional, &pProprietary);
     }
@@ -425,7 +411,7 @@ uint32_t handler_device_wildcard_instance_number(
         receive the request to be determined. */
     if ((object_type == OBJECT_NETWORK_PORT) &&
         (object_instance == BACNET_MAX_INSTANCE)) {
-        pObject = handler_device_object_functions(object_type);
+        pObject = handler_device_object_functions_get(object_type);
         if ((pObject != NULL) && (pObject->Object_Index_To_Instance)) {
             /* note: assumption that index 0 corresponds to the
                home port */
@@ -482,7 +468,7 @@ bool handler_device_object_instance_valid(
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -575,7 +561,7 @@ bool handler_device_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = handler_device_object_functions(wp_data->object_type);
+    pObject = handler_device_object_functions_get(wp_data->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
@@ -743,7 +729,7 @@ int handler_device_object_list_element_add(
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(list_element->object_type);
+    pObject = handler_device_object_functions_get(list_element->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(list_element->object_instance)) {
@@ -778,7 +764,7 @@ int handler_device_object_list_element_remove(
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(list_element->object_type);
+    pObject = handler_device_object_functions_get(list_element->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(list_element->object_instance)) {
@@ -826,7 +812,7 @@ bool handler_device_valid_object_name(
     for (i = 1; i <= max_objects; i++) {
         check_id = handler_device_object_list_identifier(i, &type, &instance);
         if (check_id) {
-            pObject = handler_device_object_functions(type);
+            pObject = handler_device_object_functions_get(type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                  characterstring_same(object_name1, &object_name2))) {
@@ -856,7 +842,7 @@ bool handler_device_valid_object_instance(
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -878,7 +864,7 @@ void handler_device_intrinsic_reporting(void)
     for (idx = 1; idx <= objects_count; idx++) {
         handler_device_object_list_identifier(
             idx, &object_type, &object_instance);
-        pObject = handler_device_object_functions(object_type);
+        pObject = handler_device_object_functions_get(object_type);
         if (pObject != NULL) {
             if (pObject->Object_Valid_Instance &&
                 pObject->Object_Valid_Instance(object_instance)) {
@@ -905,7 +891,7 @@ bool handler_device_object_name_copy(
     struct object_functions *pObject = NULL;
     bool found = false;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
         found = pObject->Object_Name(object_instance, object_name);
     }
@@ -923,7 +909,7 @@ bool handler_device_object_value_list_supported(BACNET_OBJECT_TYPE object_type)
     bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Value_List) {
             status = true;
@@ -949,7 +935,7 @@ bool handler_device_object_value_list(
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -975,7 +961,7 @@ bool handler_device_object_cov(
     bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -998,7 +984,7 @@ void handler_device_object_cov_clear(
 {
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(object_type);
+    pObject = handler_device_object_functions_get(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -1010,20 +996,127 @@ void handler_device_object_cov_clear(
 }
 
 /**
+ * @brief Set the callback function to determine if a network is valid for
+ * routing
+ * @param callback [in] The function that will be called to determine if a
+ * network is valid for routing.
+ * @note used by gateway applications to route messages for child devices
+ */
+void handler_device_routed_is_valid_network_callback_set(
+    bool (*callback)(uint16_t dest_net, const int *dnet_list))
+{
+    if (Device_Object_Info) {
+        Device_Object_Info->routed_is_valid_network_callback = callback;
+    }
+}
+
+/**
+ * @brief Determine if a given network is valid for routing
+ * @param dest [in] The BACNET_ADDRESS of the destination device.
+ * @param dnet_list [in] The list of BACnet network numbers that are valid
+ * for routing.
+ * @return true if the network is valid for routing, else false
+ * @note used by gateway applications to route messages for child devices
+ */
+bool handler_device_routed_is_valid_network(
+    uint16_t dest_net, const int *dnet_list)
+{
+    bool status = false;
+
+    if (Device_Object_Info &&
+        Device_Object_Info->routed_is_valid_network_callback) {
+        status = Device_Object_Info->routed_is_valid_network_callback(
+            dest_net, dnet_list);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the callback to get the next routed network
+ * @param callback [in] The function that will be called to determine the next
+ * network for routing.
+ * @note used by gateway applications to route messages for child devices
+ */
+void handler_device_routed_next_callback_set(bool (*callback)(
+    const BACNET_ADDRESS *dest, const int *dnet_list, int *cursor))
+{
+    if (Device_Object_Info) {
+        Device_Object_Info->routed_next_callback = callback;
+    }
+}
+
+/**
+ * @brief Determine the next hop for a routed message
+ * @param dest [in] The BACNET_ADDRESS of the destination device.
+ * @param dnet_list [in] The list of BACnet network numbers that are valid
+ * for routing.
+ * @param cursor [in,out] The current position in the dnet_list. On the
+ * first call, this should be set to -1. On return, it will be set to the
+ * position of the next valid network, or left unchanged if there are no
+ * more valid networks.
+ * @return true if a next hop was found, else false
+ * @note used by gateway applications to route messages for child devices
+ */
+bool handler_device_routed_next(
+    const BACNET_ADDRESS *dest, const int *dnet_list, int *cursor)
+{
+    bool status = false;
+
+    if (Device_Object_Info && Device_Object_Info->routed_next_callback) {
+        status =
+            Device_Object_Info->routed_next_callback(dest, dnet_list, cursor);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the callback function to determine if a service is disabled
+ * @param callback [in] The function that will be called to determine if a
+ * service is disabled.
+ * @note used by gateway applications to disable services for child devices
+ */
+void handler_device_service_disabled_callback_set(
+    bool (*callback)(BACNET_SERVICES_SUPPORTED service))
+{
+    if (Device_Object_Info) {
+        Device_Object_Info->service_disabled_callback = callback;
+    }
+}
+
+/**
+ * @brief Determine if a given service is disabled
+ * @param service [in] The BACNET_SERVICES_SUPPORTED to be looked up.
+ * @return true if the service is disabled
+ * @note used by gateway applications to disable services for child devices
+ */
+bool handler_device_service_disabled(BACNET_SERVICES_SUPPORTED service)
+{
+    bool status = false;
+
+    if (Device_Object_Info && Device_Object_Info->service_disabled_callback) {
+        status = Device_Object_Info->service_disabled_callback(service);
+    }
+
+    return status;
+}
+
+/**
  * @brief Get the Device Object's services supported
  * @param The bit string representing the services supported
  */
 void handler_device_services_supported(BACNET_BIT_STRING *bit_string)
 {
     uint8_t i = 0;
+    bool status;
 
     /* Note: list of services that are executed, not initiated. */
     bitstring_init(bit_string);
     for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
         /* automatic lookup based on handlers set */
-        bitstring_set_bit(
-            bit_string, i,
-            apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
+        status = apdu_service_supported((BACNET_SERVICES_SUPPORTED)i);
+        bitstring_set_bit(bit_string, i, status);
     }
 }
 
@@ -1269,7 +1362,7 @@ int handler_device_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = handler_device_object_functions(rpdata->object_type);
+    pObject = handler_device_object_functions_get(rpdata->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
@@ -1335,7 +1428,7 @@ bool handler_device_object_create(BACNET_CREATE_OBJECT_DATA *data)
     struct object_functions *pObject = NULL;
     uint32_t object_instance;
 
-    pObject = handler_device_object_functions(data->object_type);
+    pObject = handler_device_object_functions_get(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Create) {
             /*  The device supports the object type and may have
@@ -1394,7 +1487,7 @@ bool handler_device_object_delete(BACNET_DELETE_OBJECT_DATA *data)
     bool status = false;
     struct object_functions *pObject = NULL;
 
-    pObject = handler_device_object_functions(data->object_type);
+    pObject = handler_device_object_functions_get(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Delete) {
             /*  The device supports the object type
@@ -1456,6 +1549,18 @@ void handler_device_timer(uint16_t milliseconds)
         }
         pObject++;
     }
+}
+
+/**
+ * @brief Get Device Object table containing every object type
+ * @return Pointer to the object function table, or null if not set
+ */
+struct object_functions *handler_device_object_table_get(void)
+{
+    if (Device_Object_Info == NULL) {
+        return NULL;
+    }
+    return Device_Object_Info->object_table;
 }
 
 /**

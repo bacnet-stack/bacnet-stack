@@ -569,51 +569,22 @@ void Routed_Device_Inc_Database_Revision(void)
     pDev->Database_Revision++;
 }
 
-/** Check to see if the current Device supports this service.
- * Presently checks for RD and DCC and only allows them if the current
- * device is the gateway device.
- *
+/**
+ * @brief Check to see if the current Device supports this service.
+ * @note Presently checks for RD and DCC and only allows them if the current
+ *  device is the gateway device.
  * @param service [in] The service being requested.
- * @param service_argument [in] An optional argument (eg, service type).
- * @param apdu_buff [in,out] The buffer where we will encode a Reject message.
- *                              May be NULL if don't want an encoded response.
- * @param invoke_id [in] The invoke_id of the service request.
- * @return Length of bytes encoded in apdu_buff[] for a Reject message,
- *          just 1 if no apdu_buff was supplied and service is not supported,
- *          else 0 if service is approved for the current device.
  */
-int Routed_Device_Service_Approval(
-    BACNET_SERVICES_SUPPORTED service,
-    int service_argument,
-    uint8_t *apdu_buff,
-    uint8_t invoke_id)
+bool Routed_Device_Service_Disabled(BACNET_SERVICES_SUPPORTED service)
 {
-    int len = 0;
+    bool disabled = false;
 
-    (void)service_argument;
     switch (service) {
         case SERVICE_SUPPORTED_REINITIALIZE_DEVICE:
-            /* If not the gateway device, we don't support RD */
-            if (iCurrent_Device_Idx > 0) {
-                if (apdu_buff != NULL) {
-                    len = reject_encode_apdu(
-                        apdu_buff, invoke_id,
-                        REJECT_REASON_UNRECOGNIZED_SERVICE);
-                } else {
-                    len = 1; /* Non-zero return */
-                }
-            }
-            break;
         case SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL:
-            /* If not the gateway device, we don't support DCC */
+            /* If not the gateway device, we don't support RD or DCC */
             if (iCurrent_Device_Idx > 0) {
-                if (apdu_buff != NULL) {
-                    len = reject_encode_apdu(
-                        apdu_buff, invoke_id,
-                        REJECT_REASON_UNRECOGNIZED_SERVICE);
-                } else {
-                    len = 1; /* Non-zero return */
-                }
+                disabled = true;
             }
             break;
         default:
@@ -621,5 +592,5 @@ int Routed_Device_Service_Approval(
             break;
     }
 
-    return len;
+    return disabled;
 }

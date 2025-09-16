@@ -151,9 +151,14 @@ struct handler_device_object_info {
     uint32_t instance_number;
     uint32_t database_revision;
     uint16_t vendor_identifier;
-    BACNET_REINITIALIZED_STATE reinitialize_state;
+    BACNET_REINITIALIZED_STATE reinitialized_state;
     const char *reinit_password;
     bool reinitialize_backup_restore_enabled;
+    bool (*service_disabled_callback)(BACNET_SERVICES_SUPPORTED service);
+    bool (*routed_next_callback)(
+        const BACNET_ADDRESS *dest, const int *dnet_list, int *cursor);
+    bool (*routed_is_valid_network_callback)(
+        uint16_t dest_net, const int *DNET_list);
     void *context;
 };
 
@@ -293,10 +298,35 @@ BACNET_STACK_EXPORT
 bool handler_device_object_delete(BACNET_DELETE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
-void handler_device_timer(uint16_t milliseconds);
+void handler_device_object_table_set(object_functions_t *object_table);
+BACNET_STACK_EXPORT
+struct object_functions *handler_device_object_table_get(void);
+BACNET_STACK_EXPORT
+struct object_functions *
+handler_device_object_functions_get(BACNET_OBJECT_TYPE object_type);
 
 BACNET_STACK_EXPORT
-void handler_device_object_table_set(object_functions_t *object_table);
+void handler_device_routed_is_valid_network_callback_set(
+    bool (*callback)(uint16_t dest_net, const int *dnet_list));
+BACNET_STACK_EXPORT
+bool handler_device_routed_is_valid_network(
+    uint16_t dest_net, const int *dnet_list);
+
+BACNET_STACK_EXPORT
+void handler_device_routed_next_callback_set(bool (*callback)(
+    const BACNET_ADDRESS *dest, const int *dnet_list, int *cursor));
+BACNET_STACK_EXPORT
+bool handler_device_routed_next(
+    const BACNET_ADDRESS *dest, const int *dnet_list, int *cursor);
+
+BACNET_STACK_EXPORT
+void handler_device_service_disabled_callback_set(
+    bool (*callback)(BACNET_SERVICES_SUPPORTED service));
+BACNET_STACK_EXPORT
+bool handler_device_service_disabled(BACNET_SERVICES_SUPPORTED service);
+
+BACNET_STACK_EXPORT
+void handler_device_timer(uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
 void handler_device_object_init(void);

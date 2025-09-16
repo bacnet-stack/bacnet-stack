@@ -106,12 +106,16 @@ void handler_reinitialize_device(
             "ReinitializeDevice: Sending Reject - undefined enumeration\n");
     } else {
 #ifdef BAC_ROUTING
-        /* Check to see if the current Device supports this service. */
-        len = Routed_Device_Service_Approval(
-            SERVICE_SUPPORTED_REINITIALIZE_DEVICE, (int)rd_data.state,
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
-        if (len > 0) {
-            goto RD_ABORT;
+        if (handler_device_service_disabled(
+                SERVICE_SUPPORTED_REINITIALIZE_DEVICE)) {
+            len = reject_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                REJECT_REASON_UNRECOGNIZED_SERVICE);
+            if (len > 0) {
+                debug_print("ReinitializeDevice: "
+                            "Sending Reject - service disabled.\n");
+                goto RD_ABORT;
+            }
         }
 #endif
         if (handler_device_reinitialize(&rd_data)) {

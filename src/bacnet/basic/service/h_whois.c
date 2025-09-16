@@ -134,13 +134,7 @@ void handler_who_is_who_am_i_unicast(
     }
 }
 
-#ifdef BAC_ROUTING /* was for BAC_ROUTING - delete in 2/2012 if still unused \
-                    */
-/* EKH: I restored this to BAC_ROUTING (from DEPRECATED) because I found that
-   the server demo with the built-in
-   virtual Router did not insert the SADRs of the virtual devices on the virtual
-   network without it */
-
+#ifdef BAC_ROUTING
 /** Local function to check Who-Is requests against our Device IDs.
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.
@@ -176,7 +170,7 @@ static void check_who_is_for_routing(
     memset(&bcast_net, 0, sizeof(BACNET_ADDRESS));
     bcast_net.net = BACNET_BROADCAST_NETWORK; /* That's all we have to set */
 
-    while (Routed_Device_GetNext(&bcast_net, my_list, &cursor)) {
+    while (handler_device_routed_next(&bcast_net, my_list, &cursor)) {
         dev_instance = handler_device_object_instance_number();
         /* If len == 0, no limits and always respond */
         if ((len == 0) ||

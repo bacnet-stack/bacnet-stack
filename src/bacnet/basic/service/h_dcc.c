@@ -164,12 +164,16 @@ void handler_device_communication_control(
                     "Sending Reject - undefined enumeration\n");
     } else {
 #ifdef BAC_ROUTING
-        /* Check to see if the current Device supports this service. */
-        len = Routed_Device_Service_Approval(
-            SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, (int)state,
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
-        if (len > 0) {
-            goto DCC_FAILURE;
+        if (handler_device_service_disabled(
+                SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL)) {
+            len = reject_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                REJECT_REASON_UNRECOGNIZED_SERVICE);
+            if (len > 0) {
+                debug_print("DeviceCommunicationControl: "
+                            "Sending Reject - service disabled.\n");
+                goto DCC_FAILURE;
+            }
         }
 #endif
         if ((My_Password[0] == '\0') ||

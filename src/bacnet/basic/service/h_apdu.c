@@ -174,15 +174,12 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
                 found = true;
                 if (Confirmed_Function[i] != NULL) {
 #ifdef BAC_ROUTING
-                    /* Check to see if the current Device supports this service.
-                     */
-                    int len = Routed_Device_Service_Approval(
-                        confirmed_service_supported[i], 0, NULL, 0);
-                    if (len > 0) {
-                        break; /* Not supported - return false */
+                    if (handler_device_service_disabled(
+                            (confirmed_service_supported[i]))) {
+                        status = false;
+                        break;
                     }
 #endif
-
                     status = true;
                 }
                 break;

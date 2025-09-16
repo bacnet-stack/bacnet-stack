@@ -124,7 +124,7 @@ void handler_who_has_for_routing(
         memset(&bcast_net, 0, sizeof(BACNET_ADDRESS));
         bcast_net.net =
             BACNET_BROADCAST_NETWORK; /* That's all we have to set */
-        while (Routed_Device_GetNext(&bcast_net, my_list, &cursor)) {
+        while (handler_device_routed_next(&bcast_net, my_list, &cursor)) {
             dev_instance = handler_device_object_instance_number();
             if ((data.low_limit == -1) || (data.high_limit == -1) ||
                 ((dev_instance >= data.low_limit) &&
