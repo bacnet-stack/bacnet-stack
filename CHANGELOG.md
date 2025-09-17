@@ -22,6 +22,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added lighting command refresh from tracking value API. (#1094)
 * Added MS/TP statistics counters for BadCRC and Poll-For-Master. (#1081)
 * Added Lighting Output API to implement override for HOA control.
   Integrated lighting command overridden behavior into the lighting
@@ -114,6 +115,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Lighting Output Relinquish values. (#1094)
 * Fixed copied code that no longer needs static function scope variables
   for text names. (#1092)
 * Fixed compiler warning format '%u' expects argument of type 'unsigned int',
