@@ -236,7 +236,7 @@ Calendar_Date_List_Get(uint32_t object_instance, uint8_t index)
 bool Calendar_Date_List_Add(
     uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value)
 {
-    bool st = false;
+    int index = 0;
     BACNET_CALENDAR_ENTRY *entry;
     struct object_data *pObject;
 
@@ -249,12 +249,15 @@ bool Calendar_Date_List_Add(
     if (!entry) {
         return false;
     }
-
     *entry = *value;
-    st = Keylist_Data_Add(
+    index = Keylist_Data_Add(
         pObject->Date_List, Keylist_Count(pObject->Date_List), entry);
+    if (index < 0) {
+        free(entry);
+        return false;
+    }
 
-    return st;
+    return true;
 }
 
 /**
@@ -381,7 +384,8 @@ bool Calendar_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "CALENDAR-%u", object_instance);
+                name_text, sizeof(name_text), "CALENDAR-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }

@@ -42,13 +42,15 @@ static bitstring_value_write_present_value_callback
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Properties_Optional[] = { PROP_RELIABILITY,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_RELIABILITY, PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -493,8 +495,8 @@ bool BitString_Value_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "BITSTRING_VALUE-%u",
-                object_instance);
+                name_text, sizeof(name_text), "BITSTRING_VALUE-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }

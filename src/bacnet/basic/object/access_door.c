@@ -22,20 +22,23 @@ static bool Access_Door_Initialized = false;
 static ACCESS_DOOR_DESCR ad_descr[MAX_ACCESS_DOORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_PRESENT_VALUE,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_EVENT_STATE,
-                                           PROP_RELIABILITY,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_PRIORITY_ARRAY,
-                                           PROP_RELINQUISH_DEFAULT,
-                                           PROP_DOOR_PULSE_TIME,
-                                           PROP_DOOR_EXTENDED_PULSE_TIME,
-                                           PROP_DOOR_OPEN_TOO_LONG_TIME,
-                                           -1 };
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    PROP_DOOR_PULSE_TIME,
+    PROP_DOOR_EXTENDED_PULSE_TIME,
+    PROP_DOOR_OPEN_TOO_LONG_TIME,
+    -1
+};
 
 static const int Properties_Optional[] = {
     PROP_DOOR_STATUS,      PROP_LOCK_STATUS,

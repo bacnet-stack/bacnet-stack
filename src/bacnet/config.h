@@ -32,6 +32,7 @@
 #define BACDL_BIP
 #define BACDL_BIP6
 #define BACDL_BSC
+#define BACDL_ZIGBEE
 #endif
 
 #if defined(BACDL_ETHERNET)
@@ -67,6 +68,13 @@
 #endif
 
 #if defined(BACDL_BSC)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_ZIGBEE)
 #if defined(BACDL_SOME_DATALINK_ENABLED)
 #define BACDL_MULTIPLE 1
 #endif
@@ -142,9 +150,11 @@
 /* #define MAX_APDU 128 */
 #elif defined(BACDL_BIP6)
 #define MAX_APDU 1476
+#elif defined(BACDL_ZIGBEE)
+#define MAX_APDU 480
 #elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
 /* note: MS/TP extended frames can be up to 1476 bytes */
-#define MAX_APDU 1476
+#define MAX_APDU 480
 #elif defined(BACDL_ETHERNET) && !defined(BACNET_SECURITY)
 #define MAX_APDU 1476
 #elif defined(BACDL_ETHERNET) && defined(BACNET_SECURITY)
@@ -355,6 +365,34 @@
 #define MAX_OCTET_STRING_BYTES (MAX_APDU - 6)
 #endif
 
+/* Do we need any octet strings? */
+#ifndef BACNET_USE_OCTETSTRING
+#define BACNET_USE_OCTETSTRING 1
+#endif
+
+/* Do we need any doubles? */
+#ifndef BACNET_USE_DOUBLE
+#define BACNET_USE_DOUBLE 1
+#endif
+
+/* Do we need any signed integers */
+#ifndef BACNET_USE_SIGNED
+#define BACNET_USE_SIGNED 1
+#endif
+
+/* if a datatype is not enabled, the BACapp helper cannot use it */
+#if (BACNET_USE_OCTETSTRING == 0)
+#undef BACAPP_OCTET_STRING
+#endif
+
+#if (BACNET_USE_DOUBLE == 0)
+#undef BACAPP_DOUBLE
+#endif
+
+#if (BACNET_USE_SIGNED == 0)
+#undef BACAPP_SIGNED
+#endif
+
 /**
  * @note Control the selection of services etc to enable code size reduction
  * for those compiler suites which do not handle removing of unused functions
@@ -363,12 +401,16 @@
  * We will start with the A type services code first as these are least likely
  * to be required in embedded systems using the stack.
  */
-#ifndef BACNET_SVC_SERVER
+#if !(                                                          \
+    defined(BACNET_SVC_I_HAVE_A) || defined(BACNET_SVC_WP_A) || \
+    defined(BACNET_SVC_RP_A) || defined(BACNET_SVC_RPM_A) ||    \
+    defined(BACNET_SVC_DCC_A) || defined(BACNET_SVC_RD_A) ||    \
+    defined(BACNET_SVC_TS_A) || defined(BACNET_SVC_SERVER))
 /* default to client-server device for the example apps to build. */
 #define BACNET_SVC_SERVER 0
 #endif
 
-#if (BACNET_SVC_SERVER == 0)
+#if defined(BACNET_SVC_SERVER) && (BACNET_SVC_SERVER == 0)
 /* client-server device */
 #define BACNET_SVC_I_HAVE_A 1
 #define BACNET_SVC_WP_A 1
@@ -377,9 +419,6 @@
 #define BACNET_SVC_DCC_A 1
 #define BACNET_SVC_RD_A 1
 #define BACNET_SVC_TS_A 1
-#define BACNET_USE_OCTETSTRING 1
-#define BACNET_USE_DOUBLE 1
-#define BACNET_USE_SIGNED 1
 #endif
 
 /* Do them one by one */
@@ -405,18 +444,6 @@
 
 #ifndef BACNET_SVC_RD_A /* Do we send ReinitialiseDevice requests? */
 #define BACNET_SVC_RD_A 0
-#endif
-
-#ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
-#define BACNET_USE_OCTETSTRING 0
-#endif
-
-#ifndef BACNET_USE_DOUBLE /* Do we need any doubles? */
-#define BACNET_USE_DOUBLE 0
-#endif
-
-#ifndef BACNET_USE_SIGNED /* Do we need any signed integers */
-#define BACNET_USE_SIGNED 0
 #endif
 
 #endif

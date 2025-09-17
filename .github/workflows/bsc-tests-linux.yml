@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout BACnet Stack
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Checkout libwebsockets
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: warmcat/libwebsockets
           ref: v4.3-stable
@@ -27,7 +27,7 @@ jobs:
           sudo apt-get install -qq libcap-dev
           sudo apt-get install -qq libssl-dev
           sudo apt-get install -qq libuv1-dev
-          bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+          bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5;make'
           sudo bash -c 'cd libwebsockets;cd build;make install'
       - name: Build and run bsc_event test
         run: |

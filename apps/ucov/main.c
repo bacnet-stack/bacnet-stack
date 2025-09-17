@@ -90,6 +90,9 @@ static void print_usage(const char *filename)
         "in bacenum.h.  It is the data type of the value that you are\n"
         "monitoring.  For example, if you were monitoring a REAL value,\n"
         "you would use a tag of 4.\n");
+    printf("Complex data use the property argument and a tag number -1 to\n"
+           "lookup the appropriate internal application tag for the value.\n"
+           "The complex data value argument varies in its construction.\n");
     printf("\n");
     printf(
         "value:\n"
@@ -126,7 +129,7 @@ int main(int argc, char *argv[])
     bool status = false;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
-    uint8_t tag;
+    long tag;
     unsigned object_type = 0;
     unsigned object_property = 0;
 
@@ -190,9 +193,13 @@ int main(int argc, char *argv[])
             cov_data.listOfValues->propertyIdentifier, MAX_BACNET_PROPERTY_ID);
         return 1;
     }
-    if (tag >= MAX_BACNET_APPLICATION_TAG) {
+    if (tag < 0) {
+        tag = bacapp_known_property_tag(
+            cov_data.monitoredObjectIdentifier.type,
+            cov_data.listOfValues->propertyIdentifier);
+    } else if (tag >= MAX_BACNET_APPLICATION_TAG) {
         fprintf(
-            stderr, "tag=%u - it must be less than %u\n", tag,
+            stderr, "tag=%ld - it must be less than %u\n", tag,
             MAX_BACNET_APPLICATION_TAG);
         return 1;
     }

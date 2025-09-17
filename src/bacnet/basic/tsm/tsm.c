@@ -16,6 +16,7 @@
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/binding/address.h"
@@ -735,7 +736,7 @@ bool tsm_set_segmented_confirmed_service_received(
             TSM_List[index].SegmentTimer = apdu_segment_timeout() * 4;
             /* reset memorized data */
             reset_blob(&TSM_List[index]);
-            
+
             // ConfirmedSegmentedReceivedWindowSizeOutofRange
             if (service_data->sequence_number == 0 &&
                 (TSM_List[index].ProposedWindowSize == 0 ||
@@ -863,7 +864,7 @@ bool tsm_set_segmented_confirmed_service_received(
                 }
             }
             break;
-        default: 
+        default:
             break;
     }
     return result;
@@ -1253,7 +1254,7 @@ void tsm_segmentack_received(
 
 /* Check unexpected PDU is received in active TSM state other than idle state for server */
 bool check_unexpected_pdu_received(
-    BACNET_ADDRESS *src, 
+    BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data )
 {
     uint8_t index = 0;

@@ -30,6 +30,17 @@ static const char *read_range_request_type(int type)
     }
 }
 
+static int
+testlist_item_encode(uint32_t object_instance, uint32_t item, uint8_t *apdu)
+{
+    int apdu_len = 0;
+
+    apdu_len += encode_application_unsigned(apdu, object_instance);
+    apdu_len += encode_application_unsigned(apdu, item);
+
+    return apdu_len;
+}
+
 /**
  * @brief Test
  */
@@ -131,6 +142,7 @@ static void testReadRangeUnit(BACNET_READ_RANGE_DATA *data)
 {
     uint8_t apdu[480] = { 0 };
     int apdu_len = 0, test_len = 0, null_len = 0;
+    uint32_t item_count = 5, item_count_total = 1200;
     BACNET_READ_RANGE_DATA test_data;
 
     null_len = read_range_request_encode(&apdu[0], 0, data);
@@ -153,6 +165,27 @@ static void testReadRangeUnit(BACNET_READ_RANGE_DATA *data)
     zassert_equal(test_data.object_instance, data->object_instance, NULL);
     zassert_equal(test_data.object_property, data->object_property, NULL);
     zassert_equal(test_data.array_index, data->array_index, NULL);
+    if (data->RequestType == RR_BY_POSITION) {
+        test_len = readrange_ack_by_position_encode(
+            data, testlist_item_encode, item_count, apdu, sizeof(apdu));
+        if (data->Range.RefIndex >= item_count) {
+            /* if the reference index must be less than the item count,
+               or it should encode nothing */
+            zassert_equal(test_len, 0, NULL);
+        } else {
+            zassert_not_equal(test_len, 0, NULL);
+        }
+    } else if (data->RequestType == RR_BY_SEQUENCE) {
+        test_len = readrange_ack_by_sequence_encode(
+            data, testlist_item_encode, item_count, item_count_total, apdu,
+            sizeof(apdu));
+        zassert_not_equal(test_len, 0, NULL);
+        item_count_total = item_count;
+        test_len = readrange_ack_by_sequence_encode(
+            data, testlist_item_encode, item_count, item_count_total, apdu,
+            sizeof(apdu));
+        zassert_not_equal(test_len, 0, NULL);
+    }
     while (apdu_len) {
         apdu_len--;
         test_len = rr_decode_service_request(&apdu[0], apdu_len, &test_data);
@@ -184,10 +217,29 @@ static void testReadRange(void)
     data.array_index = BACNET_ARRAY_ALL;
     data.RequestType = RR_READ_ALL;
     testReadRangeUnit(&data);
+
     data.RequestType = RR_BY_POSITION;
     testReadRangeUnit(&data);
+    data.Range.RefIndex = 5;
+    data.RequestType = RR_BY_POSITION;
+    testReadRangeUnit(&data);
+    data.Range.RefIndex = 6;
+    data.RequestType = RR_BY_POSITION;
+    testReadRangeUnit(&data);
+
+    data.Count = 0;
     data.RequestType = RR_BY_SEQUENCE;
     testReadRangeUnit(&data);
+    data.Range.RefSeqNum = 5;
+    data.RequestType = RR_BY_SEQUENCE;
+    testReadRangeUnit(&data);
+    data.Range.RefSeqNum = 6;
+    data.RequestType = RR_BY_SEQUENCE;
+    testReadRangeUnit(&data);
+    data.Range.RefSeqNum = 1200;
+    data.RequestType = RR_BY_SEQUENCE;
+    testReadRangeUnit(&data);
+
     data.RequestType = RR_BY_TIME;
     testReadRangeUnit(&data);
 

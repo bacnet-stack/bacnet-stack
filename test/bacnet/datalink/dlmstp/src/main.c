@@ -117,6 +117,9 @@ static void test_MSTP_Datalink(void)
         test_stats.receive_valid_frame_counter,
         MSTP_User.Statistics.receive_valid_frame_counter, NULL);
     zassert_equal(
+        test_stats.receive_valid_frame_not_for_us_counter,
+        MSTP_User.Statistics.receive_valid_frame_not_for_us_counter, NULL);
+    zassert_equal(
         test_stats.receive_invalid_frame_counter,
         MSTP_User.Statistics.receive_invalid_frame_counter, NULL);
     zassert_equal(
@@ -125,6 +128,11 @@ static void test_MSTP_Datalink(void)
     zassert_equal(
         test_stats.receive_pdu_counter,
         MSTP_User.Statistics.receive_pdu_counter, NULL);
+    zassert_equal(
+        test_stats.bad_crc_counter, MSTP_User.Statistics.bad_crc_counter, NULL);
+    zassert_equal(
+        test_stats.poll_for_master_counter,
+        MSTP_User.Statistics.poll_for_master_counter, NULL);
     dlmstp_reset_statistics();
     dlmstp_set_frame_rx_complete_callback(NULL);
     dlmstp_set_invalid_frame_rx_complete_callback(NULL);

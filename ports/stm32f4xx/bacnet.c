@@ -21,8 +21,6 @@
 #include "bacnet/iam.h"
 /* BACnet objects */
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/program.h"
-#include "bacnet/basic/program/ubasic/ubasic.h"
 /* me */
 #include "bacnet.h"
 
@@ -39,7 +37,6 @@ void bacnet_init(void)
 {
     /* initialize objects */
     Device_Init(NULL);
-    Program_UBASIC_Init(BACNET_MAX_INSTANCE);
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
@@ -64,6 +61,8 @@ void bacnet_init(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
 }
@@ -93,7 +92,6 @@ void bacnet_task(void)
         mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
     }
-    Program_UBASIC_Task();
     /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
     if (pdu_len) {

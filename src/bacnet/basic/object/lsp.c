@@ -198,8 +198,8 @@ bool Life_Safety_Point_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "LIFE-SAFETY-POINT-%u",
-                object_instance);
+                name_text, sizeof(name_text), "LIFE-SAFETY-POINT-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -535,8 +535,7 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], mode);
             break;
         case PROP_ACCEPTED_MODES:
-            for (mode = MIN_LIFE_SAFETY_MODE; mode < MAX_LIFE_SAFETY_MODE;
-                 mode++) {
+            for (mode = 0; mode <= LIFE_SAFETY_MODE_RESERVED_MIN; mode++) {
                 len = encode_application_enumerated(&apdu[apdu_len], mode);
                 apdu_len += len;
             }
@@ -583,7 +582,7 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
+                if (value.type.Enumerated <= LIFE_SAFETY_MODE_PROPRIETARY_MAX) {
                     Life_Safety_Point_Mode_Set(
                         wp_data->object_instance,
                         (BACNET_LIFE_SAFETY_MODE)value.type.Enumerated);

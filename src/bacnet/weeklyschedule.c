@@ -32,7 +32,7 @@ int bacnet_weeklyschedule_decode(
         return BACNET_STATUS_ERROR;
     }
     value->singleDay = false;
-    for (wi = 0; wi < 7; wi++) {
+    for (wi = 0; wi < BACNET_WEEKLY_SCHEDULE_SIZE; wi++) {
         len = bacnet_dailyschedule_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 0,
             &value->weeklySchedule[wi]);
@@ -67,7 +67,8 @@ int bacnet_weeklyschedule_encode(
     int len = 0;
     int wi;
 
-    for (wi = 0; wi < (value->singleDay ? 1 : 7); wi++) {
+    for (wi = 0; wi < (value->singleDay ? 1 : BACNET_WEEKLY_SCHEDULE_SIZE);
+         wi++) {
         len = bacnet_dailyschedule_context_encode(
             apdu, 0, &value->weeklySchedule[wi]);
         if (len < 0) {
@@ -176,7 +177,7 @@ bool bacnet_weeklyschedule_same(
     const BACNET_TIME_VALUE *tv1, *tv2;
     int wi, ti;
 
-    for (wi = 0; wi < 7; wi++) {
+    for (wi = 0; wi < BACNET_WEEKLY_SCHEDULE_SIZE; wi++) {
         ds1 = &value1->weeklySchedule[wi];
         ds2 = &value2->weeklySchedule[wi];
         if (ds1->TV_Count != ds2->TV_Count) {

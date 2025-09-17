@@ -2,7 +2,7 @@
  * @file
  * @brief BACnet AtomicReadFile service structures, codecs, and handlers.
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2007
+ * @date 2013
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_ATOMIC_READ_FILE_H

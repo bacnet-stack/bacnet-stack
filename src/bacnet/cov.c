@@ -264,8 +264,8 @@ int cov_notify_decode_service_request(
             /* the first value includes a pointer to the next value, etc */
             value = data->listOfValues;
             while (value != NULL) {
-                value_len = bacapp_property_value_decode(
-                    &apdu[len], apdu_size - len, value);
+                value_len = bacapp_object_property_value_decode(
+                    &apdu[len], apdu_size - len, value, decoded_type);
                 if (value_len == BACNET_STATUS_ERROR) {
                     return BACNET_STATUS_ERROR;
                 } else {

@@ -81,7 +81,7 @@ static void strupper(char *str)
 void RS485_Set_Interface(char *ifname)
 {
     /* For COM ports greater than 9 you have to use a special syntax
-       for CreateFile. The syntax also works for COM ports 1-9. */
+       for CreateFileA. The syntax also works for COM ports 1-9. */
     /* http://support.microsoft.com/kb/115831 */
     if (ifname) {
         strupper(ifname);
@@ -112,7 +112,7 @@ bool RS485_Interface_Valid(unsigned port_number)
     char ifname[255] = "";
 
     snprintf(ifname, sizeof(ifname), "\\\\.\\COM%u", port_number);
-    h = CreateFile(
+    h = CreateFileA(
         ifname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     if (h == INVALID_HANDLE_VALUE) {
         err = GetLastError();
@@ -187,7 +187,21 @@ static void RS485_Configure_Status(void)
         fprintf(stderr, "Unable to set status on %s\n", RS485_Port_Name);
         RS485_Print_Error();
     }
-    /* configure the COM port timeout values */
+    /* configure the time-out parameters for a communications device. */
+    /* If an application sets ReadIntervalTimeout and
+       ReadTotalTimeoutMultiplier to MAXDWORD and
+       sets ReadTotalTimeoutConstant to a value greater
+       than zero and less than MAXDWORD, one of the following
+       occurs when the ReadFile function is called:
+        * If there are any bytes in the input buffer,
+          ReadFile returns immediately with the bytes in the buffer.
+        * If there are no bytes in the input buffer,
+          ReadFile waits until a byte arrives and then returns immediately.
+        * If no bytes arrive within the time specified
+          by ReadTotalTimeoutConstant, ReadFile times out.
+
+        Constant values are in milliseconds
+     */
     ctNew.ReadIntervalTimeout = MAXDWORD;
     ctNew.ReadTotalTimeoutMultiplier = MAXDWORD;
     ctNew.ReadTotalTimeoutConstant = 1;
@@ -238,11 +252,14 @@ static void RS485_Cleanup(void)
  *****************************************************************************/
 void RS485_Initialize(void)
 {
-    RS485_Handle = CreateFile(
+    RS485_Handle = CreateFileA(
         RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
         /*FILE_FLAG_OVERLAPPED */ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "RS485 unable to open %s\n", RS485_Port_Name);
+        DWORD err = GetLastError();
+        fprintf(
+            stderr, "RS485 unable to open %s (Error %lu)\n", RS485_Port_Name,
+            err);
         RS485_Print_Error();
         exit(1);
     }

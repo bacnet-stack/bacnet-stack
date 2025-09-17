@@ -20,6 +20,8 @@
 #include "bacnet/basic/server/bacnet_port_ipv4.h"
 #elif defined(BACDL_BIP6)
 #include "bacnet/basic/server/bacnet_port_ipv6.h"
+#elif defined(BACDL_MSTP)
+#include "bacnet/basic/server/bacnet_port_mstp.h"
 #endif
 /* me! */
 #include "bacnet/basic/server/bacnet_port.h"
@@ -45,6 +47,11 @@ void bacnet_port_task(void)
         bacnet_port_ipv4_task(elapsed_seconds);
 #elif defined(BACDL_BIP6)
         bacnet_port_ipv6_task(elapsed_seconds);
+#elif defined(BACDL_MSTP)
+        bacnet_port_mstp_task(elapsed_seconds);
+#else
+        /* nothing to do */
+        (void)elapsed_seconds;
 #endif
     }
 }
@@ -61,6 +68,8 @@ bool bacnet_port_init(void)
     status = bacnet_port_ipv4_init();
 #elif defined(BACDL_BIP6)
     status = bacnet_port_ipv6_init();
+#elif defined(BACDL_MSTP)
+    status = bacnet_port_mstp_init();
 #endif
     return status;
 }

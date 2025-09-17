@@ -16,6 +16,7 @@
 #include "rs485.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "seeprom.h"
+#include "spi-master.h"
 #include "nvdata.h"
 /* me */
 #include "test.h"
@@ -47,6 +48,7 @@ void test_init(void)
 #else
     BIT_SET(DDRB, DDB0);
 #endif
+    spi_master_init();
 }
 
 /**
@@ -193,6 +195,10 @@ void test_task(void)
                 snprintf(Send_Buffer, sizeof(Send_Buffer),
                     "\r\nMax:%u", (unsigned)dlmstp_max_master());
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
+                break;
+            case 's':
+                data_register = spi_master_transfer(0xBA);
+                snprintf(Send_Buffer, sizeof(Send_Buffer), "\r\nSPI:%02Xh", data_register);
                 break;
             default:
                 break;

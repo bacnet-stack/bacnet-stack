@@ -13,6 +13,10 @@
 /* BACnet Stack API */
 #include "bacnet/bacint.h"
 
+#ifndef BACNET_USE_SIGNED
+#define BACNET_USE_SIGNED 1
+#endif
+
 int encode_unsigned16(uint8_t *apdu, uint16_t value)
 {
     if (apdu) {

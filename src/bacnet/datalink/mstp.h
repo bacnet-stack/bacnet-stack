@@ -39,7 +39,14 @@ struct mstp_port_struct_t {
     unsigned ReceiveError : 1;
     /* There is data in the buffer */
     unsigned DataAvailable : 1;
+    /* A Boolean flag set to TRUE by the Receive State Machine  */
+    /* if an invalid frame is received.  */
+    /* Set to FALSE by the main state machine. */
     unsigned ReceivedInvalidFrame : 1;
+    /* A Boolean flag set to TRUE by the Receive State Machine  */
+    /* if a valid frame is not for us */
+    /* Set to FALSE by the main state machine. */
+    unsigned ReceivedValidFrameNotForUs : 1;
     /* A Boolean flag set to TRUE by the Receive State Machine  */
     /* if a valid frame is received.  */
     /* Set to FALSE by the Master or Slave Node state machine. */

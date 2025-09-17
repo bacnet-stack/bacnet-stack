@@ -54,6 +54,7 @@ OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance)
 {
     OBJECT_DEVICE_T *pDevice = NULL;
     KEY key = device_instance;
+    int index;
 
     objects_init();
     if (Device_List) {
@@ -67,8 +68,15 @@ OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance)
                 pDevice->Object_Identifier.type = OBJECT_DEVICE;
                 pDevice->Object_Identifier.instance = device_instance;
                 pDevice->Object_Type = OBJECT_DEVICE;
-                pDevice->Object_List = Keylist_Create();
-                Keylist_Data_Add(Device_List, key, pDevice);
+                index = Keylist_Data_Add(Device_List, key, pDevice);
+                if (index < 0) {
+                    /* unable to add */
+                    free(pDevice);
+                    pDevice = NULL;
+                } else {
+                    /* successfully added */
+                    pDevice->Object_List = Keylist_Create();
+                }
             }
         }
     }
