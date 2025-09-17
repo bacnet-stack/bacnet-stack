@@ -42,6 +42,14 @@ unsigned Lighting_Output_Present_Value_Priority(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Present_Value_Set(
     uint32_t object_instance, float value, unsigned priority);
+
+BACNET_STACK_EXPORT
+bool Lighting_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Lighting_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+
 BACNET_STACK_EXPORT
 bool Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority);
