@@ -5,7 +5,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date June 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/calendar.h>

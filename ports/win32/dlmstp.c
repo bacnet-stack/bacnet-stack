@@ -60,6 +60,7 @@ static struct mstimer Valid_Frame_Timer;
 /* callbacks for monitoring */
 static dlmstp_hook_frame_rx_start_cb Preamble_Callback;
 static dlmstp_hook_frame_rx_complete_cb Valid_Frame_Rx_Callback;
+static dlmstp_hook_frame_rx_complete_cb Valid_Frame_Not_For_Us_Rx_Callback;
 static dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
 static DLMSTP_STATISTICS DLMSTP_Statistics;
 
@@ -430,6 +431,7 @@ static void dlmstp_thread(void *pArg)
     for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
+            (MSTP_Port.ReceivedValidFrameNotForUs == false) &&
             (MSTP_Port.ReceivedInvalidFrame == false)) {
             /* note: RS485 waits up to 1ms for data to arrive */
             RS485_Check_UART_Data(&MSTP_Port);
@@ -442,6 +444,9 @@ static void dlmstp_thread(void *pArg)
         }
         if (MSTP_Port.ReceivedValidFrame) {
             DLMSTP_Statistics.receive_valid_frame_counter++;
+            if (MSTP_Port.FrameType == FRAME_TYPE_POLL_FOR_MASTER) {
+                DLMSTP_Statistics.poll_for_master_counter++;
+            }
             if (Valid_Frame_Rx_Callback) {
                 Valid_Frame_Rx_Callback(
                     MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
@@ -449,9 +454,23 @@ static void dlmstp_thread(void *pArg)
                     MSTP_Port.DataLength);
             }
             run_master = true;
+        } else if (MSTP_Port.ReceivedValidFrameNotForUs) {
+            DLMSTP_Statistics.receive_valid_frame_not_for_us_counter++;
+            if (Valid_Frame_Not_For_Us_Rx_Callback) {
+                Valid_Frame_Not_For_Us_Rx_Callback(
+                    MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
+                    MSTP_Port.FrameType, MSTP_Port.InputBuffer,
+                    MSTP_Port.DataLength);
+            }
+            run_master = true;
         } else if (MSTP_Port.ReceivedInvalidFrame) {
+            DLMSTP_Statistics.receive_invalid_frame_counter++;
+            if (MSTP_Port.HeaderCRC != 0x55) {
+                DLMSTP_Statistics.bad_crc_counter++;
+            } else if (MSTP_Port.DataCRC != 0xF0B8) {
+                DLMSTP_Statistics.bad_crc_counter++;
+            }
             if (Invalid_Frame_Rx_Callback) {
-                DLMSTP_Statistics.receive_invalid_frame_counter++;
                 Invalid_Frame_Rx_Callback(
                     MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
                     MSTP_Port.FrameType, MSTP_Port.InputBuffer,
@@ -791,6 +810,16 @@ void dlmstp_set_frame_rx_complete_callback(
     dlmstp_hook_frame_rx_complete_cb cb_func)
 {
     Valid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Not For Us callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_frame_not_for_us_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    Valid_Frame_Not_For_Us_Rx_Callback = cb_func;
 }
 
 /**

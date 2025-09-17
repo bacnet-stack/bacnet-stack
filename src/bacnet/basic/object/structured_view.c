@@ -45,26 +45,26 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_NODE_TYPE, PROP_SUBORDINATE_LIST,
-    -1
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
+    PROP_NODE_TYPE,         PROP_SUBORDINATE_LIST, -1
 };
 
 static const int Properties_Optional[] = {
-    PROP_DESCRIPTION, PROP_NODE_SUBTYPE, PROP_SUBORDINATE_ANNOTATIONS,
-    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
+    PROP_NODE_SUBTYPE,
+    PROP_SUBORDINATE_ANNOTATIONS,
+    PROP_SUBORDINATE_NODE_TYPES,
+    PROP_SUBORDINATE_RELATIONSHIPS,
     PROP_DEFAULT_SUBORDINATE_RELATIONSHIP,
     PROP_REPRESENTS,
     -1
 };
 
-static const int Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -168,7 +168,7 @@ bool Structured_View_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[24] = "Structured-View-4194303";
+    char name_text[48] = "Structured-View-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -177,8 +177,8 @@ bool Structured_View_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "Structured-View-%u",
-                object_instance);
+                name_text, sizeof(name_text), "Structured-View-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }

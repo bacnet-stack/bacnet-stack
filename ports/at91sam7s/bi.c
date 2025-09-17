@@ -110,7 +110,7 @@ BACNET_BINARY_PV Binary_Input_Present_Value(uint32_t object_instance)
 bool Binary_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[16] = "BI-0"; /* okay for single thread */
+    char text_string[16] = "BI-0";
     bool status = false;
 
     if (object_instance < MAX_BINARY_INPUTS) {

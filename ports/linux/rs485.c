@@ -248,19 +248,18 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     uint8_t buf[2048];
     ssize_t n;
     int handle = RS485_Handle;
+    SHARED_MSTP_DATA *poSharedData;
     FIFO_BUFFER *fifo = &Rx_FIFO;
 
-    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
+    waiter.tv_sec = 0;
+    waiter.tv_usec = 5000;
+    poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
     if (poSharedData) {
         handle = poSharedData->RS485_Handle;
         fifo = &poSharedData->Rx_FIFO;
     }
-
     if (mstp_port->ReceiveError == true) {
         /* do nothing but wait for state machine to clear the error */
-        /* burning time, so wait a longer time */
-        waiter.tv_sec = 0;
-        waiter.tv_usec = 5000;
     } else if (mstp_port->DataAvailable == false) {
         /* wait for state machine to read from the DataRegister */
         if (FIFO_Count(fifo) > 0) {
@@ -270,10 +269,6 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
             /* FIFO is giving data - just poll */
             waiter.tv_sec = 0;
             waiter.tv_usec = 0;
-        } else {
-            /* FIFO is empty - wait a longer time */
-            waiter.tv_sec = 0;
-            waiter.tv_usec = 5000;
         }
     }
     /* grab bytes and stuff them into the FIFO every time */
@@ -285,7 +280,9 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     }
     if (FD_ISSET(handle, &input)) {
         n = read(handle, buf, sizeof(buf));
-        FIFO_Add(fifo, &buf[0], n);
+        if (n > 0) {
+            FIFO_Add(fifo, &buf[0], n);
+        }
     }
 }
 

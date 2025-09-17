@@ -67,8 +67,10 @@ static struct mstimer Valid_Frame_Timer;
 /* callbacks for monitoring */
 static dlmstp_hook_frame_rx_start_cb Preamble_Callback;
 static dlmstp_hook_frame_rx_complete_cb Valid_Frame_Rx_Callback;
+static dlmstp_hook_frame_rx_complete_cb Valid_Frame_Not_For_Us_Rx_Callback;
 static dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
 static DLMSTP_STATISTICS DLMSTP_Statistics;
+static bool DLMSTP_Initialized;
 
 /**
  * @brief Cleanup the MS/TP datalink
@@ -86,6 +88,7 @@ void dlmstp_cleanup(void)
     pthread_mutex_destroy(&Receive_Packet_Mutex);
     pthread_mutex_destroy(&Master_Done_Mutex);
     pthread_mutex_destroy(&Ring_Buffer_Mutex);
+    DLMSTP_Initialized = false;
 }
 
 /**
@@ -498,6 +501,7 @@ static void *dlmstp_thread(void *pArg)
     while (thread_alive) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
+            (MSTP_Port.ReceivedValidFrameNotForUs == false) &&
             (MSTP_Port.ReceivedInvalidFrame == false)) {
             RS485_Check_UART_Data(&MSTP_Port);
             MSTP_Receive_Frame_FSM(&MSTP_Port);
@@ -509,6 +513,9 @@ static void *dlmstp_thread(void *pArg)
         }
         if (MSTP_Port.ReceivedValidFrame) {
             DLMSTP_Statistics.receive_valid_frame_counter++;
+            if (MSTP_Port.FrameType == FRAME_TYPE_POLL_FOR_MASTER) {
+                DLMSTP_Statistics.poll_for_master_counter++;
+            }
             if (Valid_Frame_Rx_Callback) {
                 Valid_Frame_Rx_Callback(
                     MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
@@ -516,9 +523,23 @@ static void *dlmstp_thread(void *pArg)
                     MSTP_Port.DataLength);
             }
             run_master = true;
+        } else if (MSTP_Port.ReceivedValidFrameNotForUs) {
+            DLMSTP_Statistics.receive_valid_frame_not_for_us_counter++;
+            if (Valid_Frame_Not_For_Us_Rx_Callback) {
+                Valid_Frame_Not_For_Us_Rx_Callback(
+                    MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
+                    MSTP_Port.FrameType, MSTP_Port.InputBuffer,
+                    MSTP_Port.DataLength);
+            }
+            run_master = true;
         } else if (MSTP_Port.ReceivedInvalidFrame) {
+            DLMSTP_Statistics.receive_invalid_frame_counter++;
+            if (MSTP_Port.HeaderCRC != 0x55) {
+                DLMSTP_Statistics.bad_crc_counter++;
+            } else if (MSTP_Port.DataCRC != 0xF0B8) {
+                DLMSTP_Statistics.bad_crc_counter++;
+            }
             if (Invalid_Frame_Rx_Callback) {
-                DLMSTP_Statistics.receive_invalid_frame_counter++;
                 Invalid_Frame_Rx_Callback(
                     MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
                     MSTP_Port.FrameType, MSTP_Port.InputBuffer,
@@ -876,6 +897,26 @@ void dlmstp_set_frame_rx_complete_callback(
  * @brief Set the MS/TP Frame Complete callback
  * @param cb_func - callback function to be called when a frame is received
  */
+void dlmstp_set_frame_not_for_us_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    Valid_Frame_Not_For_Us_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_invalid_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    Invalid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
 void dlmstp_set_invalid_frame_rx_complete_callback(
     dlmstp_hook_frame_rx_complete_cb cb_func)
 {
@@ -973,6 +1014,27 @@ void dlmstp_silence_reset(void *arg)
 }
 
 /**
+ * @brief Configures the interface name
+ * @param ifname = the interface name
+ */
+void dlmstp_set_interface(const char *ifname)
+{
+    /* note: expects a constant char, or char from the heap */
+    if (ifname) {
+        RS485_Set_Interface((char *)ifname);
+    }
+}
+
+/**
+ * @brief Returns the interface name
+ * @return the interface name
+ */
+const char *dlmstp_get_interface(void)
+{
+    return RS485_Interface();
+}
+
+/**
  * @brief Initialize this MS/TP datalink
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
@@ -982,6 +1044,17 @@ bool dlmstp_init(char *ifname)
     pthread_condattr_t attr;
     int rv = 0;
 
+    if (DLMSTP_Initialized) {
+        dlmstp_cleanup();
+        RS485_Cleanup();
+    }
+    DLMSTP_Initialized = true;
+    if (ifname) {
+        RS485_Set_Interface(ifname);
+        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
+    } else {
+        ifname = (char *)RS485_Interface();
+    }
     pthread_condattr_init(&attr);
     // TODO use mach_absolute_time() <mach/mach_time.h> for MONOTONIC clock
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
@@ -1023,10 +1096,6 @@ bool dlmstp_init(char *ifname)
     clock_gettime(CLOCK_MONOTONIC, &Clock_Get_Time_Start);
     /* initialize hardware */
     mstimer_set(&Silence_Timer, 0);
-    if (ifname) {
-        RS485_Set_Interface(ifname);
-        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
-    }
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
