@@ -4868,9 +4868,12 @@ int bacnet_array_encode(
     if (array_index == 0) {
         /* Array element zero is the number of objects in the list */
         len = encode_application_unsigned(NULL, array_size);
+#if! BACNET_SEGMENTATION_ENABLED 
         if (len > max_apdu) {
             apdu_len = BACNET_STATUS_ABORT;
-        } else {
+        } else
+#endif
+        {
             len = encode_application_unsigned(apdu, array_size);
             apdu_len = len;
         }
@@ -4880,10 +4883,13 @@ int bacnet_array_encode(
         for (index = 0; index < array_size; index++) {
             len += encoder(object_instance, index, NULL);
         }
+#if !BACNET_SEGMENTATION_ENABLED 
         if (len > max_apdu) {
             /* encoded size is larger than APDU size */
             apdu_len = BACNET_STATUS_ABORT;
-        } else {
+        } else
+#endif
+        {
             for (index = 0; index < array_size; index++) {
                 len = encoder(object_instance, index, apdu);
                 if (apdu) {
@@ -4896,12 +4902,14 @@ int bacnet_array_encode(
         /* index was specified; encode a single array element */
         index = array_index - 1;
         len = encoder(object_instance, index, NULL);
+
+#if !BACNET_SEGMENTATION_ENABLED
         if (len > max_apdu) {
             apdu_len = BACNET_STATUS_ABORT;
-        } else {
-            len = encoder(object_instance, index, apdu);
-            apdu_len = len;
         }
+#endif
+        len = encoder(object_instance, index, apdu);
+        apdu_len = len;
     } else {
         /* array_index was specified out of range */
         apdu_len = BACNET_STATUS_ERROR;

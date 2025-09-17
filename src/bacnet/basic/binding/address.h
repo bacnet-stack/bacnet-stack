@@ -41,7 +41,14 @@ void address_remove_device(uint32_t device_id);
 
 BACNET_STACK_EXPORT
 bool address_get_by_device(
-    uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src);
+    uint32_t device_id,
+    unsigned *max_apdu,
+    BACNET_ADDRESS *src
+#if BACNET_SEGMENTATION_ENABLED
+    ,uint8_t *segmentation
+    ,uint16_t *maxsegments
+#endif
+);
 
 BACNET_STACK_EXPORT
 bool address_get_by_index(

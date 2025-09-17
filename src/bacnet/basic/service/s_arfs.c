@@ -38,6 +38,10 @@ uint8_t Send_Atomic_Read_File_Stream(
     bool status = false;
     int len = 0;
     int pdu_len = 0;
+#if BACNET_SEGMENTATION_ENABLED
+    uint8_t segmentation = 0;
+    uint16_t maxsegments = 0;
+#endif
     int bytes_sent = 0;
     BACNET_ATOMIC_READ_FILE_DATA data;
 
@@ -47,7 +51,12 @@ uint8_t Send_Atomic_Read_File_Stream(
     }
 
     /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
+    status = address_get_by_device(
+        device_id, &max_apdu, &dest
+#if BACNET_SEGMENTATION_ENABLED
+        ,&segmentation, &maxsegments
+#endif
+    );
     /* is there a tsm available? */
     if (status) {
         invoke_id = tsm_next_free_invokeID();

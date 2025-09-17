@@ -49,6 +49,10 @@ uint8_t Send_Write_Property_Request_Data(
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
+#if BACNET_SEGMENTATION_ENABLED
+    uint8_t segmentation = 0;
+    uint16_t maxsegments = 0;
+#endif
     BACNET_WRITE_PROPERTY_DATA data;
     BACNET_NPDU_DATA npdu_data;
 
@@ -56,7 +60,12 @@ uint8_t Send_Write_Property_Request_Data(
         return 0;
     }
     /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
+    status = address_get_by_device(
+        device_id, &max_apdu, &dest
+#if BACNET_SEGMENTATION_ENABLED
+        ,&segmentation, &maxsegments
+#endif
+    );
     /* is there a tsm available? */
     if (status) {
         invoke_id = tsm_next_free_invokeID();
