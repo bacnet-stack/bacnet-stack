@@ -1556,8 +1556,12 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->object_instance, rpdata->array_index,
                 Device_Object_List_Element_Encode, count, apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
+#if BACNET_SEGMENTATION_ENABLED
+                rpdata->error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
+#else
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+#endif
             } else if (apdu_len == BACNET_STATUS_ERROR) {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
