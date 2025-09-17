@@ -181,7 +181,7 @@ bool Binary_Output_Out_Of_Service(uint32_t instance)
 bool Binary_Output_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[16] = "BO-0"; /* okay for single thread */
+    char text_string[16] = "BO-0";
     bool status = false;
 
     if (object_instance < MAX_BINARY_OUTPUTS) {

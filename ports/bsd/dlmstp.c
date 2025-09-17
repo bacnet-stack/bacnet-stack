@@ -513,6 +513,9 @@ static void *dlmstp_thread(void *pArg)
         }
         if (MSTP_Port.ReceivedValidFrame) {
             DLMSTP_Statistics.receive_valid_frame_counter++;
+            if (MSTP_Port.FrameType == FRAME_TYPE_POLL_FOR_MASTER) {
+                DLMSTP_Statistics.poll_for_master_counter++;
+            }
             if (Valid_Frame_Rx_Callback) {
                 Valid_Frame_Rx_Callback(
                     MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
@@ -530,8 +533,13 @@ static void *dlmstp_thread(void *pArg)
             }
             run_master = true;
         } else if (MSTP_Port.ReceivedInvalidFrame) {
+            DLMSTP_Statistics.receive_invalid_frame_counter++;
+            if (MSTP_Port.HeaderCRC != 0x55) {
+                DLMSTP_Statistics.bad_crc_counter++;
+            } else if (MSTP_Port.DataCRC != 0xF0B8) {
+                DLMSTP_Statistics.bad_crc_counter++;
+            }
             if (Invalid_Frame_Rx_Callback) {
-                DLMSTP_Statistics.receive_invalid_frame_counter++;
                 Invalid_Frame_Rx_Callback(
                     MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,
                     MSTP_Port.FrameType, MSTP_Port.InputBuffer,

@@ -847,7 +847,7 @@ bool Channel_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    char name_text[24] = "CHANNEL-4194303";
+    char name_text[32] = "CHANNEL-4194303";
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
