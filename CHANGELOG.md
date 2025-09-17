@@ -22,6 +22,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added API to output objects for priority-array property value
+  inspection. (#1096)
 * Added lighting command refresh from tracking value API. (#1094)
 * Added MS/TP statistics counters for BadCRC and Poll-For-Master. (#1081)
 * Added Lighting Output API to implement override for HOA control.
@@ -115,6 +117,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed CMake Error in libwebsocket: Compatibility with CMake < 3.5 has
+  been removed from CMake (#1095)
 * Fixed Lighting Output Relinquish values. (#1094)
 * Fixed copied code that no longer needs static function scope variables
   for text names. (#1092)

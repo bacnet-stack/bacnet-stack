@@ -201,6 +201,52 @@ bool Access_Door_Present_Value_Set(
     return status;
 }
 
+/**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Access_Door_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Access_Door_Instance_To_Index(object_instance);
+    if (index < MAX_ACCESS_DOORS) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            if (!ad_descr[index].value_active[priority - 1]) {
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the priority-array value from its slot
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return priority-array value from its slot
+ */
+BACNET_DOOR_VALUE
+Access_Door_Priority_Array_Value(uint32_t object_instance, unsigned priority)
+{
+    BACNET_DOOR_VALUE value = DOOR_VALUE_LOCK;
+    unsigned index = 0;
+
+    index = Access_Door_Instance_To_Index(object_instance);
+    if (index < MAX_ACCESS_DOORS) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            value = ad_descr[index].priority_array[priority - 1];
+        }
+    }
+
+    return value;
+}
+
 bool Access_Door_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority)
 {
