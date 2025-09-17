@@ -137,7 +137,7 @@ libwebsockets:
 	sudo apt-get install -qq libssl-dev
 	sudo apt-get install -qq libuv1-dev
 	git clone --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
-	bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+	bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5;make'
 	sudo bash -c 'cd libwebsockets;cd build;make install'
 
 test-bsc: bsc-datalink bsc-node bsc-hub bsc-bvlc bsc-socket websockets
