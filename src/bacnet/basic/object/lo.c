@@ -351,12 +351,12 @@ static int Lighting_Output_Priority_Array_Encode(
  *
  * @param  object_instance - object-instance number of the object
  *
- * @return  active priority 1..16, or 0 if no priority is active
+ * @return  active priority 1..16, or 17 if no priority is active
  */
 static unsigned Present_Value_Priority(const struct object_data *pObject)
 {
-    unsigned p = 0; /* loop counter */
-    unsigned priority = 0; /* return value */
+    unsigned p; /* loop counter */
+    unsigned priority = BACNET_MAX_PRIORITY + 1; /* return value */
 
     for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
         if (BIT_CHECK(pObject->Priority_Active_Bits, p)) {
@@ -448,6 +448,9 @@ unsigned Lighting_Output_Present_Value_Priority(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         priority = Present_Value_Priority(pObject);
+        if (priority > BACNET_MAX_PRIORITY) {
+            priority = 0;
+        }
     }
 
     return priority;
