@@ -117,6 +117,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Lighting Output object STOP lighting command so that it sets
+  the present-value. (#1101)
 * Fixed the lighting command RAMP TO ramp rate to always clamp within
   0.1 and 100.0 to avoid endless rate of 0.0. (#1100)
 * Fixed Lighting Output step operations mixup. (#1099)

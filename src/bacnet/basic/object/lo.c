@@ -1224,6 +1224,16 @@ bool Lighting_Output_Description_Set(
 
 /**
  * @brief Set the lighting command if the priority is active
+ * @details Stops any FADE_TO or RAMP_TO command in progress
+ *  at the specified priority and writes the current value of
+ *  Tracking_Value to that slot in the priority array and sets
+ *  In_Progress to IDLE.
+ *  Cancels any WARN_RELINQUISH or WARN_OFF command in progress
+ *  at the specified priority and cancels the blink-warn egress
+ *  timer. The value in the priority array at the specified
+ *  priority remains unchanged.
+ *  If there is no fade, ramp, or warn command currently executing
+ *  at the specified priority, then this operation is ignored.
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
  */
@@ -1231,14 +1241,25 @@ static void
 Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
+    float value;
 
     if (!pObject) {
         return;
     }
     current_priority = Present_Value_Priority(pObject);
-    if (priority <= current_priority) {
-        /* we have priority - configure the Lighting Command */
-        lighting_command_stop(&pObject->Lighting_Command);
+    if (priority == current_priority) {
+        if ((pObject->Lighting_Command.In_Progress ==
+             BACNET_LIGHTING_FADE_ACTIVE) ||
+            (pObject->Lighting_Command.In_Progress ==
+             BACNET_LIGHTING_RAMP_ACTIVE) ||
+            (pObject->Lighting_Command.Blink.Duration > 0)) {
+            /* fade, ramp, or warn command is currently
+               executing at the specified priority */
+            value = pObject->Lighting_Command.Tracking_Value;
+            Present_Value_Set(pObject, value, priority);
+            /* configure the Lighting Command */
+            lighting_command_stop(&pObject->Lighting_Command);
+        }
     }
 }
 
