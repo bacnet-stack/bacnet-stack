@@ -117,6 +117,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the lighting output objects current priority comparison during
+  lighting commands by using priority 17 for relinquish default
+  instead of 0. (#1097)
 * Fixed CMake Error in libwebsocket: Compatibility with CMake < 3.5 has
   been removed from CMake (#1095)
 * Fixed Lighting Output Relinquish values. (#1094)
