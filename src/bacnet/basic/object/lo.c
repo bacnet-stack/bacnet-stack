@@ -1328,6 +1328,8 @@ bool Lighting_Output_Lighting_Command_Set(
     bool status = false;
     struct object_data *pObject;
     unsigned priority;
+    float ramp_rate, step_increment;
+    uint32_t fade_time;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1344,43 +1346,71 @@ bool Lighting_Output_Lighting_Command_Set(
                 status = true;
                 break;
             case BACNET_LIGHTS_FADE_TO:
+                if (!value->use_target_level) {
+                    /* Error if the Target_Level is not specified */
+                    break;
+                }
+                if (value->use_fade_time) {
+                    fade_time = value->fade_time;
+                } else {
+                    fade_time = pObject->Default_Fade_Time;
+                }
                 debug_printf(
                     "LO[%u]: Lighting-Command@%u Fade-To "
                     "Target=%f Fade=%u\n",
                     object_instance, priority, (double)value->target_level,
-                    value->fade_time);
+                    (unsigned)fade_time);
                 Lighting_Command_Fade_To(
-                    pObject, priority, value->target_level, value->fade_time);
+                    pObject, priority, value->target_level, fade_time);
                 status = true;
                 break;
             case BACNET_LIGHTS_RAMP_TO:
+                if (!value->use_target_level) {
+                    /* Error if the Target_Level is not specified */
+                    break;
+                }
+                if (value->use_ramp_rate) {
+                    ramp_rate = value->ramp_rate;
+                } else {
+                    ramp_rate = pObject->Default_Ramp_Rate;
+                }
                 debug_printf(
                     "LO[%u]: Lighting-Command@%u Ramp-To "
                     "Target=%f Ramp-Rate=%f\n",
                     object_instance, priority, (double)value->target_level,
-                    (double)value->ramp_rate);
+                    (double)ramp_rate);
                 Lighting_Command_Ramp_To(
-                    pObject, priority, value->target_level, value->ramp_rate);
+                    pObject, priority, value->target_level, ramp_rate);
                 status = true;
                 break;
             case BACNET_LIGHTS_STEP_UP:
             case BACNET_LIGHTS_STEP_ON:
+                if (value->use_step_increment) {
+                    step_increment = value->step_increment;
+                } else {
+                    step_increment = pObject->Default_Step_Increment;
+                }
                 debug_printf(
                     "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
-                    object_instance, priority, (double)value->step_increment);
+                    object_instance, priority, (double)step_increment);
                 Lighting_Command_Step_Up_On(
-                    pObject, priority, value->operation, value->step_increment);
+                    pObject, priority, value->operation, step_increment);
                 status = true;
                 break;
             case BACNET_LIGHTS_STEP_DOWN:
             case BACNET_LIGHTS_STEP_OFF:
+                if (value->use_step_increment) {
+                    step_increment = value->step_increment;
+                } else {
+                    step_increment = pObject->Default_Step_Increment;
+                }
                 debug_printf(
                     "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
-                    object_instance, priority, (double)value->step_increment);
+                    object_instance, priority, (double)step_increment);
                 Lighting_Command_Step_Down_Off(
-                    pObject, priority, value->operation, value->step_increment);
+                    pObject, priority, value->operation, step_increment);
                 status = true;
                 break;
             case BACNET_LIGHTS_WARN:
