@@ -1400,8 +1400,9 @@ bool Lighting_Output_Lighting_Command_Set(
                 break;
             case BACNET_LIGHTS_STEP_DOWN:
             case BACNET_LIGHTS_STEP_OFF:
-                if (!value->use_step_increment) {
-                    /* Use the Default Step_Increment if not specified */
+                if (value->use_step_increment) {
+                    step_increment = value->step_increment;
+                } else {
                     step_increment = pObject->Default_Step_Increment;
                 }
                 debug_printf(
