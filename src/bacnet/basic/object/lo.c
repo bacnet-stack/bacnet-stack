@@ -1369,7 +1369,7 @@ bool Lighting_Output_Lighting_Command_Set(
                     "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
                     object_instance, priority, (double)value->step_increment);
-                Lighting_Command_Step_Down_Off(
+                Lighting_Command_Step_Up_On(
                     pObject, priority, value->operation, value->step_increment);
                 status = true;
                 break;
@@ -1379,7 +1379,7 @@ bool Lighting_Output_Lighting_Command_Set(
                     "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
                     object_instance, priority, (double)value->step_increment);
-                Lighting_Command_Step_Up_On(
+                Lighting_Command_Step_Down_Off(
                     pObject, priority, value->operation, value->step_increment);
                 status = true;
                 break;
