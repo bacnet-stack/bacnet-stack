@@ -117,6 +117,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Lighting Output step operations mixup. (#1099)
 * Fixed Lighting Output step operations to set the Priority_Array slot. (#1098)
 * Fixed the lighting output objects current priority comparison during
   lighting commands by using priority 17 for relinquish default
