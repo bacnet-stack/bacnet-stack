@@ -106,6 +106,23 @@ void lighting_command_timer_notfication_add(
 }
 
 /**
+ * @brief Clamps the ramp rate value
+ * @param ramp_rate [in] ramp rate value
+ * @return clamped ramp rate value
+ */
+float lighting_command_ramp_rate_clamp(float ramp_rate)
+{
+    if (isless(ramp_rate, 0.1f)) {
+        ramp_rate = 0.1f;
+    }
+    if (isgreater(ramp_rate, 100.0f)) {
+        ramp_rate = 100.0f;
+    }
+
+    return ramp_rate;
+}
+
+/**
  * @brief Clamps the step increment value
  * @param step_increment [in] step increment value
  * @return clamped step increment value
@@ -314,19 +331,11 @@ static void lighting_command_fade_handler(
 static void lighting_command_ramp_handler(
     struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
-    float old_value, target_value, step_value, steps;
+    float old_value, target_value, step_value, steps, ramp_rate;
 
     old_value = data->Tracking_Value;
     target_value =
         lighting_command_normalized_on_range_clamp(data, data->Target_Level);
-    /* determine the number of steps */
-    if (milliseconds <= 1000) {
-        /* percent per second */
-        steps = linear_interpolate(
-            0.0f, (float)milliseconds, 1000.0f, 0.0f, data->Ramp_Rate);
-    } else {
-        steps = ((float)milliseconds * data->Ramp_Rate) / 1000.0f;
-    }
     if (!islessgreater(data->Tracking_Value, target_value)) {
         /* stop ramping */
         if (isless(data->Target_Level, 1.0f)) {
@@ -338,6 +347,15 @@ static void lighting_command_ramp_handler(
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
     } else {
+        ramp_rate = lighting_command_ramp_rate_clamp(data->Ramp_Rate);
+        /* determine the number of steps */
+        if (milliseconds <= 1000) {
+            /* percent per second */
+            steps = linear_interpolate(
+                0.0f, (float)milliseconds, 1000.0f, 0.0f, ramp_rate);
+        } else {
+            steps = ((float)milliseconds * ramp_rate) / 1000.0f;
+        }
         if (isless(old_value, target_value)) {
             step_value = old_value + steps;
             if (isgreater(step_value, target_value)) {
@@ -693,7 +711,7 @@ void lighting_command_ramp_to(
     if (!data) {
         return;
     }
-    data->Ramp_Rate = ramp_rate;
+    data->Ramp_Rate = lighting_command_ramp_rate_clamp(ramp_rate);
     data->Lighting_Operation = BACNET_LIGHTS_RAMP_TO;
     data->Target_Level = value;
 }
@@ -714,7 +732,6 @@ void lighting_command_step(
     }
     data->Lighting_Operation = operation;
     data->Fade_Time = 0;
-    data->Ramp_Rate = 0.0f;
     data->Step_Increment = step_increment;
 }
 
