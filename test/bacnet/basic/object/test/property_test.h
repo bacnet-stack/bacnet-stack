@@ -39,6 +39,7 @@ int bacnet_object_property_read_test(
 bool bacnet_object_property_write_test(
     BACNET_WRITE_PROPERTY_DATA *wpdata,
     write_property_function write_property,
+    bool commandable,
     const int *skip_fail_property_list);
 
 void bacnet_object_property_write_parameter_init(
