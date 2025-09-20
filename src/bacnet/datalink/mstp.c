@@ -836,8 +836,6 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port->master_state =
                             MSTP_MASTER_STATE_WAIT_FOR_REPLY;
                         break;
-                    case FRAME_TYPE_TEST_RESPONSE:
-                    case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                     default:
                         /* SendNoWait */
                         mstp_port->master_state =
@@ -883,21 +881,25 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                                 mstp_port->master_state =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                                 break;
-                            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+                            case FRAME_TYPE_TOKEN:
+                            case FRAME_TYPE_POLL_FOR_MASTER:
+                            case FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER:
+                            case FRAME_TYPE_TEST_REQUEST:
+                                /* ReceivedUnexpectedFrame */
+                                /* FrameType has a value other than a FrameType
+                                   known to this node that indicates a reply */
+                                mstp_port->master_state =
+                                    MSTP_MASTER_STATE_IDLE;
+                                break;
+                            default:
                                 /* ReceivedReply */
-                                /* or a proprietary type that indicates a reply
-                                 */
-                                /* indicate successful reception to the higher
-                                 * layers */
+                                /* FrameType known to this node that
+                                   indicates a reply */
+                                /* indicate successful reception
+                                   to the higher layers */
                                 (void)MSTP_Put_Receive(mstp_port);
                                 mstp_port->master_state =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
-                                break;
-                            default:
-                                /* if proprietary frame was expected, you might
-                                   need to transition to DONE WITH TOKEN */
-                                mstp_port->master_state =
-                                    MSTP_MASTER_STATE_IDLE;
                                 break;
                         }
                     } else {

@@ -125,6 +125,8 @@ void lighting_command_override(
     struct bacnet_lighting_command_data *data, float value);
 
 BACNET_STACK_EXPORT
+float lighting_command_ramp_rate_clamp(float ramp_rate);
+BACNET_STACK_EXPORT
 float lighting_command_step_increment_clamp(float step_increment);
 BACNET_STACK_EXPORT
 float lighting_command_operating_range_clamp(

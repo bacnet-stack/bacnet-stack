@@ -296,12 +296,12 @@ static int Binary_Lighting_Output_Priority_Array_Encode(
  *
  * @param  object_instance - object-instance number of the object
  *
- * @return  active priority 1..16, or 0 if no priority is active
+ * @return  active priority 1..16, or 17 if no priority is active
  */
 static unsigned Present_Value_Priority(const struct object_data *pObject)
 {
-    unsigned p = 0; /* loop counter */
-    unsigned priority = 0; /* return value */
+    unsigned p; /* loop counter */
+    unsigned priority = BACNET_MAX_PRIORITY + 1; /* return value */
 
     for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
         if (BIT_CHECK(pObject->Priority_Active_Bits, p)) {
@@ -385,6 +385,9 @@ unsigned Binary_Lighting_Output_Present_Value_Priority(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         priority = Present_Value_Priority(pObject);
+        if (priority > BACNET_MAX_PRIORITY) {
+            priority = 0;
+        }
     }
 
     return priority;
@@ -686,6 +689,53 @@ static bool Binary_Lighting_Output_Present_Value_Write(
     }
 
     return status;
+}
+
+/**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Binary_Lighting_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            if (!Priority_Array_Active(pObject, priority - 1)) {
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, determines the
+ *  priority-array value
+ * @param object_instance - object-instance number
+ * @param priority - priority-array index value 1..16
+ * @return priority-array value of the object
+ */
+BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority)
+{
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_STOP;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            value = pObject->Priority_Array[priority - 1];
+        }
+    }
+
+    return value;
 }
 
 /**
