@@ -626,7 +626,8 @@ BACNET_ENGINEERING_UNITS Analog_Value_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Analog_Value_Units_Set(uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
+bool Analog_Value_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct analog_value_descr *pObject;
