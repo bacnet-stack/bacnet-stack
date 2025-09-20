@@ -318,6 +318,50 @@ bool Binary_Output_Present_Value_Set(
 }
 
 /**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Binary_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if (!BIT_CHECK(pObject->Priority_Active_Bits, priority - 1)) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the priority-array value from its slot
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return priority-array value from its slot
+ */
+BACNET_BINARY_PV
+Binary_Output_Priority_Array_Value(uint32_t object_instance, unsigned priority)
+{
+    BACNET_BINARY_PV value = BINARY_INACTIVE;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if (BIT_CHECK(pObject->Priority_Array, priority - 1)) {
+            value = BINARY_ACTIVE;
+        }
+    }
+
+    return value;
+}
+
+/**
  * For a given object instance-number, relinquishes the present-value
  * at a given priority 1..16.
  *

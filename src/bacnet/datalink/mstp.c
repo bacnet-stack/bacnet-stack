@@ -888,7 +888,8 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                                 /* ReceivedUnexpectedFrame */
                                 /* FrameType has a value other than a FrameType
                                    known to this node that indicates a reply */
-                                mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
+                                mstp_port->master_state =
+                                    MSTP_MASTER_STATE_IDLE;
                                 break;
                             default:
                                 /* ReceivedReply */
