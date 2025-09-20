@@ -30,6 +30,12 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
+#if BACNET_SEGMENTATION_ENABLED
+#define BACNET_RP_BUFFER_OVERFLOW ERROR_CODE_ABORT_BUFFER_OVERFLOW
+#else
+#define BACNET_RP_BUFFER_OVERFLOW ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED
+#endif
+
 /** @file h_rp.c  Handles Read Property requests. */
 
 /** Handler for a ReadProperty Service request.
@@ -38,7 +44,7 @@
  * by a call to apdu_set_confirmed_handler().
  * This handler builds a response packet, which is
  * - an Abort if
- *   - the message is segmented
+ *   - the message is segmented and segmentation is not supported
  *   - if decoding fails
  *   - if the response would be too large
  * - the result from Device_Read_Property(), if it succeeds
@@ -59,6 +65,7 @@ void handler_read_property(
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     int len = 0;
+    int max_resp = 0;
     int pdu_len = 0;
     int apdu_len = -1;
     int npdu_len = -1;
@@ -66,9 +73,13 @@ void handler_read_property(
     bool error = true; /* assume that there is an error */
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
+#if BACNET_SEGMENTATION_ENABLED
+    BACNET_APDU_FIXED_HEADER apdu_fixed_header;
+    int apdu_header_len = 3;
+#endif
 
     /* configure default error code as an abort since it is common */
-    rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+    rpdata.error_code = BACNET_RP_BUFFER_OVERFLOW;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
@@ -82,10 +93,12 @@ void handler_read_property(
         len = BACNET_STATUS_REJECT;
         rpdata.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
         debug_print("RP: Missing Required Parameter. Sending Reject!\n");
+#if !BACNET_SEGMENTATION_ENABLED
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = BACNET_STATUS_ABORT;
         debug_print("RP: Segmented message.  Sending Abort!\n");
+#endif
     } else {
         len = rp_decode_service_request(service_request, service_len, &rpdata);
         if (len <= 0) {
@@ -116,6 +129,13 @@ void handler_read_property(
                 rpdata.object_instance = Network_Port_Index_To_Instance(0);
             }
 #endif
+
+#if BACNET_SEGMENTATION_ENABLED
+            apdu_init_fixed_header(
+                &apdu_fixed_header, PDU_TYPE_COMPLEX_ACK,
+                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+                service_data->max_resp);
+#endif
             apdu_len = rp_ack_encode_apdu_init(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 &rpdata);
@@ -134,7 +154,25 @@ void handler_read_property(
                 len = rp_ack_encode_apdu_object_property_end(
                     &Handler_Transmit_Buffer[npdu_len + apdu_len]);
                 apdu_len += len;
-                if (apdu_len > service_data->max_resp) {
+                /* pick the smaller response packet: ours or theirs */
+                max_resp = min(service_data->max_resp, MAX_APDU);
+                if (apdu_len > max_resp) {
+#if BACNET_SEGMENTATION_ENABLED
+                    if (service_data->segmented_response_accepted) {
+                        npdu_encode_npdu_data(
+                            &npdu_data, true, MESSAGE_PRIORITY_NORMAL);
+                        npdu_len = npdu_encode_pdu(
+                            &Handler_Transmit_Buffer[0], src, &my_address,
+                            &npdu_data);
+
+                        tsm_set_complexack_transaction(
+                            src, &npdu_data, &apdu_fixed_header, service_data,
+                            &Handler_Transmit_Buffer
+                                [npdu_len + apdu_header_len],
+                            (apdu_len - apdu_header_len));
+                        return;
+                    }
+#else
                     /* too big for the sender - send an abort!
                        Setting of error code needed here as read property
                        processing may have overridden the default set at start
@@ -143,6 +181,7 @@ void handler_read_property(
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     len = BACNET_STATUS_ABORT;
                     debug_print("RP: Message too large.\n");
+#endif
                 } else {
                     debug_print("RP: Sending Ack!\n");
                     error = false;

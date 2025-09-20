@@ -183,6 +183,11 @@
 #define SC_NETPORT_RECONNECT_TIME 2
 #endif
 
+/* Enable or disable segmentation support in the library */
+#ifndef BACNET_SEGMENTATION_ENABLED
+#define BACNET_SEGMENTATION_ENABLED 0
+#endif
+
 /* for confirmed messages, this is the number of transactions */
 /* that we hold in a queue waiting for timeout. */
 /* Configure to zero if you don't want any confirmed messages */
