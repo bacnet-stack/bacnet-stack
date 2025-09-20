@@ -8,6 +8,7 @@
 #include <bacnet/bactext.h>
 #include <bacnet/proplist.h>
 #include <bacnet/basic/object/lo.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -50,15 +51,7 @@ ZTEST(lo_tests, testLightingOutput)
 static void testLightingOutput(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
     const uint32_t instance = 123;
-    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     bool status = false;
     unsigned index, count;
     uint16_t milliseconds = 10;
@@ -71,6 +64,7 @@ static void testLightingOutput(void)
     uint32_t unsigned_value, test_unsigned;
     unsigned priority, test_priority;
     BACNET_OBJECT_ID object_id, test_object_id;
+    const int skip_fail_property_list[] = { -1 };
 
     Lighting_Output_Init();
     Lighting_Output_Create(instance);
@@ -84,112 +78,28 @@ static void testLightingOutput(void)
     zassert_equal(count, 1, NULL);
     test_instance = Lighting_Output_Index_To_Instance(0);
     zassert_equal(test_instance, instance, NULL);
-
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_LIGHTING_OUTPUT;
-    rpdata.object_instance = instance;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-
-    Lighting_Output_Property_Lists(&pRequired, &pOptional, &pProprietary);
-    while ((*pRequired) >= 0) {
-        rpdata.object_property = *pRequired;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Lighting_Output_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len >= 0) {
-            test_len = bacapp_decode_known_property(
-                rpdata.application_data, len, &value, rpdata.object_type,
-                rpdata.object_property);
-            if (rpdata.object_property != PROP_PRIORITY_ARRAY) {
-                zassert_equal(
-                    len, test_len, "property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Lighting_Output_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            if (property_list_commandable_member(
-                    wpdata.object_type, wpdata.object_property)) {
-                wpdata.priority = 16;
-                status = Lighting_Output_Write_Property(&wpdata);
-                zassert_true(status, NULL);
-                wpdata.application_data_len =
-                    encode_application_null(wpdata.application_data);
-                wpdata.priority = 16;
-                status = Lighting_Output_Write_Property(&wpdata);
-                zassert_true(status, NULL);
-                wpdata.priority = 6;
-                status = Lighting_Output_Write_Property(&wpdata);
-                zassert_false(status, NULL);
-                zassert_equal(
-                    wpdata.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
-                wpdata.priority = 0;
-                status = Lighting_Output_Write_Property(&wpdata);
-                zassert_false(status, NULL);
-                zassert_equal(
-                    wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
-            }
-        }
-        pRequired++;
-    }
-    while ((*pOptional) != -1) {
-        rpdata.object_property = *pOptional;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Lighting_Output_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len > 0) {
-            test_len = bacapp_decode_application_data(
-                rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
-            zassert_equal(
-                len, test_len, "property '%s': failed to decode!\n",
-                bactext_property_name(rpdata.object_property));
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Lighting_Output_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-        }
-        pOptional++;
-    }
-    /* check for unsupported property - use ALL */
-    rpdata.object_property = PROP_ALL;
-    len = Lighting_Output_Read_Property(&rpdata);
-    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
-    wpdata.object_property = PROP_ALL;
-    status = Lighting_Output_Write_Property(&wpdata);
+    /* set the present-value */
+    priority = BACNET_MAX_PRIORITY;
+    status = Lighting_Output_Present_Value_Set(instance, 100.0f, priority);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 100.0f), NULL);
+    test_priority = Lighting_Output_Present_Value_Priority(instance);
+    zassert_equal(priority, test_priority, NULL);
+    test_real = Lighting_Output_Priority_Array_Value(instance, priority);
+    zassert_true(is_float_equal(test_real, 100.0f), NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
     zassert_false(status, NULL);
+    /* perform a general test for RP/WP */
+    bacnet_object_properties_read_write_test(
+        OBJECT_LIGHTING_OUTPUT, instance, Lighting_Output_Property_Lists,
+        Lighting_Output_Read_Property, Lighting_Output_Write_Property,
+        skip_fail_property_list);
+    /* Relinquish the present-value */
+    status = Lighting_Output_Present_Value_Relinquish(instance, priority);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_true(status, NULL);
     /* check the dimming/ramping/stepping engine*/
     Lighting_Output_Timer(instance, milliseconds);
     /* test the ASCII name get/set */
@@ -208,6 +118,17 @@ static void testLightingOutput(void)
     zassert_equal(test_name, sample_name, NULL);
     /* test local control API */
     lighting_command.operation = BACNET_LIGHTS_NONE;
+    /* configure all the lighting command parameters */
+    lighting_command.use_fade_time = true;
+    lighting_command.fade_time = 1;
+    lighting_command.use_ramp_rate = true;
+    lighting_command.ramp_rate = 10.0f;
+    lighting_command.use_step_increment = true;
+    lighting_command.step_increment = 10.0f;
+    lighting_command.use_target_level = true;
+    lighting_command.target_level = 50.0f;
+    lighting_command.use_priority = true;
+    lighting_command.priority = 8;
     do {
         status =
             Lighting_Output_Lighting_Command_Set(instance, &lighting_command);
@@ -286,6 +207,7 @@ static void testLightingOutput(void)
     zassert_equal(
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
+    /* WARN_OFF */
     real_value = -3.0;
     priority = 8;
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
@@ -294,6 +216,7 @@ static void testLightingOutput(void)
     zassert_equal(
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
+    /* RESTORE_ON */
     real_value = -4.0;
     priority = 8;
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
@@ -302,6 +225,7 @@ static void testLightingOutput(void)
     zassert_equal(
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
+    /* DEFAULT_ON */
     real_value = -5.0;
     priority = 8;
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
@@ -310,6 +234,7 @@ static void testLightingOutput(void)
     zassert_equal(
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
+    /* TOGGLE_RESTORE */
     real_value = -6.0;
     priority = 8;
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
@@ -318,6 +243,14 @@ static void testLightingOutput(void)
     zassert_equal(
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
+    /* twice for toggle */
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    /* TOGGLE_DEFAULT */
     real_value = -7.0;
     priority = 8;
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
@@ -326,6 +259,14 @@ static void testLightingOutput(void)
     zassert_equal(
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
+    /* twice for toggle */
+    Lighting_Output_Present_Value_Set(instance, real_value, priority);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    /* test the in-progress set API */
     status = Lighting_Output_In_Progress_Set(
         instance, BACNET_LIGHTING_NOT_CONTROLLED);
     in_progress = Lighting_Output_In_Progress(instance);
