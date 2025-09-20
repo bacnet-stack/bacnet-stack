@@ -394,7 +394,8 @@ BACNET_ENGINEERING_UNITS Integer_Value_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Integer_Value_Units_Set(uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
+bool Integer_Value_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct integer_object *pObject = Integer_Value_Object(object_instance);
@@ -460,7 +461,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
-    BACNET_ENGINEERING_UNITS units ;
+    BACNET_ENGINEERING_UNITS units;
     int32_t integer_value = 0;
     bool state = false;
 
@@ -511,7 +512,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_UNITS:
             units = Integer_Value_Units(rpdata->object_instance);
-            apdu_len = encode_application_enumerated(&apdu[0], (uint32_t) units);
+            apdu_len = encode_application_enumerated(&apdu[0], (uint32_t)units);
             break;
         case PROP_COV_INCREMENT:
             apdu_len = encode_application_unsigned(

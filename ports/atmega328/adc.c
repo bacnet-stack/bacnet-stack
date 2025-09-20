@@ -189,5 +189,5 @@ void adc_init(void)
      */
     ADCSRB = (0 << ADTS2) | (0 << ADTS1) | (0 << ADTS0);
     /* disable ADC power reduction */
-    PRR &= ((uint8_t) ~(1 << PRADC));
+    PRR &= ((uint8_t)~(1 << PRADC));
 }

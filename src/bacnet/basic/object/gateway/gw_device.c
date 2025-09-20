@@ -49,8 +49,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 #if !defined(BAC_ROUTING)
 #ifdef _MSC_VER
-#pragma message This file should not be included in the build unless \
-    BAC_ROUTING is enabled.
+#pragma message This file \
+    should not be included in the build unless BAC_ROUTING is enabled.
 #else
 #warning This file should not be included in the build unless BAC_ROUTING is enabled.
 #endif

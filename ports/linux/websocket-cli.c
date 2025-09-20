@@ -26,10 +26,7 @@
 #endif
 
 #ifndef LWS_PROTOCOL_LIST_TERM
-#define LWS_PROTOCOL_LIST_TERM       \
-    {                                \
-        NULL, NULL, 0, 0, 0, NULL, 0 \
-    }
+#define LWS_PROTOCOL_LIST_TERM { NULL, NULL, 0, 0, 0, NULL, 0 }
 #endif
 
 #define BSC_RX_BUFFER_LEN BSC_WEBSOCKET_RX_BUFFER_LEN
