@@ -605,9 +605,9 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
  *
  * @return  units property value
  */
-uint16_t Analog_Value_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Analog_Value_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct analog_value_descr *pObject;
 
     pObject = Analog_Value_Object(object_instance);
@@ -626,7 +626,7 @@ uint16_t Analog_Value_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Analog_Value_Units_Set(uint32_t object_instance, uint16_t units)
+bool Analog_Value_Units_Set(uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct analog_value_descr *pObject;

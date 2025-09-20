@@ -229,7 +229,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_UNITS:
             apdu_len =
-                encode_application_enumerated(&apdu[0], CurrentAV->Units);
+                encode_application_enumerated(&apdu[0], (uint32_t) CurrentAV->Units);
             break;
             /* BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -

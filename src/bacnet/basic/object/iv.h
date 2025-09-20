@@ -86,9 +86,9 @@ BACNET_STACK_EXPORT
 const char *Integer_Value_Description_ANSI(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-uint16_t Integer_Value_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Integer_Value_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Integer_Value_Units_Set(uint32_t instance, uint16_t unit);
+bool Integer_Value_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS unit);
 
 BACNET_STACK_EXPORT
 bool Integer_Value_Out_Of_Service(uint32_t instance);

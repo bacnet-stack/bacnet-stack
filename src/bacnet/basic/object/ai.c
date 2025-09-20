@@ -597,9 +597,9 @@ void Analog_Input_COV_Increment_Set(uint32_t object_instance, float value)
  *
  * @return  units property value
  */
-uint16_t Analog_Input_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Analog_Input_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
@@ -618,7 +618,7 @@ uint16_t Analog_Input_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Analog_Input_Units_Set(uint32_t object_instance, uint16_t units)
+bool Analog_Input_Units_Set(uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct analog_input_descr *pObject;
@@ -958,7 +958,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                pObject->Units = value.type.Enumerated;
+                pObject->Units = (BACNET_ENGINEERING_UNITS) value.type.Enumerated;
             }
             break;
         case PROP_COV_INCREMENT:
