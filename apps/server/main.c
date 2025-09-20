@@ -271,14 +271,13 @@ static void print_usage(const char *filename)
 
 static void print_help(const char *filename)
 {
-    printf(
-        "Simulate a BACnet server device\n"
-        "device-instance:\n"
-        "BACnet Device Object Instance number that you are\n"
-        "trying simulate.\n"
-        "device-name:\n"
-        "The Device object-name is the text name for the device.\n"
-        "\nExample:\n");
+    printf("Simulate a BACnet server device\n"
+           "device-instance:\n"
+           "BACnet Device Object Instance number that you are\n"
+           "trying simulate.\n"
+           "device-name:\n"
+           "The Device object-name is the text name for the device.\n"
+           "\nExample:\n");
     printf(
         "To simulate Device 123, use the following command:\n"
         "%s 123\n",
@@ -328,12 +327,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
     }
