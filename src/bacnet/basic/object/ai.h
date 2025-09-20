@@ -28,7 +28,7 @@ typedef struct analog_input_descr {
     float Present_Value;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service;
-    uint8_t Units;
+    BACNET_ENGINEERING_UNITS Units;
     float Prior_Value;
     float COV_Increment;
     bool Changed;
@@ -92,9 +92,9 @@ bool Analog_Input_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Units_Set(uint32_t instance, uint16_t units);
+bool Analog_Input_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS units);
 BACNET_STACK_EXPORT
-uint16_t Analog_Input_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Analog_Input_Units(uint32_t instance);
 
 BACNET_STACK_EXPORT
 int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

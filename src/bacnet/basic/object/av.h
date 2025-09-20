@@ -28,7 +28,7 @@
 typedef struct analog_value_descr {
     unsigned Event_State : 3;
     bool Out_Of_Service;
-    uint16_t Units;
+    BACNET_ENGINEERING_UNITS Units;
     float Present_Value;
     float Prior_Value;
     float COV_Increment;
@@ -132,9 +132,9 @@ bool Analog_Value_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
 
 BACNET_STACK_EXPORT
-uint16_t Analog_Value_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Analog_Value_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Analog_Value_Units_Set(uint32_t instance, uint16_t unit);
+bool Analog_Value_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS unit);
 
 BACNET_STACK_EXPORT
 bool Analog_Value_Out_Of_Service(uint32_t instance);

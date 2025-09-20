@@ -564,14 +564,14 @@ const char *Program_Instance_Of_ANSI(uint32_t object_instance)
  */
 BACNET_PROGRAM_REQUEST Program_Change(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_PROGRAM_REQUEST pcr = PROGRAM_REQUEST_READY;
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
-        units = pObject->Program_Change;
+        pcr = pObject->Program_Change;
     }
 
-    return units;
+    return pcr;
 }
 
 /**
@@ -652,14 +652,14 @@ static bool Program_Change_Write(
  */
 BACNET_PROGRAM_ERROR Program_Reason_For_Halt(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_PROGRAM_ERROR perr = PROGRAM_ERROR_NORMAL;
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
-        units = pObject->Reason_For_Halt;
+        perr = pObject->Reason_For_Halt;
     }
 
-    return units;
+    return perr;
 }
 
 /**
