@@ -174,6 +174,20 @@ static void Init_Service_Handlers(void)
                 (unsigned)object_data.object_instance);
         }
     }
+#if BACNET_SEGMENTATION_ENABLED
+    printf("Segmentation is enabled.\n");
+    /* create extra object to stress the object list */
+    for (i = 0; i < 500; i++) {
+        object_data.object_instance = BACNET_MAX_INSTANCE;
+        object_data.object_type = OBJECT_ANALOG_INPUT;
+        if (Device_Create_Object(&object_data)) {
+            printf(
+                "Created object %s-%u\n",
+                bactext_object_type_name(object_data.object_type),
+                (unsigned)object_data.object_instance);
+        }
+    }
+#endif
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_who_am_i_unicast);
@@ -257,13 +271,14 @@ static void print_usage(const char *filename)
 
 static void print_help(const char *filename)
 {
-    printf("Simulate a BACnet server device\n"
-           "device-instance:\n"
-           "BACnet Device Object Instance number that you are\n"
-           "trying simulate.\n"
-           "device-name:\n"
-           "The Device object-name is the text name for the device.\n"
-           "\nExample:\n");
+    printf(
+        "Simulate a BACnet server device\n"
+        "device-instance:\n"
+        "BACnet Device Object Instance number that you are\n"
+        "trying simulate.\n"
+        "device-name:\n"
+        "The Device object-name is the text name for the device.\n"
+        "\nExample:\n");
     printf(
         "To simulate Device 123, use the following command:\n"
         "%s 123\n",
@@ -313,11 +328,12 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
-                   "This is free software; see the source for copying "
-                   "conditions.\n"
-                   "There is NO warranty; not even for MERCHANTABILITY or\n"
-                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf(
+                "Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
     }
