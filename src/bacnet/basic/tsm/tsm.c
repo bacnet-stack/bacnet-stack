@@ -770,7 +770,6 @@ void tsm_abort_pdu_send(
 {
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    int bytes_sent;
     BACNET_ADDRESS my_address;
     int apdu_len = 0;
     int npdu_len = 0;
@@ -783,8 +782,7 @@ void tsm_abort_pdu_send(
     apdu_len = abort_encode_apdu(
         &Transmit_Buffer[npdu_len], invoke_id, reason, server);
     pdu_len = apdu_len + npdu_len;
-    bytes_sent =
-        datalink_send_pdu(dest, &npdu_data, &Transmit_Buffer[0], pdu_len);
+    (void)datalink_send_pdu(dest, &npdu_data, &Transmit_Buffer[0], pdu_len);
 }
 
 /**
@@ -1446,7 +1444,7 @@ void tsm_free_invoke_id_segmentation(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     uint8_t peer_id = 0;
     peer_id = tsm_get_peer_id(src, invoke_id);
-    // Peer_id = 0 refers to free slot
+    /* Peer_id = 0 refers to free slot */
     if (peer_id) {
         tsm_free_invoke_id_check(peer_id, src, true);
     }
