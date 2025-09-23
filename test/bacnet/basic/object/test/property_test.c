@@ -284,14 +284,14 @@ void bacnet_object_properties_read_write_test(
     rpdata.object_type = object_type;
     rpdata.object_instance = object_instance;
     property_list(&pRequired, &pOptional, &pProprietary);
-    /* detect properties that are not in the property lists */
+    /* detect properties that are missing from the property lists */
     for (property = 0; property < MAX_BACNET_PROPERTY_ID; property++) {
         if (property_lists_member(
                 pRequired, pOptional, pProprietary, property)) {
             continue;
         }
         if ((property == PROP_ALL) || (property == PROP_REQUIRED) ||
-            (property == PROP_OPTIONAL)) {
+            (property == PROP_OPTIONAL) || (property == PROP_PROPERTY_LIST)) {
             continue;
         }
         rpdata.object_property = property;

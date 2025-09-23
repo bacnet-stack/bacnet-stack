@@ -27,15 +27,17 @@ add_compile_definitions(
 
 include_directories(
     ${SRC_DIR}
+    ${TST_DIR}/bacnet/basic/object/test
     ${TST_DIR}/ztest/include
     )
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-    ${SRC_DIR}/bacnet/basic/object/device.c
+    ${SRC_DIR}/bacnet/basic/server/bacnet_device.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/arf.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
@@ -65,6 +67,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/color_temperature.c
     ${SRC_DIR}/bacnet/basic/object/command.c
     ${SRC_DIR}/bacnet/basic/object/csv.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/iv.c
     ${SRC_DIR}/bacnet/basic/object/lc.c
     ${SRC_DIR}/bacnet/basic/object/lo.c
