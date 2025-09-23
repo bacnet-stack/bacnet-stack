@@ -112,6 +112,7 @@ add_executable(${PROJECT_NAME}
     ./src/main.c
     ${TST_DIR}/bacnet/basic/object/test/apdu_mock.c
     ${TST_DIR}/bacnet/basic/object/test/bip_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/cov_mock.c
     ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${TST_DIR}/bacnet/basic/object/test/datetime_local.c
     ${TST_DIR}/bacnet/basic/object/test/tsm_mock.c
