@@ -4,7 +4,8 @@ uBasicPlus is an extension of the uBasic by Adam Dunkels (2006),
 https://github.com/adamdunkels/ubasic, which includes
 the strings and their functions from 'uBasic with strings' by David Mitchell (2008),
 http://www.zenoshrdlu.com/kapstuff/zsubasic.html,
-and some constructs and interpreter logic from 'CHDK', http://chdk.wikia.com/wiki/CHDK_Scripting_Cross_Reference_Page.
+and some constructs and interpreter logic from 'CHDK',
+http://chdk.wikia.com/wiki/CHDK_Scripting_Cross_Reference_Page.
 
 uBASIC+BACnet refactored https://github.com/mkostrun/UBASIC-PLUS core data
 which enables multiple uBASIC programs to run at the same time,
@@ -52,7 +53,7 @@ for creating, reading, and writing to BACnet objects and their properties.
   goto label1;
   ```
 
-  When these labels are refered to in goto/gosub this is done without
+  When these labels are referred to in goto/gosub this is done without
   quotation marks (unlike CHDK). Furthermore, in labels '_' can be used.
   Not even internally the lines are numbered (like it was the case with CHDK).
   Rather, pointers are used to script string, meaning that the
@@ -66,11 +67,13 @@ for creating, reading, and writing to BACnet objects and their properties.
 
 - *config.h*
 
-  Allows user to select which of the features below (if any) they want in their uBasic build.
+  Allows user to select which of the features below (if any) they want in
+  their uBasic build.
 
 - Fixep point floats are implemented through Fixed Point Math Library for C
 by Ivan Voras and Tim Hartnick, https://sourceforge.net/projects/fixedptc.
-The libary is enhanced with str_fixedpt function, which converts a string to fixed point float.
+The library is enhanced with str_fixedpt function, which converts a string
+to fixed point float.
 
 - flow control
   - logical operators supported (<>,<=,>=,==,&&,||,!)
@@ -164,7 +167,8 @@ first line of the script.
 
 - *pinmode(pin,mode,speed), a=dread(pin), dwrite(pin,state)*
 
-  Allows direct control over digital pins. The pin, mode, speed, and state designations accept an 8-bit value passed to the the hardware abstraction.
+  Allows direct control over digital pins. The pin, mode, speed, and state
+  designations accept an 8-bit value passed to the the hardware abstraction.
 
 - *awrite_conf(prescaler,period), awrite(channel,value), awrite(channel)*
 
@@ -199,7 +203,7 @@ first line of the script.
 
     8-bit sample time passed to the hardware abstraction.
 
-  - nreads: 8-bit value passed to the hardware abtraction which can
+  - nreads: 8-bit value passed to the hardware abstraction which can
     be used to dictate the number of sample readings to average
 
 - *store(x[x$,x@]), i=recall(x[x$,x@])*
@@ -212,7 +216,7 @@ first line of the script.
   Create a BACnet object of *type* and *instance* where
   *type* is a number matching the BACnetObjectType enumeration
   from the BACnet Standard (0=analog input, 1=analog output, 2=analog value,
-   3=binary intput, 4=binary-output, 5=binary-value, etc).
+   3=binary input, 4=binary-output, 5=binary-value, etc).
   The *instance* can be any value from 0 to 4194302.
   The *name* is a string that is assigned to the object-name property of the
   BACnet object.
