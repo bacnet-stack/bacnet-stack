@@ -459,7 +459,7 @@ static bool cov_send_request(
         return status;
     }
 #if PRINT_ENABLED
-    fprintf(stderr, "COVnotification: requested\n");
+    debug_printf("COVnotification: requested\n");
 #endif
     if (!cov_subscription) {
         return status;
@@ -467,7 +467,7 @@ static bool cov_send_request(
     dest = cov_address_get(cov_subscription->dest_index);
     if (!dest) {
 #if PRINT_ENABLED
-        fprintf(stderr, "COVnotification: dest not found!\n");
+        debug_printf("COVnotification: dest not found!\n");
 #endif
         return status;
     }
@@ -514,7 +514,7 @@ static bool cov_send_request(
     if (bytes_sent > 0) {
         status = true;
 #if PRINT_ENABLED
-        fprintf(stderr, "COVnotification: Sent!\n");
+        debug_printf("COVnotification: Sent!\n");
 #endif
     }
 
