@@ -615,22 +615,106 @@ static void Lighting_Command_Ramp_To(
 
 /**
  * @brief Set the lighting command if the priority is active
+ * @details Commands Present_Value to a value equal to the
+ *  Tracking_Value plus the step-increment at the specified priority.
+ *  The step-up operation is implemented by writing the Tracking_Value
+ *  plus step-increment to the specified slot in the priority array.
+ *  If the result of the addition is greater than 100.0%, the value
+ *  shall be set to 100.0%.
+ *  If the starting level of Tracking_Value is 0.0%, then this
+ *  operation is ignored.
+ *
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
  * @param operation [in] BACnet lighting operation
  * @param step_increment [in] BACnet lighting step increment value
  */
-static void Lighting_Command_Step(
+static void Lighting_Command_Step_Up_On(
     struct object_data *pObject,
     unsigned priority,
     BACNET_LIGHTING_OPERATION operation,
     float step_increment)
 {
     unsigned current_priority;
+    float value;
 
     if (!pObject) {
         return;
     }
+    value = pObject->Lighting_Command.Tracking_Value;
+    if (operation == BACNET_LIGHTS_STEP_UP) {
+        if (is_float_equal(value, 0.0)) {
+            /* If the starting level of Tracking_Value is 0.0%,
+            then this operation is ignored. */
+            return;
+        }
+    }
+    if (isless(step_increment, 0.0)) {
+        /* ignore negative step increments for step-up operation */
+        return;
+    }
+    value += step_increment;
+    if (isgreater(value, 100.0)) {
+        value = 100.0;
+    }
+    Present_Value_Set(pObject, value, priority);
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        /* we have priority - configure the Lighting Command */
+        lighting_command_step(
+            &pObject->Lighting_Command, operation, step_increment);
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @details Commands Present_Value to a value equal to the
+ *  Tracking_Value minus the step-increment at the specified priority.
+ *  The step-down operation is implemented by writing the Tracking_Value
+ *  minus step-increment to the specified slot in the priority array.
+ *  If the result of the addition is less than 1.0%, the value
+ *  shall be set to 1.0%.
+ *  If the starting level of Tracking_Value is 0.0%, then this
+ *  operation is ignored.
+ *
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ * @param operation [in] BACnet lighting operation
+ * @param step_increment [in] BACnet lighting step increment value
+ */
+static void Lighting_Command_Step_Down_Off(
+    struct object_data *pObject,
+    unsigned priority,
+    BACNET_LIGHTING_OPERATION operation,
+    float step_increment)
+{
+    unsigned current_priority;
+    float value;
+
+    if (!pObject) {
+        return;
+    }
+    value = pObject->Lighting_Command.Tracking_Value;
+    if (is_float_equal(value, 0.0)) {
+        /* If the starting level of Tracking_Value is 0.0%,
+        then this operation is ignored. */
+        return;
+    }
+    if (isless(step_increment, 0.0)) {
+        /* ignore negative step increments for step-down operation */
+        return;
+    }
+    value -= step_increment;
+    if (operation == BACNET_LIGHTS_STEP_DOWN) {
+        if (isless(value, 1.0)) {
+            value = 1.0;
+        }
+    } else if (operation == BACNET_LIGHTS_STEP_OFF) {
+        if (isless(value, 0.0)) {
+            value = 0.0;
+        }
+    }
+    Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
@@ -1140,6 +1224,16 @@ bool Lighting_Output_Description_Set(
 
 /**
  * @brief Set the lighting command if the priority is active
+ * @details Stops any FADE_TO or RAMP_TO command in progress
+ *  at the specified priority and writes the current value of
+ *  Tracking_Value to that slot in the priority array and sets
+ *  In_Progress to IDLE.
+ *  Cancels any WARN_RELINQUISH or WARN_OFF command in progress
+ *  at the specified priority and cancels the blink-warn egress
+ *  timer. The value in the priority array at the specified
+ *  priority remains unchanged.
+ *  If there is no fade, ramp, or warn command currently executing
+ *  at the specified priority, then this operation is ignored.
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
  */
@@ -1147,14 +1241,25 @@ static void
 Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
+    float value;
 
     if (!pObject) {
         return;
     }
     current_priority = Present_Value_Priority(pObject);
-    if (priority <= current_priority) {
-        /* we have priority - configure the Lighting Command */
-        lighting_command_stop(&pObject->Lighting_Command);
+    if (priority == current_priority) {
+        if ((pObject->Lighting_Command.In_Progress ==
+             BACNET_LIGHTING_FADE_ACTIVE) ||
+            (pObject->Lighting_Command.In_Progress ==
+             BACNET_LIGHTING_RAMP_ACTIVE) ||
+            (pObject->Lighting_Command.Blink.Duration > 0)) {
+            /* fade, ramp, or warn command is currently
+               executing at the specified priority */
+            value = pObject->Lighting_Command.Tracking_Value;
+            Present_Value_Set(pObject, value, priority);
+            /* configure the Lighting Command */
+            lighting_command_stop(&pObject->Lighting_Command);
+        }
     }
 }
 
@@ -1244,6 +1349,8 @@ bool Lighting_Output_Lighting_Command_Set(
     bool status = false;
     struct object_data *pObject;
     unsigned priority;
+    float ramp_rate, step_increment;
+    uint32_t fade_time;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1260,35 +1367,71 @@ bool Lighting_Output_Lighting_Command_Set(
                 status = true;
                 break;
             case BACNET_LIGHTS_FADE_TO:
+                if (!value->use_target_level) {
+                    /* Error if the Target_Level is not specified */
+                    break;
+                }
+                if (value->use_fade_time) {
+                    fade_time = value->fade_time;
+                } else {
+                    fade_time = pObject->Default_Fade_Time;
+                }
                 debug_printf(
                     "LO[%u]: Lighting-Command@%u Fade-To "
                     "Target=%f Fade=%u\n",
                     object_instance, priority, (double)value->target_level,
-                    value->fade_time);
+                    (unsigned)fade_time);
                 Lighting_Command_Fade_To(
-                    pObject, priority, value->target_level, value->fade_time);
+                    pObject, priority, value->target_level, fade_time);
                 status = true;
                 break;
             case BACNET_LIGHTS_RAMP_TO:
+                if (!value->use_target_level) {
+                    /* Error if the Target_Level is not specified */
+                    break;
+                }
+                if (value->use_ramp_rate) {
+                    ramp_rate = value->ramp_rate;
+                } else {
+                    ramp_rate = pObject->Default_Ramp_Rate;
+                }
                 debug_printf(
                     "LO[%u]: Lighting-Command@%u Ramp-To "
                     "Target=%f Ramp-Rate=%f\n",
                     object_instance, priority, (double)value->target_level,
-                    (double)value->ramp_rate);
+                    (double)ramp_rate);
                 Lighting_Command_Ramp_To(
-                    pObject, priority, value->target_level, value->ramp_rate);
+                    pObject, priority, value->target_level, ramp_rate);
                 status = true;
                 break;
             case BACNET_LIGHTS_STEP_UP:
-            case BACNET_LIGHTS_STEP_DOWN:
             case BACNET_LIGHTS_STEP_ON:
-            case BACNET_LIGHTS_STEP_OFF:
+                if (value->use_step_increment) {
+                    step_increment = value->step_increment;
+                } else {
+                    step_increment = pObject->Default_Step_Increment;
+                }
                 debug_printf(
                     "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
-                    object_instance, priority, (double)value->step_increment);
-                Lighting_Command_Step(
-                    pObject, priority, value->operation, value->step_increment);
+                    object_instance, priority, (double)step_increment);
+                Lighting_Command_Step_Up_On(
+                    pObject, priority, value->operation, step_increment);
+                status = true;
+                break;
+            case BACNET_LIGHTS_STEP_DOWN:
+            case BACNET_LIGHTS_STEP_OFF:
+                if (value->use_step_increment) {
+                    step_increment = value->step_increment;
+                } else {
+                    step_increment = pObject->Default_Step_Increment;
+                }
+                debug_printf(
+                    "LO[%u]: Lighting-Command@%u Step "
+                    "Step-Increment=%f\n",
+                    object_instance, priority, (double)step_increment);
+                Lighting_Command_Step_Down_Off(
+                    pObject, priority, value->operation, step_increment);
                 status = true;
                 break;
             case BACNET_LIGHTS_WARN:
