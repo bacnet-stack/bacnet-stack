@@ -180,6 +180,8 @@ list(APPEND testdirs
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic
+  # basic/server
+  bacnet/basic/server/bacnet_device
   # basic/sys
   bacnet/basic/sys/bramfs
   bacnet/basic/sys/bsramfs

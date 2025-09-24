@@ -23,7 +23,6 @@
 #if defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
 #endif
-#include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/binding/address.h"
 /* include the device object */
@@ -492,39 +491,69 @@ void Device_Objects_Property_List(
     return;
 }
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_SYSTEM_STATUS, PROP_VENDOR_NAME, PROP_VENDOR_IDENTIFIER,
-    PROP_MODEL_NAME, PROP_FIRMWARE_REVISION, PROP_APPLICATION_SOFTWARE_VERSION,
-    PROP_PROTOCOL_VERSION, PROP_PROTOCOL_REVISION,
-    PROP_PROTOCOL_SERVICES_SUPPORTED, PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
-    PROP_OBJECT_LIST, PROP_MAX_APDU_LENGTH_ACCEPTED,
-    PROP_SEGMENTATION_SUPPORTED, PROP_APDU_TIMEOUT,
-    PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
-    PROP_DATABASE_REVISION, -1
+    /* List of Required properties in this object */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION,
+    PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_REVISION,
+    PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+    PROP_OBJECT_LIST,
+    PROP_MAX_APDU_LENGTH_ACCEPTED,
+    PROP_SEGMENTATION_SUPPORTED,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_DEVICE_ADDRESS_BINDING,
+    PROP_DATABASE_REVISION,
+    -1
 };
 
 static const int Device_Properties_Optional[] = {
+/* List of Optional properties in this object */
 #if defined(BACDL_MSTP)
-    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
 #endif
-    PROP_DESCRIPTION, PROP_LOCAL_TIME, PROP_UTC_OFFSET, PROP_LOCAL_DATE,
-    PROP_DAYLIGHT_SAVINGS_STATUS, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS,
-    PROP_SERIAL_NUMBER, PROP_TIME_OF_DEVICE_RESTART,
+    PROP_DESCRIPTION,
+    PROP_LOCAL_TIME,
+    PROP_UTC_OFFSET,
+    PROP_LOCAL_DATE,
+    PROP_DAYLIGHT_SAVINGS_STATUS,
+    PROP_LOCATION,
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
+    PROP_SERIAL_NUMBER,
+    PROP_TIME_OF_DEVICE_RESTART,
 #if defined(BACNET_TIME_MASTER)
-    PROP_TIME_SYNCHRONIZATION_RECIPIENTS, PROP_TIME_SYNCHRONIZATION_INTERVAL,
-    PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET,
+    PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
 #endif
     -1
 };
 
-static const int Device_Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
+static const int Device_Properties_Proprietary[] = { -1 };
 
+/**
+ * @brief Returns the list of required, optional, and proprietary properties
+ *       for the Device object.
+ * @param pRequired [out] Pointer to the list of required properties
+ * @param pOptional [out] Pointer to the list of optional properties
+ * @param pProprietary [out] Pointer to the list of proprietary properties
+ * @note The lists are terminated with -1.
+ * @note The lists are not allocated, so do not free them.
+ * @note The lists are static, so do not modify them.
+ * @ingroup ObjIntf
+ */
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -839,6 +868,11 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
     return status;
 }
 
+/**
+ * @brief Initialize the Device Object Name with an ANSI C string
+ * @param value [in] The object name as a null-terminated string
+ * @return True on success, else False
+ */
 bool Device_Object_Name_ANSI_Init(const char *value)
 {
     return characterstring_init_ansi(&My_Object_Name, value);
@@ -1092,11 +1126,19 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(void)
     return SEGMENTATION_NONE;
 }
 
+/**
+ * @brief Get the Database Revision property of the Device Object
+ * @return The Database Revision property of the Device Object
+ */
 uint32_t Device_Database_Revision(void)
 {
     return Database_Revision;
 }
 
+/**
+ * @brief Set the Database Revision property of the Device Object
+ * @param revision [in] The new value for the Database Revision property
+ */
 void Device_Set_Database_Revision(uint32_t revision)
 {
     Database_Revision = revision;
@@ -1950,6 +1992,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             }
+            break;
     }
 
     return status;
@@ -2061,7 +2104,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if (wp_data->object_property == PROP_PROPERTY_LIST) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                    return status;
+                    return false;
                 }
 #endif
                 if (wp_data->object_property == PROP_OBJECT_NAME) {
