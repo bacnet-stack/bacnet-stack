@@ -74,6 +74,14 @@ BACNET_BINARY_PV Binary_Output_Present_Value(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Binary_Output_Present_Value_Set(
     uint32_t instance, BACNET_BINARY_PV binary_value, unsigned priority);
+
+BACNET_STACK_EXPORT
+bool Binary_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+BACNET_BINARY_PV
+Binary_Output_Priority_Array_Value(uint32_t object_instance, unsigned priority);
+
 BACNET_STACK_EXPORT
 bool Binary_Output_Present_Value_Relinquish(
     uint32_t instance, unsigned priority);

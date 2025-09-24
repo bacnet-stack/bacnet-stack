@@ -4,7 +4,7 @@
  * @date April 2020
  * @brief Test file for a basic BBMD for BVLC IPv6 handler
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h> /* for standard i/o, like printing */
 #include <stdint.h> /* for standard integer types uint8_t etc. */

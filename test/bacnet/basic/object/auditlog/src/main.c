@@ -1,13 +1,11 @@
-/*
- * Copyright (c) 2023 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet AuditLog object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @date 2023
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet auditlog APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/auditlog.h>
 #include <bacnet/bactext.h>

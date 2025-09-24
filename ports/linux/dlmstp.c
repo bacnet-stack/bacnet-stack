@@ -535,6 +535,9 @@ static void *dlmstp_thread(void *pArg)
         }
         if (MSTP_Port.ReceivedValidFrame) {
             DLMSTP_Statistics.receive_valid_frame_counter++;
+            if (MSTP_Port.FrameType == FRAME_TYPE_POLL_FOR_MASTER) {
+                DLMSTP_Statistics.poll_for_master_counter++;
+            }
             if (Valid_Frame_Rx_Callback) {
                 Valid_Frame_Rx_Callback(
                     MSTP_Port.SourceAddress, MSTP_Port.DestinationAddress,

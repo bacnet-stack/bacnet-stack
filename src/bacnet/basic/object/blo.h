@@ -63,6 +63,14 @@ bool Binary_Lighting_Output_Present_Value_Set(
     uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV value,
     unsigned priority);
+
+BACNET_STACK_EXPORT
+bool Binary_Lighting_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+
 BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority);

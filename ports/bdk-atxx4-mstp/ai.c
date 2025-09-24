@@ -77,7 +77,7 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32]; /* okay for single thread */
+    char text[32];
     bool status = false;
 
     if (object_instance < MAX_ANALOG_INPUTS) {

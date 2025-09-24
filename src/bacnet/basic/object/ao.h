@@ -60,6 +60,13 @@ void Analog_Output_Write_Present_Value_Callback_Set(
     analog_output_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
+bool Analog_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Analog_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+
+BACNET_STACK_EXPORT
 float Analog_Output_Relinquish_Default(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Analog_Output_Relinquish_Default_Set(

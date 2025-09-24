@@ -1,7 +1,7 @@
 # BACnet Stack ChangeLog
 
 BACnet open source protocol stack C library for embedded systems,
-microcontrollers, Linux, MacOS, BSD, and Windows
+microcontrollers, Linux, macOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
 
@@ -22,6 +22,22 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added API to output objects for priority-array property value
+  inspection. (#1096)
+* Added lighting command refresh from tracking value API. (#1094)
+* Added MS/TP statistics counters for BadCRC and Poll-For-Master. (#1081)
+* Added Lighting Output API to implement override for HOA control.
+  Integrated lighting command overridden behavior into the lighting
+  output object and added Overridden status flags API.
+  Added Lighting Output API to implement a momentary override
+  to the output that is cleared at the next lighting command. (#1086)
+* Added Trim_Fade_Time, High_End_Trim, Low_End_Trim, Last_On_Value
+  and Default_On_Value properties to lighting output object.
+  Added TRIM_ACTIVE flag to lighting command.
+  Added Last_On_Value and Default_On_Value
+  to lighting command for restore and toggle. (#1086)
+* Added bacnet_recipient_device_set() and bacnet_recipient_address_set()
+  API. (#1083)
 * Added MS/TP datalink option to BACnet basic server example. (#1077)
 * Added fixups to Microsoft Visual Studio build: added server-mini, etc. (#1061)
 * Added WriteProperty to GTK Discover app.  For enumerated properties,
@@ -87,6 +103,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed Who-Am-I and You-Are JSON handlers to eliminate dynamic
+  memory allocation for model and serial number strings,
+  improving memory management and simplifying code. (#1089)
 * Change stm32f4xx example to use static RAM file system. (#1058)
 * Changed the bacnet file object to be storage agnostic by refactoring
   and using callbacks. (#1056)
@@ -98,6 +117,33 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Lighting Output object STOP lighting command so that it sets
+  the present-value. (#1101)
+* Fixed the lighting command RAMP TO ramp rate to always clamp within
+  0.1 and 100.0 to avoid endless rate of 0.0. (#1100)
+* Fixed Lighting Output step operations mixup. (#1099)
+* Fixed Lighting Output step operations to set the Priority_Array slot. (#1098)
+* Fixed the lighting output objects current priority comparison during
+  lighting commands by using priority 17 for relinquish default
+  instead of 0. (#1097)
+* Fixed CMake Error in libwebsocket: Compatibility with CMake < 3.5 has
+  been removed from CMake (#1095)
+* Fixed Lighting Output Relinquish values. (#1094)
+* Fixed copied code that no longer needs static function scope variables
+  for text names. (#1092)
+* Fixed compiler warning format '%u' expects argument of type 'unsigned int',
+  but argument 4 has type 'uint32_t' {aka 'long unsigned int'}
+  [-Werror=format=] by casting or increasing format specifier size
+  and casting. (#1092)
+* Fixed Lighting_Command to ignore write priority and use its own. (#1086)
+* Fixed BACnetLightingOperation reserved range. (#1086)
+* Fixed missing prototype warning in lighting.c module.
+* Fixed AddListElement and RemoveListElement which were checking
+  the wrong return value from Device object. Fixed decoding of
+  ListElement Tag 0: Object ID instance. (#1083)
+* Fixed Notification_Class_Add_List_Element() and
+  Notification_Class_Remove_List_Element() element counter index
+  and empty slot detection. (#1083)
 * Fixed win32 builds where UNICODE is defined. The code now uses CreateFileA
   instead of CreateFile due to ANSI-C filenames. (#1076)
 * Fixed the usage of index vs instance in the basic trend log object

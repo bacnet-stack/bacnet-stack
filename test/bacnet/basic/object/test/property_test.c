@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2024
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
@@ -26,6 +26,7 @@
 bool bacnet_object_property_write_test(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_function write_property,
+    bool commandable,
     const int *skip_fail_property_list)
 {
     bool status = false;
@@ -58,6 +59,42 @@ bool bacnet_object_property_write_test(
                     bactext_property_name(wp_data->object_property),
                     bactext_error_code_name(wp_data->error_code));
             }
+        }
+        if (commandable) {
+            wp_data->priority = 16;
+            status = write_property(wp_data);
+            zassert_true(
+                status, "property=%s priority=%d: error code=%s.\n",
+                bactext_property_name(wp_data->object_property),
+                wp_data->priority,
+                bactext_error_code_name(wp_data->error_code));
+            wp_data->application_data_len =
+                encode_application_null(wp_data->application_data);
+            wp_data->priority = 16;
+            status = write_property(wp_data);
+            zassert_true(
+                status, "property=%s priority=%d: error code=%s.\n",
+                bactext_property_name(wp_data->object_property),
+                wp_data->priority,
+                bactext_error_code_name(wp_data->error_code));
+            wp_data->priority = 6;
+            status = write_property(wp_data);
+            zassert_false(
+                status, "property=%s priority=%d: error code=%s.\n",
+                bactext_property_name(wp_data->object_property),
+                wp_data->priority,
+                bactext_error_code_name(wp_data->error_code));
+            zassert_equal(
+                wp_data->error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+            wp_data->priority = 0;
+            status = write_property(wp_data);
+            zassert_false(
+                status, "property=%s priority=%d: error code=%s.\n",
+                bactext_property_name(wp_data->object_property),
+                wp_data->priority,
+                bactext_error_code_name(wp_data->error_code));
+            zassert_equal(
+                wp_data->error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
         }
     }
 
@@ -114,7 +151,8 @@ int bacnet_object_property_read_test(
     int read_len = 0;
     uint8_t *apdu;
     bool is_array, is_list;
-    BACNET_ARRAY_INDEX array_index = 0;
+    BACNET_UNSIGNED_INTEGER array_size;
+    BACNET_ARRAY_INDEX array_index = 0, i;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     read_len = read_property(rpdata);
@@ -183,6 +221,28 @@ int bacnet_object_property_read_test(
             "property '%s' array_index=0: error code is %s.\n",
             bactext_property_name(rpdata->object_property),
             bactext_error_code_name(rpdata->error_code));
+        if (read_len > 0) {
+            /* validate the data from the read request */
+            apdu = rpdata->application_data;
+            apdu_len = read_len;
+            len =
+                bacnet_unsigned_application_decode(apdu, apdu_len, &array_size);
+            zassert_true(len > 0, NULL);
+            zassert_true(
+                len == read_len, "property '%s' array_index=0.\n",
+                bactext_property_name(rpdata->object_property));
+            if (array_size > 0) {
+                for (i = 1; i <= array_size; i++) {
+                    rpdata->array_index = i;
+                    read_len = read_property(rpdata);
+                    zassert_not_equal(
+                        read_len, BACNET_STATUS_ERROR,
+                        "property '%s' array_index=%u: error code is %s.\n",
+                        bactext_property_name(rpdata->object_property), i,
+                        bactext_error_code_name(rpdata->error_code));
+                }
+            }
+        }
     }
 
     return len;
@@ -215,6 +275,7 @@ void bacnet_object_properties_read_write_test(
     const int *pProprietary = NULL;
     BACNET_PROPERTY_ID property;
     int len = 0;
+    bool commandable = false;
     bool status = false;
 
     /* ReadProperty parameters */
@@ -223,14 +284,14 @@ void bacnet_object_properties_read_write_test(
     rpdata.object_type = object_type;
     rpdata.object_instance = object_instance;
     property_list(&pRequired, &pOptional, &pProprietary);
-    /* detect properties that are not in the property lists */
+    /* detect properties that are missing from the property lists */
     for (property = 0; property < MAX_BACNET_PROPERTY_ID; property++) {
         if (property_lists_member(
                 pRequired, pOptional, pProprietary, property)) {
             continue;
         }
         if ((property == PROP_ALL) || (property == PROP_REQUIRED) ||
-            (property == PROP_OPTIONAL)) {
+            (property == PROP_OPTIONAL) || (property == PROP_PROPERTY_LIST)) {
             continue;
         }
         rpdata.object_property = property;
@@ -255,8 +316,16 @@ void bacnet_object_properties_read_write_test(
         len = bacnet_object_property_read_test(
             &rpdata, read_property, skip_fail_property_list);
         bacnet_object_property_write_parameter_init(&wpdata, &rpdata, len);
+        commandable = false;
+        if (property_list_commandable_member(
+                wpdata.object_type, wpdata.object_property)) {
+            if (property_lists_member(
+                    pRequired, pOptional, pProprietary, PROP_PRIORITY_ARRAY)) {
+                commandable = true;
+            }
+        }
         bacnet_object_property_write_test(
-            &wpdata, write_property, skip_fail_property_list);
+            &wpdata, write_property, commandable, skip_fail_property_list);
         pRequired++;
     }
     while ((*pOptional) != -1) {
@@ -265,8 +334,16 @@ void bacnet_object_properties_read_write_test(
         len = bacnet_object_property_read_test(
             &rpdata, read_property, skip_fail_property_list);
         bacnet_object_property_write_parameter_init(&wpdata, &rpdata, len);
+        commandable = false;
+        if (property_list_commandable_member(
+                wpdata.object_type, wpdata.object_property)) {
+            if (property_lists_member(
+                    pRequired, pOptional, pProprietary, PROP_PRIORITY_ARRAY)) {
+                commandable = true;
+            }
+        }
         bacnet_object_property_write_test(
-            &wpdata, write_property, skip_fail_property_list);
+            &wpdata, write_property, commandable, skip_fail_property_list);
         pOptional++;
     }
     while ((*pProprietary) != -1) {
@@ -275,8 +352,9 @@ void bacnet_object_properties_read_write_test(
         len = bacnet_object_property_read_test(
             &rpdata, read_property, skip_fail_property_list);
         bacnet_object_property_write_parameter_init(&wpdata, &rpdata, len);
+        commandable = false;
         bacnet_object_property_write_test(
-            &wpdata, write_property, skip_fail_property_list);
+            &wpdata, write_property, commandable, skip_fail_property_list);
         pProprietary++;
     }
     /* check for unsupported property - use ALL */

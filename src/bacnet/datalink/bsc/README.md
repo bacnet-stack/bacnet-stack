@@ -26,7 +26,7 @@ In order to build bacnet stack library for linux, user needs to install
 libconfig-dev, libcap-dev and libssl-dev to the system. Most easiest way to do
 that is to use Advanced Packaging Tool (APT), check bsc-test-linux.yml.
 
-For MacOSX build user must install brew packet manager (https://brew.sh),
+For macOS X build user must install brew packet manager (https://brew.sh),
 then install openssl using brew then build libwebsocket, check
 .github/workflows/bsc-tests-macosx.yml.
 

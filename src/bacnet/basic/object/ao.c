@@ -368,6 +368,48 @@ bool Analog_Output_Present_Value_Relinquish(
 }
 
 /**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Analog_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if (pObject->Relinquished[priority - 1]) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the priority-array value from its slot
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return priority-array value from its slot
+ */
+float Analog_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority)
+{
+    float real_value = 0.0f;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        real_value = pObject->Priority_Array[priority - 1];
+    }
+
+    return real_value;
+}
+
+/**
  * @brief For a given object instance-number, writes the present-value to the
  * remote node
  * @param  object_instance - object-instance number of the object
@@ -1149,9 +1191,11 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                status = Analog_Output_Units_Set(
-                    wp_data->object_instance, value.type.Enumerated);
-                if (!status) {
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    Analog_Output_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
