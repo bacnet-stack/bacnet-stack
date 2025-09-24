@@ -22,6 +22,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added uBASIC+BACnet README document to describe the programming language,
+  porting, and integration. (#1108)
 * Added API to output objects for priority-array property value
   inspection. (#1096)
 * Added lighting command refresh from tracking value API. (#1094)
@@ -103,6 +105,10 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed device object unit test to use common read-write property test.
+  Extended the basic BACnet device object example API.
+  Added BACnet/IP and COV test mocks to enable device object testing
+  with less dependencies. (#1106)
 * Changed Who-Am-I and You-Are JSON handlers to eliminate dynamic
   memory allocation for model and serial number strings,
   improving memory management and simplifying code. (#1089)
@@ -117,6 +123,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed units property declaration in basic Analog Input header file to be
+  uint16_t instead of uint8_t. Added range checking of units property
+  in example objects WriteProperty handler. (#1107)
 * Fixed Lighting Output object STOP lighting command so that it sets
   the present-value. (#1101)
 * Fixed the lighting command RAMP TO ramp rate to always clamp within
