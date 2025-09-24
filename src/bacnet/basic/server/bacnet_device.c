@@ -2300,8 +2300,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
             if (status) {
+#if defined(BACAPP_TIMESTAMP)
                 bacapp_timestamp_copy(
                     &Time_Of_Device_Restart, &value.type.Time_Stamp);
+#endif
             }
             break;
         default:
@@ -2762,7 +2764,9 @@ void Device_Init(object_functions_t *object_table)
     }
     characterstring_init_ansi(&My_Object_Name, Device_Name_Default);
 #if (BACNET_PROTOCOL_REVISION >= 14)
+#ifdef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
 #endif
 }
 
