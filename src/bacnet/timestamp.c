@@ -478,15 +478,29 @@ int bacapp_timestamp_to_ascii(
             break;
         case TIME_STAMP_DATETIME:
             /* 2021/12/31-23:59:59.99 */
-            str_len = snprintf(
-                str, str_size, "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
-                (unsigned)timestamp->value.dateTime.date.year,
-                (unsigned)timestamp->value.dateTime.date.month,
-                (unsigned)timestamp->value.dateTime.date.day,
-                (unsigned)timestamp->value.dateTime.time.hour,
-                (unsigned)timestamp->value.dateTime.time.min,
-                (unsigned)timestamp->value.dateTime.time.sec,
-                (unsigned)timestamp->value.dateTime.time.hundredths);
+            /* 255/255/255/255-255:255:255:255 */
+            if (timestamp->value.dateTime.date.year == 255)
+            {
+                str_len = snprintf(
+                    str, str_size, "%02u/%02u/%02u-%02u:%02u:%02u.%02u",
+                    (unsigned)timestamp->value.dateTime.date.year,
+                    (unsigned)timestamp->value.dateTime.date.month,
+                    (unsigned)timestamp->value.dateTime.date.day,
+                    (unsigned)timestamp->value.dateTime.time.hour,
+                    (unsigned)timestamp->value.dateTime.time.min,
+                    (unsigned)timestamp->value.dateTime.time.sec,
+                    (unsigned)timestamp->value.dateTime.time.hundredths);
+            } else {
+                str_len = snprintf(
+                    str, str_size, "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
+                    (unsigned)timestamp->value.dateTime.date.year,
+                    (unsigned)timestamp->value.dateTime.date.month,
+                    (unsigned)timestamp->value.dateTime.date.day,
+                    (unsigned)timestamp->value.dateTime.time.hour,
+                    (unsigned)timestamp->value.dateTime.time.min,
+                    (unsigned)timestamp->value.dateTime.time.sec,
+                    (unsigned)timestamp->value.dateTime.time.hundredths);
+            }
             break;
         default:
             break;

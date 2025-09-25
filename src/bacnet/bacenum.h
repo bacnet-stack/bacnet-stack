@@ -533,7 +533,7 @@ typedef enum {
     PROP_PROPRIETARY_RANGE_MIN = 512,
     PROP_PROPRIETARY_RANGE_MAX = 4194303,
     PROP_RESERVED_RANGE_MIN2 = 4194304,
-    /* enumerations 4194304-4194327 are defined in Addendum 2020cc */
+    /* enumerations 4194304-4194327 are defined in Addendum 2020cc (PR 24) */
     PROP_MAX_BVLC_LENGTH_ACCEPTED = 4194304,
     PROP_MAX_NPDU_LENGTH_ACCEPTED = 4194305,
     PROP_OPERATIONAL_CERTIFICATE_FILE = 4194306,
@@ -558,7 +558,7 @@ typedef enum {
     PROP_SC_PRIMARY_HUB_URI = 4194325,
     PROP_SC_MAXIMUM_RECONNECT_TIME = 4194326,
     PROP_SC_MINIMUM_RECONNECT_TIME = 4194327,
-    /* enumerations 4194328-4194332 are defined in Addendum 2020ca */
+    /* enumerations 4194328-4194337 are defined in Addendum 2020ca (PR 24) */
     PROP_COLOR_OVERRIDE = 4194328,
     PROP_COLOR_REFERENCE = 4194329,
     PROP_DEFAULT_COLOR = 4194330,
@@ -568,8 +568,22 @@ typedef enum {
     PROP_HIGH_END_TRIM = 4194335,
     PROP_LOW_END_TRIM = 4194336,
     PROP_TRIM_FADE_TIME = 4194337,
+    /* enumerations 4194338-4194340 are defined in Addendum 2020bx (PR 27) */
+    PROP_DEVICE_ADDRESS_PROXY_ENABLE = 4194338,
+    PROP_DEVICE_ADDRESS_PROXY_TABLE = 4194339,
+    PROP_DEVICE_ADDRESS_PROXY_TIMEOUT = 4194340,
+    /* enumerations 4194341-4194349 are defined in Addendum 2020cp (PR 30) */
+    PROP_DEFAULT_ON_VALUE = 4194341,
+    PROP_LAST_ON_VALUE = 4194342,
+    PROP_AUTHORIZATION_CACHE = 4194343,
+    PROP_AUTHORIZATION_GROUPS = 4194344,
+    PROP_AUTHORIZATION_POLICY = 4194345,
+    PROP_AUTHORIZATION_SCOPE = 4194346,
+    PROP_AUTHORIZATION_SERVER = 4194347,
+    PROP_AUTHORIZATION_STATUS = 4194348,
+    PROP_MAX_PROXIED_I_AMS_PER_SECOND = 4194349,
     /* update this value which is used in testing */
-    PROP_RESERVED_RANGE_LAST = 4194337,
+    PROP_RESERVED_RANGE_LAST = 4194349,
     /* Enumerated values 4194303-16777215 are reserved
        for definition by ASHRAE.  */
     /* do the max range inside of enum so that
@@ -1683,6 +1697,7 @@ typedef enum BACnet_Confirmed_Service_Choice {
     /* Security Services */
     SERVICE_CONFIRMED_AUTHENTICATE = 24,
     SERVICE_CONFIRMED_REQUEST_KEY = 25,
+    SERVICE_CONFIRMED_AUTHREQUEST = 34,
     /* Services added after 1995 */
     /* readRange [26] see Object Access Services */
     /* lifeSafetyOperation [27] see Alarm and Event Services */

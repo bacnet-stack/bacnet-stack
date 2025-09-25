@@ -158,6 +158,10 @@ const char *bactext_shed_level_type_name(unsigned index);
 BACNET_STACK_EXPORT
 const char *bactext_log_datum_name(unsigned index);
 
+BACNET_STACK_EXPORT
+const char *bactext_object_type_name_POS(unsigned index);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -4584,7 +4584,11 @@ int encode_context_date(
  */
 int decode_date(const uint8_t *apdu, BACNET_DATE *bdate)
 {
-    bdate->year = (uint16_t)apdu[0] + 1900;
+    if (apdu[0] == 255) {
+        bdate->year = (uint16_t)apdu[0];
+    } else {
+        bdate->year = (uint16_t)apdu[0] + 1900;
+    }
     bdate->month = apdu[1];
     bdate->day = apdu[2];
     bdate->wday = apdu[3];
@@ -4641,7 +4645,11 @@ int bacnet_date_decode(
     if ((apdu_size >= 4) && (len_value == 4)) {
         /* length of date is 4 octets, as per 20.2.12 */
         if (value) {
-            value->year = (uint16_t)apdu[0] + 1900;
+            if (apdu[0] == 255) {
+                value->year = apdu[0];
+            } else {
+                value->year = (uint16_t)apdu[0] + 1900;
+            }
             value->month = apdu[1];
             value->day = apdu[2];
             value->wday = apdu[3];
