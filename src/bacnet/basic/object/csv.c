@@ -145,15 +145,14 @@ bool CharacterString_Value_Delete(uint32_t object_instance)
  */
 void CharacterString_Value_Cleanup(void)
 {
-    struct object_data *pObject = NULL;
+    void *ptr = NULL;
 
     if (Object_List) {
-        do {
-            pObject = Keylist_Data_Pop(Object_List);
-            if (pObject) {
-                free(pObject);
-            }
-        } while (pObject);
+        ptr = Keylist_Data_Pop(Object_List);
+        while (ptr) {
+            free(ptr);
+            ptr = Keylist_Data_Pop(Object_List);
+        }
         Keylist_Delete(Object_List);
         Object_List = NULL;
     }
@@ -351,7 +350,7 @@ void CharacterString_Value_Out_Of_Service_Set(
             pObject->Changed = true;
             /* Lets backup Present_Value when going Out_Of_Service  or restore
              * when going out of Out_Of_Service */
-            if ((pObject->Out_Of_Service = value)) {
+            if ((pObject->Out_Of_Service == value)) {
                 characterstring_copy(
                     &pObject->Present_Value_Backup, &pObject->Present_Value);
             } else {
