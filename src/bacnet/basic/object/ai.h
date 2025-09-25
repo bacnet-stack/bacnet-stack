@@ -28,7 +28,7 @@ typedef struct analog_input_descr {
     float Present_Value;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service;
-    BACNET_ENGINEERING_UNITS Units;
+    uint16_t Units;
     float Prior_Value;
     float COV_Increment;
     bool Changed;

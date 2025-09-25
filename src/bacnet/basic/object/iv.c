@@ -587,6 +587,20 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    Integer_Value_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
         default:
             if (property_lists_member(
                     Integer_Value_Properties_Required,

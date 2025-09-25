@@ -279,8 +279,14 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                Analog_Input_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Enumerated);
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    Analog_Input_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
