@@ -103,6 +103,7 @@ struct object_data {
     int Record_Count_Total;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -1376,6 +1377,38 @@ int Audit_Log_Read_Range_By_Time(BACNET_READ_RANGE_DATA *pRequest)
     pRequest->FirstSequence = uiFirstSeq;
 
     return apdu_len;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Audit_Log_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Audit_Log_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**

@@ -133,6 +133,11 @@ BACNET_STACK_EXPORT
 bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
+void *Analog_Output_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Analog_Output_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Analog_Output_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Analog_Output_Delete(uint32_t object_instance);

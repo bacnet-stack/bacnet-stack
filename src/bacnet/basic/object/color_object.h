@@ -119,6 +119,11 @@ BACNET_STACK_EXPORT
 void Color_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
+void *Color_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Color_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Color_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Color_Delete(uint32_t object_instance);

@@ -47,6 +47,7 @@ struct object_data {
     uint32_t Control_Groups[CONTROL_GROUPS_MAX];
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 
 /* Key List for storing the object data sorted by instance number  */
@@ -1377,6 +1378,38 @@ void Channel_Write_Group(
 void Channel_Write_Property_Internal_Callback_Set(write_property_function cb)
 {
     Write_Property_Internal_Callback = cb;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Channel_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Channel_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**
