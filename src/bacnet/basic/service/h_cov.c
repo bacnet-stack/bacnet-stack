@@ -540,18 +540,13 @@ static void cov_lifetime_expiration_handler(
         if (COV_Subscriptions[index].lifetime == 0) {
             /* expire the subscription */
 #if PRINT_ENABLED
-            fprintf(
-                stderr, "COVtimer: PID=%u ",
-                COV_Subscriptions[index].subscriberProcessIdentifier);
-            fprintf(
-                stderr, "%s %u ",
+            debug_printf(
+                "COVtimer: PID=%u %s %u time remaining=%u seconds\n",
+                COV_Subscriptions[index].subscriberProcessIdentifier,
                 bactext_object_type_name(
                     COV_Subscriptions[index].monitoredObjectIdentifier.type),
-                COV_Subscriptions[index].monitoredObjectIdentifier.instance);
-            fprintf(
-                stderr, "time remaining=%u seconds ",
+                COV_Subscriptions[index].monitoredObjectIdentifier.instance,
                 COV_Subscriptions[index].lifetime);
-            fprintf(stderr, "\n");
 #endif
             /* initialize with invalid COV address */
             COV_Subscriptions[index].flag.valid = false;
@@ -641,7 +636,7 @@ bool handler_cov_fsm(void)
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
 #if PRINT_ENABLED
-                    fprintf(stderr, "COVtask: Marking...\n");
+                    debug_printf("COVtask: Marking...\n");
 #endif
                 }
             }
@@ -707,7 +702,7 @@ bool handler_cov_fsm(void)
                     object_instance = COV_Subscriptions[index]
                                           .monitoredObjectIdentifier.instance;
 #if PRINT_ENABLED
-                    fprintf(stderr, "COVtask: Sending...\n");
+                    debug_printf("COVtask: Sending...\n");
 #endif
                     /* configure the linked list for the two properties */
                     bacapp_property_value_list_init(
