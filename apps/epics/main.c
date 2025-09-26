@@ -40,6 +40,7 @@
 #include "bacnet/datalink/bip.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacepics.h"
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
@@ -93,6 +94,8 @@ static uint16_t Error_Count = 0;
 /* Assume device can do RPM, to start */
 static EPICS_STATES myState = INITIAL_BINDING;
 
+static struct mstimer BACnet_TSM_Timer;
+
 /* any valid RP or RPM data returned is put here */
 /* Now using one structure for both RP and RPM data:
  * typedef struct BACnet_RP_Service_Data_t {
@@ -111,13 +114,6 @@ static BACNET_RPM_SERVICE_DATA Read_Property_Multiple_Data;
 
 /* object that we are currently printing */
 static OS_Keylist Object_List;
-
-/* When we need to process an Object's properties one at a time,
- * then we build and use this list */
-#define MAX_PROPS 128 /* Supersized so it always is big enough. */
-static uint32_t Property_List_Length = 0;
-static uint32_t Property_List_Index = 0;
-static int32_t Property_List[MAX_PROPS + 2];
 
 struct property_value_list_t {
     int32_t property_id;
@@ -154,18 +150,6 @@ typedef struct Property_List {
     uint32_t exported;
 } PROPERTY_LIST;
 
-static bool IsLongArray = false;
-/* Show value instead of '?' */
-static bool ShowValues = false;
-/* show only device object properties */
-static bool ShowDeviceObjectOnly = false;
-/* read required and optional properties when RPM ALL does not work */
-static bool Optional_Properties = false;
-
-#if !defined(PRINT_ERRORS)
-#define PRINT_ERRORS 1
-#endif
-
 static void MyErrorHandler(
     BACNET_ADDRESS *src,
     uint8_t invoke_id,
@@ -176,14 +160,6 @@ static void MyErrorHandler(
         (invoke_id == Request_Invoke_ID)) {
         /* error on the request */
         Response_Status = RESP_ERROR_CODE;
-#if PRINT_ERRORS
-        if (ShowValues) {
-            fprintf(
-                stderr, "-- BACnet Error: %s: %s\n",
-                bactext_error_class_name(error_class),
-                bactext_error_code_name(error_code));
-        }
-#endif
         if (error_code != ERROR_CODE_READ_ACCESS_DENIED) {
             Error_Detected = true;
             Last_Error_Class = error_class;
@@ -243,40 +219,6 @@ static void MyReadPropertyAckHandler(
     }
 }
 
-#if 0
-static void MyReadPropertyMultipleAckHandler(
-    uint8_t *service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS *src,
-    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
-{
-    int len = 0;
-    BACNET_READ_ACCESS_DATA *rpm_data;
-
-    if (address_match(&Target_Address, src) &&
-        (service_data->invoke_id == Request_Invoke_ID)) {
-        rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
-        if (rpm_data) {
-            len = rpm_ack_decode_service_request(
-                service_request, service_len, rpm_data);
-        }
-        if (len > 0) {
-            memmove(
-                &Read_Property_Multiple_Data.service_data, service_data,
-                sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
-            Read_Property_Multiple_Data.rpm_data = rpm_data;
-            /* Will process and free the RPM data later */
-        } else {
-            if (len < 0) { /* Eg, failed due to no segmentation */
-                Error_Detected = true;
-            }
-            rpm_data = rpm_data_free(rpm_data);
-            free(rpm_data);
-        }
-    }
-}
-#endif
-
 /** Handler for a Simple ACK PDU.
  *
  * @param src [in] BACNET_ADDRESS of the source of the message
@@ -333,10 +275,6 @@ static void Init_Service_Handlers(void)
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, MyReadPropertyAckHandler);
-#if 0
-    apdu_set_confirmed_ack_handler(
-        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, MyReadPropertyMultipleAckHandler);
-#endif
     /* handle the ack coming back */
     apdu_set_confirmed_simple_ack_handler(
         SERVICE_CONFIRMED_WRITE_PROPERTY, MyWritePropertySimpleAckHandler);
@@ -437,17 +375,14 @@ static void wait_for_response(void)
 {
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
-    __time64_t apdu_timeout_seconds = (__time64_t)(apdu_timeout() / 1000);
-    __time64_t present_long_time;
-    __time64_t initial_long_time;
-    unsigned int timeout_ms = (unsigned int)(apdu_timeout() / 1000);
+    unsigned int timeout_ms;
 
-
-    _time64(&present_long_time);
-    initial_long_time = present_long_time;
+    timeout_ms = (unsigned int)(apdu_timeout() / 1000);
 
     Response_Status = RESP_WAITING;
-    while (present_long_time < initial_long_time + apdu_timeout_seconds) {
+
+    mstimer_restart(&BACnet_TSM_Timer);
+    while (mstimer_expired(&BACnet_TSM_Timer) == false) {
         /* Process PDU if one comes in */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout_ms);
         if (pdu_len) {
@@ -465,11 +400,10 @@ static void wait_for_response(void)
             return;
         }
         if ((Response_Status == RESP_ABORT_CODE) ||
-                (Response_Status == RESP_REJECT_CODE)||
-                (Response_Status == RESP_ERROR_CODE)) {
+            (Response_Status == RESP_REJECT_CODE) ||
+            (Response_Status == RESP_ERROR_CODE)) {
             return;
         }
-        _time64(&present_long_time);
     }
     /* TSM is stuck - free invoke id */
     tsm_free_invoke_id(Request_Invoke_ID);
@@ -479,12 +413,6 @@ static void wait_for_response(void)
 bool Attempt_To_Write(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID property)
 {
-#if 0
-    if (property_list_bacnet_list_member(object_type, property)) {
-        /* property is a list - do not attempt to write */
-        return false;
-    }
-#endif
     if (object_type >= OBJECT_PROPRIETARY_MIN) {
         /* don't attempt to write to any properties in a proprietary object */
         return false;
@@ -519,9 +447,6 @@ bool Attempt_To_Write(
         case PROP_DATABASE_REVISION:
         case PROP_EVENT_TIME_STAMPS:
         case PROP_LOG_BUFFER:
-        //case PROP_TAGS:
-        //case PROP_SETPOINT_REFERENCE:
-        //case PROP_EXCEPTION_SCHEDULE:
             /* read-only or complex data types - don't attempt to write */
             return false;
         default:
@@ -863,23 +788,6 @@ static int CheckCommandLineArgs(int argc, char *argv[])
         char *anArg = argv[i];
         if (anArg[0] == '-') {
             switch (anArg[1]) {
-                case 'o':
-                    Optional_Properties = true;
-                    break;
-#if 0
-                case 'v':
-                    ShowValues = true;
-                    break;
-                case 'c':
-                    /* Number of columns before a break for BACnetARRAY props */
-                    if (++i < argc) {
-                        Walked_List_Columns = strtol(argv[i], NULL, 0);
-                    }
-                    break;
-                case 'd':
-                    ShowDeviceObjectOnly = true;
-                    break;
-#endif
                 case 'p':
                     if (++i < argc) {
 #if defined(BACDL_BIP)
@@ -888,45 +796,6 @@ static int CheckCommandLineArgs(int argc, char *argv[])
 #endif
                     }
                     break;
-#if 0
-                case 'n':
-                    /* Destination Network Number */
-                    if (Target_Address.mac_len == 0) {
-                        fprintf(
-                            stderr, "Must provide a Target MAC before DNET \n");
-                    }
-                    if (++i < argc) {
-                        Target_Address.net = (uint16_t)strtol(argv[i], NULL, 0);
-                    }
-                    /* Used strtol so dest.net can be either 0x1234 or 4660 */
-                    break;
-                case 't':
-                    if (++i < argc) {
-                        /* decoded MAC addresses */
-                        unsigned mac[6];
-                        /* number of successful decodes */
-                        int count;
-                        /* loop counter */
-                        unsigned j;
-                        count = sscanf(
-                            argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
-                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                        if (count == 6) { /* success */
-                            Target_Address.mac_len = count;
-                            for (j = 0; j < 6; j++) {
-                                Target_Address.mac[j] = (uint8_t)mac[j];
-                            }
-                            Target_Address.net = 0;
-                            Target_Address.len = 0; /* No src address */
-                            Provided_Targ_MAC = true;
-                            break;
-                        } else {
-                            printf("ERROR: invalid Target MAC %s \n", argv[i]);
-                        }
-                        /* fall through to print_usage */
-                    }
-                    BACNET_STACK_FALLTHROUGH();
-#endif
                 default:
                     print_usage(filename);
                     exit(0);
@@ -1088,7 +957,7 @@ static uint32_t print_header(FILE *stream, uint32_t device_instance)
 
     if ((status == RESP_SUCCESS) && (data_value.type.Character_String.length))
     {
-        printf("Vendor Name: \"%s\"\n", &data_value.type.Character_String.value);
+        printf("Vendor Name: \"%s\"\n", (char*)&data_value.type.Character_String.value);
     }
     else
     {
@@ -1102,8 +971,8 @@ static uint32_t print_header(FILE *stream, uint32_t device_instance)
 
     if ((status == RESP_SUCCESS) && (data_value.type.Character_String.length))
     {
-        printf("Product Name: \"%s\"\n", &data_value.type.Character_String.value);
-        printf("Product Model Number: \"%s\"\n", &data_value.type.Character_String.value);
+        printf("Product Name: \"%s\"\n", (char*)&data_value.type.Character_String.value);
+        printf("Product Model Number: \"%s\"\n", (char*)&data_value.type.Character_String.value);
     }
     else
     {
@@ -1116,7 +985,7 @@ static uint32_t print_header(FILE *stream, uint32_t device_instance)
     status = get_primitive_value(device_instance, device_object, PROP_DESCRIPTION, BACNET_ARRAY_ALL, &data_value);
     if (status == RESP_SUCCESS)
     {
-        printf("Product Description: \"%s\"\n\n", &data_value.type.Character_String.value);
+        printf("Product Description: \"%s\"\n\n", (char*)&data_value.type.Character_String.value);
     }
     else
     {
@@ -1804,44 +1673,32 @@ int main(int argc, char *argv[])
     bool found = false;
 
     fprintf(stderr, "\n");
-#if 0
-    fprintf(stderr, "EPICS Generator Version %s\n", "1.0.0");
+    fprintf(stderr, "EPICS Generator Version %s\n", "2.0.0");
     fprintf(stderr, "Copyright (C) 2014 by Steve Karg and others.\n"
            "This is free software; see the source for copying conditions.\n"
            "There is NO warranty; not even for MERCHANTABILITY or\n"
            "FITNESS FOR A PARTICULAR PURPOSE.\n");
-#endif
-    fprintf(stderr, "EPICS Generation Tool version 1.0.0 \n");
-    fprintf(stderr, "Copyright(C) 2025 BACnet International \n");
-    fprintf(stderr, "All rights reserved.\n\n");
 
-    fprintf(stderr, "This program links to libraries licensed under the\n");
-    fprintf(stderr, "GNU General Public License with a Linking Exception.\n");
-    fprintf(stderr, "These libraries include:\n");
-    fprintf(stderr, "-BACnet Protocol Stack (licensed under GPL - 2.0 - or -later WITH GCC - exception - 2.0)\n\n");
-
-    fprintf(stderr, "For details on the specific exceptions and their terms, please refer to\n");
-    fprintf(stderr, "the respective license texts provided with the libraries or visit\n");
-    fprintf(stderr, "the Free Software Foundation's website.\n\n");
-
-#define BAC_DEBUG 1
+#define BAC_DEBUG 0
 
 #if BAC_DEBUG
-    uint16_t my_argc = argc + 1;
+    uint16_t my_argc;
+
+    my_argc = argc + 1;
     //uint16_t my_argc = argc + 2;
     char **my_argv = malloc(my_argc * sizeof(char *));
 
 
     my_argv[0] = argv[0];
-    my_argv[1] = (char*)"35019";
-    //my_argv[1] = (char*)"25303";
+    //my_argv[1] = (char*)"35019";
+    my_argv[1] = (char*)"25303";
     //my_argv[2] = (char*)"-p47401";
 
 
     CheckCommandLineArgs(2, my_argv); /* Won't return if there is an issue. */
     free(my_argv);
 
-    freopen("35019.tpi", "w", stdout);
+    freopen("25303.tpi", "w", stdout);
 #else
     CheckCommandLineArgs(argc, argv); /* Won't return if there is an issue. */
 #endif
@@ -1878,6 +1735,8 @@ int main(int argc, char *argv[])
     /* configure the timeout values */
     current_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    mstimer_set(&BACnet_TSM_Timer, (uint32_t)apdu_timeout());
+
 
 #if defined(BACDL_BIP)
     if (My_BIP_Port > 0) {
