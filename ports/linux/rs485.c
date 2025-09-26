@@ -35,6 +35,7 @@
 #include "bacnet/datalink/mstp.h"
 #include "rs485.h"
 #include "bacnet/basic/sys/fifo.h"
+#include "bacnet/basic/sys/debug.h"
 
 #include <sys/select.h>
 #include <sys/time.h>
@@ -296,7 +297,7 @@ void RS485_Cleanup(void)
 void RS485_Initialize(void)
 {
 #if PRINT_ENABLED
-    fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
+    debug_printf("RS485 Interface: %s\n", RS485_Port_Name);
 #endif
     /*
        Open device for reading and writing.
