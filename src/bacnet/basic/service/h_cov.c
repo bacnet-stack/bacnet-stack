@@ -459,7 +459,7 @@ static bool cov_send_request(
         return status;
     }
 #if PRINT_ENABLED
-    debug_printf("COVnotification: requested\n");
+    debug_fprintf(stderr, "COVnotification: requested\n");
 #endif
     if (!cov_subscription) {
         return status;
@@ -467,7 +467,7 @@ static bool cov_send_request(
     dest = cov_address_get(cov_subscription->dest_index);
     if (!dest) {
 #if PRINT_ENABLED
-        debug_printf("COVnotification: dest not found!\n");
+        debug_fprintf(stderr, "COVnotification: dest not found!\n");
 #endif
         return status;
     }
@@ -514,7 +514,7 @@ static bool cov_send_request(
     if (bytes_sent > 0) {
         status = true;
 #if PRINT_ENABLED
-        debug_printf("COVnotification: Sent!\n");
+        debug_fprintf(stderr, "COVnotification: Sent!\n");
 #endif
     }
 
@@ -540,8 +540,8 @@ static void cov_lifetime_expiration_handler(
         if (COV_Subscriptions[index].lifetime == 0) {
             /* expire the subscription */
 #if PRINT_ENABLED
-            debug_printf(
-                "COVtimer: PID=%u %s %u time remaining=%u seconds\n",
+            debug_fprintf(
+                stderr, "COVtimer: PID=%u %s %u time remaining=%u seconds\n",
                 COV_Subscriptions[index].subscriberProcessIdentifier,
                 bactext_object_type_name(
                     COV_Subscriptions[index].monitoredObjectIdentifier.type),
@@ -636,7 +636,7 @@ bool handler_cov_fsm(void)
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
 #if PRINT_ENABLED
-                    debug_printf("COVtask: Marking...\n");
+                    debug_fprintf(stderr, "COVtask: Marking...\n");
 #endif
                 }
             }
@@ -702,7 +702,7 @@ bool handler_cov_fsm(void)
                     object_instance = COV_Subscriptions[index]
                                           .monitoredObjectIdentifier.instance;
 #if PRINT_ENABLED
-                    debug_printf("COVtask: Sending...\n");
+                    debug_fprintf(stderr, "COVtask: Sending...\n");
 #endif
                     /* configure the linked list for the two properties */
                     bacapp_property_value_list_init(
