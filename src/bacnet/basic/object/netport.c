@@ -114,6 +114,7 @@ struct object_data {
     float Link_Speed;
     bacnet_network_port_activate_changes Activate_Changes;
     bacnet_network_port_discard_changes Discard_Changes;
+    void *Context;
     union {
         struct bacnet_ipv4_port IPv4;
         struct bacnet_ipv6_port IPv6;
@@ -4751,6 +4752,38 @@ void Network_Port_Cleanup(void)
         }
     }
 #endif
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Network_Port_Context_Get(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        return Object_List[index].Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Network_Port_Context_Set(uint32_t object_instance, void *context)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Context = context;
+    }
 }
 
 /**

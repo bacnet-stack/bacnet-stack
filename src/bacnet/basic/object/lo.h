@@ -222,6 +222,11 @@ void Lighting_Output_Write_Present_Value_Callback_Set(
     lighting_command_tracking_value_callback cb);
 
 BACNET_STACK_EXPORT
+void *Lighting_Output_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Lighting_Output_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Lighting_Output_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Delete(uint32_t object_instance);

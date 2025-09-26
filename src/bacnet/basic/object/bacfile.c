@@ -36,6 +36,7 @@ struct object_data {
     char *Object_Name;
     char *Pathname;
     char *File_Type;
+    void *Context;
     BACNET_DATE_TIME Modification_Date;
     bool File_Access_Stream : 1;
     bool Read_Only : 1;
@@ -1146,6 +1147,38 @@ bool bacfile_read_ack_record_data(
     }
 
     return found;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *bacfile_create_context_get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void bacfile_create_context_set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**

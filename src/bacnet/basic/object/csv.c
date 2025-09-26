@@ -51,6 +51,7 @@ typedef struct characterstring_object {
     BACNET_CHARACTER_STRING Present_Value;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 } CHARACTERSTRING_VALUE_DESCR;
 
 /**
@@ -75,6 +76,38 @@ void CharacterString_Value_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *CharacterString_Value_Context_Get(uint32_t object_instance)
+{
+    struct characterstring_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void CharacterString_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct characterstring_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**
