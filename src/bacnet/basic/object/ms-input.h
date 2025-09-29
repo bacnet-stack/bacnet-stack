@@ -118,6 +118,11 @@ const char *
 Multistate_Input_State_Text(uint32_t object_instance, uint32_t state_index);
 
 BACNET_STACK_EXPORT
+void *Multistate_Input_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Multistate_Input_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Multistate_Input_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Multistate_Input_Delete(uint32_t object_instance);

@@ -108,6 +108,11 @@ BACNET_STACK_EXPORT
 void BitString_Value_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
+void *BitString_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void BitString_Value_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t BitString_Value_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool BitString_Value_Delete(uint32_t object_instance);

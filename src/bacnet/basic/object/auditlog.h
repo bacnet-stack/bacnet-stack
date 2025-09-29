@@ -69,6 +69,12 @@ BACNET_STACK_EXPORT
 int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void *Audit_Log_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Audit_Log_Context_Set(uint32_t object_instance, void *context);
+
 BACNET_STACK_EXPORT
 uint32_t Audit_Log_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT

@@ -96,16 +96,19 @@ BACNET_STACK_EXPORT
 void Integer_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-void Integer_Value_Init(void);
+void *Integer_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Integer_Value_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Integer_Value_Create(uint32_t object_instance);
-
 BACNET_STACK_EXPORT
 bool Integer_Value_Delete(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 void Integer_Value_Cleanup(void);
+BACNET_STACK_EXPORT
+void Integer_Value_Init(void);
 
 #ifdef __cplusplus
 }

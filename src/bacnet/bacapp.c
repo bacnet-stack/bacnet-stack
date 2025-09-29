@@ -1220,6 +1220,7 @@ int bacapp_known_property_tag(
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
         case PROP_CONTROLLED_VARIABLE_REFERENCE:
         case PROP_INPUT_REFERENCE:
+        case PROP_EVENT_ALGORITHM_INHIBIT_REF:
             /* Properties using BACnetObjectPropertyReference */
             return BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
 
@@ -2325,7 +2326,7 @@ static int bacapp_snprintf_enumerated(
                     str, str_len, "reserved %lu", (unsigned long)value);
             } else {
                 ret_val = bacapp_snprintf(
-                    str, str_len, "proprietary %lu", (unsigned long)value);
+                    str, str_len, "proprietary-%lu", (unsigned long)value);
             }
             break;
         case PROP_EVENT_STATE:
@@ -2335,7 +2336,7 @@ static int bacapp_snprintf_enumerated(
         case PROP_UNITS:
             if (bactext_engineering_unit_name_proprietary((unsigned)value)) {
                 ret_val = bacapp_snprintf(
-                    str, str_len, "proprietary %lu", (unsigned long)value);
+                    str, str_len, "proprietary-%lu", (unsigned long)value);
             } else {
                 ret_val = bacapp_snprintf(
                     str, str_len, "%s", bactext_engineering_unit_name(value));
@@ -2602,7 +2603,7 @@ static int bacapp_snprintf_object_id(
             str, str_len, "reserved %u, ", (unsigned)object_id->type);
     } else {
         slen = bacapp_snprintf(
-            str, str_len, "proprietary %u, ", (unsigned)object_id->type);
+            str, str_len, "proprietary-%u, ", (unsigned)object_id->type);
     }
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(
@@ -2870,7 +2871,6 @@ static int bacapp_snprintf_object_property_reference(
             str, str_len, ", %lu", (unsigned long)value->property_array_index);
         ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     }
-    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     ret_val += bacapp_snprintf(str, str_len, "}");
 
     return ret_val;
@@ -4031,7 +4031,20 @@ bool bacapp_print_value(
 #endif
         bacapp_snprintf_value(str, str_len + 1, object_value);
         if (stream) {
-            fprintf(stream, "%s", str);
+            if (object_value->object_type == OBJECT_SCHEDULE) {
+                switch (object_value->object_property) {
+                    case PROP_PRESENT_VALUE:
+                    case PROP_SCHEDULE_DEFAULT:
+                        fprintf(
+                            stream, "[%u] %s", object_value->value->tag, str);
+                        break;
+                    default:
+                        fprintf(stream, "%s", str);
+                        break;
+                }
+            } else {
+                fprintf(stream, "%s", str);
+            }
         }
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
         /* nothing to do with stack based RAM */

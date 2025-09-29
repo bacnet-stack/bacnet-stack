@@ -51,6 +51,7 @@ typedef struct characterstring_object {
     BACNET_CHARACTER_STRING Present_Value;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 } CHARACTERSTRING_VALUE_DESCR;
 
 /**
@@ -75,6 +76,38 @@ void CharacterString_Value_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *CharacterString_Value_Context_Get(uint32_t object_instance)
+{
+    struct characterstring_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void CharacterString_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct characterstring_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**
@@ -349,12 +382,12 @@ void CharacterString_Value_Out_Of_Service_Set(
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Changed = true;
-            /* Lets backup Present_Value when going Out_Of_Service  or restore
-             * when going out of Out_Of_Service */
-            if ((pObject->Out_Of_Service = value)) {
+            if (value) {
+                /* backup Present_Value when entering Out_Of_Service */
                 characterstring_copy(
                     &pObject->Present_Value_Backup, &pObject->Present_Value);
             } else {
+                /* restore Present_Value when leaving Out_Of_Service */
                 characterstring_copy(
                     &pObject->Present_Value, &pObject->Present_Value_Backup);
             }

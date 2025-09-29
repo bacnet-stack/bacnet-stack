@@ -34,6 +34,7 @@ typedef struct analog_input_descr {
     bool Changed;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 #if defined(INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -204,6 +205,11 @@ BACNET_STACK_EXPORT
 int Analog_Input_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data);
 #endif
+
+BACNET_STACK_EXPORT
+void *Analog_Input_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Analog_Input_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Analog_Input_Create(uint32_t object_instance);

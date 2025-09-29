@@ -533,7 +533,7 @@ typedef enum BACnetPropertyIdentifier {
     PROP_PROPRIETARY_RANGE_MIN = 512,
     PROP_PROPRIETARY_RANGE_MAX = 4194303,
     PROP_RESERVED_RANGE_MIN2 = 4194304,
-    /* enumerations 4194304-4194327 are defined in Addendum 2020cc */
+    /* enumerations 4194304-4194327 are defined in Addendum 2020cc (PR 24) */
     PROP_MAX_BVLC_LENGTH_ACCEPTED = 4194304,
     PROP_MAX_NPDU_LENGTH_ACCEPTED = 4194305,
     PROP_OPERATIONAL_CERTIFICATE_FILE = 4194306,
@@ -558,7 +558,7 @@ typedef enum BACnetPropertyIdentifier {
     PROP_SC_PRIMARY_HUB_URI = 4194325,
     PROP_SC_MAXIMUM_RECONNECT_TIME = 4194326,
     PROP_SC_MINIMUM_RECONNECT_TIME = 4194327,
-    /* enumerations 4194328-4194332 are defined in Addendum 2020ca */
+    /* enumerations 4194328-4194337 are defined in Addendum 2020ca (PR 24) */
     PROP_COLOR_OVERRIDE = 4194328,
     PROP_COLOR_REFERENCE = 4194329,
     PROP_DEFAULT_COLOR = 4194330,
@@ -568,15 +568,13 @@ typedef enum BACnetPropertyIdentifier {
     PROP_HIGH_END_TRIM = 4194335,
     PROP_LOW_END_TRIM = 4194336,
     PROP_TRIM_FADE_TIME = 4194337,
-    /*  Addendum 135-2020bx */
-    /* enumerations 4194338-4194340 are defined in Addendum 2020bx */
+    /* enumerations 4194338-4194340 are defined in Addendum 2020bx (PR 27) */
     PROP_DEVICE_ADDRESS_PROXY_ENABLE = 4194338,
     PROP_DEVICE_ADDRESS_PROXY_TABLE = 4194339,
     PROP_DEVICE_ADDRESS_PROXY_TIMEOUT = 4194340,
-    /* enumerations 4194341-4194342 are defined in Addendum 2020cj */
+    /* enumerations 4194341-4194349 are defined in Addendum 2020cp (PR 30) */
     PROP_DEFAULT_ON_VALUE = 4194341,
     PROP_LAST_ON_VALUE = 4194342,
-    /* enumerations 4194343-4194349 are defined in Addendum 2020cp */
     PROP_AUTHORIZATION_CACHE = 4194343,
     PROP_AUTHORIZATION_GROUPS = 4194344,
     PROP_AUTHORIZATION_POLICY = 4194345,
@@ -1743,6 +1741,7 @@ typedef enum BACnet_Confirmed_Service_Choice {
     /* Security Services */
     SERVICE_CONFIRMED_AUTHENTICATE = 24,
     SERVICE_CONFIRMED_REQUEST_KEY = 25,
+    SERVICE_CONFIRMED_AUTH_REQUEST = 34,
     /* Services added after 1995 */
     /* readRange [26] see Object Access Services */
     /* lifeSafetyOperation [27] see Alarm and Event Services */

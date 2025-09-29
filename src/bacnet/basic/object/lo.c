@@ -51,6 +51,7 @@ struct object_data {
     BACNET_OBJECT_ID Override_Color_Reference;
     const char *Object_Name;
     const char *Description;
+    void *Context;
     /* bits */
     bool Blink_Warn_Enable : 1;
     bool Egress_Active : 1;
@@ -3375,6 +3376,38 @@ void Lighting_Output_Write_Present_Value_Callback_Set(
     lighting_command_tracking_value_callback cb)
 {
     Lighting_Command_Tracking_Value_Callback = cb;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Lighting_Output_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Lighting_Output_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**

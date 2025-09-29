@@ -36,6 +36,7 @@ typedef struct analog_value_descr {
     const char *Object_Name;
     const char *Description;
     BACNET_RELIABILITY Reliability;
+    void *Context;
 #if defined(INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -218,6 +219,11 @@ BACNET_STACK_EXPORT
 int Analog_Value_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data);
 #endif
+
+BACNET_STACK_EXPORT
+void *Analog_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Analog_Value_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Analog_Value_Create(uint32_t object_instance);

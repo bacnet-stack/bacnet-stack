@@ -179,8 +179,9 @@ unsigned Program_Instance_To_Index(uint32_t object_instance)
 BACNET_PROGRAM_STATE Program_State(uint32_t object_instance)
 {
     BACNET_PROGRAM_STATE value = 0;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         value = pObject->Program_State;
     }
@@ -199,8 +200,9 @@ BACNET_PROGRAM_STATE Program_State(uint32_t object_instance)
 bool Program_State_Set(uint32_t object_instance, BACNET_PROGRAM_STATE value)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Program_State = value;
         status = true;
@@ -564,14 +566,15 @@ const char *Program_Instance_Of_ANSI(uint32_t object_instance)
  */
 BACNET_PROGRAM_REQUEST Program_Change(uint32_t object_instance)
 {
-    BACNET_PROGRAM_REQUEST pcr = PROGRAM_REQUEST_READY;
-    struct object_data *pObject = Object_Data(object_instance);
+    BACNET_PROGRAM_REQUEST program_change = PROGRAM_REQUEST_READY;
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
-        pcr = pObject->Program_Change;
+        program_change = pObject->Program_Change;
     }
 
-    return pcr;
+    return program_change;
 }
 
 /**
@@ -586,8 +589,9 @@ bool Program_Change_Set(
     uint32_t object_instance, BACNET_PROGRAM_REQUEST program_change)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Program_Change = program_change;
         status = true;
@@ -623,8 +627,9 @@ static bool Program_Change_Write(
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         if (pObject->Program_Change == PROGRAM_REQUEST_READY) {
             if (program_change <= PROGRAM_REQUEST_MAX) {
@@ -652,14 +657,15 @@ static bool Program_Change_Write(
  */
 BACNET_PROGRAM_ERROR Program_Reason_For_Halt(uint32_t object_instance)
 {
-    BACNET_PROGRAM_ERROR perr = PROGRAM_ERROR_NORMAL;
-    struct object_data *pObject = Object_Data(object_instance);
+    BACNET_PROGRAM_ERROR reason = PROGRAM_ERROR_NORMAL;
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
-        perr = pObject->Reason_For_Halt;
+        reason = pObject->Reason_For_Halt;
     }
 
-    return perr;
+    return reason;
 }
 
 /**
@@ -674,8 +680,9 @@ bool Program_Reason_For_Halt_Set(
     uint32_t object_instance, BACNET_PROGRAM_ERROR reason)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Reason_For_Halt = reason;
         status = true;
@@ -694,9 +701,10 @@ bool Program_Reason_For_Halt_Set(
  */
 bool Program_Out_Of_Service(uint32_t object_instance)
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
     bool value = false;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         value = pObject->Out_Of_Service;
     }
@@ -714,8 +722,9 @@ bool Program_Out_Of_Service(uint32_t object_instance)
  */
 void Program_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Out_Of_Service = value;
     }
@@ -965,8 +974,9 @@ void *Program_Context_Get(uint32_t object_instance)
  */
 void Program_Context_Set(uint32_t object_instance, void *context)
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Context = context;
     }
@@ -980,8 +990,9 @@ void Program_Context_Set(uint32_t object_instance, void *context)
  */
 void Program_Load_Set(uint32_t object_instance, int (*load)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Load = load;
     }
@@ -995,8 +1006,9 @@ void Program_Load_Set(uint32_t object_instance, int (*load)(void *context))
  */
 void Program_Run_Set(uint32_t object_instance, int (*run)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Run = run;
     }
@@ -1010,8 +1022,9 @@ void Program_Run_Set(uint32_t object_instance, int (*run)(void *context))
  */
 void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Halt = halt;
     }
@@ -1026,8 +1039,9 @@ void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
 void Program_Restart_Set(
     uint32_t object_instance, int (*restart)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Restart = restart;
     }
@@ -1041,8 +1055,9 @@ void Program_Restart_Set(
  */
 void Program_Unload_Set(uint32_t object_instance, int (*unload)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Unload = unload;
     }

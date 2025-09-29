@@ -46,6 +46,7 @@ struct integer_object {
     uint32_t Instance;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 } INTERGER_VALUE_DESCR;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -717,6 +718,38 @@ void Integer_Value_COV_Increment_Set(uint32_t object_instance, uint32_t value)
     if (pObject) {
         pObject->COV_Increment = value;
         Integer_Value_COV_Detect(pObject, pObject->Present_Value);
+    }
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Integer_Value_Context_Get(uint32_t object_instance)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Integer_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
     }
 }
 
