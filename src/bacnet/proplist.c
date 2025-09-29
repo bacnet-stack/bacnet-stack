@@ -354,7 +354,6 @@ static const int Properties_BACnetARRAY[] = {
     PROP_CONTROL_GROUPS,
     PROP_BIT_TEXT,
     PROP_PORT_FILTER,
-    PROP_NOTIFICATION_CLASS,
     PROP_STATE_CHANGE_VALUES,
     PROP_LINK_SPEEDS,
     PROP_IP_DNS_SERVER,
@@ -427,6 +426,14 @@ bool property_list_bacnet_array_member(
                     break;
             }
             break;
+        case OBJECT_LOOP:
+            switch (object_property) {
+                case PROP_ACTION:
+                    return false;
+                default:
+                    break;
+            }
+            break;
         default:
             break;
     }
@@ -481,6 +488,7 @@ static const int Properties_BACnetLIST[] = {
     PROP_ROUTING_TABLE,
     PROP_LANDING_CALLS,
     PROP_FAULT_SIGNALS,
+    PROP_ADDITIONAL_REFERENCE_PORTS,
     -1
 };
 
