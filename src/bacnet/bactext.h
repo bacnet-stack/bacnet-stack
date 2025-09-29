@@ -36,6 +36,8 @@ bool bactext_application_tag_index(
 BACNET_STACK_EXPORT
 const char *bactext_object_type_name(unsigned index);
 BACNET_STACK_EXPORT
+const char *bactext_object_type_name_capitalized(unsigned index);
+BACNET_STACK_EXPORT
 bool bactext_object_type_index(const char *search_name, unsigned *found_index);
 BACNET_STACK_EXPORT
 bool bactext_object_type_strtol(const char *search_name, unsigned *found_index);
