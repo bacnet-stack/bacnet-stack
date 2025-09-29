@@ -77,8 +77,9 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 CTestTestfile.cmake
-# zephyr artifactsCMakeSettings.json
+CMakeSettings.json
 
+# zephyr artifacts
 /twister-out/*
 /test/build/
 /cmake-build-*
