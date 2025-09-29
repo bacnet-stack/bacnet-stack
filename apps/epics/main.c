@@ -1461,10 +1461,13 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
                 }
             }
         }
-        /* print object list and property list */
+        /* print the object list */
         get_print_object_list(stream, object, num_objects);
-        print_property_list(stream, &prop_list[0], num_properties, object.type);
-
+        if (property_list_supported) {
+            /* print the property list */
+            print_property_list(
+                stream, &prop_list[0], num_properties, object.type);
+        }
         /* print out the optional properties */
         for (j = 0; j < special_property_list.Optional.count; j++) {
             for (k = 0; k < num_properties; k++) {
@@ -1587,9 +1590,11 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
                         }
                     }
                 }
-                /* print out the property list */
-                print_property_list(
-                    stream, &prop_list[0], num_properties, object.type);
+                if (property_list_supported) {
+                    /* print out the property list */
+                    print_property_list(
+                        stream, &prop_list[0], num_properties, object.type);
+                }
                 /* print out the optional properties */
                 for (j = 0; j < special_property_list.Optional.count; j++) {
                     for (k = 0; k < num_properties; k++) {
