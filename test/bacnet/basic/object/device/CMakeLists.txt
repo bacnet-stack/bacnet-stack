@@ -81,16 +81,12 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/structured_view.c
     ${SRC_DIR}/bacnet/basic/object/time_value.c
     ${SRC_DIR}/bacnet/basic/object/trendlog.c
-    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
-    ${SRC_DIR}/bacnet/basic/service/h_cov.c
-    ${SRC_DIR}/bacnet/basic/service/h_wp.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/lighting_command.c
     ${SRC_DIR}/bacnet/basic/sys/linear.c
-    ${SRC_DIR}/bacnet/basic/tsm/tsm.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/cov.c
@@ -112,9 +108,14 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
-    ./stubs.c
     # Test and test library files
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/apdu_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/bip_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/cov_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
+    ${TST_DIR}/bacnet/basic/object/test/datetime_local.c
+    ${TST_DIR}/bacnet/basic/object/test/tsm_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

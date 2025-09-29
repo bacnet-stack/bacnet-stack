@@ -387,6 +387,11 @@ bool Network_Port_Read_Range(
     BACNET_READ_RANGE_DATA *pRequest, RR_PROP_INFO *pInfo);
 
 BACNET_STACK_EXPORT
+void *Network_Port_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Network_Port_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Network_Port_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Delete(uint32_t object_instance);

@@ -78,6 +78,7 @@ list(APPEND testdirs
   bacnet/awf
   bacnet/bacaddr
   bacnet/bacapp
+  bacnet/bacaudit
   bacnet/bacdcode
   bacnet/bacdevobjpropref
   bacnet/bacdest
@@ -118,11 +119,13 @@ list(APPEND testdirs
   bacnet/timestamp
   bacnet/timesync
   bacnet/weeklyschedule
+  bacnet/whoami
   bacnet/whohas
   bacnet/whois
   bacnet/wp
   bacnet/wpm
   bacnet/write_group
+  bacnet/youare
   )
 
 # bacnet/basic/*
@@ -130,6 +133,7 @@ list(APPEND testdirs
   bacnet/basic/binding/address
   bacnet/basic/bbmd
   bacnet/basic/bbmd6
+  bacnet/basic/bzll
   # basic/object
   bacnet/basic/object/acc
   bacnet/basic/object/access_credential
@@ -141,6 +145,7 @@ list(APPEND testdirs
   bacnet/basic/object/ai
   bacnet/basic/object/ao
   bacnet/basic/object/av
+  bacnet/basic/object/auditlog
   bacnet/basic/object/bacfile
   bacnet/basic/object/bi
   bacnet/basic/object/bitstring_value
@@ -175,7 +180,11 @@ list(APPEND testdirs
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic
+  # basic/server
+  bacnet/basic/server/bacnet_device
   # basic/sys
+  bacnet/basic/sys/bramfs
+  bacnet/basic/sys/bsramfs
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
   bacnet/basic/sys/dst

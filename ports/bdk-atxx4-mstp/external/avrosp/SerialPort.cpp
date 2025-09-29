@@ -17,7 +17,7 @@
  * Description       : A class providing serial communication through the PC COM port.
  *                     This class is derived from the CommChannel abstract class.
  *
- * 
+ *
  ****************************************************************************/
 #include "SerialPort.hpp"
 
@@ -48,9 +48,9 @@ SerialPort::~SerialPort()
 /* Open the communication channel */
 void SerialPort::openChannel()
 {
-    /* CreateFile expects a constant char, or char from the heap */
+    /* CreateFileA expects a constant char, or char from the heap */
 	static char comName[64] = "COM1";
-    
+
 	COMMTIMEOUTS comTimeouts;
 
 	/* Check if channel already open */
@@ -62,11 +62,11 @@ void SerialPort::openChannel()
 		comName[3] = '0' + portNumber;
 	} else if (portNumber < 100) {
 		/* For COM ports greater than 9 you have to use a special syntax
-		for CreateFile. The syntax also works for COM ports 1-9. */
+		for CreateFileA. The syntax also works for COM ports 1-9. */
 		/* http://support.microsoft.com/kb/115831 */
 		snprintf(comName, sizeof(comName), "\\\\.\\COM%ld", portNumber);
 	}
-	serialHandle = CreateFile( comName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+	serialHandle = CreateFileA( comName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
 
 	/* Print error and return if failed opening port */

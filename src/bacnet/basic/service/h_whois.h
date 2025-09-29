@@ -33,6 +33,10 @@ void handler_who_is_unicast(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src);
 
 BACNET_STACK_EXPORT
+void handler_who_is_who_am_i_unicast(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src);
+
+BACNET_STACK_EXPORT
 void handler_who_is_bcast_for_routing(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src);
 

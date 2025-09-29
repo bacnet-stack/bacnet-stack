@@ -46,6 +46,7 @@ struct object_data {
     const char *Active_Text;
     const char *Inactive_Text;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -315,6 +316,50 @@ bool Binary_Output_Present_Value_Set(
     }
 
     return status;
+}
+
+/**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Binary_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if (!BIT_CHECK(pObject->Priority_Active_Bits, priority - 1)) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the priority-array value from its slot
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return priority-array value from its slot
+ */
+BACNET_BINARY_PV
+Binary_Output_Priority_Array_Value(uint32_t object_instance, unsigned priority)
+{
+    BACNET_BINARY_PV value = BINARY_INACTIVE;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if (BIT_CHECK(pObject->Priority_Array, priority - 1)) {
+            value = BINARY_ACTIVE;
+        }
+    }
+
+    return value;
 }
 
 /**
@@ -1196,6 +1241,38 @@ void Binary_Output_Write_Present_Value_Callback_Set(
     binary_output_write_present_value_callback cb)
 {
     Binary_Output_Write_Present_Value_Callback = cb;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Binary_Output_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Binary_Output_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**

@@ -10,7 +10,7 @@ to configure the network.
 BACNET_IFACE - interface to use for the datalink layer
   For Linux, this is something like eth0 or /dev/ttyS0.
   For Windows, this is something like 192.168.0.1 or COM4
-  Defaults to NULL.
+  Defaults to NULL which tries to discover the localhost.
 
 BACNET_IP_PORT - BACnet/IP port number.
   Defaults to 47808.
@@ -25,6 +25,9 @@ BACNET_BBMD_ADDRESS - dotted IP address or domain name of BBMD.
   Attempts to register with the BBMD if this variable is present.
 
 BACNET_MAX_INFO_FRAMES - BACnet MS/TP max-info-frames parameter.
+  Defaults to 127.
+
+BACNET_MAX_MASTER -  BACnet MS/TP max-master parameter.
   Defaults to 127.
 
 BACNET_MSTP_BAUD - BACnet MS/TP baud rate.

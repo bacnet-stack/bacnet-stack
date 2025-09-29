@@ -4,13 +4,14 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2024
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/readrange.h>
 #include <bacnet/basic/object/netport.h>
 #include <bacnet/basic/object/sc_netport.h>
 #include <bacnet/basic/object/bacfile.h>
+#include <bacfile-posix.h>
 #include <property_test.h>
 #ifndef BACDL_BSC
 #define BACDL_BSC
@@ -765,6 +766,7 @@ static void test_network_port_sc_certificates(void)
     zassert_true(count > 0, NULL);
 
     bacfile_init();
+    bacfile_posix_init();
     // CA certificate
     status = bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
     zassert_true(status, NULL);

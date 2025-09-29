@@ -997,7 +997,13 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                CurrentAV->Units = value.type.Enumerated;
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    CurrentAV->Units = value.type.Enumerated;
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_COV_INCREMENT:
@@ -1718,6 +1724,38 @@ int Analog_Value_Alarm_Summary(
     }
 }
 #endif /* defined(INTRINSIC_REPORTING) */
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Analog_Value_Context_Get(uint32_t object_instance)
+{
+    struct analog_value_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Analog_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct analog_value_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
 
 /**
  * @brief Creates a Analog Value object

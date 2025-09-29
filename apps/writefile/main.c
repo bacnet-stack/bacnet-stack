@@ -95,9 +95,9 @@ static void LocalIAmHandler(
     uint16_t vendor_id = 0;
 
     (void)src;
-    (void)service_len;
-    len = iam_decode_service_request(
-        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
+    len = bacnet_iam_request_decode(
+        service_request, service_len, &device_id, &max_apdu, &segmentation,
+        &vendor_id);
     if (len != -1) {
         address_add(device_id, max_apdu, src);
     } else {

@@ -16,6 +16,7 @@
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/binding/address.h"
@@ -298,6 +299,7 @@ bool tsm_get_transaction_pdu(
 void tsm_timer_milliseconds(uint16_t milliseconds)
 {
     unsigned i = 0; /* counter */
+    int bytes_sent = 0;
 
     BACNET_TSM_DATA *plist = &TSM_List[0];
 
@@ -313,9 +315,16 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 if (plist->RetryCount < apdu_retries()) {
                     plist->RequestTimer = apdu_timeout();
                     plist->RetryCount++;
-                    datalink_send_pdu(
+                    bytes_sent = datalink_send_pdu(
                         &plist->dest, &plist->npdu_data, &plist->apdu[0],
                         plist->apdu_len);
+                    DEBUG_PRINTF(
+                        "invoke-id[%u] Retry %u of %u after %ums\n",
+                        plist->InvokeID, plist->RetryCount, apdu_retries(),
+                        plist->RequestTimer);
+                    if (bytes_sent <= 0) {
+                        debug_perror("invoke-id[%u] Failed to Send Retry");
+                    }
                 } else {
                     /* note: the invoke id has not been cleared yet
                        and this indicates a failed message:

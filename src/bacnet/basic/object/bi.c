@@ -44,6 +44,7 @@ struct object_data {
     const char *Active_Text;
     const char *Inactive_Text;
     const char *Description;
+    void *Context;
 #if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -67,21 +68,16 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_BINARY_INPUT;
 static binary_input_write_present_value_callback
     Binary_Input_Write_Present_Value_Callback;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_POLARITY,
-    -1
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_POLARITY,     -1
 };
 
 static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_RELIABILITY,
     PROP_DESCRIPTION,
     PROP_ACTIVE_TEXT,
@@ -100,7 +96,6 @@ static const int Properties_Optional[] = {
 };
 
 static const int Properties_Proprietary[] = { -1 };
-/* clang-format on */
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -1288,6 +1283,38 @@ void Binary_Input_Write_Disable(uint32_t object_instance)
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
         pObject->Write_Enabled = false;
+    }
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Binary_Input_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Binary_Input_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
     }
 }
 

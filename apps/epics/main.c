@@ -22,8 +22,8 @@
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
 #include "bacnet/npdu.h"
+#include "bacnet/abort.h"
 #include "bacnet/apdu.h"
-#include "bacport.h"
 #include "bacnet/whois.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
@@ -473,7 +473,7 @@ static void print_value(
 
 /** Print out the value(s) for one Property.
  * This function may be called repeatedly for one property if we are walking
- * through a list 
+ * through a list
  *
  * @param object_type [in] The BACnet Object type of this object.
  * @param object_instance [in] The ID number for this object.
@@ -530,7 +530,7 @@ static void PrintReadPropertyData(
             case PROP_PRIORITY_ARRAY:
             case PROP_DAYLIGHT_SAVINGS_STATUS:
             case PROP_LOCAL_TIME:
-            case PROP_LOCAL_DATE: 
+            case PROP_LOCAL_DATE:
             case PROP_RELIABILITY:
             case PROP_DATABASE_REVISION:
             case PROP_LAST_RESTORE_TIME:
@@ -554,7 +554,7 @@ static void PrintReadPropertyData(
                 fprintf(stream, "?");
                 print_finished = true;
                 break;
-            
+
 
             case PROP_EVENT_TIME_STAMPS:
                 /* BTF expects wierdness so give them it */
@@ -1390,7 +1390,7 @@ static void get_print_object_list(
 static void print_property_list(FILE *stream, PROPERTY_LIST* prop_list, uint32_t num_properties, BACNET_OBJECT_TYPE type)
 {
     uint32_t i;
-    
+
     fprintf(stream, "    ");
     if (type >= OBJECT_PROPRIETARY_MIN &&
         type <= OBJECT_PROPRIETARY_MAX) {
@@ -1437,7 +1437,7 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
 
         /* get and print device object */
         object = device_object;
- 
+
         status = get_primitive_value(object.instance, object, PROP_PROPERTY_LIST, 0, &data_value);
         if (status == RESP_SUCCESS) {
             /* got number of properties */

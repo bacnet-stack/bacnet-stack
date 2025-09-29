@@ -372,7 +372,8 @@ uint16_t dlmstp_receive(
     }
     /* only do receive state machine while we don't have a frame */
     while ((MSTP_Port->ReceivedValidFrame == false) &&
-           (MSTP_Port->ReceivedInvalidFrame == false)) {
+           (MSTP_Port->ReceivedInvalidFrame == false) &&
+           (MSTP_Port->ReceivedValidFrameNotForUs == false)) {
         MSTP_Port->DataAvailable = driver->read(&data_register);
         if (MSTP_Port->DataAvailable) {
             MSTP_Port->DataRegister = data_register;
@@ -388,7 +389,8 @@ uint16_t dlmstp_receive(
             break;
         }
     }
-    if (MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame) {
+    if (MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame ||
+        MSTP_Port->ReceivedValidFrameNotForUs) {
         /* delay after reception before transmitting - per MS/TP spec */
         milliseconds = MSTP_Port->SilenceTimer(MSTP_Port);
         if (milliseconds < MSTP_Port->Tturnaround_timeout) {
@@ -398,6 +400,9 @@ uint16_t dlmstp_receive(
     }
     if (MSTP_Port->ReceivedValidFrame) {
         user->Statistics.receive_valid_frame_counter++;
+        if (MSTP_Port->FrameType == FRAME_TYPE_POLL_FOR_MASTER) {
+            user->Statistics.poll_for_master_counter++;
+        }
         if (user->Valid_Frame_Rx_Callback) {
             user->Valid_Frame_Rx_Callback(
                 MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
@@ -405,8 +410,22 @@ uint16_t dlmstp_receive(
                 MSTP_Port->DataLength);
         }
     }
+    if (MSTP_Port->ReceivedValidFrameNotForUs) {
+        user->Statistics.receive_valid_frame_not_for_us_counter++;
+        if (user->Valid_Frame_Not_For_Us_Rx_Callback) {
+            user->Valid_Frame_Not_For_Us_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
+    }
     if (MSTP_Port->ReceivedInvalidFrame) {
         user->Statistics.receive_invalid_frame_counter++;
+        if (MSTP_Port->HeaderCRC != 0x55) {
+            user->Statistics.bad_crc_counter++;
+        } else if (MSTP_Port->DataCRC != 0xF0B8) {
+            user->Statistics.bad_crc_counter++;
+        }
         if (user->Invalid_Frame_Rx_Callback) {
             user->Invalid_Frame_Rx_Callback(
                 MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
@@ -889,6 +908,25 @@ void dlmstp_set_frame_rx_complete_callback(
  * @brief Set the MS/TP Frame Complete callback
  * @param cb_func - callback function to be called when a frame is received
  */
+void dlmstp_set_frame_not_for_us_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Valid_Frame_Not_For_Us_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
 void dlmstp_set_invalid_frame_rx_complete_callback(
     dlmstp_hook_frame_rx_complete_cb cb_func)
 {
@@ -1065,14 +1103,36 @@ void dlmstp_silence_reset(void *arg)
 }
 
 /**
+ * @brief set the MS/TP datalink interface
+ * @param ifname - interface name to set
+ */
+void dlmstp_set_interface(const char *ifname)
+{
+    MSTP_Port = (struct mstp_port_struct_t *)ifname;
+}
+
+/**
+ * @brief get the MS/TP datalink intferface name
+ * @return interface name
+ */
+const char *dlmstp_get_interface(void)
+{
+    return (const char *)MSTP_Port;
+}
+
+/**
  * @brief Initialize this MS/TP datalink
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
  */
 bool dlmstp_init(char *ifname)
 {
+    bool status = false;
     struct dlmstp_user_data_t *user;
-    MSTP_Port = (struct mstp_port_struct_t *)ifname;
+
+    if (ifname) {
+        MSTP_Port = (struct mstp_port_struct_t *)ifname;
+    }
     if (MSTP_Port) {
         MSTP_Port->SilenceTimer = dlmstp_silence_milliseconds;
         MSTP_Port->SilenceTimerReset = dlmstp_silence_reset;
@@ -1089,7 +1149,8 @@ bool dlmstp_init(char *ifname)
             MSTP_Init(MSTP_Port);
             user->Initialized = true;
         }
+        status = true;
     }
 
-    return true;
+    return status;
 }

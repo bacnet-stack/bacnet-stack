@@ -31,6 +31,9 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/datalink/dlmstp.h"
+#if defined(BACFILE)
+#include "bacfile-posix.h"
+#endif
 
 /* enable debugging */
 static bool Datalink_Debug;
@@ -100,7 +103,7 @@ void dlenv_bbmd_ttl_set(uint16_t ttl_secs)
 int dlenv_bbmd_result(void)
 {
     if (BBMD_Result > 0) {
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) && BBMD_CLIENT_ENABLED
         if (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK) {
             return -1;
         }
@@ -127,24 +130,25 @@ int dlenv_bbmd_result(void)
 static int bbmd_register_as_foreign_device(void)
 {
     int retval = -1;
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) && BBMD_CLIENT_ENABLED
+    char *pEnv = NULL;
+    long long_value = 0;
+#if BBMD_ENABLED
     bool bdt_entry_valid = false;
     uint16_t bdt_entry_port = 0;
-    char *pEnv = NULL;
     unsigned a[4] = { 0 };
     char bbmd_env[32] = "";
     unsigned entry_number = 0;
-    long long_value = 0;
     int c;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_table = NULL;
+#endif
 
+    BBMD_Address.port = 0xBAC0;
     pEnv = getenv("BACNET_BBMD_PORT");
     if (pEnv) {
         long_value = strtol(pEnv, NULL, 0);
         if (long_value <= 0xFFFF) {
             BBMD_Address.port = (uint16_t)long_value;
-        } else {
-            BBMD_Address.port = 0xBAC0;
         }
     }
     pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
@@ -181,7 +185,9 @@ static int bbmd_register_as_foreign_device(void)
                 (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port);
         }
         BBMD_Timer_Seconds = BBMD_TTL_Seconds;
-    } else {
+    }
+#if BBMD_ENABLED
+    else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
             bdt_entry_valid = false;
             snprintf(
@@ -257,6 +263,7 @@ static int bbmd_register_as_foreign_device(void)
             }
         }
     }
+#endif
 #endif
     BBMD_Result = retval;
 
@@ -577,6 +584,34 @@ void dlenv_network_port_bip6_init(uint32_t instance)
 }
 
 /**
+ * Datalink network port object settings
+ */
+void dlenv_network_port_zigbee_init(uint32_t instance)
+{
+    BACNET_ADDRESS addr = { 0 };
+    char *pEnv = NULL;
+
+    pEnv = getenv("BACNET_ZIGBEE_DEBUG");
+    if (pEnv) {
+        dlenv_debug_enable();
+    }
+    Network_Port_Object_Instance_Number_Set(0, instance);
+    Network_Port_Name_Set(instance, "BACnet Zigbee Link Layer Port");
+    Network_Port_Type_Set(instance, PORT_TYPE_ZIGBEE);
+    addr.mac_len = encode_unsigned24(&addr.mac[0], instance);
+    Network_Port_MAC_Address_Set(instance, &addr.mac[0], addr.mac_len);
+    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    Network_Port_Link_Speed_Set(instance, 0.0);
+    Network_Port_Out_Of_Service_Set(instance, false);
+    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
+    Network_Port_APDU_Length_Set(instance, MAX_APDU);
+    Network_Port_Network_Number_Set(instance, 0);
+    /* last thing - clear pending changes - we don't want to set these
+       since they are already set */
+    Network_Port_Changes_Pending_Set(instance, false);
+}
+
+/**
  * @brief Datalink network port object settings
  */
 static void bacnet_secure_connect_network_port_init(uint32_t instance)
@@ -790,7 +825,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
         }
     }
     if (Network_Port_Type(Network_Port_Instance) == PORT_TYPE_MSTP) {
-        Datalink_Debug_Timer_Seconds = elapsed_seconds;
+        Datalink_Debug_Timer_Seconds += elapsed_seconds;
         if (Datalink_Debug_Timer_Seconds >= 60) {
             Datalink_Debug_Timer_Seconds = 0;
             if (Datalink_Debug) {
@@ -798,13 +833,17 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
                 dlmstp_fill_statistics(&statistics);
                 fprintf(
                     stderr,
-                    "MSTP: Frames Rx:%u/%u Tx:%u PDU Rx:%u Tx:%u Lost:%u\n",
+                    "MSTP: Frames Rx:%u/%u/%u Tx:%u PDU Rx:%u Tx:%u "
+                    "Lost:%u BadCRC:%u PFM:%u\n",
                     statistics.receive_valid_frame_counter,
+                    statistics.receive_valid_frame_not_for_us_counter,
                     statistics.receive_invalid_frame_counter,
                     statistics.transmit_frame_counter,
-                    statistics.transmit_pdu_counter,
                     statistics.receive_pdu_counter,
-                    statistics.lost_token_counter);
+                    statistics.transmit_pdu_counter,
+                    statistics.lost_token_counter, statistics.bad_crc_counter,
+                    statistics.poll_for_master_counter);
+
                 fflush(stderr);
 #endif
             }
@@ -925,6 +964,9 @@ void dlenv_init(void)
 #elif defined(BACDL_ARCNET)
         datalink_set("arcnet");
         port_type = PORT_TYPE_ARCNET;
+#elif defined(BACDL_ZIGBEE)
+        datalink_set("zigbee");
+        port_type = PORT_TYPE_ZIGBEE;
 #elif defined(BACDL_BSC)
         datalink_set("bsc");
         port_type = PORT_TYPE_BSC;
@@ -946,12 +988,19 @@ void dlenv_init(void)
     port_type = PORT_TYPE_ETHERNET;
 #elif defined(BACDL_ARCNET)
     port_type = PORT_TYPE_ARCNET;
+#elif defined(BACDL_ZIGBEE)
+    port_type = PORT_TYPE_ZIGBEE;
 #elif defined(BACDL_BSC)
     port_type = PORT_TYPE_BSC;
 #else
     port_type = PORT_TYPE_NON_BACNET;
 #endif
 #endif
+#if defined(BACFILE)
+    /* initialize the POSIX file objects */
+    bacfile_posix_init();
+#endif
+    /* === Initialize the Network Port Object Here === */
     Network_Port_Type_Set(Network_Port_Instance, port_type);
     switch (port_type) {
         case PORT_TYPE_BIP:
@@ -962,6 +1011,9 @@ void dlenv_init(void)
             break;
         case PORT_TYPE_BIP6:
             dlenv_network_port_bip6_init(Network_Port_Instance);
+            break;
+        case PORT_TYPE_ZIGBEE:
+            dlenv_network_port_zigbee_init(Network_Port_Instance);
             break;
         case PORT_TYPE_BSC:
             dlenv_network_port_bsc_init();

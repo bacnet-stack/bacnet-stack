@@ -93,7 +93,7 @@ void bip6_set_interface(char *ifname)
     Hints.ai_socktype = SOCK_DGRAM;
     Hints.ai_protocol = IPPROTO_UDP;
     Hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
-    snprintf(port, sizeof(port), "%u", BIP6_Addr.port);
+    snprintf(port, sizeof(port), "%u", (unsigned)BIP6_Addr.port);
     if (BIP6_Debug) {
         debug_fprintf(
             stderr, "BIP6: seeking IPv6 address %s port %s...\n", ifname, port);

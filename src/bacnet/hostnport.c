@@ -506,7 +506,9 @@ bool host_n_port_to_minimal(
             dst->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
             dst->host.ip_address.length = octetstring_copy_value(
                 dst->host.ip_address.address,
-                sizeof(dst->host.ip_address.address), &src->host.ip_address);
+                min(sizeof(dst->host.ip_address.address),
+                    src->host.ip_address.length),
+                &src->host.ip_address);
             if (dst->host.ip_address.length > 0) {
                 status = true;
             }
@@ -947,42 +949,44 @@ int bacnet_bdt_entry_to_ascii(
         if (ip_len == 4) {
             len = snprintf(
                 str, str_size, "%u.%u.%u.%u:%u,%u.%u.%u.%u",
-                value->bbmd_address.host.ip_address.value[0],
-                value->bbmd_address.host.ip_address.value[1],
-                value->bbmd_address.host.ip_address.value[2],
-                value->bbmd_address.host.ip_address.value[3],
-                value->bbmd_address.port, value->broadcast_mask.value[0],
-                value->broadcast_mask.value[1], value->broadcast_mask.value[2],
-                value->broadcast_mask.value[3]);
+                (unsigned)value->bbmd_address.host.ip_address.value[0],
+                (unsigned)value->bbmd_address.host.ip_address.value[1],
+                (unsigned)value->bbmd_address.host.ip_address.value[2],
+                (unsigned)value->bbmd_address.host.ip_address.value[3],
+                (unsigned)value->bbmd_address.port,
+                (unsigned)value->broadcast_mask.value[0],
+                (unsigned)value->broadcast_mask.value[1],
+                (unsigned)value->broadcast_mask.value[2],
+                (unsigned)value->broadcast_mask.value[3]);
         } else if (ip_len == 16) {
             len = snprintf(
                 str, str_size,
                 "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
                 "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%u",
-                value->bbmd_address.host.ip_address.value[0],
-                value->bbmd_address.host.ip_address.value[1],
-                value->bbmd_address.host.ip_address.value[2],
-                value->bbmd_address.host.ip_address.value[3],
-                value->bbmd_address.host.ip_address.value[4],
-                value->bbmd_address.host.ip_address.value[5],
-                value->bbmd_address.host.ip_address.value[6],
-                value->bbmd_address.host.ip_address.value[7],
-                value->bbmd_address.host.ip_address.value[8],
-                value->bbmd_address.host.ip_address.value[9],
-                value->bbmd_address.host.ip_address.value[10],
-                value->bbmd_address.host.ip_address.value[11],
-                value->bbmd_address.host.ip_address.value[12],
-                value->bbmd_address.host.ip_address.value[13],
-                value->bbmd_address.host.ip_address.value[14],
-                value->bbmd_address.host.ip_address.value[15],
-                value->bbmd_address.port);
+                (unsigned)value->bbmd_address.host.ip_address.value[0],
+                (unsigned)value->bbmd_address.host.ip_address.value[1],
+                (unsigned)value->bbmd_address.host.ip_address.value[2],
+                (unsigned)value->bbmd_address.host.ip_address.value[3],
+                (unsigned)value->bbmd_address.host.ip_address.value[4],
+                (unsigned)value->bbmd_address.host.ip_address.value[5],
+                (unsigned)value->bbmd_address.host.ip_address.value[6],
+                (unsigned)value->bbmd_address.host.ip_address.value[7],
+                (unsigned)value->bbmd_address.host.ip_address.value[8],
+                (unsigned)value->bbmd_address.host.ip_address.value[9],
+                (unsigned)value->bbmd_address.host.ip_address.value[10],
+                (unsigned)value->bbmd_address.host.ip_address.value[11],
+                (unsigned)value->bbmd_address.host.ip_address.value[12],
+                (unsigned)value->bbmd_address.host.ip_address.value[13],
+                (unsigned)value->bbmd_address.host.ip_address.value[14],
+                (unsigned)value->bbmd_address.host.ip_address.value[15],
+                (unsigned)value->bbmd_address.port);
         }
     } else if (value->bbmd_address.host_name) {
         len = snprintf(
             str, str_size, "%*s:%u",
             (int)characterstring_length(&value->bbmd_address.host.name),
             characterstring_value(&value->bbmd_address.host.name),
-            value->bbmd_address.port);
+            (unsigned)value->bbmd_address.port);
     }
 
     return len;

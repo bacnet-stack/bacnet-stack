@@ -33,6 +33,7 @@ struct object_data {
     BACNET_RELIABILITY Reliability;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -42,13 +43,15 @@ static bitstring_value_write_present_value_callback
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Properties_Optional[] = { PROP_RELIABILITY,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_RELIABILITY, PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -493,8 +496,8 @@ bool BitString_Value_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "BITSTRING_VALUE-%u",
-                object_instance);
+                name_text, sizeof(name_text), "BITSTRING_VALUE-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -784,6 +787,38 @@ void BitString_Value_Write_Disable(uint32_t object_instance)
     pObject = BitString_Value_Object(object_instance);
     if (pObject) {
         pObject->Write_Enabled = false;
+    }
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *BitString_Value_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void BitString_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
     }
 }
 

@@ -4,7 +4,7 @@
  * @author Steve Karg
  * @date January 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/tsm/tsm.h>

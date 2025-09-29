@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010 Michael Long
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef FAKE_FUNCTIONS
 #define FAKE_FUNCTIONS

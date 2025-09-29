@@ -20,15 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\apps\server\main.c" />
-    <ClCompile Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\bacnet-stack\bacnet-stack.vcxproj">
       <Project>{2b0dd90a-c096-401b-97d0-81d3bc4f7eb7}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

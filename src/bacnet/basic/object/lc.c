@@ -33,6 +33,7 @@
 #define LOAD_CONTROL_TASK_INTERVAL_MS 1000UL
 
 struct object_data {
+    void *Context;
     const char *Object_Name;
     const char *Description;
     /* indicates the current load shedding state of the object */
@@ -244,8 +245,8 @@ bool Load_Control_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "LOAD_CONTROL-%u",
-                object_instance);
+                name_text, sizeof(name_text), "LOAD_CONTROL-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -1662,6 +1663,38 @@ bool Load_Control_Shed_Level_Array(
     }
 
     return true;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Load_Control_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Load_Control_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**

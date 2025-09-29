@@ -7,7 +7,7 @@
  * @date November 2023
  * @section LICENSE
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 
 #include <zephyr/ztest.h>

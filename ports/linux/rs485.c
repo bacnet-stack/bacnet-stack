@@ -126,7 +126,40 @@ uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
  *****************************************************************************/
 bool RS485_Set_Baud_Rate(uint32_t baud)
 {
+    struct termios2 newtio;
+
     RS485_Baud = baud;
+
+    if (RS485_Handle >= 0) {
+        /* clear struct for new port settings */
+        memset(&newtio, 0, sizeof(newtio));
+        /*
+           BOTHER: Set bps rate.
+           https://man7.org/linux/man-pages/man2/TCSETS.2const.html
+           CRTSCTS : output hardware flow control (only used if the cable has
+           all necessary lines. See sect. 7 of Serial-HOWTO)
+           CS8     : 8n1 (8bit,no parity,1 stopbit)
+           CLOCAL  : local connection, no modem control
+           CREAD   : enable receiving characters
+         */
+        newtio.c_cflag =
+            CS8 | CLOCAL | CREAD | RS485MOD | BOTHER | (BOTHER << IBSHIFT);
+        newtio.c_ispeed = RS485_Baud;
+        newtio.c_ospeed = RS485_Baud;
+        /* Raw input */
+        newtio.c_iflag = 0;
+        /* Raw output */
+        newtio.c_oflag = 0;
+        /* no processing */
+        newtio.c_lflag = 0;
+        /* activate the settings for the port after flushing I/O */
+        termios2_tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
+
+#if PRINT_ENABLED
+        fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
+        fflush(stdout);
+#endif
+    }
     return true;
 }
 
@@ -215,19 +248,18 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     uint8_t buf[2048];
     ssize_t n;
     int handle = RS485_Handle;
+    SHARED_MSTP_DATA *poSharedData;
     FIFO_BUFFER *fifo = &Rx_FIFO;
 
-    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
+    waiter.tv_sec = 0;
+    waiter.tv_usec = 5000;
+    poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
     if (poSharedData) {
         handle = poSharedData->RS485_Handle;
         fifo = &poSharedData->Rx_FIFO;
     }
-
     if (mstp_port->ReceiveError == true) {
         /* do nothing but wait for state machine to clear the error */
-        /* burning time, so wait a longer time */
-        waiter.tv_sec = 0;
-        waiter.tv_usec = 5000;
     } else if (mstp_port->DataAvailable == false) {
         /* wait for state machine to read from the DataRegister */
         if (FIFO_Count(fifo) > 0) {
@@ -237,10 +269,6 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
             /* FIFO is giving data - just poll */
             waiter.tv_sec = 0;
             waiter.tv_usec = 0;
-        } else {
-            /* FIFO is empty - wait a longer time */
-            waiter.tv_sec = 0;
-            waiter.tv_usec = 5000;
         }
     }
     /* grab bytes and stuff them into the FIFO every time */
@@ -252,7 +280,9 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     }
     if (FD_ISSET(handle, &input)) {
         n = read(handle, buf, sizeof(buf));
-        FIFO_Add(fifo, &buf[0], n);
+        if (n > 0) {
+            FIFO_Add(fifo, &buf[0], n);
+        }
     }
 }
 
@@ -265,8 +295,6 @@ void RS485_Cleanup(void)
 
 void RS485_Initialize(void)
 {
-    struct termios2 newtio;
-
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
 #endif
@@ -288,33 +316,9 @@ void RS485_Initialize(void)
 #endif
     /* save current serial port settings */
     termios2_tcgetattr(RS485_Handle, &RS485_oldtio2);
-    /* clear struct for new port settings */
-    memset(&newtio, 0, sizeof(newtio));
-    /*
-       BOTHER: Set bps rate.
-       https://man7.org/linux/man-pages/man2/TCSETS.2const.html
-       CRTSCTS : output hardware flow control (only used if the cable has
-       all necessary lines. See sect. 7 of Serial-HOWTO)
-       CS8     : 8n1 (8bit,no parity,1 stopbit)
-       CLOCAL  : local connection, no modem control
-       CREAD   : enable receiving characters
-     */
-    newtio.c_cflag =
-        CS8 | CLOCAL | CREAD | RS485MOD | BOTHER | (BOTHER << IBSHIFT);
-    newtio.c_ispeed = RS485_Baud;
-    newtio.c_ospeed = RS485_Baud;
-    /* Raw input */
-    newtio.c_iflag = 0;
-    /* Raw output */
-    newtio.c_oflag = 0;
-    /* no processing */
-    newtio.c_lflag = 0;
-    /* activate the settings for the port after flushing I/O */
-    termios2_tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
-#if PRINT_ENABLED
-    fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
-    fflush(stdout);
-#endif
+
+    RS485_Set_Baud_Rate(RS485_Baud);
+
     /* destructor */
     atexit(RS485_Cleanup);
     /* flush any data waiting */

@@ -23,7 +23,6 @@
 #if defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
 #endif
-#include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/binding/address.h"
 /* include the device object */
@@ -492,39 +491,69 @@ void Device_Objects_Property_List(
     return;
 }
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_SYSTEM_STATUS, PROP_VENDOR_NAME, PROP_VENDOR_IDENTIFIER,
-    PROP_MODEL_NAME, PROP_FIRMWARE_REVISION, PROP_APPLICATION_SOFTWARE_VERSION,
-    PROP_PROTOCOL_VERSION, PROP_PROTOCOL_REVISION,
-    PROP_PROTOCOL_SERVICES_SUPPORTED, PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
-    PROP_OBJECT_LIST, PROP_MAX_APDU_LENGTH_ACCEPTED,
-    PROP_SEGMENTATION_SUPPORTED, PROP_APDU_TIMEOUT,
-    PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
-    PROP_DATABASE_REVISION, -1
+    /* List of Required properties in this object */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION,
+    PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_REVISION,
+    PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+    PROP_OBJECT_LIST,
+    PROP_MAX_APDU_LENGTH_ACCEPTED,
+    PROP_SEGMENTATION_SUPPORTED,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_DEVICE_ADDRESS_BINDING,
+    PROP_DATABASE_REVISION,
+    -1
 };
 
 static const int Device_Properties_Optional[] = {
+/* List of Optional properties in this object */
 #if defined(BACDL_MSTP)
-    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
 #endif
-    PROP_DESCRIPTION, PROP_LOCAL_TIME, PROP_UTC_OFFSET, PROP_LOCAL_DATE,
-    PROP_DAYLIGHT_SAVINGS_STATUS, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS,
-    PROP_SERIAL_NUMBER, PROP_TIME_OF_DEVICE_RESTART,
+    PROP_DESCRIPTION,
+    PROP_LOCAL_TIME,
+    PROP_UTC_OFFSET,
+    PROP_LOCAL_DATE,
+    PROP_DAYLIGHT_SAVINGS_STATUS,
+    PROP_LOCATION,
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
+    PROP_SERIAL_NUMBER,
+    PROP_TIME_OF_DEVICE_RESTART,
 #if defined(BACNET_TIME_MASTER)
-    PROP_TIME_SYNCHRONIZATION_RECIPIENTS, PROP_TIME_SYNCHRONIZATION_INTERVAL,
-    PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET,
+    PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
 #endif
     -1
 };
 
-static const int Device_Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
+static const int Device_Properties_Proprietary[] = { -1 };
 
+/**
+ * @brief Returns the list of required, optional, and proprietary properties
+ *       for the Device object.
+ * @param pRequired [out] Pointer to the list of required properties
+ * @param pOptional [out] Pointer to the list of optional properties
+ * @param pProprietary [out] Pointer to the list of proprietary properties
+ * @note The lists are terminated with -1.
+ * @note The lists are not allocated, so do not free them.
+ * @note The lists are static, so do not modify them.
+ * @ingroup ObjIntf
+ */
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -582,7 +611,7 @@ static const char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
 static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
-static const char *BACnet_Version = BACNET_VERSION_TEXT;
+static char Firmware_Version[MAX_DEV_VER_LEN + 1] = BACNET_VERSION_TEXT;
 static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
 static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 static char Serial_Number[MAX_DEV_DESC_LEN + 1] =
@@ -756,6 +785,12 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
     return Reinitialize_State;
 }
 
+bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state)
+{
+    Reinitialize_State = state;
+    return true;
+}
+
 unsigned Device_Count(void)
 {
     return 1;
@@ -833,9 +868,23 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
     return status;
 }
 
+/**
+ * @brief Initialize the Device Object Name with an ANSI C string
+ * @param value [in] The object name as a null-terminated string
+ * @return True on success, else False
+ */
 bool Device_Object_Name_ANSI_Init(const char *value)
 {
     return characterstring_init_ansi(&My_Object_Name, value);
+}
+
+/**
+ * @brief Get the Device Object Name as a C string
+ * @return The object name as a null-terminated string
+ */
+char *Device_Object_Name_ANSI(void)
+{
+    return (char *)characterstring_value(&My_Object_Name);
 }
 
 BACNET_DEVICE_STATUS Device_System_Status(void)
@@ -946,7 +995,20 @@ bool Device_Set_Model_Name(const char *name, size_t length)
 
 const char *Device_Firmware_Revision(void)
 {
-    return BACnet_Version;
+    return Firmware_Version;
+}
+
+bool Device_Set_Firmware_Revision(const char *name, size_t length)
+{
+    bool status = false; /*return value */
+
+    if (length < sizeof(Firmware_Version)) {
+        memmove(Firmware_Version, name, length);
+        Firmware_Version[length] = 0;
+        status = true;
+    }
+
+    return status;
 }
 
 const char *Device_Application_Software_Version(void)
@@ -1032,6 +1094,23 @@ bool Device_Serial_Number_Set(const char *str, size_t length)
     return status;
 }
 
+void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart)
+{
+    bacapp_timestamp_copy(time_of_restart, &Time_Of_Device_Restart);
+}
+
+bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart)
+{
+    bool status = false;
+
+    if (time_of_restart) {
+        bacapp_timestamp_copy(&Time_Of_Device_Restart, time_of_restart);
+        status = true;
+    }
+
+    return status;
+}
+
 uint8_t Device_Protocol_Version(void)
 {
     return BACNET_PROTOCOL_VERSION;
@@ -1047,11 +1126,19 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(void)
     return SEGMENTATION_NONE;
 }
 
+/**
+ * @brief Get the Database Revision property of the Device Object
+ * @return The Database Revision property of the Device Object
+ */
 uint32_t Device_Database_Revision(void)
 {
     return Database_Revision;
 }
 
+/**
+ * @brief Set the Database Revision property of the Device Object
+ * @param revision [in] The new value for the Database Revision property
+ */
 void Device_Set_Database_Revision(uint32_t revision)
 {
     Database_Revision = revision;
@@ -1430,7 +1517,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, BACnet_Version);
+            characterstring_init_ansi(&char_string, Firmware_Version);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -1905,6 +1992,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             }
+            break;
     }
 
     return status;
@@ -2016,7 +2104,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if (wp_data->object_property == PROP_PROPERTY_LIST) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                    return status;
+                    return false;
                 }
 #endif
                 if (wp_data->object_property == PROP_OBJECT_NAME) {
