@@ -178,14 +178,15 @@ bool CharacterString_Value_Delete(uint32_t object_instance)
  */
 void CharacterString_Value_Cleanup(void)
 {
-    void *ptr = NULL;
+    struct object_data *pObject = NULL;
 
     if (Object_List) {
-        ptr = Keylist_Data_Pop(Object_List);
-        while (ptr) {
-            free(ptr);
-            ptr = Keylist_Data_Pop(Object_List);
-        }
+        do {
+            pObject = Keylist_Data_Pop(Object_List);
+            if (pObject) {
+                free(pObject);
+            }
+        } while (pObject);
         Keylist_Delete(Object_List);
         Object_List = NULL;
     }
