@@ -94,7 +94,7 @@ static uint16_t Error_Count = 0;
 /* Assume device can do RPM, to start */
 static EPICS_STATES myState = INITIAL_BINDING;
 
-static struct mstimer BACnet_TSM_Timer;
+static struct mstimer APDU_Timer;
 
 typedef struct BACnet_RPM_Service_Data_t {
     BACNET_CONFIRMED_SERVICE_ACK_DATA service_data;
@@ -339,14 +339,13 @@ static void wait_for_response(void)
 {
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
-    unsigned int timeout_ms;
+    unsigned long timeout_ms;
 
-    timeout_ms = (unsigned int)(apdu_timeout() / 1000);
-
+    timeout_ms = apdu_timeout();
+    timeout_ms *= apdu_retries();
     Response_Status = RESP_WAITING;
-
-    mstimer_restart(&BACnet_TSM_Timer);
-    while (mstimer_expired(&BACnet_TSM_Timer) == false) {
+    mstimer_restart(&APDU_Timer);
+    while (mstimer_expired(&APDU_Timer) == false) {
         /* Process PDU if one comes in */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout_ms);
         if (pdu_len) {
@@ -687,12 +686,11 @@ static void print_help(const char *filename)
 {
     (void)filename;
     printf("Generates Full EPICS file, including Object and Property List\n");
-    printf(
-        "device-instance:\n"
-        "BACnet Device Object Instance number that you are\n"
-        "trying to communicate to.  This number will be used\n"
-        "to try and bind with the device using Who-Is and\n"
-        "I-Am services.\n");
+    printf("device-instance:\n"
+           "BACnet Device Object Instance number that you are\n"
+           "trying to communicate to.  This number will be used\n"
+           "to try and bind with the device using Who-Is and\n"
+           "I-Am services.\n");
     printf("\n");
     printf("-v: show values instead of '?' \n");
     printf("-c: columns break for BACnetARRAY. Default is 0=always\n");
@@ -725,12 +723,11 @@ static int CheckCommandLineArgs(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         }
     }
@@ -950,9 +947,8 @@ static uint32_t print_header(FILE *stream, uint32_t device_instance)
             "Product Description: \"%s\"\n\n",
             (char *)&data_value.type.Character_String.value);
     } else {
-        printf(
-            "Product Description: "
-            "\"your product description here\"\n\n");
+        printf("Product Description: "
+               "\"your product description here\"\n\n");
     }
 
     printf("--Use '--' to indicate unsupported Functionality.\n\n");
@@ -1287,9 +1283,8 @@ static uint32_t print_header(FILE *stream, uint32_t device_instance)
     printf(
         "  real: <minimum: -3.40282347E38; maximum: 3.40282347E38; resolution: "
         "1.0>\n");
-    printf(
-        "  double: <minimum: 2.2250738585072016E-38; maximum: "
-        "1.7976931348623157E38; resolution: 0.0001>\n");
+    printf("  double: <minimum: 2.2250738585072016E-38; maximum: "
+           "1.7976931348623157E38; resolution: 0.0001>\n");
     printf("  date: <minimum: 01-January-1970; maximum: 31-December-2038>\n");
     printf("  octet-string: <maximum length string: 122>\n");
     printf("  character-string: <maximum length string: 122>\n");
@@ -1393,8 +1388,8 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
     uint32_t num_objects, num_properties;
     uint32_t i, j, k;
     BACNET_APPLICATION_DATA_VALUE data_value;
-    PROPERTY_LIST prop_list[200];
-    struct special_property_list_t R_O_property_list;
+    PROPERTY_LIST prop_list[256];
+    struct special_property_list_t special_property_list;
     uint32_t error = 0;
     RESPONSE_STATUS status;
 
@@ -1430,7 +1425,8 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
             get_print_value(
                 stream, device_instance, object, PROP_OBJECT_TYPE,
                 BACNET_ARRAY_ALL);
-            num_properties = data_value.type.Unsigned_Int;
+            num_properties =
+                min(data_value.type.Unsigned_Int, sizeof(prop_list));
             /* get and save list of property ids in this object in the IUT */
             for (j = 0; j < num_properties; j++) {
                 status = get_primitive_value(
@@ -1451,10 +1447,10 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
             }
 
             /* print out the required properties */
-            property_list_special(object.type, &R_O_property_list);
-            for (j = 0; j < R_O_property_list.Required.count; j++) {
+            property_list_special(object.type, &special_property_list);
+            for (j = 0; j < special_property_list.Required.count; j++) {
                 for (k = 0; k < num_properties; k++) {
-                    if (R_O_property_list.Required.pList[j] ==
+                    if (special_property_list.Required.pList[j] ==
                         prop_list[k].property) {
                         if ((prop_list[k].property == PROP_PROPERTY_LIST) ||
                             (prop_list[k].property == PROP_OBJECT_LIST)) {
@@ -1478,9 +1474,9 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
                 stream, &prop_list[0], num_properties, object.type);
 
             /* print out the optional properties */
-            for (j = 0; j < R_O_property_list.Optional.count; j++) {
+            for (j = 0; j < special_property_list.Optional.count; j++) {
                 for (k = 0; k < num_properties; k++) {
-                    if (R_O_property_list.Optional.pList[j] ==
+                    if (special_property_list.Optional.pList[j] ==
                         prop_list[k].property) {
                         /* read and print optional property */
                         get_print_value(
@@ -1537,8 +1533,8 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
                         get_print_value(
                             stream, device_instance, object, PROP_OBJECT_TYPE,
                             BACNET_ARRAY_ALL);
-
-                        num_properties = data_value.type.Unsigned_Int;
+                        num_properties = min(
+                            data_value.type.Unsigned_Int, sizeof(prop_list));
                         /* get and save list of property ids in this object in
                          * the IUT */
                         for (j = 0; j < num_properties; j++) {
@@ -1560,12 +1556,13 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
                                 prop_list[j].exported = 1;
                             }
                         }
-
                         /* print out the required properties */
-                        property_list_special(object.type, &R_O_property_list);
-                        for (j = 0; j < R_O_property_list.Required.count; j++) {
+                        property_list_special(
+                            object.type, &special_property_list);
+                        for (j = 0; j < special_property_list.Required.count;
+                             j++) {
                             for (k = 0; k < num_properties; k++) {
-                                if (R_O_property_list.Required.pList[j] ==
+                                if (special_property_list.Required.pList[j] ==
                                     prop_list[k].property) {
                                     if (prop_list[k].property ==
                                         PROP_PROPERTY_LIST) {
@@ -1583,15 +1580,14 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
                                 }
                             }
                         }
-
                         /* print out the property list */
                         print_property_list(
                             stream, &prop_list[0], num_properties, object.type);
-
                         /* print out the optional properties */
-                        for (j = 0; j < R_O_property_list.Optional.count; j++) {
+                        for (j = 0; j < special_property_list.Optional.count;
+                             j++) {
                             for (k = 0; k < num_properties; k++) {
-                                if (R_O_property_list.Optional.pList[j] ==
+                                if (special_property_list.Optional.pList[j] ==
                                     prop_list[k].property) {
                                     /* read and print optional property */
                                     get_print_value(
@@ -1635,7 +1631,6 @@ static uint32_t get_build_EPICS_objects(FILE *stream, uint32_t device_instance)
         error++;
         return error;
     }
-
     printf("} \n");
     printf("End of BACnet Protocol Implementation Conformance Statement\n\n");
     return error;
@@ -1708,7 +1703,7 @@ int main(int argc, char *argv[])
     /* configure the timeout values */
     current_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
-    mstimer_set(&BACnet_TSM_Timer, (uint32_t)apdu_timeout());
+    mstimer_set(&APDU_Timer, (uint32_t)apdu_timeout());
 
 #if defined(BACDL_BIP)
     if (My_BIP_Port > 0) {
