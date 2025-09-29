@@ -382,12 +382,12 @@ void CharacterString_Value_Out_Of_Service_Set(
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Changed = true;
-            /* Lets backup Present_Value when going Out_Of_Service  or restore
-             * when going out of Out_Of_Service */
-            if ((pObject->Out_Of_Service = value)) {
+            if (value) {
+                /* backup Present_Value when entering Out_Of_Service */
                 characterstring_copy(
                     &pObject->Present_Value_Backup, &pObject->Present_Value);
             } else {
+                /* restore Present_Value when leaving Out_Of_Service */
                 characterstring_copy(
                     &pObject->Present_Value, &pObject->Present_Value_Backup);
             }
