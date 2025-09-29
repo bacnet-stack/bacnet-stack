@@ -157,7 +157,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         termios2_tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
 
 #if PRINT_ENABLED
-        fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
+        debug_fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
         fflush(stdout);
 #endif
     }
