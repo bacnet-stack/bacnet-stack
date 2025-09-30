@@ -2436,6 +2436,15 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
     return (status);
 }
 
+/**
+ * @brief Get the Device object functions table
+ * @return the Device object function table
+ */
+struct object_functions *Device_Object_Functions(void)
+{
+    return Object_Table;
+}
+
 /** Initialize the Device Object.
  Initialize the group of object helper functions for any supported Object.
  Initialize each of the Device Object child Object instances.

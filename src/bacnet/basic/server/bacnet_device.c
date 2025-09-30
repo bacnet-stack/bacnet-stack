@@ -2733,6 +2733,10 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
     return (status);
 }
 
+/**
+ * @brief Get the Device object functions table
+ * @return the Device object function table
+ */
 struct object_functions *Device_Object_Functions(void)
 {
     return Object_Table;
