@@ -111,6 +111,11 @@ bool Load_Control_Shed_Level_Array(
     struct shed_level_data *value);
 
 BACNET_STACK_EXPORT
+void *Load_Control_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Load_Control_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Load_Control_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Load_Control_Delete(uint32_t object_instance);
