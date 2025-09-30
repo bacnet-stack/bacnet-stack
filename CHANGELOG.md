@@ -22,6 +22,10 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added new enumerations, text, BACnetARRAY and BACnetList from
+  protocol-revision 30 (#1114)
+* Added a context variable in basic object data structure and API
+  to get or set the context pointer. (#1111)
 * Added uBASIC+BACnet README document to describe the programming language,
   porting, and integration. (#1108)
 * Added API to output objects for priority-array property value
@@ -105,6 +109,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed CharacterString_Value_Out_Of_Service_Set() function to remove
+  confusion about an assignment inside an if-statement. (#1113)
 * Changed device object unit test to use common read-write property test.
   Extended the basic BACnet device object example API.
   Added BACnet/IP and COV test mocks to enable device object testing
@@ -123,6 +129,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed basic program object internal datatype for reason-for-fault
+  and change properties. (#1110)
+* Fixed compile errors in basic/server/device when BACAPP_TIMESTAMP
+  or Channel object are not enabled. (#1109)
 * Fixed units property declaration in basic Analog Input header file to be
   uint16_t instead of uint8_t. Added range checking of units property
   in example objects WriteProperty handler. (#1107)
