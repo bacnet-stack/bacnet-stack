@@ -215,20 +215,20 @@ static object_functions_t My_Object_Table[] = {
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
  * @ingroup ObjHelpers
- * @param Object_Type [in] The type of BACnet Object the handler wants to
+ * @param object_type [in] The type of BACnet Object the handler wants to
  * access.
  * @return Pointer to the group of object helper functions that implement this
  *         type of Object.
  */
-static struct object_functions *
-Device_Objects_Find_Functions(BACNET_OBJECT_TYPE Object_Type)
+struct object_functions *
+Device_Object_Functions_Find(BACNET_OBJECT_TYPE object_type)
 {
     struct object_functions *pObject = NULL;
 
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
-        if (pObject->Object_Type == Object_Type) {
+        if (pObject->Object_Type == object_type) {
             return (pObject);
         }
         pObject++;
@@ -252,7 +252,7 @@ rr_info_function Device_Objects_RR_Info(BACNET_OBJECT_TYPE object_type)
 {
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     return (pObject != NULL ? pObject->Object_RR_Info : NULL);
 }
 
@@ -284,7 +284,7 @@ void Device_Objects_Property_List(
      * to populate the pointers to the individual list counters.
      */
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
         pObject->Object_RPM_List(
             &pPropertyList->Required.pList, &pPropertyList->Optional.pList,
@@ -976,7 +976,7 @@ bool Device_Valid_Object_Name(
     for (i = 1; i <= max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions(type);
+            pObject = Device_Object_Functions_Find(type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                  characterstring_same(object_name1, &object_name2))) {
@@ -1006,7 +1006,7 @@ bool Device_Valid_Object_Id(
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -1028,7 +1028,7 @@ bool Device_Object_Name_Copy(
     struct object_functions *pObject = NULL;
     bool found = false;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -1409,7 +1409,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(rpdata->object_type);
+    pObject = Device_Object_Functions_Find(rpdata->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
@@ -1764,7 +1764,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(wp_data->object_type);
+    pObject = Device_Object_Functions_Find(wp_data->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
@@ -1819,7 +1819,7 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(list_element->object_type);
+    pObject = Device_Object_Functions_Find(list_element->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(list_element->object_instance)) {
@@ -1853,7 +1853,7 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(list_element->object_type);
+    pObject = Device_Object_Functions_Find(list_element->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(list_element->object_instance)) {
@@ -1891,7 +1891,7 @@ bool Device_Encode_Value_List(
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -1916,7 +1916,7 @@ bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
     bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -1938,7 +1938,7 @@ void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -1961,7 +1961,7 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
     struct object_functions *pObject = NULL;
     uint32_t object_instance;
 
-    pObject = Device_Objects_Find_Functions(data->object_type);
+    pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Create) {
             /*  The device supports the object type and may have
@@ -2020,7 +2020,7 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
     bool status = false;
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(data->object_type);
+    pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Delete) {
             /*  The device supports the object type
@@ -2064,7 +2064,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
     bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Value_List) {
             status = true;

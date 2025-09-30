@@ -103,7 +103,7 @@ static const int Device_Properties_Optional[] = { PROP_DESCRIPTION,
 
 static const int Device_Properties_Proprietary[] = { 9600, -1 };
 
-static struct my_object_functions *Device_Objects_Find_Functions(
+struct my_object_functions *Device_Object_Functions_Find(
     BACNET_OBJECT_TYPE Object_Type)
 {
     struct my_object_functions *pObject = NULL;
@@ -176,7 +176,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     struct my_object_functions *pObject = NULL;
 
     /* initialize the default return values */
-    pObject = Device_Objects_Find_Functions(rpdata->object_type);
+    pObject = Device_Object_Functions_Find(rpdata->object_type);
     if (pObject) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
@@ -260,7 +260,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     struct my_object_functions *pObject = NULL;
 
     /* initialize the default return values */
-    pObject = Device_Objects_Find_Functions(wp_data->object_type);
+    pObject = Device_Object_Functions_Find(wp_data->object_type);
     if (pObject) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
@@ -319,7 +319,7 @@ void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
      * to populate the pointers to the individual list counters.
      */
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
         pObject->Object_RPM_List(&pPropertyList->Required.pList,
             &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
@@ -697,7 +697,7 @@ bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
     for (i = 1; i <= max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
+            pObject = Device_Object_Functions_Find((BACNET_OBJECT_TYPE)type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                     characterstring_same(object_name1, &object_name2))) {
@@ -722,7 +722,7 @@ bool Device_Valid_Object_Id(
     bool status = false; /* return value */
     struct my_object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
+    pObject = Device_Object_Functions_Find((BACNET_OBJECT_TYPE)object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -737,7 +737,7 @@ bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
     struct my_object_functions *pObject = NULL;
     bool found = false;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
