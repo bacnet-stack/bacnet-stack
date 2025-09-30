@@ -22,6 +22,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added Device_Object_Functions() API to return basic object API table
+  of functions for all objects. Added Device_Object_Functions_Find() API
+  to enable override of basic object API function. (#1115)
 * Added new enumerations, text, BACnetARRAY and BACnetList from
   protocol-revision 30 (#1114)
 * Added a context variable in basic object data structure and API
