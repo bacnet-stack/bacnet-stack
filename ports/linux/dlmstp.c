@@ -252,11 +252,19 @@ static bool dlmstp_compare_data_expecting_reply(
             reply.service_choice = reply_pdu[offset + 2];
             break;
         case PDU_TYPE_COMPLEX_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
             /* segmented message? */
             if (reply_pdu[offset] & BIT(3)) {
-                reply.service_choice = reply_pdu[offset + 4];
+                /* In Clause 5.4.5.3, AWAIT_RESPONSE, in the transition
+                SendSegmentedComplexACK, the text "transmit a BACnet-
+                ComplexACK-PDU..." shall be replaced by "direct the
+                MS/TP data link to transmit a Reply Postponed frame;
+                transmit a BACnet-ComplexACK-PDU...."
+                It is necessary to postpone the reply because
+                transmission of the segmented ComplexACK
+                cannot begin until the node holds the token.*/
+                return false;
             } else {
+                reply.invoke_id = reply_pdu[offset + 1];
                 reply.service_choice = reply_pdu[offset + 2];
             }
             break;
@@ -400,6 +408,12 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         DLMSTP_Statistics.transmit_pdu_counter++;
         /* This will pop the element no matter where we found it */
         (void)Ringbuf_Pop_Element(&PDU_Queue, (uint8_t *)pkt, NULL);
+    } else {
+        /* force reply-postponed */
+        pdu_len = MSTP_Create_Frame(
+            &mstp_port->OutputBuffer[0], mstp_port->OutputBufferSize,
+            FRAME_TYPE_REPLY_POSTPONED, mstp_port->SourceAddress,
+            mstp_port->This_Station, NULL, 0);
     }
     pthread_mutex_unlock(&Ring_Buffer_Mutex);
     if (pdu_len <= 0) {
