@@ -156,6 +156,46 @@ static void testReadPropertyAck(void)
         zassert_true(
             test_len < 0, "test_len=%d apdu_len=%d", test_len, apdu_len);
     }
+    /* optional parameters */
+    rpdata.array_index = 0;
+    apdu_len = rp_ack_encode_apdu(&apdu[0], invoke_id, &rpdata);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len =
+        rp_ack_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_equal(test_data.array_index, rpdata.array_index, NULL);
+    /* alternate API */
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    null_len = read_property_ack_service_encode(&apdu[0], sizeof(apdu), NULL);
+    zassert_equal(null_len, 0, "null_len=%d", null_len);
+    null_len = read_property_ack_service_encode(NULL, sizeof(apdu), &rpdata);
+    apdu_len = read_property_ack_service_encode(&apdu[0], sizeof(apdu), &rpdata);
+    zassert_equal(apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len = rp_ack_decode_service_request(
+        &apdu[0], apdu_len, &test_data);
+    zassert_equal(test_len, apdu_len, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    zassert_equal(test_data.object_type, rpdata.object_type, NULL);
+    zassert_equal(test_data.object_instance, rpdata.object_instance, NULL);
+    zassert_equal(test_data.object_property, rpdata.object_property, NULL);
+    zassert_equal(test_data.array_index, rpdata.array_index, NULL);
+    while (apdu_len) {
+        apdu_len--;
+        test_len = read_property_ack_service_encode(&apdu[0], apdu_len, &rpdata);
+        zassert_equal(
+            test_len, 0, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    }
+    /* optional parameters */
+    rpdata.array_index = 0;
+    apdu_len = read_property_ack_service_encode(&apdu[0], sizeof(apdu), &rpdata);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len = rp_ack_decode_service_request(
+        &apdu[0], apdu_len, &test_data);
+    zassert_equal(test_len, apdu_len, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    zassert_equal(test_data.object_type, rpdata.object_type, NULL);
+    zassert_equal(test_data.object_instance, rpdata.object_instance, NULL);
+    zassert_equal(test_data.object_property, rpdata.object_property, NULL);
+    zassert_equal(test_data.array_index, rpdata.array_index, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -168,8 +208,8 @@ static void testReadProperty(void)
     int apdu_len = 0, test_len = 0, null_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-    BACNET_READ_PROPERTY_DATA test_data;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_READ_PROPERTY_DATA test_data = { 0 };
 
     rpdata.object_type = OBJECT_DEVICE;
     rpdata.object_instance = 1;
@@ -196,8 +236,66 @@ static void testReadProperty(void)
         zassert_true(
             test_len < 0, "test_len=%d apdu_len=%d", test_len, apdu_len);
     }
+    null_len = read_property_request_service_encode(&apdu[0], sizeof(apdu), NULL);
+    zassert_equal(null_len, 0, "null_len=%d", null_len);
+    null_len = read_property_request_service_encode(NULL, sizeof(apdu), &rpdata);
+    apdu_len = read_property_request_service_encode(&apdu[0], sizeof(apdu), &rpdata);
+    zassert_equal(
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len = rp_decode_service_request(
+        &apdu[0], apdu_len, &test_data);
+    zassert_equal(test_len, apdu_len, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    zassert_equal(test_data.object_type, rpdata.object_type, NULL);
+    zassert_equal(test_data.object_instance, rpdata.object_instance, NULL);
+    zassert_equal(test_data.object_property, rpdata.object_property, NULL);
+    zassert_equal(test_data.array_index, rpdata.array_index, NULL);
+    null_len = read_property_request_service_encode(&apdu[0], apdu_len-1, &rpdata);
+    zassert_equal(null_len, 0, "null_len=%d apdu_len=%d", null_len, apdu_len);
+    while (apdu_len) {
+        apdu_len--;
+        test_len = rp_decode_service_request(
+            &apdu[0], apdu_len, &test_data);
+        zassert_true(
+            test_len < 0, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    }
+    /* ReadProperty options */
+    rpdata.array_index = 0;
+    apdu_len = read_property_request_service_encode(&apdu[0], sizeof(apdu), &rpdata);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len = rp_decode_service_request(
+        &apdu[0], apdu_len, &test_data);
+    zassert_equal(test_len, apdu_len, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    zassert_equal(test_data.object_type, rpdata.object_type, NULL);
+    zassert_equal(test_data.object_instance, rpdata.object_instance, NULL);
+    zassert_equal(test_data.object_property, rpdata.object_property, NULL);
+    zassert_equal(test_data.array_index, rpdata.array_index, NULL);
+    test_len = rp_decode_service_request(NULL, sizeof(apdu), &test_data);
+    zassert_true(test_len < 0, "test_len=%d", test_len);
+    test_len = rp_decode_service_request(apdu, sizeof(apdu), NULL);
+    zassert_true(test_len < 0, "test_len=%d", test_len);
 
     return;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rp_tests, testReadPropertyArray)
+#else
+static void testReadPropertyArray(void)
+#endif
+{
+    bool status;
+    BACNET_READ_PROPERTY_DATA data = { 0 };
+
+    data.object_type = OBJECT_ANALOG_VALUE;
+    data.object_property = PROP_PRESENT_VALUE;
+    data.array_index = 0;
+    status = read_property_bacnet_array_valid(&data);
+    zassert_false(status, NULL);
+    data.array_index = BACNET_ARRAY_ALL;
+    status = read_property_bacnet_array_valid(&data);
+    zassert_true(status, NULL);
+
 }
 /**
  * @}
@@ -210,7 +308,8 @@ void test_main(void)
 {
     ztest_test_suite(
         rp_tests, ztest_unit_test(testReadProperty),
-        ztest_unit_test(testReadPropertyAck));
+        ztest_unit_test(testReadPropertyAck),
+        ztest_unit_test(testReadPropertyArray));
 
     ztest_run_test_suite(rp_tests);
 }
