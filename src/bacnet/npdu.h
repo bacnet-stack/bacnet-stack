@@ -113,6 +113,8 @@ int bacnet_npdu_decode(
 
 BACNET_STACK_EXPORT
 bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len);
+BACNET_STACK_EXPORT
+bool npdu_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len);
 
 #ifdef __cplusplus
 }

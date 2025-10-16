@@ -616,3 +616,35 @@ bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len)
 
     return status;
 }
+
+/**
+ * @brief Helper for datalink detecting an segmented complex ack reply
+ * @param pdu [in]  Buffer containing the NPDU and APDU of the received packet.
+ * @param pdu_len [in] The size of the received message in the pdu[] buffer.
+ * @return true if the PDU is a segmented complex ack reply
+ */
+bool npdu_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len)
+{
+    bool status = false;
+    int apdu_offset = 0;
+    BACNET_NPDU_DATA npdu_data = { 0 };
+
+    if (pdu_len > 0) {
+        if (pdu[0] == BACNET_PROTOCOL_VERSION) {
+            /* only handle the version that we know how to handle */
+            apdu_offset =
+                bacnet_npdu_decode(pdu, pdu_len, NULL, NULL, &npdu_data);
+            if ((!npdu_data.network_layer_message) && (apdu_offset > 0) &&
+                (apdu_offset < pdu_len)) {
+                if ((pdu[apdu_offset] & 0xF0) == PDU_TYPE_COMPLEX_ACK) {
+                    /* segmented message? */
+                    if (pdu[apdu_offset] & BIT(3)) {
+                        status = true;
+                    }
+                }
+            }
+        }
+    }
+
+    return status;
+}
