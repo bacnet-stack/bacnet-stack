@@ -563,15 +563,11 @@ static bool dlmstp_compare_data_expecting_reply(
                      "NPDU Protocol Version mismatch.\n");
         return false;
     }
-#if 0
-    /* the NDPU priority doesn't get passed through the stack, and
-       all outgoing messages have NORMAL priority */
     if (request.npdu_data.priority != reply.npdu_data.priority) {
         debug_printf(
             "DLMSTP: DER Compare failed: " "NPDU Priority mismatch.\n");
         return false;
     }
-#endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
         debug_printf("DLMSTP: DER Compare failed: "
                      "BACnet Address mismatch.\n");
