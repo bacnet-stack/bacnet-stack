@@ -115,6 +115,12 @@ BACNET_STACK_EXPORT
 bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len);
 BACNET_STACK_EXPORT
 bool npdu_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len);
+BACNET_STACK_EXPORT
+bool npdu_data_expecting_reply_compare(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len);
 
 #ifdef __cplusplus
 }

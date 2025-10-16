@@ -10,6 +10,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/npdu.h"
@@ -647,4 +648,127 @@ bool npdu_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len)
     }
 
     return status;
+}
+
+/**
+ * @brief Determine if the reply PDU is the data expected by the request PDU
+ * @param request_pdu - packet containing the NDPU and APDU of the request
+ * @param request_pdu_len - number of bytes of PDU data
+ * @param reply_pdu - packet containing the NDPU and APDU of the reply
+ * @param reply_pdu_len - number of bytes of PDU data
+ * @return true if the reply PDU is the data expected by the request PDU
+ * @note This function is used by the DLMSTP datalink layer to match confirmed
+ *  service requests with their replies in the ANSWER_DATA_REQUEST state.
+ */
+bool npdu_data_expecting_reply_compare(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len)
+{
+    int16_t offset;
+    /* One way to check the message is to compare NPDU
+       src, dest, along with the APDU type, invoke id. */
+    struct DER_compare_t {
+        BACNET_NPDU_DATA npdu_data;
+        BACNET_ADDRESS address;
+        uint8_t pdu_type;
+        uint8_t invoke_id;
+        uint8_t service_choice;
+    };
+    struct DER_compare_t request = { 0 };
+    struct DER_compare_t reply = { 0 };
+
+    if ((request_pdu_len > 0) && (request_pdu[0] != BACNET_PROTOCOL_VERSION)) {
+        /* we don't know how to decode any other protocol versions */
+        return false;
+    }
+    /* decode the request NPDU and the source address */
+    offset = (int16_t)bacnet_npdu_decode(
+        request_pdu, request_pdu_len, NULL, &request.address,
+        &request.npdu_data);
+    if (offset <= 0) {
+        return false;
+    }
+    if (request.npdu_data.network_layer_message) {
+        return false;
+    }
+    request.pdu_type = request_pdu[offset] & 0xF0;
+    if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
+        return false;
+    }
+    request.invoke_id = request_pdu[offset + 2];
+    /* segmented request? */
+    if (request_pdu[offset] & BIT(3)) {
+        request.service_choice = request_pdu[offset + 5];
+    } else {
+        request.service_choice = request_pdu[offset + 3];
+    }
+    if ((reply_pdu_len > 0) && (reply_pdu[0] != BACNET_PROTOCOL_VERSION)) {
+        /* we don't know how to decode any other protocol versions */
+        return false;
+    }
+    /* decode the request NPDU and the destination address */
+    offset = (int16_t)bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
+    if (offset <= 0) {
+        return false;
+    }
+    if (reply.npdu_data.network_layer_message) {
+        return false;
+    }
+    /* reply could be a lot of things:
+       confirmed, simple ack, abort, reject, error */
+    reply.pdu_type = reply_pdu[offset] & 0xF0;
+    switch (reply.pdu_type) {
+        case PDU_TYPE_SIMPLE_ACK:
+            reply.invoke_id = reply_pdu[offset + 1];
+            reply.service_choice = reply_pdu[offset + 2];
+            break;
+        case PDU_TYPE_COMPLEX_ACK:
+            reply.invoke_id = reply_pdu[offset + 1];
+            /* segmented message? */
+            if (reply_pdu[offset] & BIT(3)) {
+                reply.service_choice = reply_pdu[offset + 4];
+            } else {
+                reply.service_choice = reply_pdu[offset + 2];
+            }
+            break;
+        case PDU_TYPE_ERROR:
+            reply.invoke_id = reply_pdu[offset + 1];
+            reply.service_choice = reply_pdu[offset + 2];
+            break;
+        case PDU_TYPE_REJECT:
+        case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
+            reply.invoke_id = reply_pdu[offset + 1];
+            break;
+        default:
+            /* A queued request, just look for another */
+            return false;
+    }
+    if (request.invoke_id != reply.invoke_id) {
+        /* Normal to have multiple replies queued, just look for another */
+        return false;
+    }
+    /* these don't have service choice included */
+    if ((request.pdu_type != PDU_TYPE_REJECT) &&
+        (request.pdu_type != PDU_TYPE_ABORT) &&
+        (request.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
+        if (request.service_choice != reply.service_choice) {
+            return false;
+        }
+    }
+    if (request.npdu_data.protocol_version !=
+        reply.npdu_data.protocol_version) {
+        return false;
+    }
+    if (request.npdu_data.priority != reply.npdu_data.priority) {
+        return false;
+    }
+    if (!bacnet_address_same(&request.address, &reply.address)) {
+        return false;
+    }
+
+    return true;
 }

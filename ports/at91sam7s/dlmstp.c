@@ -195,106 +195,6 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
     }
 }
 
-static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
-    uint16_t request_pdu_len,
-    uint8_t src_address,
-    const uint8_t *reply_pdu,
-    uint16_t reply_pdu_len,
-    uint8_t dest_address)
-{
-    uint16_t offset;
-    /* One way to check the message is to compare NPDU
-       src, dest, along with the APDU type, invoke id.
-       Seems a bit overkill */
-    struct DER_compare_t {
-        BACNET_NPDU_DATA npdu_data;
-        BACNET_ADDRESS address;
-        uint8_t pdu_type;
-        uint8_t invoke_id;
-        uint8_t service_choice;
-    };
-    struct DER_compare_t request;
-    struct DER_compare_t reply;
-
-    /* decode the request data */
-    request.address.mac[0] = src_address;
-    request.address.mac_len = 1;
-    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
-        &request.address, &request.npdu_data);
-    if (request.npdu_data.network_layer_message) {
-        return false;
-    }
-    request.pdu_type = request_pdu[offset] & 0xF0;
-    if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-        return false;
-    }
-    request.invoke_id = request_pdu[offset + 2];
-    /* segmented message? */
-    if (request_pdu[offset] & BIT(3))
-        request.service_choice = request_pdu[offset + 5];
-    else
-        request.service_choice = request_pdu[offset + 3];
-    /* decode the reply data */
-    reply.address.mac[0] = dest_address;
-    reply.address.mac_len = 1;
-    offset = bacnet_npdu_decode(
-        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
-    if (reply.npdu_data.network_layer_message) {
-        return false;
-    }
-    /* reply could be a lot of things:
-       confirmed, simple ack, abort, reject, error */
-    reply.pdu_type = reply_pdu[offset] & 0xF0;
-    switch (reply.pdu_type) {
-        case PDU_TYPE_SIMPLE_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            reply.service_choice = reply_pdu[offset + 2];
-            break;
-        case PDU_TYPE_COMPLEX_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            /* segmented message? */
-            if (reply_pdu[offset] & BIT(3))
-                reply.service_choice = reply_pdu[offset + 4];
-            else
-                reply.service_choice = reply_pdu[offset + 2];
-            break;
-        case PDU_TYPE_ERROR:
-            reply.invoke_id = reply_pdu[offset + 1];
-            reply.service_choice = reply_pdu[offset + 2];
-            break;
-        case PDU_TYPE_REJECT:
-        case PDU_TYPE_ABORT:
-        case PDU_TYPE_SEGMENT_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            break;
-        default:
-            return false;
-    }
-    if (request.invoke_id != reply.invoke_id) {
-        return false;
-    }
-    /* these services don't have service choice included */
-    if ((reply.pdu_type != PDU_TYPE_REJECT) &&
-        (reply.pdu_type != PDU_TYPE_ABORT) &&
-        (reply.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
-        if (request.service_choice != reply.service_choice) {
-            return false;
-        }
-    }
-    if (request.npdu_data.protocol_version !=
-        reply.npdu_data.protocol_version) {
-        return false;
-    }
-    if (request.npdu_data.priority != reply.npdu_data.priority) {
-        return false;
-    }
-    if (!bacnet_address_same(&request.address, &reply.address)) {
-        return false;
-    }
-
-    return true;
-}
-
 /* MS/TP Frame Format */
 /* All frames are of the following format: */
 /* */
@@ -1063,9 +963,9 @@ static bool MSTP_Master_Node_FSM(void)
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
             pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
             if (pkt != NULL) {
-                matched = dlmstp_compare_data_expecting_reply(&InputBuffer[0],
-                    DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
-                    pkt->destination_mac);
+                matched = npdu_data_expecting_reply_compare(
+                    &InputBuffer[0], DataLength,
+                    &pkt->buffer[0], pkt->length);
             } else {
                 matched = false;
             }
@@ -1161,9 +1061,8 @@ static void MSTP_Slave_Node_FSM(void)
     } else if (MSTP_Flag.ReceivePacketPending) {
         if (!Ringbuf_Empty(&PDU_Queue)) {
             pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
-            matched = dlmstp_compare_data_expecting_reply(&InputBuffer[0],
-                DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
-                pkt->destination_mac);
+            matched = npdu_data_expecting_reply_compare(&InputBuffer[0],
+                DataLength, &pkt->buffer[0], pkt->length);
             if (matched) {
                 /* Reply */
                 /* If a reply is available from the higher layers  */
