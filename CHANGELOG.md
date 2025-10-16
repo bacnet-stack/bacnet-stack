@@ -132,6 +132,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the MS/TP compare DER function which can now include the NPDU network
+  priority in the comparison. (#2738)
 * Fixed basic program object internal datatype for reason-for-fault
   and change properties. (#1110)
 * Fixed compile errors in basic/server/device when BACAPP_TIMESTAMP

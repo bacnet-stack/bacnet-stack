@@ -564,8 +564,8 @@ static bool dlmstp_compare_data_expecting_reply(
         return false;
     }
     if (request.npdu_data.priority != reply.npdu_data.priority) {
-        debug_printf(
-            "DLMSTP: DER Compare failed: " "NPDU Priority mismatch.\n");
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "NPDU Priority mismatch.\n");
         return false;
     }
     if (!bacnet_address_same(&request.address, &reply.address)) {
