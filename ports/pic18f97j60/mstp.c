@@ -581,21 +581,12 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
             reply.service_choice = reply_pdu[offset + 2];
             break;
         case PDU_TYPE_COMPLEX_ACK:
+            reply.invoke_id = reply_pdu[offset + 1];
             /* segmented message? */
-            if (reply_pdu[offset] & BIT(3)) {
-                /* In Clause 5.4.5.3, AWAIT_RESPONSE, in the transition
-                SendSegmentedComplexACK, the text "transmit a BACnet-
-                ComplexACK-PDU..." shall be replaced by "direct the
-                MS/TP data link to transmit a Reply Postponed frame;
-                transmit a BACnet-ComplexACK-PDU...."
-                It is necessary to postpone the reply because
-                transmission of the segmented ComplexACK
-                cannot begin until the node holds the token.*/
-                return false;
-            } else {
-                reply.invoke_id = reply_pdu[offset + 1];
+            if (reply_pdu[offset] & BIT(3))
+                reply.service_choice = reply_pdu[offset + 4];
+            else
                 reply.service_choice = reply_pdu[offset + 2];
-            }
             break;
         case PDU_TYPE_ERROR:
             reply.invoke_id = reply_pdu[offset + 1];
