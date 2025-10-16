@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/npdu.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -46,6 +47,10 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/tsm/tsm.c
     ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/reject.c
+    ${SRC_DIR}/bacnet/rp.c
+    ${SRC_DIR}/bacnet/whois.c
     ./stubs.c
     # Test and test library files
     ./src/main.c

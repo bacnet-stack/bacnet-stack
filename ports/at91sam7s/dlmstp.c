@@ -963,9 +963,9 @@ static bool MSTP_Master_Node_FSM(void)
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
             pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
             if (pkt != NULL) {
-                matched = npdu_data_expecting_reply_compare(
-                    &InputBuffer[0], DataLength,
-                    &pkt->buffer[0], pkt->length);
+                matched = npdu_is_data_expecting_reply(
+                    &InputBuffer[0], DataLength, SourceAddress,
+                    &pkt->buffer[0], pkt->length, pkt->destination_mac);
             } else {
                 matched = false;
             }
@@ -1061,8 +1061,9 @@ static void MSTP_Slave_Node_FSM(void)
     } else if (MSTP_Flag.ReceivePacketPending) {
         if (!Ringbuf_Empty(&PDU_Queue)) {
             pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
-            matched = npdu_data_expecting_reply_compare(&InputBuffer[0],
-                DataLength, &pkt->buffer[0], pkt->length);
+            matched = npdu_is_data_expecting_reply(&InputBuffer[0],
+                DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
+                pkt->destination_mac);
             if (matched) {
                 /* Reply */
                 /* If a reply is available from the higher layers  */

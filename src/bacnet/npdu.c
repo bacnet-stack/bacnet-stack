@@ -624,7 +624,7 @@ bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len)
  * @param pdu_len [in] The size of the received message in the pdu[] buffer.
  * @return true if the PDU is a segmented complex ack reply
  */
-bool npdu_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len)
+bool npdu_is_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len)
 {
     bool status = false;
     int apdu_offset = 0;
@@ -651,27 +651,30 @@ bool npdu_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len)
 }
 
 /**
- * @brief Determine if the reply PDU is the data expected by the request PDU
+ * @brief Determine if the reply PDU is expected by the request PDU
  * @param request_pdu - packet containing the NDPU and APDU of the request
  * @param request_pdu_len - number of bytes of PDU data
+ * @param request_address - address of the sender of the request
  * @param reply_pdu - packet containing the NDPU and APDU of the reply
  * @param reply_pdu_len - number of bytes of PDU data
+ * @param reply_address - address of the sender of the reply
  * @return true if the reply PDU is the data expected by the request PDU
  * @note This function is used by the DLMSTP datalink layer to match confirmed
  *  service requests with their replies in the ANSWER_DATA_REQUEST state.
  */
-bool npdu_data_expecting_reply_compare(
+bool npdu_is_expected_reply(
     const uint8_t *request_pdu,
     uint16_t request_pdu_len,
+    BACNET_ADDRESS *request_address,
     const uint8_t *reply_pdu,
-    uint16_t reply_pdu_len)
+    uint16_t reply_pdu_len,
+    BACNET_ADDRESS *reply_address)
 {
     int16_t offset;
     /* One way to check the message is to compare NPDU
        src, dest, along with the APDU type, invoke id. */
     struct DER_compare_t {
         BACNET_NPDU_DATA npdu_data;
-        BACNET_ADDRESS address;
         uint8_t pdu_type;
         uint8_t invoke_id;
         uint8_t service_choice;
@@ -679,13 +682,16 @@ bool npdu_data_expecting_reply_compare(
     struct DER_compare_t request = { 0 };
     struct DER_compare_t reply = { 0 };
 
+    if (!request_pdu || !reply_pdu || !request_address || !reply_address) {
+        return false;
+    }
     if ((request_pdu_len > 0) && (request_pdu[0] != BACNET_PROTOCOL_VERSION)) {
         /* we don't know how to decode any other protocol versions */
         return false;
     }
     /* decode the request NPDU and the source address */
     offset = (int16_t)bacnet_npdu_decode(
-        request_pdu, request_pdu_len, NULL, &request.address,
+        request_pdu, request_pdu_len, NULL, request_address,
         &request.npdu_data);
     if (offset <= 0) {
         return false;
@@ -708,9 +714,9 @@ bool npdu_data_expecting_reply_compare(
         /* we don't know how to decode any other protocol versions */
         return false;
     }
-    /* decode the request NPDU and the destination address */
+    /* decode the reply NPDU and the destination address */
     offset = (int16_t)bacnet_npdu_decode(
-        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
+        reply_pdu, reply_pdu_len, reply_address, NULL, &reply.npdu_data);
     if (offset <= 0) {
         return false;
     }
@@ -751,24 +757,53 @@ bool npdu_data_expecting_reply_compare(
         /* Normal to have multiple replies queued, just look for another */
         return false;
     }
-    /* these don't have service choice included */
-    if ((request.pdu_type != PDU_TYPE_REJECT) &&
-        (request.pdu_type != PDU_TYPE_ABORT) &&
-        (request.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
+    /* these reply messages don't have service choice included */
+    if ((reply.pdu_type != PDU_TYPE_REJECT) &&
+        (reply.pdu_type != PDU_TYPE_ABORT) &&
+        (reply.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
         if (request.service_choice != reply.service_choice) {
             return false;
         }
     }
-    if (request.npdu_data.protocol_version !=
-        reply.npdu_data.protocol_version) {
-        return false;
-    }
     if (request.npdu_data.priority != reply.npdu_data.priority) {
         return false;
     }
-    if (!bacnet_address_same(&request.address, &reply.address)) {
+    if (!bacnet_address_same(request_address, reply_address)) {
         return false;
     }
 
     return true;
+}
+
+/**
+ * @brief Determine if the reply PDU is the data expected by the request PDU
+ * @param request_pdu - packet containing the NDPU and APDU of the request
+ * @param request_pdu_len - number of bytes of PDU data
+ * @param request_mac - MS/TP MAC address of the sender of the request
+ * @param reply_pdu - packet containing the NDPU and APDU of the reply
+ * @param reply_pdu_len - number of bytes of PDU data
+ * @param reply_mac - MS/TP MAC address of the sender of the reply
+ * @return true if the reply PDU is the data expected by the request PDU
+ * @note This function is used by the DLMSTP datalink layer to match confirmed
+ *  service requests with their replies in the ANSWER_DATA_REQUEST state.
+ */
+bool npdu_is_data_expecting_reply(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    uint8_t request_mac,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    uint8_t reply_mac)
+{
+    BACNET_ADDRESS request_address = { 0 };
+    BACNET_ADDRESS reply_address = { 0 };
+
+    request_address.len = 1;
+    request_address.adr[0] = request_mac;
+    reply_address.len = 1;
+    reply_address.adr[0] = reply_mac;
+
+    return npdu_is_expected_reply(
+        request_pdu, request_pdu_len, &request_address, reply_pdu,
+        reply_pdu_len, &reply_address);
 }

@@ -325,9 +325,10 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         return 0;
     }
     /* is this the reply to the DER? */
-    matched = npdu_data_expecting_reply_compare(
+    matched = npdu_is_data_expecting_reply(
         &mstp_port->InputBuffer[0], mstp_port->DataLength,
-        &Transmit_Packet.pdu[0], Transmit_Packet.pdu_len);
+        mstp_port->SourceAddress, &Transmit_Packet.pdu[0],
+        Transmit_Packet.pdu_len, destination);
     if (!matched) {
         return 0;
     }

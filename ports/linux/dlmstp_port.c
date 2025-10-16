@@ -409,17 +409,19 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&poSharedData->PDU_Queue);
     /* is this the reply to the DER? */
-    matched = npdu_data_expecting_reply_compare(
+    matched = npdu_is_data_expecting_reply(
         &mstp_port->InputBuffer[0], mstp_port->DataLength,
-        (uint8_t *)&pkt->buffer[0], pkt->length);
+        mstp_port->SourceAddress, (uint8_t *)&pkt->buffer[0], pkt->length,
+        pkt->destination_mac);
     if (!matched) {
         /* Walk the rest of the ring buffer to see if we can find a match */
         while (!matched &&
                (pkt = (struct mstp_pdu_packet *)Ringbuf_Peek_Next(
                     &poSharedData->PDU_Queue, (uint8_t *)pkt)) != NULL) {
-            matched = npdu_data_expecting_reply_compare(
+            matched = npdu_is_data_expecting_reply(
                 &mstp_port->InputBuffer[0], mstp_port->DataLength,
-                (uint8_t *)&pkt->buffer[0], pkt->length);
+                mstp_port->SourceAddress, (uint8_t *)&pkt->buffer[0],
+                pkt->length, pkt->destination_mac);
         }
         if (!matched) {
             /* Still didn't find a match so just bail out */

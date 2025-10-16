@@ -144,13 +144,14 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     /* look at next PDU in queue without removing it */
     pkt = (struct dlmstp_packet *)(void *)Ringbuf_Peek(&user->PDU_Queue);
     /* is this the reply to the DER? */
-    matched = npdu_data_expecting_reply_compare(
-        &mstp_port->InputBuffer[0], mstp_port->DataLength, &pkt->pdu[0],
-        pkt->pdu_len);
+    matched = npdu_is_data_expecting_reply(
+        &mstp_port->InputBuffer[0], mstp_port->DataLength,
+        mstp_port->SourceAddress, &pkt->pdu[0], pkt->pdu_len,
+        pkt->address.mac[0]);
     if (!matched) {
         return 0;
     }
-    if (npdu_segmented_complex_ack_reply(pkt->pdu, pkt->pdu_len)) {
+    if (npdu_is_segmented_complex_ack_reply(pkt->pdu, pkt->pdu_len)) {
         /* In Clause 5.4.5.3, AWAIT_RESPONSE, in the transition
             SendSegmentedComplexACK, the text "transmit a BACnet-
             ComplexACK-PDU..." shall be replaced by "direct the
