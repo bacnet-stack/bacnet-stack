@@ -1,0 +1,134 @@
+/**
+ * @file
+ * @brief API for Timer object type
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date October 2025
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_OBJECT_TIMER_H
+#define BACNET_BASIC_OBJECT_TIMER_H
+#include <stdbool.h>
+#include <stdint.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacerror.h"
+#include "bacnet/wp.h"
+#include "bacnet/rp.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
+void Timer_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary);
+BACNET_STACK_EXPORT
+bool Timer_Valid_Instance(uint32_t object_instance);
+BACNET_STACK_EXPORT
+unsigned Timer_Count(void);
+BACNET_STACK_EXPORT
+uint32_t Timer_Index_To_Instance(unsigned index);
+BACNET_STACK_EXPORT
+unsigned Timer_Instance_To_Index(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Timer_Object_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
+BACNET_STACK_EXPORT
+bool Timer_Name_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Timer_Name_ASCII(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
+
+BACNET_STACK_EXPORT
+bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+BACNET_PROGRAM_STATE Timer_State(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_State_Set(uint32_t object_instance, BACNET_PROGRAM_STATE value);
+
+BACNET_STACK_EXPORT
+BACNET_PROGRAM_REQUEST Timer_Change(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Change_Set(
+    uint32_t object_instance, BACNET_PROGRAM_REQUEST program_change);
+BACNET_STACK_EXPORT
+BACNET_PROGRAM_ERROR Timer_Reason_For_Halt(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Reason_For_Halt_Set(
+    uint32_t object_instance, BACNET_PROGRAM_ERROR reason);
+
+BACNET_STACK_EXPORT
+bool Timer_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+BACNET_STACK_EXPORT
+bool Timer_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Timer_Description_ANSI(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Timer_Location(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+BACNET_STACK_EXPORT
+bool Timer_Location_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Timer_Location_ANSI(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Timer_Instance_Of(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+BACNET_STACK_EXPORT
+bool Timer_Instance_Of_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Timer_Instance_Of_ANSI(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Timer_Description_Of_Halt(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+BACNET_STACK_EXPORT
+bool Timer_Description_Of_Halt_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Timer_Description_Of_Halt_ANSI(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Timer_Out_Of_Service(uint32_t instance);
+BACNET_STACK_EXPORT
+void Timer_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
+
+BACNET_STACK_EXPORT
+void Timer_Timer(uint32_t object_instance, uint16_t milliseconds);
+BACNET_STACK_EXPORT
+uint32_t Timer_Create(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Delete(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Timer_Cleanup(void);
+BACNET_STACK_EXPORT
+void Timer_Init(void);
+
+/* API for the program requests
+    note: return value is 0 for success, non-zero for failure
+*/
+BACNET_STACK_EXPORT
+void *Timer_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Timer_Context_Set(uint32_t object_instance, void *context);
+BACNET_STACK_EXPORT
+void Timer_Load_Set(uint32_t object_instance, int (*load)(void *context));
+BACNET_STACK_EXPORT
+void Timer_Run_Set(uint32_t object_instance, int (*run)(void *context));
+BACNET_STACK_EXPORT
+void Timer_Halt_Set(uint32_t object_instance, int (*halt)(void *context));
+BACNET_STACK_EXPORT
+void Timer_Restart_Set(uint32_t object_instance, int (*restart)(void *context));
+BACNET_STACK_EXPORT
+void Timer_Unload_Set(uint32_t object_instance, int (*unload)(void *context));
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif

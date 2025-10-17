@@ -1683,7 +1683,9 @@ typedef enum {
     /* BACnetChannelValue */
     BACNET_APPLICATION_TAG_CHANNEL_VALUE,
     /* BACnetLogRecord */
-    BACNET_APPLICATION_TAG_LOG_RECORD
+    BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* no-value - context tagged null */
+    BACNET_APPLICATION_TAG_NO_VALUE
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
