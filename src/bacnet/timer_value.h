@@ -109,6 +109,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
+int bacnet_timer_value_no_value_encode(uint8_t *apdu, uint8_t tag_number);
+BACNET_STACK_EXPORT
+int bacnet_timer_value_no_value_decode(
+    const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number);
+
+BACNET_STACK_EXPORT
 int bacnet_timer_state_change_value_encode(
     uint8_t *apdu, const BACNET_TIMER_STATE_CHANGE_VALUE *value);
 BACNET_STACK_EXPORT

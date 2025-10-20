@@ -177,6 +177,8 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     { BACNET_APPLICATION_TAG_SHED_LEVEL, "BACnetShedLevel" },
     { BACNET_APPLICATION_TAG_ACCESS_RULE, "BACnetAccessRule" },
     { BACNET_APPLICATION_TAG_CHANNEL_VALUE, "BACnetChannelValue" },
+    { BACNET_APPLICATION_TAG_LOG_RECORD, "BACnetLogRecord" },
+    { BACNET_APPLICATION_TAG_NO_VALUE, "BACnetNoValue" },
     { 0, NULL }
 };
 

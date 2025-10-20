@@ -21,6 +21,67 @@
 #include "bacnet/timer_value.h"
 
 /**
+ * @brief Encode a context tagged BACnetTimerStateChangeValue with no-value type
+ * @param apdu  buffer to be encoded, or NULL for length
+ * @param tag_number - context tag number to be encoded
+ * @param value The value to be encoded.
+ * @return the number of apdu bytes encoded
+ */
+int bacnet_timer_value_no_value_encode(uint8_t *apdu, uint8_t tag_number)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    len = encode_opening_tag(apdu, tag_number);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_application_null(apdu);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, tag_number);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a context tagged BACnetTimerStateChangeValue with
+ *  no-value type
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_number - context tag number to be encoded
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_timer_value_no_value_decode(
+    const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number)
+{
+    int apdu_len = 0;
+    int len;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_null_application_decode(&apdu[apdu_len], apdu_size - apdu_len);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
  * @brief Encode a given BACnetTimerStateChangeValue
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param  value - BACNET_TIMER_STATE_CHANGE_VALUE value
@@ -107,7 +168,7 @@ int bacnet_timer_state_change_value_encode(
 #endif
 #if defined(BACNET_TIMER_NO_VALUE)
         case BACNET_APPLICATION_TAG_NO_VALUE:
-            apdu_len = encode_context_null(apdu, 0);
+            apdu_len = bacnet_timer_value_no_value_encode(apdu, 0);
             break;
 #endif
 #if defined(BACNET_TIMER_DATETIME)
@@ -141,7 +202,7 @@ int bacnet_timer_state_change_value_encode(
 }
 
 /**
- * @brief Decode a BACnet channel value
+ * @brief Decode a BACnetTimerStateChangeValue
  */
 int bacnet_timer_state_change_value_decode(
     const uint8_t *apdu,
@@ -252,7 +313,7 @@ int bacnet_timer_state_change_value_decode(
 }
 
 /**
- * @brief Encode a given channel value
+ * @brief Encode a given BACnetTimerStateChangeValue
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param apdu_size - size of the APDU buffer
  * @param  value - BACNET_TIMER_STATE_CHANGE_VALUE value
@@ -276,7 +337,7 @@ int bacnet_timer_value_encode(
 }
 
 /**
- * @brief Decode a given channel value
+ * @brief Decode a given BACnetTimerStateChangeValue
  * @param  apdu - APDU buffer for decoding
  * @param  apdu_size - Count of valid bytes in the buffer
  * @param  value - BACNET_TIMER_STATE_CHANGE_VALUE value to store the decoded
@@ -386,9 +447,9 @@ int bacnet_timer_value_decode(
 }
 
 /**
- * @brief Compare two BACnetChannelValue values
- * @param value1 [in] The first BACnetChannelValue value
- * @param value2 [in] The second BACnetChannelValue value
+ * @brief Compare two BACnetTimerStateChangeValue values
+ * @param value1 [in] The first BACnetTimerStateChangeValue value
+ * @param value2 [in] The second BACnetTimerStateChangeValue value
  * @return True if the values are the same, else False
  */
 bool bacnet_timer_value_same(
@@ -476,9 +537,9 @@ bool bacnet_timer_value_same(
 }
 
 /**
- * @brief Copy a BACnetChannelValue to another
- * @param value1 [in] The first BACnetChannelValue value
- * @param value2 [in] The second BACnetChannelValue value
+ * @brief Copy a BACnetTimerStateChangeValue to another
+ * @param value1 [in] The first BACnetTimerStateChangeValue value
+ * @param value2 [in] The second BACnetTimerStateChangeValue value
  * @return true if the value was copied, else false
  */
 bool bacnet_timer_value_copy(
@@ -491,6 +552,7 @@ bool bacnet_timer_value_copy(
     dest->tag = src->tag;
     switch (src->tag) {
         case BACNET_APPLICATION_TAG_NULL:
+        case BACNET_APPLICATION_TAG_NO_VALUE:
             return true;
 #if defined(BACNET_TIMER_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
@@ -573,8 +635,8 @@ bool bacnet_timer_value_copy(
 }
 
 /**
- * @brief Parse a string into a BACnetChannelValue structure
- * @param value [out] The BACnetChannelValue value
+ * @brief Parse a string into a BACnetTimerStateChangeValue structure
+ * @param value [out] The BACnetTimerStateChangeValue value
  * @param argv [in] The string to parse
  * @return true on success, else false
  */
@@ -741,8 +803,8 @@ bool bacnet_timer_value_from_ascii(
 }
 
 /**
- * @brief Produce a string from a BACnetChannelValue structure
- * @param value [in] The BACnetChannelValue value
+ * @brief Produce a string from a BACnetTimerStateChangeValue structure
+ * @param value [in] The BACnetTimerStateChangeValue value
  * @param str [out] The string to produce, NULL to get length only
  * @param str_size [in] The size of the string buffer
  * @return length of the produced string
@@ -803,7 +865,7 @@ int bacnet_timer_value_to_ascii(
 }
 
 /**
- * @brief Convert an array of BACnetChannelValue to linked list
+ * @brief Convert an array of BACnetTimerStateChangeValue to linked list
  * @param array pointer to element zero of the array
  * @param size number of elements in the array
  */

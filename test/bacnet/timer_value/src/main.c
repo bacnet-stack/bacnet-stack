@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <zephyr/ztest.h>
 #include "bacnet/bactext.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/timer_value.h"
 
 /**
@@ -33,6 +34,9 @@ static void test_BACnetTimerValue(void)
     BACNET_TIMER_STATE_CHANGE_VALUE *value;
     BACNET_TIMER_STATE_CHANGE_VALUE case_value[] = {
         { .tag = BACNET_APPLICATION_TAG_NULL, .type.Real = 0.0f, .next = NULL },
+        { .tag = BACNET_APPLICATION_TAG_NO_VALUE,
+          .type.Unsigned_Int = 0,
+          .next = NULL },
         { .tag = BACNET_APPLICATION_TAG_BOOLEAN,
           .type.Boolean = false,
           .next = NULL },
@@ -62,10 +66,53 @@ static void test_BACnetTimerValue(void)
           .type.XY_Color.y_coordinate = 0.0f,
           .next = NULL },
     };
-    struct ascii_channel_value {
+    struct to_ascii_test_value {
+        const char *string;
+        BACNET_TIMER_STATE_CHANGE_VALUE value;
+    } to_ascii_values[] = {
+        { "NULL",
+          { .tag = BACNET_APPLICATION_TAG_NULL,
+            .type.Real = 0.0f,
+            .next = NULL } },
+        { "FALSE",
+          { .tag = BACNET_APPLICATION_TAG_BOOLEAN,
+            .type.Boolean = false,
+            .next = NULL } },
+        { "1234567890",
+          { .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            .type.Unsigned_Int = 1234567890,
+            .next = NULL } },
+        { "-1234567890",
+          { .tag = BACNET_APPLICATION_TAG_SIGNED_INT,
+            .type.Signed_Int = -1234567890,
+            .next = NULL } },
+        { "3.141593",
+          { .tag = BACNET_APPLICATION_TAG_REAL,
+            .type.Real = 3.141592654f,
+            .next = NULL } },
+        { "-3.141593",
+          { .tag = BACNET_APPLICATION_TAG_REAL,
+            .type.Real = -3.141592654f,
+            .next = NULL } },
+        { "0",
+          { .tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
+            .type.Lighting_Command = { .operation = BACNET_LIGHTS_NONE },
+            .next = NULL } },
+        { "1,75.000000,5,8",
+          { .tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
+            .type.Lighting_Command = { .operation = BACNET_LIGHTS_FADE_TO,
+                                       .use_fade_time = true,
+                                       .fade_time = 5,
+                                       .use_target_level = true,
+                                       .target_level = 75.0f,
+                                       .use_priority = true,
+                                       .priority = 8 },
+            .next = NULL } },
+    };
+    struct from_ascii_test_value {
         const char *string;
         BACNET_APPLICATION_TAG tag;
-    } ascii_values[] = {
+    } from_ascii_values[] = {
         { "NULL", BACNET_APPLICATION_TAG_NULL },
         { "FALSE", BACNET_APPLICATION_TAG_BOOLEAN },
         { "1234567890", BACNET_APPLICATION_TAG_UNSIGNED_INT },
@@ -85,6 +132,7 @@ static void test_BACnetTimerValue(void)
     };
     size_t i;
     BACNET_TIMER_STATE_CHANGE_VALUE test_value = { 0 };
+    char test_string[64];
 
     bacnet_timer_value_link_array(case_value, ARRAY_SIZE(case_value));
     value = &case_value[0];
@@ -97,6 +145,10 @@ static void test_BACnetTimerValue(void)
         zassert_equal(
             apdu_len, null_len, "value->tag: %s len=%d null_len=%d",
             bactext_application_tag_name(value->tag), apdu_len, null_len);
+        null_len = bacnet_timer_value_decode(NULL, apdu_len, &test_value);
+        zassert_equal(null_len, BACNET_STATUS_ERROR, NULL);
+        null_len = bacnet_timer_value_decode(apdu, apdu_len, NULL);
+        zassert_equal(null_len, BACNET_STATUS_ERROR, NULL);
         test_len = bacnet_timer_value_decode(apdu, apdu_len, &test_value);
         zassert_not_equal(
             test_len, BACNET_STATUS_ERROR, "value->tag: %s test_len=%d",
@@ -120,14 +172,36 @@ static void test_BACnetTimerValue(void)
             bactext_application_tag_name(value->tag));
         value = value->next;
     }
-    for (i = 0; i < ARRAY_SIZE(ascii_values); i++) {
-        status =
-            bacnet_timer_value_from_ascii(&test_value, ascii_values[i].string);
-        zassert_true(status, "from_ascii: failed: %s", ascii_values[i].string);
+    for (i = 0; i < ARRAY_SIZE(from_ascii_values); i++) {
+        status = bacnet_timer_value_from_ascii(
+            &test_value, from_ascii_values[i].string);
+        zassert_true(
+            status, "from_ascii: failed: %s", from_ascii_values[i].string);
         zassert_equal(
-            test_value.tag, ascii_values[i].tag, "from_ascii: %s",
-            ascii_values[i].string);
+            test_value.tag, from_ascii_values[i].tag, "from_ascii: %s",
+            from_ascii_values[i].string);
     }
+    for (i = 0; i < ARRAY_SIZE(to_ascii_values); i++) {
+        status = bacnet_timer_value_to_ascii(
+            &to_ascii_values[i].value, test_string, sizeof(test_string));
+        zassert_true(status, "to_ascii: failed: %s", to_ascii_values[i].string);
+        if (status) {
+            zassert_true(
+                bacnet_stricmp(test_string, to_ascii_values[i].string) == 0,
+                "to_ascii: failed: got %s expected: %s", test_string,
+                to_ascii_values[i].string);
+        }
+    }
+    /* no-value API */
+    null_len = bacnet_timer_value_no_value_encode(NULL, 0);
+    zassert_not_equal(null_len, 0, NULL);
+    apdu_len = bacnet_timer_value_no_value_encode(apdu, 0);
+    zassert_not_equal(apdu_len, 0, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+    test_len = bacnet_timer_value_no_value_decode(NULL, 0, 0);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    test_len = bacnet_timer_value_no_value_decode(apdu, apdu_len, 0);
+    zassert_equal(apdu_len, test_len, NULL);
 }
 
 /**
