@@ -42,6 +42,7 @@ static OS_Keylist Object_List = NULL;
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_TIMER;
 
 struct object_data {
+    BACNET_UNSIGNED_INTEGER Present_Value;
     BACNET_TIMER_STATE Timer_State;
     BACNET_TIMER_TRANSITION Last_State_Change;
     BACNET_DATE_TIME Update_Time;
@@ -76,14 +77,21 @@ static const int Properties_Required[] = {
 
 static const int Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION,          PROP_INSTANCE_OF,
-    PROP_RELIABILITY,          PROP_OUT_OF_SERVICE,
-    PROP_UPDATE_TIME,          PROP_LAST_STATE_CHANGE,
-    PROP_EXPIRATION_TIME,      PROP_INITIAL_TIMEOUT,
-    PROP_DEFAULT_TIMEOUT,      PROP_MIN_PRES_VALUE,
-    PROP_MAX_PRES_VALUE,       PROP_RESOLUTION,
-    PROP_STATE_CHANGE_VALUES,  PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
-    PROP_PRIORITY_FOR_WRITING, -1
+    PROP_DESCRIPTION,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_UPDATE_TIME,
+    PROP_LAST_STATE_CHANGE,
+    PROP_EXPIRATION_TIME,
+    PROP_INITIAL_TIMEOUT,
+    PROP_DEFAULT_TIMEOUT,
+    PROP_MIN_PRES_VALUE,
+    PROP_MAX_PRES_VALUE,
+    PROP_RESOLUTION,
+    PROP_STATE_CHANGE_VALUES,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
+    PROP_PRIORITY_FOR_WRITING,
+    -1
 };
 
 static const int Properties_Proprietary[] = { -1 };
@@ -126,7 +134,7 @@ static struct object_data *Object_Data(uint32_t object_instance)
 }
 
 /**
- * Determines if a given Integer Value instance is valid
+ * Determines if a given Timer instance is valid
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -140,9 +148,9 @@ bool Timer_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * Determines the number of Integer Value objects
+ * Determines the number of Timer objects
  *
- * @return  Number of Integer Value objects
+ * @return  Number of Timer objects
  */
 unsigned Timer_Count(void)
 {
@@ -151,7 +159,7 @@ unsigned Timer_Count(void)
 
 /**
  * Determines the object instance-number for a given 0..N index
- * of Integer Value objects where N is Timer_Count().
+ * of Timer objects where N is Timer_Count().
  *
  * @param  index - 0..MAX_PROGRAMS value
  *
@@ -168,7 +176,7 @@ uint32_t Timer_Index_To_Instance(unsigned index)
 
 /**
  * For a given object instance-number, determines a 0..N index
- * of Integer Value objects where N is Timer_Count().
+ * of Timer objects where N is Timer_Count().
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -201,7 +209,16 @@ BACNET_TIMER_STATE Timer_State(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the program-state
+ * @brief For a given object instance-number, sets the timer-state
+ * @details This property, of type BACnetTimerState, indicates the
+ *  current state of the timer this object represents.
+ *  To clear the timer, i.e. to request the timer to enter the IDLE state,
+ *  a value of IDLE is written to this property.
+ *
+ *  Writing this value to this property while in the RUNNING or EXPIRED
+ *  state will force the timer to enter the IDLE state.
+ *  If already in the IDLE state, no state transition occurs
+ *  if this value is written.
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - integer value
@@ -215,7 +232,85 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Timer_State = value;
+        if (value == TIMER_STATE_IDLE) {
+            /* Writing a value other than IDLE to this property
+               shall cause a Result(-) to be returned */
+            if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                pObject->Last_State_Change = TIMER_TRANSITION_RUNNING_TO_IDLE;
+            } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
+                pObject->Last_State_Change = TIMER_TRANSITION_EXPIRED_TO_IDLE;
+            }
+            pObject->Timer_State = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the timer
+ *  running status.
+ * @param  object_instance - object-instance number of the object
+ * @return TRUE if the current state of the timer is RUNNING, otherwise FALSE.
+ */
+bool Timer_Running(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the timer
+ *  running status
+ * @details Writing a value of TRUE to this property, in any timer state,
+ *  shall be considered a start request. Present_Value shall be set to the
+ *  value specified in the Default_Timeout property.
+ *  Writing a value of FALSE to this property while the timer is in the
+ *  RUNNING state shall be considered an expire request and shall force
+ *  the timer to transition to state EXPIRED. When writing a value of FALSE
+ *  to this property while the timer is in the EXPIRED or IDLE state,
+ *  no transition of the timer state shall occur.
+ * @param  object_instance - object-instance number of the object
+ * @return true if the running status was set
+ */
+bool Timer_Running_Set(uint32_t object_instance, bool running)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        if (running) {
+            if (pObject->Timer_State == TIMER_STATE_IDLE) {
+                pObject->Last_State_Change = TIMER_TRANSITION_IDLE_TO_RUNNING;
+            } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                pObject->Last_State_Change =
+                    TIMER_TRANSITION_RUNNING_TO_RUNNING;
+            } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
+                pObject->Last_State_Change =
+                    TIMER_TRANSITION_EXPIRED_TO_RUNNING;
+            }
+            pObject->Timer_State = TIMER_STATE_RUNNING;
+            pObject->Present_Value = pObject->Default_Timeout;
+            pObject->Initial_Timeout = pObject->Default_Timeout;
+        } else {
+            if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                pObject->Last_State_Change =
+                    TIMER_TRANSITION_RUNNING_TO_EXPIRED;
+                pObject->Timer_State = TIMER_STATE_EXPIRED;
+                pObject->Present_Value = 0;
+            }
+        }
         status = true;
     }
 
@@ -246,7 +341,7 @@ bool Timer_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                text, sizeof(text), "PROGRAM-%lu",
+                text, sizeof(text), "TIMER-%lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, text);
         }
@@ -361,231 +456,23 @@ const char *Timer_Description_ANSI(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, return the Description_Of_Halt.
- *
- * @param  object_instance - object-instance number of the object
- * @param  description - description pointer
- *
- * @return  true/false
- */
-bool Timer_Description_Of_Halt(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        if (pObject->Description_Of_Halt) {
-            status = characterstring_init_ansi(
-                description, pObject->Description_Of_Halt);
-        } else {
-            status = characterstring_init_ansi(description, "");
-        }
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, sets the Description_Of_Halt
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- * @return  true if string was set
- */
-bool Timer_Description_Of_Halt_Set(
-    uint32_t object_instance, const char *new_name)
-{
-    bool status = false; /* return value */
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        status = true;
-        pObject->Description_Of_Halt = new_name;
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, returns the Description_Of_Halt
- * @param  object_instance - object-instance number of the object
- * @return text or NULL if not found
- */
-const char *Timer_Description_Of_Halt_ANSI(uint32_t object_instance)
-{
-    const char *name = NULL;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        if (pObject->Description_Of_Halt == NULL) {
-            name = "";
-        } else {
-            name = pObject->Description_Of_Halt;
-        }
-    }
-
-    return name;
-}
-
-/**
- * For a given object instance-number, return the Description_Of_Halt.
- *
- * @param  object_instance - object-instance number of the object
- * @param  description - description pointer
- *
- * @return  true/false
- */
-bool Timer_Location(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        if (pObject->Timer_Location) {
-            status =
-                characterstring_init_ansi(description, pObject->Timer_Location);
-        } else {
-            status = characterstring_init_ansi(description, "");
-        }
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, sets the Timer_Location
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- * @return  true if string was set
- */
-bool Timer_Location_Set(uint32_t object_instance, const char *new_name)
-{
-    bool status = false; /* return value */
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        status = true;
-        pObject->Timer_Location = new_name;
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, returns the Timer_Location
- * @param  object_instance - object-instance number of the object
- * @return text or NULL if not found
- */
-const char *Timer_Location_ANSI(uint32_t object_instance)
-{
-    const char *name = NULL;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        if (pObject->Timer_Location == NULL) {
-            name = "";
-        } else {
-            name = pObject->Timer_Location;
-        }
-    }
-
-    return name;
-}
-
-/**
- * For a given object instance-number, return the Instance_Of string
- *
- * @param  object_instance - object-instance number of the object
- * @param  description - description pointer
- *
- * @return  true/false if the string was found
- */
-bool Timer_Instance_Of(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        if (pObject->Instance_Of) {
-            status =
-                characterstring_init_ansi(description, pObject->Instance_Of);
-        } else {
-            status = characterstring_init_ansi(description, "");
-        }
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, sets the Instance_Of
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- * @return  true if string was set
- */
-bool Timer_Instance_Of_Set(uint32_t object_instance, const char *new_name)
-{
-    bool status = false; /* return value */
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        status = true;
-        pObject->Instance_Of = new_name;
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, returns the Instance_Of
- * @param  object_instance - object-instance number of the object
- * @return text or NULL if not found
- */
-const char *Timer_Instance_Of_ANSI(uint32_t object_instance)
-{
-    const char *name = NULL;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        if (pObject->Instance_Of == NULL) {
-            name = "";
-        } else {
-            name = pObject->Instance_Of;
-        }
-    }
-
-    return name;
-}
-
-/**
  * For a given object instance-number, returns the program change value
  *
  * @param  object_instance - object-instance number of the object
  *
  * @return  program change property value
  */
-BACNET_PROGRAM_REQUEST Timer_Change(uint32_t object_instance)
+BACNET_TIMER_TRANSITION Timer_Last_State_Change(uint32_t object_instance)
 {
-    BACNET_PROGRAM_REQUEST program_change = PROGRAM_REQUEST_READY;
+    BACNET_TIMER_TRANSITION change = TIMER_TRANSITION_NONE;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        program_change = pObject->Timer_Change;
+        change = pObject->Last_State_Change;
     }
 
-    return program_change;
+    return change;
 }
 
 /**
@@ -596,106 +483,15 @@ BACNET_PROGRAM_REQUEST Timer_Change(uint32_t object_instance)
  *
  * @return true if the program change property value was set
  */
-bool Timer_Change_Set(
-    uint32_t object_instance, BACNET_PROGRAM_REQUEST program_change)
+bool Timer_Last_State_Change_Set(
+    uint32_t object_instance, BACNET_TIMER_TRANSITION change)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Timer_Change = program_change;
-        status = true;
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, writes the program change value
- *
- * Normally the value of the Timer_Change property will be READY,
- * meaning that the program is ready to accept a new
- * request to change its operating state. If the Timer_Change
- * property is not READY, then it may not be written to and any
- * attempt to write to the property shall return a Result(-).
- * If it has one of the other enumerated values, then a previous
- * request to change state has not yet been honored, so new requests
- * cannot be accepted. When the request to change state is finally
- * honored, then the Timer_Change property value shall become
- * READY and the new state shall be reflected in the Timer_State property.
- *
- * @param object_instance - object-instance number of the object
- * @param program_change - property value
- * @param error_class - BACNET_ERROR_CLASS
- * @param error_code - BACNET_ERROR_CODE
- * @return true if the program change property value was written
- */
-static bool Timer_Change_Write(
-    uint32_t object_instance,
-    BACNET_PROGRAM_REQUEST program_change,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE *error_code)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        if (pObject->Timer_Change == PROGRAM_REQUEST_READY) {
-            if (program_change <= PROGRAM_REQUEST_MAX) {
-                pObject->Timer_Change = program_change;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            }
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        }
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, returns the Reason_For_Halt
- *
- * @param object_instance - object-instance number of the object
- *
- * @return Reason_For_Halt property value
- */
-BACNET_PROGRAM_ERROR Timer_Reason_For_Halt(uint32_t object_instance)
-{
-    BACNET_PROGRAM_ERROR reason = PROGRAM_ERROR_NORMAL;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        reason = pObject->Reason_For_Halt;
-    }
-
-    return reason;
-}
-
-/**
- * For a given object instance-number, sets the Reason_For_Halt property value
- *
- * @param object_instance - object-instance number of the object
- * @param program_change - property value
- *
- * @return true if the Reason_For_Halt property value was set
- */
-bool Timer_Reason_For_Halt_Set(
-    uint32_t object_instance, BACNET_PROGRAM_ERROR reason)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Reason_For_Halt = reason;
+        pObject->Last_State_Change = change;
         status = true;
     }
 
@@ -802,6 +598,205 @@ bool Timer_Reliability_Set(uint32_t object_instance, BACNET_RELIABILITY value)
 }
 
 /**
+ * @brief Return the present-value for a specific object instance
+ * @param object_instance [in] BACnet network port object instance number
+ * @return the present-value for a specific object instance
+ */
+BACNET_UNSIGNED_INTEGER Timer_Present_Value(uint32_t object_instance)
+{
+    BACNET_UNSIGNED_INTEGER value = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Present_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Return the present-value for a specific object instance
+ * @details Writing a value to this property that is within the supported
+ *  range, defined by Min_Pres_Value and Max_Pres_Value, shall force
+ *  the timer to transition to the RUNNING state.
+ *  The value written shall be used as the initial timeout
+ *  and set into the Initial_Timeout property.
+ *
+ *  Writing a value of zero to this property while the timer
+ *  is in the RUNNING state shall be considered an expire request
+ *  and force the timer state to transition to state EXPIRED.
+ *  If a value of zero is written to the property while the timer
+ *  is in the EXPIRED or IDLE state, then no transition of the
+ *  timer state shall occur.
+ *
+ * @param object_instance [in] BACnet network port object instance number
+ * @return the present-value for a specific object instance
+ */
+bool Timer_Present_Value_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (value == 0) {
+            pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
+            pObject->Present_Value = value;
+            pObject->Timer_State = TIMER_STATE_EXPIRED;
+        } else {
+            pObject->Present_Value = value;
+            pObject->Initial_Timeout = value;
+            if (pObject->Timer_State == TIMER_STATE_IDLE) {
+                pObject->Last_State_Change = TIMER_TRANSITION_IDLE_TO_RUNNING;
+            } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                pObject->Last_State_Change =
+                    TIMER_TRANSITION_RUNNING_TO_RUNNING;
+            } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
+                pObject->Last_State_Change =
+                    TIMER_TRANSITION_EXPIRED_TO_RUNNING;
+            }
+            pObject->Timer_State = TIMER_STATE_RUNNING;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * @brief Get the update-time property value for the object-instance specified
+ * @param object_instance [in] BACnet network port object instance number
+ * @return true if property value was retrieved
+ */
+bool Timer_Update_Time(uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        datetime_copy(bdatetime, &pObject->Update_Time);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set a member element of a given BACnetLIST object property
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+static bool Timer_List_Of_Object_Property_References_Member_Set(
+    struct object_data *pObject,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    if (pObject && (index < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX)) {
+        if (pMember) {
+            status = bacnet_device_object_property_reference_copy(
+                &pObject->Manipulated_Properties[index], pMember);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set a member element of a given BACnetLIST object property
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+bool Timer_List_Of_Object_Property_References_Set(
+    uint32_t object_instance,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = Timer_List_Of_Object_Property_References_Member_Set(
+            pObject, index, pMember);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set a member element of a given BACnetLIST object property
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value
+ * @return true if set, false if not set
+ */
+bool Timer_List_Of_Object_Property_References_Member(
+    uint32_t object_instance,
+    unsigned index,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (index < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX) {
+            if (pMember) {
+                status = bacnet_device_object_property_reference_copy(
+                    pMember, &pObject->Manipulated_Properties[index]);
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the size of the list of object property references
+ * @param object_instance [in] BACnet network port object instance number
+ * @return The size of the list of object property references
+ */
+size_t
+Timer_List_Of_Object_Property_References_Capacity(uint32_t object_instance)
+{
+    (void)object_instance; /* unused */
+    return BACNET_TIMER_MANIPULATED_PROPERTIES_MAX;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Timer_State_Change_Value_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (index < BACNET_TIMER_STATE_CHANGE_VALUES_MAX) {
+            apdu_len = bacnet_timer_state_change_value_encode(
+                apdu, &pObject->State_Change_Values[index]);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -816,7 +811,13 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
+    BACNET_DATE_TIME bdatetime;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE prop_ref = { 0 };
+    size_t i, imax;
     uint8_t *apdu = NULL;
+    int apdu_size;
+
     uint32_t enum_value = 0;
     bool state = false;
 
@@ -825,6 +826,7 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -838,12 +840,6 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
             break;
-        case PROP_DESCRIPTION:
-            if (Timer_Description(rpdata->object_instance, &char_string)) {
-                apdu_len =
-                    encode_application_character_string(&apdu[0], &char_string);
-            }
-            break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
@@ -854,37 +850,19 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
-        case PROP_OUT_OF_SERVICE:
-            state = Timer_Out_Of_Service(rpdata->object_instance);
-            apdu_len = encode_application_boolean(&apdu[0], state);
-            break;
-        case PROP_PROGRAM_STATE:
+        case PROP_TIMER_STATE:
             enum_value = Timer_State(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], enum_value);
             break;
-        case PROP_PROGRAM_CHANGE:
-            enum_value = Timer_Change(rpdata->object_instance);
-            apdu_len = encode_application_enumerated(&apdu[0], enum_value);
+        case PROP_PRESENT_VALUE:
+            unsigned_value = Timer_Present_Value(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
-        case PROP_REASON_FOR_HALT:
-            enum_value = Timer_Reason_For_Halt(rpdata->object_instance);
-            apdu_len = encode_application_enumerated(&apdu[0], enum_value);
             break;
-        case PROP_DESCRIPTION_OF_HALT:
-            if (Timer_Description_Of_Halt(
-                    rpdata->object_instance, &char_string)) {
-                apdu_len =
-                    encode_application_character_string(&apdu[0], &char_string);
-            }
+        case PROP_TIMER_RUNNING:
             break;
-        case PROP_PROGRAM_LOCATION:
-            if (Timer_Location(rpdata->object_instance, &char_string)) {
-                apdu_len =
-                    encode_application_character_string(&apdu[0], &char_string);
-            }
-            break;
-        case PROP_INSTANCE_OF:
-            if (Timer_Instance_Of(rpdata->object_instance, &char_string)) {
+        case PROP_DESCRIPTION:
+            if (Timer_Description(rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
@@ -892,6 +870,70 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_RELIABILITY:
             enum_value = Timer_Reliability(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], enum_value);
+            break;
+        case PROP_OUT_OF_SERVICE:
+            state = Timer_Out_Of_Service(rpdata->object_instance);
+            apdu_len = encode_application_boolean(&apdu[0], state);
+            break;
+        case PROP_UPDATE_TIME:
+            Timer_Update_Time(rpdata->object_instance, &bdatetime);
+            apdu_len = bacapp_encode_datetime(&apdu[0], &bdatetime);
+            break;
+        case PROP_LAST_STATE_CHANGE:
+            enum_value = Timer_Last_State_Change(rpdata->object_instance);
+            apdu_len = encode_application_enumerated(&apdu[0], enum_value);
+            break;
+        case PROP_EXPIRATION_TIME:
+            Timer_Expiration_Time(rpdata->object_instance, &bdatetime);
+            apdu_len = bacapp_encode_datetime(&apdu[0], &bdatetime);
+            break;
+        case PROP_INITIAL_TIMEOUT:
+            unsigned_value = Timer_Initial_Timeout(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
+            break;
+        case PROP_DEFAULT_TIMEOUT:
+            unsigned_value = Timer_Default_Timeout(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
+            break;
+        case PROP_MIN_PRES_VALUE:
+            unsigned_value = Timer_Min_Pres_Value(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
+            break;
+        case PROP_MAX_PRES_VALUE:
+            unsigned_value = Timer_Max_Pres_Value(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
+            break;
+        case PROP_RESOLUTION:
+            unsigned_value = Timer_Resolution(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
+            break;
+        case PROP_STATE_CHANGE_VALUES:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Timer_State_Change_Value_Encode,
+                BACNET_TIMER_STATE_CHANGE_VALUES_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+            imax = Timer_List_Of_Object_Property_References_Capacity(
+                rpdata->object_instance);
+            for (i = 0; i < imax; i++) {
+                Timer_List_Of_Object_Property_References_Member(
+                    rpdata->object_instance, i, &prop_ref);
+                apdu_len += bacapp_encode_device_obj_property_ref(
+                    &apdu[apdu_len], &prop_ref);
+            }
+            break;
+        case PROP_PRIORITY_FOR_WRITING:
+            unsigned_value =
+                Timer_Priority_For_Writing(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -929,12 +971,12 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
-        case PROP_PROGRAM_CHANGE:
+        case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Timer_Change_Write(
-                    wp_data->object_instance, value.type.Enumerated,
+                status = Present_Value_Write(
+                    wp_data->object_instance, value.type.Unsigned_Int,
                     &wp_data->error_class, &wp_data->error_code);
             }
             break;
@@ -994,262 +1036,13 @@ void Timer_Context_Set(uint32_t object_instance, void *context)
 }
 
 /**
- * @brief Set the Load function for the object
- * @param object_instance [in] BACnet object instance number
- * @param load [in] pointer to the Load function
- * @note function should return 0 for success, negative on error
- */
-void Timer_Load_Set(uint32_t object_instance, int (*load)(void *context))
-{
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Load = load;
-    }
-}
-
-/**
- * @brief Set the Run function for the object
- * @param object_instance [in] BACnet object instance number
- * @param run [in] pointer to the Run function
- * @note function should return 0 for success, negative on error
- */
-void Timer_Run_Set(uint32_t object_instance, int (*run)(void *context))
-{
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Run = run;
-    }
-}
-
-/**
- * @brief Set the Halt function for the object
- * @param object_instance [in] BACnet object instance number
- * @param halt [in] pointer to the Halt function
- * @note function should return 0 for success, negative on error
- */
-void Timer_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
-{
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Halt = halt;
-    }
-}
-
-/**
- * @brief Set the Restart function for the object
- * @param object_instance [in] BACnet object instance number
- * @param restart [in] pointer to the Restart function
- * @note function should return 0 for success, negative on error
- */
-void Timer_Restart_Set(uint32_t object_instance, int (*restart)(void *context))
-{
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Restart = restart;
-    }
-}
-
-/**
- * @brief Set the Unload function for the object
- * @param object_instance [in] BACnet object instance number
- * @param unload [in] pointer to the Unload function
- * @note function should return 0 for success, negative on error
- */
-void Timer_Unload_Set(uint32_t object_instance, int (*unload)(void *context))
-{
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Unload = unload;
-    }
-}
-
-/**
- * @brief Handle the IDLE state of the program
- * @param pObject [in] pointer to the object data
- */
-static void Timer_State_Idle_Handler(struct object_data *pObject)
-{
-    int err;
-
-    if (pObject->Timer_Change == PROGRAM_REQUEST_LOAD) {
-        if (pObject->Load) {
-            err = pObject->Load(pObject->Context);
-            if (err == 0) {
-                pObject->Timer_State = PROGRAM_STATE_LOADING;
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
-            }
-        } else {
-            pObject->Timer_State = PROGRAM_STATE_LOADING;
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-        }
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_RUN) {
-        if (pObject->Load) {
-            err = pObject->Load(pObject->Context);
-            if (err == 0) {
-                pObject->Timer_State = PROGRAM_STATE_RUNNING;
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_RUNNING;
-        }
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_RESTART) {
-        if (pObject->Restart) {
-            err = pObject->Restart(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Timer_State = PROGRAM_STATE_RUNNING;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_RUNNING;
-        }
-    }
-}
-
-/**
- * @brief Handle the HALTED state of the program
- * @param pObject [in] pointer to the object data
- */
-static void Timer_State_Halted_Handler(struct object_data *pObject)
-{
-    int err;
-
-    if (pObject->Timer_Change == PROGRAM_REQUEST_UNLOAD) {
-        if (pObject->Unload) {
-            err = pObject->Unload(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Timer_State = PROGRAM_STATE_UNLOADING;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_UNLOADING;
-        }
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_LOAD) {
-        if (pObject->Load) {
-            err = pObject->Load(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Timer_State = PROGRAM_STATE_LOADING;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_LOADING;
-        }
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_RUN) {
-        pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-        pObject->Timer_State = PROGRAM_STATE_RUNNING;
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_RESTART) {
-        if (pObject->Restart) {
-            err = pObject->Restart(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Timer_State = PROGRAM_STATE_RUNNING;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_RUNNING;
-        }
-    }
-}
-
-/**
- * @brief Handle the RUNNING state of the program
- * @param pObject [in] pointer to the object data
- */
-static void Timer_State_Running_Handler(struct object_data *pObject)
-{
-    int err;
-
-    if (pObject->Timer_Change == PROGRAM_REQUEST_UNLOAD) {
-        if (pObject->Unload) {
-            err = pObject->Unload(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Timer_State = PROGRAM_STATE_UNLOADING;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_UNLOADING;
-        }
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_LOAD) {
-        if (pObject->Load) {
-            err = pObject->Load(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Timer_State = PROGRAM_STATE_LOADING;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_LOAD_FAILED;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_LOADING;
-        }
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_HALT) {
-        if (pObject->Halt) {
-            pObject->Halt(pObject->Context);
-        }
-        pObject->Reason_For_Halt = PROGRAM_ERROR_PROGRAM;
-        pObject->Timer_State = PROGRAM_STATE_HALTED;
-    } else if (pObject->Timer_Change == PROGRAM_REQUEST_RESTART) {
-        if (pObject->Restart) {
-            err = pObject->Restart(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-                pObject->Timer_State = PROGRAM_STATE_RUNNING;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_OTHER;
-            }
-        } else {
-            pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            pObject->Timer_State = PROGRAM_STATE_RUNNING;
-        }
-    } else {
-        if (pObject->Run) {
-            err = pObject->Run(pObject->Context);
-            if (err == 0) {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-            } else {
-                pObject->Reason_For_Halt = PROGRAM_ERROR_INTERNAL;
-                pObject->Timer_State = PROGRAM_STATE_HALTED;
-            }
-        }
-    }
-}
-
-/**
  * @brief Updates the object program operation
  *
- * 12.22.5 Timer_Change
+ * 12.22.5 Last_State_Change
  *
  * This property, of type BACnetProgramRequest, is used to request changes
  * to the operating state of the process this object represents.
- * The Timer_Change property provides one means for changing
+ * The Last_State_Change property provides one means for changing
  * the operating state of this process. The process may change its own
  * state as a consequence of execution as well.
  *
@@ -1261,18 +1054,18 @@ static void Timer_State_Running_Handler(struct object_data *pObject)
  *   RESTART request that the process restart at its initialization point
  *   UNLOAD request that the process halt execution and unload
  *
- * Normally the value of the Timer_Change property will be READY,
+ * Normally the value of the Last_State_Change property will be READY,
  * meaning that the program is ready to accept a new
- * request to change its operating state. If the Timer_Change property
+ * request to change its operating state. If the Last_State_Change property
  * is not READY, then it may not be written to and any
  * attempt to write to the property shall return a Result(-).
  * If it has one of the other enumerated values, then a previous request to
  * change state has not yet been honored, so new requests cannot
  * be accepted. When the request to change state is finally
- * honored, then the Timer_Change property value shall become READY
+ * honored, then the Last_State_Change property value shall become READY
  * and the new state shall be reflected in the Timer_State property.
  * Depending on the current Timer_State, certain requested values for
- * Timer_Change may be invalid and would also return a Result(-)
+ * Last_State_Change may be invalid and would also return a Result(-)
  * if an attempt were made to write them.
  *
  * It is important to note that program loading could be terminated
@@ -1293,42 +1086,39 @@ static void Timer_State_Running_Handler(struct object_data *pObject)
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed
  */
-void Timer_Timer(uint32_t object_instance, uint16_t milliseconds)
+void Timer_Task(uint32_t object_instance, uint16_t milliseconds)
 {
     struct object_data *pObject;
 
-    (void)milliseconds;
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         switch (pObject->Timer_State) {
-            case PROGRAM_STATE_IDLE:
-                Timer_State_Idle_Handler(pObject);
+            case TIMER_STATE_IDLE:
+                /* do nothing */
                 break;
-            case PROGRAM_STATE_LOADING:
-                pObject->Timer_State = PROGRAM_STATE_HALTED;
+            case TIMER_STATE_RUNNING:
+                if (pObject->Present_Value > milliseconds) {
+                    pObject->Present_Value -= milliseconds;
+                } else {
+                    /* expired */
+                    pObject->Present_Value = 0;
+                    pObject->Timer_State = TIMER_STATE_EXPIRED;
+                    pObject->Last_State_Change =
+                        TIMER_TRANSITION_RUNNING_TO_EXPIRED;
+                }
                 break;
-            case PROGRAM_STATE_UNLOADING:
-                pObject->Timer_State = PROGRAM_STATE_IDLE;
-                break;
-            case PROGRAM_STATE_HALTED:
-                Timer_State_Halted_Handler(pObject);
-                break;
-            case PROGRAM_STATE_RUNNING:
-                Timer_State_Running_Handler(pObject);
-                break;
-            case PROGRAM_STATE_WAITING:
-                Timer_State_Running_Handler(pObject);
+            case TIMER_STATE_EXPIRED:
+                /* do nothing */
                 break;
             default:
                 /* do nothing */
                 break;
         }
-        pObject->Timer_Change = PROGRAM_REQUEST_READY;
     }
 }
 
 /**
- * @brief Creates a Integer Value object
+ * @brief Creates a Timer object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
@@ -1366,22 +1156,23 @@ uint32_t Timer_Create(uint32_t object_instance)
         free(pObject);
         return BACNET_MAX_INSTANCE;
     }
-    pObject->Timer_State = PROGRAM_STATE_IDLE;
-    pObject->Timer_Change = PROGRAM_REQUEST_READY;
-    pObject->Reason_For_Halt = PROGRAM_ERROR_NORMAL;
-    pObject->Description_Of_Halt = NULL;
-    pObject->Timer_Location = NULL;
-    pObject->Instance_Of = NULL;
+    pObject->Timer_State = TIMER_STATE_IDLE;
+    pObject->Last_State_Change = TIMER_TRANSITION_NONE;
+    datetime_set_values(&pObject->Update_Time, 2025, 1, 1, 0, 0, 0, 0);
+    datetime_set_values(&pObject->Expiration_Time, 2154, 1, 1, 0, 0, 0, 0);
+    pObject->Initial_Timeout = 0;
+    pObject->Default_Timeout = 0;
+    pObject->Min_Pres_Value = 0;
+    pObject->Max_Pres_Value = 0;
+    pObject->Resolution = 0;
+    pObject->Priority_For_Writing = 0;
     pObject->Description = NULL;
     pObject->Object_Name = NULL;
     pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
+    pObject->Timer_Running = false;
     pObject->Out_Of_Service = false;
+    pObject->Changed = false;
     pObject->Context = NULL;
-    pObject->Load = NULL;
-    pObject->Run = NULL;
-    pObject->Halt = NULL;
-    pObject->Restart = NULL;
-    pObject->Unload = NULL;
 
     return object_instance;
 }
