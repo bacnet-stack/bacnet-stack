@@ -99,97 +99,97 @@ int bacnet_timer_state_change_value_encode(
         case BACNET_APPLICATION_TAG_NULL:
             apdu_len = encode_application_null(apdu);
             break;
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             apdu_len = encode_application_boolean(apdu, value->type.Boolean);
             break;
 #endif
-#if defined(BACNET_TIMER_UNSIGNED)
+#if defined(BACNET_TIMER_VALUE_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             apdu_len =
                 encode_application_unsigned(apdu, value->type.Unsigned_Int);
             break;
 #endif
-#if defined(BACNET_TIMER_SIGNED)
+#if defined(BACNET_TIMER_VALUE_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             apdu_len = encode_application_signed(apdu, value->type.Signed_Int);
             break;
 #endif
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             apdu_len = encode_application_real(apdu, value->type.Real);
             break;
 #endif
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
             apdu_len = encode_application_double(apdu, value->type.Double);
             break;
 #endif
-#if defined(BACNET_TIMER_OCTET_STRING)
+#if defined(BACNET_TIMER_VALUE_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
             apdu_len = encode_application_octet_string(
                 apdu, &value->type.Octet_String);
             break;
 #endif
-#if defined(BACNET_TIMER_CHARACTER_STRING)
+#if defined(BACNET_TIMER_VALUE_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
             apdu_len = encode_application_character_string(
                 apdu, &value->type.Character_String);
             break;
 #endif
-#if defined(BACNET_TIMER_BIT_STRING)
+#if defined(BACNET_TIMER_VALUE_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
             apdu_len =
                 encode_application_bitstring(apdu, &value->type.Bit_String);
             break;
 #endif
-#if defined(BACNET_TIMER_ENUMERATED)
+#if defined(BACNET_TIMER_VALUE_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             apdu_len =
                 encode_application_enumerated(apdu, value->type.Enumerated);
             break;
 #endif
-#if defined(BACNET_TIMER_DATE)
+#if defined(BACNET_TIMER_VALUE_DATE)
         case BACNET_APPLICATION_TAG_DATE:
             apdu_len = encode_application_date(apdu, &value->type.Date);
             break;
 #endif
-#if defined(BACNET_TIMER_TIME)
+#if defined(BACNET_TIMER_VALUE_TIME)
         case BACNET_APPLICATION_TAG_TIME:
             apdu_len = encode_application_time(apdu, &value->type.Time);
             break;
 #endif
-#if defined(BACNET_TIMER_OBJECT_ID)
+#if defined(BACNET_TIMER_VALUE_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             apdu_len = encode_application_object_id(
                 apdu, (int)value->type.Object_Id.type,
                 value->type.Object_Id.instance);
             break;
 #endif
-#if defined(BACNET_TIMER_NO_VALUE)
+#if defined(BACNET_TIMER_VALUE_NO_VALUE)
         case BACNET_APPLICATION_TAG_NO_VALUE:
             apdu_len = bacnet_timer_value_no_value_encode(apdu, 0);
             break;
 #endif
-#if defined(BACNET_TIMER_DATETIME)
+#if defined(BACNET_TIMER_VALUE_DATETIME)
         case BACNET_APPLICATION_TAG_DATETIME:
             apdu_len =
                 bacapp_encode_context_datetime(apdu, 2, &value->type.Date_Time);
             break;
 #endif
-#if defined(BACNET_TIMER_LIGHTING_COMMAND)
+#if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             apdu_len = lighting_command_encode_context(
                 apdu, 3, &value->type.Lighting_Command);
             break;
 #endif
-#if defined(BACNET_TIMER_COLOR_COMMAND)
+#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
         case BACNET_APPLICATION_TAG_COLOR_COMMAND:
             apdu_len = color_command_context_encode(
                 apdu, 4, &value->type.Color_Command);
             break;
 #endif
-#if defined(BACNET_TIMER_XY_COLOR)
+#if defined(BACNET_TIMER_VALUE_XY_COLOR)
         case BACNET_APPLICATION_TAG_XY_COLOR:
             apdu_len = xy_color_context_encode(apdu, 5, &value->type.XY_Color);
             break;
@@ -223,72 +223,72 @@ int bacnet_timer_state_change_value_decode(
         case BACNET_APPLICATION_TAG_NULL:
             /* nothing else to do */
             break;
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             value->type.Boolean = decode_boolean(len_value_type);
             break;
 #endif
-#if defined(BACNET_TIMER_UNSIGNED)
+#if defined(BACNET_TIMER_VALUE_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             len = bacnet_unsigned_decode(
                 apdu, apdu_size, len_value_type, &value->type.Unsigned_Int);
             break;
 #endif
-#if defined(BACNET_TIMER_SIGNED)
+#if defined(BACNET_TIMER_VALUE_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             len = bacnet_signed_decode(
                 apdu, apdu_size, len_value_type, &value->type.Signed_Int);
             break;
 #endif
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             len = bacnet_real_decode(
                 apdu, apdu_size, len_value_type, &(value->type.Real));
             break;
 #endif
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
             len = bacnet_double_decode(
                 apdu, apdu_size, len_value_type, &(value->type.Double));
             break;
 #endif
-#if defined(BACNET_TIMER_OCTET_STRING)
+#if defined(BACNET_TIMER_VALUE_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
             len = bacnet_octet_string_decode(
                 apdu, apdu_size, len_value_type, &value->type.Octet_String);
             break;
 #endif
-#if defined(BACNET_TIMER_CHARACTER_STRING)
+#if defined(BACNET_TIMER_VALUE_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
             len = bacnet_character_string_decode(
                 apdu, apdu_size, len_value_type, &value->type.Character_String);
             break;
 #endif
-#if defined(BACNET_TIMER_BIT_STRING)
+#if defined(BACNET_TIMER_VALUE_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
             len = bacnet_bitstring_decode(
                 apdu, apdu_size, len_value_type, &value->type.Bit_String);
             break;
 #endif
-#if defined(BACNET_TIMER_ENUMERATED)
+#if defined(BACNET_TIMER_VALUE_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             len = bacnet_enumerated_decode(
                 apdu, apdu_size, len_value_type, &value->type.Enumerated);
             break;
 #endif
-#if defined(BACNET_TIMER_DATE)
+#if defined(BACNET_TIMER_VALUE_DATE)
         case BACNET_APPLICATION_TAG_DATE:
             len = bacnet_date_decode(
                 apdu, apdu_size, len_value_type, &value->type.Date);
             break;
 #endif
-#if defined(BACNET_TIMER_TIME)
+#if defined(BACNET_TIMER_VALUE_TIME)
         case BACNET_APPLICATION_TAG_TIME:
             len = bacnet_time_decode(
                 apdu, apdu_size, len_value_type, &value->type.Time);
             break;
 #endif
-#if defined(BACNET_TIMER_OBJECT_ID)
+#if defined(BACNET_TIMER_VALUE_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             len = bacnet_object_id_decode(
                 apdu, apdu_size, len_value_type, &value->type.Object_Id.type,
@@ -388,7 +388,7 @@ int bacnet_timer_value_decode(
                 case 2:
                     /* datetime[2] BACnetDateTime */
                     value->tag = BACNET_APPLICATION_TAG_DATETIME;
-#if defined(BACNET_TIMER_DATETIME)
+#if defined(BACNET_TIMER_VALUE_DATETIME)
                     len = bacnet_datetime_decode(
                         &apdu[apdu_len], apdu_size - apdu_len,
                         &value->type.Date_Time);
@@ -397,7 +397,7 @@ int bacnet_timer_value_decode(
                 case 3:
                     /* lighting-command[3] BACnetLightingCommand */
                     value->tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
-#if defined(BACNET_TIMER_LIGHTING_COMMAND)
+#if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
                     len = lighting_command_decode(
                         &apdu[apdu_len], apdu_size - apdu_len,
                         &value->type.Lighting_Command);
@@ -406,7 +406,7 @@ int bacnet_timer_value_decode(
                 case 4:
                     /* proposed: color-command[4] BACnetColorCommand */
                     value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
-#if defined(BACNET_TIMER_COLOR_COMMAND)
+#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
                     len = color_command_decode(
                         &apdu[apdu_len], apdu_size - apdu_len, NULL,
                         &value->type.Color_Command);
@@ -415,7 +415,7 @@ int bacnet_timer_value_decode(
                 case 5:
                     /* proposed: xy-color[5] BACnetXYColor */
                     value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
-#if defined(BACNET_TIMER_XY_COLOR)
+#if defined(BACNET_TIMER_VALUE_XY_COLOR)
                     len = xy_color_decode(
                         &apdu[apdu_len], apdu_size - apdu_len,
                         &value->type.XY_Color);
@@ -462,69 +462,78 @@ bool bacnet_timer_value_same(
     switch (value1->tag) {
         case BACNET_APPLICATION_TAG_NULL:
             return true;
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             return value1->type.Boolean == value2->type.Boolean;
 #endif
-#if defined(BACNET_TIMER_UNSIGNED)
+#if defined(BACNET_TIMER_VALUE_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             return value1->type.Unsigned_Int == value2->type.Unsigned_Int;
 #endif
-#if defined(BACNET_TIMER_SIGNED)
+#if defined(BACNET_TIMER_VALUE_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             return value1->type.Signed_Int == value2->type.Signed_Int;
 #endif
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             return !islessgreater(value1->type.Real, value2->type.Real);
 #endif
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
             return !islessgreater(value1->type.Double, value2->type.Double);
 #endif
-#if defined(BACNET_TIMER_OCTET_STRING)
+#if defined(BACNET_TIMER_VALUE_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
             return octetstring_value_same(
                 &value1->type.Octet_String, &value2->type.Octet_String);
 #endif
-#if defined(BACNET_TIMER_CHARACTER_STRING)
+#if defined(BACNET_TIMER_VALUE_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-            return characterstring_value_same(
+            return characterstring_same(
                 &value1->type.Character_String, &value2->type.Character_String);
 #endif
-#if defined(BACNET_TIMER_BIT_STRING)
+#if defined(BACNET_TIMER_VALUE_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
-            return bitstring_value_same(
+            return bitstring_same(
                 &value1->type.Bit_String, &value2->type.Bit_String);
 #endif
-#if defined(BACNET_TIMER_ENUMERATED)
+#if defined(BACNET_TIMER_VALUE_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             return value1->type.Enumerated == value2->type.Enumerated;
 #endif
-#if defined(BACNET_TIMER_DATE)
+#if defined(BACNET_TIMER_VALUE_DATE)
         case BACNET_APPLICATION_TAG_DATE:
-            return date_value_same(&value1->type.Date, &value2->type.Date);
+            if (datetime_compare_date(&value1->type.Date, &value2->type.Date) ==
+                0) {
+                return true;
+            }
+            return false;
 #endif
-#if defined(BACNET_TIMER_TIME)
+#if defined(BACNET_TIMER_VALUE_TIME)
         case BACNET_APPLICATION_TAG_TIME:
-            return time_value_same(&value1->type.Time, &value2->type.Time);
+            if (datetime_compare_time(&value1->type.Time, &value2->type.Time) ==
+                0) {
+                return true;
+            }
+            return false;
 #endif
-#if defined(BACNET_TIMER_OBJECT_ID)
+#if defined(BACNET_TIMER_VALUE_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            return object_id_value_same(
-                &value1->type.Object_Id, &value2->type.Object_Id);
+            return bacnet_object_id_same(
+                value1->type.Object_Id.type, value1->type.Object_Id.instance,
+                value2->type.Object_Id.type, value2->type.Object_Id.instance);
 #endif
-#if defined(BACNET_TIMER_LIGHTING_COMMAND)
+#if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             return lighting_command_same(
                 &value1->type.Lighting_Command, &value2->type.Lighting_Command);
 #endif
-#if defined(BACNET_TIMER_COLOR_COMMAND)
+#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
         case BACNET_APPLICATION_TAG_COLOR_COMMAND:
             return color_command_same(
                 &value1->type.Color_Command, &value2->type.Color_Command);
 #endif
-#if defined(BACNET_TIMER_XY_COLOR)
+#if defined(BACNET_TIMER_VALUE_XY_COLOR)
         case BACNET_APPLICATION_TAG_XY_COLOR:
             return xy_color_same(
                 &value1->type.XY_Color, &value2->type.XY_Color);
@@ -554,76 +563,83 @@ bool bacnet_timer_value_copy(
         case BACNET_APPLICATION_TAG_NULL:
         case BACNET_APPLICATION_TAG_NO_VALUE:
             return true;
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             dest->type.Boolean = src->type.Boolean;
             return true;
 #endif
-#if defined(BACNET_TIMER_UNSIGNED)
+#if defined(BACNET_TIMER_VALUE_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             dest->type.Unsigned_Int = src->type.Unsigned_Int;
             return true;
 #endif
-#if defined(BACNET_TIMER_SIGNED)
+#if defined(BACNET_TIMER_VALUE_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             dest->type.Signed_Int = src->type.Signed_Int;
             return true;
 #endif
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             dest->type.Real = src->type.Real;
             return true;
 #endif
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
             dest->type.Double = src->type.Double;
             return true;
 #endif
-#if defined(BACNET_TIMER_OCTET_STRING)
+#if defined(BACNET_TIMER_VALUE_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
             return octetstring_copy(
                 &dest->type.Octet_String, &src->type.Octet_String);
 #endif
-#if defined(BACNET_TIMER_CHARACTER_STRING)
+#if defined(BACNET_TIMER_VALUE_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
             return characterstring_copy(
                 &dest->type.Character_String, &src->type.Character_String);
 #endif
-#if defined(BACNET_TIMER_BIT_STRING)
+#if defined(BACNET_TIMER_VALUE_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
             return bitstring_copy(
                 &dest->type.Bit_String, &src->type.Bit_String);
 #endif
-#if defined(BACNET_TIMER_ENUMERATED)
+#if defined(BACNET_TIMER_VALUE_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             dest->type.Enumerated = src->type.Enumerated;
             return true;
 #endif
-#if defined(BACNET_TIMER_DATE)
+#if defined(BACNET_TIMER_VALUE_DATE)
         case BACNET_APPLICATION_TAG_DATE:
-            return datetime_copy_date(&dest->type.Date, &src->type.Date);
+            datetime_copy_date(&dest->type.Date, &src->type.Date);
+            return true;
 #endif
-#if defined(BACNET_TIMER_TIME)
+#if defined(BACNET_TIMER_VALUE_TIME)
         case BACNET_APPLICATION_TAG_TIME:
-            return datetime_copy_time(&dest->type.Time, &src->type.Time);
+            datetime_copy_time(&dest->type.Time, &src->type.Time);
+            return true;
 #endif
-#if defined(BACNET_TIMER_OBJECT_ID)
+#if defined(BACNET_TIMER_VALUE_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             dest->type.Object_Id.type = src->type.Object_Id.type;
             dest->type.Object_Id.instance = src->type.Object_Id.instance;
             return true;
 #endif
-#if defined(BACNET_TIMER_LIGHTING_COMMAND)
+#if defined(BACNET_TIMER_VALUE_DATETIME)
+        case BACNET_APPLICATION_TAG_DATETIME:
+            datetime_copy(&dest->type.Date_Time, &src->type.Date_Time);
+            return true;
+#endif
+#if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             return lighting_command_copy(
                 &dest->type.Lighting_Command, &src->type.Lighting_Command);
 #endif
-#if defined(BACNET_TIMER_COLOR_COMMAND)
+#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
         case BACNET_APPLICATION_TAG_COLOR_COMMAND:
             return color_command_copy(
                 &dest->type.Color_Command, &src->type.Color_Command);
 #endif
-#if defined(BACNET_TIMER_XY_COLOR)
+#if defined(BACNET_TIMER_VALUE_XY_COLOR)
         case BACNET_APPLICATION_TAG_XY_COLOR:
             return xy_color_copy(&dest->type.XY_Color, &src->type.XY_Color);
 #endif
@@ -669,7 +685,7 @@ bool bacnet_timer_value_from_ascii(
     if (!status) {
         if (bacnet_stricmp(argv, "true") == 0) {
             value->tag = BACNET_APPLICATION_TAG_BOOLEAN;
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
             value->type.Boolean = true;
 #endif
             status = true;
@@ -678,7 +694,7 @@ bool bacnet_timer_value_from_ascii(
     if (!status) {
         if (bacnet_stricmp(argv, "false") == 0) {
             value->tag = BACNET_APPLICATION_TAG_BOOLEAN;
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
             value->type.Boolean = false;
 #endif
             status = true;
@@ -691,7 +707,7 @@ bool bacnet_timer_value_from_ascii(
         }
         if (lighting_command) {
             value->tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
-#if defined(BACNET_TIMER_LIGHTING_COMMAND)
+#if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
             status = lighting_command_from_ascii(
                 &value->type.Lighting_Command, argv + 1);
 #endif
@@ -704,7 +720,7 @@ bool bacnet_timer_value_from_ascii(
         }
         if (color_command) {
             value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
-#if defined(BACNET_TIMER_COLOR_COMMAND)
+#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
             /* FIXME: add parsing for BACnetColorCommand */
 #endif
             status = true;
@@ -717,7 +733,7 @@ bool bacnet_timer_value_from_ascii(
         }
         if (xy_color) {
             value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
-#if defined(BACNET_TIMER_XY_COLOR)
+#if defined(BACNET_TIMER_VALUE_XY_COLOR)
             status = xy_color_from_ascii(&value->type.XY_Color, argv + 1);
 #endif
         }
@@ -731,7 +747,7 @@ bool bacnet_timer_value_from_ascii(
             value->tag = BACNET_APPLICATION_TAG_REAL;
             count = sscanf(argv + 1, "%f", &single_value);
             if (count == 1) {
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
                 value->type.Real = single_value;
 #endif
                 status = true;
@@ -747,7 +763,7 @@ bool bacnet_timer_value_from_ascii(
             count = sscanf(argv + 1, "%lf", &double_value);
             if (count == 1) {
                 value->tag = BACNET_APPLICATION_TAG_DOUBLE;
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
                 value->type.Double = double_value;
 #endif
                 status = true;
@@ -762,12 +778,12 @@ bool bacnet_timer_value_from_ascii(
                 if (isgreaterequal(double_value, -FLT_MAX) &&
                     islessequal(double_value, FLT_MAX)) {
                     value->tag = BACNET_APPLICATION_TAG_REAL;
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
                     value->type.Real = (float)double_value;
 #endif
                 } else {
                     value->tag = BACNET_APPLICATION_TAG_DOUBLE;
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
                     value->type.Double = double_value;
 #endif
                 }
@@ -781,7 +797,7 @@ bool bacnet_timer_value_from_ascii(
             count = sscanf(argv, "%ld", &signed_value);
             if (count == 1) {
                 value->tag = BACNET_APPLICATION_TAG_SIGNED_INT;
-#if defined(BACNET_TIMER_SIGNED)
+#if defined(BACNET_TIMER_VALUE_SIGNED)
                 value->type.Signed_Int = signed_value;
 #endif
                 status = true;
@@ -792,7 +808,7 @@ bool bacnet_timer_value_from_ascii(
         count = sscanf(argv, "%lu", &unsigned_value);
         if (count == 1) {
             value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-#if defined(BACNET_TIMER_UNSIGNED)
+#if defined(BACNET_TIMER_VALUE_UNSIGNED)
             value->type.Unsigned_Int = unsigned_value;
 #endif
             status = true;
@@ -821,7 +837,7 @@ int bacnet_timer_value_to_ascii(
         case BACNET_APPLICATION_TAG_NULL:
             str_len = snprintf(str, str_size, "null");
             break;
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             if (value->type.Boolean) {
                 str_len = snprintf(str, str_size, "true");
@@ -830,28 +846,28 @@ int bacnet_timer_value_to_ascii(
             }
             break;
 #endif
-#if defined(BACNET_TIMER_UNSIGNED)
+#if defined(BACNET_TIMER_VALUE_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             str_len = snprintf(str, str_size, "%lu", value->type.Unsigned_Int);
             break;
 #endif
-#if defined(BACNET_TIMER_SIGNED)
+#if defined(BACNET_TIMER_VALUE_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             str_len =
                 snprintf(str, str_size, "%ld", (long)value->type.Signed_Int);
             break;
 #endif
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             str_len = snprintf(str, str_size, "%f", value->type.Real);
             break;
 #endif
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
             str_len = snprintf(str, str_size, "%lf", value->type.Double);
             break;
 #endif
-#if defined(BACNET_TIMER_LIGHTING_COMMAND)
+#if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             str_len = lighting_command_to_ascii(
                 &value->type.Lighting_Command, str, str_size);

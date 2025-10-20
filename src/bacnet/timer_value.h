@@ -13,37 +13,56 @@
 #include <stddef.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacint.h"
+#include "bacnet/datetime.h"
 #include "bacnet/lighting.h"
 
 /* BACNET_TIMER_STATE_CHANGE_VALUE decodes WriteProperty service requests
-   Choose the datatypes that your application supports */
-#if !(                                                                      \
-    defined(BACNET_TIMER_NUMERIC) || defined(BACNET_TIMER_NULL) ||          \
-    defined(BACNET_TIMER_BOOLEAN) || defined(BACNET_TIMER_UNSIGNED) ||      \
-    defined(BACNET_TIMER_SIGNED) || defined(BACNET_TIMER_REAL) ||           \
-    defined(BACNET_TIMER_DOUBLE) || defined(BACNET_TIMER_OCTET_STRING) ||   \
-    defined(BACNET_TIMER_CHARACTER_STRING) ||                               \
-    defined(BACNET_TIMER_BIT_STRING) || defined(BACNET_TIMER_ENUMERATED) || \
-    defined(BACNET_TIMER_DATE) || defined(BACNET_TIMER_TIME) ||             \
-    defined(BACNET_TIMER_OBJECT_ID) || defined(BACNET_TIMER_NO_VALUE) ||    \
-    defined(BACNET_TIMER_DATETIME) ||                                       \
-    defined(BACNET_TIMER_LIGHTING_COMMAND) ||                               \
-    defined(BACNET_TIMER_XY_COLOR) || defined(BACNET_TIMER_COLOR_COMMAND))
-#define BACNET_TIMER_NUMERIC
+   Define the datatypes that your application supports */
+#if !(/* check for any defines, and if none, use NUMERIC */                   \
+      defined(BACNET_TIMER_VALUE_NUMERIC) ||                                  \
+      defined(BACNET_TIMER_VALUE_ALL) || defined(BACNET_TIMER_VALUE_NULL) ||  \
+      defined(BACNET_TIMER_VALUE_BOOLEAN) ||                                  \
+      defined(BACNET_TIMER_VALUE_UNSIGNED) ||                                 \
+      defined(BACNET_TIMER_VALUE_SIGNED) ||                                   \
+      defined(BACNET_TIMER_VALUE_REAL) ||                                     \
+      defined(BACNET_TIMER_VALUE_DOUBLE) ||                                   \
+      defined(BACNET_TIMER_VALUE_OCTET_STRING) ||                             \
+      defined(BACNET_TIMER_VALUE_CHARACTER_STRING) ||                         \
+      defined(BACNET_TIMER_VALUE_BIT_STRING) ||                               \
+      defined(BACNET_TIMER_VALUE_ENUMERATED) ||                               \
+      defined(BACNET_TIMER_VALUE_DATE) || defined(BACNET_TIMER_VALUE_TIME) || \
+      defined(BACNET_TIMER_VALUE_OBJECT_ID) ||                                \
+      defined(BACNET_TIMER_VALUE_NO_VALUE) ||                                 \
+      defined(BACNET_TIMER_VALUE_DATETIME) ||                                 \
+      defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND) ||                         \
+      defined(BACNET_TIMER_VALUE_XY_COLOR) ||                                 \
+      defined(BACNET_TIMER_VALUE_COLOR_COMMAND))
+#define BACNET_TIMER_VALUE_NUMERIC
+#elif defined(BACNET_TIMER_VALUE_ALL)
+#define BACNET_TIMER_VALUE_NUMERIC
+#define BACNET_TIMER_VALUE_OCTET_STRING
+#define BACNET_TIMER_VALUE_CHARACTER_STRING
+#define BACNET_TIMER_VALUE_BIT_STRING
+#define BACNET_TIMER_VALUE_DATE
+#define BACNET_TIMER_VALUE_TIME
+#define BACNET_TIMER_VALUE_OBJECT_ID
+#define BACNET_TIMER_VALUE_DATETIME
+#define BACNET_TIMER_VALUE_LIGHTING_COMMAND
+#define BACNET_TIMER_VALUE_COLOR_COMMAND
+#define BACNET_TIMER_VALUE_XY_COLOR
 #endif
 
-#if defined(BACNET_TIMER_NUMERIC)
-#define BACNET_TIMER_NULL
-#define BACNET_TIMER_BOOLEAN
-#define BACNET_TIMER_UNSIGNED
-#define BACNET_TIMER_SIGNED
-#define BACNET_TIMER_REAL
-#define BACNET_TIMER_DOUBLE
-#define BACNET_TIMER_ENUMERATED
-#define BACNET_TIMER_NO_VALUE
-#define BACNET_TIMER_LIGHTING_COMMAND
-#define BACNET_TIMER_COLOR_COMMAND
-#define BACNET_TIMER_XY_COLOR
+#if defined(BACNET_TIMER_VALUE_NUMERIC)
+#define BACNET_TIMER_VALUE_NULL
+#define BACNET_TIMER_VALUE_BOOLEAN
+#define BACNET_TIMER_VALUE_UNSIGNED
+#define BACNET_TIMER_VALUE_SIGNED
+#define BACNET_TIMER_VALUE_REAL
+#define BACNET_TIMER_VALUE_DOUBLE
+#define BACNET_TIMER_VALUE_ENUMERATED
+#define BACNET_TIMER_VALUE_NO_VALUE
 #endif
 
 typedef struct BACnet_Timer_State_Change_Value_T {
@@ -51,52 +70,52 @@ typedef struct BACnet_Timer_State_Change_Value_T {
     union {
         /* null - no type value needed. It is encoded in the tag alone. */
         /* no-value - no type value needed. It is encoded in the tag alone. */
-#if defined(BACNET_TIMER_BOOLEAN)
+#if defined(BACNET_TIMER_VALUE_BOOLEAN)
         bool Boolean;
 #endif
-#if defined(BACNET_TIMER_UNSIGNED)
+#if defined(BACNET_TIMER_VALUE_UNSIGNED)
         BACNET_UNSIGNED_INTEGER Unsigned_Int;
 #endif
-#if defined(BACNET_TIMER_SIGNED)
+#if defined(BACNET_TIMER_VALUE_SIGNED)
         int32_t Signed_Int;
 #endif
-#if defined(BACNET_TIMER_REAL)
+#if defined(BACNET_TIMER_VALUE_REAL)
         float Real;
 #endif
-#if defined(BACNET_TIMER_DOUBLE)
+#if defined(BACNET_TIMER_VALUE_DOUBLE)
         double Double;
 #endif
-#if defined(BACNET_TIMER_OCTET_STRING)
+#if defined(BACNET_TIMER_VALUE_OCTET_STRING)
         BACNET_OCTET_STRING Octet_String;
 #endif
-#if defined(BACNET_TIMER_CHARACTER_STRING)
+#if defined(BACNET_TIMER_VALUE_CHARACTER_STRING)
         BACNET_CHARACTER_STRING Character_String;
 #endif
-#if defined(BACNET_TIMER_BIT_STRING)
+#if defined(BACNET_TIMER_VALUE_BIT_STRING)
         BACNET_BIT_STRING Bit_String;
 #endif
-#if defined(BACNET_TIMER_ENUMERATED)
+#if defined(BACNET_TIMER_VALUE_ENUMERATED)
         uint32_t Enumerated;
 #endif
-#if defined(BACNET_TIMER_DATE)
+#if defined(BACNET_TIMER_VALUE_DATE)
         BACNET_DATE Date;
 #endif
-#if defined(BACNET_TIMER_TIME)
+#if defined(BACNET_TIMER_VALUE_TIME)
         BACNET_TIME Time;
 #endif
-#if defined(BACNET_TIMER_OBJECT_ID)
+#if defined(BACNET_TIMER_VALUE_OBJECT_ID)
         BACNET_OBJECT_ID Object_Id;
 #endif
-#if defined(BACNET_TIMER_DATETIME)
+#if defined(BACNET_TIMER_VALUE_DATETIME)
         BACNET_DATE_TIME Date_Time;
 #endif
-#if defined(BACNET_TIMER_LIGHTING_COMMAND)
+#if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         BACNET_LIGHTING_COMMAND Lighting_Command;
 #endif
-#if defined(BACNET_TIMER_COLOR_COMMAND)
+#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
         BACNET_COLOR_COMMAND Color_Command;
 #endif
-#if defined(BACNET_TIMER_XY_COLOR)
+#if defined(BACNET_TIMER_VALUE_XY_COLOR)
         BACNET_XY_COLOR XY_Color;
 #endif
     } type;
