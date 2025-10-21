@@ -131,7 +131,7 @@ static void test_Timer_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_true(status, NULL);
-    value.type.Unsigned_Int = UINT16_MAX + 1;
+    value.type.Unsigned_Int = UINT32_MAX + 1;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);

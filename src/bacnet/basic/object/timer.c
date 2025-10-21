@@ -647,20 +647,28 @@ bool Timer_Present_Value_Set(
             pObject->Timer_State = TIMER_STATE_EXPIRED;
             status = true;
         } else {
-            /* FIXME! add min-pres-value and max-pres-value limits check */
-            pObject->Present_Value = value;
-            pObject->Initial_Timeout = value;
-            if (pObject->Timer_State == TIMER_STATE_IDLE) {
-                pObject->Last_State_Change = TIMER_TRANSITION_IDLE_TO_RUNNING;
-            } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
-                pObject->Last_State_Change =
-                    TIMER_TRANSITION_RUNNING_TO_RUNNING;
-            } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
-                pObject->Last_State_Change =
-                    TIMER_TRANSITION_EXPIRED_TO_RUNNING;
+            if (BACNET_UNSIGNED_INTEGER_UINT32_OUT_OF_RANGE(value)) {
+                status = false;
+            } else if (
+                (value >= pObject->Min_Pres_Value) &&
+                (value <= pObject->Max_Pres_Value)) {
+                pObject->Present_Value = value;
+                pObject->Initial_Timeout = value;
+                if (pObject->Timer_State == TIMER_STATE_IDLE) {
+                    pObject->Last_State_Change =
+                        TIMER_TRANSITION_IDLE_TO_RUNNING;
+                } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                    pObject->Last_State_Change =
+                        TIMER_TRANSITION_RUNNING_TO_RUNNING;
+                } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
+                    pObject->Last_State_Change =
+                        TIMER_TRANSITION_EXPIRED_TO_RUNNING;
+                }
+                pObject->Timer_State = TIMER_STATE_RUNNING;
+                status = true;
+            } else {
+                status = false;
             }
-            pObject->Timer_State = TIMER_STATE_RUNNING;
-            status = true;
         }
     }
 
@@ -1153,8 +1161,8 @@ bool Timer_Reference_List_Member_Element_Set(
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = List_Of_Object_Property_References_Set(
-            pObject, index, pMember);
+        status =
+            List_Of_Object_Property_References_Set(pObject, index, pMember);
     }
 
     return status;
@@ -1451,6 +1459,54 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_DEFAULT_TIMEOUT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = Timer_Default_Timeout_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_MIN_PRES_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = Timer_Min_Pres_Value_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_MAX_PRES_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = Timer_Max_Pres_Value_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_RESOLUTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = Timer_Resolution_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
         default:
             if (property_lists_member(
                     Properties_Required, Properties_Optional,
@@ -1625,11 +1681,11 @@ uint32_t Timer_Create(uint32_t object_instance)
     datetime_set_values(&pObject->Update_Time, 2025, 1, 1, 0, 0, 0, 0);
     datetime_set_values(&pObject->Expiration_Time, 2154, 1, 1, 0, 0, 0, 0);
     pObject->Initial_Timeout = 0;
-    pObject->Default_Timeout = 0;
-    pObject->Min_Pres_Value = 0;
-    pObject->Max_Pres_Value = 0;
-    pObject->Resolution = 0;
-    pObject->Priority_For_Writing = 0;
+    pObject->Default_Timeout = 1000;
+    pObject->Min_Pres_Value = 1;
+    pObject->Max_Pres_Value = UINT32_MAX;
+    pObject->Resolution = 1;
+    pObject->Priority_For_Writing = 16;
     pObject->Description = NULL;
     pObject->Object_Name = NULL;
     pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
