@@ -97,7 +97,7 @@ static void test_Timer_Read_Write(void)
     zassert_not_equal(index, 0, NULL);
     /* perform a general test for RP/WP */
     bacnet_object_properties_read_write_test(
-        OBJECT_CHANNEL, instance, Timer_Property_Lists, Timer_Read_Property,
+        OBJECT_TIMER, instance, Timer_Property_Lists, Timer_Read_Property,
         Timer_Write_Property, skip_fail_property_list);
     /* test the ASCII name get/set */
     status = Timer_Name_Set(instance, sample_name);
@@ -110,7 +110,7 @@ static void test_Timer_Read_Write(void)
     zassert_equal(test_name, NULL, NULL);
 
     /* test specific WriteProperty values - common configuration */
-    wp_data.object_type = OBJECT_CHANNEL;
+    wp_data.object_type = OBJECT_TIMER;
     wp_data.object_instance = instance;
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_MAX_PRIORITY;
@@ -123,8 +123,8 @@ static void test_Timer_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_true(status, NULL);
-    /* specific WriteProperty value */
-    wp_data.object_property = PROP_CHANNEL_NUMBER;
+    /* write present-value */
+    wp_data.object_property = PROP_PRESENT_VALUE;
     value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
     value.type.Unsigned_Int = 123;
     wp_data.application_data_len =
@@ -136,10 +136,6 @@ static void test_Timer_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_false(status, NULL);
-    /* specific WriteProperty value */
-    wp_data.object_property = PROP_CONTROL_GROUPS;
-    wp_data.array_index = 1;
-    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
     /* min valid value */
     value.type.Unsigned_Int = 0;
     wp_data.application_data_len =

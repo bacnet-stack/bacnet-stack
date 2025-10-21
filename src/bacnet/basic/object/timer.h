@@ -133,14 +133,16 @@ BACNET_STACK_EXPORT
 bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value);
 
 BACNET_STACK_EXPORT
+unsigned Timer_Reference_List_Member_Capacity(uint32_t object_instance);
+BACNET_STACK_EXPORT
 unsigned Timer_Reference_List_Member_Count(uint32_t object_instance);
 BACNET_STACK_EXPORT
 BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
-    uint32_t object_instance, unsigned array_index);
+    uint32_t object_instance, unsigned list_index);
 BACNET_STACK_EXPORT
 bool Timer_Reference_List_Member_Element_Set(
     uint32_t object_instance,
-    unsigned array_index,
+    unsigned index,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember);
 BACNET_STACK_EXPORT
 bool Timer_Reference_List_Member_Element_Add(

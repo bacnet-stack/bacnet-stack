@@ -1040,6 +1040,17 @@ BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
  * @param  object_instance - object-instance number of the object
  * @return member count
  */
+unsigned Timer_Reference_List_Member_Capacity(uint32_t object_instance)
+{
+    (void)object_instance;
+    return BACNET_TIMER_MANIPULATED_PROPERTIES_MAX;
+}
+
+/**
+ * For a given object instance-number, determines the member count
+ * @param  object_instance - object-instance number of the object
+ * @return member count
+ */
 unsigned Timer_Reference_List_Member_Count(uint32_t object_instance)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
@@ -1128,23 +1139,22 @@ static bool List_Of_Object_Property_References_Set(
 /**
  * @brief For a given object instance-number, set the member element value
  * @param object_instance - object-instance number of the object
- * @param array_index - 1-based array index of non-empty members
+ * @param index - zero-based array index reference list array
  * @param pMember - member values to set, or NULL to set as 'empty'
  * @return pointer to member element or NULL if not found
  */
 bool Timer_Reference_List_Member_Element_Set(
     uint32_t object_instance,
-    unsigned array_index,
+    unsigned index,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
-    if (pObject && (array_index > 0)) {
-        array_index--;
+    if (pObject) {
         status = List_Of_Object_Property_References_Set(
-            pObject, array_index, pMember);
+            pObject, index, pMember);
     }
 
     return status;
