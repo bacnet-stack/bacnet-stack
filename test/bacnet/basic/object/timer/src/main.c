@@ -53,10 +53,7 @@ static void test_Timer_Read_Write(void)
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
-    status = Timer_List_Of_Object_Property_References_Member_Set(
-        instance, index, &member);
-    zassert_true(status, NULL);
-    status = Timer_Control_Groups_Element_Set(instance, 1, 1);
+    status = Timer_Reference_List_Member_Element_Set(instance, index, &member);
     zassert_true(status, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;

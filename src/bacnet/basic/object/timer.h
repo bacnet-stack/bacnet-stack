@@ -90,18 +90,65 @@ bool Timer_Present_Value_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
-bool Timer_List_Of_Object_Property_References_Set(
+bool Timer_Update_Time(uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
+BACNET_STACK_EXPORT
+bool Timer_Update_Time_Set(
+    uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
+
+BACNET_STACK_EXPORT
+bool Timer_Expiration_Time(
+    uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
+BACNET_STACK_EXPORT
+bool Timer_Expiration_Time_Set(
+    uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
+
+BACNET_STACK_EXPORT
+uint32_t Timer_Initial_Timeout(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Initial_Timeout_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+uint32_t Timer_Default_Timeout(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Default_Timeout_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+uint32_t Timer_Min_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Min_Pres_Value_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+uint32_t Timer_Max_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Max_Pres_Value_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+uint32_t Timer_Resolution(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Resolution_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+uint8_t Timer_Priority_For_Writing(uint8_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value);
+
+BACNET_STACK_EXPORT
+unsigned Timer_Reference_List_Member_Count(uint32_t object_instance);
+BACNET_STACK_EXPORT
+BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
+    uint32_t object_instance, unsigned array_index);
+BACNET_STACK_EXPORT
+bool Timer_Reference_List_Member_Element_Set(
     uint32_t object_instance,
-    unsigned index,
+    unsigned array_index,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember);
 BACNET_STACK_EXPORT
-bool Timer_List_Of_Object_Property_References_Member(
+bool Timer_Reference_List_Member_Element_Add(
     uint32_t object_instance,
-    unsigned index,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember);
-BACNET_STACK_EXPORT
-size_t
-Timer_List_Of_Object_Property_References_Capacity(uint32_t object_instance);
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pNewMember);
+bool Timer_Reference_List_Member_Element_Remove(
+    uint32_t object_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pRemoveMember);
 
 BACNET_STACK_EXPORT
 void Timer_Timer(uint32_t object_instance, uint16_t milliseconds);

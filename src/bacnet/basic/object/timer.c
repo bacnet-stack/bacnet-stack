@@ -616,7 +616,7 @@ BACNET_UNSIGNED_INTEGER Timer_Present_Value(uint32_t object_instance)
 }
 
 /**
- * @brief Return the present-value for a specific object instance
+ * @brief Set the present-value for a specific object instance
  * @details Writing a value to this property that is within the supported
  *  range, defined by Min_Pres_Value and Max_Pres_Value, shall force
  *  the timer to transition to the RUNNING state.
@@ -631,11 +631,12 @@ BACNET_UNSIGNED_INTEGER Timer_Present_Value(uint32_t object_instance)
  *  timer state shall occur.
  *
  * @param object_instance [in] BACnet network port object instance number
- * @return the present-value for a specific object instance
+ * @return true if the present-value for a specific object instance was set
  */
 bool Timer_Present_Value_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
 {
+    bool status = false;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -644,7 +645,9 @@ bool Timer_Present_Value_Set(
             pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
             pObject->Present_Value = value;
             pObject->Timer_State = TIMER_STATE_EXPIRED;
+            status = true;
         } else {
+            /* FIXME! add min-pres-value and max-pres-value limits check */
             pObject->Present_Value = value;
             pObject->Initial_Timeout = value;
             if (pObject->Timer_State == TIMER_STATE_IDLE) {
@@ -657,10 +660,11 @@ bool Timer_Present_Value_Set(
                     TIMER_TRANSITION_EXPIRED_TO_RUNNING;
             }
             pObject->Timer_State = TIMER_STATE_RUNNING;
+            status = true;
         }
     }
 
-    return value;
+    return status;
 }
 
 /**
@@ -683,13 +687,410 @@ bool Timer_Update_Time(uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
 }
 
 /**
- * @brief Set a member element of a given BACnetLIST object property
+ * @brief Get the update-time property value for the object-instance specified
+ * @param object_instance [in] BACnet network port object instance number
+ * @return true if property value was retrieved
+ */
+bool Timer_Update_Time_Set(
+    uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        datetime_copy(&pObject->Update_Time, bdatetime);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the expiration-time property value for the object-instance
+ * specified
+ * @param object_instance [in] BACnet network port object instance number
+ * @param bdatetime [out] the property value retrieved
+ * @return true if property value was retrieved
+ */
+bool Timer_Expiration_Time(
+    uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        datetime_copy(bdatetime, &pObject->Expiration_Time);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the expiration-time property value for the object-instance
+ * specified
+ * @param object_instance [in] BACnet network port object instance number
+ * @param bdatetime [in] the property value to set
+ * @return true if property value was retrieved
+ */
+bool Timer_Expiration_Time_Set(
+    uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        datetime_copy(&pObject->Expiration_Time, bdatetime);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the initial-timeout property value for a given object instance
+ * @param  object_instance - object-instance number of the object
+ * @return initial-timeout property value
+ */
+uint32_t Timer_Initial_Timeout(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Initial_Timeout;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Sets the initial-timeout property value for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param value - property value to set
+ * @return true if the initial-timeout property value was set
+ */
+bool Timer_Initial_Timeout_Set(uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Initial_Timeout = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the default-timeout property value for a given object instance
+ * @param  object_instance - object-instance number of the object
+ * @return default-timeout property value
+ */
+uint32_t Timer_Default_Timeout(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Default_Timeout;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Sets the default-timeout property value for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param value - property value to set
+ * @return true if the default-timeout property value was set
+ */
+bool Timer_Default_Timeout_Set(uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Default_Timeout = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the min-pres-value property value for a given object instance
+ * @param  object_instance - object-instance number of the object
+ * @return min-pres-value property value
+ */
+uint32_t Timer_Min_Pres_Value(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Min_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Sets the min-pres-value property value for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param value - property value to set
+ * @return true if the min-pres-value property value was set
+ */
+bool Timer_Min_Pres_Value_Set(uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Min_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the max-pres-value property value for a given object instance
+ * @param  object_instance - object-instance number of the object
+ * @return max-pres-value property value
+ */
+uint32_t Timer_Max_Pres_Value(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Max_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Sets the max-pres-value property value for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param value - property value to set
+ * @return true if the max-pres-value property value was set
+ */
+bool Timer_Max_Pres_Value_Set(uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Max_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the resolution property value for a given object instance
+ * @param  object_instance - object-instance number of the object
+ * @return resolution property value
+ */
+uint32_t Timer_Resolution(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Resolution;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Sets the resolution property value for a given object instance
+ * @param object_instance - object-instance number of the object
+ * @param value - property value to set
+ * @return true if the resolution property value was set
+ */
+bool Timer_Resolution_Set(uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Resolution = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the priority-for-writing property value for a given object
+ * instance
+ * @param  object_instance - object-instance number of the object
+ * @return priority-for-writing property value
+ */
+uint8_t Timer_Priority_For_Writing(uint8_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Priority_For_Writing;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Sets the priority-for-writing property value for a given object
+ * instance
+ * @param object_instance - object-instance number of the object
+ * @param value - property value to set
+ * @return true if the priority-for-writing property value was set
+ */
+bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Priority_For_Writing = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, determines if the member is empty
+ *
+ * Elements of the List_Of_Object_Property_References array containing
+ * object or device instance numbers equal to 4194303 are considered to
+ * be 'empty' or 'uninitialized'.
+ *
+ * @param  pMember - object property reference element
+ * @return true if the member is empty
+ */
+static bool Timer_Reference_List_Member_Empty(
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+
+    if (!pMember) {
+        return false;
+    }
+    if ((pMember->objectIdentifier.instance == BACNET_MAX_INSTANCE) ||
+        (pMember->deviceIdentifier.instance == BACNET_MAX_INSTANCE)) {
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the list member element
+ * @param object_instance - object-instance number of the object
+ * @param list_index - 1-based list index of members
+ * @return pointer to list member element or NULL if not found
+ */
+BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
+    uint32_t object_instance, unsigned list_index)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    struct object_data *pObject;
+    unsigned i, count = 0;
+
+    pObject = Object_Data(object_instance);
+    if (pObject && (list_index > 0)) {
+        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+            pMember = &pObject->Manipulated_Properties[i];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                count++;
+            }
+            if (count == list_index) {
+                return pMember;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * For a given object instance-number, determines the member count
+ * @param  object_instance - object-instance number of the object
+ * @return member count
+ */
+unsigned Timer_Reference_List_Member_Count(uint32_t object_instance)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned count = 0, i;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+            pMember = &pObject->Manipulated_Properties[i];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}
+
+/**
+ * @brief Encode a BACnetList property element
+ * @param object_instance [in] BACnet object instance number
+ * @param list_index [in] list index requested:
+ *    0 to N for individual list members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or 0 if invalid member
+ */
+static int Timer_Reference_List_Member_Element_Encode(
+    uint32_t object_instance, uint32_t list_index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value;
+
+    value =
+        Timer_Reference_List_Member_Element(object_instance, list_index + 1);
+    if (value) {
+        apdu_len = bacapp_encode_device_obj_property_ref(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * For a given object instance-number, set the member element values
  * @param pObject - object in which to set the value
  * @param index - 0-based array index
- * @param pMember - pointer to member value
+ * @param pMember - pointer to member value, or NULL to set as 'empty'
  * @return true if set, false if not set
  */
-static bool Timer_List_Of_Object_Property_References_Member_Set(
+static bool List_Of_Object_Property_References_Set(
     struct object_data *pObject,
     unsigned index,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
@@ -697,76 +1098,129 @@ static bool Timer_List_Of_Object_Property_References_Member_Set(
     bool status = false;
     if (pObject && (index < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX)) {
         if (pMember) {
-            status = bacnet_device_object_property_reference_copy(
-                &pObject->Manipulated_Properties[index], pMember);
+            memcpy(
+                &pObject->Manipulated_Properties[index], pMember,
+                sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+        } else {
+            pObject->Manipulated_Properties[index].objectIdentifier.instance =
+                BACNET_MAX_INSTANCE;
+            pObject->Manipulated_Properties[index].deviceIdentifier.instance =
+                BACNET_MAX_INSTANCE;
+            pObject->Manipulated_Properties[index].objectIdentifier.type =
+                OBJECT_LIGHTING_OUTPUT;
+            pObject->Manipulated_Properties[index].objectIdentifier.instance =
+                BACNET_MAX_INSTANCE;
+            pObject->Manipulated_Properties[index].propertyIdentifier =
+                PROP_PRESENT_VALUE;
+            pObject->Manipulated_Properties[index].arrayIndex =
+                BACNET_ARRAY_ALL;
+            pObject->Manipulated_Properties[index].deviceIdentifier.type =
+                OBJECT_DEVICE;
+            pObject->Manipulated_Properties[index].deviceIdentifier.instance =
+                BACNET_MAX_INSTANCE;
         }
+        status = true;
     }
 
     return status;
 }
 
 /**
- * @brief Set a member element of a given BACnetLIST object property
- * @param object_instance [in] BACnet network port object instance number
- * @param index - 0-based array index
- * @param pMember - pointer to member value
- * @return true if set, false if not set
+ * @brief For a given object instance-number, set the member element value
+ * @param object_instance - object-instance number of the object
+ * @param array_index - 1-based array index of non-empty members
+ * @param pMember - member values to set, or NULL to set as 'empty'
+ * @return pointer to member element or NULL if not found
  */
-bool Timer_List_Of_Object_Property_References_Set(
+bool Timer_Reference_List_Member_Element_Set(
     uint32_t object_instance,
-    unsigned index,
+    unsigned array_index,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
 {
     bool status = false;
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        status = Timer_List_Of_Object_Property_References_Member_Set(
-            pObject, index, pMember);
+    pObject = Object_Data(object_instance);
+    if (pObject && (array_index > 0)) {
+        array_index--;
+        status = List_Of_Object_Property_References_Set(
+            pObject, array_index, pMember);
     }
 
     return status;
 }
 
 /**
- * @brief Set a member element of a given BACnetLIST object property
- * @param object_instance [in] BACnet network port object instance number
- * @param index - 0-based array index
- * @param pMember - pointer to member value
- * @return true if set, false if not set
+ * @brief For a given object instance-number, adds a unique member element
+ *  to the list
+ * @param object_instance - object-instance number of the object
+ * @param pMemberSrc - pointer to a object property reference element
+ * @return true if the element was added, false if the element was not be added
  */
-bool Timer_List_Of_Object_Property_References_Member(
+bool Timer_Reference_List_Member_Element_Add(
     uint32_t object_instance,
-    unsigned index,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pNewMember)
 {
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned m = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        /* is the element already in the list? */
+        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
+            pMember = &pObject->Manipulated_Properties[m];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                if (bacnet_device_object_property_reference_same(
+                        pNewMember, pMember)) {
+                    return true;
+                }
+            }
+        }
+        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
+            pMember = &pObject->Manipulated_Properties[m];
+            if (Timer_Reference_List_Member_Empty(pMember)) {
+                /* first empty slot */
+                memcpy(
+                    pMember, pNewMember,
+                    sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief For a given object instance-number, removes a list element
+ * @param object_instance - object-instance number of the object
+ * @param pMemberSrc - pointer to a object property reference element
+ * @return true if removed, false if not removed
+ */
+bool Timer_Reference_List_Member_Element_Remove(
+    uint32_t object_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pRemoveMember)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned m = 0;
     bool status = false;
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Object_Data(object_instance);
     if (pObject) {
-        if (index < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX) {
-            if (pMember) {
-                status = bacnet_device_object_property_reference_copy(
-                    pMember, &pObject->Manipulated_Properties[index]);
+        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
+            pMember = &pObject->Manipulated_Properties[m];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                if (bacnet_device_object_property_reference_same(
+                        pRemoveMember, pMember)) {
+                    status = true;
+                }
             }
         }
     }
 
     return status;
-}
-
-/**
- * @brief Get the size of the list of object property references
- * @param object_instance [in] BACnet network port object instance number
- * @return The size of the list of object property references
- */
-size_t
-Timer_List_Of_Object_Property_References_Capacity(uint32_t object_instance)
-{
-    (void)object_instance; /* unused */
-    return BACNET_TIMER_MANIPULATED_PROPERTIES_MAX;
 }
 
 /**
@@ -813,7 +1267,6 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     BACNET_DATE_TIME bdatetime;
     BACNET_UNSIGNED_INTEGER unsigned_value;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE prop_ref = { 0 };
     size_t i, imax;
     uint8_t *apdu = NULL;
     int apdu_size;
@@ -921,13 +1374,10 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-            imax = Timer_List_Of_Object_Property_References_Capacity(
-                rpdata->object_instance);
+            imax = Timer_Reference_List_Member_Count(rpdata->object_instance);
             for (i = 0; i < imax; i++) {
-                Timer_List_Of_Object_Property_References_Member(
-                    rpdata->object_instance, i, &prop_ref);
-                apdu_len += bacapp_encode_device_obj_property_ref(
-                    &apdu[apdu_len], &prop_ref);
+                apdu_len += Timer_Reference_List_Member_Element_Encode(
+                    rpdata->object_instance, i, &apdu[apdu_len]);
             }
             break;
         case PROP_PRIORITY_FOR_WRITING:
@@ -975,9 +1425,12 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Present_Value_Write(
-                    wp_data->object_instance, value.type.Unsigned_Int,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = Timer_Present_Value_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -1126,6 +1579,7 @@ uint32_t Timer_Create(uint32_t object_instance)
 {
     struct object_data *pObject = NULL;
     int index;
+    unsigned i;
 
     if (!Object_List) {
         Object_List = Keylist_Create();
@@ -1173,6 +1627,9 @@ uint32_t Timer_Create(uint32_t object_instance)
     pObject->Out_Of_Service = false;
     pObject->Changed = false;
     pObject->Context = NULL;
+    for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+        List_Of_Object_Property_References_Set(pObject, i, NULL);
+    }
 
     return object_instance;
 }
