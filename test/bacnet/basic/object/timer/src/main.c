@@ -29,7 +29,6 @@ static void test_Timer_Read_Write(void)
     uint32_t test_instance = 0;
     bool status = false;
     const int skip_fail_property_list[] = { -1 };
-    BACNET_TIMER_STATE_CHANGE_VALUE timer_value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
@@ -115,7 +114,7 @@ static void test_Timer_Read_Write(void)
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_MAX_PRIORITY;
     zassert_true(status, NULL);
-    /* specific WriteProperty value */
+    /* out-of-service */
     wp_data.object_property = PROP_OUT_OF_SERVICE;
     value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
     value.type.Boolean = true;
@@ -123,83 +122,85 @@ static void test_Timer_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_true(status, NULL);
-    /* write present-value */
-    wp_data.object_property = PROP_PRESENT_VALUE;
+    value.type.Boolean = false;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
     value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
     value.type.Unsigned_Int = 123;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
-    zassert_true(status, NULL);
-    value.type.Unsigned_Int = UINT32_MAX + 1;
-    wp_data.application_data_len =
-        bacapp_encode_application_data(wp_data.application_data, &value);
-    status = Timer_Write_Property(&wp_data);
     zassert_false(status, NULL);
-    /* min valid value */
-    value.type.Unsigned_Int = 0;
-    wp_data.application_data_len =
-        bacapp_encode_application_data(wp_data.application_data, &value);
-    status = Timer_Write_Property(&wp_data);
-    zassert_true(status, NULL);
-    /* max valid value */
-    value.type.Unsigned_Int = UINT16_MAX;
-    wp_data.application_data_len =
-        bacapp_encode_application_data(wp_data.application_data, &value);
-    status = Timer_Write_Property(&wp_data);
-    zassert_true(status, NULL);
-    /* array size - read-only */
-    wp_data.array_index = 0;
-    status = Timer_Write_Property(&wp_data);
-    zassert_false(status, NULL);
-    /* out-of-range value */
-    wp_data.array_index = 1;
-    value.type.Unsigned_Int = UINT16_MAX + 1;
-    wp_data.application_data_len =
-        bacapp_encode_application_data(wp_data.application_data, &value);
-    status = Timer_Write_Property(&wp_data);
-    zassert_false(status, NULL);
-    /* invalid data type for Array element */
-    wp_data.array_index = 1;
-    value.type.Real = 3.14159f;
-    value.tag = BACNET_APPLICATION_TAG_REAL;
-    wp_data.application_data_len =
-        bacapp_encode_application_data(wp_data.application_data, &value);
-    status = Timer_Write_Property(&wp_data);
-    zassert_false(status, NULL);
-    /* invalid data type for Array size */
-    wp_data.array_index = 0;
-    status = Timer_Write_Property(&wp_data);
-    zassert_false(status, NULL);
-    /* invalid array-index - probably */
-    wp_data.array_index = BACNET_ARRAY_ALL - 1;
+    /* write present-value */
+    wp_data.object_property = PROP_PRESENT_VALUE;
     value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
     value.type.Unsigned_Int = 0;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
-    zassert_false(status, NULL);
-    /* specific WriteProperty value */
-    wp_data.array_index = 1;
-    wp_data.priority = BACNET_MAX_PRIORITY;
-    wp_data.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
-    value.tag = BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
-    value.type.Device_Object_Property_Reference.objectIdentifier.type =
-        OBJECT_ANALOG_OUTPUT;
-    value.type.Device_Object_Property_Reference.objectIdentifier.instance = 1;
-    value.type.Device_Object_Property_Reference.propertyIdentifier =
-        PROP_PRESENT_VALUE;
-    value.type.Device_Object_Property_Reference.arrayIndex = BACNET_ARRAY_ALL;
+    zassert_true(status, NULL);
+    /* configure min-pres-value and max-pres-value to max limits */
+    wp_data.object_property = PROP_MIN_PRES_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 1;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_true(status, NULL);
-    wp_data.array_index = 0;
+    wp_data.object_property = PROP_MAX_PRES_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = UINT32_MAX;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 1;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = UINT32_MAX;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    /* configure min-pres-value and max-pres-value to elicit out-of-range */
+    wp_data.object_property = PROP_MIN_PRES_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 100;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_MAX_PRES_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = UINT32_MAX - 100;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 1;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_false(status, NULL);
-    wp_data.array_index = BACNET_ARRAY_ALL - 1;
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = UINT32_MAX;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
     /* read-only property */
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_MAX_PRIORITY;
@@ -220,13 +221,50 @@ static void test_Timer_Read_Write(void)
     zassert_true(status, NULL);
     Timer_Cleanup();
 }
+
+/**
+ * @brief Test
+ */
+static void test_Timer_Operation(void)
+{
+    const uint32_t instance = 123;
+    bool status = false;
+    BACNET_TIMER_STATE_CHANGE_VALUE timer_value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_TIMER_STATE test_state;
+
+    /* init */
+    Timer_Init();
+    Timer_Create(instance);
+    status = Timer_Valid_Instance(instance);
+    zassert_true(status, NULL);
+    /* start timer using a write to timer-running property */
+    test_state = Timer_State(instance);
+    zassert_true(status, NULL);
+    status = Timer_Running_Set(instance, true);
+    zassert_true(status, NULL);
+    test_state = Timer_State(instance);
+    zassert_equal(test_state, TIMER_STATE_RUNNING, NULL);
+    status = Timer_State_Set(instance, TIMER_STATE_IDLE);
+    zassert_true(status, NULL);
+    test_state = Timer_State(instance);
+    zassert_equal(test_state, TIMER_STATE_IDLE, NULL);
+    test_state = Timer_Running_Set(instance, true);
+    zassert_true(status, NULL);
+    /* cleanup */
+    status = Timer_Delete(instance);
+    zassert_true(status, NULL);
+    Timer_Cleanup();
+}
 /**
  * @}
  */
 
 void test_main(void)
 {
-    ztest_test_suite(timer_tests, ztest_unit_test(test_Timer_Read_Write));
+    ztest_test_suite(
+        timer_tests, ztest_unit_test(test_Timer_Read_Write),
+        ztest_unit_test(test_Timer_Operation));
 
     ztest_run_test_suite(timer_tests);
 }

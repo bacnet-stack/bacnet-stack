@@ -19,6 +19,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
+#include "bacnet/datetime.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timer_value.h"
 /* basic objects and services */
@@ -29,9 +30,6 @@
 /* me! */
 #include "bacnet/basic/object/timer.h"
 
-/* per specification */
-#define BACNET_TIMER_STATE_CHANGE_VALUES_MAX 7
-
 #ifndef BACNET_TIMER_MANIPULATED_PROPERTIES_MAX
 #define BACNET_TIMER_MANIPULATED_PROPERTIES_MAX 8
 #endif
@@ -40,9 +38,10 @@
 static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_TIMER;
+static write_property_function Write_Property_Internal_Callback;
 
 struct object_data {
-    BACNET_UNSIGNED_INTEGER Present_Value;
+    uint32_t Present_Value;
     BACNET_TIMER_STATE Timer_State;
     BACNET_TIMER_TRANSITION Last_State_Change;
     BACNET_DATE_TIME Update_Time;
@@ -52,8 +51,9 @@ struct object_data {
     uint32_t Min_Pres_Value;
     uint32_t Max_Pres_Value;
     uint32_t Resolution;
+    /* The timer state change NONE=0 has no corresponding array element.*/
     BACNET_TIMER_STATE_CHANGE_VALUE
-    State_Change_Values[BACNET_TIMER_STATE_CHANGE_VALUES_MAX];
+    State_Change_Values[TIMER_TRANSITION_MAX - 1];
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
     Manipulated_Properties[BACNET_TIMER_MANIPULATED_PROPERTIES_MAX];
     uint8_t Priority_For_Writing;
@@ -189,6 +189,374 @@ unsigned Timer_Instance_To_Index(uint32_t object_instance)
 }
 
 /**
+ * For a given object instance-number, determines if the member is empty
+ *
+ * Elements of the List_Of_Object_Property_References array containing
+ * object or device instance numbers equal to 4194303 are considered to
+ * be 'empty' or 'uninitialized'.
+ *
+ * @param  pMember - object property reference element
+ * @return true if the member is empty
+ */
+static bool Timer_Reference_List_Member_Empty(
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+
+    if (!pMember) {
+        return false;
+    }
+    if ((pMember->objectIdentifier.instance == BACNET_MAX_INSTANCE) ||
+        (pMember->deviceIdentifier.instance == BACNET_MAX_INSTANCE)) {
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the list member element
+ * @param object_instance - object-instance number of the object
+ * @param list_index - 1-based list index of members
+ * @return pointer to list member element or NULL if not found
+ */
+BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
+    uint32_t object_instance, unsigned list_index)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    struct object_data *pObject;
+    unsigned i, count = 0;
+
+    pObject = Object_Data(object_instance);
+    if (pObject && (list_index > 0)) {
+        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+            pMember = &pObject->Manipulated_Properties[i];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                count++;
+            }
+            if (count == list_index) {
+                return pMember;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Encode a BACnetList property element
+ * @param object_instance [in] BACnet object instance number
+ * @param list_index [in] list index requested:
+ *    0 to N for individual list members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or 0 if invalid member
+ */
+static int Timer_Reference_List_Member_Element_Encode(
+    uint32_t object_instance, uint32_t list_index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value;
+
+    value =
+        Timer_Reference_List_Member_Element(object_instance, list_index + 1);
+    if (value) {
+        apdu_len = bacapp_encode_device_obj_property_ref(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * For a given object instance-number, set the member element values
+ * @param pObject - object in which to set the value
+ * @param index - 0-based array index
+ * @param pMember - pointer to member value, or NULL to set as 'empty'
+ * @return true if set, false if not set
+ */
+static bool List_Of_Object_Property_References_Set(
+    struct object_data *pObject,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    if (pObject && (index < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX)) {
+        if (pMember) {
+            memcpy(
+                &pObject->Manipulated_Properties[index], pMember,
+                sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+        } else {
+            pObject->Manipulated_Properties[index].objectIdentifier.instance =
+                BACNET_MAX_INSTANCE;
+            pObject->Manipulated_Properties[index].deviceIdentifier.instance =
+                BACNET_MAX_INSTANCE;
+            pObject->Manipulated_Properties[index].objectIdentifier.type =
+                OBJECT_LIGHTING_OUTPUT;
+            pObject->Manipulated_Properties[index].objectIdentifier.instance =
+                BACNET_MAX_INSTANCE;
+            pObject->Manipulated_Properties[index].propertyIdentifier =
+                PROP_PRESENT_VALUE;
+            pObject->Manipulated_Properties[index].arrayIndex =
+                BACNET_ARRAY_ALL;
+            pObject->Manipulated_Properties[index].deviceIdentifier.type =
+                OBJECT_DEVICE;
+            pObject->Manipulated_Properties[index].deviceIdentifier.instance =
+                BACNET_MAX_INSTANCE;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, set the member element value
+ * @param object_instance - object-instance number of the object
+ * @param index - zero-based array index reference list array
+ * @param pMember - member values to set, or NULL to set as 'empty'
+ * @return pointer to member element or NULL if not found
+ */
+bool Timer_Reference_List_Member_Element_Set(
+    uint32_t object_instance,
+    unsigned index,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        status =
+            List_Of_Object_Property_References_Set(pObject, index, pMember);
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, determines the member count
+ * @param  object_instance - object-instance number of the object
+ * @return member count
+ */
+unsigned Timer_Reference_List_Member_Capacity(uint32_t object_instance)
+{
+    (void)object_instance;
+    return BACNET_TIMER_MANIPULATED_PROPERTIES_MAX;
+}
+
+/**
+ * For a given object instance-number, determines the member count
+ * @param  object_instance - object-instance number of the object
+ * @return member count
+ */
+unsigned Timer_Reference_List_Member_Count(uint32_t object_instance)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned count = 0, i;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+            pMember = &pObject->Manipulated_Properties[i];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}
+
+/**
+ * @brief For a given object instance-number, adds a unique member element
+ *  to the list
+ * @param object_instance - object-instance number of the object
+ * @param pMemberSrc - pointer to a object property reference element
+ * @return true if the element was added, false if the element was not be added
+ */
+bool Timer_Reference_List_Member_Element_Add(
+    uint32_t object_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pNewMember)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned m = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        /* is the element already in the list? */
+        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
+            pMember = &pObject->Manipulated_Properties[m];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                if (bacnet_device_object_property_reference_same(
+                        pNewMember, pMember)) {
+                    return true;
+                }
+            }
+        }
+        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
+            pMember = &pObject->Manipulated_Properties[m];
+            if (Timer_Reference_List_Member_Empty(pMember)) {
+                /* first empty slot */
+                memcpy(
+                    pMember, pNewMember,
+                    sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief For a given object instance-number, removes a list element
+ * @param object_instance - object-instance number of the object
+ * @param pMemberSrc - pointer to a object property reference element
+ * @return true if removed, false if not removed
+ */
+bool Timer_Reference_List_Member_Element_Remove(
+    uint32_t object_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pRemoveMember)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned m = 0;
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
+            pMember = &pObject->Manipulated_Properties[m];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                if (bacnet_device_object_property_reference_same(
+                        pRemoveMember, pMember)) {
+                    status = true;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, intiailize the state change value
+ * for a WriteProperty request
+ *
+ * @param  wp_data - all of the WriteProperty data structure
+ * @param value - BACnetChannelValue
+ *
+ * @return  true if values are within range and present-value is sent.
+ */
+bool Timer_State_Change_Value_WriteProperty_Data_Init(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_TIMER_STATE_CHANGE_VALUE *value)
+{
+    bool status = false;
+    int apdu_len = 0;
+
+    if (wp_data && value) {
+        apdu_len = bacnet_timer_value_encode(
+            wp_data->application_data, sizeof(wp_data->application_data),
+            value);
+        if (apdu_len > 0) {
+            wp_data->application_data_len = 0;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the present-value at a given
+ * priority 1..16.
+ *
+ * @param pObject - object instance data
+ * @param value - application value
+ * @param priority - BACnet priority 0=none,1..16
+ *
+ * @return  true if values are within range and present-value is sent.
+ */
+static bool Timer_Write_Members(
+    struct object_data *pObject,
+    const BACNET_TIMER_STATE_CHANGE_VALUE *value,
+    uint8_t priority)
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool status = false;
+    unsigned i = 0;
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+
+    if (!value) {
+        return false;
+    }
+    if (!pObject) {
+        return false;
+    }
+    for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+        pMember = &pObject->Manipulated_Properties[i];
+        if (Timer_Reference_List_Member_Empty(pMember)) {
+            continue;
+        }
+        if ((pMember->deviceIdentifier.type == OBJECT_DEVICE) &&
+            (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE) &&
+            (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE)) {
+            wp_data.object_type = pMember->objectIdentifier.type;
+            wp_data.object_instance = pMember->objectIdentifier.instance;
+            wp_data.object_property = pMember->propertyIdentifier;
+            wp_data.array_index = pMember->arrayIndex;
+            wp_data.error_class = ERROR_CLASS_PROPERTY;
+            wp_data.error_code = ERROR_CODE_SUCCESS;
+            wp_data.priority = priority;
+            wp_data.application_data_len = 0;
+            status = Timer_State_Change_Value_WriteProperty_Data_Init(
+                &wp_data, value);
+            if (status) {
+                if (Write_Property_Internal_Callback) {
+                    status = Write_Property_Internal_Callback(&wp_data);
+                    if (status) {
+                        wp_data.error_code = ERROR_CODE_SUCCESS;
+                    }
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief initiate the write requests for the current transition
+ * @param  object_instance - object-instance number of the object
+ * @return true if the write occurred
+ */
+static bool Timer_Write_Request_Initiate(struct object_data *pObject)
+{
+    bool status = false;
+    unsigned index = 0;
+    BACNET_TIMER_STATE_CHANGE_VALUE *value = NULL;
+
+    if (pObject) {
+        if (pObject->Last_State_Change != TIMER_TRANSITION_NONE) {
+            index = pObject->Last_State_Change;
+            if (index < TIMER_TRANSITION_MAX) {
+                index--;
+                value = &pObject->State_Change_Values[index];
+            }
+        }
+        if (value) {
+            status = Timer_Write_Members(
+                pObject, value, pObject->Priority_For_Writing);
+        }
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, determines the program-state
  *
  * @param  object_instance - object-instance number of the object
@@ -237,10 +605,12 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
                shall cause a Result(-) to be returned */
             if (pObject->Timer_State == TIMER_STATE_RUNNING) {
                 pObject->Last_State_Change = TIMER_TRANSITION_RUNNING_TO_IDLE;
+                Timer_Write_Request_Initiate(pObject);
             } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
                 pObject->Last_State_Change = TIMER_TRANSITION_EXPIRED_TO_IDLE;
+                Timer_Write_Request_Initiate(pObject);
             }
-            pObject->Timer_State = value;
+            pObject->Timer_State = TIMER_STATE_IDLE;
             status = true;
         }
     }
@@ -280,35 +650,99 @@ bool Timer_Running(uint32_t object_instance)
  *  the timer to transition to state EXPIRED. When writing a value of FALSE
  *  to this property while the timer is in the EXPIRED or IDLE state,
  *  no transition of the timer state shall occur.
- * @param  object_instance - object-instance number of the object
+ * @param object_instance - object-instance number of the object
+ * @param start - true if start is request, false if stop is requested
  * @return true if the running status was set
  */
-bool Timer_Running_Set(uint32_t object_instance, bool running)
+bool Timer_Running_Set(uint32_t object_instance, bool start)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (running) {
+        if (start) {
             if (pObject->Timer_State == TIMER_STATE_IDLE) {
+                /* If a value of TRUE is written to the Timer_Running property,
+                then set Initial_Timeout to the value of Default_Timeout;
+                set Timer_Running to TRUE; set Timer_State to RUNNING;
+                set Last_State_Change to IDLE_TO_RUNNING;
+                set Present_Value to the value of Initial_Timeout;
+                set Update_Time to the current date and time;
+                initiate the write requests for the IDLE_TO_RUNNING
+                transition if present; and enter the RUNNING state. */
+                pObject->Timer_Running = true;
+                pObject->Timer_State = TIMER_STATE_RUNNING;
                 pObject->Last_State_Change = TIMER_TRANSITION_IDLE_TO_RUNNING;
+                pObject->Initial_Timeout = pObject->Default_Timeout;
+                pObject->Present_Value = pObject->Initial_Timeout;
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
+                Timer_Write_Request_Initiate(pObject);
             } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                /* If a value of TRUE is written to the Timer_Running property,
+                   then set Last_State_Change to RUNNING_TO_RUNNING;
+                   set Initial_Timeout to the value of Default_Timeout;
+                   set Present_Value to the value of Initial_Timeout;
+                   set Update_Time to the current date and time;
+                   initiate the write requests for the RUNNING_TO_RUNNING
+                   transition if present; and enter the RUNNING state.*/
+                pObject->Timer_Running = true;
+                pObject->Timer_State = TIMER_STATE_RUNNING;
                 pObject->Last_State_Change =
                     TIMER_TRANSITION_RUNNING_TO_RUNNING;
+                pObject->Initial_Timeout = pObject->Default_Timeout;
+                pObject->Present_Value = pObject->Initial_Timeout;
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
+                Timer_Write_Request_Initiate(pObject);
             } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
+                /* If a value of TRUE is written to the Timer_Running property,
+                   then set Timer_Running to TRUE;
+                   set Timer_State to RUNNING;
+                   set Last_State_Change to EXPIRED_TO_RUNNING;
+                   set Initial_Timeout to the value of Default_Timeout;
+                   set Present_Value to the value of Initial_Timeout;
+                   set Update_Time to the current date and time;
+                   initiate the write requests for the EXPIRED_TO_RUNNING
+                   transition if present; and enter the RUNNING state. */
+                pObject->Timer_Running = true;
+                pObject->Timer_State = TIMER_STATE_RUNNING;
                 pObject->Last_State_Change =
                     TIMER_TRANSITION_EXPIRED_TO_RUNNING;
+                pObject->Initial_Timeout = pObject->Default_Timeout;
+                pObject->Present_Value = pObject->Initial_Timeout;
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
+                Timer_Write_Request_Initiate(pObject);
             }
-            pObject->Timer_State = TIMER_STATE_RUNNING;
-            pObject->Present_Value = pObject->Default_Timeout;
-            pObject->Initial_Timeout = pObject->Default_Timeout;
         } else {
             if (pObject->Timer_State == TIMER_STATE_RUNNING) {
-                pObject->Last_State_Change =
-                    TIMER_TRANSITION_RUNNING_TO_EXPIRED;
+                /*  Expire Request
+                    If a value of FALSE is written to the Timer_Running
+                    property,
+                    then set Timer_Running to FALSE;
+                    set Timer_State to EXPIRED;
+                    set Last_State_Change to FORCED_TO_EXPIRED;
+                    set Present_Value to zero;
+                    set Expiration_Time to the current date and time;
+                    set Update_Time to the current date and time;
+                    initiate the write requests for the FORCED_TO_EXPIRED
+                    transition if present; and enter the EXPIRED state.*/
+                pObject->Timer_Running = true;
                 pObject->Timer_State = TIMER_STATE_EXPIRED;
+                pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
                 pObject->Present_Value = 0;
+                datetime_local(
+                    &pObject->Expiration_Time.date,
+                    &pObject->Expiration_Time.time, NULL, NULL);
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
+                Timer_Write_Request_Initiate(pObject);
             }
         }
         status = true;
@@ -602,9 +1036,9 @@ bool Timer_Reliability_Set(uint32_t object_instance, BACNET_RELIABILITY value)
  * @param object_instance [in] BACnet network port object instance number
  * @return the present-value for a specific object instance
  */
-BACNET_UNSIGNED_INTEGER Timer_Present_Value(uint32_t object_instance)
+uint32_t Timer_Present_Value(uint32_t object_instance)
 {
-    BACNET_UNSIGNED_INTEGER value = 0;
+    uint32_t value = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -633,8 +1067,7 @@ BACNET_UNSIGNED_INTEGER Timer_Present_Value(uint32_t object_instance)
  * @param object_instance [in] BACnet network port object instance number
  * @return true if the present-value for a specific object instance was set
  */
-bool Timer_Present_Value_Set(
-    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -642,29 +1075,71 @@ bool Timer_Present_Value_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (value == 0) {
-            pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
-            pObject->Present_Value = value;
-            pObject->Timer_State = TIMER_STATE_EXPIRED;
+            /* If a value of zero is written to the Present_Value property */
+            if ((pObject->Timer_State == TIMER_STATE_IDLE) ||
+                (pObject->Timer_State == TIMER_STATE_EXPIRED)) {
+                /* then no properties shall be changed;
+                   no write requests shall be initiated;
+                   and no state transition shall occur. */
+            } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                /* then set Timer_Running to FALSE;
+                   set Timer_State to EXPIRED;
+                   set Last_State_Change to FORCED_TO_EXPIRED;
+                   set Present_Value to zero;
+                   set Expiration_Time to the current date and time;
+                   set Update_Time to the current date and time;
+                   initiate the write requests for
+                   the FORCED_TO_EXPIRED transition if present;
+                   and enter the EXPIRED state.*/
+                pObject->Timer_Running = false;
+                pObject->Timer_State = TIMER_STATE_EXPIRED;
+                pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
+                pObject->Present_Value = 0;
+                datetime_local(
+                    &pObject->Expiration_Time.date,
+                    &pObject->Expiration_Time.time, NULL, NULL);
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
+                Timer_Write_Request_Initiate(pObject);
+            }
             status = true;
         } else {
-            if (BACNET_UNSIGNED_INTEGER_UINT32_OUT_OF_RANGE(value)) {
-                status = false;
-            } else if (
-                (value >= pObject->Min_Pres_Value) &&
+            if ((value >= pObject->Min_Pres_Value) &&
                 (value <= pObject->Max_Pres_Value)) {
+                /* Start Request with Specific Timeout */
+                /* If a value within the supported range is written
+                   to the Present_Value property.
+                   set Initial_Timeout to the value written to Present_Value;*/
                 pObject->Present_Value = value;
                 pObject->Initial_Timeout = value;
                 if (pObject->Timer_State == TIMER_STATE_IDLE) {
+                    /* set Last_State_Change to IDLE_TO_RUNNING; */
                     pObject->Last_State_Change =
                         TIMER_TRANSITION_IDLE_TO_RUNNING;
                 } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                    /* set Last_State_Change to RUNNING_TO_RUNNING; */
                     pObject->Last_State_Change =
                         TIMER_TRANSITION_RUNNING_TO_RUNNING;
                 } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
+                    /* set Last_State_Change to EXPIRED_TO_RUNNING; */
                     pObject->Last_State_Change =
                         TIMER_TRANSITION_EXPIRED_TO_RUNNING;
                 }
+                /* then set Timer_Running to TRUE;
+                   set Timer_State to RUNNING;
+                   set Update_Time to the current date and time;
+                   initiate the write requests for the transition if present;
+                   and enter the RUNNING state */
+                pObject->Timer_Running = true;
                 pObject->Timer_State = TIMER_STATE_RUNNING;
+                datetime_local(
+                    &pObject->Expiration_Time.date,
+                    &pObject->Expiration_Time.time, NULL, NULL);
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
+                Timer_Write_Request_Initiate(pObject);
                 status = true;
             } else {
                 status = false;
@@ -989,260 +1464,16 @@ bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value)
 }
 
 /**
- * For a given object instance-number, determines if the member is empty
- *
- * Elements of the List_Of_Object_Property_References array containing
- * object or device instance numbers equal to 4194303 are considered to
- * be 'empty' or 'uninitialized'.
- *
- * @param  pMember - object property reference element
- * @return true if the member is empty
- */
-static bool Timer_Reference_List_Member_Empty(
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
-{
-    bool status = false;
-
-    if (!pMember) {
-        return false;
-    }
-    if ((pMember->objectIdentifier.instance == BACNET_MAX_INSTANCE) ||
-        (pMember->deviceIdentifier.instance == BACNET_MAX_INSTANCE)) {
-        status = true;
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, returns the list member element
- * @param object_instance - object-instance number of the object
- * @param list_index - 1-based list index of members
- * @return pointer to list member element or NULL if not found
- */
-BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
-    uint32_t object_instance, unsigned list_index)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    struct object_data *pObject;
-    unsigned i, count = 0;
-
-    pObject = Object_Data(object_instance);
-    if (pObject && (list_index > 0)) {
-        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
-            pMember = &pObject->Manipulated_Properties[i];
-            if (!Timer_Reference_List_Member_Empty(pMember)) {
-                count++;
-            }
-            if (count == list_index) {
-                return pMember;
-            }
-        }
-    }
-
-    return NULL;
-}
-
-/**
- * For a given object instance-number, determines the member count
- * @param  object_instance - object-instance number of the object
- * @return member count
- */
-unsigned Timer_Reference_List_Member_Capacity(uint32_t object_instance)
-{
-    (void)object_instance;
-    return BACNET_TIMER_MANIPULATED_PROPERTIES_MAX;
-}
-
-/**
- * For a given object instance-number, determines the member count
- * @param  object_instance - object-instance number of the object
- * @return member count
- */
-unsigned Timer_Reference_List_Member_Count(uint32_t object_instance)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned count = 0, i;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
-            pMember = &pObject->Manipulated_Properties[i];
-            if (!Timer_Reference_List_Member_Empty(pMember)) {
-                count++;
-            }
-        }
-    }
-
-    return count;
-}
-
-/**
- * @brief Encode a BACnetList property element
- * @param object_instance [in] BACnet object instance number
- * @param list_index [in] list index requested:
- *    0 to N for individual list members
- * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
- * return the length of buffer if it had been built
- * @return The length of the apdu encoded or 0 if invalid member
- */
-static int Timer_Reference_List_Member_Element_Encode(
-    uint32_t object_instance, uint32_t list_index, uint8_t *apdu)
-{
-    int apdu_len = 0;
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value;
-
-    value =
-        Timer_Reference_List_Member_Element(object_instance, list_index + 1);
-    if (value) {
-        apdu_len = bacapp_encode_device_obj_property_ref(apdu, value);
-    }
-
-    return apdu_len;
-}
-
-/**
- * For a given object instance-number, set the member element values
- * @param pObject - object in which to set the value
- * @param index - 0-based array index
- * @param pMember - pointer to member value, or NULL to set as 'empty'
- * @return true if set, false if not set
- */
-static bool List_Of_Object_Property_References_Set(
-    struct object_data *pObject,
-    unsigned index,
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
-{
-    bool status = false;
-    if (pObject && (index < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX)) {
-        if (pMember) {
-            memcpy(
-                &pObject->Manipulated_Properties[index], pMember,
-                sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
-        } else {
-            pObject->Manipulated_Properties[index].objectIdentifier.instance =
-                BACNET_MAX_INSTANCE;
-            pObject->Manipulated_Properties[index].deviceIdentifier.instance =
-                BACNET_MAX_INSTANCE;
-            pObject->Manipulated_Properties[index].objectIdentifier.type =
-                OBJECT_LIGHTING_OUTPUT;
-            pObject->Manipulated_Properties[index].objectIdentifier.instance =
-                BACNET_MAX_INSTANCE;
-            pObject->Manipulated_Properties[index].propertyIdentifier =
-                PROP_PRESENT_VALUE;
-            pObject->Manipulated_Properties[index].arrayIndex =
-                BACNET_ARRAY_ALL;
-            pObject->Manipulated_Properties[index].deviceIdentifier.type =
-                OBJECT_DEVICE;
-            pObject->Manipulated_Properties[index].deviceIdentifier.instance =
-                BACNET_MAX_INSTANCE;
-        }
-        status = true;
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, set the member element value
- * @param object_instance - object-instance number of the object
- * @param index - zero-based array index reference list array
- * @param pMember - member values to set, or NULL to set as 'empty'
- * @return pointer to member element or NULL if not found
- */
-bool Timer_Reference_List_Member_Element_Set(
-    uint32_t object_instance,
-    unsigned index,
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        status =
-            List_Of_Object_Property_References_Set(pObject, index, pMember);
-    }
-
-    return status;
-}
-
-/**
- * @brief For a given object instance-number, adds a unique member element
- *  to the list
- * @param object_instance - object-instance number of the object
- * @param pMemberSrc - pointer to a object property reference element
- * @return true if the element was added, false if the element was not be added
- */
-bool Timer_Reference_List_Member_Element_Add(
-    uint32_t object_instance,
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pNewMember)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned m = 0;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        /* is the element already in the list? */
-        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
-            pMember = &pObject->Manipulated_Properties[m];
-            if (!Timer_Reference_List_Member_Empty(pMember)) {
-                if (bacnet_device_object_property_reference_same(
-                        pNewMember, pMember)) {
-                    return true;
-                }
-            }
-        }
-        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
-            pMember = &pObject->Manipulated_Properties[m];
-            if (Timer_Reference_List_Member_Empty(pMember)) {
-                /* first empty slot */
-                memcpy(
-                    pMember, pNewMember,
-                    sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-/**
- * @brief For a given object instance-number, removes a list element
- * @param object_instance - object-instance number of the object
- * @param pMemberSrc - pointer to a object property reference element
- * @return true if removed, false if not removed
- */
-bool Timer_Reference_List_Member_Element_Remove(
-    uint32_t object_instance,
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pRemoveMember)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned m = 0;
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
-            pMember = &pObject->Manipulated_Properties[m];
-            if (!Timer_Reference_List_Member_Empty(pMember)) {
-                if (bacnet_device_object_property_reference_same(
-                        pRemoveMember, pMember)) {
-                    status = true;
-                }
-            }
-        }
-    }
-
-    return status;
-}
-
-/**
  * @brief Encode a BACnetARRAY property element
+ * @details This property, of type BACnetARRAY[7]
+ *  of BACnetTimerStateChangeValue, represents the values that
+ *  are to be written to the referenced properties when a change
+ *  of the timer state occurs.
+ * Each of the elements 1-7 of this array may contain a value
+ * to be written for the respective change of timer state.
+ * The array index of the element is equal to the numerical value of the
+ * BACnetTimerTransition enumeration for the respective timer state change.
+ * The timer state change NONE has no corresponding array element.
  * @param object_instance [in] BACnet network port object instance number
  * @param index [in] array index requested:
  *    0 to N for individual array members
@@ -1259,13 +1490,73 @@ static int Timer_State_Change_Value_Encode(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (index < BACNET_TIMER_STATE_CHANGE_VALUES_MAX) {
+        /* Note: The timer state change NONE=0
+           has no corresponding array element.*/
+        if (index < (TIMER_TRANSITION_MAX - 1)) {
             apdu_len = bacnet_timer_state_change_value_encode(
                 apdu, &pObject->State_Change_Values[index]);
         }
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Get the state-change value array element value
+ * @param object_instance - BACnet network port object instance number
+ * @param transition - the state-change enumeration requested
+ * @return state-change structure or NULL if transition is out of range.
+ */
+BACNET_TIMER_STATE_CHANGE_VALUE *Timer_State_Change_Value(
+    uint32_t object_instance, BACNET_TIMER_TRANSITION transition)
+{
+    BACNET_TIMER_STATE_CHANGE_VALUE *value = NULL;
+    unsigned index;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        /* Note: The timer state change NONE=0
+           has no corresponding array element.*/
+        if ((transition != TIMER_TRANSITION_NONE) &&
+            (transition < TIMER_TRANSITION_MAX)) {
+            index = transition - 1;
+            value = &pObject->State_Change_Values[index];
+        }
+    }
+
+    return value;
+}
+
+/**
+ * @brief Set the state-change value array element value
+ * @param object_instance - BACnet network port object instance number
+ * @param transition - the state-change enumeration requested
+ * @param value state-change structure values
+ * @return true if the transition is in range and values were copied
+ */
+bool Timer_State_Change_Value_Set(
+    uint32_t object_instance,
+    BACNET_TIMER_TRANSITION transition,
+    BACNET_TIMER_STATE_CHANGE_VALUE *value)
+{
+    bool status = false;
+    unsigned index;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        /* Note: The timer state change NONE=0
+           has no corresponding array element.*/
+        if ((transition != TIMER_TRANSITION_NONE) &&
+            (transition < TIMER_TRANSITION_MAX)) {
+            index = transition - 1;
+            status = bacnet_timer_value_copy(
+                &pObject->State_Change_Values[index], value);
+        }
+    }
+
+    return status;
 }
 
 /**
@@ -1329,8 +1620,9 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             unsigned_value = Timer_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
-            break;
         case PROP_TIMER_RUNNING:
+            state = Timer_Running(rpdata->object_instance);
+            apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_DESCRIPTION:
             if (Timer_Description(rpdata->object_instance, &char_string)) {
@@ -1379,10 +1671,12 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         case PROP_STATE_CHANGE_VALUES:
+            /* note: The timer state change NONE=0 has no
+               corresponding array element.*/
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                Timer_State_Change_Value_Encode,
-                BACNET_TIMER_STATE_CHANGE_VALUES_MAX, apdu, apdu_size);
+                Timer_State_Change_Value_Encode, TIMER_TRANSITION_MAX - 1, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;

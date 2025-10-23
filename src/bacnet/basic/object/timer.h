@@ -13,6 +13,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacerror.h"
+#include "bacnet/timer_value.h"
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
 
@@ -84,10 +85,9 @@ BACNET_STACK_EXPORT
 void Timer_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Timer_Present_Value(uint32_t object_instance);
+uint32_t Timer_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Timer_Present_Value_Set(
-    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
+bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value);
 
 BACNET_STACK_EXPORT
 bool Timer_Update_Time(uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
@@ -151,6 +151,15 @@ bool Timer_Reference_List_Member_Element_Add(
 bool Timer_Reference_List_Member_Element_Remove(
     uint32_t object_instance,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pRemoveMember);
+
+BACNET_STACK_EXPORT
+BACNET_TIMER_STATE_CHANGE_VALUE *Timer_State_Change_Value(
+    uint32_t object_instance, BACNET_TIMER_TRANSITION transition);
+BACNET_STACK_EXPORT
+bool Timer_State_Change_Value_Set(
+    uint32_t object_instance,
+    BACNET_TIMER_TRANSITION transition,
+    BACNET_TIMER_STATE_CHANGE_VALUE *value);
 
 BACNET_STACK_EXPORT
 void Timer_Timer(uint32_t object_instance, uint16_t milliseconds);
