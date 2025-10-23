@@ -162,7 +162,11 @@ bool Timer_State_Change_Value_Set(
     BACNET_TIMER_STATE_CHANGE_VALUE *value);
 
 BACNET_STACK_EXPORT
-void Timer_Timer(uint32_t object_instance, uint16_t milliseconds);
+void Timer_Task(uint32_t object_instance, uint16_t milliseconds);
+
+BACNET_STACK_EXPORT
+void Timer_Write_Property_Internal_Callback_Set(write_property_function cb);
+
 BACNET_STACK_EXPORT
 uint32_t Timer_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT

@@ -60,7 +60,6 @@ struct object_data {
     const char *Description;
     const char *Object_Name;
     BACNET_RELIABILITY Reliability;
-    bool Timer_Running : 1;
     bool Out_Of_Service : 1;
     bool Changed : 1;
     void *Context;
@@ -591,7 +590,7 @@ BACNET_TIMER_STATE Timer_State(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @param  value - integer value
  *
- * @return  true if values are within range and present-value is set.
+ * @return return false if a value other than IDLE is written to this property
  */
 bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
 {
@@ -601,16 +600,48 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
     pObject = Object_Data(object_instance);
     if (pObject) {
         if (value == TIMER_STATE_IDLE) {
-            /* Writing a value other than IDLE to this property
-               shall cause a Result(-) to be returned */
+            /* Clear Request */
+            /* If a value of IDLE is written to the Timer_State property */
             if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+                /* set Timer_State to IDLE;
+                   set Last_State_Change to RUNNING_TO_IDLE;
+                   set Present_Value to zero;
+                   set Expiration_Time to the unspecified datetime value;
+                   set Update_Time to the current date and time;
+                   initiate the write requests for the RUNNING_TO_IDLE
+                   transition if present;
+                   and enter the IDLE state. */
+                pObject->Timer_State = TIMER_STATE_IDLE;
+                pObject->Present_Value = 0;
+                datetime_wildcard_set(&pObject->Expiration_Time);
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
                 pObject->Last_State_Change = TIMER_TRANSITION_RUNNING_TO_IDLE;
                 Timer_Write_Request_Initiate(pObject);
             } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
                 pObject->Last_State_Change = TIMER_TRANSITION_EXPIRED_TO_IDLE;
+                /*  then set Timer_State to IDLE;
+                    set Last_State_Change to EXPIRED_TO_IDLE;
+                    set Expiration_Time to the unspecified datetime value;
+                    set Update_Time to current date and time;
+                    initiate the write requests for the EXPIRED_TO_IDLE
+                    transition if present; and enter the IDLE state. */
+                pObject->Timer_State = TIMER_STATE_IDLE;
+                pObject->Present_Value = 0;
+                datetime_wildcard_set(&pObject->Expiration_Time);
+                datetime_local(
+                    &pObject->Update_Time.date, &pObject->Update_Time.time,
+                    NULL, NULL);
+                pObject->Last_State_Change = TIMER_TRANSITION_EXPIRED_TO_IDLE;
                 Timer_Write_Request_Initiate(pObject);
+            } else if (pObject->Timer_State == TIMER_STATE_IDLE) {
+                /* then no properties shall be changed;
+                   no write requests shall be initiated;
+                   and no state transition shall occur.*/
             }
-            pObject->Timer_State = TIMER_STATE_IDLE;
+            /* Writing a value other than IDLE to this property
+               shall cause a Result(-) to be returned */
             status = true;
         }
     }
@@ -621,6 +652,12 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
 /**
  * @brief For a given object instance-number, gets the timer
  *  running status.
+ * @details
+ *  12.57.11 Timer_Running
+ *  This property, of type Boolean, shall have a value of TRUE if
+ *  the current state of the timer is RUNNING, otherwise FALSE.
+ *  This property may be used by other objects that require a
+ *  simple Boolean flag for determining if the timer is in RUNNING state.
  * @param  object_instance - object-instance number of the object
  * @return TRUE if the current state of the timer is RUNNING, otherwise FALSE.
  */
@@ -665,13 +702,12 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
             if (pObject->Timer_State == TIMER_STATE_IDLE) {
                 /* If a value of TRUE is written to the Timer_Running property,
                 then set Initial_Timeout to the value of Default_Timeout;
-                set Timer_Running to TRUE; set Timer_State to RUNNING;
+                set Timer_State to RUNNING;
                 set Last_State_Change to IDLE_TO_RUNNING;
                 set Present_Value to the value of Initial_Timeout;
                 set Update_Time to the current date and time;
                 initiate the write requests for the IDLE_TO_RUNNING
                 transition if present; and enter the RUNNING state. */
-                pObject->Timer_Running = true;
                 pObject->Timer_State = TIMER_STATE_RUNNING;
                 pObject->Last_State_Change = TIMER_TRANSITION_IDLE_TO_RUNNING;
                 pObject->Initial_Timeout = pObject->Default_Timeout;
@@ -688,7 +724,6 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                    set Update_Time to the current date and time;
                    initiate the write requests for the RUNNING_TO_RUNNING
                    transition if present; and enter the RUNNING state.*/
-                pObject->Timer_Running = true;
                 pObject->Timer_State = TIMER_STATE_RUNNING;
                 pObject->Last_State_Change =
                     TIMER_TRANSITION_RUNNING_TO_RUNNING;
@@ -700,7 +735,6 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                 Timer_Write_Request_Initiate(pObject);
             } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
                 /* If a value of TRUE is written to the Timer_Running property,
-                   then set Timer_Running to TRUE;
                    set Timer_State to RUNNING;
                    set Last_State_Change to EXPIRED_TO_RUNNING;
                    set Initial_Timeout to the value of Default_Timeout;
@@ -708,7 +742,6 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                    set Update_Time to the current date and time;
                    initiate the write requests for the EXPIRED_TO_RUNNING
                    transition if present; and enter the RUNNING state. */
-                pObject->Timer_Running = true;
                 pObject->Timer_State = TIMER_STATE_RUNNING;
                 pObject->Last_State_Change =
                     TIMER_TRANSITION_EXPIRED_TO_RUNNING;
@@ -724,7 +757,6 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                 /*  Expire Request
                     If a value of FALSE is written to the Timer_Running
                     property,
-                    then set Timer_Running to FALSE;
                     set Timer_State to EXPIRED;
                     set Last_State_Change to FORCED_TO_EXPIRED;
                     set Present_Value to zero;
@@ -732,7 +764,6 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                     set Update_Time to the current date and time;
                     initiate the write requests for the FORCED_TO_EXPIRED
                     transition if present; and enter the EXPIRED state.*/
-                pObject->Timer_Running = true;
                 pObject->Timer_State = TIMER_STATE_EXPIRED;
                 pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
                 pObject->Present_Value = 0;
@@ -1082,8 +1113,7 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                    no write requests shall be initiated;
                    and no state transition shall occur. */
             } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
-                /* then set Timer_Running to FALSE;
-                   set Timer_State to EXPIRED;
+                /* set Timer_State to EXPIRED;
                    set Last_State_Change to FORCED_TO_EXPIRED;
                    set Present_Value to zero;
                    set Expiration_Time to the current date and time;
@@ -1091,7 +1121,6 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                    initiate the write requests for
                    the FORCED_TO_EXPIRED transition if present;
                    and enter the EXPIRED state.*/
-                pObject->Timer_Running = false;
                 pObject->Timer_State = TIMER_STATE_EXPIRED;
                 pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
                 pObject->Present_Value = 0;
@@ -1126,12 +1155,10 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                     pObject->Last_State_Change =
                         TIMER_TRANSITION_EXPIRED_TO_RUNNING;
                 }
-                /* then set Timer_Running to TRUE;
-                   set Timer_State to RUNNING;
+                /* set Timer_State to RUNNING;
                    set Update_Time to the current date and time;
                    initiate the write requests for the transition if present;
                    and enter the RUNNING state */
-                pObject->Timer_Running = true;
                 pObject->Timer_State = TIMER_STATE_RUNNING;
                 datetime_local(
                     &pObject->Expiration_Time.date,
@@ -1834,7 +1861,7 @@ void *Timer_Context_Get(uint32_t object_instance)
 }
 
 /**
- * @brief Set the context used with load, unload, run, halt, and restart
+ * @brief Set the context used for vendor specific extensions
  * @param object_instance [in] BACnet object instance number
  * @param context [in] pointer to the context
  */
@@ -1846,6 +1873,15 @@ void Timer_Context_Set(uint32_t object_instance, void *context)
     if (pObject) {
         pObject->Context = context;
     }
+}
+
+/**
+ * @brief Sets a callback used when the timer        is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Timer_Write_Property_Internal_Callback_Set(write_property_function cb)
+{
+    Write_Property_Internal_Callback = cb;
 }
 
 /**
@@ -1972,8 +2008,8 @@ uint32_t Timer_Create(uint32_t object_instance)
     }
     pObject->Timer_State = TIMER_STATE_IDLE;
     pObject->Last_State_Change = TIMER_TRANSITION_NONE;
-    datetime_set_values(&pObject->Update_Time, 2025, 1, 1, 0, 0, 0, 0);
-    datetime_set_values(&pObject->Expiration_Time, 2154, 1, 1, 0, 0, 0, 0);
+    datetime_wildcard_set(&pObject->Update_Time);
+    datetime_wildcard_set(&pObject->Expiration_Time);
     pObject->Initial_Timeout = 0;
     pObject->Default_Timeout = 1000;
     pObject->Min_Pres_Value = 1;
@@ -1983,7 +2019,6 @@ uint32_t Timer_Create(uint32_t object_instance)
     pObject->Description = NULL;
     pObject->Object_Name = NULL;
     pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
-    pObject->Timer_Running = false;
     pObject->Out_Of_Service = false;
     pObject->Changed = false;
     pObject->Context = NULL;

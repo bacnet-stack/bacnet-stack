@@ -15,6 +15,15 @@
  * @addtogroup bacnet_tests
  * @{
  */
+static BACNET_WRITE_PROPERTY_DATA Write_Property_Internal_Data;
+static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    memcpy(
+        &Write_Property_Internal_Data, wp_data,
+        sizeof(BACNET_WRITE_PROPERTY_DATA));
+
+    return true;
+}
 
 /**
  * @brief Test
@@ -30,8 +39,8 @@ static void test_Timer_Read_Write(void)
     bool status = false;
     const int skip_fail_property_list[] = { -1 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     Timer_Init();
     Timer_Create(instance);
@@ -229,9 +238,10 @@ static void test_Timer_Operation(void)
 {
     const uint32_t instance = 123;
     bool status = false;
-    BACNET_TIMER_STATE_CHANGE_VALUE timer_value = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
-    BACNET_TIMER_STATE test_state;
+    BACNET_TIMER_STATE_CHANGE_VALUE *value = NULL;
+    BACNET_TIMER_STATE test_state = TIMER_STATE_IDLE;
+    unsigned members = 0, i = 0;
 
     /* init */
     Timer_Init();
@@ -249,8 +259,57 @@ static void test_Timer_Operation(void)
     zassert_true(status, NULL);
     test_state = Timer_State(instance);
     zassert_equal(test_state, TIMER_STATE_IDLE, NULL);
-    test_state = Timer_Running_Set(instance, true);
+    status = Timer_Running_Set(instance, true);
     zassert_true(status, NULL);
+    test_state = Timer_State(instance);
+    zassert_equal(test_state, TIMER_STATE_RUNNING, NULL);
+    status = Timer_Running_Set(instance, false);
+    zassert_true(status, NULL);
+    test_state = Timer_State(instance);
+    zassert_equal(test_state, TIMER_STATE_EXPIRED, NULL);
+
+    Timer_Write_Property_Internal_Callback_Set(Write_Property_Internal);
+    members = Timer_Reference_List_Member_Capacity(instance);
+    for (i = 0; i < members; i++) {
+        member.deviceIdentifier.type = OBJECT_DEVICE;
+        member.deviceIdentifier.instance = 0;
+        member.objectIdentifier.type = OBJECT_BINARY_VALUE;
+        member.objectIdentifier.instance = 1 + i;
+        member.propertyIdentifier = PROP_PRESENT_VALUE;
+        member.arrayIndex = BACNET_ARRAY_ALL;
+        status = Timer_Reference_List_Member_Element_Set(instance, i, &member);
+    }
+    /* check the transitions boundaries */
+    value = Timer_State_Change_Value(instance, TIMER_TRANSITION_NONE);
+    zassert_true(value == NULL, NULL);
+    value = Timer_State_Change_Value(instance, TIMER_TRANSITION_MAX);
+    zassert_true(value == NULL, NULL);
+    /* configure the transitions */
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_IDLE_TO_RUNNING);
+    value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value->type.Enumerated = BINARY_ACTIVE;
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_RUNNING_TO_IDLE);
+    value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value->type.Enumerated = BINARY_INACTIVE;
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_EXPIRED_TO_IDLE);
+    value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value->type.Enumerated = BINARY_INACTIVE;
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_RUNNING_TO_EXPIRED);
+    value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value->type.Enumerated = BINARY_INACTIVE;
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_FORCED_TO_EXPIRED);
+    value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value->type.Enumerated = BINARY_INACTIVE;
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_EXPIRED_TO_RUNNING);
+    value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value->type.Enumerated = BINARY_ACTIVE;
+
     /* cleanup */
     status = Timer_Delete(instance);
     zassert_true(status, NULL);
