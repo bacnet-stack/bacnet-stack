@@ -201,12 +201,11 @@ static bool Timer_Reference_List_Member_Empty(
 {
     bool status = false;
 
-    if (!pMember) {
-        return false;
-    }
-    if ((pMember->objectIdentifier.instance == BACNET_MAX_INSTANCE) ||
-        (pMember->deviceIdentifier.instance == BACNET_MAX_INSTANCE)) {
-        status = true;
+    if (pMember) {
+        if ((pMember->objectIdentifier.instance == BACNET_MAX_INSTANCE) ||
+            (pMember->deviceIdentifier.instance == BACNET_MAX_INSTANCE)) {
+            status = true;
+        }
     }
 
     return status;
@@ -430,6 +429,7 @@ bool Timer_Reference_List_Member_Element_Remove(
             if (!Timer_Reference_List_Member_Empty(pMember)) {
                 if (bacnet_device_object_property_reference_same(
                         pRemoveMember, pMember)) {
+                    List_Of_Object_Property_References_Set(pObject, m, NULL);
                     status = true;
                 }
             }
@@ -459,34 +459,30 @@ static bool Timer_Write_Members(
     unsigned i = 0;
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
 
-    if (!value) {
-        return false;
-    }
-    if (!pObject) {
-        return false;
-    }
-    for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
-        pMember = &pObject->Manipulated_Properties[i];
-        if (Timer_Reference_List_Member_Empty(pMember)) {
-            continue;
-        }
-        if ((pMember->deviceIdentifier.type == OBJECT_DEVICE) &&
-            (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE) &&
-            (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE)) {
-            wp_data.object_type = pMember->objectIdentifier.type;
-            wp_data.object_instance = pMember->objectIdentifier.instance;
-            wp_data.object_property = pMember->propertyIdentifier;
-            wp_data.array_index = pMember->arrayIndex;
-            wp_data.error_class = ERROR_CLASS_PROPERTY;
-            wp_data.error_code = ERROR_CODE_SUCCESS;
-            wp_data.priority = priority;
-            wp_data.application_data_len = bacnet_timer_value_encode(
-                wp_data.application_data, sizeof(wp_data.application_data),
-                value);
-            if (Write_Property_Internal_Callback) {
-                status = Write_Property_Internal_Callback(&wp_data);
-                if (status) {
-                    wp_data.error_code = ERROR_CODE_SUCCESS;
+    if (pObject && value) {
+        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+            pMember = &pObject->Manipulated_Properties[i];
+            if (Timer_Reference_List_Member_Empty(pMember)) {
+                continue;
+            }
+            if ((pMember->deviceIdentifier.type == OBJECT_DEVICE) &&
+                (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE) &&
+                (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE)) {
+                wp_data.object_type = pMember->objectIdentifier.type;
+                wp_data.object_instance = pMember->objectIdentifier.instance;
+                wp_data.object_property = pMember->propertyIdentifier;
+                wp_data.array_index = pMember->arrayIndex;
+                wp_data.error_class = ERROR_CLASS_PROPERTY;
+                wp_data.error_code = ERROR_CODE_SUCCESS;
+                wp_data.priority = priority;
+                wp_data.application_data_len = bacnet_timer_value_encode(
+                    wp_data.application_data, sizeof(wp_data.application_data),
+                    value);
+                if (Write_Property_Internal_Callback) {
+                    status = Write_Property_Internal_Callback(&wp_data);
+                    if (status) {
+                        wp_data.error_code = ERROR_CODE_SUCCESS;
+                    }
                 }
             }
         }
@@ -898,29 +894,6 @@ BACNET_TIMER_TRANSITION Timer_Last_State_Change(uint32_t object_instance)
     }
 
     return change;
-}
-
-/**
- * For a given object instance-number, sets the program change property value
- *
- * @param object_instance - object-instance number of the object
- * @param program_change - property value
- *
- * @return true if the program change property value was set
- */
-bool Timer_Last_State_Change_Set(
-    uint32_t object_instance, BACNET_TIMER_TRANSITION change)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Last_State_Change = change;
-        status = true;
-    }
-
-    return status;
 }
 
 /**
@@ -1762,6 +1735,22 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = Timer_Resolution_Set(
                     wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_PRIORITY_FOR_WRITING:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT8_MAX) {
+                    status = Timer_Priority_For_Writing_Set(
+                        wp_data->object_instance, value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                }
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

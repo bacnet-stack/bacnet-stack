@@ -31,15 +31,16 @@ static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
 static void test_Timer_Read_Write(void)
 {
     const uint32_t instance = 123;
-    unsigned count = 0;
+    unsigned count = 0, test_count = 0;
     unsigned index = 0;
     const char *sample_name = "Timer:0";
+    char *sample_context = "context";
     const char *test_name = NULL;
     uint32_t test_instance = 0;
     bool status = false;
     const int skip_fail_property_list[] = { -1 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 }, *test_member = NULL;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     Timer_Init();
@@ -63,46 +64,62 @@ static void test_Timer_Read_Write(void)
     member.arrayIndex = BACNET_ARRAY_ALL;
     status = Timer_Reference_List_Member_Element_Set(instance, index, &member);
     zassert_true(status, NULL);
+    count = Timer_Reference_List_Member_Count(instance);
+    zassert_equal(count, 1, NULL);
+    /* add the same element - should be success without actually adding */
+    status = Timer_Reference_List_Member_Element_Add(instance, &member);
+    zassert_true(status, NULL);
+    count = Timer_Reference_List_Member_Count(instance);
+    zassert_equal(count, 1, NULL);
+    /* next */
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_BINARY_OUTPUT;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
-    index = Timer_Reference_List_Member_Element_Add(instance, &member);
-    zassert_not_equal(index, 0, NULL);
+    status = Timer_Reference_List_Member_Element_Add(instance, &member);
+    zassert_true(status, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_MULTI_STATE_OUTPUT;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
-    index = Timer_Reference_List_Member_Element_Add(instance, &member);
-    zassert_not_equal(index, 0, NULL);
+    status = Timer_Reference_List_Member_Element_Add(instance, &member);
+    zassert_true(status, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_LIGHTING_OUTPUT;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
-    index = Timer_Reference_List_Member_Element_Add(instance, &member);
-    zassert_not_equal(index, 0, NULL);
+    status = Timer_Reference_List_Member_Element_Add(instance, &member);
+    zassert_true(status, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_COLOR;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
-    index = Timer_Reference_List_Member_Element_Add(instance, &member);
-    zassert_not_equal(index, 0, NULL);
+    status = Timer_Reference_List_Member_Element_Add(instance, &member);
+    zassert_true(status, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_COLOR_TEMPERATURE;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
-    index = Timer_Reference_List_Member_Element_Add(instance, &member);
-    zassert_not_equal(index, 0, NULL);
+    status = Timer_Reference_List_Member_Element_Add(instance, &member);
+    zassert_true(status, NULL);
+    count = Timer_Reference_List_Member_Count(instance);
+    status = Timer_Reference_List_Member_Element_Remove(instance, &member);
+    test_count = Timer_Reference_List_Member_Count(instance);
+    zassert_true(
+        count > test_count, "count=%u test_count=%u", count, test_count);
+    /* reliability and status flags */
+    status = Timer_Reliability_Set(instance, RELIABILITY_PROCESS_ERROR);
+    zassert_true(status, NULL);
     /* perform a general test for RP/WP */
     bacnet_object_properties_read_write_test(
         OBJECT_TIMER, instance, Timer_Property_Lists, Timer_Read_Property,
@@ -225,6 +242,16 @@ static void test_Timer_Read_Write(void)
     /* present-value API */
     status = Timer_Present_Value_Set(instance, 0);
     zassert_true(status, NULL);
+    /* negative testing of API */
+    test_member = Timer_Reference_List_Member_Element(instance + 1, 0);
+    zassert_true(test_member == NULL, NULL);
+    /* reliability and status flags */
+    status = Timer_Reliability_Set(instance, RELIABILITY_PROCESS_ERROR);
+    zassert_true(status, NULL);
+    /* context API */
+    Timer_Context_Set(instance, sample_context);
+    zassert_true(sample_context == Timer_Context_Get(instance), NULL);
+    zassert_true(NULL == Timer_Context_Get(instance+1), NULL);
     /* cleanup */
     status = Timer_Delete(instance);
     zassert_true(status, NULL);
@@ -253,10 +280,20 @@ static void test_Timer_Operation_Transition_Default(
         timeout = Timer_Default_Timeout(instance);
         test_timeout = Timer_Initial_Timeout(instance);
         zassert_equal(timeout, test_timeout, NULL);
+        status = Timer_Initial_Timeout_Set(instance, timeout);
+        zassert_true(status, NULL);
+        test_timeout = Timer_Initial_Timeout(instance);
+        zassert_equal(timeout, test_timeout, NULL);
         test_timeout = Timer_Present_Value(instance);
         zassert_equal(timeout, test_timeout, NULL);
     }
     datetime_local(&bdatetime.date, &bdatetime.time, NULL, NULL);
+    status = Timer_Update_Time(instance, &test_bdatetime);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&bdatetime, &test_bdatetime);
+    zassert_equal(diff, 0, "diff=%d", diff);
+    status = Timer_Update_Time_Set(instance, &bdatetime);
+    zassert_true(status, NULL);
     status = Timer_Update_Time(instance, &test_bdatetime);
     zassert_true(status, NULL);
     diff = datetime_compare(&bdatetime, &test_bdatetime);
@@ -340,6 +377,10 @@ static void test_Timer_Operation(void)
         Timer_State_Change_Value(instance, TIMER_TRANSITION_EXPIRED_TO_RUNNING);
     value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
     value->type.Enumerated = BINARY_ACTIVE;
+    /* alternate API */
+    status = Timer_State_Change_Value_Set(instance,
+        TIMER_TRANSITION_EXPIRED_TO_RUNNING, value);
+    zassert_true(status, NULL);
     /* start timer using a write to timer-running property to use defaults */
     /* IDLE_TO_RUNNING */
     test_state = Timer_State(instance);
@@ -382,6 +423,7 @@ static void test_Timer_Operation(void)
     zassert_equal(test_state, TIMER_STATE_IDLE, NULL);
     test_Timer_Operation_Transition_Default(
         instance, TIMER_STATE_IDLE, TIMER_TRANSITION_RUNNING_TO_IDLE);
+    Timer_Task(instance, elapsed_time);
     /* RUNNING_TO_EXPIRED */
     status = Timer_Running_Set(instance, true);
     zassert_true(status, NULL);
@@ -393,9 +435,12 @@ static void test_Timer_Operation(void)
     zassert_equal(test_state, TIMER_STATE_EXPIRED, NULL);
     test_Timer_Operation_Transition_Default(
         instance, TIMER_STATE_EXPIRED, TIMER_TRANSITION_FORCED_TO_EXPIRED);
-    /* cleanup */
+    Timer_Task(instance, elapsed_time);
+    /* cleanup instance */
     status = Timer_Delete(instance);
     zassert_true(status, NULL);
+    /* cleanup all */
+    zassert_equal(instance, Timer_Create(instance), NULL);
     Timer_Cleanup();
 }
 /**

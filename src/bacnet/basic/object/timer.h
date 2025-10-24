@@ -61,6 +61,11 @@ BACNET_STACK_EXPORT
 void Timer_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
+BACNET_RELIABILITY Timer_Reliability(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Reliability_Set(uint32_t object_instance, BACNET_RELIABILITY value);
+
+BACNET_STACK_EXPORT
 uint32_t Timer_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value);
@@ -72,9 +77,6 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value);
 
 BACNET_STACK_EXPORT
 BACNET_TIMER_TRANSITION Timer_Last_State_Change(uint32_t object_instance);
-BACNET_STACK_EXPORT
-bool Timer_Last_State_Change_Set(
-    uint32_t object_instance, BACNET_TIMER_TRANSITION change);
 
 BACNET_STACK_EXPORT
 bool Timer_Running(uint32_t object_instance);
