@@ -440,35 +440,6 @@ bool Timer_Reference_List_Member_Element_Remove(
 }
 
 /**
- * For a given object instance-number, intiailize the state change value
- * for a WriteProperty request
- *
- * @param  wp_data - all of the WriteProperty data structure
- * @param value - BACnetChannelValue
- *
- * @return  true if values are within range and present-value is sent.
- */
-bool Timer_State_Change_Value_WriteProperty_Data_Init(
-    BACNET_WRITE_PROPERTY_DATA *wp_data,
-    const BACNET_TIMER_STATE_CHANGE_VALUE *value)
-{
-    bool status = false;
-    int apdu_len = 0;
-
-    if (wp_data && value) {
-        apdu_len = bacnet_timer_value_encode(
-            wp_data->application_data, sizeof(wp_data->application_data),
-            value);
-        if (apdu_len > 0) {
-            wp_data->application_data_len = 0;
-            status = true;
-        }
-    }
-
-    return status;
-}
-
-/**
  * For a given object instance-number, sets the present-value at a given
  * priority 1..16.
  *
@@ -509,15 +480,13 @@ static bool Timer_Write_Members(
             wp_data.error_class = ERROR_CLASS_PROPERTY;
             wp_data.error_code = ERROR_CODE_SUCCESS;
             wp_data.priority = priority;
-            wp_data.application_data_len = 0;
-            status = Timer_State_Change_Value_WriteProperty_Data_Init(
-                &wp_data, value);
-            if (status) {
-                if (Write_Property_Internal_Callback) {
-                    status = Write_Property_Internal_Callback(&wp_data);
-                    if (status) {
-                        wp_data.error_code = ERROR_CODE_SUCCESS;
-                    }
+            wp_data.application_data_len = bacnet_timer_value_encode(
+                wp_data.application_data, sizeof(wp_data.application_data),
+                value);
+            if (Write_Property_Internal_Callback) {
+                status = Write_Property_Internal_Callback(&wp_data);
+                if (status) {
+                    wp_data.error_code = ERROR_CODE_SUCCESS;
                 }
             }
         }
@@ -1215,9 +1184,6 @@ bool Timer_Expiration_Time(
 {
     bool status = false;
     struct object_data *pObject;
-    int32_t milliseconds = 0;
-    int32_t seconds = 0;
-    int32_t hundredths = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
