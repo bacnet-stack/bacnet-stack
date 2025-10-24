@@ -185,9 +185,14 @@ void datetime_copy_time(BACNET_TIME *dest, const BACNET_TIME *src);
 BACNET_STACK_EXPORT
 void datetime_copy(BACNET_DATE_TIME *dest, const BACNET_DATE_TIME *src);
 
-/* utility add or subtract minutes function */
+/* utility add or subtract time function */
 BACNET_STACK_EXPORT
 void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes);
+BACNET_STACK_EXPORT
+void datetime_add_seconds(BACNET_DATE_TIME *bdatetime, int32_t seconds);
+BACNET_STACK_EXPORT
+void datetime_add_milliseconds(
+    BACNET_DATE_TIME *bdatetime, int32_t milliseconds);
 
 BACNET_STACK_EXPORT
 bacnet_time_t datetime_seconds_since_epoch(const BACNET_DATE_TIME *bdatetime);

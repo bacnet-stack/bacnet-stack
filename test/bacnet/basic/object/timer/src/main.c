@@ -241,20 +241,74 @@ static void test_Timer_Operation(void)
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
     BACNET_TIMER_STATE_CHANGE_VALUE *value = NULL;
     BACNET_TIMER_STATE test_state = TIMER_STATE_IDLE;
+    BACNET_TIMER_TRANSITION transition = TIMER_TRANSITION_NONE;
+    uint32_t timeout = 0, test_timeout = 0;
+    BACNET_DATE_TIME bdatetime = { 0 }, test_bdatetime = { 0 };
     unsigned members = 0, i = 0;
+    int diff = 0;
 
     /* init */
     Timer_Init();
     Timer_Create(instance);
     status = Timer_Valid_Instance(instance);
     zassert_true(status, NULL);
-    /* start timer using a write to timer-running property */
+    /* set the local time */
+    datetime_set_values(&bdatetime, 2025, 10, 24, 10, 50, 42, 42);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    /* start timer using a write to timer-running property to use defaults */
+    /* IDLE_TO_RUNNING */
     test_state = Timer_State(instance);
-    zassert_true(status, NULL);
+    zassert_equal(test_state, TIMER_STATE_IDLE, NULL);
     status = Timer_Running_Set(instance, true);
+    zassert_true(status, NULL);
+    /* IDLE_TO_RUNNING results - defaults */
+    status = Timer_Running(instance);
     zassert_true(status, NULL);
     test_state = Timer_State(instance);
     zassert_equal(test_state, TIMER_STATE_RUNNING, NULL);
+    transition = Timer_Last_State_Change(instance);
+    zassert_equal(transition, TIMER_TRANSITION_IDLE_TO_RUNNING, NULL);
+    timeout = Timer_Default_Timeout(instance);
+    test_timeout = Timer_Initial_Timeout(instance);
+    zassert_equal(timeout, test_timeout, NULL);
+    test_timeout = Timer_Present_Value(instance);
+    zassert_equal(timeout, test_timeout, NULL);
+    datetime_local(&bdatetime.date, &test_bdatetime.time, NULL, NULL);
+    status = Timer_Update_Time(instance, &test_bdatetime);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&bdatetime, &test_bdatetime);
+    zassert_equal(diff, 0, NULL);
+    status = Timer_Expiration_Time(instance, &test_bdatetime);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&bdatetime, &test_bdatetime);
+    zassert_true(diff < 0, "diff=%d", diff);
+
+    /* RUNNING_TO_RUNNING */
+    status = Timer_Running_Set(instance, true);
+    zassert_true(status, NULL);
+    /* RUNNING_TO_RUNNING results - defaults */
+    status = Timer_Running(instance);
+    zassert_true(status, NULL);
+    test_state = Timer_State(instance);
+    zassert_equal(test_state, TIMER_STATE_RUNNING, NULL);
+    transition = Timer_Last_State_Change(instance);
+    zassert_equal(transition, TIMER_TRANSITION_RUNNING_TO_RUNNING, NULL);
+    timeout = Timer_Default_Timeout(instance);
+    test_timeout = Timer_Initial_Timeout(instance);
+    zassert_equal(timeout, test_timeout, NULL);
+    test_timeout = Timer_Present_Value(instance);
+    zassert_equal(timeout, test_timeout, NULL);
+    datetime_local(&bdatetime.date, &test_bdatetime.time, NULL, NULL);
+    status = Timer_Update_Time(instance, &test_bdatetime);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&bdatetime, &test_bdatetime);
+    zassert_equal(diff, 0, NULL);
+    /* EXPIRED_TO_RUNNING */
+    Timer_Task(instance, Timer_Present_Value(instance));
+    test_state = Timer_State(instance);
+    zassert_equal(test_state, TIMER_STATE_EXPIRED, NULL);
+
+    /* start timer using a write to timer-state property to use defaults */
     status = Timer_State_Set(instance, TIMER_STATE_IDLE);
     zassert_true(status, NULL);
     test_state = Timer_State(instance);

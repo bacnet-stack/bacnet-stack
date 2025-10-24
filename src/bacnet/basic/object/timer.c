@@ -45,7 +45,6 @@ struct object_data {
     BACNET_TIMER_STATE Timer_State;
     BACNET_TIMER_TRANSITION Last_State_Change;
     BACNET_DATE_TIME Update_Time;
-    BACNET_DATE_TIME Expiration_Time;
     uint32_t Initial_Timeout;
     uint32_t Default_Timeout;
     uint32_t Min_Pres_Value;
@@ -606,14 +605,12 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
                 /* set Timer_State to IDLE;
                    set Last_State_Change to RUNNING_TO_IDLE;
                    set Present_Value to zero;
-                   set Expiration_Time to the unspecified datetime value;
                    set Update_Time to the current date and time;
                    initiate the write requests for the RUNNING_TO_IDLE
                    transition if present;
                    and enter the IDLE state. */
                 pObject->Timer_State = TIMER_STATE_IDLE;
                 pObject->Present_Value = 0;
-                datetime_wildcard_set(&pObject->Expiration_Time);
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
@@ -623,13 +620,11 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
                 pObject->Last_State_Change = TIMER_TRANSITION_EXPIRED_TO_IDLE;
                 /*  then set Timer_State to IDLE;
                     set Last_State_Change to EXPIRED_TO_IDLE;
-                    set Expiration_Time to the unspecified datetime value;
                     set Update_Time to current date and time;
                     initiate the write requests for the EXPIRED_TO_IDLE
                     transition if present; and enter the IDLE state. */
                 pObject->Timer_State = TIMER_STATE_IDLE;
                 pObject->Present_Value = 0;
-                datetime_wildcard_set(&pObject->Expiration_Time);
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
@@ -760,16 +755,12 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                     set Timer_State to EXPIRED;
                     set Last_State_Change to FORCED_TO_EXPIRED;
                     set Present_Value to zero;
-                    set Expiration_Time to the current date and time;
                     set Update_Time to the current date and time;
                     initiate the write requests for the FORCED_TO_EXPIRED
                     transition if present; and enter the EXPIRED state.*/
                 pObject->Timer_State = TIMER_STATE_EXPIRED;
                 pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
                 pObject->Present_Value = 0;
-                datetime_local(
-                    &pObject->Expiration_Time.date,
-                    &pObject->Expiration_Time.time, NULL, NULL);
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
@@ -1116,7 +1107,6 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                 /* set Timer_State to EXPIRED;
                    set Last_State_Change to FORCED_TO_EXPIRED;
                    set Present_Value to zero;
-                   set Expiration_Time to the current date and time;
                    set Update_Time to the current date and time;
                    initiate the write requests for
                    the FORCED_TO_EXPIRED transition if present;
@@ -1124,9 +1114,6 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                 pObject->Timer_State = TIMER_STATE_EXPIRED;
                 pObject->Last_State_Change = TIMER_TRANSITION_FORCED_TO_EXPIRED;
                 pObject->Present_Value = 0;
-                datetime_local(
-                    &pObject->Expiration_Time.date,
-                    &pObject->Expiration_Time.time, NULL, NULL);
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
@@ -1160,9 +1147,6 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                    initiate the write requests for the transition if present;
                    and enter the RUNNING state */
                 pObject->Timer_State = TIMER_STATE_RUNNING;
-                datetime_local(
-                    &pObject->Expiration_Time.date,
-                    &pObject->Expiration_Time.time, NULL, NULL);
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
@@ -1219,6 +1203,9 @@ bool Timer_Update_Time_Set(
 /**
  * @brief Get the expiration-time property value for the object-instance
  * specified
+ * @details The Expiration_Time property shall indicate the date and time
+ *  when the timer will expire. The value of Expiration_Time
+ *  shall be calculated at the time the property is read.
  * @param object_instance [in] BACnet network port object instance number
  * @param bdatetime [out] the property value retrieved
  * @return true if property value was retrieved
@@ -1228,32 +1215,19 @@ bool Timer_Expiration_Time(
 {
     bool status = false;
     struct object_data *pObject;
+    int32_t milliseconds = 0;
+    int32_t seconds = 0;
+    int32_t hundredths = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        datetime_copy(bdatetime, &pObject->Expiration_Time);
-        status = true;
-    }
-
-    return status;
-}
-
-/**
- * @brief Get the expiration-time property value for the object-instance
- * specified
- * @param object_instance [in] BACnet network port object instance number
- * @param bdatetime [in] the property value to set
- * @return true if property value was retrieved
- */
-bool Timer_Expiration_Time_Set(
-    uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        datetime_copy(&pObject->Expiration_Time, bdatetime);
+        if (pObject->Timer_State == TIMER_STATE_RUNNING) {
+            datetime_copy(bdatetime, &pObject->Update_Time);
+            datetime_add_milliseconds(bdatetime, pObject->Present_Value);
+        } else {
+            /* set Expiration_Time to the unspecified datetime value */
+            datetime_wildcard_set(bdatetime);
+        }
         status = true;
     }
 
@@ -1886,51 +1860,10 @@ void Timer_Write_Property_Internal_Callback_Set(write_property_function cb)
 
 /**
  * @brief Updates the object program operation
- *
- * 12.22.5 Last_State_Change
- *
- * This property, of type BACnetProgramRequest, is used to request changes
- * to the operating state of the process this object represents.
- * The Last_State_Change property provides one means for changing
- * the operating state of this process. The process may change its own
- * state as a consequence of execution as well.
- *
- * The values that may be taken on by this property are:
- *   READY ready for change request (the normal state)
- *   LOAD request that the application program be loaded, if not already loaded
- *   RUN request that the process begin executing, if not already running
- *   HALT request that the process halt execution
- *   RESTART request that the process restart at its initialization point
- *   UNLOAD request that the process halt execution and unload
- *
- * Normally the value of the Last_State_Change property will be READY,
- * meaning that the program is ready to accept a new
- * request to change its operating state. If the Last_State_Change property
- * is not READY, then it may not be written to and any
- * attempt to write to the property shall return a Result(-).
- * If it has one of the other enumerated values, then a previous request to
- * change state has not yet been honored, so new requests cannot
- * be accepted. When the request to change state is finally
- * honored, then the Last_State_Change property value shall become READY
- * and the new state shall be reflected in the Timer_State property.
- * Depending on the current Timer_State, certain requested values for
- * Last_State_Change may be invalid and would also return a Result(-)
- * if an attempt were made to write them.
- *
- * It is important to note that program loading could be terminated
- * either due to an error or a request to HALT that occurs
- * during loading. In either case, it is possible to have Timer_State=HALTED
- * and yet not have a complete or operable program in place.
- * In this case, a request to RESTART is taken to mean LOAD instead.
- * If a complete program is loaded but HALTED for any reason,
- * then RESTART simply reenters program execution at its
- * initialization entry point.
- *
- * There may be BACnet devices
- * that support Program objects but do not require "loading"
- * of the application programs, as these applications may be built in.
- * In these cases, loading is taken to mean "preparing for execution,"
- * the specifics of which are a local matter.
+ * @details In the RUNNING state, the timer is active
+ *  and is counting down the remaining time.
+ *  The Present_Value property shall indicate the
+ *  remaining time until expiration.
  *
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed
@@ -2009,7 +1942,6 @@ uint32_t Timer_Create(uint32_t object_instance)
     pObject->Timer_State = TIMER_STATE_IDLE;
     pObject->Last_State_Change = TIMER_TRANSITION_NONE;
     datetime_wildcard_set(&pObject->Update_Time);
-    datetime_wildcard_set(&pObject->Expiration_Time);
     pObject->Initial_Timeout = 0;
     pObject->Default_Timeout = 1000;
     pObject->Min_Pres_Value = 1;

@@ -48,6 +48,24 @@ BACNET_STACK_EXPORT
 bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
+bool Timer_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+BACNET_STACK_EXPORT
+bool Timer_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Timer_Description_ANSI(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Timer_Out_Of_Service(uint32_t instance);
+BACNET_STACK_EXPORT
+void Timer_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
+
+BACNET_STACK_EXPORT
+uint32_t Timer_Present_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
 BACNET_TIMER_STATE Timer_State(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value);
@@ -64,32 +82,6 @@ BACNET_STACK_EXPORT
 bool Timer_Running_Set(uint32_t object_instance, bool running);
 
 BACNET_STACK_EXPORT
-bool Timer_Description(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
-BACNET_STACK_EXPORT
-bool Timer_Description_Set(uint32_t instance, const char *new_name);
-BACNET_STACK_EXPORT
-const char *Timer_Description_ANSI(uint32_t object_instance);
-
-BACNET_STACK_EXPORT
-bool Timer_Location(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
-BACNET_STACK_EXPORT
-bool Timer_Location_Set(uint32_t instance, const char *new_name);
-BACNET_STACK_EXPORT
-const char *Timer_Location_ANSI(uint32_t object_instance);
-
-BACNET_STACK_EXPORT
-bool Timer_Out_Of_Service(uint32_t instance);
-BACNET_STACK_EXPORT
-void Timer_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
-
-BACNET_STACK_EXPORT
-uint32_t Timer_Present_Value(uint32_t object_instance);
-BACNET_STACK_EXPORT
-bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value);
-
-BACNET_STACK_EXPORT
 bool Timer_Update_Time(uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
 BACNET_STACK_EXPORT
 bool Timer_Update_Time_Set(
@@ -97,9 +89,6 @@ bool Timer_Update_Time_Set(
 
 BACNET_STACK_EXPORT
 bool Timer_Expiration_Time(
-    uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
-BACNET_STACK_EXPORT
-bool Timer_Expiration_Time_Set(
     uint32_t object_instance, BACNET_DATE_TIME *bdatetime);
 
 BACNET_STACK_EXPORT
