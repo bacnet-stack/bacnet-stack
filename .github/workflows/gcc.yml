@@ -277,18 +277,22 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq build-essential
         sudo apt-get install -qq mingw-w64
-    - name: Build Win32 Demo Apps
+    - name: Build Win32 Demo BACnet/IP Apps
       run: |
         export CC=i686-w64-mingw32-gcc
         export LD=i686-w64-mingw32-ld
         i686-w64-mingw32-gcc --version
         make win32
     - name: Build Win32 Demo IP to IPv6 Router
-      run: make LEGACY=true BUILD=win32 router-ipv6
+      run: make LEGACY=true BACNET_PORT=win32 router-ipv6
     - name: Build Win32 Demo IP to MS/TP Router
-      run: make LEGACY=true BUILD=win32 router-mstp
+      run: make LEGACY=true BACNET_PORT=win32 router-mstp
     - name: Build Win32 Demo Gateway
-      run: make LEGACY=true BUILD=win32 gateway
+      run: make LEGACY=true BACNET_PORT=win32 gateway
+    - name: Build Win32 Demo BACnet/IPv6 Apps
+      run: make LEGACY=true BACNET_PORT=win32 bip6
+    - name: Build Win32 Demo BACnet MS/TP Apps
+      run: make LEGACY=true BACNET_PORT=win32 mstp
 
   piface:
     runs-on: ubuntu-latest

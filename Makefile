@@ -42,23 +42,23 @@ mstp:
 
 .PHONY: bip6-win32
 bip6-win32:
-	$(MAKE) BACDL=bip6 BACNET_PORT=win32 -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip6 BACNET_PORT=win32 -s -C apps all
 
 .PHONY: bip6
 bip6:
-	$(MAKE) BACDL=bip6 -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip6 -s -C apps all
 
 .PHONY: bip
 bip:
-	$(MAKE) BACDL=bip -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip -s -C apps all
 
 .PHONY: bip-client
 bip-client:
-	$(MAKE) BACDL=bip BBMD=client -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip BBMD=client -s -C apps all
 
 .PHONY: ethernet
 ethernet:
-	$(MAKE) BACDL=ethernet -s -C apps all
+	$(MAKE) LEGACY=true BACDL=ethernet -s -C apps all
 
 # note: requires additional libraries to be installed
 # see .github/workflows/gcc.yml
