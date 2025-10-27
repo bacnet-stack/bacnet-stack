@@ -1120,7 +1120,7 @@ size_t octetstring_copy_value(
     size_t i; /* counter */
 
     if (src && dest) {
-        if (length <= src->length) {
+        if (src->length <= length) {
             for (i = 0; i < src->length; i++) {
                 dest[i] = src->value[i];
             }
