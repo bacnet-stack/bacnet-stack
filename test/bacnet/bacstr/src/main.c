@@ -22,12 +22,14 @@ ZTEST(bacstr_tests, testBitString)
 static void testBitString(void)
 #endif
 {
-    uint8_t bit = 0;
+    uint8_t bit = 0, octet = 0, octet_index = 0;
+    uint8_t bits_used = 0, test_bits_used = 0, bits_unused = 0;
     int max_bit;
     BACNET_BIT_STRING bit_string;
     BACNET_BIT_STRING bit_string2;
     BACNET_BIT_STRING bit_string3;
     bool status = false;
+    uint8_t bytes = 0;
 
     bitstring_init(&bit_string);
     /* verify initialization */
@@ -35,12 +37,32 @@ static void testBitString(void)
     for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
         zassert_false(bitstring_bit(&bit_string, bit), NULL);
     }
-
+    zassert_equal(bitstring_bytes_used(&bit_string), 0, NULL);
     /* test for true */
     for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
         bitstring_set_bit(&bit_string, bit, true);
-        zassert_equal(bitstring_bits_used(&bit_string), (bit + 1), NULL);
+        bits_used = bitstring_bits_used(&bit_string);
+        zassert_equal(bits_used, (bit + 1), NULL);
         zassert_true(bitstring_bit(&bit_string, bit), NULL);
+        zassert_true(bitstring_bits_used_set(&bit_string, (bit + 1)), NULL);
+        zassert_equal(bitstring_bits_used(&bit_string), (bit + 1), NULL);
+        bytes = bitstring_bytes_used(&bit_string);
+        zassert_true(bytes > 0, "bytes=%u", bit, bytes);
+        /* manipulate the bitstring per octet */
+        octet_index = bytes - 1;
+        octet = bitstring_octet(&bit_string, octet_index);
+        zassert_true(octet > 0, "octet=0x%02X byte=%u", octet, octet_index);
+        zassert_true(
+            bitstring_set_octet(&bit_string, octet_index, octet), NULL);
+        /* manipulate the bitstring bits used based on the last set octet */
+        bits_unused = 8 - (bits_used - (octet_index * 8));
+        zassert_true(
+            bitstring_set_bits_used(&bit_string, bytes, bits_unused), NULL);
+        test_bits_used = bitstring_bits_used(&bit_string);
+        zassert_equal(
+            bits_used, test_bits_used,
+            "bits_used=%u bits_unused=%u test_bits_used=%u", bits_used,
+            bits_unused, test_bits_used);
     }
     /* test for false */
     bitstring_init(&bit_string);
@@ -74,12 +96,17 @@ static void testBitString(void)
     }
     status = bitstring_init_ascii(&bit_string, "1111000010100101");
     zassert_true(status, NULL);
-    status = bitstring_init_ascii(&bit_string2, "1111000010100111");
+    status = bitstring_init_ascii(&bit_string2, "1110000010101111");
     zassert_true(status, NULL);
     status = bitstring_same(&bit_string, &bit_string2);
     zassert_false(status, NULL);
+    status = bitstring_copy(&bit_string2, &bit_string);
+    zassert_true(status, NULL);
+    status = bitstring_same(&bit_string, &bit_string2);
+    zassert_true(status, NULL);
     zassert_equal(
         bitstring_bits_capacity(&bit_string), (MAX_BITSTRING_BYTES * 8), NULL);
+    zassert_equal(bitstring_bits_capacity(NULL), 0, NULL);
 }
 
 /**
@@ -91,11 +118,12 @@ ZTEST(bacstr_tests, testCharacterString)
 static void testCharacterString(void)
 #endif
 {
-    BACNET_CHARACTER_STRING bacnet_string;
+    BACNET_CHARACTER_STRING bacnet_string = { 0 }, bacnet_string2 = { 0 };
     const char *value = "Joshua,Mary,Anna,Christopher";
     char test_value[MAX_APDU] = "Patricia";
     char test_append_value[MAX_APDU] = " and the Kids";
     char test_append_string[MAX_APDU] = "";
+    char test_string[MAX_APDU] = { 0 };
     bool status = false;
     size_t length = 0;
     size_t test_length = 0;
@@ -107,6 +135,11 @@ static void testCharacterString(void)
     zassert_equal(characterstring_length(&bacnet_string), 0, NULL);
     zassert_equal(
         characterstring_encoding(&bacnet_string), CHARACTER_ANSI_X34, NULL);
+    /* empty string is the same as NULL */
+    status = characterstring_same(&bacnet_string, NULL);
+    zassert_true(status, NULL);
+    status = characterstring_same(NULL, &bacnet_string);
+    zassert_true(status, NULL);
     /* bounds check */
     status = characterstring_init(
         &bacnet_string, CHARACTER_ANSI_X34, NULL,
@@ -129,6 +162,10 @@ static void testCharacterString(void)
     for (i = 0; i < test_length; i++) {
         zassert_equal(value[i], test_value[i], NULL);
     }
+    test_length = characterstring_copy_value(
+        test_string, sizeof(test_string), &bacnet_string);
+    zassert_equal(length, test_length, NULL);
+
     test_length = strlen(test_append_value);
     status = characterstring_append(
         &bacnet_string, &test_append_value[0], test_length);
@@ -151,6 +188,11 @@ static void testCharacterString(void)
     /* check for same string */
     status = characterstring_ansi_same(&bacnet_string, value);
     zassert_true(status, NULL);
+    status = characterstring_copy(&bacnet_string, &bacnet_string2);
+    zassert_true(status, NULL);
+    status = characterstring_same(&bacnet_string, &bacnet_string2);
+    zassert_true(status, NULL);
+
     /* set the encoding */
     status = characterstring_set_encoding(&bacnet_string, CHARACTER_ANSI_X34);
     zassert_true(status, NULL);
@@ -162,14 +204,18 @@ static void testCharacterString(void)
     zassert_false(status, NULL);
     status = characterstring_valid(NULL);
     zassert_false(status, NULL);
-    status = characterstring_ansi_same(NULL, value);
-    zassert_false(status, NULL);
     status = characterstring_printable(NULL);
+    zassert_false(status, NULL);
+    status = characterstring_copy(&bacnet_string, NULL);
+    zassert_false(status, NULL);
+    status = characterstring_copy(NULL, &bacnet_string);
     zassert_false(status, NULL);
     /* null arguments that succeed */
     status = characterstring_init_ansi(&bacnet_string, NULL);
     zassert_true(status, NULL);
     status = characterstring_ansi_same(&bacnet_string, NULL);
+    zassert_true(status, NULL);
+    status = characterstring_ansi_same(NULL, "");
     zassert_true(status, NULL);
     /* alternate API for init and copy */
     status =
