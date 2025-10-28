@@ -57,6 +57,14 @@ typedef BACNET_ERROR_CODE (*bacnet_array_property_element_write_function)(
     uint8_t *application_data,
     size_t application_data_len);
 
+#ifndef BACNET_CONSTRUCTED_VALUE_SIZE
+#define BACNET_CONSTRUCTED_VALUE_SIZE MAX_APDU
+#endif
+typedef struct BACnet_Constructed_Value_Type {
+    uint8_t data[BACNET_CONSTRUCTED_VALUE_SIZE];
+    uint16_t data_len;
+} BACNET_CONSTRUCTED_VALUE_TYPE;
+
 typedef struct BACnetTag {
     uint8_t number;
     bool application : 1;
@@ -620,6 +628,32 @@ int bacnet_date_context_decode(
     uint32_t apdu_len_max,
     uint8_t tag_value,
     BACNET_DATE *value);
+
+BACNET_STACK_EXPORT
+int bacnet_constructed_value_context_encode(
+    uint8_t *apdu,
+    uint8_t tag_value,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value);
+BACNET_STACK_EXPORT
+int bacnet_constructed_value_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value);
+BACNET_STACK_EXPORT
+int bacnet_constructed_value_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_value,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value);
+BACNET_STACK_EXPORT
+bool bacnet_constructed_value_same(
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value1,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value2);
+BACNET_STACK_EXPORT
+bool bacnet_constructed_value_copy(
+    BACNET_CONSTRUCTED_VALUE_TYPE *dest,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *src);
 
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */

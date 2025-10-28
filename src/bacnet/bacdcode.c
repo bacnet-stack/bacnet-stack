@@ -4858,6 +4858,157 @@ int decode_context_date(
 }
 
 /**
+ * @brief Encode a context tagged BACnetTimerStateChangeValue
+ *  with a constructed value type
+ * @param apdu  buffer to be encoded, or NULL for length
+ * @param tag_value - context tag number to encapsulate the value
+ * @param value The value to be encoded.
+ * @return the number of apdu bytes encoded
+ */
+int bacnet_constructed_value_context_encode(
+    uint8_t *apdu,
+    uint8_t tag_value,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (value) {
+        len = encode_opening_tag(apdu, tag_value);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = value->data_len;
+        if (apdu) {
+            memcpy(apdu, value->data, len);
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_value);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a constructed value type of a given length
+ * @param apdu - the APDU buffer to decode
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param len_value - number of bytes in the constructed value data
+ * @param value - the value where the decoded data is copied into,
+ *  or NULL for getting the length
+ * @return number of bytes decoded (0..N), or BACNET_STATUS_ERROR on error
+ */
+int bacnet_constructed_value_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value)
+{
+    if (len_value <= apdu_size) {
+        if (value) {
+            value->data_len = len_value;
+            memcpy(value->data, apdu, len_value);
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return (int)len_value;
+}
+
+/**
+ * @brief Decodes a context tagged constructed value type
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_value - context tag number expected
+ * @param value - the value where the decoded data is copied into
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_constructed_value_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value)
+{
+    int apdu_len = 0;
+    int len, len_value;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* find the matching closing tag to learn the length*/
+    len_value =
+        bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
+    /* now update apdu_len with the opening tag length */
+    apdu_len += len;
+    /* constructed value */
+    len = bacnet_constructed_value_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, len_value, NULL);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        if (len <= sizeof(value->data)) {
+            len = bacnet_constructed_value_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, len_value, value);
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare two constructed values
+ * @param value1 - the first value to compare
+ * @param value2 - the second value to compare
+ * @return true if value1 is the same as value2 up to the length of the data
+ */
+bool bacnet_constructed_value_same(
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value1,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value2)
+{
+    if (value1->data_len != value2->data_len) {
+        return false;
+    }
+    if (value1->data_len > sizeof(value1->data)) {
+        return false;
+    }
+    if (memcmp(value1->data, value2->data, value1->data_len) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Copy one constructed value to another
+ * @param dest - the destination value
+ * @param src - the source value to copy to the destination
+ * @return true if the value is copied from src to dst
+ */
+bool bacnet_constructed_value_copy(
+    BACNET_CONSTRUCTED_VALUE_TYPE *dest,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *src)
+{
+    memcpy(dest, src, sizeof(BACNET_CONSTRUCTED_VALUE_TYPE));
+    return true;
+}
+
+/**
  * Encode a simple ACK and returns the number of apdu bytes consumed.
  *
  * @param apdu - buffer to hold encoded data, or NULL for length
