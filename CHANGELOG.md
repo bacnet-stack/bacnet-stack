@@ -132,6 +132,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed octetstring_copy_value() and added unit tests. (#1121)
 * Fixed the MS/TP compare DER function which can now include the NPDU network
   priority in the comparison. (#1119)
 * Fixed basic program object internal datatype for reason-for-fault
