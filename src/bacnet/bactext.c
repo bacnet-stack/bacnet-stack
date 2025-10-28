@@ -179,6 +179,7 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     { BACNET_APPLICATION_TAG_CHANNEL_VALUE, "BACnetChannelValue" },
     { BACNET_APPLICATION_TAG_LOG_RECORD, "BACnetLogRecord" },
     { BACNET_APPLICATION_TAG_NO_VALUE, "BACnetNoValue" },
+    { BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX, "ABSTRACT-SYNTAX" },
     { 0, NULL }
 };
 

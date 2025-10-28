@@ -80,15 +80,11 @@ static void test_BACnetTimerValue(void)
           .type.Date_Time = { .date = { 2024, 12, 31, 4 },
                               .time = { 23, 59, 58, 99 } },
           .next = NULL },
+        { .tag = BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX,
+          .type.Constructed_Value = { .data = { 1, 2, 3, 4 }, .data_len = 4 },
+          .next = NULL },
         { .tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
           .type.Lighting_Command.operation = BACNET_LIGHTS_NONE,
-          .next = NULL },
-        { .tag = BACNET_APPLICATION_TAG_COLOR_COMMAND,
-          .type.Color_Command.operation = BACNET_COLOR_OPERATION_NONE,
-          .next = NULL },
-        { .tag = BACNET_APPLICATION_TAG_XY_COLOR,
-          .type.XY_Color.x_coordinate = 0.0f,
-          .type.XY_Color.y_coordinate = 0.0f,
           .next = NULL },
     };
     struct to_ascii_test_value {
@@ -158,10 +154,6 @@ static void test_BACnetTimerValue(void)
         { "d1.21", BACNET_APPLICATION_TAG_DOUBLE },
         { "L0", BACNET_APPLICATION_TAG_LIGHTING_COMMAND },
         { "l0", BACNET_APPLICATION_TAG_LIGHTING_COMMAND },
-        { "C0", BACNET_APPLICATION_TAG_COLOR_COMMAND },
-        { "c0", BACNET_APPLICATION_TAG_COLOR_COMMAND },
-        { "X0.0,0.0", BACNET_APPLICATION_TAG_XY_COLOR },
-        { "x0.0,0.0", BACNET_APPLICATION_TAG_XY_COLOR },
     };
     size_t i;
     BACNET_TIMER_STATE_CHANGE_VALUE test_value = { 0 };
@@ -180,13 +172,20 @@ static void test_BACnetTimerValue(void)
             bactext_application_tag_name(value->tag), apdu_len, null_len);
         null_len = bacnet_timer_value_decode(NULL, apdu_len, &test_value);
         zassert_equal(null_len, BACNET_STATUS_ERROR, NULL);
+        zassert_equal(
+            null_len, BACNET_STATUS_ERROR, "value->tag: %s null_len=%d",
+            bactext_application_tag_name(value->tag), null_len);
         null_len = bacnet_timer_value_decode(apdu, apdu_len, NULL);
-        zassert_equal(null_len, BACNET_STATUS_ERROR, NULL);
+        zassert_equal(
+            null_len, BACNET_STATUS_ERROR, "value->tag: %s null_len=%d",
+            bactext_application_tag_name(value->tag), null_len);
         test_len = bacnet_timer_value_decode(apdu, apdu_len, &test_value);
         zassert_not_equal(
             test_len, BACNET_STATUS_ERROR, "value->tag: %s test_len=%d",
             bactext_application_tag_name(value->tag), test_len);
-        zassert_equal(test_len, apdu_len, NULL);
+        zassert_equal(
+            test_len, apdu_len, "value->tag: %s test_len=%d apdu_len=%d",
+            bactext_application_tag_name(value->tag), test_len, apdu_len);
         zassert_equal(
             value->tag, test_value.tag, "value->tag: %s test_tag=%s",
             bactext_application_tag_name(value->tag),
@@ -226,14 +225,14 @@ static void test_BACnetTimerValue(void)
         }
     }
     /* no-value API */
-    null_len = bacnet_timer_value_no_value_encode(NULL, 0);
+    null_len = bacnet_timer_value_no_value_encode(NULL);
     zassert_not_equal(null_len, 0, NULL);
-    apdu_len = bacnet_timer_value_no_value_encode(apdu, 0);
+    apdu_len = bacnet_timer_value_no_value_encode(apdu);
     zassert_not_equal(apdu_len, 0, NULL);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = bacnet_timer_value_no_value_decode(NULL, 0, 0);
+    test_len = bacnet_timer_value_no_value_decode(NULL, 0);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    test_len = bacnet_timer_value_no_value_decode(apdu, apdu_len, 0);
+    test_len = bacnet_timer_value_no_value_decode(apdu, apdu_len);
     zassert_equal(apdu_len, test_len, NULL);
 }
 

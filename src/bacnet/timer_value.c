@@ -27,11 +27,13 @@
  * @param value The value to be encoded.
  * @return the number of apdu bytes encoded
  */
-int bacnet_timer_value_no_value_encode(uint8_t *apdu, uint8_t tag_number)
+int bacnet_timer_value_no_value_encode(uint8_t *apdu)
 {
     int len = 0;
     int apdu_len = 0;
+    const uint8_t tag_number = 0;
 
+    /* no-value[0] Null */
     len = encode_opening_tag(apdu, tag_number);
     apdu_len += len;
     if (apdu) {
@@ -53,15 +55,15 @@ int bacnet_timer_value_no_value_encode(uint8_t *apdu, uint8_t tag_number)
  *  no-value type
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer size
- * @param tag_number - context tag number to be encoded
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  */
-int bacnet_timer_value_no_value_decode(
-    const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number)
+int bacnet_timer_value_no_value_decode(const uint8_t *apdu, uint32_t apdu_size)
 {
     int apdu_len = 0;
     int len;
+    const uint8_t tag_number = 0;
 
+    /* no-value[0] Null */
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return BACNET_STATUS_ERROR;
@@ -168,11 +170,20 @@ int bacnet_timer_state_change_value_encode(
 #endif
 #if defined(BACNET_TIMER_VALUE_NO_VALUE)
         case BACNET_APPLICATION_TAG_NO_VALUE:
-            apdu_len = bacnet_timer_value_no_value_encode(apdu, 0);
+            /* no-value[0] Null */
+            apdu_len = bacnet_timer_value_no_value_encode(apdu);
+            break;
+#endif
+#if defined(BACNET_TIMER_VALUE_CONSTRUCTED_VALUE)
+        case BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX:
+            /* constructed-value[1] ABSTRACT-SYNTAX.&Type */
+            apdu_len = bacnet_constructed_value_context_encode(
+                apdu, 1, &value->type.Constructed_Value);
             break;
 #endif
 #if defined(BACNET_TIMER_VALUE_DATETIME)
         case BACNET_APPLICATION_TAG_DATETIME:
+            /* datetime[2] BACnetDateTime */
             apdu_len =
                 bacapp_encode_context_datetime(apdu, 2, &value->type.Date_Time);
             break;
@@ -181,17 +192,6 @@ int bacnet_timer_state_change_value_encode(
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             apdu_len = lighting_command_encode_context(
                 apdu, 3, &value->type.Lighting_Command);
-            break;
-#endif
-#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
-        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-            apdu_len = color_command_context_encode(
-                apdu, 4, &value->type.Color_Command);
-            break;
-#endif
-#if defined(BACNET_TIMER_VALUE_XY_COLOR)
-        case BACNET_APPLICATION_TAG_XY_COLOR:
-            apdu_len = xy_color_context_encode(apdu, 5, &value->type.XY_Color);
             break;
 #endif
         default:
@@ -203,6 +203,12 @@ int bacnet_timer_state_change_value_encode(
 
 /**
  * @brief Decode a BACnetTimerStateChangeValue
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_data_type - application tag type expected
+ * @param len_value_type - the length or value type of the tag value content.
+ * @param value - the value where the decoded data is copied into
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  */
 int bacnet_timer_state_change_value_decode(
     const uint8_t *apdu,
@@ -226,6 +232,7 @@ int bacnet_timer_state_change_value_decode(
 #if defined(BACNET_TIMER_VALUE_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             value->type.Boolean = decode_boolean(len_value_type);
+            len = 0;
             break;
 #endif
 #if defined(BACNET_TIMER_VALUE_UNSIGNED)
@@ -384,6 +391,13 @@ int bacnet_timer_value_decode(
                     break;
                 case 1:
                     /* constructed-value[1] ABSTRACT-SYNTAX.&Type */
+                    value->tag = BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX;
+#if defined(BACNET_TIMER_VALUE_CONSTRUCTED_VALUE)
+                    len = bacnet_enclosed_data_length(apdu, apdu_size);
+                    len = bacnet_constructed_value_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, len,
+                        &value->type.Constructed_Value);
+#endif
                     break;
                 case 2:
                     /* datetime[2] BACnetDateTime */
@@ -401,24 +415,6 @@ int bacnet_timer_value_decode(
                     len = lighting_command_decode(
                         &apdu[apdu_len], apdu_size - apdu_len,
                         &value->type.Lighting_Command);
-#endif
-                    break;
-                case 4:
-                    /* proposed: color-command[4] BACnetColorCommand */
-                    value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
-#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
-                    len = color_command_decode(
-                        &apdu[apdu_len], apdu_size - apdu_len, NULL,
-                        &value->type.Color_Command);
-#endif
-                    break;
-                case 5:
-                    /* proposed: xy-color[5] BACnetXYColor */
-                    value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
-#if defined(BACNET_TIMER_VALUE_XY_COLOR)
-                    len = xy_color_decode(
-                        &apdu[apdu_len], apdu_size - apdu_len,
-                        &value->type.XY_Color);
 #endif
                     break;
                 default:
@@ -523,20 +519,22 @@ bool bacnet_timer_value_same(
                 value1->type.Object_Id.type, value1->type.Object_Id.instance,
                 value2->type.Object_Id.type, value2->type.Object_Id.instance);
 #endif
+#if defined(BACNET_TIMER_VALUE_DATETIME)
+        case BACNET_APPLICATION_TAG_DATETIME:
+            return (
+                datetime_compare(
+                    &value1->type.Date_Time, &value2->type.Date_Time) == 0);
+#endif
+#if defined(BACNET_TIMER_VALUE_CONSTRUCTED_VALUE)
+        case BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX:
+            return bacnet_constructed_value_same(
+                &value1->type.Constructed_Value,
+                &value2->type.Constructed_Value);
+#endif
 #if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             return lighting_command_same(
                 &value1->type.Lighting_Command, &value2->type.Lighting_Command);
-#endif
-#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
-        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-            return color_command_same(
-                &value1->type.Color_Command, &value2->type.Color_Command);
-#endif
-#if defined(BACNET_TIMER_VALUE_XY_COLOR)
-        case BACNET_APPLICATION_TAG_XY_COLOR:
-            return xy_color_same(
-                &value1->type.XY_Color, &value2->type.XY_Color);
 #endif
         default:
             break;
@@ -629,19 +627,15 @@ bool bacnet_timer_value_copy(
             datetime_copy(&dest->type.Date_Time, &src->type.Date_Time);
             return true;
 #endif
+#if defined(BACNET_TIMER_VALUE_CONSTRUCTED_VALUE)
+        case BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX:
+            return bacnet_constructed_value_copy(
+                &dest->type.Constructed_Value, &src->type.Constructed_Value);
+#endif
 #if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             return lighting_command_copy(
                 &dest->type.Lighting_Command, &src->type.Lighting_Command);
-#endif
-#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
-        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-            return color_command_copy(
-                &dest->type.Color_Command, &src->type.Color_Command);
-#endif
-#if defined(BACNET_TIMER_VALUE_XY_COLOR)
-        case BACNET_APPLICATION_TAG_XY_COLOR:
-            return xy_color_copy(&dest->type.XY_Color, &src->type.XY_Color);
 #endif
         default:
             break;
@@ -668,8 +662,6 @@ bool bacnet_timer_value_from_ascii(
     const char *negative;
     const char *decimal_point;
     const char *lighting_command;
-    const char *color_command;
-    const char *xy_color;
     const char *real_string;
     const char *double_string;
 
@@ -710,31 +702,6 @@ bool bacnet_timer_value_from_ascii(
 #if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
             status = lighting_command_from_ascii(
                 &value->type.Lighting_Command, argv + 1);
-#endif
-        }
-    }
-    if (!status) {
-        color_command = strchr(argv, 'C');
-        if (!color_command) {
-            color_command = strchr(argv, 'c');
-        }
-        if (color_command) {
-            value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
-#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
-            /* FIXME: add parsing for BACnetColorCommand */
-#endif
-            status = true;
-        }
-    }
-    if (!status) {
-        xy_color = strchr(argv, 'X');
-        if (!xy_color) {
-            xy_color = strchr(argv, 'x');
-        }
-        if (xy_color) {
-            value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
-#if defined(BACNET_TIMER_VALUE_XY_COLOR)
-            status = xy_color_from_ascii(&value->type.XY_Color, argv + 1);
 #endif
         }
     }

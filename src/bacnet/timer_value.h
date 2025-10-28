@@ -14,6 +14,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacstr.h"
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datetime.h"
 #include "bacnet/lighting.h"
@@ -35,10 +36,9 @@
       defined(BACNET_TIMER_VALUE_DATE) || defined(BACNET_TIMER_VALUE_TIME) || \
       defined(BACNET_TIMER_VALUE_OBJECT_ID) ||                                \
       defined(BACNET_TIMER_VALUE_NO_VALUE) ||                                 \
+      defined(BACNET_TIMER_VALUE_CONSTRUCTED_VALUE) ||                        \
       defined(BACNET_TIMER_VALUE_DATETIME) ||                                 \
-      defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND) ||                         \
-      defined(BACNET_TIMER_VALUE_XY_COLOR) ||                                 \
-      defined(BACNET_TIMER_VALUE_COLOR_COMMAND))
+      defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND))
 #define BACNET_TIMER_VALUE_NUMERIC
 #elif defined(BACNET_TIMER_VALUE_ALL)
 #define BACNET_TIMER_VALUE_NUMERIC
@@ -49,9 +49,8 @@
 #define BACNET_TIMER_VALUE_TIME
 #define BACNET_TIMER_VALUE_OBJECT_ID
 #define BACNET_TIMER_VALUE_DATETIME
+#define BACNET_TIMER_VALUE_CONSTRUCTED_VALUE
 #define BACNET_TIMER_VALUE_LIGHTING_COMMAND
-#define BACNET_TIMER_VALUE_COLOR_COMMAND
-#define BACNET_TIMER_VALUE_XY_COLOR
 #endif
 
 #if defined(BACNET_TIMER_VALUE_NUMERIC)
@@ -109,14 +108,11 @@ typedef struct BACnet_Timer_State_Change_Value_T {
 #if defined(BACNET_TIMER_VALUE_DATETIME)
         BACNET_DATE_TIME Date_Time;
 #endif
+#if defined(BACNET_TIMER_VALUE_CONSTRUCTED_VALUE)
+        BACNET_CONSTRUCTED_VALUE_TYPE Constructed_Value;
+#endif
 #if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)
         BACNET_LIGHTING_COMMAND Lighting_Command;
-#endif
-#if defined(BACNET_TIMER_VALUE_COLOR_COMMAND)
-        BACNET_COLOR_COMMAND Color_Command;
-#endif
-#if defined(BACNET_TIMER_VALUE_XY_COLOR)
-        BACNET_XY_COLOR XY_Color;
 #endif
     } type;
     /* simple linked list if needed */
@@ -128,10 +124,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-int bacnet_timer_value_no_value_encode(uint8_t *apdu, uint8_t tag_number);
+int bacnet_timer_value_no_value_encode(uint8_t *apdu);
 BACNET_STACK_EXPORT
-int bacnet_timer_value_no_value_decode(
-    const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number);
+int bacnet_timer_value_no_value_decode(const uint8_t *apdu, uint32_t apdu_size);
 
 BACNET_STACK_EXPORT
 int bacnet_timer_state_change_value_encode(
