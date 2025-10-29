@@ -228,7 +228,7 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     { OBJECT_LOAD_CONTROL, "load-control" },
     { OBJECT_STRUCTURED_VIEW, "structured-view" },
     { OBJECT_ACCESS_DOOR, "access-door" },
-    { OBJECT_LIGHTING_OUTPUT, "lighting-output" },
+    { OBJECT_TIMER, "timer" },
     { OBJECT_ACCESS_CREDENTIAL, "access-credential" },
     { OBJECT_ACCESS_POINT, "access-point" },
     { OBJECT_ACCESS_RIGHTS, "access-rights" },
@@ -300,7 +300,7 @@ INDTEXT_DATA bacnet_object_type_names_capitalized[] = {
     { OBJECT_LOAD_CONTROL, "Load Control" },
     { OBJECT_STRUCTURED_VIEW, "Structured View" },
     { OBJECT_ACCESS_DOOR, "Access Door" },
-    { OBJECT_LIGHTING_OUTPUT, "Lighting Output" },
+    { OBJECT_TIMER, "Timer" },
     { OBJECT_ACCESS_CREDENTIAL, "Access Credential" },
     { OBJECT_ACCESS_POINT, "Access Point" },
     { OBJECT_ACCESS_RIGHTS, "Access Rights" },
@@ -2725,6 +2725,37 @@ const char *bactext_program_error_name(unsigned index)
     }
 }
 
+INDTEXT_DATA bactext_timer_state_names[] = {
+    { TIMER_STATE_IDLE, "idle" },
+    { TIMER_STATE_RUNNING, "running" },
+    { TIMER_STATE_EXPIRED, "expired" },
+    { 0, NULL }
+};
+
+const char *bactext_timer_state_name(unsigned index)
+{
+    return indtext_by_index_default(
+            bactext_timer_state_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_timer_transition_names[] = {
+    { TIMER_TRANSITION_NONE, "none" },
+    { TIMER_TRANSITION_IDLE_TO_RUNNING, "idle-to-running" },
+    { TIMER_TRANSITION_RUNNING_TO_IDLE, "running-to-idle" },
+    { TIMER_TRANSITION_RUNNING_TO_RUNNING, "running-to-running" },
+    { TIMER_TRANSITION_RUNNING_TO_EXPIRED, "running-to-expired" },
+    { TIMER_TRANSITION_FORCED_TO_EXPIRED, "forced-to-expired" },
+    { TIMER_TRANSITION_EXPIRED_TO_IDLE, "expired-to-idle" },
+    { TIMER_TRANSITION_EXPIRED_TO_RUNNING, "expired-to-running" },
+    { 0, NULL }
+};
+
+const char *bactext_timer_transition_name(unsigned index)
+{
+    return indtext_by_index_default(
+            bactext_timer_transition_names, index, ASHRAE_Reserved_String);
+}
+
 /**
  * @brief For a given enumerated object property string,
  *  find the enumeration value
@@ -2863,6 +2894,14 @@ bool bactext_object_property_strtoul(
         case PROP_NOTIFY_TYPE:
             status = bactext_strtoul_index(
                 bacnet_notify_type_names, search_name, found_index);
+            break;
+        case PROP_TIMER_STATE:
+            status = bactext_strtoul_index(
+                bactext_timer_state_names, search_name, found_index);
+            break;
+        case PROP_LAST_STATE_CHANGE:
+            status = bactext_strtoul_index(
+                bactext_timer_transition_names, search_name, found_index);
             break;
         default:
             status = bactext_strtoul(search_name, found_index);

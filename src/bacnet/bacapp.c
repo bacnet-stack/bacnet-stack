@@ -2440,6 +2440,22 @@ static int bacapp_snprintf_enumerated(
             ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_protocol_level_name(value));
             break;
+        case PROP_EVENT_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_event_type_name(value));
+            break;
+        case PROP_NOTIFY_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_notify_type_name(value));
+            break;
+        case PROP_TIMER_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_timer_state_name(value));
+            break;
+        case PROP_LAST_STATE_CHANGE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_timer_transition_name(value));
+            break;
         default:
             ret_val =
                 bacapp_snprintf(str, str_len, "%lu", (unsigned long)value);
