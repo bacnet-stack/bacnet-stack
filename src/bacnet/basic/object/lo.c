@@ -3421,6 +3421,9 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
     int index = 0;
     unsigned p = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
