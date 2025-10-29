@@ -2689,6 +2689,7 @@ const char *bactext_program_request_name(unsigned index)
 }
 
 INDTEXT_DATA bactext_program_state_names[] = {
+    /* BACnetProgramState enumerations */
     { PROGRAM_STATE_IDLE, "idle" },
     { PROGRAM_STATE_LOADING, "loading" },
     { PROGRAM_STATE_RUNNING, "running" },
@@ -2705,6 +2706,7 @@ const char *bactext_program_state_name(unsigned index)
 }
 
 INDTEXT_DATA bactext_program_error_names[] = {
+    /* BACnetProgramError enumerations */
     { PROGRAM_ERROR_NORMAL, "normal" },
     { PROGRAM_ERROR_LOAD_FAILED, "load-failed" },
     { PROGRAM_ERROR_INTERNAL, "internal" },
@@ -2726,6 +2728,7 @@ const char *bactext_program_error_name(unsigned index)
 }
 
 INDTEXT_DATA bactext_timer_state_names[] = {
+    /* BACnetTimerState enumerations */
     { TIMER_STATE_IDLE, "idle" },
     { TIMER_STATE_RUNNING, "running" },
     { TIMER_STATE_EXPIRED, "expired" },
@@ -2735,10 +2738,11 @@ INDTEXT_DATA bactext_timer_state_names[] = {
 const char *bactext_timer_state_name(unsigned index)
 {
     return indtext_by_index_default(
-            bactext_timer_state_names, index, ASHRAE_Reserved_String);
+        bactext_timer_state_names, index, ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bactext_timer_transition_names[] = {
+    /* BACnetTimerTransition enumerations */
     { TIMER_TRANSITION_NONE, "none" },
     { TIMER_TRANSITION_IDLE_TO_RUNNING, "idle-to-running" },
     { TIMER_TRANSITION_RUNNING_TO_IDLE, "running-to-idle" },
@@ -2753,7 +2757,7 @@ INDTEXT_DATA bactext_timer_transition_names[] = {
 const char *bactext_timer_transition_name(unsigned index)
 {
     return indtext_by_index_default(
-            bactext_timer_transition_names, index, ASHRAE_Reserved_String);
+        bactext_timer_transition_names, index, ASHRAE_Reserved_String);
 }
 
 /**

@@ -227,7 +227,8 @@ int bacnet_object_property_read_test(
             apdu_len = read_len;
             len =
                 bacnet_unsigned_application_decode(apdu, apdu_len, &array_size);
-            zassert_true(len > 0, "property '%s' array_index=0\n",
+            zassert_true(
+                len > 0, "property '%s' array_index=0\n",
                 bactext_property_name(rpdata->object_property));
             zassert_true(
                 len == read_len, "property '%s' array_index=0.\n",

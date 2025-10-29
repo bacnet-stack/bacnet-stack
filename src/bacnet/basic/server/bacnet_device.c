@@ -130,7 +130,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
-    defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                \
+    defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                  \
     defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE))
 #define CONFIG_BACNET_BASIC_OBJECT_ALL

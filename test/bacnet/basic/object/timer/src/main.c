@@ -251,7 +251,7 @@ static void test_Timer_Read_Write(void)
     /* context API */
     Timer_Context_Set(instance, sample_context);
     zassert_true(sample_context == Timer_Context_Get(instance), NULL);
-    zassert_true(NULL == Timer_Context_Get(instance+1), NULL);
+    zassert_true(NULL == Timer_Context_Get(instance + 1), NULL);
     /* cleanup */
     status = Timer_Delete(instance);
     zassert_true(status, NULL);
@@ -378,8 +378,8 @@ static void test_Timer_Operation(void)
     value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
     value->type.Enumerated = BINARY_ACTIVE;
     /* alternate API */
-    status = Timer_State_Change_Value_Set(instance,
-        TIMER_TRANSITION_EXPIRED_TO_RUNNING, value);
+    status = Timer_State_Change_Value_Set(
+        instance, TIMER_TRANSITION_EXPIRED_TO_RUNNING, value);
     zassert_true(status, NULL);
     /* start timer using a write to timer-running property to use defaults */
     /* IDLE_TO_RUNNING */
