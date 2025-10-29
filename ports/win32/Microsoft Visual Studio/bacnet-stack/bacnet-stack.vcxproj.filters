@@ -201,6 +201,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\rpm.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\timer_value.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>

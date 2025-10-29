@@ -209,6 +209,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\rp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\rpm.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\secure_connect.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\timer_value.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timesync.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c" />
