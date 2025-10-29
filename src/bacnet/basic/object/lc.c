@@ -1713,6 +1713,9 @@ uint32_t Load_Control_Create(uint32_t object_instance)
     struct shed_level_data *entry;
     unsigned i = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

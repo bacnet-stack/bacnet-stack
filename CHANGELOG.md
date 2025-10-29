@@ -112,6 +112,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed enumerations for BACnetNetworkPortCommand where there was a conflict
+  with final assigned values in multiple addenda. (#1124)
 * Changed CharacterString_Value_Out_Of_Service_Set() function to remove
   confusion about an assignment inside an if-statement. (#1113)
 * Changed device object unit test to use common read-write property test.
@@ -132,6 +134,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed object creation failure when create is called before init. (#1122)
+* Fixed octetstring_copy_value() and added unit tests. (#1121)
 * Fixed the MS/TP compare DER function which can now include the NPDU network
   priority in the comparison. (#1119)
 * Fixed basic program object internal datatype for reason-for-fault

@@ -120,6 +120,9 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
     struct characterstring_object *pObject = NULL;
     int index;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
