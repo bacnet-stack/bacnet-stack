@@ -1700,6 +1700,9 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
     unsigned j;
 #endif
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
