@@ -815,7 +815,8 @@ int bacnet_timer_value_to_ascii(
 #endif
 #if defined(BACNET_TIMER_VALUE_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            str_len = snprintf(str, str_size, "%lu", value->type.Unsigned_Int);
+            str_len = snprintf(
+                str, str_size, "%lu", (unsigned long)value->type.Unsigned_Int);
             break;
 #endif
 #if defined(BACNET_TIMER_VALUE_SIGNED)
