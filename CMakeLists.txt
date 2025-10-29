@@ -295,8 +295,6 @@ add_library(${PROJECT_NAME}
   src/bacnet/special_event.h
   src/bacnet/secure_connect.c
   src/bacnet/secure_connect.h
-  src/bacnet/timer_value.c
-  src/bacnet/timer_value.h
   $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
   $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
