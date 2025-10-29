@@ -112,6 +112,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed enumerations for BACnetNetworkPortCommand where there was a conflict
+  with final assigned values in multiple addenda. (#1124)
 * Changed CharacterString_Value_Out_Of_Service_Set() function to remove
   confusion about an assignment inside an if-statement. (#1113)
 * Changed device object unit test to use common read-write property test.
