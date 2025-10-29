@@ -37,6 +37,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/netport.c  \
 	$(BACNET_OBJECT_DIR)/program.c  \
 	$(BACNET_OBJECT_DIR)/time_value.c \
+	$(BACNET_OBJECT_DIR)/timer.c \
 	$(BACNET_OBJECT_DIR)/trendlog.c \
 	$(BACNET_OBJECT_DIR)/schedule.c \
 	$(BACNET_OBJECT_DIR)/structured_view.c \

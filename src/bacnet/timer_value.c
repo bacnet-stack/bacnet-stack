@@ -826,12 +826,12 @@ int bacnet_timer_value_to_ascii(
 #endif
 #if defined(BACNET_TIMER_VALUE_REAL)
         case BACNET_APPLICATION_TAG_REAL:
-            str_len = snprintf(str, str_size, "%f", value->type.Real);
+            str_len = snprintf(str, str_size, "%f", (double)value->type.Real);
             break;
 #endif
 #if defined(BACNET_TIMER_VALUE_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
-            str_len = snprintf(str, str_size, "%lf", value->type.Double);
+            str_len = snprintf(str, str_size, "%f", value->type.Double);
             break;
 #endif
 #if defined(BACNET_TIMER_VALUE_LIGHTING_COMMAND)

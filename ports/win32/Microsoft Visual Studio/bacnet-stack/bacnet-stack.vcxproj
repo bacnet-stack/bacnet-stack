@@ -89,6 +89,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\sc_netport.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\timer.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_apdu.c" />
@@ -301,6 +302,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\sc_netport.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\structured_view.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\time_value.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\timer.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\trendlog.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\services.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.h" />

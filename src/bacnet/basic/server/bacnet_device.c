@@ -53,6 +53,7 @@
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/time_value.h"
+#include "bacnet/basic/object/timer.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lo.h"
@@ -129,6 +130,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
+    defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE))
 #define CONFIG_BACNET_BASIC_OBJECT_ALL
@@ -158,6 +160,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_FILE
 #define CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_TIMER
 #define CONFIG_BACNET_BASIC_OBJECT_PROGRAM
 #define CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE
 #endif
@@ -184,6 +187,10 @@
 #ifdef CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
 #undef CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
 #warning "Network Port is configured, but BACnet Protocol Revision < 17"
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
+#undef CONFIG_BACNET_BASIC_OBJECT_TIMER
+#warning "Timer is configured, but BACnet Protocol Revision < 17"
 #endif
 #endif
 
@@ -749,6 +756,28 @@ static object_functions_t My_Object_Table[] = {
       CharacterString_Value_Create,
       CharacterString_Value_Delete,
       NULL /* Timer */ },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIMER)
+    { OBJECT_TIMER,
+      Timer_Init,
+      Timer_Count,
+      Timer_Index_To_Instance,
+      Timer_Valid_Instance,
+      Timer_Object_Name,
+      Timer_Read_Property,
+      Timer_Write_Property,
+      Timer_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Timer_Create,
+      Timer_Delete,
+      Timer_Task },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM)
     { OBJECT_BITSTRING_VALUE,
