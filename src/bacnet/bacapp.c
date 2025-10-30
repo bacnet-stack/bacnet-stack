@@ -1361,7 +1361,7 @@ int bacapp_known_property_tag(
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
             return BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS;
         case PROP_STATE_CHANGE_VALUES:
-            return BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX;
+            return BACNET_APPLICATION_TAG_TIMER_VALUE;
         default:
             return -1;
     }
@@ -1674,11 +1674,11 @@ int bacapp_decode_application_tag_value(
                 apdu, apdu_size, &value->type.Channel_Value);
             break;
 #endif
-#if defined(BACAPP_WRITE_VALUE)
-        case BACNET_APPLICATION_TAG_WRITE_VALUE:
+#if defined(BACAPP_TIMER_VALUE)
+        case BACNET_APPLICATION_TAG_TIMER_VALUE:
             /* BACnetTimerStateChangeValue */
             apdu_len = bacnet_timer_value_decode(
-                apdu, apdu_size, &value->type.Channel_Value);
+                apdu, apdu_size, &value->type.Timer_Value);
             break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
