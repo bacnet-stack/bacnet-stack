@@ -364,7 +364,7 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
 
     if (mtu) {
         bip6_get_addr(&my_addr);
-        for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+        for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
             if (BBMD_Table[i].valid) {
                 if (bvlc6_address_different(
                         &my_addr, &BBMD_Table[i].bip6_address)) {
@@ -391,7 +391,7 @@ static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
 
     if (mtu) {
         bip6_get_addr(&my_addr);
-        for (i = 0; i < MAX_FD_ENTRIES; i++) {
+        for (i = 0; i < MAX_FD6_ENTRIES; i++) {
             if (FD_Table[i].valid) {
                 if (bvlc6_address_different(
                         &my_addr, &FD_Table[i].bip6_address)) {
@@ -401,46 +401,6 @@ static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
         }
     }
 }
-
-/**
- * The Forward NPDU send function for Broadcast Distribution Table
- *
- * @param addr - Points to a #BACNET_IP6_ADDRESS structure containing the
- *  source IPv6 address.
- * @param vmac_src - Source-Virtual-Address
- * @param npdu - the bytes of NPDU+APDU data to send
- * @param npdu_len - the number of bytes of NPDU+APDU data to send
- */
-static void bbmd6_send_forward_npdu(
-    BACNET_IP6_ADDRESS *address,
-    uint32_t vmac_src,
-    uint8_t *npdu,
-    unsigned int npdu_len)
-{
-    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
-    unsigned i = 0; /* loop counter */
-
-    for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
-        if (BBMD_Table[i].valid) {
-            if (bbmd6_address_match_self(&BBMD_Table[i].bip6_address)) {
-                /* don't forward to our selves */
-            } else {
-                bip6_send_mpdu(&BBMD_Table[i].bip6_address, mtu, mtu_len);
-            }
-        }
-    }
-    for (i = 0; i < MAX_FD_ENTRIES; i++) {
-        if (FD_Table[i].valid) {
-            if (bbmd6_address_match_self(&FD_Table[i].bip6_address)) {
-                /* don't forward to our selves */
-            } else {
-                bip6_send_mpdu(&FD_Table[i].bip6_address, mtu, mtu_len);
-            }
-        }
-    }
-}
-
 #endif
 
 /**
@@ -840,10 +800,8 @@ int bvlc6_bbmd_enabled_handler(
     uint16_t mtu_len)
 {
     uint16_t result_code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
-    uint32_t vmac_me = 0;
     uint32_t vmac_src = 0;
     uint32_t vmac_dst = 0;
-    uint32_t vmac_target = 0;
     uint8_t message_type = 0;
     uint16_t message_length = 0;
     int header_len = 0;
