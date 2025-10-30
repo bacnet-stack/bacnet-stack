@@ -75,9 +75,10 @@ ifeq (${BBMD},full)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 endif
+
 ifneq (,$(filter $(BACDL),bip6 all))
 ifeq (${BBMD6},)
-BBMD6=full
+BBMD6=client
 endif
 ifeq (${BBMD6},none)
 BBMD_DEFINE = -DBBMD6_ENABLED=0
@@ -92,8 +93,6 @@ ifeq (${BBMD6},full)
 BBMD_DEFINE = -DBBMD6_ENABLED=1 -DBBMD6_CLIENT_ENABLED
 endif
 endif
-
-
 endif
 
 # Define WEAK_FUNC for unsupported or specific compilers
@@ -245,18 +244,18 @@ endif
 .EXPORT_ALL_VARIABLES:
 
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
-	whohas whois iam ucov scov timesync epics readpropm readrange \
-	writepropm uptransfer getevent uevent abort error event ack-alarm \
-	server-client add-list-element remove-list-element create-object \
-	who-am-i you-are apdu writegroup \
-	delete-object server-discover server-basic server-mini
+  whohas whois iam ucov scov timesync epics readpropm readrange \
+  writepropm uptransfer getevent uevent abort error event ack-alarm \
+  server-client add-list-element remove-list-element create-object \
+  who-am-i you-are apdu writegroup \
+  delete-object server-discover server-basic server-mini
 
 ifneq (,$(filter $(BACDL),bip all))
-	$(info BACDL is bip or all)
-	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
-	ifneq (${BBMD},none)
-	SUBDIRS += readbdt readfdt writebdt
-	endif
+$(info BACDL is bip or all)
+SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
+ifneq (${BBMD},none)
+SUBDIRS += readbdt readfdt writebdt
+endif
 endif
 
 ifeq (${BACNET_PORT},linux)
@@ -300,6 +299,7 @@ TARGETS = all clean
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
+	$(info building $@...)
 	$(MAKE) -C $(subst ., , $@)
 
 .PHONY: lib

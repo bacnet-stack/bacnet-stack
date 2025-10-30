@@ -11,11 +11,11 @@ all: apps
 
 .PHONY: bsd
 bsd:
-	$(MAKE) BACNET_PORT=bsd -s -C apps all
+	$(MAKE) LEGACY=true BACNET_PORT=bsd -s -C apps all
 
 .PHONY: win32
 win32:
-	$(MAKE) BACNET_PORT=win32 -s -C apps all
+	$(MAKE) LEGACY=true BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mingw32
 mingw32:
