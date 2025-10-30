@@ -127,6 +127,10 @@ BACNET_STACK_EXPORT
 int bacnet_timer_value_no_value_encode(uint8_t *apdu);
 BACNET_STACK_EXPORT
 int bacnet_timer_value_no_value_decode(const uint8_t *apdu, uint32_t apdu_size);
+BACNET_STACK_EXPORT
+int bacnet_timer_value_no_value_to_ascii(char *str, size_t str_len);
+BACNET_STACK_EXPORT
+bool bacnet_timer_value_no_value_from_ascii(uint8_t *tag, const char *argv);
 
 BACNET_STACK_EXPORT
 int bacnet_timer_value_type_encode(

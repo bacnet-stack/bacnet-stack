@@ -68,7 +68,12 @@ typedef struct BACnet_Application_Data_Value {
     uint8_t context_tag; /* only used for context specific data */
     uint8_t tag; /* application tag data type */
     union {
-        /* NULL - not needed as it is encoded in the tag alone */
+#if defined(BACAPP_NULL)
+        /* no value needed because it is encoded in the tag alone */
+#endif
+#if defined(BACAPP_NO_VALUE)
+        /* no value needed because it is encoded in the tag alone */
+#endif
 #if defined(BACAPP_BOOLEAN)
         bool Boolean;
 #endif

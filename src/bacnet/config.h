@@ -245,6 +245,7 @@
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
     defined(BACAPP_TIMER_VALUE) || \
+    defined(BACAPP_NO_VALUE) || \
     defined(BACAPP_LOG_RECORD) || \
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
@@ -296,6 +297,7 @@
 #define BACAPP_ACCESS_RULE
 #define BACAPP_CHANNEL_VALUE
 #define BACAPP_TIMER_VALUE
+#define BACAPP_NO_VALUE
 #define BACAPP_LOG_RECORD
 #define BACAPP_SECURE_CONNECT
 #endif
@@ -323,6 +325,8 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_TIMER_VALUE) || \
+    defined(BACAPP_NO_VALUE) || \
     defined(BACAPP_LOG_RECORD)
 #define BACAPP_COMPLEX_TYPES
 #endif

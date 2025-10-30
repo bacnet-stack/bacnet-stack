@@ -84,6 +84,37 @@ int bacnet_timer_value_no_value_decode(const uint8_t *apdu, uint32_t apdu_size)
 }
 
 /**
+ * @brief Print a no-value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @return number of characters written
+ */
+int bacnet_timer_value_no_value_to_ascii(char *str, size_t str_len)
+{
+    return snprintf(str, str_len, "no-value");
+}
+
+/**
+ * @brief Parse a string into a application tag value
+ * @param tag [out] The application tag value if found
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ */
+bool bacnet_timer_value_no_value_from_ascii(uint8_t *tag, const char *argv)
+{
+    bool status = false;
+
+    if (bacnet_stricmp(argv, "no-value") == 0) {
+        if (tag) {
+            *tag = BACNET_APPLICATION_TAG_NO_VALUE;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Encode a given BACnetTimerStateChangeValue
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param  value - BACNET_TIMER_STATE_CHANGE_VALUE value
@@ -675,6 +706,9 @@ bool bacnet_timer_value_from_ascii(
         }
     }
     if (!status) {
+        status = bacnet_timer_value_no_value_from_ascii(&value->tag, argv);
+    }
+    if (!status) {
         if (bacnet_stricmp(argv, "true") == 0) {
             value->tag = BACNET_APPLICATION_TAG_BOOLEAN;
 #if defined(BACNET_TIMER_VALUE_BOOLEAN)
@@ -803,6 +837,9 @@ int bacnet_timer_value_to_ascii(
     switch (value->tag) {
         case BACNET_APPLICATION_TAG_NULL:
             str_len = snprintf(str, str_size, "null");
+            break;
+        case BACNET_APPLICATION_TAG_NO_VALUE:
+            str_len = bacnet_timer_value_no_value_to_ascii(str, str_size);
             break;
 #if defined(BACNET_TIMER_VALUE_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
