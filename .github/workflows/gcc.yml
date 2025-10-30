@@ -280,7 +280,7 @@ jobs:
     - name: Build Win32 Demo BACnet/IP Apps
       run: make PREFIX=i686-w64-mingw32- LEGACY=true BACNET_PORT=win32 bip
     - name: Build Win32 Demo IP to IPv6 Router
-      run: make PREFIX=i686-w64-mingw32-LEGACY=true BACNET_PORT=win32 router-ipv6
+      run: make PREFIX=i686-w64-mingw32- LEGACY=true BACNET_PORT=win32 router-ipv6
     - name: Build Win32 Demo IP to MS/TP Router
       run: make PREFIX=i686-w64-mingw32- LEGACY=true BACNET_PORT=win32 router-mstp
     - name: Build Win32 Demo Gateway
