@@ -1684,6 +1684,8 @@ typedef enum {
     BACNET_APPLICATION_TAG_CHANNEL_VALUE,
     /* BACnetLogRecord */
     BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* BACnetTimerChangeValue */
+    BACNET_APPLICATION_TAG_TIMER_VALUE,
     /* no-value - context tagged null */
     BACNET_APPLICATION_TAG_NO_VALUE,
     /* ABSTRACT-SYNTAX - constructed value */

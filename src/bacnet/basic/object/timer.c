@@ -249,7 +249,7 @@ BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
  * return the length of buffer if it had been built
  * @return The length of the apdu encoded or 0 if invalid member
  */
-static int Timer_Reference_List_Member_Element_Encode(
+static int Timer_List_Of_Object_Property_References_Encode(
     uint32_t object_instance, uint32_t list_index, uint8_t *apdu)
 {
     int apdu_len = 0;
@@ -342,30 +342,6 @@ unsigned Timer_Reference_List_Member_Capacity(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, determines the member count
- * @param  object_instance - object-instance number of the object
- * @return member count
- */
-unsigned Timer_Reference_List_Member_Count(uint32_t object_instance)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned count = 0, i;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
-            pMember = &pObject->Manipulated_Properties[i];
-            if (!Timer_Reference_List_Member_Empty(pMember)) {
-                count++;
-            }
-        }
-    }
-
-    return count;
-}
-
-/**
  * @brief For a given object instance-number, adds a unique member element
  *  to the list
  * @param object_instance - object-instance number of the object
@@ -437,6 +413,30 @@ bool Timer_Reference_List_Member_Element_Remove(
     }
 
     return status;
+}
+
+/**
+ * For a given object instance-number, determines the BACnetLIST count
+ * @param  object_instance - object-instance number of the object
+ * @return BACnetLIST count
+ */
+unsigned Timer_Reference_List_Member_Element_Count(uint32_t object_instance)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned count = 0, i;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
+            pMember = &pObject->Manipulated_Properties[i];
+            if (!Timer_Reference_List_Member_Empty(pMember)) {
+                count++;
+            }
+        }
+    }
+
+    return count;
 }
 
 /**
@@ -1433,7 +1433,7 @@ static int Timer_State_Change_Value_Encode(
         /* Note: The timer state change NONE=0
            has no corresponding array element.*/
         if (index < (TIMER_TRANSITION_MAX - 1)) {
-            apdu_len = bacnet_timer_state_change_value_encode(
+            apdu_len = bacnet_timer_value_type_encode(
                 apdu, &pObject->State_Change_Values[index]);
         }
     }
@@ -1516,7 +1516,8 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     BACNET_DATE_TIME bdatetime;
     BACNET_UNSIGNED_INTEGER unsigned_value;
-    size_t i, imax;
+    size_t i;
+    unsigned imax;
     uint8_t *apdu = NULL;
     int apdu_size;
 
@@ -1626,9 +1627,10 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-            imax = Timer_Reference_List_Member_Count(rpdata->object_instance);
+            imax = Timer_Reference_List_Member_Element_Count(
+                rpdata->object_instance);
             for (i = 0; i < imax; i++) {
-                apdu_len += Timer_Reference_List_Member_Element_Encode(
+                apdu_len += Timer_List_Of_Object_Property_References_Encode(
                     rpdata->object_instance, i, &apdu[apdu_len]);
             }
             break;
@@ -1648,6 +1650,141 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Decode a BACnetARRAY property element to determine the element length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Timer_State_Change_Value_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_TIMER_STATE_CHANGE_VALUE value = { 0 };
+    int len = 0;
+
+    (void)object_instance;
+    len = bacnet_timer_value_decode(apdu, apdu_size, &value);
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ *  using a BACnetARRAY write utility function
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Timer_State_Change_Value_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_TIMER_STATE_CHANGE_VALUE new_value = { 0 }, *current_value = NULL;
+    int len = 0;
+    bool status;
+
+    if (array_index == 0) {
+        /* fixed size array */
+        error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    } else if (array_index < TIMER_TRANSITION_MAX) {
+        len = bacnet_timer_value_decode(
+            application_data, application_data_len, &new_value);
+        if (len > 0) {
+            current_value =
+                Timer_State_Change_Value(object_instance, array_index);
+            status = bacnet_timer_value_copy(current_value, &new_value);
+            if (status) {
+                error_code = ERROR_CODE_SUCCESS;
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    } else {
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetLIST property element to determine the element length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Timer_List_Of_Object_Property_References_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int len = 0;
+
+    (void)object_instance;
+    len = bacapp_decode_known_property(
+        apdu, apdu_size, &value, OBJECT_TIMER,
+        PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetLIST property element value
+ *  using a BACnetARRAY write utility function
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *current_value = NULL,
+                                            new_value = { 0 };
+    int len = 0;
+    unsigned count = 0;
+    bool status;
+
+    count = Timer_Reference_List_Member_Element_Count(object_instance);
+    if (array_index == 0) {
+        error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+    } else if (array_index <= count) {
+        len = bacnet_device_object_property_reference_decode(
+            application_data, application_data_len, &new_value);
+        if (len > 0) {
+            current_value = Timer_Reference_List_Member_Element(
+                object_instance, array_index);
+            status = bacnet_device_object_property_reference_copy(
+                current_value, &new_value);
+            if (status) {
+                error_code = ERROR_CODE_SUCCESS;
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    } else {
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
+}
+
+/**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -1660,12 +1797,13 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    unsigned count = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-    /* FIXME: len < application_data_len: more data? */
+    len = bacapp_decode_known_array_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property, wp_data->array_index);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1755,6 +1893,28 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            }
+            break;
+        case PROP_STATE_CHANGE_VALUES:
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Timer_State_Change_Value_Length, Timer_State_Change_Value_Write,
+                TIMER_TRANSITION_MAX - 1, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+            count = Timer_Reference_List_Member_Element_Count(
+                wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Timer_List_Of_Object_Property_References_Length,
+                Timer_List_Of_Object_Property_References_Write, count,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
         default:

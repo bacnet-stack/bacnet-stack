@@ -64,12 +64,12 @@ static void test_Timer_Read_Write(void)
     member.arrayIndex = BACNET_ARRAY_ALL;
     status = Timer_Reference_List_Member_Element_Set(instance, index, &member);
     zassert_true(status, NULL);
-    count = Timer_Reference_List_Member_Count(instance);
+    count = Timer_Reference_List_Member_Element_Count(instance);
     zassert_equal(count, 1, NULL);
     /* add the same element - should be success without actually adding */
     status = Timer_Reference_List_Member_Element_Add(instance, &member);
     zassert_true(status, NULL);
-    count = Timer_Reference_List_Member_Count(instance);
+    count = Timer_Reference_List_Member_Element_Count(instance);
     zassert_equal(count, 1, NULL);
     /* next */
     member.deviceIdentifier.type = OBJECT_DEVICE;
@@ -112,9 +112,9 @@ static void test_Timer_Read_Write(void)
     member.arrayIndex = BACNET_ARRAY_ALL;
     status = Timer_Reference_List_Member_Element_Add(instance, &member);
     zassert_true(status, NULL);
-    count = Timer_Reference_List_Member_Count(instance);
+    count = Timer_Reference_List_Member_Element_Count(instance);
     status = Timer_Reference_List_Member_Element_Remove(instance, &member);
-    test_count = Timer_Reference_List_Member_Count(instance);
+    test_count = Timer_Reference_List_Member_Element_Count(instance);
     zassert_true(
         count > test_count, "count=%u test_count=%u", count, test_count);
     /* reliability and status flags */

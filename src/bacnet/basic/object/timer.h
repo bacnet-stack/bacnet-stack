@@ -126,8 +126,6 @@ bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value);
 BACNET_STACK_EXPORT
 unsigned Timer_Reference_List_Member_Capacity(uint32_t object_instance);
 BACNET_STACK_EXPORT
-unsigned Timer_Reference_List_Member_Count(uint32_t object_instance);
-BACNET_STACK_EXPORT
 BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Timer_Reference_List_Member_Element(
     uint32_t object_instance, unsigned list_index);
 BACNET_STACK_EXPORT
@@ -139,9 +137,12 @@ BACNET_STACK_EXPORT
 bool Timer_Reference_List_Member_Element_Add(
     uint32_t object_instance,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pNewMember);
+BACNET_STACK_EXPORT
 bool Timer_Reference_List_Member_Element_Remove(
     uint32_t object_instance,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pRemoveMember);
+BACNET_STACK_EXPORT
+unsigned Timer_Reference_List_Member_Element_Count(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 BACNET_TIMER_STATE_CHANGE_VALUE *Timer_State_Change_Value(

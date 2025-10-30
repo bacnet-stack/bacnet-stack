@@ -30,6 +30,7 @@
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
+#include "bacnet/timer_value.h"
 #include "bacnet/secure_connect.h"
 
 #ifndef BACAPP_PRINT_ENABLED
@@ -169,6 +170,9 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined(BACAPP_CHANNEL_VALUE)
         BACNET_CHANNEL_VALUE Channel_Value;
+#endif
+#if defined(BACAPP_TIMER_VALUE)
+        BACNET_TIMER_STATE_CHANGE_VALUE Timer_Value;
 #endif
 #if defined(BACAPP_LOG_RECORD)
         BACNET_LOG_RECORD Log_Record;

@@ -89,7 +89,7 @@ int bacnet_timer_value_no_value_decode(const uint8_t *apdu, uint32_t apdu_size)
  * @param  value - BACNET_TIMER_STATE_CHANGE_VALUE value
  * @return  number of bytes in the APDU
  */
-int bacnet_timer_state_change_value_encode(
+int bacnet_timer_value_type_encode(
     uint8_t *apdu, const BACNET_TIMER_STATE_CHANGE_VALUE *value)
 {
     int apdu_len = 0;
@@ -210,7 +210,7 @@ int bacnet_timer_state_change_value_encode(
  * @param value - the value where the decoded data is copied into
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  */
-int bacnet_timer_state_change_value_decode(
+int bacnet_timer_value_type_decode(
     const uint8_t *apdu,
     size_t apdu_size,
     uint8_t tag_data_type,
@@ -333,11 +333,11 @@ int bacnet_timer_value_encode(
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
-    apdu_len = bacnet_timer_state_change_value_encode(NULL, value);
+    apdu_len = bacnet_timer_value_type_encode(NULL, value);
     if (apdu_len > apdu_size) {
         apdu_len = 0;
     } else {
-        apdu_len = bacnet_timer_state_change_value_encode(apdu, value);
+        apdu_len = bacnet_timer_value_type_encode(apdu, value);
     }
 
     return apdu_len;
@@ -370,7 +370,7 @@ int bacnet_timer_value_decode(
     if (tag_len > 0) {
         apdu_len += tag_len;
         if (tag.application) {
-            len = bacnet_timer_state_change_value_decode(
+            len = bacnet_timer_value_type_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.number,
                 tag.len_value_type, value);
             if (len >= 0) {

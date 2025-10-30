@@ -129,10 +129,10 @@ BACNET_STACK_EXPORT
 int bacnet_timer_value_no_value_decode(const uint8_t *apdu, uint32_t apdu_size);
 
 BACNET_STACK_EXPORT
-int bacnet_timer_state_change_value_encode(
+int bacnet_timer_value_type_encode(
     uint8_t *apdu, const BACNET_TIMER_STATE_CHANGE_VALUE *value);
 BACNET_STACK_EXPORT
-int bacnet_timer_state_change_value_decode(
+int bacnet_timer_value_type_decode(
     const uint8_t *apdu,
     size_t apdu_size,
     uint8_t tag_data_type,
