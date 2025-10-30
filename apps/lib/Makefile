@@ -95,7 +95,7 @@ PORT_ALL_SRC = \
 PORT_NONE_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c
 
-$(info BACnet library building for $(BACDL))
+$(info $(BACNET_LIB_TARGET) datalink $(BACDL))
 ifeq ($(BACDL),bip)
 BACNET_PORT_SRC = ${PORT_BIP_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
@@ -171,7 +171,7 @@ all: $(BACNET_LIB_TARGET)
 lib: $(BACNET_LIB_TARGET)
 
 $(BACNET_LIB_TARGET): $(OBJS) Makefile
-	$(info BACnet library SRCS: $(notdir $(SRCS)))
+	$(info $(BACNET_LIB_TARGET) SRCS: $(notdir $(SRCS)))
 	${AR} rcs $@ $(OBJS)
 
 .c.o:

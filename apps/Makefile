@@ -1,11 +1,15 @@
-# tools - only if you need them.
-# Most platforms have this already defined
-# CC = gcc
-# AR = ar
-# MAKE = make
-# SIZE = size
 #
-# Assumes rm and cp are available
+# Set PREFIX to prepend to GCC compiler tools for cross-compilation.
+# Assumes rm and cp are natively available
+#
+PREFIX ?=
+CC          = $(PREFIX)gcc
+AR          = $(PREFIX)ar
+RANLIB      = $(PREFIX)ranlib
+NM 			= $(PREFIX)nm
+SIZE        = $(PREFIX)size
+OBJCOPY 	= $(PREFIX)objcopy
+OBJDUMP 	= $(PREFIX)objdump
 
 # Passing parameters via command line or from Makefile export to this one
 BACNET_DEFINES ?=
@@ -244,14 +248,13 @@ endif
 .EXPORT_ALL_VARIABLES:
 
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
-  whohas whois iam ucov scov timesync epics readpropm readrange \
-  writepropm uptransfer getevent uevent abort error event ack-alarm \
-  server-client add-list-element remove-list-element create-object \
-  who-am-i you-are apdu writegroup \
-  delete-object server-discover server-basic server-mini
+	whohas whois iam ucov scov timesync epics readpropm readrange \
+	writepropm uptransfer getevent uevent abort error event ack-alarm \
+	server-client add-list-element remove-list-element create-object \
+	who-am-i you-are apdu writegroup \
+	delete-object server-discover server-basic server-mini
 
 ifneq (,$(filter $(BACDL),bip all))
-$(info BACDL is bip or all)
 SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
 ifneq (${BBMD},none)
 SUBDIRS += readbdt readfdt writebdt
@@ -260,7 +263,7 @@ endif
 
 ifeq (${BACNET_PORT},linux)
 ifneq (${OSTYPE},cygwin)
-	SUBDIRS += mstpcap mstpcrc
+SUBDIRS += mstpcap mstpcrc
 endif
 endif
 
@@ -299,7 +302,7 @@ TARGETS = all clean
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
-	$(info building $@...)
+	$(info recipe: $@...)
 	$(MAKE) -C $(subst ., , $@)
 
 .PHONY: lib
