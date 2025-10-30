@@ -5,7 +5,6 @@ rem assumes rm, cp, size are already in path
 set CC=mingw32-gcc.exe
 set AR=mingw32-gcc-ar.exe
 set NM=mingw32-gcc-nm.exe
-set NM=mingw32-gcc-nm.exe
 set OBJCOPY=objcopy.exe
 set SIZE=size.exe
 set MAKE=mingw32-make.exe

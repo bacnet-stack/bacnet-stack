@@ -1,11 +1,15 @@
-# tools - only if you need them.
-# Most platforms have this already defined
-# CC = gcc
-# AR = ar
-# MAKE = make
-# SIZE = size
 #
-# Assumes rm and cp are available
+# Set PREFIX to prepend to GCC compiler tools for cross-compilation.
+# Assumes rm and cp are natively available
+#
+PREFIX ?=
+CC          = $(PREFIX)gcc
+AR          = $(PREFIX)ar
+RANLIB      = $(PREFIX)ranlib
+NM 			= $(PREFIX)nm
+SIZE        = $(PREFIX)size
+OBJCOPY 	= $(PREFIX)objcopy
+OBJDUMP 	= $(PREFIX)objdump
 
 # Passing parameters via command line or from Makefile export to this one
 BACNET_DEFINES ?=
@@ -20,6 +24,9 @@ BACNET_LIB ?= -L$(BACNET_LIB_DIR) -l$(BACNET_LIB_NAME)
 # Use BACDL=mstp or BACDL=bip and BBMD=server when invoking make
 
 ifeq (${BACDL_DEFINE},)
+ifeq (${BACDL},)
+BACDL = bip
+endif
 ifeq (${BACDL},ethernet)
 BACDL_DEFINE=-DBACDL_ETHERNET=1
 endif
@@ -39,6 +46,9 @@ ifeq (${BACDL},bsc)
 BACDL_DEFINE=-DBACDL_BSC=1
 BACNET_DEFINE=-DBACFILE=1
 endif
+ifeq (${BACDL},zigbee)
+BACDL_DEFINE=-DBACDL_ZIGBEE=1
+endif
 ifeq (${BACDL},none)
 BACDL_DEFINE=-DBACDL_NONE=1
 endif
@@ -51,11 +61,11 @@ endif
 ifeq (${BACDL},all)
 BACDL_DEFINE=-DBACDL_ALL=1
 endif
-ifeq (${BACDL},)
-BACDL_DEFINE ?= -DBACDL_BIP=1
-BBMD_DEFINE ?= -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
-endif
 
+ifneq (,$(filter $(BACDL),bip all))
+ifeq (${BBMD},)
+BBMD=full
+endif
 ifeq (${BBMD},none)
 BBMD_DEFINE = -DBBMD_ENABLED=0
 endif
@@ -68,7 +78,25 @@ endif
 ifeq (${BBMD},full)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
+endif
 
+ifneq (,$(filter $(BACDL),bip6 all))
+ifeq (${BBMD6},)
+BBMD6=client
+endif
+ifeq (${BBMD6},none)
+BBMD_DEFINE = -DBBMD6_ENABLED=0
+endif
+ifeq (${BBMD6},server)
+BBMD_DEFINE = -DBBMD6_ENABLED=1
+endif
+ifeq (${BBMD6},client)
+BBMD_DEFINE = -DBBMD6_ENABLED=0 -DBBMD6_CLIENT_ENABLED
+endif
+ifeq (${BBMD6},full)
+BBMD_DEFINE = -DBBMD6_ENABLED=1 -DBBMD6_CLIENT_ENABLED
+endif
+endif
 endif
 
 # Define WEAK_FUNC for unsupported or specific compilers
@@ -175,7 +203,7 @@ WARNINGS ?= $(WARNING_ALL)
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
 DEBUGGING = -g -DDEBUG_ENABLED=1
-ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
+ifeq (${BACDL},bip)
 BACNET_DEFINES += -DBIP_DEBUG
 endif
 endif
@@ -226,16 +254,16 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	who-am-i you-are apdu writegroup \
 	delete-object server-discover server-basic server-mini
 
-ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
-	ifneq (${BBMD},none)
-	SUBDIRS += readbdt readfdt writebdt
-	endif
+ifneq (,$(filter $(BACDL),bip all))
+SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
+ifneq (${BBMD},none)
+SUBDIRS += readbdt readfdt writebdt
+endif
 endif
 
 ifeq (${BACNET_PORT},linux)
 ifneq (${OSTYPE},cygwin)
-	SUBDIRS += mstpcap mstpcrc
+SUBDIRS += mstpcap mstpcrc
 endif
 endif
 
@@ -274,6 +302,7 @@ TARGETS = all clean
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
+	$(info recipe: $@...)
 	$(MAKE) -C $(subst ., , $@)
 
 .PHONY: lib
@@ -283,7 +312,7 @@ $(BACNET_LIB_TARGET):
 	$(MAKE) -B -C lib
 
 clean:
-	$(MAKE) -C lib clean
+	$(MAKE) BACDL=all -C lib clean
 
 .PHONY: gateway
 gateway: $(BACNET_LIB_TARGET)
