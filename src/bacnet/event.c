@@ -741,32 +741,40 @@ size_t event_notification_service_request_encode(
 /**
  * @brief Decode the EventNotification service request only.
  * @param apdu  Pointer to the buffer.
- * @param apdu_len  Number of valid bytes in the buffer.
+ * @param apdu_size  Number of valid bytes in the buffer.
  * @param data  Pointer to the data to store the decoded values, or NULL
  *
  * @return Bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int event_notify_decode_service_request(
     const uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_size,
     BACNET_EVENT_NOTIFICATION_DATA *data)
 {
-    int len = 0; /* return value */
-    int section_length = 0;
+    int apdu_len = 0; /* return value */
+    int len = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_OBJECT_ID object_id = { 0 };
+    BACNET_TIMESTAMP timestamp_value = { 0 };
+    BACNET_CHARACTER_STRING *cstring = NULL;
+    BACNET_NOTIFY_TYPE notify_type = NOTIFY_MAX;
+    BACNET_EVENT_TYPE event_type = EVENT_NONE;
+    bool boolean_value = false;
     uint32_t enum_value = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
     bool is_complex_event_type = false;
 
-    if (apdu_len && data) {
+    if (apdu_size) {
         /* tag 0 - processIdentifier */
-        section_length = bacnet_unsigned_context_decode(
-            &apdu[len], apdu_len - len, 0, &unsigned_value);
-        if (section_length > 0) {
-            len += section_length;
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &unsigned_value);
+        if (len > 0) {
+            apdu_len += len;
             if (unsigned_value <= UINT32_MAX) {
-                data->processIdentifier = (uint32_t)unsigned_value;
+                if (data) {
+                    data->processIdentifier = (uint32_t)unsigned_value;
+                }
             } else {
                 return BACNET_STATUS_ERROR;
             }
@@ -774,33 +782,47 @@ int event_notify_decode_service_request(
             return BACNET_STATUS_ERROR;
         }
         /* tag 1 - initiatingObjectIdentifier */
-        if ((section_length = decode_context_object_id(
-                 &apdu[len], 1, &data->initiatingObjectIdentifier.type,
-                 &data->initiatingObjectIdentifier.instance)) == -1) {
-            return -1;
+        len = bacnet_object_id_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &object_id.type,
+            &object_id.instance);
+        if (len > 0) {
+            apdu_len += len;
+            if (data) {
+                data->initiatingObjectIdentifier.type = object_id.type;
+                data->initiatingObjectIdentifier.instance = object_id.instance;
+            }
         } else {
-            len += section_length;
+            return BACNET_STATUS_ERROR;
         }
         /* tag 2 - eventObjectIdentifier */
-        if ((section_length = decode_context_object_id(
-                 &apdu[len], 2, &data->eventObjectIdentifier.type,
-                 &data->eventObjectIdentifier.instance)) == -1) {
-            return -1;
+        len = bacnet_object_id_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &object_id.type,
+            &object_id.instance);
+        if (len > 0) {
+            apdu_len += len;
+            if (data) {
+                data->eventObjectIdentifier.type = object_id.type;
+                data->eventObjectIdentifier.instance = object_id.instance;
+            }
         } else {
-            len += section_length;
+            return BACNET_STATUS_ERROR;
         }
         /* tag 3 - timeStamp */
-        if ((section_length = bacapp_decode_context_timestamp(
-                 &apdu[len], 3, &data->timeStamp)) == -1) {
-            return -1;
+        len = bacnet_timestamp_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &timestamp_value);
+        if (len > 0) {
+            apdu_len += len;
+            if (data) {
+                bacapp_timestamp_copy(&data->timeStamp, &timestamp_value);
+            }
         } else {
-            len += section_length;
+            return BACNET_STATUS_ERROR;
         }
         /* tag 4 - noticicationClass */
-        section_length = bacnet_unsigned_context_decode(
-            &apdu[len], apdu_len - len, 4, &unsigned_value);
-        if (section_length > 0) {
-            len += section_length;
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 4, &unsigned_value);
+        if (len > 0) {
+            apdu_len += len;
             if (unsigned_value <= UINT32_MAX) {
                 data->notificationClass = (uint32_t)unsigned_value;
             } else {
@@ -810,10 +832,10 @@ int event_notify_decode_service_request(
             return BACNET_STATUS_ERROR;
         }
         /* tag 5 - priority */
-        section_length = bacnet_unsigned_context_decode(
-            &apdu[len], apdu_len - len, 5, &unsigned_value);
-        if (section_length > 0) {
-            len += section_length;
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 5, &unsigned_value);
+        if (len > 0) {
+            apdu_len += len;
             if (unsigned_value <= UINT8_MAX) {
                 data->priority = (uint8_t)unsigned_value;
             } else {
@@ -823,582 +845,590 @@ int event_notify_decode_service_request(
             return BACNET_STATUS_ERROR;
         }
         /* tag 6 - eventType */
-        if ((section_length =
-                 decode_context_enumerated(&apdu[len], 6, &enum_value)) == -1) {
-            return -1;
-        } else {
-            data->eventType = (BACNET_EVENT_TYPE)enum_value;
-            len += section_length;
-        }
-        /* tag 7 - messageText */
-
-        if (decode_is_context_tag(&apdu[len], 7)) {
-            if (data->messageText != NULL) {
-                if ((section_length = decode_context_character_string(
-                         &apdu[len], 7, data->messageText)) == -1) {
-                    /*FIXME This is an optional parameter */
-                    return -1;
-                } else {
-                    len += section_length;
+        len = bacnet_enumerated_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 6, &enum_value);
+        if (len > 0) {
+            apdu_len += len;
+            if (enum_value <= EVENT_PROPRIETARY_MAX) {
+                event_type = (BACNET_EVENT_TYPE)enum_value;
+                if (data) {
+                    data->eventType = event_type;
                 }
             } else {
-                return -1;
+                return BACNET_STATUS_ERROR;
             }
         } else {
-            if (data->messageText != NULL) {
-                characterstring_init_ansi(data->messageText, "");
-            }
+            return BACNET_STATUS_ERROR;
         }
-
+        /* tag 7 - messageText OPTIONAL */
+        if (data) {
+            cstring = data->messageText;
+        }
+        len = bacnet_character_string_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 7, cstring);
+        if (len > 0) {
+            apdu_len += len;
+        } else if (len == 0) {
+            /* OPTIONAL - set default */
+            characterstring_init_ansi(cstring, "");
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
         /* tag 8 - notifyType */
-        if ((section_length =
-                 decode_context_enumerated(&apdu[len], 8, &enum_value)) == -1) {
-            return -1;
+        len = bacnet_enumerated_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 8, &enum_value);
+        if (len > 0) {
+            apdu_len += len;
+            if (data) {
+                data->notifyType = (BACNET_NOTIFY_TYPE)enum_value;
+                if (enum_value >= NOTIFY_MAX) {
+                    enum_value = NOTIFY_MAX;
+                }
+                notify_type = enum_value;
+            }
         } else {
-            data->notifyType = (BACNET_NOTIFY_TYPE)enum_value;
-            len += section_length;
+            return BACNET_STATUS_ERROR;
         }
-        switch (data->notifyType) {
-            case NOTIFY_ALARM:
-            case NOTIFY_EVENT:
-                /* tag 9 - ackRequired */
-                section_length =
-                    decode_context_boolean2(&apdu[len], 9, &data->ackRequired);
-                if (section_length == BACNET_STATUS_ERROR) {
-                    return -1;
+        if ((notify_type == NOTIFY_ALARM) || (notify_type == NOTIFY_EVENT)) {
+            /* tag 9 - ackRequired */
+            len = bacnet_boolean_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 9, &boolean_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->ackRequired = boolean_value;
                 }
-                len += section_length;
-
-                /* tag 10 - fromState */
-                if ((section_length = decode_context_enumerated(
-                         &apdu[len], 10, &enum_value)) == -1) {
-                    return -1;
-                } else {
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
+            /* tag 10 - fromState */
+            len = bacnet_enumerated_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 10, &enum_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
                     data->fromState = (BACNET_EVENT_STATE)enum_value;
-                    len += section_length;
                 }
-                break;
-                /* In cases other than alarm and event
-                   there's no data, so do not return an error
-                   but continue normally */
-            case NOTIFY_ACK_NOTIFICATION:
-            default:
-                break;
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
         }
         /* tag 11 - toState */
-        if ((section_length = decode_context_enumerated(
-                 &apdu[len], 11, &enum_value)) == -1) {
-            return -1;
+        len = bacnet_enumerated_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 11, &enum_value);
+        if (len > 0) {
+            apdu_len += len;
+            if (data) {
+                data->toState = (BACNET_EVENT_STATE)enum_value;
+            }
         } else {
-            data->toState = (BACNET_EVENT_STATE)enum_value;
-            len += section_length;
+            return BACNET_STATUS_ERROR;
         }
-        /* tag 12 - eventValues */
-        switch (data->notifyType) {
-            case NOTIFY_ALARM:
-            case NOTIFY_EVENT:
-                if (decode_is_opening_tag_number(&apdu[len], 12)) {
-                    len++;
-                } else {
-                    return -1;
+    }
+    /* tag 12 - eventValues */
+    if ((notify_type == NOTIFY_ALARM) || (notify_type == NOTIFY_EVENT)) {
+        if (bacnet_is_opening_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 12, &len)) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+        if (bacnet_is_opening_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 12, &len)) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+        if (event_type >= EVENT_PROPRIETARY_MIN) {
+            if (bacnet_is_opening_tag_number(
+                    &apdu[apdu_len], apdu_size - apdu_len, 6, &len)) {
+                /* complex-event-type [6] SEQUENCE OF BACnetPropertyValue */
+                apdu_len += len;
+                is_complex_event_type = true;
+                len = complex_event_type_values_decode(
+                    &apdu[apdu_len], apdu_size - apdu_len, data);
+                if (apdu_len < 0) {
+                    return BACNET_STATUS_ERROR;
                 }
-                if (decode_is_opening_tag_number(
-                        &apdu[len], (uint8_t)data->eventType)) {
-                    len++;
-                    switch (data->eventType) {
-                        case EVENT_CHANGE_OF_BITSTRING:
+                if (bacnet_is_closing_tag_number(
+                        &apdu[apdu_len], apdu_size - apdu_len, 6, &len)) {
+                    apdu_len += len;
+                } else {
+                    return BACNET_STATUS_ERROR;
+                }
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
+        } else if (bacnet_is_opening_tag_number(
+                       &apdu[apdu_len], apdu_size - apdu_len,
+                       (uint8_t)event_type, &len)) {
+            apdu_len += len;
+            switch (event_type) {
+                case EVENT_CHANGE_OF_BITSTRING:
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 0,
+                             &data->notificationParams.changeOfBitstring
+                                  .referencedBitString))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.changeOfBitstring
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    break;
+
+                case EVENT_CHANGE_OF_STATE:
+                    if (-1 ==
+                        (len = bacapp_decode_context_property_state(
+                             &apdu[apdu_len], 0,
+                             &data->notificationParams.changeOfState
+                                  .newState))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.changeOfState
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    break;
+
+                case EVENT_CHANGE_OF_VALUE:
+                    if (!decode_is_opening_tag_number(&apdu[apdu_len], 0)) {
+                        return -1;
+                    }
+                    apdu_len++;
+
+                    if (decode_is_context_tag(
+                            &apdu[apdu_len], CHANGE_OF_VALUE_BITS)) {
+                        if (-1 ==
+                            (len = decode_context_bitstring(
+                                 &apdu[apdu_len], 0,
+                                 &data->notificationParams.changeOfValue
+                                      .newValue.changedBits))) {
+                            return -1;
+                        }
+
+                        apdu_len += len;
+                        data->notificationParams.changeOfValue.tag =
+                            CHANGE_OF_VALUE_BITS;
+                    } else if (decode_is_context_tag(
+                                   &apdu[apdu_len], CHANGE_OF_VALUE_REAL)) {
+                        if (-1 ==
+                            (len = decode_context_real(
+                                 &apdu[apdu_len], 1,
+                                 &data->notificationParams.changeOfValue
+                                      .newValue.changeValue))) {
+                            return -1;
+                        }
+
+                        apdu_len += len;
+                        data->notificationParams.changeOfValue.tag =
+                            CHANGE_OF_VALUE_REAL;
+                    } else {
+                        return -1;
+                    }
+                    if (!decode_is_closing_tag_number(&apdu[apdu_len], 0)) {
+                        return -1;
+                    }
+                    apdu_len++;
+
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.changeOfValue
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+                    break;
+
+                case EVENT_COMMAND_FAILURE:
+                    if (!decode_is_opening_tag_number(&apdu[apdu_len], 0)) {
+                        return -1;
+                    }
+                    apdu_len++;
+
+                    if (-1 ==
+                        (len = decode_tag_number_and_value(
+                             &apdu[apdu_len], &tag_number, &len_value))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    switch (tag_number) {
+                        case BACNET_APPLICATION_TAG_ENUMERATED:
                             if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 0,
-                                     &data->notificationParams.changeOfBitstring
-                                          .referencedBitString))) {
+                                (len = decode_enumerated(
+                                     &apdu[apdu_len], len_value,
+                                     &enum_value))) {
                                 return -1;
                             }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
-                                     &data->notificationParams.changeOfBitstring
-                                          .statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-
+                            data->notificationParams.commandFailure.commandValue
+                                .binaryValue = enum_value;
                             break;
 
-                        case EVENT_CHANGE_OF_STATE:
+                        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                             if (-1 ==
-                                (section_length =
-                                     bacapp_decode_context_property_state(
-                                         &apdu[len], 0,
-                                         &data->notificationParams.changeOfState
-                                              .newState))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
-                                     &data->notificationParams.changeOfState
-                                          .statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            break;
-
-                        case EVENT_CHANGE_OF_VALUE:
-                            if (!decode_is_opening_tag_number(&apdu[len], 0)) {
-                                return -1;
-                            }
-                            len++;
-
-                            if (decode_is_context_tag(
-                                    &apdu[len], CHANGE_OF_VALUE_BITS)) {
-                                if (-1 ==
-                                    (section_length = decode_context_bitstring(
-                                         &apdu[len], 0,
-                                         &data->notificationParams.changeOfValue
-                                              .newValue.changedBits))) {
-                                    return -1;
-                                }
-
-                                len += section_length;
-                                data->notificationParams.changeOfValue.tag =
-                                    CHANGE_OF_VALUE_BITS;
-                            } else if (decode_is_context_tag(
-                                           &apdu[len], CHANGE_OF_VALUE_REAL)) {
-                                if (-1 ==
-                                    (section_length = decode_context_real(
-                                         &apdu[len], 1,
-                                         &data->notificationParams.changeOfValue
-                                              .newValue.changeValue))) {
-                                    return -1;
-                                }
-
-                                len += section_length;
-                                data->notificationParams.changeOfValue.tag =
-                                    CHANGE_OF_VALUE_REAL;
-                            } else {
-                                return -1;
-                            }
-                            if (!decode_is_closing_tag_number(&apdu[len], 0)) {
-                                return -1;
-                            }
-                            len++;
-
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
-                                     &data->notificationParams.changeOfValue
-                                          .statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-                            break;
-
-                        case EVENT_COMMAND_FAILURE:
-                            if (!decode_is_opening_tag_number(&apdu[len], 0)) {
-                                return -1;
-                            }
-                            len++;
-
-                            if (-1 ==
-                                (section_length = decode_tag_number_and_value(
-                                     &apdu[len], &tag_number, &len_value))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            switch (tag_number) {
-                                case BACNET_APPLICATION_TAG_ENUMERATED:
-                                    if (-1 ==
-                                        (section_length = decode_enumerated(
-                                             &apdu[len], len_value,
-                                             &enum_value))) {
-                                        return -1;
-                                    }
-                                    data->notificationParams.commandFailure
-                                        .commandValue.binaryValue = enum_value;
-                                    break;
-
-                                case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                                    if (-1 ==
-                                        (section_length = decode_unsigned(
-                                             &apdu[len], len_value,
-                                             &data->notificationParams
-                                                  .commandFailure.commandValue
-                                                  .unsignedValue))) {
-                                        return -1;
-                                    }
-                                    break;
-
-                                default:
-                                    return 0;
-                            }
-                            len += section_length;
-
-                            if (!decode_is_closing_tag_number(&apdu[len], 0)) {
-                                return -1;
-                            }
-                            len++;
-
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
+                                (len = decode_unsigned(
+                                     &apdu[apdu_len], len_value,
                                      &data->notificationParams.commandFailure
-                                          .statusFlags))) {
+                                          .commandValue.unsignedValue))) {
                                 return -1;
-                            }
-                            len += section_length;
-
-                            if (!decode_is_opening_tag_number(&apdu[len], 2)) {
-                                return -1;
-                            }
-                            len++;
-
-                            if (-1 ==
-                                (section_length = decode_tag_number_and_value(
-                                     &apdu[len], &tag_number, &len_value))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            switch (tag_number) {
-                                case BACNET_APPLICATION_TAG_ENUMERATED:
-                                    if (-1 ==
-                                        (section_length = decode_enumerated(
-                                             &apdu[len], len_value,
-                                             &enum_value))) {
-                                        return -1;
-                                    }
-                                    data->notificationParams.commandFailure
-                                        .feedbackValue.binaryValue = enum_value;
-                                    break;
-
-                                case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                                    if (-1 ==
-                                        (section_length = decode_unsigned(
-                                             &apdu[len], len_value,
-                                             &data->notificationParams
-                                                  .commandFailure.feedbackValue
-                                                  .unsignedValue))) {
-                                        return -1;
-                                    }
-                                    break;
-
-                                default:
-                                    return 0;
-                            }
-                            len += section_length;
-
-                            if (!decode_is_closing_tag_number(&apdu[len], 2)) {
-                                return -1;
-                            }
-                            len++;
-
-                            break;
-
-                        case EVENT_FLOATING_LIMIT:
-                            if (-1 ==
-                                (section_length = decode_context_real(
-                                     &apdu[len], 0,
-                                     &data->notificationParams.floatingLimit
-                                          .referenceValue))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
-                                     &data->notificationParams.floatingLimit
-                                          .statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-                            if (-1 ==
-                                (section_length = decode_context_real(
-                                     &apdu[len], 2,
-                                     &data->notificationParams.floatingLimit
-                                          .setPointValue))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_real(
-                                     &apdu[len], 3,
-                                     &data->notificationParams.floatingLimit
-                                          .errorLimit))) {
-                                return -1;
-                            }
-                            len += section_length;
-                            break;
-
-                        case EVENT_OUT_OF_RANGE:
-                            if (-1 ==
-                                (section_length = decode_context_real(
-                                     &apdu[len], 0,
-                                     &data->notificationParams.outOfRange
-                                          .exceedingValue))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
-                                     &data->notificationParams.outOfRange
-                                          .statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-                            if (-1 ==
-                                (section_length = decode_context_real(
-                                     &apdu[len], 2,
-                                     &data->notificationParams.outOfRange
-                                          .deadband))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_real(
-                                     &apdu[len], 3,
-                                     &data->notificationParams.outOfRange
-                                          .exceededLimit))) {
-                                return -1;
-                            }
-                            len += section_length;
-                            break;
-
-                        case EVENT_CHANGE_OF_LIFE_SAFETY:
-                            if (-1 ==
-                                (section_length = decode_context_enumerated(
-                                     &apdu[len], 0, &enum_value))) {
-                                return -1;
-                            }
-                            data->notificationParams.changeOfLifeSafety
-                                .newState =
-                                (BACNET_LIFE_SAFETY_STATE)enum_value;
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_enumerated(
-                                     &apdu[len], 1, &enum_value))) {
-                                return -1;
-                            }
-                            data->notificationParams.changeOfLifeSafety
-                                .newMode = (BACNET_LIFE_SAFETY_MODE)enum_value;
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 2,
-                                     &data->notificationParams
-                                          .changeOfLifeSafety.statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_enumerated(
-                                     &apdu[len], 3, &enum_value))) {
-                                return -1;
-                            }
-                            data->notificationParams.changeOfLifeSafety
-                                .operationExpected =
-                                (BACNET_LIFE_SAFETY_OPERATION)enum_value;
-                            len += section_length;
-                            break;
-
-                        case EVENT_BUFFER_READY:
-                            /* Tag 0 - bufferProperty */
-                            section_length =
-                                bacnet_device_object_property_reference_context_decode(
-                                    &apdu[len], apdu_len - len, 0,
-                                    &data->notificationParams.bufferReady
-                                         .bufferProperty);
-                            if (section_length <= 0) {
-                                return -1;
-                            }
-                            len += section_length;
-                            /* Tag 1 - PreviousNotification */
-                            section_length = bacnet_unsigned_context_decode(
-                                &apdu[len], apdu_len - len, 1, &unsigned_value);
-                            if (section_length > 0) {
-                                len += section_length;
-                                if (unsigned_value <= UINT32_MAX) {
-                                    data->notificationParams.bufferReady
-                                        .previousNotification =
-                                        (uint32_t)unsigned_value;
-                                } else {
-                                    return BACNET_STATUS_ERROR;
-                                }
-                            } else {
-                                return BACNET_STATUS_ERROR;
-                            }
-                            /* Tag 2 - currentNotification */
-                            section_length = bacnet_unsigned_context_decode(
-                                &apdu[len], apdu_len - len, 2, &unsigned_value);
-                            if (section_length > 0) {
-                                len += section_length;
-                                if (unsigned_value <= UINT32_MAX) {
-                                    data->notificationParams.bufferReady
-                                        .currentNotification =
-                                        (uint32_t)unsigned_value;
-                                } else {
-                                    return BACNET_STATUS_ERROR;
-                                }
-                            } else {
-                                return BACNET_STATUS_ERROR;
-                            }
-                            break;
-
-                        case EVENT_UNSIGNED_RANGE:
-                            /* Tag 0 - PreviousNotification */
-                            section_length = bacnet_unsigned_context_decode(
-                                &apdu[len], apdu_len - len, 0, &unsigned_value);
-                            if (section_length > 0) {
-                                len += section_length;
-                                if (unsigned_value <= UINT32_MAX) {
-                                    data->notificationParams.unsignedRange
-                                        .exceedingValue =
-                                        (uint32_t)unsigned_value;
-                                } else {
-                                    return BACNET_STATUS_ERROR;
-                                }
-                            } else {
-                                return BACNET_STATUS_ERROR;
-                            }
-                            /* Tag 1 - statusFlags */
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
-                                     &data->notificationParams.unsignedRange
-                                          .statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-                            /* Tag 2 - exceededLimit */
-                            section_length = bacnet_unsigned_context_decode(
-                                &apdu[len], apdu_len - len, 2, &unsigned_value);
-                            if (section_length > 0) {
-                                len += section_length;
-                                if (unsigned_value <= UINT32_MAX) {
-                                    data->notificationParams.unsignedRange
-                                        .exceededLimit =
-                                        (uint32_t)unsigned_value;
-                                } else {
-                                    return BACNET_STATUS_ERROR;
-                                }
-                            } else {
-                                return BACNET_STATUS_ERROR;
-                            }
-                            break;
-
-                        case EVENT_ACCESS_EVENT:
-                            if (-1 ==
-                                (section_length = decode_context_enumerated(
-                                     &apdu[len], 0, &enum_value))) {
-                                return -1;
-                            }
-                            data->notificationParams.accessEvent.accessEvent =
-                                enum_value;
-                            len += section_length;
-                            if (-1 ==
-                                (section_length = decode_context_bitstring(
-                                     &apdu[len], 1,
-                                     &data->notificationParams.accessEvent
-                                          .statusFlags))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length = decode_context_unsigned(
-                                     &apdu[len], 2,
-                                     &data->notificationParams.accessEvent
-                                          .accessEventTag))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length =
-                                     bacapp_decode_context_timestamp(
-                                         &apdu[len], 3,
-                                         &data->notificationParams.accessEvent
-                                              .accessEventTime))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (-1 ==
-                                (section_length =
-                                     bacapp_decode_context_device_obj_ref(
-                                         &apdu[len], 4,
-                                         &data->notificationParams.accessEvent
-                                              .accessCredential))) {
-                                return -1;
-                            }
-                            len += section_length;
-
-                            if (!decode_is_closing_tag(&apdu[len])) {
-                                if (-1 ==
-                                    (section_length =
-                                         bacapp_decode_context_authentication_factor(
-                                             &apdu[len], 5,
-                                             &data->notificationParams
-                                                  .accessEvent
-                                                  .authenticationFactor))) {
-                                    return -1;
-                                }
-                                len += section_length;
                             }
                             break;
 
                         default:
-                            return -1;
+                            return 0;
                     }
-                } else if (decode_is_opening_tag_number(&apdu[len], 6)) {
-                    /* complex-event-type [6] SEQUENCE OF BACnetPropertyValue */
-                    len++;
-                    is_complex_event_type = true;
+                    apdu_len += len;
 
-                    len = complex_event_type_values_decode(
-                        &apdu[len], apdu_len - len, data);
-                    if (len < 0) {
+                    if (!decode_is_closing_tag_number(&apdu[apdu_len], 0)) {
                         return -1;
                     }
-                } else {
-                    return -1;
-                }
+                    apdu_len++;
 
-                if (decode_is_closing_tag_number(
-                        &apdu[len],
-                        is_complex_event_type ? 6 : (uint8_t)data->eventType)) {
-                    len++;
-                } else {
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.commandFailure
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (!decode_is_opening_tag_number(&apdu[apdu_len], 2)) {
+                        return -1;
+                    }
+                    apdu_len++;
+
+                    if (-1 ==
+                        (len = decode_tag_number_and_value(
+                             &apdu[apdu_len], &tag_number, &len_value))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    switch (tag_number) {
+                        case BACNET_APPLICATION_TAG_ENUMERATED:
+                            if (-1 ==
+                                (len = decode_enumerated(
+                                     &apdu[apdu_len], len_value,
+                                     &enum_value))) {
+                                return -1;
+                            }
+                            data->notificationParams.commandFailure
+                                .feedbackValue.binaryValue = enum_value;
+                            break;
+
+                        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+                            if (-1 ==
+                                (len = decode_unsigned(
+                                     &apdu[apdu_len], len_value,
+                                     &data->notificationParams.commandFailure
+                                          .feedbackValue.unsignedValue))) {
+                                return -1;
+                            }
+                            break;
+
+                        default:
+                            return 0;
+                    }
+                    apdu_len += len;
+
+                    if (!decode_is_closing_tag_number(&apdu[apdu_len], 2)) {
+                        return -1;
+                    }
+                    apdu_len++;
+
+                    break;
+
+                case EVENT_FLOATING_LIMIT:
+                    if (-1 ==
+                        (len = decode_context_real(
+                             &apdu[apdu_len], 0,
+                             &data->notificationParams.floatingLimit
+                                  .referenceValue))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.floatingLimit
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+                    if (-1 ==
+                        (len = decode_context_real(
+                             &apdu[apdu_len], 2,
+                             &data->notificationParams.floatingLimit
+                                  .setPointValue))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_real(
+                             &apdu[apdu_len], 3,
+                             &data->notificationParams.floatingLimit
+                                  .errorLimit))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+                    break;
+
+                case EVENT_OUT_OF_RANGE:
+                    if (-1 ==
+                        (len = decode_context_real(
+                             &apdu[apdu_len], 0,
+                             &data->notificationParams.outOfRange
+                                  .exceedingValue))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.outOfRange
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+                    if (-1 ==
+                        (len = decode_context_real(
+                             &apdu[apdu_len], 2,
+                             &data->notificationParams.outOfRange.deadband))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_real(
+                             &apdu[apdu_len], 3,
+                             &data->notificationParams.outOfRange
+                                  .exceededLimit))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+                    break;
+
+                case EVENT_CHANGE_OF_LIFE_SAFETY:
+                    if (-1 ==
+                        (len = decode_context_enumerated(
+                             &apdu[apdu_len], 0, &enum_value))) {
+                        return -1;
+                    }
+                    data->notificationParams.changeOfLifeSafety.newState =
+                        (BACNET_LIFE_SAFETY_STATE)enum_value;
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_enumerated(
+                             &apdu[apdu_len], 1, &enum_value))) {
+                        return -1;
+                    }
+                    data->notificationParams.changeOfLifeSafety.newMode =
+                        (BACNET_LIFE_SAFETY_MODE)enum_value;
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 2,
+                             &data->notificationParams.changeOfLifeSafety
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_enumerated(
+                             &apdu[apdu_len], 3, &enum_value))) {
+                        return -1;
+                    }
+                    data->notificationParams.changeOfLifeSafety
+                        .operationExpected =
+                        (BACNET_LIFE_SAFETY_OPERATION)enum_value;
+                    apdu_len += len;
+                    break;
+
+                case EVENT_BUFFER_READY:
+                    /* Tag 0 - bufferProperty */
+                    len =
+                        bacnet_device_object_property_reference_context_decode(
+                            &apdu[apdu_len], apdu_size - apdu_len, 0,
+                            &data->notificationParams.bufferReady
+                                 .bufferProperty);
+                    if (len <= 0) {
+                        return -1;
+                    }
+                    apdu_len += len;
+                    /* Tag 1 - PreviousNotification */
+                    len = bacnet_unsigned_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 1,
+                        &unsigned_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        if (unsigned_value <= UINT32_MAX) {
+                            data->notificationParams.bufferReady
+                                .previousNotification =
+                                (uint32_t)unsigned_value;
+                        } else {
+                            return BACNET_STATUS_ERROR;
+                        }
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                    /* Tag 2 - currentNotification */
+                    len = bacnet_unsigned_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 2,
+                        &unsigned_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        if (unsigned_value <= UINT32_MAX) {
+                            data->notificationParams.bufferReady
+                                .currentNotification = (uint32_t)unsigned_value;
+                        } else {
+                            return BACNET_STATUS_ERROR;
+                        }
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                    break;
+
+                case EVENT_UNSIGNED_RANGE:
+                    /* Tag 0 - PreviousNotification */
+                    len = bacnet_unsigned_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 0,
+                        &unsigned_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        if (unsigned_value <= UINT32_MAX) {
+                            data->notificationParams.unsignedRange
+                                .exceedingValue = (uint32_t)unsigned_value;
+                        } else {
+                            return BACNET_STATUS_ERROR;
+                        }
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                    /* Tag 1 - statusFlags */
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.unsignedRange
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+                    /* Tag 2 - exceededLimit */
+                    len = bacnet_unsigned_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 2,
+                        &unsigned_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        if (unsigned_value <= UINT32_MAX) {
+                            data->notificationParams.unsignedRange
+                                .exceededLimit = (uint32_t)unsigned_value;
+                        } else {
+                            return BACNET_STATUS_ERROR;
+                        }
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                    break;
+
+                case EVENT_ACCESS_EVENT:
+                    if (-1 ==
+                        (len = decode_context_enumerated(
+                             &apdu[apdu_len], 0, &enum_value))) {
+                        return -1;
+                    }
+                    data->notificationParams.accessEvent.accessEvent =
+                        enum_value;
+                    apdu_len += len;
+                    if (-1 ==
+                        (len = decode_context_bitstring(
+                             &apdu[apdu_len], 1,
+                             &data->notificationParams.accessEvent
+                                  .statusFlags))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = decode_context_unsigned(
+                             &apdu[apdu_len], 2,
+                             &data->notificationParams.accessEvent
+                                  .accessEventTag))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = bacapp_decode_context_timestamp(
+                             &apdu[apdu_len], 3,
+                             &data->notificationParams.accessEvent
+                                  .accessEventTime))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (-1 ==
+                        (len = bacapp_decode_context_device_obj_ref(
+                             &apdu[apdu_len], 4,
+                             &data->notificationParams.accessEvent
+                                  .accessCredential))) {
+                        return -1;
+                    }
+                    apdu_len += len;
+
+                    if (!decode_is_closing_tag(&apdu[apdu_len])) {
+                        if (-1 ==
+                            (len = bacapp_decode_context_authentication_factor(
+                                 &apdu[apdu_len], 5,
+                                 &data->notificationParams.accessEvent
+                                      .authenticationFactor))) {
+                            return -1;
+                        }
+                        apdu_len += len;
+                    }
+                    break;
+
+                default:
                     return -1;
-                }
-                if (decode_is_closing_tag_number(&apdu[len], 12)) {
-                    len++;
-                } else {
-                    return -1;
-                }
-                break;
-                /* In cases other than alarm and event
-                   there's no data, so do not return an error
-                   but continue normally */
-            case NOTIFY_ACK_NOTIFICATION:
-            default:
-                break;
+            }
+            if (bacnet_is_closing_tag_number(
+                    &apdu[apdu_len], apdu_size - apdu_len, (uint8_t)event_type,
+                    &len)) {
+                apdu_len += len;
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
+            if (bacnet_is_closing_tag_number(
+                    &apdu[apdu_len], apdu_size - apdu_len, 12, &len)) {
+                apdu_len += len;
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
         }
     }
 
-    return len;
+    return apdu_len;
 }

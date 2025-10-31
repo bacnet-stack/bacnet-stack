@@ -13,6 +13,10 @@ all: apps
 bsd:
 	$(MAKE) LEGACY=true BACNET_PORT=bsd -s -C apps all
 
+.PHONY: linux
+linux:
+	$(MAKE) LEGACY=true BACNET_PORT=linux -s -C apps all
+
 .PHONY: win32
 win32:
 	$(MAKE) LEGACY=true BACNET_PORT=win32 -s -C apps all
@@ -62,15 +66,15 @@ bsc:
 
 .PHONY: apps
 apps:
-	$(MAKE) -s LEGACY=true -C apps all
+	$(MAKE) -s -C apps all
 
 .PHONY: lib
 lib:
-	$(MAKE) -s LEGACY=true -C apps $@
+	$(MAKE) -s -C apps $@
 
 .PHONY: library
 library:
-	$(MAKE) -s LEGACY=true -C apps lib
+	$(MAKE) -s -C apps lib
 
 CMAKE_BUILD_DIR=build
 .PHONY: cmake

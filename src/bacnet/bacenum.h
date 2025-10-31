@@ -1309,7 +1309,7 @@ typedef enum BACnetEventType {
     EVENT_COMMAND_FAILURE = 3,
     EVENT_FLOATING_LIMIT = 4,
     EVENT_OUT_OF_RANGE = 5,
-    /*  complex-event-type        (6), -- see comment below */
+    EVENT_COMPLEX_EVENT_TYPE = 6, /* -- see comment below */
     /*  event-buffer-ready   (7), -- context tag 7 is deprecated */
     EVENT_CHANGE_OF_LIFE_SAFETY = 8,
     EVENT_EXTENDED = 9,
