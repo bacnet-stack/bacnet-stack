@@ -311,8 +311,6 @@ int bvlc6_send_pdu(
     unsigned pdu_len)
 {
     BACNET_IP6_ADDRESS bvlc_dest = { 0 };
-    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
     uint32_t vmac_src = 0;
     uint32_t vmac_dst = 0;
 
@@ -326,14 +324,14 @@ int bvlc6_send_pdu(
             /* we are a foreign device */
             bvlc6_address_copy(&bvlc_dest, &Remote_BBMD);
             vmac_src = Device_Object_Instance_Number();
-            mtu_len = bvlc6_encode_distribute_broadcast_to_network(
-                mtu, sizeof(mtu), vmac_src, pdu, pdu_len);
+            BVLC6_Buffer_Len = bvlc6_encode_distribute_broadcast_to_network(
+                BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, pdu, pdu_len);
             PRINTF("BVLC6: Sent Distribute-Broadcast-to-Network.\n");
         } else {
             bip6_get_broadcast_addr(&bvlc_dest);
             vmac_src = Device_Object_Instance_Number();
-            mtu_len = bvlc6_encode_original_broadcast(
-                mtu, sizeof(mtu), vmac_src, pdu, pdu_len);
+            BVLC6_Buffer_Len = bvlc6_encode_original_broadcast(
+                BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, pdu, pdu_len);
             PRINTF("BVLC6: Sent Original-Broadcast-NPDU.\n");
         }
     } else if ((dest->net > 0) && (dest->len == 0)) {
@@ -345,23 +343,24 @@ int bvlc6_send_pdu(
             bip6_get_broadcast_addr(&bvlc_dest);
         }
         vmac_src = Device_Object_Instance_Number();
-        mtu_len = bvlc6_encode_original_broadcast(
-            mtu, sizeof(mtu), vmac_src, pdu, pdu_len);
+        BVLC6_Buffer_Len = bvlc6_encode_original_broadcast(
+            BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, pdu, pdu_len);
         PRINTF("BVLC6: Sent Original-Broadcast-NPDU.\n");
     } else if (dest->mac_len == 3) {
         /* valid unicast */
         bbmd6_address_from_bacnet_address(&bvlc_dest, &vmac_dst, dest);
         PRINTF("BVLC6: Sending to VMAC %lu.\n", (unsigned long)vmac_dst);
         vmac_src = Device_Object_Instance_Number();
-        mtu_len = bvlc6_encode_original_unicast(
-            mtu, sizeof(mtu), vmac_src, vmac_dst, pdu, pdu_len);
+        BVLC6_Buffer_Len = bvlc6_encode_original_unicast(
+            BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, vmac_dst, pdu,
+            pdu_len);
         PRINTF("BVLC6: Sent Original-Unicast-NPDU.\n");
     } else {
         PRINTF("BVLC6: Send failure. Invalid Address.\n");
         return -1;
     }
 
-    return bip6_send_mpdu(&bvlc_dest, mtu, mtu_len);
+    return bip6_send_mpdu(&bvlc_dest, BVLC6_Buffer, BVLC6_Buffer_Len);
 }
 
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
@@ -381,7 +380,6 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
 
     if (mtu) {
         bip6_get_addr(&my_addr);
-        for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
         for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
             if (BBMD_Table[i].valid) {
                 if (bvlc6_address_different(
@@ -423,41 +421,6 @@ static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
 }
 #endif
 
-#if defined(BACDL_BIP6) && BBMD6_ENABLED
-/**
- * @brief The Forward NPDU send function for Broadcast Distribution Table
- * @param npdu - the bytes of NPDU+APDU data to send
- * @param npdu_len - the number of bytes of NPDU+APDU data to send
- */
-static void bbmd6_send_forward_npdu(
-    uint8_t *npdu,
-    unsigned int npdu_len)
-{
-    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
-    unsigned i = 0; /* loop counter */
-
-    for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
-        if (BBMD_Table[i].valid) {
-            if (bbmd6_address_match_self(&BBMD_Table[i].bip6_address)) {
-                /* don't forward to our selves */
-            } else {
-                bip6_send_mpdu(&BBMD_Table[i].bip6_address, mtu, mtu_len);
-            }
-        }
-    }
-    for (i = 0; i < MAX_FD6_ENTRIES; i++) {
-        if (FD_Table[i].valid) {
-            if (bbmd6_address_match_self(&FD_Table[i].bip6_address)) {
-                /* don't forward to our selves */
-            } else {
-                bip6_send_mpdu(&FD_Table[i].bip6_address, mtu, mtu_len);
-            }
-        }
-    }
-}
-#endif
-
 /**
  * The Result Code send function for BACnet/IPv6 application layer
  *
@@ -474,12 +437,10 @@ static int bvlc6_send_result(
     uint32_t vmac_src,
     uint16_t result_code)
 {
-    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
+    BVLC6_Buffer_Len = bvlc6_encode_result(
+        BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, result_code);
 
-    mtu_len = bvlc6_encode_result(&mtu[0], sizeof(mtu), vmac_src, result_code);
-
-    return bip6_send_mpdu(dest_addr, mtu, mtu_len);
+    return bip6_send_mpdu(dest_addr, BVLC6_Buffer, BVLC6_Buffer_Len);
 }
 
 /**
@@ -496,13 +457,10 @@ static int bvlc6_send_result(
 static int bvlc6_send_address_resolution_ack(
     const BACNET_IP6_ADDRESS *dest_addr, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
+    BVLC6_Buffer_Len = bvlc6_encode_address_resolution_ack(
+        BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, vmac_dst);
 
-    mtu_len = bvlc6_encode_address_resolution_ack(
-        &mtu[0], sizeof(mtu), vmac_src, vmac_dst);
-
-    return bip6_send_mpdu(dest_addr, mtu, mtu_len);
+    return bip6_send_mpdu(dest_addr, BVLC6_Buffer, BVLC6_Buffer_Len);
 }
 
 /**
@@ -520,13 +478,10 @@ static int bvlc6_send_address_resolution_ack(
 static int bvlc6_send_virtual_address_resolution_ack(
     const BACNET_IP6_ADDRESS *dest_addr, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
+    BVLC6_Buffer_Len = bvlc6_encode_virtual_address_resolution_ack(
+        BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, vmac_dst);
 
-    mtu_len = bvlc6_encode_virtual_address_resolution_ack(
-        &mtu[0], sizeof(mtu), vmac_src, vmac_dst);
-
-    return bip6_send_mpdu(dest_addr, mtu, mtu_len);
+    return bip6_send_mpdu(dest_addr, BVLC6_Buffer, BVLC6_Buffer_Len);
 }
 
 /**
@@ -934,6 +889,7 @@ int bvlc6_bbmd_enabled_handler(
     bool send_result = false;
     uint16_t offset = 0;
     BACNET_IP6_ADDRESS fwd_address = { 0 };
+    BACNET_IP6_ADDRESS bvlc_dest = { 0 };
 
     header_len =
         bvlc6_decode_header(mtu, mtu_len, &message_type, &message_length);
@@ -1004,11 +960,16 @@ int bvlc6_bbmd_enabled_handler(
                 function_len = bvlc6_decode_distribute_broadcast_to_network(
                     pdu, pdu_len, &vmac_src, NULL, 0, &npdu_len);
                 if ((function_len > 0) &&
-                    (bvlc6_broadcast_distribution_table_member(addr)) {
+                    (bvlc6_broadcast_distribution_table_member(addr))) {
                     npdu = pdu + header_len + (function_len - npdu_len);
-                    bbmd6_send_forward_npdu(npdu, npdu_len);
+                    BVLC6_Buffer_Len = bvlc6_encode_forwarded_npdu(
+                        &BVLC6_Buffer[0], sizeof(BVLC6_Buffer), vmac_src, addr,
+                        npdu, npdu_len);
+                    bbmd6_send_pdu_bdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
+                    bbmd6_send_pdu_fdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
                 } else {
-                    result_code = BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
+                    result_code =
+                        BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
                     send_result = true;
                 }
                 break;
@@ -1183,8 +1144,6 @@ int bvlc6_register_with_bbmd(
     const BACNET_IP6_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
 {
     int len;
-    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
     uint32_t vmac_src = 0;
 
     /* Store the BBMD address and port so that we won't broadcast locally. */
@@ -1192,9 +1151,9 @@ int bvlc6_register_with_bbmd(
     bvlc6_address_copy(&Remote_BBMD, bbmd_addr);
     Remote_BBMD_TTL_Seconds = ttl_seconds;
     vmac_src = Device_Object_Instance_Number();
-    mtu_len = bvlc6_encode_register_foreign_device(
-        &mtu[0], sizeof(mtu), vmac_src, ttl_seconds);
-    len = bip6_send_mpdu(bbmd_addr, &mtu[0], mtu_len);
+    BVLC6_Buffer_Len = bvlc6_encode_register_foreign_device(
+        BVLC6_Buffer, sizeof(BVLC6_Buffer), vmac_src, ttl_seconds);
+    len = bip6_send_mpdu(bbmd_addr, BVLC6_Buffer, BVLC6_Buffer_Len);
     if (len > 0) {
         bip6_leave_group();
     }
@@ -1267,10 +1226,11 @@ bool bvlc6_broadcast_distribution_table_entry_set(
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
     unsigned i;
 
-    if ((entry_number >= 1) && (entry_number <= MAX_BBMD6_ENTRIES) {
+    if ((entry_number >= 1) && (entry_number <= MAX_BBMD6_ENTRIES)) {
         i = entry_number - 1;
         if (entry) {
-            bvlc6_address_copy(&BBMD_Table[i], entry);
+            bvlc6_address_copy(
+                &BBMD_Table[i].bip6_address, &entry->bip6_address);
             BBMD_Table[i].valid = true;
         } else {
             BBMD_Table[i].valid = false;
@@ -1293,9 +1253,9 @@ bool bvlc6_broadcast_distribution_table_entry(
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
     unsigned i;
 
-    if ((entry_number >= 1) && (entry_number <= MAX_BBMD6_ENTRIES) {
+    if ((entry_number >= 1) && (entry_number <= MAX_BBMD6_ENTRIES)) {
         i = entry_number - 1;
-        bvlc6_address_copy(entry, &BBMD_Table[i].bip6_address);
+        bvlc6_address_copy(&entry->bip6_address, &BBMD_Table[i].bip6_address);
         status = true;
     }
 #else
@@ -1332,8 +1292,7 @@ size_t bvlc6_broadcast_distribution_table_count(void)
     return count;
 }
 
-bool bvlc6_broadcast_distribution_table_member(
-    BACNET_IP6_ADDRESS *addr)
+bool bvlc6_broadcast_distribution_table_member(BACNET_IP6_ADDRESS *addr)
 {
     bool matched = false;
 
@@ -1342,7 +1301,7 @@ bool bvlc6_broadcast_distribution_table_member(
 
     for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
         if (BBMD_Table[i].valid) {
-            if (!bvlc6_address_different(&BBMD_Table[i].bip6_address,addr)) {
+            if (!bvlc6_address_different(&BBMD_Table[i].bip6_address, addr)) {
                 matched = true;
                 break;
             }
@@ -1352,8 +1311,6 @@ bool bvlc6_broadcast_distribution_table_member(
 
     return matched;
 }
-
-
 
 /**
  * Initialize any tables or other memory

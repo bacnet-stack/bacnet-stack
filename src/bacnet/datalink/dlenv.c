@@ -270,7 +270,6 @@ static int bbmd_register_as_foreign_device(void)
     return retval;
 }
 
-#if defined(BACDL_BIP6) && BBMD6_ENABLED
 static BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD6_Table_Entry;
 static uint16_t BBMD6_Result = 0;
 
@@ -296,7 +295,7 @@ static int bbmd6_register_as_foreign_device(void)
     unsigned bdt_capacity = 0;
     char *pEnv = NULL;
     char bbmd_env[32] = "";
-    char bip6_ascii[(16*4)+8] = "";
+    char bip6_ascii[(16 * 4) + 8] = "";
     unsigned entry_number = 0;
     long long_value = 0;
     BACNET_IP6_ADDRESS bip6_addr = { 0 };
@@ -333,19 +332,19 @@ static int bbmd6_register_as_foreign_device(void)
     } else {
         bdt_capacity = bvlc6_broadcast_distribution_table_capacity();
         if (Datalink_Debug) {
-            fprintf(stderr, "BBMD6: Configuring up to %u BDT entries...\n",
+            fprintf(
+                stderr, "BBMD6: Configuring up to %u BDT entries...\n",
                 (unsigned)bdt_capacity);
         }
         for (entry_number = 1; entry_number <= bdt_capacity; entry_number++) {
             bdt_entry_valid = false;
             snprintf(
-                bbmd_env, sizeof(bbmd_env),
-                "BACNET_BDT6_ADDR_%u", entry_number);
+                bbmd_env, sizeof(bbmd_env), "BACNET_BDT6_ADDR_%u",
+                entry_number);
             pEnv = getenv(bbmd_env);
             if (pEnv) {
-                bdt_entry_valid =
-                    bip6_get_addr_by_name(pEnv,
-                    &BBMD6_Table_Entry.bip6_address);
+                bdt_entry_valid = bip6_get_addr_by_name(
+                    pEnv, &BBMD6_Table_Entry.bip6_address);
                 if (entry_number == 1) {
                     if (Datalink_Debug) {
                         fprintf(
@@ -355,8 +354,8 @@ static int bbmd6_register_as_foreign_device(void)
                 }
             } else if (entry_number == 1) {
                 /* BDT 1 is self (note: can be overridden) */
-                bdt_entry_valid = bip6_get_addr(
-                    &BBMD6_Table_Entry.bip6_address);
+                bdt_entry_valid =
+                    bip6_get_addr(&BBMD6_Table_Entry.bip6_address);
             }
             if (bdt_entry_valid) {
                 bdt_entry_port = 0xBAC0;
@@ -368,7 +367,8 @@ static int bbmd6_register_as_foreign_device(void)
                     bdt_entry_port = strtol(pEnv, NULL, 0);
                     if (entry_number == 1) {
                         if (Datalink_Debug) {
-                            fprintf(stderr,
+                            fprintf(
+                                stderr,
                                 "BBMD6: BDT[1] port overridden %s=%s!\n",
                                 bbmd_env, pEnv);
                         }
@@ -379,13 +379,13 @@ static int bbmd6_register_as_foreign_device(void)
                 }
                 BBMD6_Table_Entry.bip6_address.port = bdt_entry_port;
                 bvlc6_broadcast_distribution_table_entry_set(
-                entry_number, &BBMD6_Table_Entry);
+                    entry_number, &BBMD6_Table_Entry);
                 if (Datalink_Debug) {
-                    bvlc6_address_to_ascii(&BBMD6_Table_Entry.bip6_address,
-                        bip6_ascii, sizeof(bip6_ascii));
+                    bvlc6_address_to_ascii(
+                        &BBMD6_Table_Entry.bip6_address, bip6_ascii,
+                        sizeof(bip6_ascii));
                     fprintf(
-                        stderr, "BBMD6 %4u: %s[%u]\n",
-                        (unsigned)entry_number,
+                        stderr, "BBMD6 %4u: %s[%u]\n", (unsigned)entry_number,
                         bip6_ascii,
                         (unsigned)BBMD6_Table_Entry.bip6_address.port);
                 }
