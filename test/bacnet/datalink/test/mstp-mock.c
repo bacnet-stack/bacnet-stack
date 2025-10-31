@@ -91,3 +91,8 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
 {
     ztest_check_expected_value(mstp_port);
 }
+
+void MSTP_Auto_Baud_FSM(struct mstp_port_struct_t *mstp_port)
+{
+    ztest_check_expected_value(mstp_port);
+}

@@ -9,7 +9,6 @@
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/sc_netport.h"
-#include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/sys/debug.h"
 #include <stdlib.h>
 
@@ -64,9 +63,10 @@ void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     static char buf[128];
-    sprintf(
-        buf, "%02x%02x%02x%02x%02x%02x", vmac->address[0], vmac->address[1],
-        vmac->address[2], vmac->address[3], vmac->address[4], vmac->address[5]);
+    snprintf(
+        buf, sizeof(buf), "%02x%02x%02x%02x%02x%02x", vmac->address[0],
+        vmac->address[1], vmac->address[2], vmac->address[3], vmac->address[4],
+        vmac->address[5]);
     return buf;
 }
 
@@ -78,8 +78,8 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
 {
     static char buf[128];
-    sprintf(
-        buf,
+    snprintf(
+        buf, sizeof(buf),
         "%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x",
         uuid->uuid[0], uuid->uuid[1], uuid->uuid[2], uuid->uuid[3],
         uuid->uuid[4], uuid->uuid[5], uuid->uuid[6], uuid->uuid[7],
@@ -97,7 +97,7 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
     int i;
 
     for (i = 0; i < BVLC_SC_VMAC_SIZE; i++) {
-        p->address[i] = rand() % 255;
+        p->address[i] = rand() % 256;
         if (i == 0) {
             /* According H.7.3 EUI-48 and Random-48 VMAC Address:
                The Random-48 VMAC is a 6-octet VMAC address in which the least
@@ -120,7 +120,7 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
     int i;
 
     for (i = 0; i < BVLC_SC_UUID_SIZE; i++) {
-        p->uuid[i] = rand() % 255;
+        p->uuid[i] = rand() % 256;
     }
     debug_printf_hex(0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid");
 }

@@ -11,50 +11,48 @@ all: apps
 
 .PHONY: bsd
 bsd:
-	$(MAKE) BACNET_PORT=bsd -s -C apps all
+	$(MAKE) LEGACY=true BACNET_PORT=bsd -s -C apps all
 
 .PHONY: win32
 win32:
-	$(MAKE) BACNET_PORT=win32 -s -C apps all
+	$(MAKE) LEGACY=true BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mingw32
 mingw32:
 	i686-w64-mingw32-gcc --version
-	ORIGINAL_CC=$(CC) ; \
-	ORIGINAL_LD=$(LD) ; \
-	export CC=i686-w64-mingw32-gcc ; \
-	export LD=i686-w64-mingw32-ld ; \
-	$(MAKE) BACNET_PORT=win32 -s -C apps all ; \
-	export CC=$(ORIGINAL_CC) ; \
-	export LD=$(ORIGINAL_LD)
+	$(MAKE) PREFIX=i686-w64-mingw32- BACNET_PORT=win32 LEGACY=true BACDL=bip6 -s -C apps all
+
+.PHONY: mstpwin32-clean
+mstpwin32-clean:
+	$(MAKE) LEGACY=true BACDL=mstp BACNET_PORT=win32 -s -C apps clean
 
 .PHONY: mstpwin32
 mstpwin32:
-	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps all
+	$(MAKE) LEGACY=true BACDL=mstp BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mstp
 mstp:
 	$(MAKE) BACDL=mstp -s -C apps all
 
-.PHONY: bip6-win32
-bip6-win32:
-	$(MAKE) BACDL=bip6 BBMD6=full BACNET_PORT=win32 -s -C apps all
+.PHONY: mingw32-bip6
+mingw32-bip6:
+	$(MAKE) PREFIX=i686-w64-mingw32- BBMD6=full BACNET_PORT=win32 LEGACY=true BACDL=bip6 -s -C apps all
 
 .PHONY: bip6
 bip6:
-	$(MAKE) BACDL=bip6 BBMD6=full -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip6 BBMD6=full -s -C apps all
 
 .PHONY: bip
 bip:
-	$(MAKE) BACDL=bip -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip -s -C apps all
 
 .PHONY: bip-client
 bip-client:
-	$(MAKE) BACDL=bip BBMD=client -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip BBMD=client -s -C apps all
 
 .PHONY: ethernet
 ethernet:
-	$(MAKE) BACDL=ethernet -s -C apps all
+	$(MAKE) LEGACY=true BACDL=ethernet -s -C apps all
 
 # note: requires additional libraries to be installed
 # see .github/workflows/gcc.yml
@@ -64,11 +62,15 @@ bsc:
 
 .PHONY: apps
 apps:
-	$(MAKE) -s -C apps all
+	$(MAKE) -s LEGACY=true -C apps all
 
 .PHONY: lib
 lib:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s LEGACY=true -C apps $@
+
+.PHONY: library
+library:
+	$(MAKE) -s LEGACY=true -C apps lib
 
 CMAKE_BUILD_DIR=build
 .PHONY: cmake
@@ -198,6 +200,14 @@ netnumis:
 server:
 	$(MAKE) -s -C apps $@
 
+.PHONY: server-basic
+server-basic:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
+
+.PHONY: server-basic-mstp
+server-basic-mstp:
+	$(MAKE) LEGACY=true NOTIFY=false BACDL=mstp -s -C apps server-basic
+
 .PHONY: server-client
 server-client:
 	$(MAKE) LEGACY=true -s -C apps $@
@@ -205,6 +215,10 @@ server-client:
 .PHONY: server-discover
 server-discover:
 	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: server-mini
+server-mini:
+	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
 .PHONY: sc-hub
 sc-hub:
@@ -222,6 +236,10 @@ mstpcrc:
 uevent:
 	$(MAKE) -s -C apps $@
 
+.PHONY: who-am-i
+who-am-i:
+	$(MAKE) -s -C apps $@
+
 .PHONY: whois
 whois:
 	$(MAKE) -s -C apps $@
@@ -232,6 +250,10 @@ writepropm:
 
 .PHONY: writegroup
 writegroup:
+	$(MAKE) -s -C apps $@
+
+.PHONY: you-are
+you-are:
 	$(MAKE) -s -C apps $@
 
 .PHONY: router
@@ -344,6 +366,14 @@ xplained-clean: ports/xplained/Makefile
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
+
+.PHONY: gtk-discover
+gtk-discover:
+	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: dlmstp-linux
+dlmstp-linux: ports/linux/dlmstp.mak
+	$(MAKE) -s -C ports/linux -f dlmstp.mak clean all
 
 .PHONY: lwip
 lwip: ports/lwip/Makefile
@@ -496,6 +526,8 @@ clean: ports-clean
 	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
+	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean
+	$(MAKE) -s -C ports/linux -f dlmstp.mak clean
 	rm -rf ./build
 
 .PHONY: test
@@ -506,6 +538,11 @@ test:
 .PHONY: retest
 retest:
 	$(MAKE) -s -j -C test retest
+
+.PHONY: test-bsc
+test-bsc:
+	$(MAKE) -s -C test clean
+	$(MAKE) -s -j -C test test-bsc
 
 # Zephyr unit testing with twister
 # expects zephyr to be installed in ../zephyr in Workspace

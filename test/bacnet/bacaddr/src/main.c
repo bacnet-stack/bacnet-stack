@@ -3,8 +3,7 @@
  * @brief Unit test for BACNET_ADDRESS copy, init, compare
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date January 2023
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/bacaddr.h>
@@ -249,6 +248,60 @@ static void test_BACnetAddress_Codec(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_address_tests, test_bacnet_vmac_entry_codec)
+#else
+static void test_bacnet_vmac_entry_codec(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU];
+    BACNET_VMAC_ENTRY value = { 0 }, test_value = { 0 };
+    int test_len = 0, apdu_len = 0, null_len = 0;
+    unsigned i;
+
+    value.virtual_mac_address.adr[0] = 1;
+    value.virtual_mac_address.adr[1] = 2;
+    value.virtual_mac_address.adr[2] = 3;
+    value.virtual_mac_address.len = 3;
+    value.native_mac_address[0] = 4;
+    value.native_mac_address[1] = 5;
+    value.native_mac_address[2] = 6;
+    value.native_mac_address[3] = 7;
+    value.native_mac_address_len = 4;
+    null_len = bacnet_vmac_entry_encode(NULL, sizeof(apdu), &value);
+    apdu_len = bacnet_vmac_entry_encode(apdu, sizeof(apdu), &value);
+    zassert_true(apdu_len > 0, NULL);
+    zassert_true(null_len > 0, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+    test_len = bacnet_vmac_entry_decode(apdu, sizeof(apdu), &test_value);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    zassert_equal(
+        value.virtual_mac_address.len, test_value.virtual_mac_address.len,
+        NULL);
+    for (i = 0; i < value.virtual_mac_address.len; i++) {
+        zassert_equal(
+            value.virtual_mac_address.adr[i],
+            test_value.virtual_mac_address.adr[i], NULL);
+    }
+    zassert_equal(
+        value.native_mac_address_len, test_value.native_mac_address_len, NULL);
+    for (i = 0; i < value.native_mac_address_len; i++) {
+        zassert_equal(
+            value.native_mac_address[i], test_value.native_mac_address[i],
+            NULL);
+    }
+    /* negative tests - NULL value */
+    test_len = bacnet_vmac_entry_decode(apdu, sizeof(apdu), NULL);
+    zassert_equal(apdu_len, test_len, NULL);
+    /* negative tests - apdu too short */
+    while (apdu_len) {
+        apdu_len--;
+        test_len = bacnet_vmac_entry_decode(apdu, apdu_len, &test_value);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
+}
+
 /**
  * @}
  */
@@ -260,7 +313,8 @@ void test_main(void)
     ztest_test_suite(
         bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
         ztest_unit_test(test_BACNET_MAC_ADDRESS),
-        ztest_unit_test(test_BACnetAddress_Codec));
+        ztest_unit_test(test_BACnetAddress_Codec),
+        ztest_unit_test(test_bacnet_vmac_entry_codec));
 
     ztest_run_test_suite(bacnet_address_tests);
 }

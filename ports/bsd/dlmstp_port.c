@@ -266,11 +266,13 @@ static void *dlmstp_receive_fsm_task(void *pArg)
     for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((mstp_port->ReceivedValidFrame == false) &&
+            (mstp_port->ReceivedValidFrameNotForUs == false) &&
             (mstp_port->ReceivedInvalidFrame == false)) {
             do {
                 RS485_Check_UART_Data(mstp_port);
                 MSTP_Receive_Frame_FSM((struct mstp_port_struct_t *)pArg);
                 received_frame = mstp_port->ReceivedValidFrame ||
+                    mstp_port->ReceivedValidFrameNotForUs ||
                     mstp_port->ReceivedInvalidFrame;
                 if (received_frame) {
                     pthread_cond_signal(&poSharedData->Received_Frame_Flag);
@@ -301,11 +303,13 @@ static void *dlmstp_master_fsm_task(void *pArg)
 
     for (;;) {
         if (mstp_port->ReceivedValidFrame == false &&
+            mstp_port->ReceivedValidFrameNotForUs == false &&
             mstp_port->ReceivedInvalidFrame == false) {
             RS485_Check_UART_Data(mstp_port);
             MSTP_Receive_Frame_FSM(mstp_port);
         }
-        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame) {
+        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame ||
+            mstp_port->ReceivedValidFrameNotForUs) {
             run_master = true;
         } else {
             silence = mstp_port->SilenceTimer(NULL);
@@ -526,6 +530,7 @@ static bool dlmstp_compare_data_expecting_reply(
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -533,7 +538,8 @@ static bool dlmstp_compare_data_expecting_reply(
     }
     /* these don't have service choice included */
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        (reply.pdu_type == PDU_TYPE_ABORT) ||
+        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
             debug_printf("DLMSTP: DER Compare failed: "
                          "Invoke ID mismatch.\n");
@@ -557,15 +563,11 @@ static bool dlmstp_compare_data_expecting_reply(
                      "NPDU Protocol Version mismatch.\n");
         return false;
     }
-#if 0
-    /* the NDPU priority doesn't get passed through the stack, and
-       all outgoing messages have NORMAL priority */
     if (request.npdu_data.priority != reply.npdu_data.priority) {
-        debug_printf(
-            "DLMSTP: DER Compare failed: " "NPDU Priority mismatch.\n");
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "NPDU Priority mismatch.\n");
         return false;
     }
-#endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
         debug_printf("DLMSTP: DER Compare failed: "
                      "BACnet Address mismatch.\n");
@@ -862,8 +864,9 @@ bool dlmstp_init(void *poPort, char *ifname)
         exit(-1);
     }
     if (ioctl(poSharedData->RS485_Handle, TIOCEXCL) == -1) {
-        printf("Error setting TIOCEXCL on %s - %s(%d).\n", poSharedData->RS485_Port_Name,
-            strerror(errno), errno);
+        printf(
+            "Error setting TIOCEXCL on %s - %s(%d).\n",
+            poSharedData->RS485_Port_Name, strerror(errno), errno);
         exit(-1);
     }
 #if 0
@@ -885,13 +888,15 @@ bool dlmstp_init(void *poPort, char *ifname)
        CREAD   : enable receiving characters
      */
     printf(
-        "Default/current input baud rate is %d\n", (int)cfgetispeed(&poSharedData->RS485_oldtio));
+        "Default/current input baud rate is %d\n",
+        (int)cfgetispeed(&poSharedData->RS485_oldtio));
     printf(
-        "Default/current output baud rate is %d\n", (int)cfgetospeed(&poSharedData->RS485_oldtio));
+        "Default/current output baud rate is %d\n",
+        (int)cfgetospeed(&poSharedData->RS485_oldtio));
     newtio.c_cc[VMIN] = 0;
     newtio.c_cc[VTIME] = 10;
-    //newtio.c_cflag =
-    //    poSharedData->RS485_Baud | poSharedData->RS485MOD | CLOCAL | CREAD;
+    // newtio.c_cflag =
+    //     poSharedData->RS485_Baud | poSharedData->RS485MOD | CLOCAL | CREAD;
     cfsetspeed(&newtio, poSharedData->RS485_Baud);
     newtio.c_cflag &= ~PARENB; /* No Parity */
     newtio.c_cflag &= ~CSTOPB; /* 1 Stop Bit */
@@ -903,8 +908,11 @@ bool dlmstp_init(void *poPort, char *ifname)
     newtio.c_oflag = 0;
     /* no processing */
     newtio.c_lflag = 0;
-    if (ioctl(poSharedData->RS485_Handle, IOSSIOSPEED, &poSharedData->RS485_Baud) == -1) {
-        printf("Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
+    if (ioctl(
+            poSharedData->RS485_Handle, IOSSIOSPEED,
+            &poSharedData->RS485_Baud) == -1) {
+        printf(
+            "Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
             poSharedData->RS485_Port_Name, strerror(errno), errno);
     }
     printf("Input baud rate changed to %d\n", (int)cfgetispeed(&newtio));
@@ -919,21 +927,24 @@ bool dlmstp_init(void *poPort, char *ifname)
 
     /* Assert Data Terminal Ready (DTR) */
     if (ioctl(poSharedData->RS485_Handle, TIOCSDTR) == -1) {
-        printf("Error asserting DTR %s - %s(%d).\n", poSharedData->RS485_Port_Name, strerror(errno),
-            errno);
+        printf(
+            "Error asserting DTR %s - %s(%d).\n", poSharedData->RS485_Port_Name,
+            strerror(errno), errno);
     }
 
     /* Clear Data Terminal Ready (DTR) */
     if (ioctl(poSharedData->RS485_Handle, TIOCCDTR) == -1) {
-        printf("Error clearing DTR %s - %s(%d).\n", poSharedData->RS485_Port_Name, strerror(errno),
-            errno);
+        printf(
+            "Error clearing DTR %s - %s(%d).\n", poSharedData->RS485_Port_Name,
+            strerror(errno), errno);
     }
 
     /* Set the modem lines depending on the bits set in handshake */
     handshake = TIOCM_DTR | TIOCM_RTS | TIOCM_CTS | TIOCM_DSR;
     if (ioctl(poSharedData->RS485_Handle, TIOCMSET, &handshake) == -1) {
-        printf("Error setting handshake lines %s - %s(%d).\n", poSharedData->RS485_Port_Name,
-            strerror(errno), errno);
+        printf(
+            "Error setting handshake lines %s - %s(%d).\n",
+            poSharedData->RS485_Port_Name, strerror(errno), errno);
     }
 
     /* To read the state of the modem lines, use the following ioctl.
@@ -942,16 +953,18 @@ bool dlmstp_init(void *poPort, char *ifname)
 
     /* Store the state of the modem lines in handshake */
     if (ioctl(poSharedData->RS485_Handle, TIOCMGET, &handshake) == -1) {
-        printf("Error getting handshake lines %s - %s(%d).\n", poSharedData->RS485_Port_Name,
-            strerror(errno), errno);
+        printf(
+            "Error getting handshake lines %s - %s(%d).\n",
+            poSharedData->RS485_Port_Name, strerror(errno), errno);
     }
 
     printf("Handshake lines currently set to %d\n", handshake);
 
     if (ioctl(poSharedData->RS485_Handle, IOSSDATALAT, &mics) == -1) {
         /* set latency to 1 microsecond */
-        printf("Error setting read latency %s - %s(%d).\n", poSharedData->RS485_Port_Name,
-            strerror(errno), errno);
+        printf(
+            "Error setting read latency %s - %s(%d).\n",
+            poSharedData->RS485_Port_Name, strerror(errno), errno);
         exit(-1);
     }
 

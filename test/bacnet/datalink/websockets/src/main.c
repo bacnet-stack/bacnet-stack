@@ -1,13 +1,14 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
-/* @file
+/**
+ * @file
  * @brief test server/client websocket interface
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @author Patrick Grimm <patrick@lunatiki.de>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -8143,8 +8144,8 @@ static void test_simple(void)
     memset(&srv_ctx, 0, sizeof(srv_ctx));
     srv_ctx.ev = -1;
     srv_ctx.h = BSC_WEBSOCKET_INVALID_HANDLE;
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     ret = bws_srv_start(
@@ -8211,10 +8212,9 @@ static void test_onoff(void)
     memset(&srv_ctx, 0, sizeof(srv_ctx));
     srv_ctx.ev = -1;
     srv_ctx.h = BSC_WEBSOCKET_INVALID_HANDLE;
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
-
     ret = bws_srv_start(
         BSC_WEBSOCKET_HUB_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL, ca_cert,
         sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,

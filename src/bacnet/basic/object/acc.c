@@ -12,6 +12,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
+#include "bacnet/proplist.h"
 #include "bacnet/basic/object/acc.h"
 
 #ifndef MAX_ACCUMULATORS
@@ -26,17 +27,20 @@ struct object_data {
 static struct object_data Object_List[MAX_ACCUMULATORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_PRESENT_VALUE,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_EVENT_STATE,
-                                           PROP_OUT_OF_SERVICE,
-                                           PROP_SCALE,
-                                           PROP_UNITS,
-                                           PROP_MAX_PRES_VALUE,
-                                           -1 };
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_SCALE,
+    PROP_UNITS,
+    PROP_MAX_PRES_VALUE,
+    -1
+};
 
 static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
@@ -355,12 +359,7 @@ int Accumulator_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
+
     return apdu_len;
 }
 
@@ -388,30 +387,34 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if (wp_data->array_index != BACNET_ARRAY_ALL) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     switch ((int)wp_data->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-        case PROP_OBJECT_TYPE:
         case PROP_PRESENT_VALUE:
-        case PROP_SCALE:
-        case PROP_MAX_PRES_VALUE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_UNITS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                if (value.type.Unsigned_Int <=
+                    Accumulator_Max_Pres_Value(wp_data->object_instance)) {
+                    Accumulator_Present_Value_Set(
+                        wp_data->object_instance, value.type.Unsigned_Int);
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    return false;
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                return false;
+            }
             break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

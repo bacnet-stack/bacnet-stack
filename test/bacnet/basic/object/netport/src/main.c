@@ -4,13 +4,14 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2024
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/readrange.h>
 #include <bacnet/basic/object/netport.h>
 #include <bacnet/basic/object/sc_netport.h>
 #include <bacnet/basic/object/bacfile.h>
+#include <bacfile-posix.h>
 #include <property_test.h>
 #ifndef BACDL_BSC
 #define BACDL_BSC
@@ -32,35 +33,340 @@ static void test_network_port(void)
     unsigned port = 0;
     bool status = false;
     unsigned count = 0;
-    uint32_t object_instance = 0;
+    uint8_t address[16] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+    };
+    uint8_t test_address[16] = { 0 };
+    uint8_t mac_len;
+    uint8_t max_master, max_info_frames;
+    uint8_t ip_prefix;
+    uint32_t object_instance = 1234, test_object_instance = 0;
+    unsigned object_index = 0, test_object_index = 0;
+    BACNET_HOST_N_PORT host_n_port, test_host_n_port = { 0 };
+    BACNET_OCTET_STRING ip_address;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt[2] = {
+        { .valid = true,
+          .dest_address = { .address = { 1, 2, 3, 4 }, .port = 47808 },
+          .broadcast_mask = { .address = { 255, 255, 255, 255 } } },
+        { .valid = true,
+          .dest_address = { .address = { 5, 6, 7, 8 }, .port = 47808 },
+          .broadcast_mask = { .address = { 255, 255, 255, 0 } } }
+    };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *test_bdt;
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt[2] = {
+        { .valid = true,
+          .dest_address = { .address = { 1, 2, 3, 4 }, .port = 47808 },
+          .ttl_seconds = 30,
+          .ttl_seconds_remaining = 30 },
+        { .valid = true,
+          .dest_address = { .address = { 5, 6, 7, 8 }, .port = 47808 },
+          .ttl_seconds = 60,
+          .ttl_seconds_remaining = 60 }
+    };
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *test_fdt;
     uint8_t port_type[] = { PORT_TYPE_ETHERNET,   PORT_TYPE_ARCNET,
                             PORT_TYPE_MSTP,       PORT_TYPE_PTP,
                             PORT_TYPE_LONTALK,    PORT_TYPE_BIP,
                             PORT_TYPE_ZIGBEE,     PORT_TYPE_VIRTUAL,
                             PORT_TYPE_NON_BACNET, PORT_TYPE_BIP6,
                             PORT_TYPE_BSC,        PORT_TYPE_MAX };
-    const int known_fail_property_list[] = {
-        PROP_IP_DNS_SERVER,
-        PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
-        PROP_BBMD_FOREIGN_DEVICE_TABLE,
-        PROP_FD_BBMD_ADDRESS,
-        PROP_IPV6_DNS_SERVER,
-        PROP_ISSUER_CERTIFICATE_FILES,
-        PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
-        PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
-        PROP_SC_FAILED_CONNECTION_REQUESTS,
-        -1
-    };
+    const int known_fail_property_list[] = { -1 };
 
     while (port_type[port] != PORT_TYPE_MAX) {
         Network_Port_Init();
-        object_instance = 1234;
-        status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+        status = Network_Port_Object_Instance_Number_Set(
+            object_index, object_instance);
         zassert_true(status, NULL);
+        test_object_index = Network_Port_Instance_To_Index(object_instance);
+        zassert_equal(object_index, test_object_index, NULL);
+        test_object_instance = Network_Port_Index_To_Instance(object_index);
+        zassert_equal(object_instance, test_object_instance, NULL);
+        test_object_instance = Network_Port_Index_To_Instance(UINT_MAX);
+        zassert_equal(test_object_instance, BACNET_MAX_INSTANCE, NULL);
         status = Network_Port_Type_Set(object_instance, port_type[port]);
         zassert_true(status, NULL);
         count = Network_Port_Count();
         zassert_true(count > 0, NULL);
+        status = Network_Port_Description_Set(object_instance, "Test Port");
+        zassert_true(status, NULL);
+        status = Network_Port_Out_Of_Service_Set(object_instance, true);
+        zassert_true(status, NULL);
+        status = Network_Port_Out_Of_Service(object_instance);
+        zassert_true(status, NULL);
+        status = Network_Port_Out_Of_Service_Set(object_instance, false);
+        zassert_true(status, NULL);
+        status = Network_Port_Out_Of_Service(object_instance);
+        zassert_false(status, NULL);
+        status = Network_Port_Reliability_Set(
+            object_instance, RELIABILITY_NO_FAULT_DETECTED);
+        zassert_true(status, NULL);
+        status = Network_Port_Network_Number_Set(object_instance, 0);
+        zassert_true(status, NULL);
+        status =
+            Network_Port_Quality_Set(object_instance, PORT_QUALITY_UNKNOWN);
+        zassert_true(status, NULL);
+        status = Network_Port_MAC_Address_Set(object_instance, NULL, 0);
+        zassert_false(status, NULL);
+        mac_len = Network_Port_MAC_Address_Value(object_instance, NULL, 0);
+        if (mac_len > 0) {
+            /* test for ports that have a MAC address */
+            zassert_not_equal(mac_len, 0, NULL);
+            status =
+                Network_Port_MAC_Address_Set(object_instance, address, mac_len);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_MAC_Address_Value(
+                    object_instance, test_address, sizeof(test_address)),
+                mac_len, NULL);
+            zassert_mem_equal(test_address, address, mac_len, NULL);
+        }
+        status = Network_Port_APDU_Length_Set(object_instance, MAX_APDU);
+        zassert_true(status, NULL);
+        status = Network_Port_Link_Speed_Set(object_instance, 0);
+        zassert_true(status, NULL);
+        status = Network_Port_Changes_Pending_Set(object_instance, false);
+        zassert_true(status, NULL);
+        Network_Port_Changes_Pending_Activate_Callback_Set(
+            object_instance, NULL);
+        Network_Port_Changes_Pending_Discard(object_instance);
+        Network_Port_Changes_Pending_Discard_Callback_Set(
+            object_instance, NULL);
+        if (port_type[port] == PORT_TYPE_MSTP) {
+            status = Network_Port_MSTP_MAC_Address_Set(object_instance, 127);
+            zassert_true(status, NULL);
+            address[0] = Network_Port_MSTP_MAC_Address(object_instance);
+            zassert_equal(address[0], 127, NULL);
+            status = Network_Port_MSTP_Max_Info_Frames_Set(object_instance, 1);
+            zassert_true(status, NULL);
+            max_info_frames =
+                Network_Port_MSTP_Max_Info_Frames(object_instance);
+            zassert_equal(max_info_frames, 1, NULL);
+            Network_Port_MSTP_Max_Master_Set(object_instance, 127);
+            max_master = Network_Port_MSTP_Max_Master(object_instance);
+            zassert_equal(max_master, 127, NULL);
+            Network_Port_Changes_Pending_Set(object_instance, false);
+            status = Network_Port_MSTP_Max_Master_Set(object_instance, 63);
+            zassert_true(status, NULL);
+            max_master = Network_Port_MSTP_Max_Master(object_instance);
+            zassert_equal(max_master, 63, NULL);
+            zassert_true(Network_Port_Changes_Pending(object_instance), NULL);
+        }
+        if (port_type[port] == PORT_TYPE_BIP) {
+            status = Network_Port_IP_Address_Set(object_instance, 1, 2, 3, 4);
+            zassert_true(status, NULL);
+            status = Network_Port_IP_Subnet_Prefix_Set(object_instance, 24);
+            zassert_true(status, NULL);
+            ip_prefix = Network_Port_IP_Subnet_Prefix(object_instance);
+            zassert_equal(ip_prefix, 24, NULL);
+            status = Network_Port_IP_Gateway_Set(object_instance, 5, 6, 7, 8);
+            zassert_true(status, NULL);
+            status = Network_Port_IP_DHCP_Enable_Set(object_instance, true);
+            zassert_true(status, NULL);
+            status = Network_Port_IP_DHCP_Enable(object_instance);
+            zassert_true(status, NULL);
+            Network_Port_IP_DHCP_Lease_Time_Set(object_instance, 60);
+            zassert_equal(
+                Network_Port_IP_DHCP_Lease_Time(object_instance), 60, NULL);
+            zassert_equal(
+                Network_Port_IP_DHCP_Lease_Time_Remaining(object_instance), 60,
+                NULL);
+            octetstring_init_ascii_hex(&ip_address, "0x0A0B0C0D");
+            status =
+                Network_Port_IP_DHCP_Server_Set(object_instance, &ip_address);
+            zassert_true(status, NULL);
+            status = Network_Port_IP_DNS_Server_Set(
+                object_instance, 0, 9, 10, 11, 12);
+            zassert_true(status, NULL);
+            status = Network_Port_BIP_Port_Set(object_instance, 47808);
+            zassert_true(status, NULL);
+            status = Network_Port_BIP_Mode_Set(
+                object_instance, BACNET_IP_MODE_NORMAL);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_BIP_Mode(object_instance), BACNET_IP_MODE_NORMAL,
+                NULL);
+            status = Network_Port_BBMD_Accept_FD_Registrations_Set(
+                object_instance, true);
+            zassert_true(status, NULL);
+            status = Network_Port_BBMD_BD_Table_Set(object_instance, NULL);
+            zassert_true(status, NULL);
+            zassert_is_null(Network_Port_BBMD_BD_Table(object_instance), NULL);
+            bvlc_broadcast_distribution_table_link_array(bdt, ARRAY_SIZE(bdt));
+            status = Network_Port_BBMD_BD_Table_Set(object_instance, bdt);
+            zassert_true(status, NULL);
+            test_bdt = Network_Port_BBMD_BD_Table(object_instance);
+            zassert_not_null(test_bdt, NULL);
+            zassert_equal(
+                test_bdt->dest_address.address[0],
+                bdt[0].dest_address.address[0], NULL);
+            status = Network_Port_BBMD_FD_Table_Set(object_instance, NULL);
+            zassert_true(status, NULL);
+            zassert_is_null(Network_Port_BBMD_FD_Table(object_instance), NULL);
+            bvlc_foreign_device_table_link_array(fdt, ARRAY_SIZE(fdt));
+            status = Network_Port_BBMD_FD_Table_Set(object_instance, &fdt[0]);
+            zassert_true(status, NULL);
+            test_fdt = Network_Port_BBMD_FD_Table(object_instance);
+            zassert_not_null(test_fdt, NULL);
+            zassert_equal(
+                test_fdt->dest_address.address[0],
+                fdt[0].dest_address.address[0], NULL);
+            status = Network_Port_Remote_BBMD_IP_Address(
+                object_instance, NULL, NULL, NULL, NULL);
+            zassert_false(status, NULL);
+            status = Network_Port_Remote_BBMD_IP_Address_Set(
+                object_instance, 1, 2, 3, 4);
+            zassert_true(status, NULL);
+            status = Network_Port_Remote_BBMD_IP_Address(
+                object_instance, &test_address[0], &test_address[1],
+                &test_address[2], &test_address[3]);
+            zassert_true(status, NULL);
+            status = Network_Port_Remote_BBMD_IP_Address(
+                object_instance, NULL, NULL, NULL, NULL);
+            zassert_true(status, NULL);
+            zassert_equal(test_address[0], 1, NULL);
+            zassert_equal(test_address[1], 2, NULL);
+            zassert_equal(test_address[2], 3, NULL);
+            zassert_equal(test_address[3], 4, NULL);
+            Network_Port_Changes_Pending_Set(object_instance, false);
+            status = Network_Port_Remote_BBMD_IP_Address_Set(
+                object_instance, 5, 6, 7, 8);
+            zassert_true(status, NULL);
+            zassert_true(Network_Port_Changes_Pending(object_instance), NULL);
+            status =
+                Network_Port_Remote_BBMD_BIP_Port_Set(object_instance, 47808);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_Remote_BBMD_BIP_Port(object_instance), 47808,
+                NULL);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_false(host_n_port.host_name, NULL);
+            zassert_true(host_n_port.host_ip_address, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
+            test_host_n_port.host_ip_address = false;
+            test_host_n_port.host_name = true;
+            characterstring_init_ansi(
+                &test_host_n_port.host.name, "bbmd.example.com");
+            test_host_n_port.port = 47808;
+            Network_Port_Remote_BBMD_Address_Set(
+                object_instance, &test_host_n_port);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_false(host_n_port.host_ip_address, NULL);
+            zassert_true(host_n_port.host_name, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
+            characterstring_ansi_same(
+                &test_host_n_port.host.name, "bbmd.example.com");
+            status =
+                Network_Port_Remote_BBMD_BIP_Lifetime_Set(object_instance, 60);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_Remote_BBMD_BIP_Lifetime(object_instance), 60,
+                NULL);
+        }
+        if (port_type[port] == PORT_TYPE_BIP6) {
+            status = Network_Port_IPv6_Address_Set(object_instance, address);
+            zassert_true(status, NULL);
+            status = Network_Port_BBMD_IP6_Accept_FD_Registrations_Set(
+                object_instance, true);
+            zassert_true(status, NULL);
+            zassert_true(
+                Network_Port_BBMD_IP6_Accept_FD_Registrations(object_instance),
+                NULL);
+            status = Network_Port_BBMD_IP6_BD_Table_Set(object_instance, NULL);
+            zassert_true(status, NULL);
+            zassert_is_null(
+                Network_Port_BBMD_IP6_BD_Table(object_instance), NULL);
+            status = Network_Port_BBMD_IP6_FD_Table_Set(object_instance, NULL);
+            zassert_true(status, NULL);
+            zassert_is_null(
+                Network_Port_BBMD_IP6_FD_Table(object_instance), NULL);
+            status =
+                Network_Port_Remote_BBMD_IP6_Address(object_instance, address);
+            zassert_false(status, NULL);
+            status = Network_Port_Remote_BBMD_IP6_Address_Set(
+                object_instance, address);
+            zassert_true(status, NULL);
+            status =
+                Network_Port_Remote_BBMD_BIP6_Port_Set(object_instance, 47808);
+            zassert_true(status, NULL);
+            status =
+                Network_Port_Remote_BBMD_IP6_Address(object_instance, address);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_Remote_BBMD_BIP6_Port(object_instance), 47808,
+                NULL);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_true(host_n_port.host_ip_address, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
+            test_host_n_port.host_ip_address = false;
+            test_host_n_port.host_name = true;
+            characterstring_init_ansi(
+                &test_host_n_port.host.name, "bbmd.example.com");
+            test_host_n_port.port = 47808;
+            Network_Port_Remote_BBMD_Address_Set(
+                object_instance, &test_host_n_port);
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+            zassert_false(host_n_port.host_ip_address, NULL);
+            zassert_true(host_n_port.host_name, NULL);
+            zassert_equal(host_n_port.port, 47808, NULL);
+            status =
+                Network_Port_Remote_BBMD_BIP6_Lifetime_Set(object_instance, 60);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_Remote_BBMD_BIP6_Lifetime(object_instance), 60,
+                NULL);
+            status = Network_Port_BIP6_Mode_Set(
+                object_instance, BACNET_IP_MODE_NORMAL);
+            zassert_true(status, NULL);
+            zassert_equal(
+                Network_Port_BIP6_Mode(object_instance), BACNET_IP_MODE_NORMAL,
+                NULL);
+            status = Network_Port_IPv6_Address_Set(object_instance, address);
+            zassert_true(status, NULL);
+            status = Network_Port_IPv6_Subnet_Prefix_Set(object_instance, 24);
+            zassert_true(status, NULL);
+            status = Network_Port_IPv6_Gateway_Set(object_instance, address);
+            zassert_true(status, NULL);
+            status =
+                Network_Port_IPv6_DNS_Server_Set(object_instance, 0, address);
+            zassert_true(status, NULL);
+            status = Network_Port_IPv6_Multicast_Address_Set(
+                object_instance, address);
+            zassert_true(status, NULL);
+            status = Network_Port_IP_DHCP_Enable_Set(object_instance, true);
+            zassert_true(status, NULL);
+            status = Network_Port_IP_DHCP_Enable(object_instance);
+            zassert_true(status, NULL);
+            Network_Port_IP_DHCP_Lease_Time_Set(object_instance, 60);
+            zassert_equal(
+                Network_Port_IP_DHCP_Lease_Time(object_instance), 60, NULL);
+            zassert_equal(
+                Network_Port_IP_DHCP_Lease_Time_Remaining(object_instance), 60,
+                NULL);
+            status =
+                Network_Port_IPv6_DHCP_Server_Set(object_instance, address);
+            octetstring_init(&ip_address, address, sizeof(address));
+            status =
+                Network_Port_IP_DHCP_Server_Set(object_instance, &ip_address);
+            zassert_true(status, NULL);
+            status = Network_Port_BIP6_Port_Set(object_instance, 47808);
+            zassert_true(status, NULL);
+            zassert_equal(Network_Port_BIP6_Port(object_instance), 47808, NULL);
+            status = Network_Port_IPv6_Gateway_Zone_Index_Set(
+                object_instance, "eth0");
+            zassert_true(status, NULL);
+            zassert_equal(
+                strcmp(
+                    Network_Port_IPv6_Zone_Index_ASCII(object_instance),
+                    "eth0"),
+                0, NULL);
+            status = Network_Port_IPv6_Auto_Addressing_Enable_Set(
+                object_instance, true);
+            zassert_true(status, NULL);
+            zassert_true(
+                Network_Port_IPv6_Auto_Addressing_Enable(object_instance),
+                NULL);
+        }
+        /* generic R/W property test */
         bacnet_object_properties_read_write_test(
             OBJECT_NETWORK_PORT, object_instance, Network_Port_Property_Lists,
             Network_Port_Read_Property, Network_Port_Write_Property,
@@ -69,6 +375,11 @@ static void test_network_port(void)
             object_instance, Network_Port_Name_Set,
             Network_Port_Object_Name_ASCII);
         port++;
+        Network_Port_Changes_Activate();
+        zassert_false(Network_Port_Changes_Pending(object_instance), NULL);
+        Network_Port_Changes_Pending_Set(object_instance, true);
+        Network_Port_Changes_Discard();
+        zassert_false(Network_Port_Changes_Pending(object_instance), NULL);
         Network_Port_Cleanup();
     }
 
@@ -455,6 +766,7 @@ static void test_network_port_sc_certificates(void)
     zassert_true(count > 0, NULL);
 
     bacfile_init();
+    bacfile_posix_init();
     // CA certificate
     status = bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
     zassert_true(status, NULL);
@@ -568,17 +880,15 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_FAILED_CONNECTION_REQUESTS;
 
-    // count (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 0;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // context (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 1;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // all context
+    if (property_list_bacnet_array_member(
+            rpdata.object_type, rpdata.object_property)) {
+        object_value.array_index = rpdata.array_index = 0;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+        object_value.array_index = rpdata.array_index = 1;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+    }
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);
@@ -618,15 +928,17 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_HUB_FUNCTION_CONNECTION_STATUS;
 
-    // count (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 0;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
+    if (property_list_bacnet_array_member(
+            rpdata.object_type, rpdata.object_property)) {
+        object_value.array_index = rpdata.array_index = 0;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
 
-    // context (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 1;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
+        // context (error: property is not BacArray)
+        object_value.array_index = rpdata.array_index = 1;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+    }
 
     len = bacapp_snprintf_value(NULL, 0, &object_value);
     zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
@@ -707,17 +1019,15 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS;
 
-    // count (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 0;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // context (error: property is not BacArray)
-    object_value.array_index = rpdata.array_index = 1;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len == -1, NULL);
-
-    // all context
+    if (property_list_bacnet_array_member(
+            rpdata.object_type, rpdata.object_property)) {
+        object_value.array_index = rpdata.array_index = 0;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+        object_value.array_index = rpdata.array_index = 1;
+        len = Network_Port_Read_Property(&rpdata);
+        zassert_not_equal(len, -1, NULL);
+    }
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);

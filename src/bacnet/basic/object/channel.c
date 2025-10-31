@@ -47,6 +47,7 @@ struct object_data {
     uint32_t Control_Groups[CONTROL_GROUPS_MAX];
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 
 /* Key List for storing the object data sorted by instance number  */
@@ -847,7 +848,7 @@ bool Channel_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    char name_text[24] = "CHANNEL-4194303";
+    char name_text[32] = "CHANNEL-4194303";
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
@@ -966,7 +967,6 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     int apdu_size = 0;
     uint8_t *apdu = NULL;
-    bool is_array;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -1052,15 +1052,6 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-    }
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        rpdata->object_type, rpdata->object_property);
-    if ((apdu_len >= 0) && (!is_array) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -1239,16 +1230,7 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    bool is_array;
 
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        wp_data->object_type, wp_data->object_property);
-    if (!is_array && (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     /* decode the first value of the request */
     len = bacapp_decode_known_property(
         wp_data->application_data, wp_data->application_data_len, &value,
@@ -1399,6 +1381,38 @@ void Channel_Write_Property_Internal_Callback_Set(write_property_function cb)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Channel_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Channel_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a new object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1409,6 +1423,9 @@ uint32_t Channel_Create(uint32_t object_instance)
     int index = 0;
     unsigned m, g;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

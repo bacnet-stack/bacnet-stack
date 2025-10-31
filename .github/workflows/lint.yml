@@ -12,14 +12,14 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@v5
+    - uses: actions/setup-python@v6
     - uses: pre-commit/action@v3.0.1
 
   scan-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create LLVM clang-tools scan-build Workspace
       run: |
         sudo apt-get update -qq
@@ -32,7 +32,7 @@ jobs:
   splint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create SPLint Workspace
       run: |
         sudo apt-get update -qq
@@ -44,7 +44,7 @@ jobs:
   cppcheck:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create CPPcheck Workspace
       run: |
         sudo apt-get update -qq
@@ -58,7 +58,7 @@ jobs:
   flawfinder:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Flawfinder Workspace
       run: |
         sudo apt-get update -qq
@@ -72,7 +72,7 @@ jobs:
   codespell:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create codespell Workspace
       run: |
         sudo apt-get update -qq
@@ -83,16 +83,36 @@ jobs:
   unittest:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq lcov
+    - name: Run Unit Test with Code Coverage
+      run: make test
+
+  unittest-secure-connect:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout BACnet Stack
+      uses: actions/checkout@v5
+    - name: Checkout libwebsockets
+      uses: actions/checkout@v5
+      with:
+        repository: warmcat/libwebsockets
+        ref: v4.3-stable
+        path: libwebsockets
+    - name: Create BACnet/SC Build Environment
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq lcov
         sudo apt-get install -qq libssl-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libuv1-dev
-        git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
-    - name: Run Unit Test with Code Coverage
-      run: make test
+    - name: Run BACnet/SC Unit Test with Code Coverage
+      run: |
+        pwd
+        ls -al
+        echo "make test-bsc"

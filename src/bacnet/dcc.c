@@ -265,10 +265,9 @@ int dcc_decode_service_request(
 {
     int apdu_len = 0;
     int len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
     BACNET_UNSIGNED_INTEGER decoded_unsigned = 0;
     uint32_t decoded_enum = 0;
+    size_t password_length;
 
     if (apdu && apdu_len_max) {
         /* Tag 0: timeDuration, in minutes --optional-- */
@@ -290,55 +289,35 @@ int dcc_decode_service_request(
                results in no timeout */
             *timeDuration = 0;
         }
-        if ((unsigned)apdu_len < apdu_len_max) {
-            /* Tag 1: enable_disable */
-            len = bacnet_enumerated_context_decode(
-                &apdu[apdu_len], apdu_len_max - apdu_len, 1, &decoded_enum);
-            if (len > 0) {
-                apdu_len += len;
-                if (enable_disable) {
-                    *enable_disable =
-                        (BACNET_COMMUNICATION_ENABLE_DISABLE)decoded_enum;
-                }
-            } else {
-                return BACNET_STATUS_ABORT;
+        /* Tag 1: enable_disable */
+        len = bacnet_enumerated_context_decode(
+            &apdu[apdu_len], apdu_len_max - apdu_len, 1, &decoded_enum);
+        if (len > 0) {
+            apdu_len += len;
+            if (enable_disable) {
+                *enable_disable =
+                    (BACNET_COMMUNICATION_ENABLE_DISABLE)decoded_enum;
             }
+        } else {
+            return BACNET_STATUS_ABORT;
         }
-        if ((unsigned)apdu_len < apdu_len_max) {
-            /* Tag 2: password --optional-- */
-            if (!decode_is_context_tag(&apdu[apdu_len], 2)) {
-                /* since this is the last value of the packet,
-                   if there is data here it must be the specific
-                   context tag number or result in an error */
-                return BACNET_STATUS_ABORT;
-            }
-            len = bacnet_tag_number_and_value_decode(
-                &apdu[apdu_len], apdu_len_max - apdu_len, &tag_number,
-                &len_value_type);
-            if (len > 0) {
-                apdu_len += len;
-                if ((unsigned)apdu_len < apdu_len_max) {
-                    len = bacnet_character_string_decode(
-                        &apdu[apdu_len], apdu_len_max - apdu_len,
-                        len_value_type, password);
-                    if (len > 0) {
-                        size_t password_length =
-                            characterstring_utf8_length(password);
-                        /* UTF-8 code points can be up to 4 bytes long */
-                        if ((password_length >= 1) && (password_length <= 20)) {
-                            apdu_len += len;
-                        } else {
-                            return BACNET_STATUS_REJECT;
-                        }
-                    } else {
-                        return BACNET_STATUS_ABORT;
-                    }
-                } else {
-                    return BACNET_STATUS_ABORT;
-                }
+        /* Tag 2: password --optional-- */
+        len = bacnet_character_string_context_decode(
+            &apdu[apdu_len], apdu_len_max - apdu_len, 2, password);
+        if (len > 0) {
+            if (characterstring_encoding(password) == CHARACTER_UTF8) {
+                /* UTF-8 code points can be up to 4 bytes long */
+                password_length = characterstring_utf8_length(password);
             } else {
-                return BACNET_STATUS_ABORT;
+                password_length = characterstring_length(password);
             }
+            if ((password_length >= 1) && (password_length <= 20)) {
+                apdu_len += len;
+            } else {
+                return BACNET_STATUS_REJECT;
+            }
+        } else if (len < 0) {
+            return BACNET_STATUS_ABORT;
         } else if (password) {
             /* no optional password - set to NULL */
             characterstring_init_ansi(password, NULL);

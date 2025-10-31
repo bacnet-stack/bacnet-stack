@@ -382,6 +382,7 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
     if (mtu) {
         bip6_get_addr(&my_addr);
         for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
+        for (i = 0; i < MAX_BBMD6_ENTRIES; i++) {
             if (BBMD_Table[i].valid) {
                 if (bvlc6_address_different(
                         &my_addr, &BBMD_Table[i].bip6_address)) {
@@ -920,10 +921,8 @@ int bvlc6_bbmd_enabled_handler(
     uint16_t mtu_len)
 {
     uint16_t result_code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
-    uint32_t vmac_me = 0;
     uint32_t vmac_src = 0;
     uint32_t vmac_dst = 0;
-    uint32_t vmac_target = 0;
     uint8_t message_type = 0;
     uint16_t message_length = 0;
     int header_len = 0;
@@ -1183,6 +1182,7 @@ int bvlc6_handler(
 int bvlc6_register_with_bbmd(
     const BACNET_IP6_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
 {
+    int len;
     uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     uint32_t vmac_src = 0;
@@ -1194,8 +1194,12 @@ int bvlc6_register_with_bbmd(
     vmac_src = Device_Object_Instance_Number();
     mtu_len = bvlc6_encode_register_foreign_device(
         &mtu[0], sizeof(mtu), vmac_src, ttl_seconds);
+    len = bip6_send_mpdu(bbmd_addr, &mtu[0], mtu_len);
+    if (len > 0) {
+        bip6_leave_group();
+    }
 
-    return bip6_send_mpdu(bbmd_addr, &mtu[0], mtu_len);
+    return len;
 }
 
 /** Get the remote BBMD address that was used to Register as a foreign device

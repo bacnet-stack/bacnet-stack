@@ -262,15 +262,21 @@ int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     TL_LOG_INFO *CurrentLog;
     uint8_t *apdu = NULL;
-    bool is_array;
+    int log_index;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
-    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(
-        rpdata->object_instance)]; /* Pin down which log to look at */
+    /* Pin down which log to look at */
+    log_index = Trend_Log_Instance_To_Index(rpdata->object_instance);
+    if (log_index >= MAX_TREND_LOGS) {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return BACNET_STATUS_ERROR;
+    }
+    CurrentLog = &LogInfo[log_index]; /* Pin down which log to look at */
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -405,15 +411,6 @@ int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        rpdata->object_type, rpdata->object_property);
-    if ((apdu_len >= 0) && (!is_array) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -429,18 +426,14 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE TempSource;
     bool bEffectiveEnable;
     int log_index;
-    bool is_array;
 
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        wp_data->object_type, wp_data->object_property);
-    if (!is_array && (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     /* Pin down which log to look at */
     log_index = Trend_Log_Instance_To_Index(wp_data->object_instance);
+    if (log_index >= MAX_TREND_LOGS) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
     CurrentLog = &LogInfo[log_index];
 
     /* decode the some of the request */
@@ -961,8 +954,20 @@ void TL_Local_Time_To_BAC(BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds)
 
 #define TL_MAX_ENC 23 /* Maximum size of encoded log entry, see above */
 
+/**
+ * @brief Handle encoding for the options.
+ * @param apdu - Pointer to the buffer to encode into.
+ * @param pRequest - Pointer to the request data structure containing
+ * the request parameters.
+ * @return APDU length, which could be 0
+ */
 int rr_trend_log_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
+    int log_index = 0;
+
+    if (!pRequest) {
+        return 0;
+    }
     /* Initialise result flags to all false */
     bitstring_init(&pRequest->ResultFlags);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, false);
@@ -970,12 +975,14 @@ int rr_trend_log_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
     pRequest->ItemCount = 0; /* Start out with nothing */
 
-    /* Bail out now if nowt - should never happen for a Trend Log but ... */
-    if (LogInfo[Trend_Log_Instance_To_Index(pRequest->object_instance)]
-            .ulRecordCount == 0) {
-        return (0);
+    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    if (log_index >= MAX_TREND_LOGS) {
+        return 0;
     }
-
+    /* Bail out now if nowt - should never happen for a Trend Log but ... */
+    if (LogInfo[log_index].ulRecordCount == 0) {
+        return 0;
+    }
     if ((pRequest->RequestType == RR_BY_POSITION) ||
         (pRequest->RequestType == RR_READ_ALL)) {
         return (TL_encode_by_position(apdu, pRequest));
@@ -986,12 +993,15 @@ int rr_trend_log_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return (TL_encode_by_time(apdu, pRequest));
 }
 
-/****************************************************************************
- * Handle encoding for the By Position and All options.                     *
- * Does All option by converting to a By Position request starting at index *
- * 1 and of maximum log size length.                                        *
- ****************************************************************************/
-
+/**
+ * @brief Handle encoding for the By Position and All options.
+ * @note Performs the All option by converting to a By Position
+ *  request starting at index 1 and of maximum log size length.
+ * @param apdu - Pointer to the buffer to encode into.
+ * @param pRequest - Pointer to the request data structure containing
+ * the request parameters.
+ * @return APDU length, which could be 0
+ */
 int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
     int log_index = 0;
@@ -1011,9 +1021,9 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     CurrentLog = &LogInfo[log_index];
     if (pRequest->RequestType == RR_READ_ALL) {
         /*
-         * Read all the list or as much as will fit in the buffer by selecting
-         * a range that covers the whole list and falling through to the next
-         * section of code
+         * Read all the list or as much as will fit in the buffer by
+         * selecting a range that covers the whole list and falling through
+         * to the next section of code
          */
         pRequest->Count = CurrentLog->ulRecordCount; /* Full list */
         pRequest->Range.RefIndex = 1; /* Starting at the beginning */
@@ -1050,8 +1060,8 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     /* From here on in we only have a starting point and a positive count */
 
     if (pRequest->Range.RefIndex >
-        CurrentLog->ulRecordCount) { /* Nothing to return as we are past the end
-                                      of the list */
+        CurrentLog->ulRecordCount) { /* Nothing to return as we are past the
+                                      end of the list */
         return (0);
     }
 
@@ -1067,8 +1077,8 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     while (uiIndex <= uiTarget) {
         if (uiRemaining < TL_MAX_ENC) {
             /*
-             * Can't fit any more in! We just set the result flag to say there
-             * was more and drop out of the loop early
+             * Can't fit any more in! We just set the result flag to say
+             * there was more and drop out of the loop early
              */
             bitstring_set_bit(
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
@@ -1096,13 +1106,17 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return (iLen);
 }
 
-/****************************************************************************
- * Handle encoding for the By Sequence option.                              *
- * The fact that the buffer always has at least a single entry is used      *
- * implicetly in the following as we don't have to handle the case of an    *
- * empty buffer.                                                            *
- ****************************************************************************/
-
+/**
+ * @brief Handle encoding for the By Sequence option.
+ * @note The fact that the buffer always has at least
+ *  a single entry is used implicetly in the following
+ *  implementationas we don't have to handle the case
+ *  of an empty buffer.
+ * @param apdu - Pointer to the buffer to encode into.
+ * @param pRequest - Pointer to the request data structure containing
+ * the request parameters.
+ * @return APDU length, which could be 0
+ */
 int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
     int log_index = 0;
@@ -1119,8 +1133,8 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     uint32_t uiBegin = 0; /* Starting Sequence number for request */
     uint32_t uiEnd = 0; /* Ending Sequence number for request */
-    bool bWrapReq =
-        false; /* Has request sequence range spanned the max for uint32_t? */
+    bool bWrapReq = false; /* Has request sequence range spanned the max for
+                              uint32_t? */
     bool bWrapLog =
         false; /* Has log sequence range spanned the max for uint32_t? */
 
@@ -1150,7 +1164,8 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     }
 
     if ((bWrapReq == false) && (bWrapLog == false)) { /* Simple case no wraps */
-        /* If no overlap between request range and buffer contents bail out */
+        /* If no overlap between request range and buffer contents bail out
+         */
         if ((uiEnd < uiFirstSeq) ||
             (uiBegin > CurrentLog->ulTotalRecordCount)) {
             return (0);
@@ -1216,8 +1231,8 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     while (uiSequence != uiEnd + 1) {
         if (uiRemaining < TL_MAX_ENC) {
             /*
-             * Can't fit any more in! We just set the result flag to say there
-             * was more and drop out of the loop early
+             * Can't fit any more in! We just set the result flag to say
+             * there was more and drop out of the loop early
              */
             bitstring_set_bit(
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
@@ -1248,13 +1263,16 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return (iLen);
 }
 
-/****************************************************************************
- * Handle encoding for the By Time option.                                  *
- * The fact that the buffer always has at least a single entry is used      *
- * implicetly in the following as we don't have to handle the case of an    *
- * empty buffer.                                                            *
- ****************************************************************************/
-
+/**
+ * @brief Handle encoding for the By Time option.
+ * @note The fact that the buffer always has at least a single entry
+ *  is used implicetly in the following implementationas we don't
+ *  have to handle the case of an empty buffer.
+ * @param apdu - Pointer to the buffer to encode into.
+ * @param pRequest - Pointer to the request data structure containing
+ * the request parameters.
+ * @return APDU length, which could be 0
+ */
 int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
     int log_index = 0;
@@ -1291,9 +1309,8 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         /* Start out with the sequence number for the last record */
         uiFirstSeq = CurrentLog->ulTotalRecordCount;
         for (;;) {
-            if (Logs[pRequest->object_instance]
-                    [(uiIndex + iCount) % TL_MAX_ENTRIES]
-                        .tTimeStamp < tRefTime) {
+            if (Logs[log_index][(uiIndex + iCount) % TL_MAX_ENTRIES]
+                    .tTimeStamp < tRefTime) {
                 break;
             }
 
@@ -1333,9 +1350,8 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         uiFirstSeq =
             CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
         for (;;) {
-            if (Logs[pRequest->object_instance]
-                    [(uiIndex + iCount) % TL_MAX_ENTRIES]
-                        .tTimeStamp > tRefTime) {
+            if (Logs[log_index][(uiIndex + iCount) % TL_MAX_ENTRIES]
+                    .tTimeStamp > tRefTime) {
                 break;
             }
 
@@ -1355,8 +1371,8 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     while (iCount != 0) {
         if (uiRemaining < TL_MAX_ENC) {
             /*
-             * Can't fit any more in! We just set the result flag to say there
-             * was more and drop out of the loop early
+             * Can't fit any more in! We just set the result flag to say
+             * there was more and drop out of the loop early
              */
             bitstring_set_bit(
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
@@ -1370,11 +1386,11 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         uiLast = uiIndex; /* Record the last entry encoded */
         uiIndex++; /* and get ready for next one */
         pRequest->ItemCount++; /* Chalk up another one for the response count */
-        iCount--; /* And finally cross another one off the requested count */
+        iCount--; /* And finally cross another one off the requested count
+                   */
 
-        if (uiIndex >
-            CurrentLog
-                ->ulRecordCount) { /* Finish up if we hit the end of the log */
+        if (uiIndex > CurrentLog->ulRecordCount) { /* Finish up if we hit
+                                                      the end of the log */
             break;
         }
     }
@@ -1393,6 +1409,12 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return (iLen);
 }
 
+/**
+ * @brief Encode a single log entry into the APDU buffer.
+ * @param apdu - Pointer to the buffer to encode into.
+ * @param iLog - Index of the log to encode from.
+ * @param iEntry - Index of the entry to encode (1 based).
+ */
 int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 {
     int iLen = 0;
@@ -1418,8 +1440,8 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 
     /* Next comes the actual entry with tag [1] */
     iLen += encode_opening_tag(&apdu[iLen], 1);
-    /* The data entry is tagged individually [0] - [10] to indicate which type
-     */
+    /* The data entry is tagged individually [0] - [10]
+       to indicate which type */
     switch (pSource->ucRecType) {
         case TL_TYPE_STATUS:
             /* Build bit string directly from the stored octet */
@@ -1555,16 +1577,17 @@ static int local_read_property(
     return (len);
 }
 
-/****************************************************************************
- * Attempt to fetch the logged property and store it in the Trend Log       *
- ****************************************************************************/
-
+/**
+ * @brief Attempt to fetch the logged property and store it in the Trend Log
+ * @param iLog - Index of the log to fetch the property for.
+ */
 static void TL_fetch_property(int iLog)
 {
-    uint8_t ValueBuf[MAX_APDU]; /* This is a big buffer in case someone selects
-                                   the device object list for example */
-    uint8_t StatusBuf[3]; /* Should be tag, bits unused in last octet and 1 byte
-                             of data */
+    /* This is a big buffer in case someone selects
+       the device object list for example */
+    uint8_t ValueBuf[MAX_APDU];
+    /* Should be tag, bits unused in last octet and 1 byte of data */
+    uint8_t StatusBuf[3];
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     BACNET_ERROR_CODE error_code = ERROR_CODE_OTHER;
     int iLen;
@@ -1629,8 +1652,8 @@ static void TL_fetch_property(int iLog)
                 decode_bitstring(&ValueBuf[iLen], len_value_type, &TempBits);
                 /* We truncate any bitstrings at 32 bits to conserve space */
                 if (bitstring_bits_used(&TempBits) < 32) {
-                    /* Store the bytes used and the bits free in the last byte
-                     */
+                    /* Store the bytes used and the bits free
+                       in the last byte */
                     TempRec.Datum.Bits.ucLen = bitstring_bytes_used(&TempBits)
                         << 4;
                     TempRec.Datum.Bits.ucLen |=
@@ -1683,10 +1706,10 @@ static void TL_fetch_property(int iLog)
     }
 }
 
-/****************************************************************************
- * Check each log to see if any data needs to be recorded.                  *
- ****************************************************************************/
-
+/**
+ * @brief Check each log to see if any data needs to be recorded.
+ * @param uSeconds - Number of seconds since last called (not used).
+ */
 void trend_log_timer(uint16_t uSeconds)
 {
     TL_LOG_INFO *CurrentLog = NULL;
@@ -1704,31 +1727,34 @@ void trend_log_timer(uint16_t uSeconds)
                  * aligned or not.
                  */
                 if (CurrentLog->bAlignIntervals == true) {
-                    /* Aligned logging so use the combination of the interval
-                     * and the offset to decide when to log. Also log a reading
-                     * if more than interval time has elapsed since last reading
-                     * to ensure we don't miss a reading if we aren't called at
-                     * the precise second when the match occurs.
+                    /* Aligned logging so use the combination of the
+                     * interval and the offset to decide when to log. Also
+                     * log a reading if more than interval time has elapsed
+                     * since last reading to ensure we don't miss a reading
+                     * if we aren't called at the precise second when the
+                     * match occurs.
                      */
-                    /*                if(((tNow % CurrentLog->ulLogInterval) >=
-                     * (CurrentLog->ulIntervalOffset %
+                    /*                if(((tNow % CurrentLog->ulLogInterval)
+                     * >= (CurrentLog->ulIntervalOffset %
                      * CurrentLog->ulLogInterval)) && */
-                    /*                   ((tNow - CurrentLog->tLastDataTime) >=
-                     * CurrentLog->ulLogInterval)) { */
+                    /*                   ((tNow - CurrentLog->tLastDataTime)
+                     * >= CurrentLog->ulLogInterval)) { */
                     if ((tNow % CurrentLog->ulLogInterval) ==
                         (CurrentLog->ulIntervalOffset %
                          CurrentLog->ulLogInterval)) {
-                        /* Record value if time synchronised trigger condition
-                         * is met and at least one period has elapsed.
+                        /* Record value if time synchronised trigger
+                         * condition is met and at least one period has
+                         * elapsed.
                          */
                         TL_fetch_property(iCount);
                     } else if (
                         (tNow - CurrentLog->tLastDataTime) >
                         CurrentLog->ulLogInterval) {
                         /* Also record value if we have waited more than a
-                         * period since the last reading. This ensures we take a
-                         * reading as soon as possible after a power down if we
-                         * have been off for more than a single period.
+                         * period since the last reading. This ensures we
+                         * take a reading as soon as possible after a power
+                         * down if we have been off for more than a single
+                         * period.
                          */
                         TL_fetch_property(iCount);
                     }
@@ -1736,12 +1762,11 @@ void trend_log_timer(uint16_t uSeconds)
                     ((tNow - CurrentLog->tLastDataTime) >=
                      CurrentLog->ulLogInterval) ||
                     (CurrentLog->bTrigger == true)) {
-                    /* If not aligned take a reading when we have either waited
-                     * long enough or a trigger is set.
+                    /* If not aligned take a reading when we have either
+                     * waited long enough or a trigger is set.
                      */
                     TL_fetch_property(iCount);
                 }
-
                 CurrentLog->bTrigger = false; /* Clear this every time */
             } else if (CurrentLog->LoggingType == LOGGING_TYPE_TRIGGERED) {
                 /* Triggered logs take a reading when the trigger is set and

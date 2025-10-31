@@ -1,13 +1,14 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test of BACnet/SC Node interface
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @author Patrick Grimm <patrick@lunatiki.de>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test of bsc-socket interface
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -11268,8 +11269,12 @@ static void test_node_start_stop(void)
     char primary_url[128] = { 0 };
     char secondary_url[128] = { 0 };
 
-    sprintf(primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(secondary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
 
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);
@@ -11375,18 +11380,18 @@ static void test_node_duplicated_vmac(void)
     memset(&node_uuid2, 0x3, sizeof(node_uuid2));
     memset(&node_vmac2, 0x2, sizeof(node_vmac2));
 
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT2);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT2);
-    sprintf(
-        node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST,
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT2);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT2);
+    snprintf(
+        node_primary_url2, sizeof(node_primary_url2), BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url2, sizeof(node_secondary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
 
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);
@@ -11476,10 +11481,12 @@ static void test_node_duplicated_vmac(void)
     memset(&node_uuid2, 0x3, sizeof(node_uuid2));
     memset(&node_vmac2, 0x2, sizeof(node_vmac2));
 
-    sprintf(
-        url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT);
-    sprintf(
-        url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT);
+    snprintf(
+        url1, sizeof(url1), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT);
+    snprintf(
+        url2, sizeof(url2), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT);
 
     conf.primaryURL = NULL;
     conf.failoverURL = NULL;
@@ -11560,18 +11567,18 @@ static void test_node_send(void)
     memset(&node_uuid3, 0x5, sizeof(node_uuid3));
     memset(&node_vmac3, 0x6, sizeof(node_vmac3));
 
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT2);
-    sprintf(
-        node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT2);
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT2);
+    snprintf(
+        node_primary_url2, sizeof(node_primary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url2, sizeof(node_secondary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT2);
 
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);
@@ -11805,12 +11812,12 @@ static void test_node_local_hub_function(void)
     memset(&node_vmac3, 0x6, sizeof(node_vmac3));
     memset(&broadcast.address[0], 0xff, sizeof(broadcast.address));
 
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
 
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);
@@ -12007,23 +12014,24 @@ static void test_node_direct_connection(void)
     memset(&node_vmac3, 0x6, sizeof(node_vmac2));
     memset(&broadcast.address[0], 0xff, sizeof(broadcast.address));
 
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url2, sizeof(node_primary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url2, sizeof(node_secondary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url3, sizeof(node_primary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url3, sizeof(node_secondary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
 
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);
@@ -12054,8 +12062,8 @@ static void test_node_direct_connection(void)
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
-    sprintf(
-        uris, "wss://%s:%d wss://%s:%d", BACNET_LOCALHOST,
+    snprintf(
+        uris, sizeof(uris), "wss://%s:%d wss://%s:%d", BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2, BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2);
     conf2.ca_cert_chain = ca_cert;
@@ -12262,9 +12270,12 @@ static void test_node_direct_connection(void)
     wait_for_connection_to_hub(&node_ev3, node3);
     wait_for_connection_to_hub(&node_ev2, node2);
 
-    sprintf(url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT2);
+    snprintf(
+        url1, sizeof(url1), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+    snprintf(
+        url2, sizeof(url2), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT2);
     ret = bsc_node_connect_direct(node3, NULL, urls, 2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -12421,11 +12432,12 @@ static void test_node_direct_connection(void)
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
 
     // bad case test (when one url in bsc_node_connect_direct() is incorrect)
-    sprintf(
-        url1, "w3sdfsdfsdfss://%s:%d", BACNET_LOCALHOST,
+    snprintf(
+        url1, sizeof(url1), "w3sdfsdfsdfss://%s:%d", BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2);
-    sprintf(
-        url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT2);
+    snprintf(
+        url2, sizeof(url2), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT2);
     ret = bsc_node_start(node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -12474,11 +12486,11 @@ static void test_node_direct_connection(void)
 
     // bad URLs test
 
-    sprintf(
-        url1, "w3sdfsdfsdfss://%s:%d", BACNET_LOCALHOST,
+    snprintf(
+        url1, sizeof(url1), "w3sdfsdfsdfss://%s:%d", BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2);
-    sprintf(
-        url2, "wssdfsdfsdfs://%s:%d", BACNET_LOCALHOST,
+    snprintf(
+        url2, sizeof(url2), "wssdfsdfsdfs://%s:%d", BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2);
     ret = bsc_node_init(&conf, &node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
@@ -12514,21 +12526,24 @@ static void test_node_direct_connection(void)
     ret = bsc_node_deinit(node3);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
 
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url3, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        node_secondary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url2, sizeof(node_primary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_secondary_url2, sizeof(node_secondary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url3, sizeof(node_primary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_secondary_url3, sizeof(node_secondary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
 
     ret = bsc_node_init(&conf, &node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
@@ -12566,23 +12581,24 @@ static void test_node_direct_connection(void)
     conf.address_resolution_freshness_timeout_s = 1;
     conf2.address_resolution_freshness_timeout_s = 1;
     conf3.address_resolution_freshness_timeout_s = 1;
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url2, sizeof(node_primary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url2, sizeof(node_secondary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url3, sizeof(node_primary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url3, sizeof(node_secondary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     ret = bsc_node_init(&conf, &node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_init(&conf2, &node2);
@@ -12701,23 +12717,24 @@ static void test_node_direct_connection_unsupported(void)
     memset(&node_uuid3, 0x5, sizeof(node_uuid2));
     memset(&node_vmac3, 0x6, sizeof(node_vmac2));
 
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
-        node_primary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
-    sprintf(
-        node_secondary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url2, sizeof(node_primary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url2, sizeof(node_secondary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url3, sizeof(node_primary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
+    snprintf(
+        node_secondary_url3, sizeof(node_secondary_url3), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
 
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);
@@ -12748,8 +12765,8 @@ static void test_node_direct_connection_unsupported(void)
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
-    sprintf(
-        uris, "wss://%s:%d wss://%s:%d", BACNET_LOCALHOST,
+    snprintf(
+        uris, sizeof(uris), "wss://%s:%d wss://%s:%d", BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2, BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2);
     conf2.ca_cert_chain = ca_cert;
@@ -12917,11 +12934,12 @@ static void test_node_bad_cases(void)
     memset(big_url, 0x22, sizeof(big_url) - 1);
     memset(t, 0x22, sizeof(t) - 1);
 
-    sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(
-        node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
+    snprintf(
+        node_primary_url, sizeof(node_primary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    snprintf(
+        node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_CLOSED_PORT);
 
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);

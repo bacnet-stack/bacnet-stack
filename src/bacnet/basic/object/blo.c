@@ -26,6 +26,7 @@
 
 /* object property values */
 struct object_data {
+    void *Context;
     const char *Object_Name;
     const char *Description;
     BACNET_RELIABILITY Reliability;
@@ -47,7 +48,6 @@ struct object_data {
     bool Out_Of_Service : 1;
     bool Blink_Warn_Enable : 1;
     bool Egress_Active : 1;
-    bool Changed : 1;
     bool Polarity : 1;
 };
 /* Key List for storing the object data sorted by instance number  */
@@ -60,7 +60,8 @@ static binary_lighting_output_blink_warn_callback
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
-static const int Binary_Lighting_Output_Properties_Required[] = {
+static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -77,11 +78,12 @@ static const int Binary_Lighting_Output_Properties_Required[] = {
 #endif
     -1
 };
-static const int Binary_Lighting_Output_Properties_Optional[] = {
+static const int Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_DESCRIPTION, PROP_RELIABILITY, PROP_FEEDBACK_VALUE, -1
 };
 
-static const int Binary_Lighting_Output_Properties_Proprietary[] = { -1 };
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -98,13 +100,13 @@ void Binary_Lighting_Output_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = Binary_Lighting_Output_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = Binary_Lighting_Output_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Binary_Lighting_Output_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
@@ -295,12 +297,12 @@ static int Binary_Lighting_Output_Priority_Array_Encode(
  *
  * @param  object_instance - object-instance number of the object
  *
- * @return  active priority 1..16, or 0 if no priority is active
+ * @return  active priority 1..16, or 17 if no priority is active
  */
 static unsigned Present_Value_Priority(const struct object_data *pObject)
 {
-    unsigned p = 0; /* loop counter */
-    unsigned priority = 0; /* return value */
+    unsigned p; /* loop counter */
+    unsigned priority = BACNET_MAX_PRIORITY + 1; /* return value */
 
     for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
         if (BIT_CHECK(pObject->Priority_Active_Bits, p)) {
@@ -384,6 +386,9 @@ unsigned Binary_Lighting_Output_Present_Value_Priority(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         priority = Present_Value_Priority(pObject);
+        if (priority > BACNET_MAX_PRIORITY) {
+            priority = 0;
+        }
     }
 
     return priority;
@@ -472,7 +477,6 @@ static void Present_Value_Relinquish_Handler(uint32_t object_instance)
             value = Priority_Array_Value(pObject, current_priority);
         }
         if (pObject->Feedback_Value != value) {
-            pObject->Changed = true;
             if ((!pObject->Out_Of_Service) &&
                 (Binary_Lighting_Output_Write_Value_Callback)) {
                 Binary_Lighting_Output_Write_Value_Callback(
@@ -689,6 +693,53 @@ static bool Binary_Lighting_Output_Present_Value_Write(
 }
 
 /**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Binary_Lighting_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            if (!Priority_Array_Active(pObject, priority - 1)) {
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, determines the
+ *  priority-array value
+ * @param object_instance - object-instance number
+ * @param priority - priority-array index value 1..16
+ * @return priority-array value of the object
+ */
+BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority)
+{
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_STOP;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            value = pObject->Priority_Array[priority - 1];
+        }
+    }
+
+    return value;
+}
+
+/**
  * For a given object instance-number, relinquishes the present-value
  * at a given priority 1..16.
  *
@@ -773,7 +824,7 @@ bool Binary_Lighting_Output_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[32] = "BINARY-LIGHTING-OUTPUT-4194303";
+    char name_text[48] = "BINARY-LIGHTING-OUTPUT-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -782,8 +833,8 @@ bool Binary_Lighting_Output_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "BINARY-LIGHTING-OUTPUT-%u",
-                object_instance);
+                name_text, sizeof(name_text), "BINARY-LIGHTING-OUTPUT-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -1265,6 +1316,13 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+    if (!property_lists_member(
+            Properties_Required, Properties_Optional, Properties_Proprietary,
+            rpdata->object_property)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+        return BACNET_STATUS_ERROR;
+    }
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
@@ -1340,7 +1398,6 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], lighting_value);
             break;
-#if (BACNET_PROTOCOL_REVISION >= 17)
         case PROP_CURRENT_COMMAND_PRIORITY:
             i = Binary_Lighting_Output_Present_Value_Priority(
                 rpdata->object_instance);
@@ -1350,7 +1407,6 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = encode_application_null(&apdu[0]);
             }
             break;
-#endif
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
                 &char_string,
@@ -1368,13 +1424,6 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-    }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -1405,13 +1454,6 @@ bool Binary_Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -1440,30 +1482,16 @@ bool Binary_Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_TRACKING_VALUE:
-        case PROP_IN_PROGRESS:
-        case PROP_STATUS_FLAGS:
-        case PROP_BLINK_WARN_ENABLE:
-        case PROP_EGRESS_TIME:
-        case PROP_EGRESS_ACTIVE:
-        case PROP_PRIORITY_ARRAY:
-        case PROP_RELINQUISH_DEFAULT:
-        case PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY:
-#if (BACNET_PROTOCOL_REVISION >= 17)
-        case PROP_CURRENT_COMMAND_PRIORITY:
-#endif
-        case PROP_DESCRIPTION:
-        case PROP_RELIABILITY:
-        case PROP_FEEDBACK_VALUE:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -1491,6 +1519,38 @@ void Binary_Lighting_Output_Blink_Warn_Callback_Set(
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Binary_Lighting_Output_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Binary_Lighting_Output_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Color object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1501,6 +1561,9 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
     int index = 0;
     unsigned p = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

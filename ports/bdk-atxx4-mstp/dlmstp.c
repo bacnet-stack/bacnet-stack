@@ -265,6 +265,7 @@ static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -275,7 +276,8 @@ static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
     }
     /* these services don't have service choice included */
     if ((reply.pdu_type != PDU_TYPE_REJECT) &&
-        (reply.pdu_type != PDU_TYPE_ABORT)) {
+        (reply.pdu_type != PDU_TYPE_ABORT) &&
+        (reply.pdu_type != PDU_TYPE_SEGMENT_ACK)) {
         if (request.service_choice != reply.service_choice) {
             return false;
         }
@@ -284,13 +286,9 @@ static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
         reply.npdu_data.protocol_version) {
         return false;
     }
-#if 0
-    /* the NDPU priority doesn't get passed through the stack, and
-       all outgoing messages have NORMAL priority */
     if (request.npdu_data.priority != reply.npdu_data.priority) {
         return false;
     }
-#endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
         return false;
     }
@@ -815,20 +813,25 @@ static bool MSTP_Master_Node_FSM(void)
                                 Master_State =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                                 break;
-                            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+                            case FRAME_TYPE_TOKEN:
+                            case FRAME_TYPE_POLL_FOR_MASTER:
+                            case FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER:
+                            case FRAME_TYPE_TEST_REQUEST:
+                                /* ReceivedUnexpectedFrame */
+                                /* FrameType has a value other than a FrameType
+                                   known to this node that indicates a reply */
+                                Master_State =
+                                    MSTP_MASTER_STATE_IDLE;
+                                break;
+                            default:
                                 /* ReceivedReply */
-                                /* or a proprietary type that indicates
-                                   a reply */
-                                /* indicate successful reception to
-                                   the higher layers */
+                                /* FrameType known to this node that
+                                   indicates a reply */
+                                /* indicate successful reception
+                                   to the higher layers */
                                 MSTP_Flag.ReceivePacketPending = true;
                                 Master_State =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
-                                break;
-                            default:
-                                /* if proprietary frame was expected, you might
-                                   need to transition to DONE WITH TOKEN */
-                                Master_State = MSTP_MASTER_STATE_IDLE;
                                 break;
                         }
                     } else {

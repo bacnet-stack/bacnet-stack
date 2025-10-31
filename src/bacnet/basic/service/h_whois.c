@@ -38,12 +38,12 @@ void handler_who_is(
     len = whois_decode_service_request(
         service_request, service_len, &low_limit, &high_limit);
     if (len == 0) {
-        Send_I_Am(&Handler_Transmit_Buffer[0]);
+        Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
         if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
             (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
-            Send_I_Am(&Handler_Transmit_Buffer[0]);
+            Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
         }
     }
 
@@ -67,8 +67,8 @@ void handler_who_is_unicast(
 
     len = whois_decode_service_request(
         service_request, service_len, &low_limit, &high_limit);
-    /* If no limits, then always respond */
     if (len == 0) {
+        /* If no limits, then always respond */
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
@@ -79,6 +79,56 @@ void handler_who_is_unicast(
     }
 
     return;
+}
+
+/** Handler for Who-Is requests, with broadcast I-Am or Who-Am-I response.
+ * @ingroup DMDDB
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source (ignored).
+ */
+void handler_who_is_who_am_i_unicast(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
+{
+    int len = 0;
+    int32_t low_limit = 0;
+    int32_t high_limit = 0;
+    BACNET_CHARACTER_STRING model_name = { 0 }, serial_number = { 0 };
+
+    len = whois_decode_service_request(
+        service_request, service_len, &low_limit, &high_limit);
+    if (len == 0) {
+        if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+            /* The Who-Am-I service is also used to respond to a Who-Is
+               service request that uses the Device Object_Identifier
+               instance number of 4194303. */
+            characterstring_init_ansi(&model_name, Device_Model_Name());
+            characterstring_init_ansi(&serial_number, Device_Serial_Number());
+            Send_Who_Am_I_To_Network(
+                src, Device_Vendor_Identifier(), &model_name, &serial_number);
+        } else {
+            /* If no limits, then always respond */
+            Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+        }
+    } else if (len != BACNET_STATUS_ERROR) {
+        /* is my device id within the limits? */
+        if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
+            (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
+            if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
+                /* The Who-Am-I service is also used to respond to a Who-Is
+                service request that uses the Device Object_Identifier
+                instance number of 4194303. */
+                characterstring_init_ansi(&model_name, Device_Model_Name());
+                characterstring_init_ansi(
+                    &serial_number, Device_Serial_Number());
+                Send_Who_Am_I_To_Network(
+                    src, Device_Vendor_Identifier(), &model_name,
+                    &serial_number);
+            } else {
+                Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+            }
+        }
+    }
 }
 
 #ifdef BAC_ROUTING /* was for BAC_ROUTING - delete in 2/2012 if still unused \
@@ -131,7 +181,7 @@ static void check_who_is_for_routing(
             if (is_unicast) {
                 Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
             } else {
-                Send_I_Am(&Handler_Transmit_Buffer[0]);
+                Send_I_Am_Broadcast(&Handler_Transmit_Buffer[0]);
             }
         }
     }

@@ -47,6 +47,7 @@ add_executable(${PROJECT_NAME}
     ./src/main.c
     ${TST_DIR}/bacnet/datalink/test/mstp-mock.c
     ${TST_DIR}/bacnet/datalink/test/mstp-rs485.c
+    ${TST_DIR}/bacnet/basic/sys/test/mstimer_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

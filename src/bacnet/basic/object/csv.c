@@ -29,7 +29,7 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_CHARACTERSTRING_VALUE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    /* list of the required properties */
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
@@ -51,6 +51,7 @@ typedef struct characterstring_object {
     BACNET_CHARACTER_STRING Present_Value;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 } CHARACTERSTRING_VALUE_DESCR;
 
 /**
@@ -78,6 +79,38 @@ void CharacterString_Value_Property_Lists(
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *CharacterString_Value_Context_Get(uint32_t object_instance)
+{
+    struct characterstring_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void CharacterString_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct characterstring_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a CharacterString Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -85,7 +118,11 @@ void CharacterString_Value_Property_Lists(
 uint32_t CharacterString_Value_Create(uint32_t object_instance)
 {
     struct characterstring_object *pObject = NULL;
+    int index;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
@@ -101,7 +138,7 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
         pObject = calloc(1, sizeof(struct characterstring_object));
         if (pObject) {
             /* add to list */
-            int index = Keylist_Data_Add(Object_List, object_instance, pObject);
+            index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
@@ -125,7 +162,7 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return true if the object is deleted
  */
-bool Characterstring_Value_Delete(uint32_t object_instance)
+bool CharacterString_Value_Delete(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject = NULL;
@@ -142,7 +179,7 @@ bool Characterstring_Value_Delete(uint32_t object_instance)
 /**
  * @brief Cleans up the object list and its data
  */
-void Characterstring_Value_Cleanup(void)
+void CharacterString_Value_Cleanup(void)
 {
     struct object_data *pObject = NULL;
 
@@ -348,12 +385,12 @@ void CharacterString_Value_Out_Of_Service_Set(
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Changed = true;
-            /* Lets backup Present_Value when going Out_Of_Service  or restore
-             * when going out of Out_Of_Service */
-            if ((pObject->Out_Of_Service = value)) {
+            if (value) {
+                /* backup Present_Value when entering Out_Of_Service */
                 characterstring_copy(
                     &pObject->Present_Value_Backup, &pObject->Present_Value);
             } else {
+                /* restore Present_Value when leaving Out_Of_Service */
                 characterstring_copy(
                     &pObject->Present_Value, &pObject->Present_Value_Backup);
             }
@@ -625,13 +662,6 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-    }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

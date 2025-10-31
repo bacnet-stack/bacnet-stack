@@ -14,6 +14,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/property.h"
+#include "bacnet/proplist.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
 /* me! */
@@ -203,7 +204,6 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned object_index = 0;
     BACNET_UNSIGNED_INTEGER count;
     uint8_t *apdu = NULL;
-    bool is_array = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -278,15 +278,6 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        rpdata->object_type, rpdata->object_property);
-    if ((apdu_len >= 0) && (!is_array) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -295,19 +286,10 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    bool is_array = false;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     unsigned object_index = 0;
 
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        wp_data->object_type, wp_data->object_property);
-    if (!is_array && (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);

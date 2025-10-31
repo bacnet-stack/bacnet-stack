@@ -32,6 +32,9 @@
 static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_INTEGER_VALUE;
+/* callback for present value writes */
+static integer_value_write_present_value_callback
+    Integer_Value_Write_Present_Value_Callback;
 
 struct integer_object {
     bool Out_Of_Service : 1;
@@ -43,6 +46,7 @@ struct integer_object {
     uint32_t Instance;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 } INTERGER_VALUE_DESCR;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -520,14 +524,6 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -545,6 +541,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    int32_t old_value = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
@@ -557,22 +554,21 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
+                old_value =
+                    Integer_Value_Present_Value(wp_data->object_instance);
                 Integer_Value_Present_Value_Set(
                     wp_data->object_instance, value.type.Signed_Int,
                     wp_data->priority);
+                if (Integer_Value_Write_Present_Value_Callback) {
+                    Integer_Value_Write_Present_Value_Callback(
+                        wp_data->object_instance, old_value,
+                        Integer_Value_Present_Value(wp_data->object_instance));
+                }
             }
             break;
         case PROP_COV_INCREMENT:
@@ -591,6 +587,20 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    Integer_Value_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
         default:
             if (property_lists_member(
                     Integer_Value_Properties_Required,
@@ -607,6 +617,16 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/**
+ * @brief Sets a callback used when present-value is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Integer_Value_Write_Present_Value_Callback_Set(
+    integer_value_write_present_value_callback cb)
+{
+    Integer_Value_Write_Present_Value_Callback = cb;
 }
 
 /**
@@ -701,6 +721,38 @@ void Integer_Value_COV_Increment_Set(uint32_t object_instance, uint32_t value)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Integer_Value_Context_Get(uint32_t object_instance)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Integer_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Integer Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -709,6 +761,9 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
 {
     struct integer_object *pObject = NULL;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

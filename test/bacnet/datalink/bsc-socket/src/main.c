@@ -1,13 +1,14 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test of BACnet/SC Socket interface
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @author Patrick Grimm <patrick@lunatiki.de>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test of bsc-socket interface
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -9942,8 +9943,8 @@ static void test_simple(void)
     memset(&server_vmac, 0x2, sizeof(server_vmac));
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x4, sizeof(server_vmac));
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10073,8 +10074,8 @@ static void test_duplicated_vmac_on_server(void)
     memset(&client_uuid2, 0x4, sizeof(server_uuid));
     memset(&client_vmac2, 0x5, sizeof(server_vmac));
 
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10177,8 +10178,8 @@ static void test_duplicated_vmac_on_server2(void)
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x2, sizeof(server_vmac));
 
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10274,8 +10275,8 @@ static void test_duplicated_uuid_on_server(void)
     memset(&client_uuid2, 0x3, sizeof(server_uuid));
     memset(&client_vmac2, 0x5, sizeof(server_vmac));
 
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(
@@ -10372,8 +10373,8 @@ static void test_bad_params(void)
     memset(&server_vmac, 0x2, sizeof(server_vmac));
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x4, sizeof(server_vmac));
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     init_sock_ev(&srv_ev);
@@ -10528,8 +10529,8 @@ static void test_error_case1(void)
     memset(&server_vmac, 0x2, sizeof(server_vmac));
     memset(&client_uuid, 0x3, sizeof(server_uuid));
     memset(&client_vmac, 0x4, sizeof(server_vmac));
-    sprintf(
-        url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+    snprintf(
+        url, sizeof(url), "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(

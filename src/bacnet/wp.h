@@ -55,6 +55,18 @@ typedef bool (*write_property_function)(BACNET_WRITE_PROPERTY_DATA *wp_data);
 typedef bool (*bacnet_property_unsigned_setter)(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
+/**
+ * @brief API to see if an object property is a member of this object instance
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+typedef bool (*write_property_member_of_object)(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -94,6 +106,8 @@ bool write_property_empty_string_valid(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max);
+BACNET_STACK_EXPORT
+bool write_property_bacnet_array_valid(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 bool write_property_unsigned_decode(
@@ -101,6 +115,11 @@ bool write_property_unsigned_decode(
     BACNET_APPLICATION_DATA_VALUE *value,
     bacnet_property_unsigned_setter setter,
     BACNET_UNSIGNED_INTEGER maximum);
+
+BACNET_STACK_EXPORT
+bool write_property_relinquish_bypass(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    write_property_member_of_object member_of_object);
 
 #ifdef __cplusplus
 }

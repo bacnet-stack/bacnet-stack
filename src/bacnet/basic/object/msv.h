@@ -70,6 +70,13 @@ void Multistate_Value_Write_Present_Value_Callback_Set(
     multistate_value_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
+bool Multistate_Value_Write_Enabled(uint32_t instance);
+BACNET_STACK_EXPORT
+void Multistate_Value_Write_Enable(uint32_t instance);
+BACNET_STACK_EXPORT
+void Multistate_Value_Write_Disable(uint32_t instance);
+
+BACNET_STACK_EXPORT
 bool Multistate_Value_Change_Of_Value(uint32_t instance);
 BACNET_STACK_EXPORT
 void Multistate_Value_Change_Of_Value_Clear(uint32_t instance);
@@ -108,6 +115,11 @@ BACNET_RELIABILITY Multistate_Value_Reliability(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Multistate_Value_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
+
+BACNET_STACK_EXPORT
+void *Multistate_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Multistate_Value_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Multistate_Value_Create(uint32_t object_instance);

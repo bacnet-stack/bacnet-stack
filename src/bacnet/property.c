@@ -1648,6 +1648,8 @@ static const int Lighting_Output_Properties_Required[] = {
     PROP_RELINQUISH_DEFAULT,
     PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
     PROP_CURRENT_COMMAND_PRIORITY,
+    PROP_LAST_ON_VALUE,
+    PROP_DEFAULT_ON_VALUE,
     -1
 };
 
@@ -1670,6 +1672,12 @@ static const int Lighting_Output_Properties_Optional[] = {
     PROP_AUDIT_LEVEL,
     PROP_AUDITABLE_OPERATIONS,
     PROP_AUDIT_PRIORITY_FILTER,
+    PROP_COLOR_REFERENCE,
+    PROP_COLOR_OVERRIDE,
+    PROP_OVERRIDE_COLOR_REFERENCE,
+    PROP_HIGH_END_TRIM,
+    PROP_LOW_END_TRIM,
+    PROP_TRIM_FADE_TIME,
     PROP_TAGS,
     PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME,
@@ -2011,13 +2019,22 @@ static const int Multistate_Value_Properties_Optional[] = {
 
 static const int Network_Port_Properties_Required[] = {
     /* unordered list of properties */
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
-    PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
-    PROP_NETWORK_TYPE,      PROP_PROTOCOL_LEVEL,
-    PROP_NETWORK_NUMBER,    PROP_NETWORK_NUMBER_QUALITY,
-    PROP_CHANGES_PENDING,   PROP_APDU_LENGTH,
-    PROP_LINK_SPEED,        -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_NETWORK_TYPE,
+    PROP_PROTOCOL_LEVEL,
+    PROP_CHANGES_PENDING,
+#if (BACNET_PROTOCOL_REVISION < 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
 };
 
 static const int Network_Port_Properties_Optional[] = {
@@ -2082,6 +2099,12 @@ static const int Network_Port_Properties_Optional[] = {
     PROP_TAGS,
     PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
     -1
 };
 
@@ -2673,6 +2696,45 @@ static const int Trend_Log_Multiple_Properties_Optional[] = {
     -1
 };
 
+static const int Audit_Log_Properties_Required[] = {
+    /* unordered list of properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_ENABLE,
+    PROP_BUFFER_SIZE,
+    PROP_LOG_BUFFER,
+    PROP_RECORD_COUNT,
+    PROP_TOTAL_RECORD_COUNT,
+    -1
+};
+
+static const int Audit_Log_Properties_Optional[] = {
+    /* unordered list of properties */
+    PROP_DESCRIPTION,
+    PROP_RELIABILITY,
+    PROP_MEMBER_OF,
+    PROP_DELETE_ON_FORWARD,
+    PROP_ISSUE_CONFIRMED_NOTIFICATIONS,
+    PROP_EVENT_DETECTION_ENABLE,
+    PROP_NOTIFICATION_CLASS,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_AUDIT_LEVEL,
+    PROP_AUDITABLE_OPERATIONS,
+    PROP_TAGS,
+    PROP_PROFILE_LOCATION,
+    PROP_PROFILE_NAME,
+    -1
+};
+
 /**
  * Function that returns the list of all Optional properties
  * of known standard objects.
@@ -2875,6 +2937,9 @@ const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
             break;
         case OBJECT_TREND_LOG_MULTIPLE:
             pList = Trend_Log_Multiple_Properties_Optional;
+            break;
+        case OBJECT_AUDIT_LOG:
+            pList = Audit_Log_Properties_Optional;
             break;
         default:
             pList = Default_Properties_Optional;
@@ -3086,6 +3151,9 @@ const int *property_list_required(BACNET_OBJECT_TYPE object_type)
             break;
         case OBJECT_TREND_LOG_MULTIPLE:
             pList = Trend_Log_Multiple_Properties_Required;
+            break;
+        case OBJECT_AUDIT_LOG:
+            pList = Audit_Log_Properties_Required;
             break;
         default:
             pList = Default_Properties_Required;

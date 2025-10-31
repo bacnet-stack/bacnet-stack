@@ -197,6 +197,11 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Device_Init(object_functions_t *object_table);
+BACNET_STACK_EXPORT
+struct object_functions *Device_Object_Functions(void);
+BACNET_STACK_EXPORT
+struct object_functions *
+Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type);
 
 BACNET_STACK_EXPORT
 void Device_Timer(uint16_t milliseconds);
@@ -317,6 +322,8 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local);
 
 BACNET_STACK_EXPORT
 const char *Device_Vendor_Name(void);
+BACNET_STACK_EXPORT
+bool Device_Set_Vendor_Name(const char *name, size_t length);
 
 BACNET_STACK_EXPORT
 uint16_t Device_Vendor_Identifier(void);
@@ -330,6 +337,8 @@ bool Device_Set_Model_Name(const char *name, size_t length);
 
 BACNET_STACK_EXPORT
 const char *Device_Firmware_Revision(void);
+BACNET_STACK_EXPORT
+bool Device_Set_Firmware_Revision(const char *name, size_t length);
 
 BACNET_STACK_EXPORT
 const char *Device_Application_Software_Version(void);
@@ -350,6 +359,11 @@ BACNET_STACK_EXPORT
 const char *Device_Serial_Number(void);
 BACNET_STACK_EXPORT
 bool Device_Serial_Number_Set(const char *name, size_t length);
+
+BACNET_STACK_EXPORT
+void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart);
+BACNET_STACK_EXPORT
+bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart);
 
 /* some stack-centric constant values - no set methods */
 BACNET_STACK_EXPORT
@@ -479,7 +493,7 @@ int Routed_Device_Service_Approval(
  * situated in the Device Object, which "knows" how to reach its child Objects.
  *
  * Most of these calls have a common operation:
- *  -# Call Device_Objects_Find_Functions( for the desired Object_Type )
+ *  -# Call Device_Object_Functions_Find( for the desired Object_Type )
  *   - Gets a pointer to the object_functions for this Type of Object.
  *  -# Call the Object's Object_Valid_Instance( for the desired object_instance
  * ) to make sure there is such an instance.

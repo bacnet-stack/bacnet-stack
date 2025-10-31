@@ -37,6 +37,7 @@ struct object_data {
     const char *Description;
     BACNET_NODE_TYPE Node_Type;
     const char *Node_Subtype;
+    void *Context;
     BACNET_SUBORDINATE_DATA *Subordinate_List;
     BACNET_RELATIONSHIP Default_Subordinate_Relationship;
     BACNET_DEVICE_OBJECT_REFERENCE Represents;
@@ -45,26 +46,26 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_NODE_TYPE, PROP_SUBORDINATE_LIST,
-    -1
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
+    PROP_NODE_TYPE,         PROP_SUBORDINATE_LIST, -1
 };
 
 static const int Properties_Optional[] = {
-    PROP_DESCRIPTION, PROP_NODE_SUBTYPE, PROP_SUBORDINATE_ANNOTATIONS,
-    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
+    PROP_NODE_SUBTYPE,
+    PROP_SUBORDINATE_ANNOTATIONS,
+    PROP_SUBORDINATE_NODE_TYPES,
+    PROP_SUBORDINATE_RELATIONSHIPS,
     PROP_DEFAULT_SUBORDINATE_RELATIONSHIP,
     PROP_REPRESENTS,
     -1
 };
 
-static const int Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -168,7 +169,7 @@ bool Structured_View_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[24] = "Structured-View-4194303";
+    char name_text[48] = "Structured-View-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -177,8 +178,8 @@ bool Structured_View_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "Structured-View-%u",
-                object_instance);
+                name_text, sizeof(name_text), "Structured-View-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -325,7 +326,7 @@ const char *Structured_View_Node_Subtype(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Description) {
+        if (pObject->Node_Subtype) {
             name = pObject->Node_Subtype;
         } else {
             name = "";
@@ -350,7 +351,7 @@ bool Structured_View_Node_Subtype_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Description = new_name;
+        pObject->Node_Subtype = new_name;
     }
 
     return status;
@@ -469,8 +470,8 @@ bool Structured_View_Represents_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        pObject->Represents = *represents;
+        status = bacnet_device_object_reference_copy(
+            &pObject->Represents, represents);
     }
 
     return status;
@@ -660,7 +661,6 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint32_t count = 0;
     uint8_t *apdu = NULL;
     uint16_t apdu_max = 0;
-    bool is_array = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -774,17 +774,40 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    is_array = property_list_bacnet_array_member(
-        rpdata->object_type, rpdata->object_property);
-    if ((apdu_len >= 0) && (!is_array) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Structured_View_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Structured_View_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
 }
 
 /**
@@ -797,6 +820,9 @@ uint32_t Structured_View_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

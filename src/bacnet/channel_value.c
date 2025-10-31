@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet single precision REAL encode and decode functions
+ * @brief BACnet Channel Value data type encoding and decoding
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0

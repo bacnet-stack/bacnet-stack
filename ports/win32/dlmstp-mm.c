@@ -165,11 +165,13 @@ static void dlmstp_receive_fsm_task(void *pArg)
     while (TRUE) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
+            (MSTP_Port.ReceivedValidFrameNotForUs == false) &&
             (MSTP_Port.ReceivedInvalidFrame == false)) {
             do {
                 RS485_Check_UART_Data(&MSTP_Port);
                 MSTP_Receive_Frame_FSM(&MSTP_Port);
                 received_frame = MSTP_Port.ReceivedValidFrame ||
+                    MSTP_Port.ReceivedValidFrameNotForUs ||
                     MSTP_Port.ReceivedInvalidFrame;
                 if (received_frame) {
                     ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
@@ -377,6 +379,7 @@ bool dlmstp_compare_data_expecting_reply(
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
+        case PDU_TYPE_SEGMENT_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -384,7 +387,8 @@ bool dlmstp_compare_data_expecting_reply(
     }
     /* these don't have service choice included */
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        (reply.pdu_type == PDU_TYPE_ABORT) ||
+        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
         if (request.invoke_id != reply.invoke_id) {
             return false;
         }
@@ -400,13 +404,9 @@ bool dlmstp_compare_data_expecting_reply(
         reply.npdu_data.protocol_version) {
         return false;
     }
-#if 0
-    /* the NDPU priority doesn't get passed through the stack, and
-       all outgoing messages have NORMAL priority */
     if (request.npdu_data.priority != reply.npdu_data.priority) {
         return false;
     }
-#endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
         return false;
     }

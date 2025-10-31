@@ -143,6 +143,7 @@ int list_element_decode_service_request(
     len += decode_object_id(&apdu[len], &object_type, &object_instance);
     if (list_element) {
         list_element->object_type = object_type;
+        list_element->object_instance = object_instance;
     }
     /* Tag 1: Property ID */
     len +=

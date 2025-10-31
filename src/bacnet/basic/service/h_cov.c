@@ -193,7 +193,7 @@ static int cov_encode_subscription(
 {
     int len = 0;
     int apdu_len = 0;
-    BACNET_OCTET_STRING octet_string;
+    BACNET_OCTET_STRING octet_string = { 0 };
     BACNET_ADDRESS *dest = NULL;
 
     (void)max_apdu;
@@ -447,12 +447,12 @@ static bool cov_send_request(
 {
     int len = 0;
     int pdu_len = 0;
-    BACNET_NPDU_DATA npdu_data;
-    BACNET_ADDRESS my_address;
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_ADDRESS my_address = { 0 };
     int bytes_sent = 0;
     uint8_t invoke_id = 0;
     bool status = false; /* return value */
-    BACNET_COV_DATA cov_data;
+    BACNET_COV_DATA cov_data = { 0 };
     BACNET_ADDRESS *dest = NULL;
 
     if (!dcc_communication_enabled()) {
@@ -472,7 +472,9 @@ static bool cov_send_request(
         return status;
     }
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(
+        &npdu_data, cov_subscription->flag.issueConfirmedNotifications,
+        MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
     /* load the COV data structure for outgoing message */
@@ -486,7 +488,6 @@ static bool cov_send_request(
     cov_data.timeRemaining = cov_subscription->lifetime;
     cov_data.listOfValues = value_list;
     if (cov_subscription->flag.issueConfirmedNotifications) {
-        npdu_data.data_expecting_reply = true;
         invoke_id = tsm_next_free_invokeID();
         if (invoke_id) {
             cov_subscription->invokeID = invoke_id;
@@ -614,7 +615,7 @@ bool handler_cov_fsm(void)
     uint32_t object_instance = 0;
     bool status = false;
     bool send = false;
-    BACNET_PROPERTY_VALUE value_list[MAX_COV_PROPERTIES];
+    BACNET_PROPERTY_VALUE value_list[MAX_COV_PROPERTIES] = { 0 };
     /* states for transmitting */
     static enum {
         COV_STATE_IDLE = 0,
@@ -805,15 +806,15 @@ void handler_cov_subscribe(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_SUBSCRIBE_COV_DATA cov_data;
+    BACNET_SUBSCRIBE_COV_DATA cov_data = { 0 };
     int len = 0;
     int pdu_len = 0;
     int npdu_len = 0;
     int apdu_len = 0;
-    BACNET_NPDU_DATA npdu_data;
+    BACNET_NPDU_DATA npdu_data = { 0 };
     bool success = false;
     int bytes_sent = 0;
-    BACNET_ADDRESS my_address;
+    BACNET_ADDRESS my_address = { 0 };
     bool error = false;
 
     /* initialize a common abort code */

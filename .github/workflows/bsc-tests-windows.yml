@@ -1,18 +1,13 @@
 name: BACNet/SC windows tests
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - '*'
+  workflow_dispatch:
 
 jobs:
   job_bsc_tests_windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create Build Environment
       run: |
         rmdir 'C:\Program Files\OpenSSL' -Recurse -Force
@@ -35,7 +30,7 @@ jobs:
         Copy-Item -Path .\pkg\lib -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
         Copy-Item -Path .\pkg\share -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
         cd ../../
-    - name: Setup MSBuild 
+    - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
       with:
         msbuild-architecture: x64
@@ -63,7 +58,7 @@ jobs:
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-socket.sln /Property:Configuration=Release
         ./build/Release/test_bsc-socket.exe
-    # (Link target) -> 
+    # (Link target) ->
     #  bacreal.obj : error LNK2019: unresolved external symbol big_endian referenced in function decode_double [D:\a\bacnet-stack-upstream\bacnet-stack-upstream\test\bacnet\datalink\hub-sc\build\test_hub-sc.vcxproj]
     # - name: Build and run hub-sc test
     #   run: |

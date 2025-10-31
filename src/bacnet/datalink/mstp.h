@@ -39,7 +39,14 @@ struct mstp_port_struct_t {
     unsigned ReceiveError : 1;
     /* There is data in the buffer */
     unsigned DataAvailable : 1;
+    /* A Boolean flag set to TRUE by the Receive State Machine  */
+    /* if an invalid frame is received.  */
+    /* Set to FALSE by the main state machine. */
     unsigned ReceivedInvalidFrame : 1;
+    /* A Boolean flag set to TRUE by the Receive State Machine  */
+    /* if a valid frame is not for us */
+    /* Set to FALSE by the main state machine. */
+    unsigned ReceivedValidFrameNotForUs : 1;
     /* A Boolean flag set to TRUE by the Receive State Machine  */
     /* if a valid frame is received.  */
     /* Set to FALSE by the Master or Slave Node state machine. */
@@ -213,6 +220,24 @@ struct mstp_port_struct_t {
        turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
     uint8_t Tturnaround_timeout;
 
+    /* orderly transition tracking for auto-baud node startup */
+    MSTP_AUTO_BAUD_STATE Auto_Baud_State;
+    /* A Boolean flag set to TRUE if this node is checking frames for
+       automatic baud rate detection */
+    unsigned CheckAutoBaud : 1;
+    /* The number of elapsed milliseconds since the last received valid frame */
+    uint32_t (*ValidFrameTimer)(void *pArg);
+    void (*ValidFrameTimerReset)(void *pArg);
+    /* The number of header frames received with good CRC since
+       initialization at the current trial baudrate. */
+    uint8_t ValidFrames;
+    /** Get the current baud rate */
+    uint32_t (*BaudRate)(void);
+    /** Set the current baud rate */
+    void (*BaudRateSet)(uint32_t baud);
+    /* The zero-based index in TestBaudrates of the next baudrate to try. */
+    unsigned BaudRateIndex;
+
     /*Platform-specific port data */
     void *UserData;
 };
@@ -264,6 +289,12 @@ unsigned MSTP_Zero_Config_Station_Increment(unsigned station);
 
 BACNET_STACK_EXPORT
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);
+
+BACNET_STACK_EXPORT
+uint32_t MSTP_Auto_Baud_Rate(unsigned baud_rate_index);
+
+BACNET_STACK_EXPORT
+void MSTP_Auto_Baud_FSM(struct mstp_port_struct_t *mstp_port);
 
 /* functions used by the MS/TP state machine to put or get data */
 /* FIXME: developer must implement these in their DLMSTP module */

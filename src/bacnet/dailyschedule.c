@@ -64,3 +64,51 @@ int bacnet_dailyschedule_context_encode(
     return bacnet_time_values_context_encode(
         apdu, tag_number, &day->Time_Values[0], day->TV_Count);
 }
+
+/**
+ * @brief Compare two BACnetDailySchedule values
+ * @param a [in] First value to compare
+ * @param b [in] Second value to compare
+ * @return true if the values are the same, false otherwise
+ * @note If either value is NULL, false is returned.
+ */
+bool bacnet_dailyschedule_same(
+    const BACNET_DAILY_SCHEDULE *a, const BACNET_DAILY_SCHEDULE *b)
+{
+    unsigned i;
+
+    if (a == NULL || b == NULL) {
+        return false;
+    }
+    if (a->TV_Count != b->TV_Count) {
+        return false;
+    }
+    for (i = 0; i < a->TV_Count; i++) {
+        if (!bacnet_time_value_same(&a->Time_Values[i], &b->Time_Values[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Copy a BACnetDailySchedule value
+ * @param dest [out] Destination to copy to
+ * @param src [in] Source to copy from
+ */
+void bacnet_dailyschedule_copy(
+    BACNET_DAILY_SCHEDULE *dest, const BACNET_DAILY_SCHEDULE *src)
+{
+    unsigned i;
+
+    if (dest == NULL || src == NULL) {
+        return;
+    }
+    if (src->TV_Count > ARRAY_SIZE(dest->Time_Values)) {
+        return;
+    }
+    dest->TV_Count = src->TV_Count;
+    for (i = 0; i < dest->TV_Count; i++) {
+        bacnet_time_value_copy(&dest->Time_Values[i], &src->Time_Values[i]);
+    }
+}

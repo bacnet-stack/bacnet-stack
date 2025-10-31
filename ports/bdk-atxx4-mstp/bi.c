@@ -122,7 +122,7 @@ bool Binary_Input_Present_Value_Set(
 bool Binary_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32]; /* okay for single thread */
+    char text[32];
     bool status = false;
 
     if (object_instance < MAX_BINARY_INPUTS) {
@@ -192,12 +192,6 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-    }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

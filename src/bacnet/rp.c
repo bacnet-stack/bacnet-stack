@@ -11,6 +11,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
+#include "bacnet/proplist.h"
 #include "bacnet/rp.h"
 
 #if BACNET_SVC_RP_A
@@ -351,13 +352,29 @@ int rp_ack_encode_apdu_init(
  */
 int rp_ack_encode_apdu_object_property_end(uint8_t *apdu)
 {
-    int apdu_len = 0; /* total length of the apdu, return value */
+    return encode_closing_tag(apdu, 3);
+}
 
-    if (apdu) {
-        apdu_len = encode_closing_tag(&apdu[0], 3);
+/**
+ * @brief Validate the array indices for the given property
+ * @param data - ReadProperty data, including requested data and
+ * data for the reply, or error response.
+ * @return true if the property is an array and the array indices are used.
+ */
+bool read_property_bacnet_array_valid(BACNET_READ_PROPERTY_DATA *data)
+{
+    bool is_array;
+
+    /*  only array properties can have array options */
+    is_array = property_list_bacnet_array_member(
+        data->object_type, data->object_property);
+    if ((!is_array) && (data->array_index != BACNET_ARRAY_ALL)) {
+        data->error_class = ERROR_CLASS_PROPERTY;
+        data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
     }
 
-    return apdu_len;
+    return true;
 }
 
 /** Encode the acknowledge.
@@ -392,7 +409,7 @@ int rp_ack_encode_apdu(
         if (apdu) {
             apdu += len;
         }
-        len = encode_closing_tag(apdu, 3);
+        len = rp_ack_encode_apdu_object_property_end(apdu);
         apdu_len += len;
     }
 

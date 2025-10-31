@@ -28,6 +28,40 @@
 
 /** @file h_wp.c  Handles Write Property requests. */
 
+/**
+ * @brief Handler for a WriteProperty Service request when the
+ *  property is a NULL type and the property is not commandable
+ *
+ *      15.9.2 WriteProperty Service Procedure
+ *
+ *      If an attempt is made to relinquish a property that is
+ *      not commandable and for which Null is not a supported
+ *      datatype, if no other error conditions exist,
+ *      the property shall not be changed, and the write shall
+ *      be considered successful.
+ *
+ * @note There was an interpretation request in April 2025 that clarifies
+ *  that the NULL bypass is only for present-value property of objects that
+ *  optionally support a priority array but don't implement it.
+ *  See 135-2024-19.2.1.1 Commandable Properties for the list of commandable
+ *  properties of specific objects.
+ *
+ * @param wp_data [in] The WriteProperty data structure
+ * @return true if the write shall be considered successful
+ */
+static bool
+handler_write_property_relinquish_bypass(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false;
+
+#if BACNET_PROTOCOL_REVISION >= 21
+    status = write_property_relinquish_bypass(
+        wp_data, Device_Objects_Property_List_Member);
+#endif
+
+    return status;
+}
+
 /** Handler for a WriteProperty Service request.
  * @ingroup DSWP
  * This handler will be invoked by apdu_handler() if it has been enabled
@@ -55,6 +89,7 @@ void handler_write_property(
     BACNET_WRITE_PROPERTY_DATA wp_data;
     int len = 0;
     bool bcontinue = true;
+    bool success = false;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
@@ -103,7 +138,18 @@ void handler_write_property(
             bcontinue = false;
         }
         if (bcontinue) {
-            if (Device_Write_Property(&wp_data)) {
+            success = handler_write_property_relinquish_bypass(&wp_data);
+            if (success) {
+                /* this object property is not commandable,
+                   and therefore, not able to be relinquished,
+                   so it "shall not be changed, and
+                   the write shall be considered successful." */
+            } else {
+                if (write_property_bacnet_array_valid(&wp_data)) {
+                    success = Device_Write_Property(&wp_data);
+                }
+            }
+            if (success) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);

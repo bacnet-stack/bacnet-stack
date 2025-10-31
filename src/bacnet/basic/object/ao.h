@@ -60,6 +60,13 @@ void Analog_Output_Write_Present_Value_Callback_Set(
     analog_output_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
+bool Analog_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Analog_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+
+BACNET_STACK_EXPORT
 float Analog_Output_Relinquish_Default(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Analog_Output_Relinquish_Default_Set(
@@ -124,6 +131,11 @@ BACNET_STACK_EXPORT
 int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void *Analog_Output_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Analog_Output_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Analog_Output_Create(uint32_t object_instance);

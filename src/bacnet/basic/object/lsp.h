@@ -82,6 +82,11 @@ BACNET_STACK_EXPORT
 bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
+void *Life_Safety_Point_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Life_Safety_Point_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Life_Safety_Point_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Life_Safety_Point_Delete(uint32_t object_instance);

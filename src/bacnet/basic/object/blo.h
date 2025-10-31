@@ -63,6 +63,14 @@ bool Binary_Lighting_Output_Present_Value_Set(
     uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV value,
     unsigned priority);
+
+BACNET_STACK_EXPORT
+bool Binary_Lighting_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+
 BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority);
@@ -145,6 +153,12 @@ void Binary_Lighting_Output_Write_Value_Callback_Set(
 BACNET_STACK_EXPORT
 void Binary_Lighting_Output_Blink_Warn_Callback_Set(
     binary_lighting_output_blink_warn_callback cb);
+
+BACNET_STACK_EXPORT
+void *Binary_Lighting_Output_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Binary_Lighting_Output_Context_Set(
+    uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Binary_Lighting_Output_Create(uint32_t object_instance);

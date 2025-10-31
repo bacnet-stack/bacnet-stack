@@ -30,29 +30,36 @@ static OS_Keylist Object_List;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_ANALOG_INPUT;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE, PROP_UNITS, -1
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_UNITS,        -1
 };
 
 static const int Properties_Optional[] = {
-    PROP_DESCRIPTION, PROP_RELIABILITY,  PROP_COV_INCREMENT,
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
+    PROP_RELIABILITY,
+    PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
-    PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
-    PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
-    PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_HIGH_LIMIT,
+    PROP_LOW_LIMIT,
+    PROP_DEADBAND,
+    PROP_LIMIT_ENABLE,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_DETECTION_ENABLE,
 #endif
     -1
 };
 
-static const int Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -304,7 +311,7 @@ const char *Analog_Input_Name_ASCII(uint32_t object_instance)
 unsigned Analog_Input_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
-#if !defined(INTRINSIC_REPORTING)
+#if defined(INTRINSIC_REPORTING)
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
@@ -423,6 +430,24 @@ BACNET_RELIABILITY Analog_Input_Reliability(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Input_Object_Fault(const struct analog_input_descr *pObject)
+{
+    bool fault = false;
+
+    if (pObject) {
+        if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
+            fault = true;
+        }
+    }
+
+    return fault;
+}
+
+/**
  * @brief For a given object instance-number, sets the reliability
  * @param  object_instance - object-instance number of the object
  * @param  value - reliability property value
@@ -432,15 +457,34 @@ bool Analog_Input_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value)
 {
     bool status = false;
+    bool fault = false;
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
+        fault = Analog_Input_Object_Fault(pObject);
         pObject->Reliability = value;
+        if (fault != Analog_Input_Object_Fault(pObject)) {
+            pObject->Changed = true;
+        }
         status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the Fault status flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true the status flag is in Fault
+ */
+static bool Analog_Input_Fault(uint32_t object_instance)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+
+    return Analog_Input_Object_Fault(pObject);
 }
 
 /**
@@ -689,6 +733,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     float real_value = (float)1.414;
+    bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
 #endif
@@ -728,13 +773,11 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_IN_ALARM,
                 pObject->Event_State != EVENT_STATE_NORMAL);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_FAULT,
-                pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED);
+            state = Analog_Input_Fault(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, state);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                pObject->Out_Of_Service);
+            state = Analog_Input_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -849,14 +892,6 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -892,13 +927,6 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
     pObject = Analog_Input_Object(wp_data->object_instance);
     if (!pObject) {
         return false;
@@ -930,7 +958,13 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                pObject->Units = value.type.Enumerated;
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    pObject->Units = value.type.Enumerated;
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_COV_INCREMENT:
@@ -1622,6 +1656,38 @@ int Analog_Input_Alarm_Summary(
 #endif /* defined(INTRINSIC_REPORTING) */
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Analog_Input_Context_Get(uint32_t object_instance)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Analog_Input_Context_Set(uint32_t object_instance, void *context)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Analog Input object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1634,6 +1700,9 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
     unsigned j;
 #endif
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

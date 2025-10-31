@@ -6,7 +6,7 @@
  *
  * @section LICENSE
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdlib.h>

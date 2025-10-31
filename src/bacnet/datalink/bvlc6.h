@@ -182,6 +182,9 @@ BACNET_STACK_EXPORT
 bool bvlc6_address_from_ascii(BACNET_IP6_ADDRESS *addr, const char *addrstr);
 
 BACNET_STACK_EXPORT
+bool bvlc6_address_n_port_set(
+    BACNET_IP6_ADDRESS *addr, uint8_t *addr16, uint16_t port);
+BACNET_STACK_EXPORT
 bool bvlc6_address_set(
     BACNET_IP6_ADDRESS *addr,
     uint16_t addr0,

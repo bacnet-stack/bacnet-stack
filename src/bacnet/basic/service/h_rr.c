@@ -151,17 +151,23 @@ void handler_read_range(
         } else {
             /* assume that there is an error */
             error = true;
+            data.application_data = &Temp_Buf[0];
+            data.application_data_len = sizeof(Temp_Buf);
+            /* note: legacy API passed buffer separately */
             len = Encode_RR_payload(&Temp_Buf[0], &data);
             if (len >= 0) {
-                /* encode the APDU portion of the packet */
-                data.application_data = &Temp_Buf[0];
                 data.application_data_len = len;
-                /* FIXME: probably need a length limitation sent with encode */
-                len = rr_ack_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    &data);
-                debug_print("RR: Sending Ack!\n");
-                error = false;
+                /* encode the APDU portion of the packet */
+                len = rr_ack_encode_apdu(NULL, service_data->invoke_id, &data);
+                if (len < sizeof(Handler_Transmit_Buffer) - pdu_len) {
+                    len = rr_ack_encode_apdu(
+                        &Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id, &data);
+                    debug_print("RR: Sending Ack!\n");
+                    error = false;
+                } else {
+                    len = -2; /* too big */
+                }
             }
             if (error) {
                 if (len == -2) {
@@ -182,7 +188,6 @@ void handler_read_range(
             }
         }
     }
-
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);

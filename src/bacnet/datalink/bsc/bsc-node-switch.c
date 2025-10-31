@@ -18,6 +18,7 @@
 
 #define DEBUG_BSC_NODE_SWITCH 0
 
+#undef DEBUG_PRINTF
 #if DEBUG_BSC_NODE_SWITCH == 1
 #define DEBUG_PRINTF debug_printf
 #else
@@ -267,10 +268,10 @@ copy_urls(BSC_NODE_SWITCH_CTX *ctx, int index, BSC_ADDRESS_RESOLUTION *r)
     int i;
     for (i = 0; i < r->urls_num; i++) {
         ctx->initiator.urls[index].utf8_urls[i][0] = 0;
-        strncpy(
+        snprintf(
             (char *)&ctx->initiator.urls[index].utf8_urls[i][0],
-            (char *)&r->utf8_urls[i][0],
-            sizeof(ctx->initiator.urls[index].utf8_urls[i]) - 1);
+            sizeof(ctx->initiator.urls[index].utf8_urls[i]), "%s",
+            (char *)r->utf8_urls[i]);
     }
     ctx->initiator.urls[index].urls_cnt = r->urls_num;
 }
@@ -288,9 +289,9 @@ copy_urls2(BSC_NODE_SWITCH_CTX *ctx, int index, char **urls, size_t urls_cnt)
     size_t i;
     for (i = 0; i < urls_cnt; i++) {
         ctx->initiator.urls[index].utf8_urls[i][0] = 0;
-        strncpy(
-            (char *)&ctx->initiator.urls[index].utf8_urls[i][0], urls[i],
-            sizeof(ctx->initiator.urls[index].utf8_urls[i]) - 1);
+        snprintf(
+            (char *)&ctx->initiator.urls[index].utf8_urls[i][0],
+            sizeof(ctx->initiator.urls[index].utf8_urls[i]), "%s", urls[i]);
     }
     ctx->initiator.urls[index].urls_cnt = urls_cnt;
 }

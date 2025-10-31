@@ -62,6 +62,14 @@ uint32_t Multistate_Output_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Multistate_Output_Present_Value_Set(
     uint32_t object_instance, uint32_t value, unsigned priority);
+
+BACNET_STACK_EXPORT
+bool Multistate_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+uint32_t Multistate_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+
 BACNET_STACK_EXPORT
 bool Multistate_Output_Present_Value_Relinquish(
     uint32_t instance, unsigned priority);
@@ -116,6 +124,11 @@ uint32_t Multistate_Output_Relinquish_Default(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Multistate_Output_Relinquish_Default_Set(
     uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+void *Multistate_Output_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Multistate_Output_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Multistate_Output_Create(uint32_t object_instance);

@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test Ring Buffer container API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <limits.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/sys/ringbuf.h>
@@ -45,7 +42,7 @@ static void testRingAroundBuffer(
     /* test the ring around the buffer */
     for (index = 0; index < element_count; index++) {
         for (count = 1; count < 4; count++) {
-            value = (index * count) % 255;
+            value = (index * count) % 256;
             for (data_index = 0; data_index < element_size; data_index++) {
                 data_element[data_index] = value;
             }
@@ -54,7 +51,7 @@ static void testRingAroundBuffer(
             zassert_equal(Ringbuf_Count(test_buffer), count, NULL);
         }
         for (count = 1; count < 4; count++) {
-            value = (index * count) % 255;
+            value = (index * count) % 256;
             test_data = Ringbuf_Peek(test_buffer);
             zassert_not_null(test_data, NULL);
             if (test_data) {

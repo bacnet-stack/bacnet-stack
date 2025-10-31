@@ -115,10 +115,11 @@ int rpm_ack_decode_service_request(
                 } else {
                     /* one or more (array or list) elements to decode */
                     while (value && (apdu_len > 0)) {
-                        len = bacapp_decode_known_property(
+                        len = bacapp_decode_known_array_property(
                             apdu, (unsigned)apdu_len, value,
                             rpm_object->object_type,
-                            rpm_property->propertyIdentifier);
+                            rpm_property->propertyIdentifier,
+                            rpm_property->propertyArrayIndex);
                         /* If len == 0 then it's an empty structure, which is
                          * OK. */
                         if (len < 0) {
