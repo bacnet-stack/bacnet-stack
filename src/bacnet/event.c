@@ -842,7 +842,9 @@ int event_notify_decode_service_request(
         if (len > 0) {
             apdu_len += len;
             if (unsigned_value <= UINT32_MAX) {
-                data->notificationClass = (uint32_t)unsigned_value;
+                if (data) {
+                    data->notificationClass = (uint32_t)unsigned_value;
+                }
             } else {
                 return BACNET_STATUS_ERROR;
             }
@@ -855,7 +857,9 @@ int event_notify_decode_service_request(
         if (len > 0) {
             apdu_len += len;
             if (unsigned_value <= UINT8_MAX) {
-                data->priority = (uint8_t)unsigned_value;
+                if (data) {
+                    data->priority = (uint8_t)unsigned_value;
+                }
             } else {
                 return BACNET_STATUS_ERROR;
             }
