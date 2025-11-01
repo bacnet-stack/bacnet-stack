@@ -995,6 +995,7 @@ int event_notify_decode_service_request(
             apdu_len += len;
             switch (event_type) {
                 case EVENT_CHANGE_OF_BITSTRING:
+                    /* change-of-bitstring [0] SEQUENCE */
                     /* referenced-bitstring[0] BitString */
                     if (data) {
                         bstring = &data->notificationParams.changeOfBitstring
@@ -1025,6 +1026,7 @@ int event_notify_decode_service_request(
                     }
                     break;
                 case EVENT_CHANGE_OF_STATE:
+                    /* change-of-state [1] SEQUENCE */
                     /* new-state[0] BACnetEventState */
                     if (data) {
                         property_state =
@@ -1055,6 +1057,7 @@ int event_notify_decode_service_request(
                     }
                     break;
                 case EVENT_CHANGE_OF_VALUE:
+                    /* change-of-value [2] SEQUENCE */
                     /* new-value [0] CHOICE */
                     if (bacnet_is_opening_tag_number(
                             &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
@@ -1118,7 +1121,8 @@ int event_notify_decode_service_request(
                     }
                     break;
                 case EVENT_COMMAND_FAILURE:
-                    /* command-value[0] ABSTRACT-SYNTAX.&Type,
+                    /* command-failure [3] SEQUENCE */
+                    /* command-value [0] ABSTRACT-SYNTAX.&Type
                        -- depends on ref property */
                     if (bacnet_is_opening_tag_number(
                             &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
@@ -1220,42 +1224,58 @@ int event_notify_decode_service_request(
                     }
                     break;
                 case EVENT_FLOATING_LIMIT:
-                    if (-1 ==
-                        (len = decode_context_real(
-                             &apdu[apdu_len], 0,
-                             &data->notificationParams.floatingLimit
-                                  .referenceValue))) {
-                        return -1;
+                    /* floating-limit [4] SEQUENCE*/
+                    /* reference-value[0] Real */
+                    len = bacnet_real_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 0, &real_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        if (data) {
+                            data->notificationParams.floatingLimit
+                                .referenceValue = real_value;
+                        }
+                    } else {
+                        return BACNET_STATUS_ERROR;
                     }
-                    apdu_len += len;
-
-                    if (-1 ==
-                        (len = decode_context_bitstring(
-                             &apdu[apdu_len], 1,
-                             &data->notificationParams.floatingLimit
-                                  .statusFlags))) {
-                        return -1;
+                    /* status-flags[1] BACnetStatusFlags */
+                    if (data) {
+                        bstring =
+                            &data->notificationParams.floatingLimit.statusFlags;
+                    } else {
+                        bstring = NULL;
                     }
-                    apdu_len += len;
-                    if (-1 ==
-                        (len = decode_context_real(
-                             &apdu[apdu_len], 2,
-                             &data->notificationParams.floatingLimit
-                                  .setPointValue))) {
-                        return -1;
+                    len = bacnet_bitstring_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 1, bstring);
+                    if (len > 0) {
+                        apdu_len += len;
+                    } else {
+                        return BACNET_STATUS_ERROR;
                     }
-                    apdu_len += len;
-
-                    if (-1 ==
-                        (len = decode_context_real(
-                             &apdu[apdu_len], 3,
-                             &data->notificationParams.floatingLimit
-                                  .errorLimit))) {
-                        return -1;
+                    /* setpoint-value[2] Real */
+                    len = bacnet_real_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 2, &real_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        if (data) {
+                            data->notificationParams.floatingLimit
+                                .setPointValue = real_value;
+                        }
+                    } else {
+                        return BACNET_STATUS_ERROR;
                     }
-                    apdu_len += len;
+                    /* error-limit[3] Real */
+                    len = bacnet_real_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 3, &real_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        if (data) {
+                            data->notificationParams.floatingLimit.errorLimit =
+                                real_value;
+                        }
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
                     break;
-
                 case EVENT_OUT_OF_RANGE:
                     if (-1 ==
                         (len = decode_context_real(
