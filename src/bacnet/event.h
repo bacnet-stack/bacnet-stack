@@ -167,6 +167,17 @@ typedef struct BACnet_Event_Notification_Data {
             /* OPTIONAL - Set authenticationFactor.format_type to
                AUTHENTICATION_FACTOR_MAX if not being used */
         } accessEvent;
+        /* FIXME: not implemented yet
+            EVENT_DOUBLE_OUT_OF_RANGE
+            EVENT_SIGNED_OUT_OF_RANGE
+            EVENT_UNSIGNED_OUT_OF_RANGE
+            EVENT_CHANGE_OF_CHARACTERSTRING
+            EVENT_CHANGE_OF_STATUS_FLAGS
+            EVENT_CHANGE_OF_RELIABILITY
+            EVENT_NONE
+            EVENT_CHANGE_OF_DISCRETE_VALUE
+            EVENT_CHANGE_OF_TIMER
+        */
 #if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
         /*
          * complex-event-type - a sequence of values, used for proprietary event

@@ -1315,6 +1315,8 @@ typedef enum BACnetEventType {
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11,
+    /* -- context tag 12 is reserved for future addenda
+       since it conflicts with event-values[12] OPTIONAL */
     EVENT_ACCESS_EVENT = 13,
     EVENT_DOUBLE_OUT_OF_RANGE = 14,
     EVENT_SIGNED_OUT_OF_RANGE = 15,
@@ -2619,10 +2621,13 @@ typedef enum BACnetAccessEvent {
     ACCESS_EVENT_DENIED_LOCKOUT = 161,
     ACCESS_EVENT_DENIED_VERIFICATION_FAILED = 162,
     ACCESS_EVENT_DENIED_VERIFICATION_TIMEOUT = 163,
-    ACCESS_EVENT_DENIED_OTHER = 164
+    ACCESS_EVENT_DENIED_OTHER = 164,
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    ACCESS_EVENT_PROPRIETARY_MIN = 512,
+    ACCESS_EVENT_PROPRIETARY_MAX = 65535
+
 } BACNET_ACCESS_EVENT;
 
 /* Authentication Status */
