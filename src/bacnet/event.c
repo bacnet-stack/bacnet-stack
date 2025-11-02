@@ -1518,7 +1518,9 @@ int event_notify_decode_service_request(
                     }
                     len = bacnet_bitstring_context_decode(
                         &apdu[apdu_len], apdu_size - apdu_len, 1, bstring);
-                    if (len <= 0) {
+                    if (len > 0) {
+                        apdu_len += len;
+                    } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* exceeded-limit[2] Unsigned */
@@ -1607,7 +1609,7 @@ int event_notify_decode_service_request(
                         dev_obj_ref = NULL;
                     }
                     len = bacnet_device_object_reference_context_decode(
-                        &apdu[apdu_len], apdu_size - apdu_len, 1, dev_obj_ref);
+                        &apdu[apdu_len], apdu_size - apdu_len, 4, dev_obj_ref);
                     if (len > 0) {
                         apdu_len += len;
                     } else {
