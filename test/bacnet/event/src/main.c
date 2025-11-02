@@ -1001,6 +1001,151 @@ static void testEventEventState(void)
             &data.notificationParams.accessEvent.authenticationFactor.value,
             &data2.notificationParams.accessEvent.authenticationFactor.value),
         NULL);
+
+    /*
+     ** Event Type = EVENT_DOUBLE_OUT_OF_RANGE
+     */
+    data.eventType = EVENT_DOUBLE_OUT_OF_RANGE;
+    data.notificationParams.doubleOutOfRange.exceedingValue = 3.45;
+    data.notificationParams.doubleOutOfRange.deadband = 2.34;
+    data.notificationParams.doubleOutOfRange.exceededLimit = 1.23;
+    bitstring_init(&data.notificationParams.doubleOutOfRange.statusFlags);
+    bitstring_set_bit(
+        &data.notificationParams.doubleOutOfRange.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(
+        &data.notificationParams.doubleOutOfRange.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(
+        &data.notificationParams.doubleOutOfRange.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(
+        &data.notificationParams.doubleOutOfRange.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+    memset(buffer, 0, MAX_APDU);
+    null_len = event_notify_encode_service_request(NULL, &data);
+    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    zassert_equal(
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    test_len =
+        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    verifyBaseEventState();
+    zassert_false(
+        islessgreater(
+            data.notificationParams.doubleOutOfRange.deadband,
+            data2.notificationParams.doubleOutOfRange.deadband),
+        NULL);
+    zassert_false(
+        islessgreater(
+            data.notificationParams.doubleOutOfRange.exceededLimit,
+            data2.notificationParams.doubleOutOfRange.exceededLimit),
+        NULL);
+    zassert_false(
+        islessgreater(
+            data.notificationParams.doubleOutOfRange.exceedingValue,
+            data2.notificationParams.doubleOutOfRange.exceedingValue),
+        NULL);
+    zassert_true(
+        bitstring_same(
+            &data.notificationParams.doubleOutOfRange.statusFlags,
+            &data2.notificationParams.doubleOutOfRange.statusFlags),
+        NULL);
+    /*
+     ** Event Type = EVENT_SIGNED_OUT_OF_RANGE
+     */
+    data.eventType = EVENT_SIGNED_OUT_OF_RANGE;
+    data.notificationParams.signedOutOfRange.exceedingValue = -345;
+    data.notificationParams.signedOutOfRange.deadband = 234;
+    data.notificationParams.signedOutOfRange.exceededLimit = -123;
+    bitstring_init(&data.notificationParams.signedOutOfRange.statusFlags);
+    bitstring_set_bit(
+        &data.notificationParams.signedOutOfRange.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(
+        &data.notificationParams.signedOutOfRange.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(
+        &data.notificationParams.signedOutOfRange.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(
+        &data.notificationParams.signedOutOfRange.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+    memset(buffer, 0, MAX_APDU);
+    null_len = event_notify_encode_service_request(NULL, &data);
+    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    zassert_equal(
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    test_len =
+        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    verifyBaseEventState();
+    zassert_equal(
+        data.notificationParams.signedOutOfRange.deadband,
+        data2.notificationParams.signedOutOfRange.deadband, NULL);
+    zassert_equal(
+        data.notificationParams.signedOutOfRange.exceededLimit,
+        data2.notificationParams.signedOutOfRange.exceededLimit, NULL);
+    zassert_equal(
+        data.notificationParams.signedOutOfRange.exceedingValue,
+        data2.notificationParams.signedOutOfRange.exceedingValue, NULL);
+    zassert_true(
+        bitstring_same(
+            &data.notificationParams.signedOutOfRange.statusFlags,
+            &data2.notificationParams.signedOutOfRange.statusFlags),
+        NULL);
+    /*
+     ** Event Type = EVENT_UNSIGNED_OUT_OF_RANGE
+     */
+    data.eventType = EVENT_UNSIGNED_OUT_OF_RANGE;
+    data.notificationParams.unsignedOutOfRange.exceedingValue = 345;
+    data.notificationParams.unsignedOutOfRange.deadband = 234;
+    data.notificationParams.unsignedOutOfRange.exceededLimit = 123;
+    bitstring_init(&data.notificationParams.unsignedOutOfRange.statusFlags);
+    bitstring_set_bit(
+        &data.notificationParams.unsignedOutOfRange.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(
+        &data.notificationParams.unsignedOutOfRange.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(
+        &data.notificationParams.unsignedOutOfRange.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(
+        &data.notificationParams.unsignedOutOfRange.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+    memset(buffer, 0, MAX_APDU);
+    null_len = event_notify_encode_service_request(NULL, &data);
+    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    zassert_equal(
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    test_len =
+        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    verifyBaseEventState();
+    zassert_equal(
+        data.notificationParams.unsignedOutOfRange.deadband,
+        data2.notificationParams.unsignedOutOfRange.deadband, NULL);
+    zassert_equal(
+        data.notificationParams.unsignedOutOfRange.exceededLimit,
+        data2.notificationParams.unsignedOutOfRange.exceededLimit, NULL);
+    zassert_equal(
+        data.notificationParams.unsignedOutOfRange.exceedingValue,
+        data2.notificationParams.unsignedOutOfRange.exceedingValue, NULL);
+    zassert_true(
+        bitstring_same(
+            &data.notificationParams.unsignedOutOfRange.statusFlags,
+            &data2.notificationParams.unsignedOutOfRange.statusFlags),
+        NULL);
 }
 /**
  * @}

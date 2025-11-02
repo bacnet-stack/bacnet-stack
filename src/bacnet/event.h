@@ -167,17 +167,59 @@ typedef struct BACnet_Event_Notification_Data {
             /* OPTIONAL - Set authenticationFactor.format_type to
                AUTHENTICATION_FACTOR_MAX if not being used */
         } accessEvent;
+#if BACNET_USE_DOUBLE
+        /*  EVENT_DOUBLE_OUT_OF_RANGE
+            double-out-of-range[14] SEQUENCE {
+                exceeding-value[0] Double,
+                status-flags[1] BACnetStatusFlags,
+                deadband[2] Double,
+                exceeded-limit[3] Double
+            } */
+        struct {
+            double exceedingValue;
+            BACNET_BIT_STRING statusFlags;
+            double deadband;
+            double exceededLimit;
+        } doubleOutOfRange;
+#endif
+#if BACNET_USE_SIGNED
+        /*  EVENT_SIGNED_OUT_OF_RANGE
+            signed-out-of-range[14] SEQUENCE {
+                exceeding-value[0] Integer,
+                status-flags[1] BACnetStatusFlags,
+                deadband[2] Unsigned,
+                exceeded-limit[3] Integer
+            } */
+        struct {
+            int32_t exceedingValue;
+            BACNET_BIT_STRING statusFlags;
+            uint32_t deadband;
+            int32_t exceededLimit;
+        } signedOutOfRange;
+#endif
+        /*  EVENT_UNSIGNED_OUT_OF_RANGE
+            unsigned-out-of-range[14] SEQUENCE {
+                exceeding-value[0] Unsigned,
+                status-flags[1] BACnetStatusFlags,
+                deadband[2] Unsigned,
+                exceeded-limit[3] Unsigned
+            } */
+        struct {
+            BACNET_UNSIGNED_INTEGER exceedingValue;
+            BACNET_BIT_STRING statusFlags;
+            BACNET_UNSIGNED_INTEGER deadband;
+            BACNET_UNSIGNED_INTEGER exceededLimit;
+        } unsignedOutOfRange;
         /* FIXME: not implemented yet
-            EVENT_DOUBLE_OUT_OF_RANGE
-            EVENT_SIGNED_OUT_OF_RANGE
-            EVENT_UNSIGNED_OUT_OF_RANGE
             EVENT_CHANGE_OF_CHARACTERSTRING
             EVENT_CHANGE_OF_STATUS_FLAGS
             EVENT_CHANGE_OF_RELIABILITY
-            EVENT_NONE
             EVENT_CHANGE_OF_DISCRETE_VALUE
             EVENT_CHANGE_OF_TIMER
         */
+        /*
+         ** EVENT_NONE - tag only
+         */
 #if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
         /*
          * complex-event-type - a sequence of values, used for proprietary event
