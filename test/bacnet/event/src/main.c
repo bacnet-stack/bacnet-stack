@@ -117,10 +117,12 @@ ZTEST(event_tests, testEventEventState)
 static void testEventEventState(void)
 #endif
 {
-    uint8_t buffer[MAX_APDU];
+    uint8_t apdu[MAX_APDU];
     int apdu_len, test_len, null_len;
     BACNET_CHARACTER_STRING messageText;
     BACNET_CHARACTER_STRING messageText2;
+    uint8_t invoke_id = 2;
+
     characterstring_init_ansi(
         &messageText, "This is a test of the message text\n");
 
@@ -160,11 +162,10 @@ static void testEventEventState(void)
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     verifyBaseEventState();
@@ -196,16 +197,15 @@ static void testEventEventState(void)
     data.timeStamp.value.dateTime.date.wday = 1;
     data.timeStamp.value.dateTime.date.year = 1945;
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -253,16 +253,15 @@ static void testEventEventState(void)
         &data.notificationParams.changeOfBitstring.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -301,16 +300,15 @@ static void testEventEventState(void)
         &data.notificationParams.changeOfValue.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -345,15 +343,14 @@ static void testEventEventState(void)
         &data.notificationParams.changeOfValue.newValue.changedBits, 2, false);
     bitstring_set_bit(
         &data.notificationParams.changeOfValue.newValue.changedBits, 3, false);
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(apdu_len, test_len, NULL);
 
     verifyBaseEventState();
@@ -397,15 +394,14 @@ static void testEventEventState(void)
     bitstring_set_bit(
         &data.notificationParams.commandFailure.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
 
@@ -449,16 +445,15 @@ static void testEventEventState(void)
         &data.notificationParams.commandFailure.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -502,15 +497,14 @@ static void testEventEventState(void)
         &data.notificationParams.floatingLimit.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     verifyBaseEventState();
@@ -559,16 +553,15 @@ static void testEventEventState(void)
         &data.notificationParams.outOfRange.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -621,16 +614,15 @@ static void testEventEventState(void)
         &data.notificationParams.changeOfLifeSafety.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -675,16 +667,15 @@ static void testEventEventState(void)
         &data.notificationParams.unsignedRange.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -721,16 +712,15 @@ static void testEventEventState(void)
         PROP_PRESENT_VALUE;
     data.notificationParams.bufferReady.bufferProperty.arrayIndex = 0;
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -817,16 +807,15 @@ static void testEventEventState(void)
         &data.notificationParams.accessEvent.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -921,16 +910,15 @@ static void testEventEventState(void)
         &data.notificationParams.accessEvent.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
 
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
 
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
 
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
@@ -1022,15 +1010,14 @@ static void testEventEventState(void)
     bitstring_set_bit(
         &data.notificationParams.doubleOutOfRange.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     verifyBaseEventState();
@@ -1074,15 +1061,14 @@ static void testEventEventState(void)
     bitstring_set_bit(
         &data.notificationParams.signedOutOfRange.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     verifyBaseEventState();
@@ -1120,15 +1106,14 @@ static void testEventEventState(void)
     bitstring_set_bit(
         &data.notificationParams.unsignedOutOfRange.statusFlags,
         STATUS_FLAG_OUT_OF_SERVICE, false);
-    memset(buffer, 0, MAX_APDU);
+    memset(apdu, 0, MAX_APDU);
     null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&buffer[0], &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
     memset(&data2, 0, sizeof(data2));
     data2.messageText = &messageText2;
-    test_len =
-        event_notify_decode_service_request(&buffer[0], apdu_len, &data2);
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     verifyBaseEventState();
@@ -1146,6 +1131,66 @@ static void testEventEventState(void)
             &data.notificationParams.unsignedOutOfRange.statusFlags,
             &data2.notificationParams.unsignedOutOfRange.statusFlags),
         NULL);
+    /*
+     ** Event Type = EVENT_PROPRIETARY_MIN
+     */
+    data.eventType = EVENT_PROPRIETARY_MIN;
+    data.notificationParams.complexEventType.values[0].propertyIdentifier =
+        PROP_PRESENT_VALUE;
+    data.notificationParams.complexEventType.values[0].priority = 1;
+    data.notificationParams.complexEventType.values[0].propertyArrayIndex =
+        BACNET_ARRAY_ALL;
+    data.notificationParams.complexEventType.values[0].value.tag =
+        BACNET_APPLICATION_TAG_REAL;
+    data.notificationParams.complexEventType.values[0].value.type.Real = 1.0f;
+    data.notificationParams.complexEventType.values[0].value.context_specific =
+        false;
+    data.notificationParams.complexEventType.values[0].value.context_tag = 0;
+    data.notificationParams.complexEventType.values[0].value.next = NULL;
+    data.notificationParams.complexEventType.values[0].next = NULL;
+    memset(apdu, 0, MAX_APDU);
+    null_len = event_notify_encode_service_request(NULL, &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
+    zassert_equal(
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    verifyBaseEventState();
+    zassert_true(
+        bacapp_same_value(
+            &data.notificationParams.complexEventType.values[0].value,
+            &data2.notificationParams.complexEventType.values[0].value),
+        NULL);
+    /* function coverage: Confirmed and Unconfirmed Event Notifications */
+    null_len = cevent_notify_encode_apdu(NULL, invoke_id, &data);
+    apdu_len = cevent_notify_encode_apdu(apdu, invoke_id, &data);
+    zassert_true(apdu_len > 0, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_equal(apdu[0], PDU_TYPE_CONFIRMED_SERVICE_REQUEST, NULL);
+    zassert_equal(apdu[2], invoke_id, NULL);
+    zassert_equal(apdu[3], SERVICE_CONFIRMED_EVENT_NOTIFICATION, NULL);
+    null_len = uevent_notify_encode_apdu(NULL, &data);
+    apdu_len = uevent_notify_encode_apdu(apdu, &data);
+    zassert_true(apdu_len > 0, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_equal(apdu[0], PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST, NULL);
+    zassert_equal(apdu[1], SERVICE_UNCONFIRMED_EVENT_NOTIFICATION, NULL);
+
+    null_len =
+        event_notification_service_request_encode(NULL, sizeof(apdu), &data);
+    apdu_len =
+        event_notification_service_request_encode(apdu, sizeof(apdu), &data);
+    zassert_true(apdu_len > 0, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+    while (apdu_len > 0) {
+        apdu_len--;
+        test_len =
+            event_notification_service_request_encode(apdu, apdu_len, &data);
+        zassert_equal(test_len, 0, NULL);
+    }
 }
 /**
  * @}

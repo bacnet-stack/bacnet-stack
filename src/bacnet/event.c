@@ -16,57 +16,6 @@
 /** @file event.c  Encode/Decode Event Notifications */
 
 /**
- * @brief Decode the array of complex-event-type notification parameters
- * @param apdu - apdu buffer
- * @param apdu_size - APDU total length
- * @param data - the event data struct to store the results in,
- *  or NULL to discard the data and return the length
- * @return number of apdu bytes decoded, or BACNET_STATUS_ERROR on error.
- */
-static int complex_event_type_values_decode(
-    const uint8_t *apdu,
-    unsigned apdu_size,
-    BACNET_EVENT_NOTIFICATION_DATA *data)
-{
-    int apdu_len = 0; /* return value */
-    BACNET_PROPERTY_VALUE *value = NULL;
-    int len = 0;
-
-    if (data) {
-#if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
-        value = data->notificationParams.complexEventType.values;
-#endif
-    }
-    bacapp_property_value_list_init(
-        value, BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS);
-    while (apdu_len < apdu_size) {
-        len = bacapp_property_value_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, value);
-        if (len >= 0) {
-            apdu_len += len;
-        } else {
-            return BACNET_STATUS_ERROR;
-        }
-        /* end of list? */
-        if (bacnet_is_closing_tag_number(
-                &apdu[apdu_len], apdu_size - apdu_len, 6, &len)) {
-            apdu_len += len;
-            if (value) {
-                /* mark the end of the list */
-                value->next = NULL;
-            }
-            break;
-        }
-        /* is there another slot in the data store? */
-        if (value) {
-            value = value->next;
-        }
-    }
-
-    return apdu_len;
-}
-
-/**
  * @brief Encode the unconfirmed COVNotification service request
  * @param apdu  Pointer to the buffer for encoding into
  * @param data  Pointer to the service data used for encoding values
@@ -144,6 +93,7 @@ int event_notify_encode_service_request(
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
+    const BACNET_PROPERTY_VALUE *value = NULL;
 
     if (!data) {
         return 0;
@@ -856,8 +806,38 @@ int event_notify_encode_service_request(
                     }
                     break;
                 case EVENT_EXTENDED:
+                    break;
                 default:
-                    assert(0);
+                    if (data->eventType >= EVENT_PROPRIETARY_MIN &&
+                        data->eventType <= EVENT_PROPRIETARY_MAX) {
+                        len =
+                            encode_opening_tag(apdu, EVENT_COMPLEX_EVENT_TYPE);
+                        apdu_len += len;
+                        if (apdu) {
+                            apdu += len;
+                        }
+#if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
+                        value =
+                            data->notificationParams.complexEventType.values;
+#endif
+                        while (value) {
+                            len = bacapp_property_value_encode(apdu, value);
+                            apdu_len += len;
+                            if (apdu) {
+                                apdu += len;
+                            }
+                            value = value->next;
+                        }
+                        len =
+                            encode_closing_tag(apdu, EVENT_COMPLEX_EVENT_TYPE);
+                        apdu_len += len;
+                        if (apdu) {
+                            apdu += len;
+                        }
+                    } else {
+                        /* FIXME: add an encoder for the event type */
+                        assert(0);
+                    }
                     break;
             }
             len = encode_closing_tag(apdu, 12);
@@ -938,6 +918,7 @@ int event_notify_decode_service_request(
     BACNET_DEVICE_OBJECT_REFERENCE *dev_obj_ref = NULL;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *dev_obj_prop_ref = NULL;
     BACNET_AUTHENTICATION_FACTOR *auth_factor = NULL;
+    BACNET_PROPERTY_VALUE *property_value = NULL;
     bool boolean_value = false;
     float real_value = 0.0f;
     double double_value = 0.0;
@@ -1134,17 +1115,37 @@ int event_notify_decode_service_request(
                     &apdu[apdu_len], apdu_size - apdu_len,
                     EVENT_COMPLEX_EVENT_TYPE, &len)) {
                 apdu_len += len;
-                len = complex_event_type_values_decode(
-                    &apdu[apdu_len], apdu_size - apdu_len, data);
-                if (apdu_len < 0) {
-                    return BACNET_STATUS_ERROR;
+                if (data) {
+#if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
+                    property_value =
+                        data->notificationParams.complexEventType.values;
+#endif
                 }
-                if (bacnet_is_closing_tag_number(
-                        &apdu[apdu_len], apdu_size - apdu_len,
-                        EVENT_COMPLEX_EVENT_TYPE, &len)) {
-                    apdu_len += len;
-                } else {
-                    return BACNET_STATUS_ERROR;
+                bacapp_property_value_list_init(
+                    property_value, BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS);
+                while (apdu_len < apdu_size) {
+                    len = bacapp_property_value_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, property_value);
+                    if (len > 0) {
+                        apdu_len += len;
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                    /* end of list? */
+                    if (bacnet_is_closing_tag_number(
+                            &apdu[apdu_len], apdu_size - apdu_len,
+                            EVENT_COMPLEX_EVENT_TYPE, &len)) {
+                        apdu_len += len;
+                        if (property_value) {
+                            /* mark the end of the list */
+                            property_value->next = NULL;
+                        }
+                        break;
+                    }
+                    /* is there another slot in the data store? */
+                    if (property_value) {
+                        property_value = property_value->next;
+                    }
                 }
             } else {
                 return BACNET_STATUS_ERROR;
@@ -2158,12 +2159,12 @@ int event_notify_decode_service_request(
             } else {
                 return BACNET_STATUS_ERROR;
             }
-            if (bacnet_is_closing_tag_number(
-                    &apdu[apdu_len], apdu_size - apdu_len, 12, &len)) {
-                apdu_len += len;
-            } else {
-                return BACNET_STATUS_ERROR;
-            }
+        }
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 12, &len)) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     }
 
