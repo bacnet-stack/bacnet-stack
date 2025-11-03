@@ -223,6 +223,18 @@ typedef struct BACnet_Object_Property_Value {
     BACNET_APPLICATION_DATA_VALUE *value;
 } BACNET_OBJECT_PROPERTY_VALUE;
 
+struct BACnetDeviceObjectPropertyValue;
+typedef struct BACnetDeviceObjectPropertyValue {
+    BACNET_OBJECT_ID device_identifier;
+    BACNET_OBJECT_ID object_identifier;
+    BACNET_PROPERTY_ID property_identifier;
+    /* optional array index */
+    BACNET_ARRAY_INDEX property_array_index;
+    BACNET_APPLICATION_DATA_VALUE *value;
+    /* simple linked list */
+    struct BACnetDeviceObjectPropertyValue *next;
+} BACNET_DEVICE_OBJECT_PROPERTY_VALUE;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -249,6 +261,23 @@ int bacapp_object_property_value_decode(
     uint32_t apdu_size,
     BACNET_PROPERTY_VALUE *value,
     BACNET_OBJECT_TYPE object_type);
+
+BACNET_STACK_EXPORT
+int bacapp_device_object_property_value_encode(
+    uint8_t *apdu, const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+int bacapp_device_object_property_value_decode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+bool bacapp_device_object_property_value_same(
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value1,
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value2);
+BACNET_STACK_EXPORT
+void bacapp_device_object_property_value_copy(
+    BACNET_DEVICE_OBJECT_PROPERTY_VALUE *dest,
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *src);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_data(

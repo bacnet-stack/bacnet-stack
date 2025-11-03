@@ -693,7 +693,40 @@ static void testEventEventState(void)
             &data.notificationParams.unsignedRange.statusFlags,
             &data2.notificationParams.unsignedRange.statusFlags),
         NULL);
-
+    /*
+     ** Event Type = EVENT_EXTENDED
+     */
+    data.eventType = EVENT_EXTENDED;
+    data.notificationParams.extended.vendorID = 1234;
+    data.notificationParams.extended.extendedEventType = 4321;
+    data.notificationParams.extended.parameters.tag =
+        BACNET_APPLICATION_TAG_REAL;
+    data.notificationParams.extended.parameters.type.Real = 1.0f;
+    memset(apdu, 0, MAX_APDU);
+    null_len = event_notify_encode_service_request(NULL, &data);
+    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
+    zassert_equal(
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    verifyBaseEventState();
+    zassert_equal(
+        data.notificationParams.extended.vendorID,
+        data2.notificationParams.extended.vendorID, NULL);
+    zassert_equal(
+        data.notificationParams.extended.extendedEventType,
+        data2.notificationParams.extended.extendedEventType, NULL);
+    zassert_equal(
+        data.notificationParams.extended.parameters.tag,
+        data2.notificationParams.extended.parameters.tag, NULL);
+    zassert_false(
+        islessgreater(
+            data.notificationParams.extended.parameters.type.Real,
+            data2.notificationParams.extended.parameters.type.Real),
+        NULL);
     /*
      ** Event Type = EVENT_BUFFER_READY
      */
@@ -1086,6 +1119,10 @@ static void testEventEventState(void)
             &data.notificationParams.signedOutOfRange.statusFlags,
             &data2.notificationParams.signedOutOfRange.statusFlags),
         NULL);
+    /*
+    ** EVENT_CHANGE_OF_CHARACTERSTRING
+    */
+
     /*
      ** Event Type = EVENT_UNSIGNED_OUT_OF_RANGE
      */

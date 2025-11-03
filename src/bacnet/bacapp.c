@@ -5500,3 +5500,229 @@ bool bacapp_same_value(
     }
     return status;
 }
+
+/**
+ * @brief Encode a BACnetDeviceObjectPropertyValue into a buffer
+ *  BACnetDeviceObjectPropertyValue ::= SEQUENCE {
+ *      device-identifier [0] BACnetObjectIdentifier,
+ *      object-identifier [1] BACnetObjectIdentifier,
+ *      property-identifier [2] BACnetPropertyIdentifier,
+ *      property-array-index [3] Unsigned OPTIONAL,
+ *      -- used only with array datatype
+ *      property-value [4] ABSTRACT-SYNTAX.&Type
+ *  }
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param value - BACnetDeviceObjectPropertyValue
+ * @return length of the APDU buffer
+ */
+int bacapp_device_object_property_value_encode(
+    uint8_t *apdu, const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!value) {
+        return 0;
+    }
+    len = encode_context_object_id(
+        apdu, 0, value->device_identifier.type,
+        value->device_identifier.instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_object_id(
+        apdu, 1, value->object_identifier.type,
+        value->object_identifier.instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(apdu, 2, value->property_identifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if (value->property_array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 3, value->property_array_index);
+        apdu_len += len;
+    }
+    len = encode_opening_tag(apdu, 4);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = bacapp_encode_application_data(apdu, value->value);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, 4);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a BACnetDeviceObjectPropertyValue from a buffer
+ *  BACnetDeviceObjectPropertyValue ::= SEQUENCE {
+ *      device-identifier [0] BACnetObjectIdentifier,
+ *      object-identifier [1] BACnetObjectIdentifier,
+ *      property-identifier [2] BACnetPropertyIdentifier,
+ *      property-array-index [3] Unsigned OPTIONAL,
+ *      -- used only with array datatype
+ *      property-value [4] ABSTRACT-SYNTAX.&Type
+ *  }
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the size of the APDU buffer
+ * @param value - BACnetDeviceObjectPropertyValue to decode into
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ */
+int bacapp_device_object_property_value_decode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value)
+{
+    int apdu_len = 0;
+    int len = 0;
+    BACNET_UNSIGNED_INTEGER array_index = 0;
+    BACNET_OBJECT_TYPE object_type = 0;
+    uint32_t object_instance = 0;
+    uint32_t property_identifier = 0;
+    BACNET_APPLICATION_DATA_VALUE *property_value = NULL;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* device-identifier [0] BACnetObjectIdentifier */
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &object_type,
+        &object_instance);
+    if (len > 0) {
+        apdu_len += len;
+        if (value) {
+            value->device_identifier.type = object_type;
+            value->device_identifier.instance = object_instance;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* object-identifier [1] BACnetObjectIdentifier */
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &object_type,
+        &object_instance);
+    if (len > 0) {
+        apdu_len += len;
+        if (value) {
+            value->object_identifier.instance = object_instance;
+            value->object_identifier.type = object_type;
+        }
+    } else {
+        return len;
+    }
+    /* property-identifier [2] BACnetPropertyIdentifier */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &property_identifier);
+    if (len > 0) {
+        apdu_len += len;
+        if (value) {
+            value->property_identifier = property_identifier;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* property-array-index [3] Unsigned OPTIONAL */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 3, &array_index);
+    if (len > 0) {
+        apdu_len += len;
+        if (value) {
+            value->property_array_index = array_index;
+        }
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        /* OPTIONAL - skip apdu_len increment */
+        if (value) {
+            value->property_array_index = BACNET_ARRAY_ALL;
+        }
+    }
+    if (bacnet_is_opening_tag_number(apdu, apdu_size, 4, &len)) {
+        /* property-value [4] ABSTRACT-SYNTAX.&Type */
+        apdu_len += len;
+        if (value) {
+            property_value = value->value;
+        }
+        len = bacapp_decode_application_data(
+            &apdu[apdu_len], apdu_size - apdu_len, property_value);
+        if (len > 0) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+        if (bacnet_is_closing_tag_number(apdu, apdu_size, 4, &len)) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare the complex data of value1 and value2
+ * @param value1 - value 1 structure
+ * @param value2 - value 2 structure
+ * @return true if the values are the same
+ */
+bool bacapp_device_object_property_value_same(
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value1,
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value2)
+{
+    const BACNET_APPLICATION_DATA_VALUE *data_value1, *data_value2;
+    if (value1 && value2) {
+        if (!bacnet_object_id_same(
+                value1->device_identifier.type,
+                value1->device_identifier.instance,
+                value2->device_identifier.type,
+                value2->device_identifier.instance)) {
+            return false;
+        }
+        if (!bacnet_object_id_same(
+                value1->object_identifier.type,
+                value1->object_identifier.instance,
+                value2->object_identifier.type,
+                value2->object_identifier.instance)) {
+            return false;
+        }
+        if (value1->property_identifier != value2->property_identifier) {
+            return false;
+        }
+        if (value1->property_array_index != value2->property_array_index) {
+            return false;
+        }
+        data_value1 = value1->value;
+        data_value2 = value2->value;
+        if (!bacapp_same_value(data_value1, data_value2)) {
+            return false;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Copy the complex data of src to dest
+ * @param dest - destination structure
+ * @param src - source structure
+ */
+void bacapp_device_object_property_value_copy(
+    BACNET_DEVICE_OBJECT_PROPERTY_VALUE *dest,
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *src)
+{
+    if (dest && src) {
+        memcpy(dest, src, sizeof(BACNET_DEVICE_OBJECT_PROPERTY_VALUE));
+    }
+}

@@ -12,11 +12,12 @@
 #include "bacnet/npdu.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/authentication_factor.h"
+#include "bacnet/bacapp.h"
 
 /** @file event.c  Encode/Decode Event Notifications */
 
 /**
- * @brief Encode the unconfirmed COVNotification service request
+ * @brief Encode the unconfirmed EventNotification service request
  * @param apdu  Pointer to the buffer for encoding into
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded, or zero if unable to encode
@@ -47,7 +48,7 @@ int uevent_notify_encode_apdu(
 }
 
 /**
- * @brief Encode the confirmed COVNotification service request
+ * @brief Encode the ConfirmedEventNotification service request
  * @param apdu  Pointer to the buffer for encoding into
  * @param invoke_id  ID to invoke for notification
  * @param data  Pointer to the service data used for encoding values
@@ -83,7 +84,214 @@ int cevent_notify_encode_apdu(
 }
 
 /**
- * @brief Encode the COVNotification service request
+ * @brief Encode the EXTENDED event parameter
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode
+ */
+static int event_extended_parameter_encode(
+    uint8_t *apdu, const BACNET_EVENT_EXTENDED_PARAMETER *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    if (!value) {
+        return 0;
+    }
+    switch (value->tag) {
+        case BACNET_APPLICATION_TAG_NULL:
+            if (apdu) {
+                apdu[0] = value->tag;
+            }
+            apdu_len++;
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            apdu_len = encode_application_boolean(apdu, value->type.Boolean);
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            apdu_len =
+                encode_application_unsigned(apdu, value->type.Unsigned_Int);
+            break;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            apdu_len = encode_application_signed(apdu, value->type.Signed_Int);
+            break;
+        case BACNET_APPLICATION_TAG_REAL:
+            apdu_len = encode_application_real(apdu, value->type.Real);
+            break;
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            apdu_len = encode_application_double(apdu, value->type.Double);
+            break;
+        case BACNET_APPLICATION_TAG_OCTET_STRING:
+            apdu_len =
+                encode_application_octet_string(apdu, value->type.Octet_String);
+            break;
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            apdu_len = encode_application_character_string(
+                apdu, value->type.Character_String);
+            break;
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+            apdu_len =
+                encode_application_bitstring(apdu, value->type.Bit_String);
+            break;
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            apdu_len =
+                encode_application_enumerated(apdu, value->type.Enumerated);
+            break;
+        case BACNET_APPLICATION_TAG_DATE:
+            apdu_len = encode_application_date(apdu, &value->type.Date);
+            break;
+        case BACNET_APPLICATION_TAG_TIME:
+            apdu_len = encode_application_time(apdu, &value->type.Time);
+            break;
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            apdu_len = encode_application_object_id(
+                apdu, value->type.Object_Id.type,
+                value->type.Object_Id.instance);
+            break;
+        case BACNET_APPLICATION_TAG_PROPERTY_VALUE:
+            apdu_len =
+                bacapp_property_value_encode(apdu, value->type.Property_Value);
+            break;
+        default:
+            break;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a event_extended_parameter_encode from a buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the size of the APDU buffer
+ * @param value - BACnetDeviceObjectPropertyValue to decode into
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ */
+static int event_extended_parameter_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_EVENT_EXTENDED_PARAMETER *value)
+{
+    int len, apdu_len = 0;
+    BACNET_TAG tag = { 0 };
+
+    if (!value) {
+        return 0;
+    }
+    len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
+    if (len > 0) {
+        apdu_len += len;
+        if (tag.application) {
+            switch (tag.number) {
+                case BACNET_APPLICATION_TAG_NULL:
+                    /* nothing else to do */
+                    break;
+                case BACNET_APPLICATION_TAG_BOOLEAN:
+                    value->type.Boolean = decode_boolean(tag.len_value_type);
+                    break;
+                case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+                    len = bacnet_unsigned_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Unsigned_Int);
+                    break;
+                case BACNET_APPLICATION_TAG_SIGNED_INT:
+                    len = bacnet_signed_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Signed_Int);
+                    break;
+                case BACNET_APPLICATION_TAG_REAL:
+                    len = bacnet_real_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Real);
+                    break;
+                case BACNET_APPLICATION_TAG_DOUBLE:
+                    len = bacnet_double_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Double);
+                    break;
+                case BACNET_APPLICATION_TAG_OCTET_STRING:
+                    len = bacnet_octet_string_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, value->type.Octet_String);
+                    break;
+                case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+                    len = bacnet_character_string_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, value->type.Character_String);
+                    break;
+                case BACNET_APPLICATION_TAG_BIT_STRING:
+                    len = bacnet_bitstring_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, value->type.Bit_String);
+                    break;
+                case BACNET_APPLICATION_TAG_ENUMERATED:
+                    len = bacnet_enumerated_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Enumerated);
+                    break;
+                case BACNET_APPLICATION_TAG_DATE:
+                    len = bacnet_date_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Date);
+                    break;
+                case BACNET_APPLICATION_TAG_TIME:
+                    len = bacnet_time_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Time);
+                    break;
+                case BACNET_APPLICATION_TAG_OBJECT_ID:
+                    len = bacnet_object_id_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        tag.len_value_type, &value->type.Object_Id.type,
+                        &value->type.Object_Id.instance);
+                    break;
+                default:
+                    break;
+            }
+            if ((len == 0) && (tag.number != BACNET_APPLICATION_TAG_NULL) &&
+                (tag.number != BACNET_APPLICATION_TAG_BOOLEAN) &&
+                (tag.number != BACNET_APPLICATION_TAG_OCTET_STRING)) {
+                /* tags that have a valid zero length */
+                /* indicate that we were not able to decode the value */
+                value->tag = MAX_BACNET_APPLICATION_TAG;
+            } else {
+                value->tag = tag.number;
+                if (len >= 0) {
+                    apdu_len += len;
+                } else {
+                    apdu_len = BACNET_STATUS_ERROR;
+                }
+            }
+        } else if (tag.opening) {
+            switch (tag.number) {
+                case 0:
+                    len = bacapp_property_value_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len,
+                        value->type.Property_Value);
+                    if (len > 0) {
+                        apdu_len += len;
+                        value->tag = BACNET_APPLICATION_TAG_PROPERTY_VALUE;
+                        if (bacnet_is_closing_tag_number(
+                                &apdu[apdu_len], apdu_size - apdu_len,
+                                tag.number, &len)) {
+                            apdu_len += len;
+                        } else {
+                            apdu_len = BACNET_STATUS_ERROR;
+                        }
+                    } else {
+                        apdu_len = BACNET_STATUS_ERROR;
+                    }
+                    break;
+                default:
+                    value->tag = MAX_BACNET_APPLICATION_TAG;
+                    break;
+            }
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the EventNotification service request
  * @param apdu  Pointer to the buffer for encoding into
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded, or zero if unable to encode
@@ -747,7 +955,7 @@ int event_notify_encode_service_request(
 #endif
                 case EVENT_UNSIGNED_OUT_OF_RANGE:
                     /* unsigned-out-of-range[16] SEQUENCE */
-                    len = encode_opening_tag(apdu, 16);
+                    len = encode_opening_tag(apdu, EVENT_UNSIGNED_OUT_OF_RANGE);
                     apdu_len += len;
                     if (apdu) {
                         apdu += len;
@@ -787,25 +995,67 @@ int event_notify_encode_service_request(
                     if (apdu) {
                         apdu += len;
                     }
-                    len = encode_closing_tag(apdu, 16);
+                    len = encode_closing_tag(apdu, EVENT_UNSIGNED_OUT_OF_RANGE);
                     apdu_len += len;
                     if (apdu) {
                         apdu += len;
                     }
                     break;
                 case EVENT_NONE:
-                    len = encode_opening_tag(apdu, 20);
+                    len = encode_opening_tag(apdu, EVENT_NONE);
                     apdu_len += len;
                     if (apdu) {
                         apdu += len;
                     }
-                    len = encode_closing_tag(apdu, 20);
+                    len = encode_closing_tag(apdu, EVENT_NONE);
                     apdu_len += len;
                     if (apdu) {
                         apdu += len;
                     }
                     break;
                 case EVENT_EXTENDED:
+                    len = encode_opening_tag(apdu, EVENT_EXTENDED);
+                    apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
+                    /* vendor-id [0] Unsigned16 */
+                    len = encode_context_unsigned(
+                        apdu, 0, data->notificationParams.extended.vendorID);
+                    apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
+                    /* extended-event-type [1] Unsigned */
+                    len = encode_context_unsigned(
+                        apdu, 1,
+                        data->notificationParams.extended.extendedEventType);
+                    apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
+                    /* parameters [2] SEQUENCE OF CHOICE */
+                    len = encode_opening_tag(apdu, 2);
+                    apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
+                    len = event_extended_parameter_encode(
+                        apdu, &data->notificationParams.extended.parameters);
+                    apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
+                    len = encode_closing_tag(apdu, 2);
+                    apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
+                    len = encode_closing_tag(apdu, EVENT_EXTENDED);
+                    apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
                     break;
                 default:
                     if (data->eventType >= EVENT_PROPRIETARY_MIN &&
@@ -919,6 +1169,7 @@ int event_notify_decode_service_request(
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *dev_obj_prop_ref = NULL;
     BACNET_AUTHENTICATION_FACTOR *auth_factor = NULL;
     BACNET_PROPERTY_VALUE *property_value = NULL;
+    BACNET_EVENT_EXTENDED_PARAMETER *parameter_value = NULL;
     bool boolean_value = false;
     float real_value = 0.0f;
     double double_value = 0.0;
@@ -1558,7 +1809,6 @@ int event_notify_decode_service_request(
                     break;
                 case EVENT_EXTENDED:
                     /* extended [9] SEQUENCE */
-                    /* note: not stored in data structure */
                     /* vendor-id[0] Unsigned16 */
                     len = bacnet_unsigned_context_decode(
                         &apdu[apdu_len], apdu_size - apdu_len, 0,
@@ -1566,7 +1816,10 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (unsigned_value <= UINT16_MAX) {
-                            /* FIXME: store valid parameter */
+                            if (data) {
+                                data->notificationParams.extended.vendorID =
+                                    (uint16_t)unsigned_value;
+                            }
                         } else {
                             return BACNET_STATUS_ERROR;
                         }
@@ -1579,19 +1832,35 @@ int event_notify_decode_service_request(
                         &unsigned_value);
                     if (len > 0) {
                         apdu_len += len;
-                        /* FIXME: store valid parameter */
+                        data->notificationParams.extended.extendedEventType =
+                            unsigned_value;
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* parameters[2] SEQUENCE OF CHOICE */
                     if (bacnet_is_opening_tag_number(
-                            &apdu[apdu_len], apdu_size - apdu_len, 2, NULL)) {
-                        len = bacnet_enclosed_data_length(
-                            &apdu[apdu_len], apdu_size - apdu_len);
+                            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+                        apdu_len += len;
+                        if (data) {
+                            parameter_value =
+                                &data->notificationParams.extended.parameters;
+                        } else {
+                            parameter_value = NULL;
+                        }
+                        len = event_extended_parameter_decode(
+                            &apdu[apdu_len], apdu_size - apdu_len,
+                            parameter_value);
                         if (len < 0) {
                             return BACNET_STATUS_ERROR;
                         }
                         apdu_len += len;
+                        if (bacnet_is_closing_tag_number(
+                                &apdu[apdu_len], apdu_size - apdu_len, 2,
+                                &len)) {
+                            apdu_len += len;
+                        } else {
+                            return BACNET_STATUS_ERROR;
+                        }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }

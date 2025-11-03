@@ -46,6 +46,43 @@ typedef enum {
 #define BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS 5
 #endif
 
+typedef struct BACnetEventExtendedParameter {
+    uint8_t tag; /* application tag data type */
+    union {
+        /* NULL - not needed as it is encoded in the tag alone */
+        float Real;
+        bool Boolean;
+        BACNET_UNSIGNED_INTEGER Unsigned_Int;
+        int32_t Signed_Int;
+        double Double;
+        BACNET_OCTET_STRING *Octet_String;
+        BACNET_CHARACTER_STRING *Character_String;
+        BACNET_BIT_STRING *Bit_String;
+        uint32_t Enumerated;
+        BACNET_DATE Date;
+        BACNET_TIME Time;
+        BACNET_OBJECT_ID Object_Id;
+        BACNET_DATE_TIME Date_Time;
+        BACNET_PROPERTY_VALUE *Property_Value;
+    } type;
+} BACNET_EVENT_EXTENDED_PARAMETER;
+
+typedef struct BACnetEventDiscreteValue {
+    uint8_t tag; /* application tag data type */
+    union {
+        bool Boolean;
+        BACNET_UNSIGNED_INTEGER Unsigned_Int;
+        int32_t Signed_Int;
+        uint32_t Enumerated;
+        BACNET_CHARACTER_STRING *Character_String;
+        BACNET_OCTET_STRING *Octet_String;
+        BACNET_DATE Date;
+        BACNET_TIME Time;
+        BACNET_OBJECT_ID Object_Id;
+        BACNET_DATE_TIME Date_Time;
+    } type;
+} BACNET_EVENT_DISCRETE_VALUE;
+
 typedef struct BACnet_Event_Notification_Data {
     uint32_t processIdentifier;
     BACNET_OBJECT_ID initiatingObjectIdentifier;
@@ -133,11 +170,32 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
             BACNET_LIFE_SAFETY_OPERATION operationExpected;
         } changeOfLifeSafety;
-        /*
-         ** EVENT_EXTENDED
-         **
-         ** Not Supported!
-         */
+        /*  EVENT_EXTENDED
+            extended [9] SEQUENCE {
+                vendor-id [0] Unsigned16,
+                extended-event-type [1] Unsigned,
+                parameters [2] SEQUENCE OF CHOICE {
+                    null NULL,
+                    real REAL,
+                    unsigned Unsigned,
+                    boolean BOOLEAN,
+                    integer INTEGER,
+                    double Double,
+                    octetstring OCTET STRING,
+                    characterstring CharacterString,
+                    bitstring BIT STRING,
+                    enumerated ENUMERATED,
+                    date Date,
+                    time Time,
+                    objectidentifier BACnetObjectIdentifier,
+                    property-value [0] BACnetDeviceObjectPropertyValue
+                }
+            } */
+        struct {
+            uint16_t vendorID;
+            BACNET_UNSIGNED_INTEGER extendedEventType;
+            BACNET_EVENT_EXTENDED_PARAMETER parameters;
+        } extended;
         /*
          ** EVENT_BUFFER_READY
          */
@@ -210,13 +268,76 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_UNSIGNED_INTEGER deadband;
             BACNET_UNSIGNED_INTEGER exceededLimit;
         } unsignedOutOfRange;
-        /* FIXME: not implemented yet
-            EVENT_CHANGE_OF_CHARACTERSTRING
-            EVENT_CHANGE_OF_STATUS_FLAGS
-            EVENT_CHANGE_OF_RELIABILITY
-            EVENT_CHANGE_OF_DISCRETE_VALUE
-            EVENT_CHANGE_OF_TIMER
-        */
+        /*  EVENT_CHANGE_OF_CHARACTERSTRING
+            change-of-characterstring [17] SEQUENCE {
+                changed-value [0] CharacterString,
+                status-flags [1] BACnetStatusFlags,
+                alarm-value [2] CharacterString
+            } */
+        struct {
+            BACNET_CHARACTER_STRING *changedValue;
+            BACNET_BIT_STRING statusFlags;
+            BACNET_CHARACTER_STRING *alarmValue;
+        } changeOfCharacterstring;
+        /*  EVENT_CHANGE_OF_STATUS_FLAGS
+            change-of-status-flags [18] SEQUENCE {
+                present-value [0] ABSTRACT-SYNTAX.&Type OPTIONAL,
+                -- depends on referenced property
+                referenced-flags [1] BACnetStatusFlags
+            } */
+        struct {
+            uint8_t *presentValue;
+            uint16_t presentValueLength;
+            BACNET_BIT_STRING referencedFlags;
+        } changeOfStatusFlags;
+        /*  EVENT_CHANGE_OF_RELIABILITY
+            change-of-reliability [19] SEQUENCE {
+                reliability [0] BACnetReliability,
+                status-flags [1] BACnetStatusFlags,
+                property-values [2] SEQUENCE OF BACnetPropertyValue
+            } */
+        struct {
+            BACNET_RELIABILITY reliability;
+            BACNET_BIT_STRING statusFlags;
+            BACNET_PROPERTY_VALUE *propertyValues;
+        } changeOfReliability;
+        /*  EVENT_CHANGE_OF_DISCRETE_VALUE
+            change-of-discrete-value [21] SEQUENCE {
+                new-value [0] CHOICE {
+                    boolean BOOLEAN,
+                    unsigned Unsigned,
+                    integer INTEGER,
+                    enumerated ENUMERATED,
+                    characterstring CharacterString,
+                    octetstring OCTET STRING,
+                    date Date,
+                    time Time,
+                    objectidentifier BACnetObjectIdentifier,
+                    datetime [0] BACnetDateTime
+                },
+                status-flags [1] BACnetStatusFlags
+            }*/
+        struct {
+            BACNET_EVENT_DISCRETE_VALUE newValue;
+            BACNET_BIT_STRING statusFlags;
+        } changeOfDiscreteValue;
+        /*  EVENT_CHANGE_OF_TIMER
+            change-of-timer [22] SEQUENCE {
+                new-state [0] BACnetTimerState,
+                status-flags [1] BACnetStatusFlags,
+                update-time [2] BACnetDateTime,
+                last-state-change [3] BACnetTimerTransition OPTIONAL,
+                initial-timeout [4] Unsigned OPTIONAL,
+                expiration-time [5] BACnetDateTime OPTIONAL
+            } */
+        struct {
+            BACNET_TIMER_STATE newState;
+            BACNET_BIT_STRING statusFlags;
+            BACNET_DATE_TIME updateTime;
+            BACNET_TIMER_TRANSITION lastStateChange;
+            BACNET_UNSIGNED_INTEGER initialTimeout;
+            BACNET_DATE_TIME expirationTime;
+        } changeOfTimer;
         /*
          ** EVENT_NONE - tag only
          */
