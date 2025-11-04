@@ -7,6 +7,7 @@
  */
 #include <zephyr/ztest.h>
 #include <bacnet/event.h>
+#include <bacnet/bactext.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -119,8 +120,48 @@ static void testEventEventState(void)
 {
     uint8_t apdu[MAX_APDU];
     int apdu_len, test_len, null_len;
-    BACNET_CHARACTER_STRING messageText;
-    BACNET_CHARACTER_STRING messageText2;
+    BACNET_CHARACTER_STRING messageText = { 0 };
+    BACNET_CHARACTER_STRING messageText2 = { 0 };
+    BACNET_OCTET_STRING extended_ostring = { 0 };
+    BACNET_CHARACTER_STRING extended_cstring = { 0 };
+    BACNET_BIT_STRING extended_bstring = { 0 };
+    BACNET_PROPERTY_VALUE extended_pvalue = {
+        .next = NULL,
+        .priority = 1,
+        .propertyArrayIndex = BACNET_ARRAY_ALL,
+        .propertyIdentifier = PROP_PRESENT_VALUE,
+        .value = { .context_specific = false,
+                   .context_tag = 0,
+                   .next = NULL,
+                   .tag = BACNET_APPLICATION_TAG_REAL,
+                   .type.Real = 1.0f }
+    };
+    unsigned i;
+    BACNET_EVENT_EXTENDED_PARAMETER extended_parameters[] = {
+        { .tag = BACNET_APPLICATION_TAG_NULL, .type.Unsigned_Int = 0 },
+        { .tag = BACNET_APPLICATION_TAG_BOOLEAN, .type.Boolean = true },
+        { .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+          .type.Unsigned_Int = 1234 },
+        { .tag = BACNET_APPLICATION_TAG_SIGNED_INT, .type.Signed_Int = -1234 },
+        { .tag = BACNET_APPLICATION_TAG_REAL, .type.Real = 1.0f },
+        { .tag = BACNET_APPLICATION_TAG_DOUBLE, .type.Double = 1.0 },
+        { .tag = BACNET_APPLICATION_TAG_OCTET_STRING,
+          .type.Octet_String = &extended_ostring },
+        { .tag = BACNET_APPLICATION_TAG_CHARACTER_STRING,
+          .type.Character_String = &extended_cstring },
+        { .tag = BACNET_APPLICATION_TAG_BIT_STRING,
+          .type.Bit_String = &extended_bstring },
+        { .tag = BACNET_APPLICATION_TAG_ENUMERATED, .type.Enumerated = 1 },
+        { .tag = BACNET_APPLICATION_TAG_DATE,
+          .type.Date = { .day = 1, .month = 1, .year = 1945 } },
+        { .tag = BACNET_APPLICATION_TAG_TIME,
+          .type.Time = { .hour = 1, .min = 2, .sec = 3, .hundredths = 4 } },
+        { .tag = BACNET_APPLICATION_TAG_OBJECT_ID,
+          .type.Object_Id = { .instance = 100, .type = OBJECT_ANALOG_INPUT } },
+        { .tag = BACNET_APPLICATION_TAG_PROPERTY_VALUE,
+          .type.Property_Value = &extended_pvalue },
+        { .tag = MAX_BACNET_APPLICATION_TAG, .type.Unsigned_Int = 0 },
+    };
     uint8_t invoke_id = 2;
 
     characterstring_init_ansi(
@@ -699,34 +740,37 @@ static void testEventEventState(void)
     data.eventType = EVENT_EXTENDED;
     data.notificationParams.extended.vendorID = 1234;
     data.notificationParams.extended.extendedEventType = 4321;
-    data.notificationParams.extended.parameters.tag =
-        BACNET_APPLICATION_TAG_REAL;
-    data.notificationParams.extended.parameters.type.Real = 1.0f;
-    memset(apdu, 0, MAX_APDU);
-    null_len = event_notify_encode_service_request(NULL, &data);
-    apdu_len = event_notify_encode_service_request(&apdu[0], &data);
-    zassert_equal(
-        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
-    memset(&data2, 0, sizeof(data2));
-    data2.messageText = &messageText2;
-    test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
-    zassert_equal(
-        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
-    verifyBaseEventState();
-    zassert_equal(
-        data.notificationParams.extended.vendorID,
-        data2.notificationParams.extended.vendorID, NULL);
-    zassert_equal(
-        data.notificationParams.extended.extendedEventType,
-        data2.notificationParams.extended.extendedEventType, NULL);
-    zassert_equal(
-        data.notificationParams.extended.parameters.tag,
-        data2.notificationParams.extended.parameters.tag, NULL);
-    zassert_false(
-        islessgreater(
-            data.notificationParams.extended.parameters.type.Real,
-            data2.notificationParams.extended.parameters.type.Real),
-        NULL);
+    i = 0;
+    while (extended_parameters[i].tag != MAX_BACNET_APPLICATION_TAG) {
+        memcpy(
+            &data.notificationParams.extended.parameters,
+            &extended_parameters[i], sizeof(extended_parameters[i]));
+        memset(apdu, 0, MAX_APDU);
+        null_len = event_notify_encode_service_request(NULL, &data);
+        apdu_len = event_notify_encode_service_request(&apdu[0], &data);
+        zassert_equal(
+            apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+        memset(&data2, 0, sizeof(data2));
+        data2.messageText = &messageText2;
+        test_len =
+            event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
+        zassert_equal(
+            apdu_len, test_len, "tag=%s apdu_len=%d test_len=%d",
+            bactext_application_tag_name(
+                data.notificationParams.extended.parameters.tag),
+            apdu_len, test_len);
+        verifyBaseEventState();
+        zassert_equal(
+            data.notificationParams.extended.vendorID,
+            data2.notificationParams.extended.vendorID, NULL);
+        zassert_equal(
+            data.notificationParams.extended.extendedEventType,
+            data2.notificationParams.extended.extendedEventType, NULL);
+        zassert_equal(
+            data.notificationParams.extended.parameters.tag,
+            data2.notificationParams.extended.parameters.tag, NULL);
+        i++;
+    }
     /*
      ** Event Type = EVENT_BUFFER_READY
      */

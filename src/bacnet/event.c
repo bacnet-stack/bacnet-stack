@@ -148,8 +148,8 @@ static int event_extended_parameter_encode(
                 value->type.Object_Id.instance);
             break;
         case BACNET_APPLICATION_TAG_PROPERTY_VALUE:
-            apdu_len =
-                bacapp_property_value_encode(apdu, value->type.Property_Value);
+            apdu_len = bacapp_property_value_context_encode(
+                apdu, 0, value->type.Property_Value);
             break;
         default:
             break;
@@ -182,10 +182,11 @@ static int event_extended_parameter_decode(
         if (tag.application) {
             switch (tag.number) {
                 case BACNET_APPLICATION_TAG_NULL:
-                    /* nothing else to do */
+                    len = 0;
                     break;
                 case BACNET_APPLICATION_TAG_BOOLEAN:
                     value->type.Boolean = decode_boolean(tag.len_value_type);
+                    len = 0;
                     break;
                 case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                     len = bacnet_unsigned_decode(
@@ -244,6 +245,7 @@ static int event_extended_parameter_decode(
                         &value->type.Object_Id.instance);
                     break;
                 default:
+                    len = 0;
                     break;
             }
             if ((len == 0) && (tag.number != BACNET_APPLICATION_TAG_NULL) &&
