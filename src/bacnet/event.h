@@ -286,7 +286,7 @@ typedef struct BACnet_Event_Notification_Data {
                 referenced-flags [1] BACnetStatusFlags
             } */
         struct {
-            uint8_t *presentValue;
+            const uint8_t *presentValue;
             uint16_t presentValueLength;
             BACNET_BIT_STRING referencedFlags;
         } changeOfStatusFlags;
