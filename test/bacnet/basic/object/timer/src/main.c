@@ -35,6 +35,7 @@ static void test_Timer_Read_Write(void)
     unsigned index = 0;
     const char *sample_name = "Timer:0";
     char *sample_context = "context";
+    const char *sample_description = "Timer Description";
     const char *test_name = NULL;
     uint32_t test_instance = 0;
     bool status = false;
@@ -252,6 +253,10 @@ static void test_Timer_Read_Write(void)
     Timer_Context_Set(instance, sample_context);
     zassert_true(sample_context == Timer_Context_Get(instance), NULL);
     zassert_true(NULL == Timer_Context_Get(instance + 1), NULL);
+    /* description API */
+    status = Timer_Description_Set(instance, sample_description);
+    zassert_true(status, NULL);
+    zassert_equal(sample_description, Timer_Description_ANSI(instance), NULL);
     /* cleanup */
     status = Timer_Delete(instance);
     zassert_true(status, NULL);
