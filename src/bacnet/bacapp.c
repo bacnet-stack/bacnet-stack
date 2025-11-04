@@ -4950,6 +4950,35 @@ int bacapp_property_value_encode(
 }
 
 /**
+ * @brief Encode one BACnetPropertyValue value within context tags
+ * @param apdu Pointer to the buffer for encoded values, or NULL for length
+ * @param tag_number
+ * @param value Pointer to the service data used for encoding values
+ * @return Bytes encoded or zero on error.
+ */
+int bacapp_property_value_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_PROPERTY_VALUE *value)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    len = encode_opening_tag(apdu, tag_number);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = bacapp_property_value_encode(apdu, value);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, tag_number);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode one BACnetPropertyValue value
  *
  *  BACnetPropertyValue ::= SEQUENCE {

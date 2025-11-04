@@ -253,6 +253,9 @@ BACNET_STACK_EXPORT
 int bacapp_property_value_encode(
     uint8_t *apdu, const BACNET_PROPERTY_VALUE *value);
 BACNET_STACK_EXPORT
+int bacapp_property_value_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
 int bacapp_property_value_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_VALUE *value);
 BACNET_STACK_EXPORT
