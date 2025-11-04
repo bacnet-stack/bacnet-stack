@@ -34,10 +34,31 @@ typedef enum {
 ** Based on UnconfirmedEventNotification-Request
 */
 
-/** Enable decoding of complex-event-type property-values. If set to 0, the
- * values are decoded and discarded. */
+/** Enable decoding of certain large event parameters.
+ *  If set to 0, the values are decoded and discarded,
+ *  and the encoders are disabled. */
+#ifndef BACNET_EVENT_EXTENDED_ENABLED
+#define BACNET_EVENT_EXTENDED_ENABLED 0
+#endif
+
+#ifndef BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
+#define BACNET_EVENT_CHANGE_OF_CHARACTERSTRING 0
+#endif
+
+#ifndef BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED
+#define BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED 0
+#endif
+
+#ifndef BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
+#define BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED 0
+#endif
+
+#ifndef BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED
+#define BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED 0
+#endif
+
 #ifndef BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
-#define BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS 1
+#define BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS 0
 #endif
 
 /** Max complex-event-type property-values to decode. Events with more values
@@ -170,6 +191,7 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
             BACNET_LIFE_SAFETY_OPERATION operationExpected;
         } changeOfLifeSafety;
+#if (BACNET_EVENT_EXTENDED_ENABLED)
         /*  EVENT_EXTENDED
             extended [9] SEQUENCE {
                 vendor-id [0] Unsigned16,
@@ -196,6 +218,7 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_UNSIGNED_INTEGER extendedEventType;
             BACNET_EVENT_EXTENDED_PARAMETER parameters;
         } extended;
+#endif
         /*
          ** EVENT_BUFFER_READY
          */
@@ -268,6 +291,7 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_UNSIGNED_INTEGER deadband;
             BACNET_UNSIGNED_INTEGER exceededLimit;
         } unsignedOutOfRange;
+#if (BACNET_EVENT_CHANGE_OF_CHARACTERSTRING)
         /*  EVENT_CHANGE_OF_CHARACTERSTRING
             change-of-characterstring [17] SEQUENCE {
                 changed-value [0] CharacterString,
@@ -279,16 +303,22 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
             BACNET_CHARACTER_STRING *alarmValue;
         } changeOfCharacterstring;
+#endif
+#if (BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED)
         /*  EVENT_CHANGE_OF_STATUS_FLAGS
             change-of-status-flags [18] SEQUENCE {
                 present-value [0] ABSTRACT-SYNTAX.&Type OPTIONAL,
                 -- depends on referenced property
                 referenced-flags [1] BACnetStatusFlags
             } */
+        /* OPTIONAL - Set present-value.tag to
+           BACNET_APPLICATION_TAG_EMPTYLIST if not used */
         struct {
             BACNET_EVENT_EXTENDED_PARAMETER presentValue;
             BACNET_BIT_STRING referencedFlags;
         } changeOfStatusFlags;
+#endif
+#if (BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED)
         /*  EVENT_CHANGE_OF_RELIABILITY
             change-of-reliability [19] SEQUENCE {
                 reliability [0] BACnetReliability,
@@ -300,6 +330,8 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
             BACNET_PROPERTY_VALUE *propertyValues;
         } changeOfReliability;
+#endif
+#if (BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED)
         /*  EVENT_CHANGE_OF_DISCRETE_VALUE
             change-of-discrete-value [21] SEQUENCE {
                 new-value [0] CHOICE {
@@ -320,6 +352,7 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_EVENT_DISCRETE_VALUE newValue;
             BACNET_BIT_STRING statusFlags;
         } changeOfDiscreteValue;
+#endif
         /*  EVENT_CHANGE_OF_TIMER
             change-of-timer [22] SEQUENCE {
                 new-state [0] BACnetTimerState,
@@ -329,6 +362,10 @@ typedef struct BACnet_Event_Notification_Data {
                 initial-timeout [4] Unsigned OPTIONAL,
                 expiration-time [5] BACnetDateTime OPTIONAL
             } */
+        /* OPTIONAL - Set last-state-change to TIMER_TRANSITION_MAX
+           if not used. */
+        /* OPTIONAL - Set expiration-time to wildcards if not used. */
+        /* OPTIONAL - Set initial-timeout to 0 if not used. */
         struct {
             BACNET_TIMER_STATE newState;
             BACNET_BIT_STRING statusFlags;

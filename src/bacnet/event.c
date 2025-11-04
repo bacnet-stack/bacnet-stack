@@ -1176,6 +1176,7 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
                 case EVENT_CHANGE_OF_CHARACTERSTRING:
                     len = encode_opening_tag(
                         apdu, EVENT_CHANGE_OF_CHARACTERSTRING);
@@ -1217,6 +1218,8 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#endif
+#if BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED
                 case EVENT_CHANGE_OF_STATUS_FLAGS:
                     len =
                         encode_opening_tag(apdu, EVENT_CHANGE_OF_STATUS_FLAGS);
@@ -1263,6 +1266,8 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#endif
+#if BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
                 case EVENT_CHANGE_OF_RELIABILITY:
                     len = encode_opening_tag(apdu, EVENT_CHANGE_OF_RELIABILITY);
                     apdu_len += len;
@@ -1314,6 +1319,8 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#endif
+#if BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED
                 case EVENT_CHANGE_OF_DISCRETE_VALUE:
                     /* change-of-discrete-value [21] SEQUENCE */
                     len = encode_opening_tag(
@@ -1357,6 +1364,7 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#endif
                 case EVENT_CHANGE_OF_TIMER:
                     /* change-of-timer [22] SEQUENCE */
                     len = encode_opening_tag(apdu, EVENT_CHANGE_OF_TIMER);
@@ -1443,6 +1451,7 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#if BACNET_EVENT_EXTENDED_ENABLED
                 case EVENT_EXTENDED:
                     len = encode_opening_tag(apdu, EVENT_EXTENDED);
                     apdu_len += len;
@@ -1487,6 +1496,7 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#endif
                 default:
                     if (data->eventType >= EVENT_PROPRIETARY_MIN &&
                         data->eventType <= EVENT_PROPRIETARY_MAX) {
@@ -1496,7 +1506,7 @@ int event_notify_encode_service_request(
                         if (apdu) {
                             apdu += len;
                         }
-#if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
+#if BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
                         value =
                             data->notificationParams.complexEventType.values;
 #endif
@@ -1515,7 +1525,7 @@ int event_notify_encode_service_request(
                             apdu += len;
                         }
                     } else {
-                        /* FIXME: add an encoder for the event type */
+                        /* FIXME: add or enable an encoder for event type */
                         assert(0);
                     }
                     break;
@@ -1799,7 +1809,7 @@ int event_notify_decode_service_request(
                     EVENT_COMPLEX_EVENT_TYPE, &len)) {
                 apdu_len += len;
                 if (data) {
-#if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
+#if BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
                     property_value =
                         data->notificationParams.complexEventType.values;
 #endif
@@ -2248,10 +2258,12 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (unsigned_value <= UINT16_MAX) {
+#if BACNET_EVENT_EXTENDED_ENABLED
                             if (data) {
                                 data->notificationParams.extended.vendorID =
                                     (uint16_t)unsigned_value;
                             }
+#endif
                         } else {
                             return BACNET_STATUS_ERROR;
                         }
@@ -2264,8 +2276,12 @@ int event_notify_decode_service_request(
                         &unsigned_value);
                     if (len > 0) {
                         apdu_len += len;
-                        data->notificationParams.extended.extendedEventType =
-                            unsigned_value;
+                        if (data) {
+#if BACNET_EVENT_EXTENDED_ENABLED
+                            data->notificationParams.extended
+                                .extendedEventType = unsigned_value;
+#endif
+                        }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
@@ -2273,10 +2289,13 @@ int event_notify_decode_service_request(
                     if (bacnet_is_opening_tag_number(
                             &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
                         apdu_len += len;
+#if BACNET_EVENT_EXTENDED_ENABLED
                         if (data) {
                             parameter_value =
                                 &data->notificationParams.extended.parameters;
-                        } else {
+                        } else
+#endif
+                        {
                             parameter_value = NULL;
                         }
                         len = event_extended_parameter_decode(
@@ -2351,7 +2370,6 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     break;
-
                 case EVENT_UNSIGNED_RANGE:
                     /* unsigned-range[11] SEQUENCE*/
                     /* exceeding-value[0] Unsigned */
@@ -2675,10 +2693,13 @@ int event_notify_decode_service_request(
                 case EVENT_CHANGE_OF_CHARACTERSTRING:
                     /* change-of-characterstring [17] SEQUENCE */
                     /* changed-value[0] CharacterString */
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
                     if (data) {
                         cstring = data->notificationParams
                                       .changeOfCharacterstring.changedValue;
-                    } else {
+                    } else
+#endif
+                    {
                         cstring = NULL;
                     }
                     len = bacnet_character_string_context_decode(
@@ -2689,10 +2710,13 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags */
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
                     if (data) {
                         bstring = &data->notificationParams
                                        .changeOfCharacterstring.statusFlags;
-                    } else {
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
@@ -2703,10 +2727,13 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     /* alarm-value[2] CharacterString */
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
                     if (data) {
                         cstring = data->notificationParams
                                       .changeOfCharacterstring.alarmValue;
-                    } else {
+                    } else
+#endif
+                    {
                         cstring = NULL;
                     }
                     len = bacnet_character_string_context_decode(
@@ -2721,11 +2748,14 @@ int event_notify_decode_service_request(
                     /* change-of-status-flags[18] SEQUENCE */
                     /* present-value[0] ABSTRACT-SYNTAX.&Type OPTIONAL,
                         -- depends on referenced property */
+#if BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED
                     if (data) {
                         parameter_value =
                             &data->notificationParams.changeOfStatusFlags
                                  .presentValue;
-                    } else {
+                    } else
+#endif
+                    {
                         parameter_value = NULL;
                     }
                     if (bacnet_is_opening_tag_number(
@@ -2748,15 +2778,20 @@ int event_notify_decode_service_request(
                     } else {
                         /* OPTIONAL */
                         if (parameter_value) {
+#if BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED
                             parameter_value->tag =
                                 BACNET_APPLICATION_TAG_EMPTYLIST;
+#endif
                         }
                     }
                     /* referenced-flags[1] BACnetStatusFlags*/
+#if BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED
                     if (data) {
                         bstring = &data->notificationParams.changeOfStatusFlags
                                        .referencedFlags;
-                    } else {
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
@@ -2777,18 +2812,23 @@ int event_notify_decode_service_request(
                         if (enum_value > RELIABILITY_PROPRIETARY_MAX) {
                             enum_value = RELIABILITY_PROPRIETARY_MAX;
                         }
+#if BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
                         if (data) {
                             data->notificationParams.changeOfReliability
                                 .reliability = enum_value;
                         }
+#endif
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags */
+#if BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
                     if (data) {
                         bstring = &data->notificationParams.changeOfReliability
                                        .statusFlags;
-                    } else {
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
@@ -2799,11 +2839,14 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     /* property-values[2] SEQUENCE OF BACnetPropertyValue */
+#if BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
                     if (data) {
                         property_value =
                             data->notificationParams.changeOfReliability
                                 .propertyValues;
-                    } else {
+                    } else
+#endif
+                    {
                         property_value = NULL;
                     }
                     if (bacnet_is_opening_tag_number(
@@ -2823,16 +2866,20 @@ int event_notify_decode_service_request(
                                     &apdu[apdu_len], apdu_size - apdu_len, 2,
                                     &len)) {
                                 apdu_len += len;
+#if BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
                                 if (property_value) {
                                     /* mark the end of the list */
                                     property_value->next = NULL;
                                 }
+#endif
                                 break;
                             }
+#if BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
                             if (property_value) {
                                 /* load the next value store */
                                 property_value = property_value->next;
                             }
+#endif
                         }
                     }
                     break;
@@ -2849,11 +2896,14 @@ int event_notify_decode_service_request(
                     if (bacnet_is_opening_tag_number(
                             &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
                         apdu_len += len;
+#if BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED
                         if (data) {
                             discrete_value =
                                 &data->notificationParams.changeOfDiscreteValue
                                      .newValue;
-                        } else {
+                        } else
+#endif
+                        {
                             discrete_value = NULL;
                         }
                         len = event_discrete_value_decode(
@@ -2874,10 +2924,13 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags*/
+#if BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED
                     if (data) {
                         bstring = &data->notificationParams
                                        .changeOfDiscreteValue.statusFlags;
-                    } else {
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
