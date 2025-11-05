@@ -158,6 +158,7 @@ static int event_extended_parameter_encode(
 
     return apdu_len;
 }
+#endif
 
 /**
  * @brief Decode the EXTENDED event parameter from a buffer
