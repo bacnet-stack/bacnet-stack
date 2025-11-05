@@ -227,6 +227,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/reject.c
     ${LIBRARY_BACNET_CORE}/rp.c
     ${LIBRARY_BACNET_CORE}/rpm.c
+    ${LIBRARY_BACNET_CORE}/timer_value.c
     ${LIBRARY_BACNET_CORE}/timestamp.c
     ${LIBRARY_BACNET_CORE}/timesync.c
     ${LIBRARY_BACNET_CORE}/weeklyschedule.c

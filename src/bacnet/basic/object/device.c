@@ -58,6 +58,7 @@
 #include "bacnet/basic/object/osv.h"
 #include "bacnet/basic/object/piv.h"
 #include "bacnet/basic/object/time_value.h"
+#include "bacnet/basic/object/timer.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/lo.h"
 #include "bacnet/basic/object/blo.h"
@@ -207,6 +208,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_TIMER, Timer_Init, Timer_Count,
+        Timer_Index_To_Instance, Timer_Valid_Instance,
+        Timer_Object_Name, Timer_Read_Property,
+        Timer_Write_Property, Timer_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        Timer_Add_List_Element, Timer_Remove_List_Element,
+        Timer_Create, Timer_Delete, Timer_Task },
     { OBJECT_INTEGER_VALUE, Integer_Value_Init, Integer_Value_Count,
         Integer_Value_Index_To_Instance, Integer_Value_Valid_Instance,
         Integer_Value_Object_Name, Integer_Value_Read_Property,

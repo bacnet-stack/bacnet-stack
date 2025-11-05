@@ -1216,6 +1216,9 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     struct special_property_list_t property_list;
 #endif
 
+    if (!rpdata) {
+        return 0;
+    }
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;

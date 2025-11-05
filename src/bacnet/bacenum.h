@@ -1687,7 +1687,13 @@ typedef enum {
     /* BACnetLogRecord */
     BACNET_APPLICATION_TAG_LOG_RECORD,
     /* BACnetPropertyValue */
-    BACNET_APPLICATION_TAG_PROPERTY_VALUE
+    BACNET_APPLICATION_TAG_PROPERTY_VALUE,
+    /* BACnetTimerStateChangeValue */
+    BACNET_APPLICATION_TAG_TIMER_VALUE,
+    /* no-value - context tagged null */
+    BACNET_APPLICATION_TAG_NO_VALUE,
+    /* ABSTRACT-SYNTAX - constructed value */
+    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */

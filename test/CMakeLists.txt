@@ -116,6 +116,7 @@ list(APPEND testdirs
   bacnet/rpm
   bacnet/secure_connect
   bacnet/specialevent
+  bacnet/timer_value
   bacnet/timestamp
   bacnet/timesync
   bacnet/weeklyschedule
@@ -177,6 +178,7 @@ list(APPEND testdirs
   bacnet/basic/object/schedule
   bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
+  bacnet/basic/object/timer
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic

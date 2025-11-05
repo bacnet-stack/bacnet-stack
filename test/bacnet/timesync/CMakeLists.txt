@@ -54,6 +54,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/bactimevalue.c

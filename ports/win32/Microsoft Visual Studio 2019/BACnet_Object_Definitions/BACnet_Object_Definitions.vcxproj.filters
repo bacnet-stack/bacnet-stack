@@ -75,6 +75,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\timer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c">
       <Filter>Source Files</Filter>
     </ClCompile>

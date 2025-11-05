@@ -201,6 +201,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\rpm.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\timer_value.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
@@ -625,6 +628,9 @@
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\timer.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whoami.c">
@@ -1269,6 +1275,9 @@
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\time_value.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\timer.h">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whoami.h">

@@ -227,7 +227,9 @@ int bacnet_object_property_read_test(
             apdu_len = read_len;
             len =
                 bacnet_unsigned_application_decode(apdu, apdu_len, &array_size);
-            zassert_true(len > 0, NULL);
+            zassert_true(
+                len > 0, "property '%s' array_index=0\n",
+                bactext_property_name(rpdata->object_property));
             zassert_true(
                 len == read_len, "property '%s' array_index=0.\n",
                 bactext_property_name(rpdata->object_property));
@@ -243,6 +245,19 @@ int bacnet_object_property_read_test(
                 }
             }
         }
+        /* test an array index that is likely out of range */
+        rpdata->array_index = BACNET_ARRAY_ALL - 1;
+        read_len = read_property(rpdata);
+        zassert_equal(
+            read_len, BACNET_STATUS_ERROR,
+            "property '%s' array_index=%u: error code is %s.\n",
+            bactext_property_name(rpdata->object_property), rpdata->array_index,
+            bactext_error_code_name(rpdata->error_code));
+        zassert_equal(
+            rpdata->error_code, ERROR_CODE_INVALID_ARRAY_INDEX,
+            "property '%s' array_index=%u: error code is %s.\n",
+            bactext_property_name(rpdata->object_property), rpdata->array_index,
+            bactext_error_code_name(rpdata->error_code));
     }
 
     return len;
@@ -278,6 +293,9 @@ void bacnet_object_properties_read_write_test(
     bool commandable = false;
     bool status = false;
 
+    /* negative test */
+    len = read_property(NULL);
+    zassert_equal(len, 0, NULL);
     /* ReadProperty parameters */
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);

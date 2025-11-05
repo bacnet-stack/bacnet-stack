@@ -54,7 +54,6 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
-    ${SRC_DIR}/bacnet/timestamp.c
     # Dependencies of bacapp.c
     ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/bacaction.c
@@ -64,6 +63,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bactimevalue.c
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/calendar_entry.c
