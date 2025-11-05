@@ -5212,7 +5212,6 @@ BACNET_ERROR_CODE bacnet_list_write(
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     size_t apdu_len;
     BACNET_ARRAY_INDEX count = 0;
-    BACNET_UNSIGNED_INTEGER unsigned_value;
 
     if (array_index == BACNET_ARRAY_ALL) {
         /* verify all elements will fit in the BACnetLIST */
