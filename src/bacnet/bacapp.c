@@ -37,6 +37,7 @@
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
+#include "bacnet/timer_value.h"
 #include "bacnet/basic/sys/platform.h"
 
 #if defined(BACAPP_SCALE)
@@ -526,6 +527,18 @@ int bacapp_encode_application_data(
                 /* BACnetChannelValue */
                 apdu_len = bacnet_channel_value_type_encode(
                     apdu, &value->type.Channel_Value);
+                break;
+#endif
+#if defined(BACAPP_TIMER_VALUE)
+            case BACNET_APPLICATION_TAG_TIMER_VALUE:
+                /* BACnetTimerStateChangeValue */
+                apdu_len = bacnet_timer_value_type_encode(
+                    apdu, &value->type.Timer_Value);
+                break;
+#endif
+#if defined(BACAPP_NO_VALUE)
+            case BACNET_APPLICATION_TAG_NO_VALUE:
+                apdu_len = bacnet_timer_value_no_value_encode(apdu);
                 break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
@@ -1347,7 +1360,8 @@ int bacapp_known_property_tag(
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
             return BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS;
-
+        case PROP_STATE_CHANGE_VALUES:
+            return BACNET_APPLICATION_TAG_TIMER_VALUE;
         default:
             return -1;
     }
@@ -1658,6 +1672,13 @@ int bacapp_decode_application_tag_value(
             /* BACnetChannelValue */
             apdu_len = bacnet_channel_value_decode(
                 apdu, apdu_size, &value->type.Channel_Value);
+            break;
+#endif
+#if defined(BACAPP_TIMER_VALUE)
+        case BACNET_APPLICATION_TAG_TIMER_VALUE:
+            /* BACnetTimerStateChangeValue */
+            apdu_len = bacnet_timer_value_decode(
+                apdu, apdu_size, &value->type.Timer_Value);
             break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
@@ -2439,6 +2460,22 @@ static int bacapp_snprintf_enumerated(
         case PROP_PROTOCOL_LEVEL:
             ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_protocol_level_name(value));
+            break;
+        case PROP_EVENT_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_event_type_name(value));
+            break;
+        case PROP_NOTIFY_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_notify_type_name(value));
+            break;
+        case PROP_TIMER_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_timer_state_name(value));
+            break;
+        case PROP_LAST_STATE_CHANGE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_timer_transition_name(value));
             break;
         default:
             ret_val =
@@ -3981,6 +4018,17 @@ int bacapp_snprintf_value(
                     str, str_len, &value->type.Channel_Value);
                 break;
 #endif
+#if defined(BACAPP_TIMER_VALUE)
+            case BACNET_APPLICATION_TAG_TIMER_VALUE:
+                ret_val = bacnet_timer_value_to_ascii(
+                    &value->type.Timer_Value, str, str_len);
+                break;
+#endif
+#if defined(BACAPP_NO_VALUE)
+            case BACNET_APPLICATION_TAG_NO_VALUE:
+                ret_val = bacnet_timer_value_no_value_to_ascii(str, str_len);
+                break;
+#endif
 #if defined(BACAPP_LOG_RECORD)
             case BACNET_APPLICATION_TAG_LOG_RECORD:
                 ret_val = bacapp_snprintf_log_record(
@@ -4762,13 +4810,26 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_ACCESS_RULE)
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
-                bacnet_access_rule_from_ascii(&value->type.Access_Rule, argv);
+                status = bacnet_access_rule_from_ascii(
+                    &value->type.Access_Rule, argv);
                 break;
 #endif
 #if defined(BACAPP_CHANNEL_VALUE)
             case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
-                bacnet_channel_value_from_ascii(
+                status = bacnet_channel_value_from_ascii(
                     &value->type.Channel_Value, argv);
+                break;
+#endif
+#if defined(BACAPP_TIMER_VALUE)
+            case BACNET_APPLICATION_TAG_TIMER_VALUE:
+                status = bacnet_timer_value_from_ascii(
+                    &value->type.Timer_Value, argv);
+                break;
+#endif
+#if defined(BACAPP_NO_VALUE)
+            case BACNET_APPLICATION_TAG_NO_VALUE:
+                status =
+                    bacnet_timer_value_no_value_from_ascii(&value->tag, argv);
                 break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
@@ -5482,6 +5543,19 @@ bool bacapp_same_value(
                 status = bacnet_channel_value_same(
                     &value->type.Channel_Value,
                     &test_value->type.Channel_Value);
+                break;
+#endif
+#if defined(BACAPP_TIMER_VALUE)
+            case BACNET_APPLICATION_TAG_TIMER_VALUE:
+                status = bacnet_timer_value_same(
+                    &value->type.Timer_Value, &test_value->type.Timer_Value);
+                break;
+#endif
+#if defined(BACAPP_NO_VALUE)
+            case BACNET_APPLICATION_TAG_NO_VALUE:
+                if (value->tag == test_value->tag) {
+                    status = true;
+                }
                 break;
 #endif
 #if defined(BACAPP_LOG_RECORD)

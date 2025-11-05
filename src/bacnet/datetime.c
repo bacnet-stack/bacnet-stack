@@ -613,13 +613,12 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
     uint32_t bdatetime_days = 0;
     int32_t days = 0;
 
-    /* convert bdatetime to seconds and days */
+    /* convert bdatetime to minutes and days */
     bdatetime_minutes =
         datetime_hms_to_seconds_since_midnight(
             bdatetime->time.hour, bdatetime->time.min, bdatetime->time.sec) /
         60;
     bdatetime_days = datetime_days_since_epoch(&bdatetime->date);
-
     /* more minutes than in a day? */
     days = minutes / (24 * 60);
     bdatetime_days += days;
@@ -645,12 +644,84 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
         bdatetime_days += days;
         bdatetime_minutes -= (days * 24 * 60);
     }
-
-    /* convert bdatetime from seconds and days */
+    /* convert bdatetime from minutes and days */
     datetime_hms_from_seconds_since_midnight(
         bdatetime_minutes * 60, &bdatetime->time.hour, &bdatetime->time.min,
         NULL);
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
+}
+
+/**
+ * @brief Add or subtract seconds to a BACnet DateTime structure
+ * @param bdatetime [in] the starting date and time
+ * @param seconds [in] number of seconds to add or subtract from the time
+ */
+void datetime_add_seconds(BACNET_DATE_TIME *bdatetime, int32_t seconds)
+{
+    uint32_t bdatetime_seconds = 0;
+    uint32_t bdatetime_days = 0;
+    int32_t days = 0;
+
+    /* convert bdatetime to seconds and days */
+    bdatetime_seconds = datetime_hms_to_seconds_since_midnight(
+        bdatetime->time.hour, bdatetime->time.min, bdatetime->time.sec);
+    bdatetime_days = datetime_days_since_epoch(&bdatetime->date);
+    /* more minutes than in a day? */
+    days = seconds / (24 * 60 * 60);
+    bdatetime_days += days;
+    seconds -= (days * 24 * 60 * 60);
+    /* less seconds - previous day? */
+    if (seconds < 0) {
+        /* convert to positive for easier math */
+        seconds *= -1;
+        if ((uint32_t)seconds > bdatetime_seconds) {
+            /* previous day */
+            bdatetime_days -= 1;
+            bdatetime_seconds += ((24 * 60 * 60) - seconds);
+        } else {
+            bdatetime_seconds -= seconds;
+            days = bdatetime_seconds / (24 * 60 * 60);
+            bdatetime_days += days;
+            bdatetime_seconds -= (days * 24 * 60 * 60);
+        }
+    } else {
+        /* more days than current datetime? */
+        bdatetime_seconds += seconds;
+        days = bdatetime_seconds / (24 * 60 * 60);
+        bdatetime_days += days;
+        bdatetime_seconds -= (days * 24 * 60 * 60);
+    }
+    /* convert bdatetime from seconds and days */
+    datetime_hms_from_seconds_since_midnight(
+        bdatetime_seconds, &bdatetime->time.hour, &bdatetime->time.min,
+        &bdatetime->time.sec);
+    datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
+}
+
+/**
+ * @brief Add milliseconds to a BACnet DateTime structure
+ * @param bdatetime [in] the starting date and time
+ * @param milliseconds [in] number of milliseconds to add to the date and time
+ */
+void datetime_add_milliseconds(
+    BACNET_DATE_TIME *bdatetime, int32_t milliseconds)
+{
+    uint32_t bdatetime_hundredths = 0;
+    int32_t hundredths = 0;
+    int32_t seconds = 0;
+
+    /* convert to seconds */
+    seconds = milliseconds / 1000;
+    hundredths = (milliseconds - (seconds * 1000)) / 10;
+    bdatetime_hundredths = bdatetime->time.hundredths;
+    bdatetime_hundredths += hundredths;
+    if (bdatetime_hundredths >= 100) {
+        /* adjust the seconds if hundredths overflow */
+        seconds++;
+        bdatetime_hundredths -= 100;
+    }
+    datetime_add_seconds(bdatetime, seconds);
+    bdatetime->time.hundredths = bdatetime_hundredths;
 }
 
 /**

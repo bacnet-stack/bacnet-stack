@@ -1683,7 +1683,13 @@ typedef enum {
     /* BACnetChannelValue */
     BACNET_APPLICATION_TAG_CHANNEL_VALUE,
     /* BACnetLogRecord */
-    BACNET_APPLICATION_TAG_LOG_RECORD
+    BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* BACnetTimerStateChangeValue */
+    BACNET_APPLICATION_TAG_TIMER_VALUE,
+    /* no-value - context tagged null */
+    BACNET_APPLICATION_TAG_NO_VALUE,
+    /* ABSTRACT-SYNTAX - constructed value */
+    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -2966,7 +2972,8 @@ typedef enum BACnetTimerTransition {
     TIMER_TRANSITION_RUNNING_TO_EXPIRED = 4,
     TIMER_TRANSITION_FORCED_TO_EXPIRED = 5,
     TIMER_TRANSITION_EXPIRED_TO_IDLE = 6,
-    TIMER_TRANSITION_EXPIRED_TO_RUNNING = 7
+    TIMER_TRANSITION_EXPIRED_TO_RUNNING = 7,
+    TIMER_TRANSITION_MAX = 8
 } BACNET_TIMER_TRANSITION;
 
 typedef enum BACnetEscalatorFault {

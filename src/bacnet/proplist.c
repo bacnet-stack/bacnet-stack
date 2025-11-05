@@ -408,7 +408,8 @@ const int *property_list_bacnet_array(void)
 bool property_list_bacnet_array_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
 {
-    /* exceptions where property is an BACnetARRAY only in specific objects */
+    /* exceptions where a property is an BACnetARRAY or a BACnetLIST
+       only in specific object types */
     switch (object_type) {
         case OBJECT_GLOBAL_GROUP:
             switch (object_property) {
@@ -459,6 +460,7 @@ static const int Properties_BACnetLIST[] = {
     PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
     PROP_ACTIVE_COV_MULTIPLE_SUBSCRIPTIONS,
     PROP_LIST_OF_GROUP_MEMBERS,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_ACCEPTED_MODES,
     PROP_LIFE_SAFETY_ALARM_VALUES,
     PROP_ALARM_VALUES,
@@ -524,11 +526,10 @@ bool property_list_bacnet_list_member(
                     break;
             }
             break;
-        case OBJECT_SCHEDULE:
-        case OBJECT_TIMER:
+        case OBJECT_CHANNEL:
             switch (object_property) {
                 case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-                    return true;
+                    return false;
                 default:
                     break;
             }

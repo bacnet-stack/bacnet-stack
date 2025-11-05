@@ -13,8 +13,6 @@
 #include "bacnet/datetime.h"
 #include "bacnet/timestamp.h"
 
-/** @file timestamp.c  Encode/Decode BACnet Timestamps  */
-
 /** Set the sequence number in a timestamp structure.
  *
  * @param dest  Pointer to the destination time stamp structure.

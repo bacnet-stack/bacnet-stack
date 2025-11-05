@@ -202,6 +202,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\timer.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c" />
   </ItemGroup>
   <ItemGroup>

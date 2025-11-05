@@ -412,6 +412,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/structured_view.h
   src/bacnet/basic/object/time_value.c
   src/bacnet/basic/object/time_value.h
+  src/bacnet/basic/object/timer.c
+  src/bacnet/basic/object/timer.h
   src/bacnet/basic/object/trendlog.c
   src/bacnet/basic/object/trendlog.h
   src/bacnet/basic/service/h_alarm_ack.c
@@ -663,6 +665,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/rp.h
   src/bacnet/rpm.c
   src/bacnet/rpm.h
+  src/bacnet/timer_value.c
+  src/bacnet/timer_value.h
   src/bacnet/timestamp.c
   src/bacnet/timestamp.h
   src/bacnet/timesync.c

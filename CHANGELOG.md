@@ -22,6 +22,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added a basic timer object type example. (#1123)
+* Added BACnetLIST utility for handling WriteProperty to a list. (#1123)
 * Added Device_Object_Functions() API to return basic object API table
   of functions for all objects. Added Device_Object_Functions_Find() API
   to enable override of basic object API function. (#1115)
