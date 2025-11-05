@@ -41,8 +41,20 @@ typedef enum {
 #define BACNET_EVENT_EXTENDED_ENABLED 0
 #endif
 
-#ifndef BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
-#define BACNET_EVENT_CHANGE_OF_CHARACTERSTRING 0
+#ifndef BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED
+#define BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED 0
+#endif
+
+#ifndef BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
+#define BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED 0
+#endif
+
+#ifndef BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED
+#define BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED 0
+#endif
+
+#ifndef BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED
+#define BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED 0
 #endif
 
 #ifndef BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED
@@ -252,7 +264,7 @@ typedef struct BACnet_Event_Notification_Data {
             /* OPTIONAL - Set authenticationFactor.format_type to
                AUTHENTICATION_FACTOR_MAX if not being used */
         } accessEvent;
-#if BACNET_USE_DOUBLE
+#if BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED
         /*  EVENT_DOUBLE_OUT_OF_RANGE
             double-out-of-range[14] SEQUENCE {
                 exceeding-value[0] Double,
@@ -267,7 +279,7 @@ typedef struct BACnet_Event_Notification_Data {
             double exceededLimit;
         } doubleOutOfRange;
 #endif
-#if BACNET_USE_SIGNED
+#if BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
         /*  EVENT_SIGNED_OUT_OF_RANGE
             signed-out-of-range[14] SEQUENCE {
                 exceeding-value[0] Integer,
@@ -282,6 +294,7 @@ typedef struct BACnet_Event_Notification_Data {
             int32_t exceededLimit;
         } signedOutOfRange;
 #endif
+#if BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED
         /*  EVENT_UNSIGNED_OUT_OF_RANGE
             unsigned-out-of-range[14] SEQUENCE {
                 exceeding-value[0] Unsigned,
@@ -295,7 +308,8 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_UNSIGNED_INTEGER deadband;
             BACNET_UNSIGNED_INTEGER exceededLimit;
         } unsignedOutOfRange;
-#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
+#endif
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED
         /*  EVENT_CHANGE_OF_CHARACTERSTRING
             change-of-characterstring [17] SEQUENCE {
                 changed-value [0] CharacterString,

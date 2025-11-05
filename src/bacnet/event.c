@@ -1030,7 +1030,7 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
-#if BACNET_USE_DOUBLE
+#if BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED
                 case EVENT_DOUBLE_OUT_OF_RANGE:
                     /* double-out-of-range[14] SEQUENCE */
                     len = encode_opening_tag(apdu, 14);
@@ -1079,7 +1079,7 @@ int event_notify_encode_service_request(
                     }
                     break;
 #endif
-#if BACNET_USE_SIGNED
+#if BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
                 case EVENT_SIGNED_OUT_OF_RANGE:
                     /* signed-out-of-range[15] SEQUENCE */
                     len = encode_opening_tag(apdu, 15);
@@ -1128,6 +1128,7 @@ int event_notify_encode_service_request(
                     }
                     break;
 #endif
+#if BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED
                 case EVENT_UNSIGNED_OUT_OF_RANGE:
                     /* unsigned-out-of-range[16] SEQUENCE */
                     len = encode_opening_tag(apdu, EVENT_UNSIGNED_OUT_OF_RANGE);
@@ -1176,7 +1177,8 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
-#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
+#endif
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED
                 case EVENT_CHANGE_OF_CHARACTERSTRING:
                     len = encode_opening_tag(
                         apdu, EVENT_CHANGE_OF_CHARACTERSTRING);
@@ -2520,7 +2522,6 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     break;
-#if BACNET_USE_DOUBLE
                 case EVENT_DOUBLE_OUT_OF_RANGE:
                     /* double-out-of-range[14] SEQUENCE */
                     /* exceeding-value[0] Double */
@@ -2530,17 +2531,23 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED
                             data->notificationParams.doubleOutOfRange
                                 .exceedingValue = double_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags */
+#if BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED
                     if (data) {
                         bstring = &data->notificationParams.doubleOutOfRange
                                        .statusFlags;
-                    } else {
+
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
@@ -2557,8 +2564,10 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED
                             data->notificationParams.doubleOutOfRange.deadband =
                                 double_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
@@ -2570,15 +2579,15 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED
                             data->notificationParams.doubleOutOfRange
                                 .exceededLimit = double_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     break;
-#endif
-#if BACNET_USE_SIGNED
                 case EVENT_SIGNED_OUT_OF_RANGE:
                     /* signed-out-of-range[15] SEQUENCE */
                     /* exceeding-value[0] Integer */
@@ -2588,17 +2597,22 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
                             data->notificationParams.signedOutOfRange
                                 .exceedingValue = signed_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags */
+#if BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
                     if (data) {
                         bstring = &data->notificationParams.signedOutOfRange
                                        .statusFlags;
-                    } else {
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
@@ -2615,8 +2629,10 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
                             data->notificationParams.signedOutOfRange.deadband =
                                 unsigned_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
@@ -2628,14 +2644,15 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
                             data->notificationParams.signedOutOfRange
                                 .exceededLimit = signed_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     break;
-#endif
                 case EVENT_UNSIGNED_OUT_OF_RANGE:
                     /* unsigned-out-of-range[16] SEQUENCE */
                     /* exceeding-value[0] Unsigned */
@@ -2645,17 +2662,22 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED
                             data->notificationParams.unsignedOutOfRange
                                 .exceedingValue = unsigned_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags */
+#if BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED
                     if (data) {
                         bstring = &data->notificationParams.unsignedOutOfRange
                                        .statusFlags;
-                    } else {
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
@@ -2672,8 +2694,10 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED
                             data->notificationParams.unsignedOutOfRange
                                 .deadband = unsigned_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
@@ -2685,8 +2709,10 @@ int event_notify_decode_service_request(
                     if (len > 0) {
                         apdu_len += len;
                         if (data) {
+#if BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED
                             data->notificationParams.unsignedOutOfRange
                                 .exceededLimit = unsigned_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
@@ -2695,7 +2721,7 @@ int event_notify_decode_service_request(
                 case EVENT_CHANGE_OF_CHARACTERSTRING:
                     /* change-of-characterstring [17] SEQUENCE */
                     /* changed-value[0] CharacterString */
-#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED
                     if (data) {
                         cstring = data->notificationParams
                                       .changeOfCharacterstring.changedValue;
@@ -2712,7 +2738,7 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags */
-#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED
                     if (data) {
                         bstring = &data->notificationParams
                                        .changeOfCharacterstring.statusFlags;
@@ -2729,7 +2755,7 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     /* alarm-value[2] CharacterString */
-#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING
+#if BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED
                     if (data) {
                         cstring = data->notificationParams
                                       .changeOfCharacterstring.alarmValue;

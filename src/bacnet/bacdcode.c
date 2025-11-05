@@ -3459,7 +3459,7 @@ int encode_context_enumerated(uint8_t *apdu, uint8_t tag_number, uint32_t value)
     return apdu_len;
 }
 
-#if BACNET_USE_SIGNED
+#if BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED
 /**
  * @brief Decode the BACnet Signed Integer Value when application encoded
  * as defined in clause 20.2.5 Encoding of a Signed Integer Value
