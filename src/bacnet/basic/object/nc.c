@@ -802,16 +802,6 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     if (!list_element) {
         return BACNET_STATUS_ABORT;
     }
-    if (list_element->object_property != PROP_RECIPIENT_LIST) {
-        list_element->error_class = ERROR_CLASS_SERVICES;
-        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
-        return BACNET_STATUS_ERROR;
-    }
-    if (list_element->array_index != BACNET_ARRAY_ALL) {
-        list_element->error_class = ERROR_CLASS_PROPERTY;
-        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return BACNET_STATUS_ERROR;
-    }
     notify_index =
         Notification_Class_Instance_To_Index(list_element->object_instance);
     if (notify_index < MAX_NOTIFICATION_CLASSES) {
@@ -961,16 +951,6 @@ int Notification_Class_Remove_List_Element(
 
     if (!list_element) {
         return BACNET_STATUS_ABORT;
-    }
-    if (list_element->object_property != PROP_RECIPIENT_LIST) {
-        list_element->error_class = ERROR_CLASS_SERVICES;
-        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
-        return BACNET_STATUS_ERROR;
-    }
-    if (list_element->array_index != BACNET_ARRAY_ALL) {
-        list_element->error_class = ERROR_CLASS_PROPERTY;
-        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return BACNET_STATUS_ERROR;
     }
     notify_index =
         Notification_Class_Instance_To_Index(list_element->object_instance);

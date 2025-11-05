@@ -356,6 +356,10 @@ bool Timer_Reference_List_Member_Element_Add(
     unsigned m = 0;
     struct object_data *pObject;
 
+    if (Timer_Reference_List_Member_Empty(pNewMember)) {
+        /* The element value is out of range for the property. */
+        return false;
+    }
     pObject = Object_Data(object_instance);
     if (pObject) {
         /* is the element already in the list? */
@@ -399,6 +403,10 @@ bool Timer_Reference_List_Member_Element_Remove(
     bool status = false;
     struct object_data *pObject;
 
+    if (Timer_Reference_List_Member_Empty(pRemoveMember)) {
+        /* The element value is out of range for the property. */
+        return false;
+    }
     pObject = Object_Data(object_instance);
     if (pObject) {
         for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
@@ -1771,12 +1779,60 @@ static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Add(
         len = bacnet_device_object_property_reference_decode(
             application_data, application_data_len, &new_value);
         if (len > 0) {
-            status = Timer_Reference_List_Member_Element_Add(
-                object_instance, &new_value);
-            if (status) {
-                error_code = ERROR_CODE_SUCCESS;
+            if (Timer_Reference_List_Member_Empty(&new_value)) {
+                /* The element value is out of range for the property. */
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             } else {
-                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                status = Timer_Reference_List_Member_Element_Add(
+                    object_instance, &new_value);
+                if (status) {
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                }
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Remove an element from a BACnetLIST property
+ * @param object_instance [in] BACnet network port object instance number
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value or ERROR_CODE_SUCCESS
+ */
+static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Remove(
+    uint32_t object_instance,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE new_value = { 0 };
+    int len = 0;
+    bool status = false;
+
+    if ((!application_data) && (application_data_len == 0)) {
+        /* nothing to remove */
+        error_code = ERROR_CODE_SUCCESS;
+    } else {
+        len = bacnet_device_object_property_reference_decode(
+            application_data, application_data_len, &new_value);
+        if (len > 0) {
+            if (Timer_Reference_List_Member_Empty(&new_value)) {
+                error_code = ERROR_CODE_LIST_ELEMENT_NOT_FOUND;
+            } else {
+                status = Timer_Reference_List_Member_Element_Remove(
+                    object_instance, &new_value);
+                if (status) {
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    error_code = ERROR_CODE_LIST_ELEMENT_NOT_FOUND;
+                }
             }
         } else {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -2025,6 +2081,66 @@ void Timer_Task(uint32_t object_instance, uint16_t milliseconds)
                 break;
         }
     }
+}
+
+/**
+ * @brief AddListElement to a list property
+ * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
+ * which is packed with the information from the request.
+ * @return #BACNET_STATUS_OK or #BACNET_STATUS_ERROR or
+ * #BACNET_STATUS_ABORT or #BACNET_STATUS_REJECT
+ */
+int Timer_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
+{
+    if (!list_element) {
+        return BACNET_STATUS_ABORT;
+    }
+    list_element->error_class = ERROR_CLASS_PROPERTY;
+    if (list_element->object_property ==
+        PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) {
+        list_element->error_code = Timer_List_Of_Object_Property_References_Add(
+            list_element->object_instance, list_element->application_data,
+            list_element->application_data_len);
+        if (list_element->error_code == ERROR_CODE_SUCCESS) {
+            return BACNET_STATUS_OK;
+        }
+        if (list_element->error_code == ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
+            list_element->error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+        }
+    } else {
+        list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    }
+
+    return BACNET_STATUS_ERROR;
+}
+
+/**
+ * @brief RemoveListElement to a list property
+ * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
+ * which is packed with the information from the request.
+ * @return #BACNET_STATUS_OK or #BACNET_STATUS_ERROR or
+ * #BACNET_STATUS_ABORT or #BACNET_STATUS_REJECT
+ */
+int Timer_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
+{
+    if (!list_element) {
+        return BACNET_STATUS_ABORT;
+    }
+    list_element->error_class = ERROR_CLASS_PROPERTY;
+    if (list_element->object_property ==
+        PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) {
+        list_element->error_code =
+            Timer_List_Of_Object_Property_References_Remove(
+                list_element->object_instance, list_element->application_data,
+                list_element->application_data_len);
+        if (list_element->error_code == ERROR_CODE_SUCCESS) {
+            return BACNET_STATUS_OK;
+        }
+    } else {
+        list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    }
+
+    return BACNET_STATUS_ERROR;
 }
 
 /**

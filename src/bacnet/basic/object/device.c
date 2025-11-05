@@ -214,7 +214,7 @@ static object_functions_t My_Object_Table[] = {
         Timer_Write_Property, Timer_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
-        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Timer_Add_List_Element, Timer_Remove_List_Element,
         Timer_Create, Timer_Delete, Timer_Task },
     { OBJECT_INTEGER_VALUE, Integer_Value_Init, Integer_Value_Count,
         Integer_Value_Index_To_Instance, Integer_Value_Valid_Instance,

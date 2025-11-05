@@ -9,6 +9,7 @@
 #include <bacnet/basic/object/timer.h>
 #include <bacnet/timer_value.h>
 #include <bacnet/bactext.h>
+#include <bacnet/list_element.h>
 #include <property_test.h>
 
 /**
@@ -44,6 +45,19 @@ static void test_Timer_Read_Write(void)
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 }, *test_member = NULL;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_CHARACTER_STRING cstring = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_LIST_ELEMENT_DATA list_element = {
+        .application_data = apdu,
+        .application_data_len = sizeof(apdu),
+        .array_index = BACNET_ARRAY_ALL,
+        .error_class = ERROR_CLASS_PROPERTY,
+        .error_code = ERROR_CODE_SUCCESS,
+        .first_failed_element_number = 0,
+        .object_instance = instance,
+        .object_type = OBJECT_TIMER,
+        .object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES
+    };
+    int err = 0;
 
     Timer_Init();
     Timer_Create(instance);
@@ -240,7 +254,7 @@ static void test_Timer_Read_Write(void)
     value.type.Device_Object_Property_Reference.deviceIdentifier.type =
         OBJECT_DEVICE;
     value.type.Device_Object_Property_Reference.deviceIdentifier.instance =
-        4194303;
+        12345;
     value.type.Device_Object_Property_Reference.objectIdentifier.type =
         OBJECT_ANALOG_OUTPUT;
     value.type.Device_Object_Property_Reference.objectIdentifier.instance = 1;
@@ -250,6 +264,50 @@ static void test_Timer_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
     zassert_true(status, "%s", bactext_error_code_name(wp_data.error_code));
+    /* add list element */
+    value.tag = BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
+    value.type.Device_Object_Property_Reference.arrayIndex = BACNET_ARRAY_ALL;
+    value.type.Device_Object_Property_Reference.deviceIdentifier.type =
+        OBJECT_DEVICE;
+    value.type.Device_Object_Property_Reference.deviceIdentifier.instance =
+        12345;
+    value.type.Device_Object_Property_Reference.objectIdentifier.type =
+        OBJECT_ANALOG_OUTPUT;
+    value.type.Device_Object_Property_Reference.objectIdentifier.instance = 1;
+    value.type.Device_Object_Property_Reference.propertyIdentifier =
+        PROP_PRESENT_VALUE;
+    list_element.application_data_len =
+        bacapp_encode_application_data(apdu, &value);
+    list_element.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    list_element.error_class = ERROR_CLASS_PROPERTY;
+    list_element.error_code = ERROR_CODE_SUCCESS;
+    err = Timer_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, "err=%d", err);
+    zassert_equal(
+        list_element.error_code, ERROR_CODE_SUCCESS, "%s",
+        bactext_error_code_name(list_element.error_code));
+    err = Timer_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, "err=%d", err);
+    zassert_equal(
+        list_element.error_code, ERROR_CODE_SUCCESS, "%s",
+        bactext_error_code_name(list_element.error_code));
+    /* Add/RemoveListElement negative tests */
+    list_element.object_property = PROP_ALL;
+    err = Timer_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, "err=%d", err);
+    zassert_equal(
+        list_element.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, "%s",
+        bactext_error_code_name(list_element.error_code));
+    err = Timer_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, "err=%d", err);
+    zassert_equal(
+        list_element.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, "%s",
+        bactext_error_code_name(list_element.error_code));
+    err = Timer_Add_List_Element(NULL);
+    zassert_equal(err, BACNET_STATUS_ABORT, "err=%d", err);
+    err = Timer_Remove_List_Element(NULL);
+    zassert_equal(err, BACNET_STATUS_ABORT, "err=%d", err);
     /* default-timeout - out of range error */
     wp_data.object_property = PROP_DEFAULT_TIMEOUT;
     value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;

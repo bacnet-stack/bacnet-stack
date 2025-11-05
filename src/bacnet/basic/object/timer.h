@@ -16,6 +16,7 @@
 #include "bacnet/timer_value.h"
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
+#include "bacnet/list_element.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -158,6 +159,12 @@ void Timer_Task(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
 void Timer_Write_Property_Internal_Callback_Set(write_property_function cb);
+
+BACNET_STACK_EXPORT
+int Timer_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
+
+BACNET_STACK_EXPORT
+int Timer_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 
 BACNET_STACK_EXPORT
 uint32_t Timer_Create(uint32_t object_instance);
