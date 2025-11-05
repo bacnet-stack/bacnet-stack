@@ -83,6 +83,7 @@ int cevent_notify_encode_apdu(
     return apdu_len;
 }
 
+#if BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED
 /**
  * @brief Encode the EXTENDED event parameter
  * @param apdu  Pointer to the buffer for encoding into
@@ -159,7 +160,7 @@ static int event_extended_parameter_encode(
 }
 
 /**
- * @brief Decode a event_extended_parameter_encode from a buffer
+ * @brief Decode the EXTENDED event parameter from a buffer
  * @param apdu - the APDU buffer
  * @param apdu_size - the size of the APDU buffer
  * @param value - BACnetDeviceObjectPropertyValue to decode into
@@ -292,6 +293,7 @@ static int event_extended_parameter_decode(
     return apdu_len;
 }
 
+#if BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED
 /**
  * @brief Encode the DISCRETE_VALUE event
  * @param apdu  Pointer to the buffer for encoding into
@@ -350,6 +352,7 @@ static int event_discrete_value_encode(
 
     return apdu_len;
 }
+#endif
 
 /**
  * @brief Decode a DISCRETE_VALUE from a buffer
