@@ -1516,7 +1516,7 @@ bool Timer_State_Change_Value_Set(
  * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
  * requested data and space for the reply, or error response.
  *
- * @return number of APDU bytes in the response, or
+ * @return number of APDU bytes in the response, zero if no data, or
  * BACNET_STATUS_ERROR on error.
  */
 int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)

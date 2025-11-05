@@ -1812,8 +1812,16 @@ uint32_t Device_Interval_Offset(void)
 }
 #endif
 
-/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
-   BACNET_STATUS_ABORT for abort message */
+/**
+ * ReadProperty handler for this object.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -2036,7 +2044,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param pObject - object table
  * @param rpdata [in,out] Structure with the requested Object & Property info
  *  on entry, and APDU message on return.
- * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
  */
 static int Read_Property_Common(
     const struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
@@ -2048,7 +2057,7 @@ static int Read_Property_Common(
     struct special_property_list_t property_list;
 #endif
 
-    if ((rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -2090,6 +2099,9 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
+    if (!rpdata) {
+        return 0;
+    }
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
