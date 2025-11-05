@@ -107,10 +107,6 @@ void handler_add_list_element(
                 list_element.error_class = ERROR_CLASS_SERVICES;
                 list_element.error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
                 err = BACNET_STATUS_ERROR;
-            } else if (list_element.array_index != BACNET_ARRAY_ALL) {
-                list_element.error_class = ERROR_CLASS_PROPERTY;
-                list_element.error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                err = BACNET_STATUS_ERROR;
             } else {
                 err = Device_Add_List_Element(&list_element);
             }
@@ -212,10 +208,6 @@ void handler_remove_list_element(
                     list_element.object_type, list_element.object_property)) {
                 list_element.error_class = ERROR_CLASS_SERVICES;
                 list_element.error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
-                err = BACNET_STATUS_ERROR;
-            } else if (list_element.array_index != BACNET_ARRAY_ALL) {
-                list_element.error_class = ERROR_CLASS_PROPERTY;
-                list_element.error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
                 err = BACNET_STATUS_ERROR;
             } else {
                 err = Device_Remove_List_Element(&list_element);

@@ -802,6 +802,20 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     if (!list_element) {
         return BACNET_STATUS_ABORT;
     }
+    if (list_element->object_property != PROP_RECIPIENT_LIST) {
+        /* The specified property is currently not modifiable
+           by the requester.*/
+        list_element->error_class = ERROR_CLASS_PROPERTY;
+        list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        return BACNET_STATUS_ERROR;
+    }
+    if (list_element->array_index != BACNET_ARRAY_ALL) {
+        /* An array index is provided but the property is
+           not a BACnetARRAY of BACnetLIST.*/
+        list_element->error_class = ERROR_CLASS_PROPERTY;
+        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return BACNET_STATUS_ERROR;
+    }
     notify_index =
         Notification_Class_Instance_To_Index(list_element->object_instance);
     if (notify_index < MAX_NOTIFICATION_CLASSES) {
@@ -951,6 +965,20 @@ int Notification_Class_Remove_List_Element(
 
     if (!list_element) {
         return BACNET_STATUS_ABORT;
+    }
+    if (list_element->object_property != PROP_RECIPIENT_LIST) {
+        /* The specified property is currently not modifiable
+           by the requester.*/
+        list_element->error_class = ERROR_CLASS_PROPERTY;
+        list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        return BACNET_STATUS_ERROR;
+    }
+    if (list_element->array_index != BACNET_ARRAY_ALL) {
+        /* An array index is provided but the property is
+           not a BACnetARRAY of BACnetLIST.*/
+        list_element->error_class = ERROR_CLASS_PROPERTY;
+        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return BACNET_STATUS_ERROR;
     }
     notify_index =
         Notification_Class_Instance_To_Index(list_element->object_instance);

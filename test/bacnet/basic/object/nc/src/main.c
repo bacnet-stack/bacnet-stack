@@ -285,9 +285,9 @@ static void test_Notification_Class_Recipient_List(void)
     list_element.first_failed_element_number = 0;
     err = Notification_Class_Add_List_Element(&list_element);
     zassert_equal(err, BACNET_STATUS_ERROR, NULL);
-    zassert_equal(list_element.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(list_element.error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(
-        list_element.error_code, ERROR_CODE_PROPERTY_IS_NOT_A_LIST, NULL);
+        list_element.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
     /* valid element, valid property, array element (object is not an array) */
     list_element.object_property = PROP_RECIPIENT_LIST;
     list_element.array_index = 0;
@@ -346,9 +346,9 @@ static void test_Notification_Class_Recipient_List(void)
     list_element.object_property = PROP_ALL;
     err = Notification_Class_Remove_List_Element(&list_element);
     zassert_equal(err, BACNET_STATUS_ERROR, NULL);
-    zassert_equal(list_element.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(list_element.error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(
-        list_element.error_code, ERROR_CODE_PROPERTY_IS_NOT_A_LIST, NULL);
+        list_element.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
     /* invalid array */
     list_element.object_property = PROP_RECIPIENT_LIST;
     list_element.array_index = 0;

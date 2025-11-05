@@ -2098,14 +2098,26 @@ int Timer_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     list_element->error_class = ERROR_CLASS_PROPERTY;
     if (list_element->object_property ==
         PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) {
-        list_element->error_code = Timer_List_Of_Object_Property_References_Add(
-            list_element->object_instance, list_element->application_data,
-            list_element->application_data_len);
-        if (list_element->error_code == ERROR_CODE_SUCCESS) {
-            return BACNET_STATUS_OK;
-        }
-        if (list_element->error_code == ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
-            list_element->error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+        if (list_element->array_index != BACNET_ARRAY_ALL) {
+            /* An array index is provided but the property is
+            not a BACnetARRAY of BACnetLIST.*/
+            list_element->error_class = ERROR_CLASS_PROPERTY;
+            list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        } else {
+            list_element->error_code =
+                Timer_List_Of_Object_Property_References_Add(
+                    list_element->object_instance,
+                    list_element->application_data,
+                    list_element->application_data_len);
+            if (list_element->error_code == ERROR_CODE_SUCCESS) {
+                return BACNET_STATUS_OK;
+            }
+            if (list_element->error_code ==
+                ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
+                list_element->error_class = ERROR_CLASS_RESOURCES;
+                list_element->error_code =
+                    ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+            }
         }
     } else {
         list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -2129,12 +2141,23 @@ int Timer_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     list_element->error_class = ERROR_CLASS_PROPERTY;
     if (list_element->object_property ==
         PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) {
-        list_element->error_code =
-            Timer_List_Of_Object_Property_References_Remove(
-                list_element->object_instance, list_element->application_data,
-                list_element->application_data_len);
-        if (list_element->error_code == ERROR_CODE_SUCCESS) {
-            return BACNET_STATUS_OK;
+        if (list_element->array_index != BACNET_ARRAY_ALL) {
+            /* An array index is provided but the property is
+            not a BACnetARRAY of BACnetLIST.*/
+            list_element->error_class = ERROR_CLASS_PROPERTY;
+            list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        } else {
+            list_element->error_code =
+                Timer_List_Of_Object_Property_References_Remove(
+                    list_element->object_instance,
+                    list_element->application_data,
+                    list_element->application_data_len);
+            if (list_element->error_code == ERROR_CODE_SUCCESS) {
+                return BACNET_STATUS_OK;
+            }
+            if (list_element->error_code == ERROR_CODE_LIST_ELEMENT_NOT_FOUND) {
+                list_element->error_class = ERROR_CLASS_SERVICES;
+            }
         }
     } else {
         list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
