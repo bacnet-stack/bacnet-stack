@@ -1365,6 +1365,7 @@ int event_notify_encode_service_request(
                     }
                     break;
 #endif
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
                 case EVENT_CHANGE_OF_TIMER:
                     /* change-of-timer [22] SEQUENCE */
                     len = encode_opening_tag(apdu, EVENT_CHANGE_OF_TIMER);
@@ -1439,6 +1440,7 @@ int event_notify_encode_service_request(
                         apdu += len;
                     }
                     break;
+#endif
                 case EVENT_NONE:
                     len = encode_opening_tag(apdu, EVENT_NONE);
                     apdu_len += len;
@@ -2952,17 +2954,22 @@ int event_notify_decode_service_request(
                             if (enum_value > TIMER_STATE_MAX) {
                                 enum_value = TIMER_STATE_MAX;
                             }
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
                             data->notificationParams.changeOfTimer.newState =
                                 enum_value;
+#endif
                         }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* status-flags[1] BACnetStatusFlags */
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
                     if (data) {
                         bstring =
                             &data->notificationParams.changeOfTimer.statusFlags;
-                    } else {
+                    } else
+#endif
+                    {
                         bstring = NULL;
                     }
                     len = bacnet_bitstring_context_decode(
@@ -2973,10 +2980,13 @@ int event_notify_decode_service_request(
                         return BACNET_STATUS_ERROR;
                     }
                     /* update-time[2] BACnetDateTime */
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
                     if (data) {
                         datetime_value =
                             &data->notificationParams.changeOfTimer.updateTime;
-                    } else {
+                    } else
+#endif
+                    {
                         datetime_value = NULL;
                     }
                     len = bacnet_datetime_context_decode(
@@ -2995,12 +3005,16 @@ int event_notify_decode_service_request(
                         if (enum_value > TIMER_TRANSITION_MAX) {
                             enum_value = TIMER_TRANSITION_MAX;
                         }
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
                         data->notificationParams.changeOfTimer.lastStateChange =
                             enum_value;
+#endif
                     } else if (len == 0) {
                         /* OPTIONAL - set default */
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
                         data->notificationParams.changeOfTimer.lastStateChange =
                             TIMER_TRANSITION_MAX;
+#endif
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
@@ -3010,20 +3024,31 @@ int event_notify_decode_service_request(
                         &unsigned_value);
                     if (len > 0) {
                         apdu_len += len;
-                        data->notificationParams.changeOfTimer.initialTimeout =
-                            unsigned_value;
+                        if (data) {
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
+                            data->notificationParams.changeOfTimer
+                                .initialTimeout = unsigned_value;
+#endif
+                        }
                     } else if (len == 0) {
                         /* OPTIONAL - set default */
-                        data->notificationParams.changeOfTimer.initialTimeout =
-                            0;
+                        if (data) {
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
+                            data->notificationParams.changeOfTimer
+                                .initialTimeout = 0;
+#endif
+                        }
                     } else {
                         return BACNET_STATUS_ERROR;
                     }
                     /* expiration-time[5] BACnetDateTime OPTIONAL */
+#if BACNET_EVENT_CHANGE_OF_TIMER_ENABLED
                     if (data) {
                         datetime_value = &data->notificationParams.changeOfTimer
                                               .expirationTime;
-                    } else {
+                    } else
+#endif
+                    {
                         datetime_value = NULL;
                     }
                     len = bacnet_datetime_context_decode(
