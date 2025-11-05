@@ -57,6 +57,18 @@ typedef BACNET_ERROR_CODE (*bacnet_array_property_element_write_function)(
     uint8_t *application_data,
     size_t application_data_len);
 
+/**
+ * @brief Add a unique element to a BACnetLIST property
+ * @param object_instance [in] BACnet network port object instance number
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+typedef BACNET_ERROR_CODE (*bacnet_list_property_element_add_function)(
+    uint32_t object_instance,
+    uint8_t *application_data,
+    size_t application_data_len);
+
 #ifndef BACNET_CONSTRUCTED_VALUE_SIZE
 #define BACNET_CONSTRUCTED_VALUE_SIZE MAX_APDU
 #endif
@@ -685,6 +697,16 @@ BACNET_ERROR_CODE bacnet_array_write(
     bacnet_array_property_element_decode_function decode_function,
     bacnet_array_property_element_write_function write_function,
     BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size);
+
+BACNET_STACK_EXPORT
+BACNET_ERROR_CODE bacnet_list_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_list_property_element_add_function add_function,
+    BACNET_UNSIGNED_INTEGER max_elements,
     uint8_t *apdu,
     size_t apdu_size);
 

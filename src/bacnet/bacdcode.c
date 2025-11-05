@@ -5106,7 +5106,7 @@ int bacnet_array_encode(
  * @param array_index [in] array index to be decoded
  *    0 for the array size
  *    1 to n for individual array members
- *    BACNET_ARRAY_ALL for the full array to be read.
+ *    BACNET_ARRAY_ALL for the full array to be written.
  * @param decode_function [in] function to decode one property array element and
  * determine the length
  * @param write_function [in] function to write one property array element with
@@ -5177,6 +5177,85 @@ BACNET_ERROR_CODE bacnet_array_write(
     } else {
         /* array_index was specified out of range */
         error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetList property value and call a function for each
+ * element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to be decoded
+ *    0 for the list size - not permitted for a list
+ *    1 to n for individual array members - not permitted for a list
+ *    BACNET_ARRAY_ALL for the full list to be written
+ * @param decode_function [in] function to decode one property list element and
+ * determine the length
+ * @param add_function [in] function to add one property list element with
+ * the encoded value
+ * @param max_elements [in] number of elements in the list
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ * @return BACNET_ERROR_CODE value
+ */
+BACNET_ERROR_CODE bacnet_list_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_list_property_element_add_function add_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    int len = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    size_t apdu_len;
+    BACNET_ARRAY_INDEX count = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+
+    if (array_index == BACNET_ARRAY_ALL) {
+        /* verify all elements will fit in the BACnetLIST */
+        apdu_len = 0;
+        while (apdu_len < apdu_size) {
+            len = decode_function(
+                object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+            if (len > 0) {
+                apdu_len += len;
+                count++;
+            } else if (len == 0) {
+                /* end of list - it fits! */
+                break;
+            } else {
+                /* bad decode */
+                error_code = ERROR_CODE_ABORT_OTHER;
+            }
+        }
+        if (error_code == ERROR_CODE_SUCCESS) {
+            if (count > array_size) {
+                /* maybe? what about duplicates? */
+                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        }
+        if (error_code == ERROR_CODE_SUCCESS) {
+            /* empty the list */
+            (void)add_function(object_instance, NULL, 0);
+            /* add each unique element */
+            apdu_len = 0;
+            while (apdu_len < apdu_size) {
+                len = decode_function(
+                    object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+                error_code =
+                    add_function(object_instance, &apdu[apdu_len], len);
+                if (error_code != ERROR_CODE_SUCCESS) {
+                    break;
+                }
+                apdu_len += len;
+            }
+        }
+    } else {
+        /* array-index was specified */
+        error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
     }
 
     return error_code;
