@@ -1394,7 +1394,7 @@ uint8_t Timer_Priority_For_Writing(uint8_t object_instance)
  * instance
  * @param object_instance - object-instance number of the object
  * @param value - property value to set
- * @return true if the priority-for-writing property value was set
+ * @return true if the priority-for-writing property value was in range and set
  */
 bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value)
 {
@@ -1403,8 +1403,11 @@ bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Priority_For_Writing = value;
-        status = true;
+        /* Unsigned(1..16) */
+        if ((value >= BACNET_MIN_PRIORITY) && (value <= BACNET_MAX_PRIORITY)) {
+            pObject->Priority_For_Writing = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1833,8 +1836,12 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Timer_Default_Timeout_Set(
-                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Timer_Default_Timeout_Set(
+                        wp_data->object_instance, value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                }
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1845,8 +1852,12 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Timer_Min_Pres_Value_Set(
-                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Timer_Min_Pres_Value_Set(
+                        wp_data->object_instance, value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                }
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1857,8 +1868,12 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Timer_Max_Pres_Value_Set(
-                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Timer_Max_Pres_Value_Set(
+                        wp_data->object_instance, value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                }
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1869,8 +1884,12 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Timer_Resolution_Set(
-                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Timer_Resolution_Set(
+                        wp_data->object_instance, value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                }
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1988,9 +2007,6 @@ void Timer_Task(uint32_t object_instance, uint16_t milliseconds)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         switch (pObject->Timer_State) {
-            case TIMER_STATE_IDLE:
-                /* do nothing */
-                break;
             case TIMER_STATE_RUNNING:
                 if (pObject->Present_Value > milliseconds) {
                     pObject->Present_Value -= milliseconds;
@@ -2003,8 +2019,7 @@ void Timer_Task(uint32_t object_instance, uint16_t milliseconds)
                 }
                 break;
             case TIMER_STATE_EXPIRED:
-                /* do nothing */
-                break;
+            case TIMER_STATE_IDLE:
             default:
                 /* do nothing */
                 break;
@@ -2060,7 +2075,7 @@ uint32_t Timer_Create(uint32_t object_instance)
     pObject->Min_Pres_Value = 1;
     pObject->Max_Pres_Value = UINT32_MAX;
     pObject->Resolution = 1;
-    pObject->Priority_For_Writing = 16;
+    pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
     pObject->Description = NULL;
     pObject->Object_Name = NULL;
     pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
