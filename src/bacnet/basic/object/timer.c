@@ -346,7 +346,7 @@ unsigned Timer_Reference_List_Member_Capacity(uint32_t object_instance)
  *  to the list
  * @param object_instance - object-instance number of the object
  * @param pMemberSrc - pointer to a object property reference element
- * @return true if the element was added, false if the element was not be added
+ * @return true if the element was added, false if the element was not added
  */
 bool Timer_Reference_List_Member_Element_Add(
     uint32_t object_instance,
@@ -386,7 +386,8 @@ bool Timer_Reference_List_Member_Element_Add(
 /**
  * @brief For a given object instance-number, removes a list element
  * @param object_instance - object-instance number of the object
- * @param pMemberSrc - pointer to a object property reference element
+ * @param pMemberSrc - pointer to a object property reference element,
+ *  or NULL to remove ALL
  * @return true if removed, false if not removed
  */
 bool Timer_Reference_List_Member_Element_Remove(
@@ -403,8 +404,14 @@ bool Timer_Reference_List_Member_Element_Remove(
         for (m = 0; m < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; m++) {
             pMember = &pObject->Manipulated_Properties[m];
             if (!Timer_Reference_List_Member_Empty(pMember)) {
-                if (bacnet_device_object_property_reference_same(
-                        pRemoveMember, pMember)) {
+                if (pRemoveMember) {
+                    if (bacnet_device_object_property_reference_same(
+                            pRemoveMember, pMember)) {
+                        List_Of_Object_Property_References_Set(
+                            pObject, m, NULL);
+                        status = true;
+                    }
+                } else {
                     List_Of_Object_Property_References_Set(pObject, m, NULL);
                     status = true;
                 }
@@ -1736,49 +1743,41 @@ static int Timer_List_Of_Object_Property_References_Length(
 }
 
 /**
- * @brief Write a value to a BACnetLIST property element value
- *  using a BACnetARRAY write utility function
+ * @brief Add an element to a BACnetLIST property
+ *  using a BACnetLIST add utility function
  * @param object_instance [in] BACnet network port object instance number
- * @param array_index [in] array index to write:
- *    0=array size, 1 to N for individual array members
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
- * @return BACNET_ERROR_CODE value
+ * @return BACNET_ERROR_CODE value or ERROR_CODE_SUCCESS
  */
-static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Write(
+static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Add(
     uint32_t object_instance,
-    BACNET_ARRAY_INDEX array_index,
     uint8_t *application_data,
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *current_value = NULL,
-                                            new_value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE new_value = { 0 };
     int len = 0;
-    unsigned count = 0;
-    bool status;
+    bool status = false;
 
-    count = Timer_Reference_List_Member_Element_Count(object_instance);
-    if (array_index == 0) {
-        error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-    } else if (array_index <= count) {
+    if ((!application_data) && (application_data_len == 0)) {
+        /* empty the BACnetLIST - remove all before adding */
+        (void)Timer_Reference_List_Member_Element_Remove(object_instance, NULL);
+        error_code = ERROR_CODE_SUCCESS;
+    } else {
         len = bacnet_device_object_property_reference_decode(
             application_data, application_data_len, &new_value);
         if (len > 0) {
-            current_value = Timer_Reference_List_Member_Element(
-                object_instance, array_index);
-            status = bacnet_device_object_property_reference_copy(
-                current_value, &new_value);
+            status = Timer_Reference_List_Member_Element_Add(
+                object_instance, &new_value);
             if (status) {
                 error_code = ERROR_CODE_SUCCESS;
             } else {
-                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
         } else {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
-    } else {
-        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
     }
 
     return error_code;
@@ -1797,7 +1796,6 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    unsigned count = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
@@ -1906,12 +1904,12 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-            count = Timer_Reference_List_Member_Element_Count(
-                wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            /* a BACnetLIST can only be written all-at-once */
+            wp_data->error_code = bacnet_list_write(
                 wp_data->object_instance, wp_data->array_index,
                 Timer_List_Of_Object_Property_References_Length,
-                Timer_List_Of_Object_Property_References_Write, count,
+                Timer_List_Of_Object_Property_References_Add,
+                BACNET_TIMER_MANIPULATED_PROPERTIES_MAX,
                 wp_data->application_data, wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;

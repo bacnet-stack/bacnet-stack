@@ -228,6 +228,24 @@ static void test_Timer_Read_Write(void)
     status = Timer_Write_Property(&wp_data);
     zassert_false(status, NULL);
     zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    /* list-of-object-property-references - single element list */
+    wp_data.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
+    value.tag = BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
+    value.type.Device_Object_Property_Reference.arrayIndex = BACNET_ARRAY_ALL;
+    value.type.Device_Object_Property_Reference.deviceIdentifier.type =
+        OBJECT_DEVICE;
+    value.type.Device_Object_Property_Reference.deviceIdentifier.instance =
+        4194303;
+    value.type.Device_Object_Property_Reference.objectIdentifier.type =
+        OBJECT_ANALOG_OUTPUT;
+    value.type.Device_Object_Property_Reference.objectIdentifier.instance = 1;
+    value.type.Device_Object_Property_Reference.propertyIdentifier =
+        PROP_PRESENT_VALUE;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, "%s", bactext_error_code_name(wp_data.error_code));
+
     /* read-only property */
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_MAX_PRIORITY;
@@ -388,6 +406,8 @@ static void test_Timer_Operation(void)
     zassert_true(status, NULL);
     /* start timer using a write to timer-running property to use defaults */
     /* IDLE_TO_RUNNING */
+    status = Timer_State_Set(instance, TIMER_STATE_IDLE);
+    zassert_true(status, NULL);
     test_state = Timer_State(instance);
     zassert_equal(test_state, TIMER_STATE_IDLE, NULL);
     status = Timer_Running_Set(instance, true);
