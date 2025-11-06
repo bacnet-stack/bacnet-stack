@@ -92,6 +92,7 @@ int bacnet_authentication_factor_format_decode(
     int apdu_len = 0;
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_AUTHENTICATION_FACTOR_TYPE format_type = AUTHENTICATION_FACTOR_UNDEFINED;
 
     /* format-type[0] BACnetAuthenticationFactorType */
     len = bacnet_enumerated_context_decode(
@@ -101,50 +102,44 @@ int bacnet_authentication_factor_format_decode(
         if (enum_value > AUTHENTICATION_FACTOR_MAX) {
             enum_value = AUTHENTICATION_FACTOR_MAX;
         }
+        format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)enum_value;
         if (data) {
-            data->format_type =
-                (BACNET_AUTHENTICATION_FACTOR_TYPE)unsigned_value;
+            data->format_type =format_type;
         }
     } else {
         return BACNET_STATUS_ERROR;
     }
-    /* vendor-id[1] Unsigned16 OPTIONAL */
-    len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
-    if (len > 0) {
-        apdu_len += len;
-        if (unsigned_value > UINT16_MAX) {
+    if (data->format_type == AUTHENTICATION_FACTOR_CUSTOM) {
+        /*  optional fields are required when Format-Type
+            field has a value of CUSTOM. */
+        /* vendor-id[1] Unsigned16 OPTIONAL */
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+        if (len > 0) {
+            apdu_len += len;
+            if (unsigned_value > UINT16_MAX) {
+                return BACNET_STATUS_ERROR;
+            }
+            if (data) {
+                data->vendor_id = (uint16_t)unsigned_value;
+            }
+        } else {
             return BACNET_STATUS_ERROR;
         }
-        if (data) {
-            data->vendor_id = (uint16_t)unsigned_value;
-        }
-    } else if (len == 0) {
-        /* OPTIONAL - use a default value */
-        if (data) {
-            data->vendor_id = UINT16_MAX;
-        }
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-    /* vendor-format[2] Unsigned16 OPTIONAL */
-    len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
-    if (len > 0) {
-        apdu_len += len;
-        if (unsigned_value > UINT16_MAX) {
+        /* vendor-format[2] Unsigned16 OPTIONAL */
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
+        if (len > 0) {
+            apdu_len += len;
+            if (unsigned_value > UINT16_MAX) {
+                return BACNET_STATUS_ERROR;
+            }
+            if (data) {
+                data->vendor_format = (uint16_t)unsigned_value;
+            }
+        } else {
             return BACNET_STATUS_ERROR;
         }
-        if (data) {
-            data->vendor_format = (uint16_t)unsigned_value;
-        }
-    } else if (len == 0) {
-        /* OPTIONAL - use a default value */
-        if (data) {
-            data->vendor_format = UINT16_MAX;
-        }
-    } else {
-        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -183,7 +178,7 @@ int bacnet_authentication_factor_format_context_decode(
     int len = 0, apdu_len = 0;
 
     if (bacnet_is_opening_tag_number(
-            &apdu[len], apdu_size - apdu_len, tag, &len)) {
+            &apdu[apdu_len], apdu_size - apdu_len, tag, &len)) {
         apdu_len += len;
         len = bacnet_authentication_factor_format_decode(
             &apdu[apdu_len], apdu_size - apdu_len, data);
@@ -193,7 +188,7 @@ int bacnet_authentication_factor_format_context_decode(
             return BACNET_STATUS_ERROR;
         }
         if (bacnet_is_closing_tag_number(
-                &apdu[len], apdu_size - apdu_len, tag, &len)) {
+                &apdu[apdu_len], apdu_size - apdu_len, tag, &len)) {
             apdu_len += len;
         } else {
             return BACNET_STATUS_ERROR;
