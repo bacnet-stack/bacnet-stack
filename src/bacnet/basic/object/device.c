@@ -666,6 +666,8 @@ static uint32_t Database_Revision = 0;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "filister";
 static write_property_function Device_Write_Property_Store_Callback;
+static list_element_function Device_Add_List_Element_Callback;
+static list_element_function Device_Remove_List_Element_Callback;
 
 #ifdef BAC_ROUTING
 static bool Device_Router_Mode = false;
@@ -2151,6 +2153,15 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Set the callback for a Add_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Add_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Add_List_Element_Callback = cb;
+}
+
+/**
  * @brief AddListElement from an object list property
  * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
  * which is packed with the information from the request.
@@ -2168,6 +2179,9 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             pObject->Object_Valid_Instance(list_element->object_instance)) {
             if (pObject->Object_Add_List_Element) {
                 status = pObject->Object_Add_List_Element(list_element);
+                if (status) {
+                    Device_Add_List_Element_Callback(list_element);
+                }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
                 list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -2182,6 +2196,15 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     }
 
     return status;
+}
+
+/**
+ * @brief Set the callback for a Remove_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Remove_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Remove_List_Element_Callback = cb;
 }
 
 /**
@@ -2202,6 +2225,9 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             pObject->Object_Valid_Instance(list_element->object_instance)) {
             if (pObject->Object_Remove_List_Element) {
                 status = pObject->Object_Remove_List_Element(list_element);
+                if (status) {
+                    Device_Remove_List_Element_Callback(list_element);
+                }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
                 list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
