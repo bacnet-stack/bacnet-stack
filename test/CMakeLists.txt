@@ -75,6 +75,7 @@ list(APPEND testdirs
   bacnet/access_rule
   bacnet/alarm_ack
   bacnet/arf
+  bacnet/authentication_factor_format
   bacnet/awf
   bacnet/bacaddr
   bacnet/bacapp

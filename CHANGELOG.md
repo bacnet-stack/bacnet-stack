@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnetAuthenticationFactorFormat decoding by refactoring deprecated
+  functions and validating with unit testing. (#1127)
 * Secured UnconfirmedEventNotification-Request and
   ConfirmedEventNotification-Request, BACnetNotificationParameters,
   and BACnetAuthenticationFactor decoding by refactoring deprecated
