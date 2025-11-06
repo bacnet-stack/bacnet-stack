@@ -259,6 +259,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bacaction.h
   src/bacnet/bacapp.c
   src/bacnet/bacapp.h
+  src/bacnet/bacaudit.c
+  src/bacnet/bacaudit.h
   src/bacnet/bacdcode.c
   src/bacnet/bacdcode.h
   src/bacnet/bacdef.h

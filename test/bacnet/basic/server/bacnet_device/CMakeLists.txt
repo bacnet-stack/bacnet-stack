@@ -41,6 +41,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacaudit.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacdest.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
@@ -56,6 +57,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/ai.c
     ${SRC_DIR}/bacnet/basic/object/ao.c
     ${SRC_DIR}/bacnet/basic/object/av.c
+    ${SRC_DIR}/bacnet/basic/object/auditlog.c
     ${SRC_DIR}/bacnet/basic/object/bi.c
     ${SRC_DIR}/bacnet/basic/object/bitstring_value.c
     ${SRC_DIR}/bacnet/basic/object/blo.c
