@@ -1309,12 +1309,14 @@ typedef enum BACnetEventType {
     EVENT_COMMAND_FAILURE = 3,
     EVENT_FLOATING_LIMIT = 4,
     EVENT_OUT_OF_RANGE = 5,
-    /*  complex-event-type        (6), -- see comment below */
+    EVENT_COMPLEX_EVENT_TYPE = 6, /* -- see comment below */
     /*  event-buffer-ready   (7), -- context tag 7 is deprecated */
     EVENT_CHANGE_OF_LIFE_SAFETY = 8,
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11,
+    /* -- context tag 12 is reserved for future addenda
+       since it conflicts with event-values[12] OPTIONAL */
     EVENT_ACCESS_EVENT = 13,
     EVENT_DOUBLE_OUT_OF_RANGE = 14,
     EVENT_SIGNED_OUT_OF_RANGE = 15,
@@ -1684,6 +1686,8 @@ typedef enum {
     BACNET_APPLICATION_TAG_CHANNEL_VALUE,
     /* BACnetLogRecord */
     BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* BACnetPropertyValue */
+    BACNET_APPLICATION_TAG_PROPERTY_VALUE,
     /* BACnetTimerStateChangeValue */
     BACNET_APPLICATION_TAG_TIMER_VALUE,
     /* no-value - context tagged null */
@@ -2625,10 +2629,13 @@ typedef enum BACnetAccessEvent {
     ACCESS_EVENT_DENIED_LOCKOUT = 161,
     ACCESS_EVENT_DENIED_VERIFICATION_FAILED = 162,
     ACCESS_EVENT_DENIED_VERIFICATION_TIMEOUT = 163,
-    ACCESS_EVENT_DENIED_OTHER = 164
+    ACCESS_EVENT_DENIED_OTHER = 164,
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    ACCESS_EVENT_PROPRIETARY_MIN = 512,
+    ACCESS_EVENT_PROPRIETARY_MAX = 65535
+
 } BACNET_ACCESS_EVENT;
 
 /* Authentication Status */
@@ -2961,7 +2968,8 @@ typedef enum BACnetBackupState {
 typedef enum BACnetTimerState {
     TIMER_STATE_IDLE = 0,
     TIMER_STATE_RUNNING = 1,
-    TIMER_STATE_EXPIRED = 2
+    TIMER_STATE_EXPIRED = 2,
+    TIMER_STATE_MAX = 3
 } BACNET_TIMER_STATE;
 
 typedef enum BACnetTimerTransition {

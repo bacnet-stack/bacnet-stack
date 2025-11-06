@@ -68,7 +68,7 @@ int reinitialize_device_encode(
 }
 
 /**
- * @brief Encode the COVNotification service request
+ * @brief Encode the ReinitializeDevice-Request service
  * @param apdu  Pointer to the buffer for encoding into
  * @param apdu_size number of bytes available in the buffer
  * @param state  Reinitialization state

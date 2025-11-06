@@ -16,6 +16,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured UnconfirmedEventNotification-Request and
+  ConfirmedEventNotification-Request, BACnetNotificationParameters,
+  and BACnetAuthenticationFactor decoding by refactoring deprecated
+  functions and validating with unit testing. (#1126)
 * Secured I-Am request encoding and decoding, and updated the example apps
   and handlers to use secure version of I-Am decoder. (#1080)
 * Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
