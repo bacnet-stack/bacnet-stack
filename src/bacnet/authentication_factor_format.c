@@ -92,7 +92,8 @@ int bacnet_authentication_factor_format_decode(
     int apdu_len = 0;
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-    BACNET_AUTHENTICATION_FACTOR_TYPE format_type = AUTHENTICATION_FACTOR_UNDEFINED;
+    BACNET_AUTHENTICATION_FACTOR_TYPE format_type =
+        AUTHENTICATION_FACTOR_UNDEFINED;
 
     /* format-type[0] BACnetAuthenticationFactorType */
     len = bacnet_enumerated_context_decode(
@@ -104,12 +105,12 @@ int bacnet_authentication_factor_format_decode(
         }
         format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)enum_value;
         if (data) {
-            data->format_type =format_type;
+            data->format_type = format_type;
         }
     } else {
         return BACNET_STATUS_ERROR;
     }
-    if (data->format_type == AUTHENTICATION_FACTOR_CUSTOM) {
+    if (format_type == AUTHENTICATION_FACTOR_CUSTOM) {
         /*  optional fields are required when Format-Type
             field has a value of CUSTOM. */
         /* vendor-id[1] Unsigned16 OPTIONAL */
