@@ -32,6 +32,7 @@
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/bv.h"
@@ -110,6 +111,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE) ||           \
+    defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG) ||              \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE) ||           \
@@ -130,6 +132,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
+    defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE) ||             \
     defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                  \
     defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE))
@@ -140,6 +143,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE
@@ -160,6 +164,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_FILE
 #define CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE
 #define CONFIG_BACNET_BASIC_OBJECT_TIMER
 #define CONFIG_BACNET_BASIC_OBJECT_PROGRAM
 #define CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE
@@ -292,6 +297,28 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Value_Create,
       Analog_Value_Delete,
+      NULL /* Timer */ },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG)
+    { OBJECT_AUDIT_LOG,
+      Audit_Log_Init,
+      Audit_Log_Count,
+      Audit_Log_Index_To_Instance,
+      Audit_Log_Valid_Instance,
+      Audit_Log_Object_Name,
+      Audit_Log_Read_Property,
+      Audit_Log_Write_Property,
+      Audit_Log_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Audit_Log_Create,
+      Audit_Log_Delete,
       NULL /* Timer */ },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT)
@@ -757,6 +784,28 @@ static object_functions_t My_Object_Table[] = {
       CharacterString_Value_Delete,
       NULL /* Timer */ },
 #endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE)
+    { OBJECT_TIME_VALUE,
+      Time_Value_Init,
+      Time_Value_Count,
+      Time_Value_Index_To_Instance,
+      Time_Value_Valid_Instance,
+      Time_Value_Object_Name,
+      Time_Value_Read_Property,
+      Time_Value_Write_Property,
+      Time_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Time_Value_Create,
+      Time_Value_Delete,
+      NULL /* Timer */ },
+#endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_TIMER)
     { OBJECT_TIMER,
       Timer_Init,
@@ -1054,6 +1103,8 @@ static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static BACNET_CHARACTER_STRING Reinit_Password;
 static write_property_function Device_Write_Property_Store_Callback;
+static list_element_function Device_Add_List_Element_Callback;
+static list_element_function Device_Remove_List_Element_Callback;
 static uint8_t Device_UUID[16];
 static const char *Serial_Number = BACNET_DEVICE_SERIAL_NUMBER;
 static BACNET_TIMESTAMP Time_Of_Device_Restart;
@@ -2507,6 +2558,15 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Set the callback for a Add_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Add_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Add_List_Element_Callback = cb;
+}
+
+/**
  * @brief AddListElement from an object list property
  * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
  * which is packed with the information from the request.
@@ -2524,6 +2584,11 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             pObject->Object_Valid_Instance(list_element->object_instance)) {
             if (pObject->Object_Add_List_Element) {
                 status = pObject->Object_Add_List_Element(list_element);
+                if (status) {
+                    if (Device_Add_List_Element_Callback) {
+                        (void)Device_Add_List_Element_Callback(list_element);
+                    }
+                }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
                 list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -2538,6 +2603,15 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     }
 
     return status;
+}
+
+/**
+ * @brief Set the callback for a Remove_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Remove_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Remove_List_Element_Callback = cb;
 }
 
 /**
@@ -2558,6 +2632,9 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             pObject->Object_Valid_Instance(list_element->object_instance)) {
             if (pObject->Object_Remove_List_Element) {
                 status = pObject->Object_Remove_List_Element(list_element);
+                if (status) {
+                    Device_Remove_List_Element_Callback(list_element);
+                }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
                 list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

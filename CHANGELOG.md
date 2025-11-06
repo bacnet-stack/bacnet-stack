@@ -28,6 +28,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added Audit Log and Time Value objects to basic device and builds. (#1128)
+* Added ListElement service callback for storing data. (#1128)
 * Added a basic timer object type example. (#1123)
 * Added BACnetLIST utility for handling WriteProperty to a list. (#1123)
 * Added Device_Object_Functions() API to return basic object API table

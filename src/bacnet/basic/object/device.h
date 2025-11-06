@@ -395,8 +395,11 @@ BACNET_STACK_EXPORT
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
+void Device_Add_List_Element_Callback_Set(list_element_function cb);
+BACNET_STACK_EXPORT
 int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
-
+BACNET_STACK_EXPORT
+void Device_Remove_List_Element_Callback_Set(list_element_function cb);
 BACNET_STACK_EXPORT
 int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 
