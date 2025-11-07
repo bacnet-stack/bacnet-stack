@@ -2,23 +2,27 @@
 
 Test BACnet/SC using the following steps:
 
- * Build apps for bsc datalink:
+ * Build all the apps for the BACnet/SC datalink:
 
-        make bsc
+       make bsc
 
- * Run hub app:
+ * Build the BACnet/SC hub:
+
+       make sc-hub
+
+ * Run the BACnet/SC hub application:
 
         cd bin
         ./bsc-server.sh
         ./bacschub 1 Hubster
 
- * Run server app:
+ * Run BACnet/SC server application:
 
         cd bin
         ./bsc-client.sh
         ./bacserv 123 Francine
 
- * Run any client:
+ * Run any BACnet/SC client:
 
         cd bin
         ./bsc-client.sh
