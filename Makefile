@@ -62,7 +62,7 @@ ethernet:
 # see .github/workflows/gcc.yml
 .PHONY: bsc
 bsc:
-	$(MAKE) BACDL=bsc -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bsc -s -C apps all
 
 .PHONY: apps
 apps:
@@ -226,7 +226,11 @@ server-mini:
 
 .PHONY: sc-hub
 sc-hub:
-	$(MAKE) BACDL=bsc -s -C apps $@
+	$(MAKE) LEGACY=true BACDL=bsc -s -C apps $@
+
+.PHONY: sc-hub-debug
+sc-hub-debug:
+	$(MAKE) LEGACY=true BACDL=bsc BUILD=debug -s -C apps sc-hub
 
 .PHONY: mstpcap
 mstpcap:
