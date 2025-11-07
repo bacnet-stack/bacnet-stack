@@ -144,6 +144,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the error class returned for AlarmAcknowledgment (#1131)
 * Fixed object creation failure when create is called before init. (#1122)
 * Fixed octetstring_copy_value() and added unit tests. (#1121)
 * Fixed the MS/TP compare DER function which can now include the NPDU network
