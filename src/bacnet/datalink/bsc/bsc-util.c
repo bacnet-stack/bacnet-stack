@@ -314,28 +314,32 @@ void bsc_set_timestamp(BACNET_DATE_TIME *timestamp)
  * @brief Check if BACnet/SC certificate files exist
  * @return true if all files exist, else false
  */
-bool bsc_cert_files_check(void)
+bool bsc_cert_files_check(uint32_t netport_instance)
 {
-    uint32_t instance;
     uint32_t file_instance;
 
-    instance = Network_Port_Index_To_Instance(0);
-
-    file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
+    file_instance = Network_Port_Issuer_Certificate_File(netport_instance, 0);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR("CA certificate file not exist\n");
+        PRINTF_ERR(
+            "Issuer Certificate file %u size=0. Path=%s\n", file_instance,
+            bacfile_pathname(file_instance));
         return false;
     }
 
-    file_instance = Network_Port_Operational_Certificate_File(instance);
+    file_instance = Network_Port_Operational_Certificate_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
+        PRINTF_ERR(
+            "Operational Certificate file %u size=0. Path=%s\n", file_instance,
+            bacfile_pathname(file_instance));
         PRINTF_ERR("Certificate file not exist\n");
         return false;
     }
 
-    file_instance = Network_Port_Certificate_Key_File(instance);
+    file_instance = Network_Port_Certificate_Key_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR("Certificate key file not exist\n");
+        PRINTF_ERR(
+            "Certificate Key file %u size=0. Path=%s\n", file_instance,
+            bacfile_pathname(file_instance));
         return false;
     }
 

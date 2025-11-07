@@ -13,6 +13,7 @@
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/bacfile.h"
 
 #ifndef FILE_RECORD_SIZE
@@ -57,6 +58,11 @@ size_t bacfile_posix_file_size(const char *pathname)
                 file_size = (size_t)file_position;
             }
             fclose(pFile);
+            debug_printf_stderr(
+                "opened %s for reading. Size=%lu\n", pathname,
+                (unsigned long)file_size);
+        } else {
+            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
         }
     }
 
@@ -268,5 +274,7 @@ void bacfile_posix_init(void)
     bacfile_read_record_data_callback_set(bacfile_posix_read_record_data);
     bacfile_file_size_callback_set(bacfile_posix_file_size);
     bacfile_file_size_set_callback_set(bacfile_posix_file_size_set);
+#elif defined(BACDL_BSC)
+#error BACFILE is not defined for BACnet/SC!
 #endif
 }

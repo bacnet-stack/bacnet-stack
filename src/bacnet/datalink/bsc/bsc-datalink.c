@@ -23,9 +23,8 @@
 #include "bacnet/basic/object/bacfile.h"
 
 #define PRINTF debug_printf_stderr
-#define DEBUG_BSC_DATALINK 0
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_DATALINK == 1
+#if DEBUG_BSC_DATALINK
 #define DEBUG_PRINTF debug_printf
 #else
 #define DEBUG_PRINTF debug_printf_disabled
@@ -94,7 +93,7 @@ static void bsc_node_event(
                 FIFO_Add(&bsc_fifo, pdu, pdu16_len);
                 bsc_event_signal(bsc_data_event);
             }
-#if DEBUG_ENABLED == 1
+#if DEBUG_ENABLED
             else {
                 PRINTF("pdu of size %d\n is dropped\n", pdu_len);
             }
@@ -313,8 +312,6 @@ uint16_t bsc_receive(
     const char *err_desc = NULL;
     static uint8_t buf[BVLC_SC_NPDU_SIZE_CONF];
 
-    DEBUG_PRINTF("bsc_receive() >>>\n");
-
     bws_dispatch_lock();
 
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
@@ -355,7 +352,7 @@ uint16_t bsc_receive(
                         pdu_len =
                             (uint16_t)dm.payload.encapsulated_npdu.npdu_len;
                     }
-#if DEBUG_ENABLED == 1
+#if DEBUG_ENABLED
                     else {
                         PRINTF(
                             "bsc_receive() pdu of size %d is dropped "
@@ -369,9 +366,8 @@ uint16_t bsc_receive(
             DEBUG_PRINTF("bsc_receive() pdu_len = %d\n", pdu_len);
         }
     }
-
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_receive() <<< ret = %d\n", pdu_len);
+
     return pdu_len;
 }
 
@@ -608,7 +604,7 @@ static void bsc_update_failed_requests(void)
         Network_Port_SC_Failed_Connection_Requests_Delete_All(instance);
         for (i = 0; i < cnt; i++) {
             if (r[i].Peer_Address.host[0] != 0) {
-#if DEBUG_ENABLED == 1
+#if DEBUG_ENABLED
                 DEBUG_PRINTF(
                     "failed request record %d, host %s, vmac %s, uuid "
                     "%s, error %d, details = %s\n",
