@@ -234,13 +234,13 @@ bool read_config(const char *filepath)
 
             /* create new list node to store port information */
             if (head == NULL) {
-                head = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
+                head = (ROUTER_PORT *)calloc(1, sizeof(ROUTER_PORT));
                 head->next = NULL;
                 current = head;
             } else {
                 ROUTER_PORT *tmp = current;
                 current = current->next;
-                current = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
+                current = (ROUTER_PORT *)calloc(1. sizeof(ROUTER_PORT));
                 current->next = NULL;
                 tmp->next = current;
             }
@@ -254,7 +254,7 @@ bool read_config(const char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                        (char *)calloc(sizeof(char), strlen(iface) + 1);
+                        (char *)calloc(strlen(iface) + 1, sizeof(char));
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -297,7 +297,7 @@ bool read_config(const char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                        (char *)calloc(sizeof(char), strlen(iface) + 1);
+                        (char *)calloc(strlen(iface) + 1, sizeof(char));
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -438,13 +438,13 @@ bool parse_cmd(int argc, char *argv[])
 
                 /* create new list node to store port information */
                 if (head == NULL) {
-                    head = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
+                    head = (ROUTER_PORT *)calloc(1, sizeof(ROUTER_PORT));
                     head->next = NULL;
                     current = head;
                 } else {
                     ROUTER_PORT *tmp = current;
                     current = current->next;
-                    current = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
+                    current = (ROUTER_PORT *)calloc(1, sizeof(ROUTER_PORT));
                     current->next = NULL;
                     tmp->next = current;
                 }
