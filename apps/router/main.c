@@ -189,16 +189,15 @@ void print_help(void)
         "file (.cfg) located at <filepath>\n"
         "-D, --device <dev_type> <iface> [params]\n\tinitialize a <dev_type> "
         "device using an <iface> interface specified with\n\t[params]\n");
-    printf(
-        "\ninit_parameters:\n"
-        "-n, --network <net>\n\tspecify device network number\n"
-        "-P, --port <port>\n\tspecify udp port for BIP device\n"
-        "-m, --mac <mac_address> [max_master] [max_frames]\n\tspecify MSTP "
-        "port parameters\n"
-        "-b, --baud <baud>\n\tspecify MSTP port baud rate\n"
-        "-p, --parity <None|Even|Odd>\n\tspecify MSTP port parity\n"
-        "-d, --databits <5|6|7|8>\n\tspecify MSTP port databits\n"
-        "-s, --stopbits <1|2>\n\tspecify MSTP port stopbits\n");
+    printf("\ninit_parameters:\n"
+           "-n, --network <net>\n\tspecify device network number\n"
+           "-P, --port <port>\n\tspecify udp port for BIP device\n"
+           "-m, --mac <mac_address> [max_master] [max_frames]\n\tspecify MSTP "
+           "port parameters\n"
+           "-b, --baud <baud>\n\tspecify MSTP port baud rate\n"
+           "-p, --parity <None|Even|Odd>\n\tspecify MSTP port parity\n"
+           "-d, --databits <5|6|7|8>\n\tspecify MSTP port databits\n"
+           "-s, --stopbits <1|2>\n\tspecify MSTP port stopbits\n");
 }
 
 bool read_config(const char *filepath)
