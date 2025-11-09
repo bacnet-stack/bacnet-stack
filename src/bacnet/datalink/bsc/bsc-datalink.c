@@ -259,7 +259,6 @@ int bsc_send_pdu(
             PRINTF("bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
             return len;
         }
-
         len = (int)bvlc_sc_encode_encapsulated_npdu(
             buf, sizeof(buf), bsc_get_next_message_id(), NULL, &dest_vmac, pdu,
             pdu_len);
@@ -269,6 +268,9 @@ int bsc_send_pdu(
 
         if (ret != BSC_SC_SUCCESS) {
             len = -1;
+            PRINTF(
+                "bsc_send_pdu(): bsc_node_send() returned %s\n",
+                bsc_return_code_to_string(ret));
         }
     }
 

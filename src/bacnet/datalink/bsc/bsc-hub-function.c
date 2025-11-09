@@ -15,10 +15,8 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
-#define DEBUG_BSC_HUB_FUNCTION 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_HUB_FUNCTION == 1
+#if DEBUG_BSC_HUB_FUNCTION
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED

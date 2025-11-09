@@ -820,6 +820,12 @@ void dlenv_network_port_bsc_init(uint32_t instance)
         debug_printf_stderr("BSC Certificate files missing.\n");
         exit(1);
     }
+#endif
+}
+
+void bsc_register_as_node(uint32_t instance)
+{
+#if defined(BACDL_BSC)
     /* if a user has configured BACnet/SC port with primary hub URI,     */
     /* wait for a establishing of a connection to BACnet/SC hub at first */
     /* to reduce possibility of packet losses.                           */
@@ -829,6 +835,7 @@ void dlenv_network_port_bsc_init(uint32_t instance)
             bsc_wait(1);
             bsc_maintenance_timer(1);
         }
+        debug_printf_stderr("Connected to a BACnet/SC hub!\n");
     }
 #endif
 }
@@ -1079,7 +1086,7 @@ void dlenv_init(void)
     if (pEnv) {
         apdu_retries_set((uint8_t)strtol(pEnv, NULL, 0));
     }
-    /* === Initialize the Datalink Here === */
+    /* === INIT - Initialize the Datalink Here === */
     pEnv = getenv("BACNET_IFACE");
     if (Datalink_Debug) {
         fprintf(stderr, "BACNET_IFACE=%s\n", pEnv ? pEnv : "none");
@@ -1087,6 +1094,7 @@ void dlenv_init(void)
     if (!datalink_init(pEnv)) {
         exit(1);
     }
+    /* === POST INIT - After the Datalink is Initialized === */
 #if (MAX_TSM_TRANSACTIONS)
     pEnv = getenv("BACNET_INVOKE_ID");
     if (pEnv) {
@@ -1097,5 +1105,7 @@ void dlenv_init(void)
         bbmd_register_as_foreign_device();
     } else if (port_type == PORT_TYPE_BIP6) {
         bbmd6_register_as_foreign_device();
+    } else if (port_type == PORT_TYPE_BSC) {
+        bsc_register_as_node(Network_Port_Instance);
     }
 }

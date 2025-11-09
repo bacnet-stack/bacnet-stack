@@ -32,5 +32,6 @@ bool bsc_node_conf_fill_from_netport(
 void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf);
 void bsc_copy_str(char *dst, const char *src, size_t dst_len);
 void bsc_set_timestamp(BACNET_DATE_TIME *timestamp);
+const char *bsc_return_code_to_string(BSC_SC_RET ret);
 
 #endif

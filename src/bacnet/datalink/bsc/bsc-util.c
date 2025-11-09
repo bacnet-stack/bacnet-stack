@@ -345,3 +345,26 @@ bool bsc_cert_files_check(uint32_t netport_instance)
 
     return true;
 }
+
+/**
+ * @brief Return a return code string for human readable log messages
+ * @param ret BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_return_code_to_string(BSC_SC_RET ret)
+{
+    switch (ret) {
+        case BSC_SC_SUCCESS:
+            return "SUCCESS";
+        case BSC_SC_NO_RESOURCES:
+            return "NO_RESOURCES";
+        case BSC_SC_BAD_PARAM:
+            return "BAD_PARAM";
+        case BSC_SC_INVALID_OPERATION:
+            return "INVALID_OPERATION";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
+}

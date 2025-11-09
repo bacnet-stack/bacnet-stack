@@ -2,13 +2,9 @@
 
 Test BACnet/SC using the following steps:
 
- * Build all the apps for the BACnet/SC datalink:
+ * Build all the apps and the hub for the BACnet/SC datalink:
 
-       make bsc
-
- * Build the BACnet/SC hub:
-
-       make sc-hub
+       make clean bsc sc-hub
 
  * Run the BACnet/SC hub application:
 

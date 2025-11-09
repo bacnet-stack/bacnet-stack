@@ -15,10 +15,8 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
 
-#define DEBUG_BSC_SOCKET 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_SOCKET == 1
+#if DEBUG_BSC_SOCKET
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED
@@ -785,24 +783,23 @@ static void bsc_runloop_socket(
  */
 void bsc_socket_maintenance_timer(uint16_t seconds)
 {
-    int i, j;
-    (void)seconds;
-    DEBUG_PRINTF("bsc_socket_maintenance_timer() >>>\n");
+    int i, j, count = 0;
+    DEBUG_PRINTF("bsc_socket_maintenance_timer(%us) >>>\n", (unsigned)seconds);
     bws_dispatch_lock();
-
     for (i = 0; i < BSC_SOCKET_CTX_NUM; i++) {
         if (bsc_socket_ctx[i] != NULL) {
             if (bsc_socket_ctx[i]->state == BSC_CTX_STATE_INITIALIZED) {
                 for (j = 0; j < bsc_socket_ctx[i]->sock_num; j++) {
+                    count++;
                     bsc_runloop_socket(
                         &bsc_socket_ctx[i]->sock[j], NULL, NULL, 0);
                 }
             }
         }
     }
-
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_socket_maintenance_timer() <<<\n");
+    DEBUG_PRINTF(
+        "bsc_socket_maintenance_timer() <<< %d sockets processed\n", count);
 }
 
 /**

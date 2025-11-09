@@ -13,10 +13,8 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-#define DEBUG_BSC_EVENT 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_EVENT == 1
+#if DEBUG_BSC_EVENT
 #define DEBUG_PRINTF printf
 #else
 #undef DEBUG_ENABLED
