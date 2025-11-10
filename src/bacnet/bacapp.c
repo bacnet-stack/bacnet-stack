@@ -4072,7 +4072,7 @@ bool bacapp_print_value(
         char str[str_len + 1];
 #else
         char *str;
-        str = calloc(sizeof(char), str_len + 1);
+        str = calloc(str_len + 1, sizeof(char));
         if (!str) {
             return false;
         }
