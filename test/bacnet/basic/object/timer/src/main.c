@@ -624,14 +624,18 @@ static void test_Timer_Operation(void)
         if (transition == TIMER_TRANSITION_NONE) {
             zassert_false(status, NULL);
         } else {
-            zassert_true(status, "transition=%s", bactext_timer_transition_name(transition));
+            zassert_true(
+                status, "transition=%s",
+                bactext_timer_transition_name(transition));
         }
         status = Timer_State_Change_Value_Set(
             instance, transition, &state_change_value);
         if (transition == TIMER_TRANSITION_NONE) {
             zassert_false(status, NULL);
         } else {
-            zassert_true(status, "transition=%s", bactext_timer_transition_name(transition));
+            zassert_true(
+                status, "transition=%s",
+                bactext_timer_transition_name(transition));
         }
         transition++;
     }
