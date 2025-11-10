@@ -305,6 +305,25 @@ int datetime_compare_date(const BACNET_DATE *date1, const BACNET_DATE *date2)
 }
 
 /**
+ * @brief Determine if date1 is the same as date2
+ * @param date1 - Pointer to a BACNET_DATE structure
+ * @param date2 - Pointer to a BACNET_DATE structure
+ * @return true if same, false if different
+ */
+bool datetime_date_same(const BACNET_DATE *date1, const BACNET_DATE *date2)
+{
+    bool status = false;
+    int diff = 0;
+
+    diff = datetime_compare_date(date1, date2);
+    if (diff == 0) {
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * If the time1 is the same as time2, return is 0.
  * If time1 is after time2, returns positive.
  * if time1 is before time2, returns negative.
@@ -335,6 +354,25 @@ int datetime_compare_time(const BACNET_TIME *time1, const BACNET_TIME *time2)
 }
 
 /**
+ * @brief Determine if time1 is the same as time2
+ * @param time1 - Pointer to a BACNET_TIME structure
+ * @param time2 - Pointer to a BACNET_TIME structure
+ * @return true if same, false if different
+ */
+bool datetime_time_same(const BACNET_TIME *time1, const BACNET_TIME *time2)
+{
+    bool status = false;
+    int diff = 0;
+
+    diff = datetime_compare_time(time1, time2);
+    if (diff == 0) {
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * If the datetime1 is the same datetime2, return is 0.
  * If datetime1 is after datetime2, returns positive.
  * if datetime1 is before datetime2, returns negative.
@@ -355,6 +393,26 @@ int datetime_compare(
     }
 
     return diff;
+}
+
+/**
+ * @brief Determine if the datetime1 is the same as datetime2
+ * @param datetime1 - Pointer to a BACNET_DATE_TIME structure
+ * @param datetime2 - Pointer to a BACNET_DATE_TIME structure
+ * @return true if same, false if different
+ */
+bool datetime_same(
+    const BACNET_DATE_TIME *datetime1, const BACNET_DATE_TIME *datetime2)
+{
+    bool status = false;
+    int diff = 0;
+
+    diff = datetime_compare(datetime1, datetime2);
+    if (diff == 0) {
+        status = true;
+    }
+
+    return status;
 }
 
 int datetime_wildcard_compare_date(
