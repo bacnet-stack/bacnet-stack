@@ -159,9 +159,16 @@ uint16_t datetime_minutes_since_midnight(const BACNET_TIME *btime);
 BACNET_STACK_EXPORT
 int datetime_compare_date(const BACNET_DATE *date1, const BACNET_DATE *date2);
 BACNET_STACK_EXPORT
+bool datetime_date_same(const BACNET_DATE *date1, const BACNET_DATE *date2);
+BACNET_STACK_EXPORT
 int datetime_compare_time(const BACNET_TIME *time1, const BACNET_TIME *time2);
 BACNET_STACK_EXPORT
+bool datetime_time_same(const BACNET_TIME *time1, const BACNET_TIME *time2);
+BACNET_STACK_EXPORT
 int datetime_compare(
+    const BACNET_DATE_TIME *datetime1, const BACNET_DATE_TIME *datetime2);
+BACNET_STACK_EXPORT
+bool datetime_same(
     const BACNET_DATE_TIME *datetime1, const BACNET_DATE_TIME *datetime2);
 
 /* full comparison functions:

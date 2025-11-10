@@ -23,7 +23,8 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
-    BACAPP_ALL
+    CHANNEL_VALUE_ALL=1
+    BACAPP_ALL=1
     )
 
 include_directories(
