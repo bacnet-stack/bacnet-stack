@@ -1521,7 +1521,7 @@ bool Timer_State_Change_Value_Get(
  * @brief Set the state-change value array element value
  * @param object_instance - BACnet object instance number
  * @param transition - the state-change enumeration requested
- * @param value state-change structure values
+ * @param value - state-change structure values
  * @return true if the transition is in range and value was copied
  */
 bool Timer_State_Change_Value_Set(
