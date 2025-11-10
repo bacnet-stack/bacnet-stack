@@ -1012,7 +1012,7 @@ bool Timer_Reliability_Set(uint32_t object_instance, BACNET_RELIABILITY value)
 
 /**
  * @brief Return the present-value for a specific object instance
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @return the present-value for a specific object instance
  */
 uint32_t Timer_Present_Value(uint32_t object_instance)
@@ -1043,7 +1043,7 @@ uint32_t Timer_Present_Value(uint32_t object_instance)
  *  is in the EXPIRED or IDLE state, then no transition of the
  *  timer state shall occur.
  *
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @return true if the present-value for a specific object instance was set
  */
 bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
@@ -1120,7 +1120,7 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
 
 /**
  * @brief Get the update-time property value for the object-instance specified
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @return true if property value was retrieved
  */
 bool Timer_Update_Time(uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
@@ -1139,7 +1139,7 @@ bool Timer_Update_Time(uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
 
 /**
  * @brief Get the update-time property value for the object-instance specified
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @return true if property value was retrieved
  */
 bool Timer_Update_Time_Set(
@@ -1163,7 +1163,7 @@ bool Timer_Update_Time_Set(
  * @details The Expiration_Time property shall indicate the date and time
  *  when the timer will expire. The value of Expiration_Time
  *  shall be calculated at the time the property is read.
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param bdatetime [out] the property value retrieved
  * @return true if property value was retrieved
  */
@@ -1432,7 +1432,7 @@ bool Timer_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value)
  * The array index of the element is equal to the numerical value of the
  * BACnetTimerTransition enumeration for the respective timer state change.
  * The timer state change NONE has no corresponding array element.
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param index [in] array index requested:
  *    0 to N for individual array members
  * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
@@ -1461,7 +1461,7 @@ static int Timer_State_Change_Value_Encode(
 
 /**
  * @brief Get the state-change value array element value
- * @param object_instance - BACnet network port object instance number
+ * @param object_instance - BACnet object instance number
  * @param transition - the state-change enumeration requested
  * @return state-change structure or NULL if transition is out of range.
  */
@@ -1488,9 +1488,9 @@ BACNET_TIMER_STATE_CHANGE_VALUE *Timer_State_Change_Value(
 
 /**
  * @brief Get the state-change value array element value
- * @param object_instance - BACnet network port object instance number
+ * @param object_instance - BACnet object instance number
  * @param transition - the state-change enumeration requested
- * @param value state-change structure values
+ * @param value - [out] state-change structure where value will be copied
  * @return true if the transition is in range and value was copied
  */
 bool Timer_State_Change_Value_Get(
@@ -1519,7 +1519,7 @@ bool Timer_State_Change_Value_Get(
 
 /**
  * @brief Set the state-change value array element value
- * @param object_instance - BACnet network port object instance number
+ * @param object_instance - BACnet object instance number
  * @param transition - the state-change enumeration requested
  * @param value state-change structure values
  * @return true if the transition is in range and value was copied
@@ -1700,7 +1700,7 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
 /**
  * @brief Decode a BACnetARRAY property element to determine the element length
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
  * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
@@ -1720,7 +1720,7 @@ static int Timer_State_Change_Value_Length(
 /**
  * @brief Write a value to a BACnetARRAY property element value
  *  using a BACnetARRAY write utility function
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
  * @param application_data [in] encoded element value
@@ -1765,7 +1765,7 @@ static BACNET_ERROR_CODE Timer_State_Change_Value_Write(
 
 /**
  * @brief Decode a BACnetLIST property element to determine the element length
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
  * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
@@ -1787,7 +1787,7 @@ static int Timer_List_Of_Object_Property_References_Length(
 /**
  * @brief Add an element to a BACnetLIST property
  *  using a BACnetLIST add utility function
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value or ERROR_CODE_SUCCESS
@@ -1832,7 +1832,7 @@ static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Add(
 
 /**
  * @brief Remove an element from a BACnetLIST property
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value or ERROR_CODE_SUCCESS
