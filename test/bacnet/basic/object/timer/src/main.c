@@ -559,7 +559,9 @@ static void test_Timer_Operation(void)
     bool status = false;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
     BACNET_TIMER_STATE_CHANGE_VALUE *value = NULL;
+    BACNET_TIMER_STATE_CHANGE_VALUE state_change_value = { 0 };
     BACNET_TIMER_STATE test_state = TIMER_STATE_IDLE;
+    BACNET_TIMER_TRANSITION transition;
     BACNET_DATE_TIME bdatetime = { 0 };
     uint32_t elapsed_time = 0;
     unsigned members = 0, i = 0;
@@ -615,9 +617,24 @@ static void test_Timer_Operation(void)
     value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
     value->type.Enumerated = BINARY_ACTIVE;
     /* alternate API */
-    status = Timer_State_Change_Value_Set(
-        instance, TIMER_TRANSITION_EXPIRED_TO_RUNNING, value);
-    zassert_true(status, NULL);
+    transition = TIMER_TRANSITION_NONE;
+    while (transition != TIMER_TRANSITION_MAX) {
+        status = Timer_State_Change_Value_Get(
+            instance, transition, &state_change_value);
+        if (transition == TIMER_TRANSITION_NONE) {
+            zassert_false(status, NULL);
+        } else {
+            zassert_true(status, "transition=%s", bactext_timer_transition_name(transition));
+        }
+        status = Timer_State_Change_Value_Set(
+            instance, transition, &state_change_value);
+        if (transition == TIMER_TRANSITION_NONE) {
+            zassert_false(status, NULL);
+        } else {
+            zassert_true(status, "transition=%s", bactext_timer_transition_name(transition));
+        }
+        transition++;
+    }
     /* start timer using a write to timer-running property to use defaults */
     /* IDLE_TO_RUNNING */
     status = Timer_State_Set(instance, TIMER_STATE_IDLE);

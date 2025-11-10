@@ -149,6 +149,11 @@ BACNET_STACK_EXPORT
 BACNET_TIMER_STATE_CHANGE_VALUE *Timer_State_Change_Value(
     uint32_t object_instance, BACNET_TIMER_TRANSITION transition);
 BACNET_STACK_EXPORT
+bool Timer_State_Change_Value_Get(
+    uint32_t object_instance,
+    BACNET_TIMER_TRANSITION transition,
+    BACNET_TIMER_STATE_CHANGE_VALUE *value);
+BACNET_STACK_EXPORT
 bool Timer_State_Change_Value_Set(
     uint32_t object_instance,
     BACNET_TIMER_TRANSITION transition,

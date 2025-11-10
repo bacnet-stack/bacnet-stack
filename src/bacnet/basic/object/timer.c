@@ -1487,11 +1487,42 @@ BACNET_TIMER_STATE_CHANGE_VALUE *Timer_State_Change_Value(
 }
 
 /**
+ * @brief Get the state-change value array element value
+ * @param object_instance - BACnet network port object instance number
+ * @param transition - the state-change enumeration requested
+ * @param value state-change structure values
+ * @return true if the transition is in range and value was copied
+ */
+bool Timer_State_Change_Value_Get(
+    uint32_t object_instance,
+    BACNET_TIMER_TRANSITION transition,
+    BACNET_TIMER_STATE_CHANGE_VALUE *value)
+{
+    bool status = false;
+    unsigned index;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        /* Note: The timer state change NONE=0
+           has no corresponding array element.*/
+        if ((transition != TIMER_TRANSITION_NONE) &&
+            (transition < TIMER_TRANSITION_MAX)) {
+            index = transition - 1;
+            status = bacnet_timer_value_copy(
+                value, &pObject->State_Change_Values[index]);
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief Set the state-change value array element value
  * @param object_instance - BACnet network port object instance number
  * @param transition - the state-change enumeration requested
  * @param value state-change structure values
- * @return true if the transition is in range and values were copied
+ * @return true if the transition is in range and value was copied
  */
 bool Timer_State_Change_Value_Set(
     uint32_t object_instance,
