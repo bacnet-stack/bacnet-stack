@@ -629,16 +629,28 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         (mstp_port->This_Station + 1) % (mstp_port->Nmax_master + 1);
     next_next_station =
         (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
-    /* The zero config checks before running FSM */
-    if ((mstp_port->ZeroConfigEnabled) &&
-        (mstp_port->master_state != MSTP_MASTER_STATE_INITIALIZE) &&
-        (mstp_port->ReceivedValidFrame == true) &&
-        (mstp_port->SourceAddress == mstp_port->This_Station)) {
-        /* DuplicateNode */
-        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
-        mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
-        /* ignore the frame */
-        mstp_port->ReceivedValidFrame = false;
+    /* The zero config receive state machine does not
+       filter DestinationAddress for This_Station or Broadcast.
+       Check before running FSM: */
+    if (mstp_port->ReceivedValidFrame == true) {
+        if ((mstp_port->master_state == MSTP_MASTER_STATE_INITIALIZE) &&
+            (mstp_port->ZeroConfigEnabled)) {
+            /* zero config initialization processes all frames */
+        } else {
+            if ((mstp_port->DestinationAddress == mstp_port->This_Station) ||
+                (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
+                /* process as-is */
+            } else {
+                if ((mstp_port->ZeroConfigEnabled) &&
+                    (mstp_port->SourceAddress == mstp_port->This_Station)) {
+                    /* DuplicateNode */
+                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
+                    mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
+                }
+                /* ignore the frame */
+                mstp_port->ReceivedValidFrame = false;
+            }
+        }
     }
     switch (mstp_port->master_state) {
         case MSTP_MASTER_STATE_INITIALIZE:
