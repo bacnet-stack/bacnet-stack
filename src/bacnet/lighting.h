@@ -40,6 +40,25 @@ typedef struct BACnetLightingCommand {
     uint8_t priority;
 } BACNET_LIGHTING_COMMAND;
 
+/* The Lighting Output object Present_Value supports special values
+   outside of the normal range of values to provide blink-warn
+   functionality from objects and devices that are unable to write
+   the complex datatypes used in the Lighting Command property
+   (e.g., the BACnet Schedule object type).
+   Writing a special value has the same effect as writing the
+   corresponding lighting command and is subject to the same restrictions.*/
+/* Table 12-65. Special Values of the Present_Value Property */
+#define BACNET_LIGHTING_SPECIAL_VALUE_ON 100.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_MIN 1.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_OFF 0.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_WARN -1.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH -2.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF -3.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_RESTORE_ON -4.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_DEFAULT_ON -5.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_RESTORE -6.0f
+#define BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_DEFAULT -7.0f
+
 /**
  * BACnetxyColor::= SEQUENCE {
  *      x-coordinate REAL, --(0.0 to 1.0)
