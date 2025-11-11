@@ -10,7 +10,7 @@ on:
 
 jobs:
   bip-apps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -36,7 +36,7 @@ jobs:
         make LEGACY=true CSTANDARD="-std=gnu17" all
 
   bip-no-bbmd-apps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -50,7 +50,7 @@ jobs:
         make LEGACY=true BBMD=none all
 
   bip-client-bbmd-apps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -64,7 +64,7 @@ jobs:
         make LEGACY=true BBMD=client all
 
   gateway:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -78,7 +78,7 @@ jobs:
         make LEGACY=true gateway
 
   router:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -92,7 +92,7 @@ jobs:
         make LEGACY=true router
 
   router-ipv6:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -106,7 +106,7 @@ jobs:
         make LEGACY=true router-ipv6
 
   router-mstp:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -120,7 +120,7 @@ jobs:
         make LEGACY=true router-mstp
 
   bip6:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -134,7 +134,7 @@ jobs:
         make LEGACY=true bip6
 
   mstp:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -148,7 +148,7 @@ jobs:
         make LEGACY=true mstp
 
   ethernet:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -163,7 +163,7 @@ jobs:
         make LEGACY=true ethernet
 
   ports-arm-makefile:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -181,7 +181,7 @@ jobs:
         make LEGACY=true at91sam7s
 
   ports-arm-cmake:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -198,7 +198,7 @@ jobs:
         make at91sam7s-cmake
 
   ports-avr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -214,7 +214,7 @@ jobs:
         make LEGACY=true xplained
 
   ports-lwip:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
@@ -227,7 +227,7 @@ jobs:
         make lwip
 
   mingw:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
