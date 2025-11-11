@@ -50,5 +50,4 @@ void mstimer_init(void)
             /* config error? return  1 = failed, 0 = successful */
         }
     }
-    NVIC_EnableIRQ(SysTick_IRQn);
 }

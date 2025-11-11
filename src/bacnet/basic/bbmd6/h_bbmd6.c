@@ -346,7 +346,7 @@ int bvlc6_send_pdu(BACNET_ADDRESS *dest,
 
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
 /**
- * The send function for Broacast Distribution Table
+ * The send function for Broadcast Distribution Table
  *
  * @param addr - Points to a #BACNET_IP6_ADDRESS structure containing the
  *  source IPv6 address.
@@ -373,7 +373,7 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
 }
 
 /**
- * The send function for Broacast Distribution Table
+ * The send function for Broadcast Distribution Table
  *
  * @param addr - Points to a #BACNET_IP6_ADDRESS structure containing the
  *  source IPv6 address.
@@ -400,7 +400,7 @@ static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
 }
 
 /**
- * The Forward NPDU send function for Broacast Distribution Table
+ * The Forward NPDU send function for Broadcast Distribution Table
  *
  * @param addr - Points to a #BACNET_IP6_ADDRESS structure containing the
  *  source IPv6 address.

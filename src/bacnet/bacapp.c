@@ -953,7 +953,7 @@ int bacapp_encode_context_data_value(
 BACNET_APPLICATION_TAG
 bacapp_context_tag_type(BACNET_PROPERTY_ID property, uint8_t tag_number)
 {
-    BACNET_APPLICATION_TAG tag = MAX_BACNET_APPLICATION_TAG;
+    int tag = MAX_BACNET_APPLICATION_TAG;
 
     (void)tag_number;
     tag = bacapp_known_property_tag(MAX_BACNET_OBJECT_TYPE, property);
@@ -961,7 +961,7 @@ bacapp_context_tag_type(BACNET_PROPERTY_ID property, uint8_t tag_number)
         tag = MAX_BACNET_APPLICATION_TAG;
     }
 
-    return tag;
+    return (BACNET_APPLICATION_TAG)tag;
 }
 
 /**
@@ -1614,7 +1614,7 @@ int bacapp_decode_known_property(
     BACNET_PROPERTY_ID property)
 {
     int apdu_len = 0;
-    BACNET_APPLICATION_TAG tag;
+    int tag;
 
     if (bacnet_is_closing_tag(apdu, apdu_size)) {
         if (value) {
@@ -2963,8 +2963,10 @@ int bacapp_snprintf_value(
     char *str, size_t str_len, BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     size_t len = 0, i = 0;
-    char *char_str;
-    BACNET_APPLICATION_DATA_VALUE *value;
+#if defined(BACAPP_CHARACTER_STRING)
+    const char *char_str;
+#endif
+    const BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
@@ -3645,8 +3647,12 @@ bool bacapp_parse_application_data(
     char *argv,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
+#if defined(BACAPP_TIME)
     int hour, min, sec, hundredths;
+#endif
+#if defined(BACAPP_DATE)
     int year, month, day, wday;
+#endif
     int object_type = 0;
     uint32_t instance = 0;
     bool status = false;

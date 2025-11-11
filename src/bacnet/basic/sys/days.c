@@ -37,8 +37,8 @@ uint8_t days_per_month(uint16_t year, uint8_t month)
 {
     /* note: start with a zero in the first element to save us from a
        month - 1 calculation in the lookup */
-    uint8_t month_days[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30,
-        31 };
+    const uint8_t month_days[13] = { 0,  31, 28, 31, 30, 31, 30,
+                                     31, 31, 30, 31, 30, 31 };
 
     if ((month == 2) && days_is_leap_year(year)) {
         return (29);

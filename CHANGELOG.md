@@ -17,8 +17,44 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 ### Changed
-### Fixed
 ### Removed
+
+### Fixed
+
+* Fixed error code for Analog Value present-value write property invalid
+  datatype. (#881)
+* Fixed missing RELIABILITY optional property in MSI and MSV objects (#880)
+* Fixed the DeviceCommunicationControl error code when no service request (#877)
+* Fixed ability to write empty CharacterString. (#871)
+* Fixed the defects found after enabling style and CERT-C addon for
+  CPPCHECK. (#869)
+* Fixed DeviceCommunicationControl service handler to return
+  Service Request Denied when the DISABLE parameter is given
+  in protocol-revision 20 or higher builds. (#867)
+* Fixed dlmstp ringbuffer initialization corruption (#865)
+* Fixed basic Multistate-Value object default Object_Name value. (#864)
+* Fixed missing BitString Value object Create/Delete API in basic device
+  Object_Table (#863)
+* Fixed ability to compile with BACNET_PROTOCOL_REVISION<17 (#862)
+* Fixed Notification Class object ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY
+  condition. (#852)
+* Fixed Systick Interrupt hard fault when using NVIC_EnableIRQ. (#850)
+* Fixed missing DLMSTP start, valid, and invalid frame complete callbacks
+  in common DLMSTP module. (#848)
+* Fixed MS/TP module flush stderr compile error from leftover. (#844)
+* Fixed missing MS/TP zero configuration preferred address API and usage. (#840)
+* Fixed MS/TP Slave Node FSM to enable receiving DNER frames. (#832)
+* Fixed MS/TP this-station filterning and establish 0xff address for
+  this station as promiscuous mode. (#803)
+* Fixed IP_DHCP_Enable property for BTL testing by adding a define to control
+  IP_DHCP_Enable property being present in Network Port object. (#796)
+* Fixed return values and comments in basic Network Port object. (#792)
+* Fixed compiler warning emitted from arm-none-eabi-gcc in hostnport.c (#785)
+* Fixed "types-limits" compiler warnings. (#766)
+* Fixed some typos in function header comments. (#762)
+* Fixed order of operations in COV handler so that dest_index gets
+  written to the right slot. (#761)
+* Fixed COV detection in the basic Binary Output object example. (#751)
 
 ## [1.3.8] - 2024-08-26
 

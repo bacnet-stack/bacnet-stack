@@ -75,10 +75,13 @@ static SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
  */
 void Schedule_Init(void)
 {
-    unsigned i, j, e;
+    unsigned i, j;
     BACNET_DATE start_date = { 0 }, end_date = { 0 };
-    BACNET_SPECIAL_EVENT *event;
     SCHEDULE_DESCR *psched;
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    unsigned e;
+    BACNET_SPECIAL_EVENT *event;
+#endif
 
     /* whole year, change as necessary */
     datetime_set_date(&start_date, 0, 1, 1);

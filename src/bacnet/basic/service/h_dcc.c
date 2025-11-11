@@ -105,7 +105,17 @@ void handler_device_communication_control(uint8_t *service_request,
             "DeviceCommunicationControl: "
             "Sending Abort - segmented message.\n");
 #endif
-        goto DCC_ABORT;
+        goto DCC_FAILURE;
+    }
+
+    if (!service_request || service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+#if PRINT_ENABLED
+        fprintf(stderr, "DCC: Sending Reject!\n");
+#endif
+        goto DCC_FAILURE;
     }
     /* decode the service request only */
     len = dcc_decode_service_request(
@@ -134,8 +144,26 @@ void handler_device_communication_control(uint8_t *service_request,
             fprintf(stderr, "DCC: Sending Reject!\n");
 #endif
         }
-        goto DCC_ABORT;
+        goto DCC_FAILURE;
     }
+#if (BACNET_PROTOCOL_REVISION >= 20)
+    if (state == COMMUNICATION_DISABLE) {
+        /*  If the request is valid and the 'Enable/Disable'
+            parameter is the deprecated value DISABLE, return the error
+            SERVICES, SERVICE_REQUEST_DENIED */
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+            ERROR_CLASS_SERVICES, ERROR_CODE_SERVICE_REQUEST_DENIED);
+#if PRINT_ENABLED
+        fprintf(
+            stderr,
+            "DeviceCommunicationControl: "
+            "Sending Error - DISABLE has been deprecated.\n");
+#endif
+        goto DCC_FAILURE;
+    }
+#endif
     if (state >= MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
         len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
@@ -150,8 +178,9 @@ void handler_device_communication_control(uint8_t *service_request,
         len = Routed_Device_Service_Approval(
             SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, (int)state,
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
-        if (len > 0)
-            goto DCC_ABORT;
+        if (len > 0) {
+            goto DCC_FAILURE;
+        }
 #endif
         if ((My_Password[0] == '\0') ||
             characterstring_ansi_same(&password, My_Password)) {
@@ -176,7 +205,7 @@ void handler_device_communication_control(uint8_t *service_request,
 #endif
         }
     }
-DCC_ABORT:
+DCC_FAILURE:
     pdu_len += len;
     len = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);

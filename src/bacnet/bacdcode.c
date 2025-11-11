@@ -2451,6 +2451,8 @@ int bacnet_character_string_decode(uint8_t *apdu,
                 string_value = (char *)&apdu[1];
                 (void)characterstring_init(
                     char_string, encoding, string_value, len_value - 1);
+            } else {
+                (void)characterstring_init(char_string, encoding, NULL, 0);
             }
             len = (int)len_value;
         }

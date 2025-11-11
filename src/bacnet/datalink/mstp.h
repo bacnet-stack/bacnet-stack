@@ -47,9 +47,9 @@ struct mstp_port_struct_t {
     /* A Boolean flag set to TRUE by the master machine if this node is the
        only known master node. */
     unsigned SoleMaster : 1;
-   /* A Boolean flag set to TRUE if this node is a slave node */
+    /* A Boolean flag set to TRUE if this node is a slave node */
     unsigned SlaveNodeEnabled : 1;
-   /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
+    /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
     unsigned ZeroConfigEnabled : 1;
     /* stores the latest received data */
     uint8_t DataRegister;
@@ -164,6 +164,8 @@ struct mstp_port_struct_t {
     /* the MAC address that this node is testing for MAC addresses
        that are not in-use.*/
     uint8_t Zero_Config_Station;
+    /* the MAC address that this node prefers to use.*/
+    uint8_t Zero_Config_Preferred_Station;
     /* Used to count the number of received poll-for-master frames
        This is used in the detection of addresses not in-use. */
     uint8_t Poll_Count;
@@ -204,11 +206,11 @@ struct mstp_port_struct_t {
        not to exceed 35 milliseconds.) */
     uint8_t Tusage_timeout;
 
-   /* The minimum time after the end of the stop bit of the final
-      octet of a received frame before a node may enable its
-      EIA-485 driver: 40 bit times.
-      40 bits is 4 octets including a start and stop bit with each octet.
-      turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
+    /* The minimum time after the end of the stop bit of the final
+       octet of a received frame before a node may enable its
+       EIA-485 driver: 40 bit times.
+       40 bits is 4 octets including a start and stop bit with each octet.
+       turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
     uint8_t Tturnaround_timeout;
 
     /*Platform-specific port data */

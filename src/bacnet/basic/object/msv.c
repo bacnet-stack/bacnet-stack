@@ -51,8 +51,8 @@ static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_NUMBER_OF_STATES, -1 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
-    -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
+                                           PROP_STATE_TEXT, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -466,7 +466,8 @@ bool Multistate_Value_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "MULTI-STATE INPUT %lu",
+            snprintf(
+                name_text, sizeof(name_text), "MULTI-STATE VALUE %lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -547,14 +548,12 @@ bool Multistate_Value_Reliability_Set(
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        if (value <= RELIABILITY_PROPRIETARY_MAX) {
-            fault = Multistate_Value_Object_Fault(pObject);
-            pObject->Reliability = value;
-            if (fault != Multistate_Value_Object_Fault(pObject)) {
-                pObject->Change_Of_Value = true;
-            }
-            status = true;
+        fault = Multistate_Value_Object_Fault(pObject);
+        pObject->Reliability = value;
+        if (fault != Multistate_Value_Object_Fault(pObject)) {
+            pObject->Change_Of_Value = true;
         }
+        status = true;
     }
 
     return status;

@@ -875,10 +875,6 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                status = false;
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -1378,9 +1374,9 @@ int Analog_Value_Event_Information(
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
         IsNotAckedTransitions =
             (pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
              false);
     } else {
