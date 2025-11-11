@@ -19,11 +19,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04, macOS-latest]
+        os: [windows-2022, ubuntu-22.04, macos-14]
         project: [root, test]
         exclude:
           # Currently does not build. Need to be fixed at some point.
-          - os: windows-latest
+          - os: windows-2022
             project: test
 
     steps:
