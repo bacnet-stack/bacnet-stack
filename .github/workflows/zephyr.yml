@@ -1,17 +1,30 @@
 name: Zephyr OS CMake
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - '*'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: environment
+      tags:
+        description: 'Tags to filter by'
+        required: false
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container: zephyrprojectrtos/ci:latest
+    container: zephyrprojectrtos/ci:v0.26-branch
     env:
       CMAKE_PREFIX_PATH: /opt/toolchains
     steps:
