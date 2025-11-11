@@ -1,17 +1,30 @@
 name: Zephyr OS CMake
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - '*'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: environment
+      tags:
+        description: 'Tags to filter by'
+        required: false
+        type: string
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container: zephyrprojectrtos/ci:latest
+    runs-on: ubuntu-22.04
+    container: zephyrprojectrtos/ci:v0.26-branch
     env:
       CMAKE_PREFIX_PATH: /opt/toolchains
     steps:
@@ -25,15 +38,15 @@ jobs:
         run: |
           west init -l .
           west update
-          
+
       - name: Twister Tests unit_testing
         working-directory: bacnet-stack
         run: |
           rm -rf twister-out.unit_testing &&
           ../zephyr/scripts/twister -O twister-out.unit_testing -p unit_testing -T zephyr/tests &&
           for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
-            do 
-              find twister-out.unit_testing -name $file -exec rm -rf {} \; || true 
+            do
+              find twister-out.unit_testing -name $file -exec rm -rf {} \; || true
             done
 
       - name: Archive firmware

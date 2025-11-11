@@ -385,6 +385,7 @@ CPPCHECK_OPTIONS += --suppress=cert-STR05-C
 CPPCHECK_OPTIONS += --suppress=cert-API01-C
 CPPCHECK_OPTIONS += --suppress=cert-MSC24-C
 CPPCHECK_OPTIONS += --suppress=cert-INT31-c
+CPPCHECK_OPTIONS += --suppress=cert-EXP05-C
 CPPCHECK_OPTIONS += -DBACNET_STACK_DEPRECATED
 #CPPCHECK_OPTIONS += -I./src
 #CPPCHECK_OPTIONS += --enable=information --check-config

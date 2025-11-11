@@ -10,7 +10,7 @@ on:
 
 jobs:
   scan-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create LLVM clang-tools scan-build Workspace
@@ -23,7 +23,7 @@ jobs:
         make scan-build
 
   splint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create SPLint Workspace
@@ -35,7 +35,7 @@ jobs:
 
 
   cppcheck:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create CPPcheck Workspace
@@ -49,7 +49,7 @@ jobs:
         make cppcheck
 
   flawfinder:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Flawfinder Workspace
@@ -63,7 +63,7 @@ jobs:
         make flawfinder
 
   codespell:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create codespell Workspace
@@ -74,7 +74,7 @@ jobs:
       run: make spell
 
   unittest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment

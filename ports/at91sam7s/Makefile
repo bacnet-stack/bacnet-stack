@@ -48,6 +48,8 @@ WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
 WARNING_ALL += -Wno-long-long -Wno-attributes
 # don't warn about implicit fallthrough since it's common in network protocols
 WARNING_ALL += -Wno-implicit-fallthrough
+# don't warn about ‘const’ qualifier as this library version is not compliant
+WARNING_ALL += -Wno-discarded-qualifiers
 # the older Atmel SDK does not meet coding guidelines
 WARNING_ALL += -Wno-comment -Wno-missing-braces
 WARNING_ALL += -Wno-unused-variable -Wno-char-subscripts

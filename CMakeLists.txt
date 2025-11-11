@@ -117,8 +117,14 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   # embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare)
+  if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+    # don't warn about ‘const’ qualifier as this library version is not compliant
+    add_compile_options(-Wno-discarded-qualifiers)
+  endif()
 
   if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    # don't warn about ‘const’ qualifier as this library version is not compliant
+    add_compile_options(-Wno-incompatible-pointer-types-discards-qualifiers)
     # Just noise from clang
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 
@@ -165,6 +171,9 @@ elseif(MSVC)
 
   # Compiler adds padding to structures.
   add_compile_options(/wd4820)
+
+  # don't warn about ‘const’ qualifier as this library version is not compliant
+  add_compile_options(/wd4090)
 
   # Might be slower if builded with /Qspectre
   add_compile_options(/wd5045)
