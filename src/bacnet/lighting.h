@@ -40,11 +40,14 @@ typedef struct BACnetLightingCommand {
     uint8_t priority;
 } BACNET_LIGHTING_COMMAND;
 
-/* The Lighting Output object Present_Value supports special values
-   outside of the normal range of values to provide blink-warn
-   functionality from objects and devices that are unable to write
-   the complex datatypes used in the Lighting Command property
-   (e.g., the BACnet Schedule object type).
+/* The Lighting Output object Present_Value supports special values.
+   Some special values (e.g., 0.0, 1.0, 100.0) are within the normal
+   operating range (0.0–100.0%) but have specific semantic meanings
+   such as ON, OFF, and MIN. Other special values (negative values) are
+   outside of the normal range of values and trigger specific lighting
+   commands to provide functionality from objects and devices that are
+   unable to write the complex datatypes used in the Lighting Command
+   property (e.g., the BACnet Schedule object type).
    Writing a special value has the same effect as writing the
    corresponding lighting command and is subject to the same restrictions.*/
 /* Table 12-65. Special Values of the Present_Value Property */
