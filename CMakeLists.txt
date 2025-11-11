@@ -117,10 +117,14 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   # embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare)
-  # don't warn about ‘const’ qualifier as this library version is not compliant
-  add_compile_options(-Wno-discarded-qualifiers)
+  if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+    # don't warn about ‘const’ qualifier as this library version is not compliant
+    add_compile_options(-Wno-discarded-qualifiers)
+  endif()
 
   if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    # don't warn about ‘const’ qualifier as this library version is not compliant
+    add_compile_options(-Wno-incompatible-pointer-types-discards-qualifiers)
     # Just noise from clang
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 
@@ -177,8 +181,6 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic -g -O3)
-  # don't warn about ‘const’ qualifier as this library version is not compliant
-  add_compile_options(-Wno-discarded-qualifiers)
 endif()
 
 #
