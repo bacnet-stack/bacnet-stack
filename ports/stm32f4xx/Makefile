@@ -206,6 +206,8 @@ WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
 WARNING_ALL += -Wno-long-long -Wno-attributes
 # don't warn about implicit fallthrough since it's common in network protocols
 WARNING_ALL += -Wno-implicit-fallthrough
+# don't warn about ‘const’ qualifier as this library version is not compliant
+WARNING_ALL += -Wno-discarded-qualifiers
 # don't warn about missing braces since GCC is over-achiever for this
 WARNING_ALL += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some

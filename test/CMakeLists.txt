@@ -24,7 +24,8 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wswitch-default)
     add_compile_options(-Wunused-variable)
     add_compile_options(-Wcast-qual)
-
+    # don't warn about ‘const’ qualifier as this library version is not compliant
+    add_compile_options(-Wno-discarded-qualifiers)
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)

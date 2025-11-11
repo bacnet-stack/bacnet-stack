@@ -245,6 +245,8 @@ target_compile_options(${EXECUTABLE} PRIVATE
     -Wno-attributes
     # don't warn about implicit fallthrough since it is common in network protocols
     -Wno-implicit-fallthrough
+    # don't warn about ‘const’ qualifier as this library version is not compliant
+    -Wno-discarded-qualifiers
     # the SDK does not meet coding guidelines
     -Wno-comment
     -Wno-missing-braces
