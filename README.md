@@ -13,13 +13,13 @@ This library uses automated continuous integration services
 to assist in automated compilation, validation, linting, security scanning,
 and unit testing to produce robust C code and BACnet functionality.
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/main.yml) GitHub Workflow: CMake build of library and demo apps on Ubuntu, Windows and MacOS
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg?branch=bacnet-stack-1.3)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/main.yml) GitHub Workflow: CMake build of library and demo apps on Ubuntu, Windows and MacOS
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/GCC/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/gcc.yml) GitHub Workflow: Ubuntu Makefile GCC build of library, BACnet/IP demo apps with and without BBMD, BACnet/IPv6, BACnet Ethernet, and BACnet MSTP demo apps, gateway, router, router-ipv6, router-mstp, ARM ports (STM, Atmel), AVR ports, and BACnet/IP demo apps compiled with MinGW32.
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/GCC/badge.svg?branch=bacnet-stack-1.3)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/gcc.yml) GitHub Workflow: Ubuntu Makefile GCC build of library, BACnet/IP demo apps with and without BBMD, BACnet/IPv6, BACnet Ethernet, and BACnet MSTP demo apps, gateway, router, router-ipv6, router-mstp, ARM ports (STM, Atmel), AVR ports, and BACnet/IP demo apps compiled with MinGW32.
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Quality/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/lint.yml) GitHub Workflow: scan-build (LLVM Clang Tools), cppcheck, codespell, unit tests and code coverage.
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Quality/badge.svg?branch=bacnet-stack-1.3)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/lint.yml) GitHub Workflow: scan-build (LLVM Clang Tools), cppcheck, codespell, unit tests and code coverage.
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CodeQL/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/codeql-analysis.yml) GitHub Workflow CodeQL Analysis
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/codeql-analysis.yml/badge.svg?branch=bacnet-stack-1.3)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/codeql-analysis.yml)
 
 About this Project
 ------------------

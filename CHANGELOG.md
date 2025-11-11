@@ -17,10 +17,16 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 ### Changed
+
+* Changed builds to inhibited warning about ‘const’ qualifier because
+  this library version is not compliant.
+* Changed the github workflows to run fixed version image instead of latest
+
 ### Removed
 
 ### Fixed
 
+* Fixed MS/TP master state machine by copying address filter fix from (#1138)
 * Fixed error code for Analog Value present-value write property invalid
   datatype. (#881)
 * Fixed missing RELIABILITY optional property in MSI and MSV objects (#880)
