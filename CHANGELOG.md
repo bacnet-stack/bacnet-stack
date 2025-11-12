@@ -146,8 +146,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Added CHANNEL_VALUE_ALL define and fixed the API integration for the
-  additional datatypes now supported in the Channel object. (#1135)
+* Fixed  WPM workaround for BTL Specified Test 9.23.2.X5 by reverting.
+* Fixed the API integration for the additional datatypes now supported
+  in the Channel object by adding CHANNEL_VALUE_ALL to enable and test. (#1135)
 * Fixed the error class returned for AlarmAcknowledgment (#1131)
 * Fixed object creation failure when create is called before init. (#1122)
 * Fixed octetstring_copy_value() and added unit tests. (#1121)
