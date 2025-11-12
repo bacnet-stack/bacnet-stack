@@ -387,6 +387,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/lc.h
   src/bacnet/basic/object/lo.c
   src/bacnet/basic/object/lo.h
+  src/bacnet/basic/object/loop.c
+  src/bacnet/basic/object/loop.h
   src/bacnet/basic/object/lsp.c
   src/bacnet/basic/object/lsp.h
   src/bacnet/basic/object/lsz.c
