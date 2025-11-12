@@ -157,11 +157,6 @@ BACNET_STACK_EXPORT
 bool Loop_Minimum_Output_Set(uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
-float Loop_Low_Diff_Limit(uint32_t instance);
-BACNET_STACK_EXPORT
-bool Loop_Low_Diff_Limit_Set(uint32_t object_instance, float value);
-
-BACNET_STACK_EXPORT
 uint8_t Loop_Priority_For_Writing(uint8_t object_instance);
 BACNET_STACK_EXPORT
 bool Loop_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value);
@@ -177,7 +172,7 @@ BACNET_STACK_EXPORT
 bool Loop_Reliability_Evaluation_Inhibit_Set(uint32_t instance, bool value);
 
 BACNET_STACK_EXPORT
-void Loop_Task(uint32_t object_instance, uint16_t milliseconds);
+void Loop_Timer(uint32_t object_instance, uint16_t elapsed_milliseconds);
 
 BACNET_STACK_EXPORT
 void Loop_Write_Property_Internal_Callback_Set(write_property_function cb);

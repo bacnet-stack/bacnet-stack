@@ -43,8 +43,14 @@ static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LOOP;
 static write_property_function Write_Property_Internal_Callback;
+static read_property_function Read_Property_Internal_Callback;
 
 struct object_data {
+    /* internal variables for PID calculations */
+    uint32_t Update_Timer;
+    float Integral_Sum;
+    float Error;
+    /* variables for object properties */
     uint32_t Update_Interval;
     float Present_Value;
     uint16_t Output_Units;
@@ -64,7 +70,6 @@ struct object_data {
     float Bias;
     float Maximum_Output;
     float Minimum_Output;
-    float Low_Diff_Limit;
     float COV_Increment;
     uint8_t Priority_For_Writing;
     const char *Description;
@@ -1235,44 +1240,6 @@ bool Loop_Minimum_Output_Set(uint32_t object_instance, float value)
 }
 
 /**
- * @brief Gets the property value for a given object instance
- * @param  object_instance - object-instance number of the object
- * @return the property value for a given object instance
- */
-float Loop_Low_Diff_Limit(uint32_t object_instance)
-{
-    float value = 0;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        value = pObject->Low_Diff_Limit;
-    }
-
-    return value;
-}
-
-/**
- * @brief Sets the property value for a given object instance
- * @param object_instance - object-instance number of the object
- * @param value - property value to set
- * @return true if the property value was set
- */
-bool Loop_Low_Diff_Limit_Set(uint32_t object_instance, float value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Low_Diff_Limit = value;
-        status = true;
-    }
-
-    return status;
-}
-
-/**
  * @brief Gets the priority-for-writing property value for a given object
  * instance
  * @param  object_instance - object-instance number of the object
@@ -1550,10 +1517,6 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             real_value = Loop_COV_Increment(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
-        case PROP_LOW_DIFF_LIMIT:
-            real_value = Loop_Low_Diff_Limit(rpdata->object_instance);
-            apdu_len = encode_application_real(&apdu[0], real_value);
-            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1698,7 +1661,55 @@ void Loop_Context_Set(uint32_t object_instance, void *context)
 }
 
 /**
- * @brief Sets a callback used when the timer        is written from BACnet
+ * @brief Sets a callback used when the timer reads from BACnet Object
+ *  reference value
+ * @param cb - callback used to provide indications
+ */
+void Loop_Read_Property_Internal_Callback_Set(read_property_function cb)
+{
+    Read_Property_Internal_Callback = cb;
+}
+
+/**
+ * @brief For a given object, reads a BACnet Object Property reference
+ * @param value - application value
+ * @param priority - BACnet priority 0=none,1..16
+ * @return  true if values are within range and value is written.
+ */
+static bool Loop_Read_Variable_Reference_Update(
+    const BACNET_OBJECT_PROPERTY_REFERENCE *reference, float *value)
+{
+    BACNET_READ_PROPERTY_DATA data = { 0 };
+    uint8_t apdu[32] = { 0 };
+    int apdu_len = 0, len = 0;
+    bool status = false;
+
+    if (!Loop_Object_Property_Reference_Empty(reference)) {
+        data.object_type = reference->object_identifier.type;
+        data.object_instance = reference->object_identifier.instance;
+        data.object_property = reference->property_identifier;
+        data.array_index = reference->property_array_index;
+        data.application_data = apdu;
+        data.application_data_len = sizeof(apdu);
+        data.error_class = ERROR_CLASS_PROPERTY;
+        data.error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+        if (Read_Property_Internal_Callback) {
+            apdu_len = Read_Property_Internal_Callback(&data);
+        }
+        if (apdu_len > 0) {
+            /* expecting only application tagged REAL values */
+            len = bacnet_real_application_decode(apdu, apdu_len, value);
+            if (len > 0) {
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Sets a callback used when the timer is written from BACnet
  * @param cb - callback used to provide indications
  */
 void Loop_Write_Property_Internal_Callback_Set(write_property_function cb)
@@ -1745,25 +1756,84 @@ static bool Loop_Write_Manipulated_Variable(
 }
 
 /**
+ * @brief PID algorithm
+ * @param pObject - object instance data
+ * @param elapsed_milliseconds - number of milliseconds elapsed
+ * @return computed PID output value
+ */
+static float
+Loop_PID_Algorithm(struct object_data *pObject, uint32_t elapsed_milliseconds)
+{
+    float output, error, integral_sum, elapsed_seconds;
+    float proportional, integral, derivative;
+
+    if (elapsed_milliseconds == 0) {
+        return pObject->Bias;
+    }
+    error = pObject->Setpoint - pObject->Controlled_Variable_Value;
+    proportional = pObject->Proportional_Constant * error;
+    elapsed_seconds = (float)elapsed_milliseconds;
+    elapsed_seconds /= 1000.0f;
+    integral_sum = error * elapsed_seconds;
+    pObject->Integral_Sum += integral_sum;
+    integral = pObject->Integral_Constant * pObject->Integral_Sum;
+    derivative = pObject->Derivative_Constant *
+        ((error - pObject->Error) / elapsed_seconds);
+    pObject->Error = error;
+    output = proportional + integral + derivative + pObject->Bias;
+    /* clamping */
+    if (output > pObject->Maximum_Output) {
+        output = pObject->Maximum_Output;
+    }
+    if (output < pObject->Minimum_Output) {
+        output = pObject->Minimum_Output;
+    }
+
+    return output;
+}
+
+/**
  * @brief Updates the object program operation
  * @details In the RUNNING state, the timer is active
  *  and is counting down the remaining time.
  *  The Present_Value property shall indicate the
  *  remaining time until expiration.
  *
- * @param  object_instance - object-instance number of the object
- * @param milliseconds - number of milliseconds elapsed
+ * @param object_instance - object-instance number of the object
+ * @param elapsed_milliseconds - number of milliseconds elapsed
  */
-void Loop_Task(uint32_t object_instance, uint16_t milliseconds)
+void Loop_Timer(uint32_t object_instance, uint16_t elapsed_milliseconds)
 {
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        /* FIXME: do something */
-        (void)milliseconds;
-        Loop_Write_Manipulated_Variable(
-            pObject, pObject->Present_Value, pObject->Priority_For_Writing);
+        pObject->Update_Timer += elapsed_milliseconds;
+        if (pObject->Update_Timer >= pObject->Update_Interval) {
+            pObject->Update_Timer -= pObject->Update_Interval;
+            /* update any variable references */
+            Loop_Read_Variable_Reference_Update(
+                &pObject->Controlled_Variable_Reference,
+                &pObject->Controlled_Variable_Value);
+            Loop_Read_Variable_Reference_Update(
+                &pObject->Setpoint_Reference, &pObject->Setpoint);
+            /* loop algorithm updates the output */
+            if (!pObject->Out_Of_Service) {
+                /* When Out_Of_Service is TRUE:
+                    (a) the Present_Value property shall be
+                        decoupled from the algorithm;
+                */
+                pObject->Present_Value =
+                    Loop_PID_Algorithm(pObject, pObject->Update_Interval);
+            }
+            /*  the property referenced by Manipulated_Variable_Reference
+                and other functions that depend on the state of the
+                Present_Value or Reliability properties shall
+                respond to changes made to these properties,
+                as if those changes had been made by the algorithm.*/
+            Loop_Write_Manipulated_Variable(
+                pObject, pObject->Present_Value, pObject->Priority_For_Writing);
+        }
     }
 }
 
