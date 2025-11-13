@@ -1961,7 +1961,7 @@ static bool Loop_Write_Manipulated_Variable(
 
     if (pObject) {
         member = &pObject->Manipulated_Property_Reference;
-        if (Object_Property_Reference_Empty(member)) {
+        if (!Object_Property_Reference_Empty(member)) {
             wp_data.object_type = member->object_identifier.type;
             wp_data.object_instance = member->object_identifier.instance;
             wp_data.object_property = member->property_identifier;
