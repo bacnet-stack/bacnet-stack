@@ -363,6 +363,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lo.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\loop.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsp.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
