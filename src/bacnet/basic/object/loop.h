@@ -26,6 +26,13 @@ BACNET_STACK_EXPORT
 void Loop_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary);
 BACNET_STACK_EXPORT
+void Loop_Proprietary_Property_List_Set(const int *pProprietary);
+BACNET_STACK_EXPORT
+void Loop_Read_Property_Proprietary_Callback_Set(read_property_function cb);
+BACNET_STACK_EXPORT
+void Loop_Write_Property_Proprietary_Callback_Set(write_property_function cb);
+
+BACNET_STACK_EXPORT
 bool Loop_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned Loop_Count(void);
@@ -183,6 +190,7 @@ BACNET_STACK_EXPORT
 int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
 BACNET_STACK_EXPORT
 uint32_t Loop_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -190,6 +198,8 @@ bool Loop_Delete(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 void Loop_Cleanup(void);
+BACNET_STACK_EXPORT
+size_t Loop_Size(void);
 BACNET_STACK_EXPORT
 void Loop_Init(void);
 

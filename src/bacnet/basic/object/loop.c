@@ -37,6 +37,7 @@
 static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LOOP;
+/* handling for manipulated and reference properties */
 static write_property_function Write_Property_Internal_Callback;
 static read_property_function Read_Property_Internal_Callback;
 
@@ -115,7 +116,11 @@ static const int Properties_Optional[] = {
     -1
 };
 
+/* handling for proprietary properties */
 static const int Properties_Proprietary[] = { -1 };
+static const int *Properties_Proprietary_Extended;
+static write_property_function Write_Property_Proprietary_Callback;
+static read_property_function Read_Property_Proprietary_Callback;
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -138,10 +143,59 @@ void Loop_Property_Lists(
         *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Properties_Proprietary;
+        if (Properties_Proprietary_Extended) {
+            *pProprietary = Properties_Proprietary_Extended;
+        } else {
+            *pProprietary = Properties_Proprietary;
+        }
     }
 
     return;
+}
+
+/**
+ * @brief Determine if the property is a member of this object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of any of these lists
+ */
+static bool Loop_Property_Lists_Member(int object_property)
+{
+    const int *pRequired;
+    const int *pOptional;
+    const int *pProprietary;
+
+    Loop_Property_Lists(&pRequired, &pOptional, &pProprietary);
+    return property_lists_member(
+        pRequired, pOptional, pProprietary, object_property);
+}
+
+/**
+ * @brief Set a  list of proprietary properties.
+ * Used by ReadProperty/WriteProperty and Multiple services.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
+void Loop_Proprietary_Property_List_Set(const int *pProprietary)
+{
+    Properties_Proprietary_Extended = pProprietary;
+}
+
+/**
+ * @brief Sets a callback used when the object supports proprietary properties.
+ * @param cb - callback used to provide proprietary properties service handling.
+ */
+void Loop_Read_Property_Proprietary_Callback_Set(read_property_function cb)
+{
+    Read_Property_Proprietary_Callback = cb;
+}
+
+/**
+ * @brief Sets a callback used when the object supports proprietary properties.
+ * @param cb - callback used to provide proprietary properties service handling.
+ */
+void Loop_Write_Property_Proprietary_Callback_Set(write_property_function cb)
+{
+    Write_Property_Proprietary_Callback = cb;
 }
 
 /**
@@ -1514,9 +1568,13 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         default:
-            rpdata->error_class = ERROR_CLASS_PROPERTY;
-            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = BACNET_STATUS_ERROR;
+            if (Read_Property_Proprietary_Callback) {
+                apdu_len = Read_Property_Proprietary_Callback(rpdata);
+            } else {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                apdu_len = BACNET_STATUS_ERROR;
+            }
             break;
     }
 
@@ -1840,11 +1898,13 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (property_lists_member(
-                    Properties_Required, Properties_Optional,
-                    Properties_Proprietary, wp_data->object_property)) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            if (Loop_Property_Lists_Member(wp_data->object_property)) {
+                if (Write_Property_Proprietary_Callback) {
+                    status = Write_Property_Proprietary_Callback(wp_data);
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1887,7 +1947,7 @@ void Loop_Context_Set(uint32_t object_instance, void *context)
 }
 
 /**
- * @brief Sets a callback used when the timer reads from BACnet Object
+ * @brief Sets a callback used when the loop reads from BACnet Object
  *  reference value
  * @param cb - callback used to provide indications
  */
@@ -1935,7 +1995,7 @@ static bool Loop_Read_Variable_Reference_Update(
 }
 
 /**
- * @brief Sets a callback used when the timer is written from BACnet
+ * @brief Sets a callback used when the loop is written from BACnet
  * @param cb - callback used to provide indications
  */
 void Loop_Write_Property_Internal_Callback_Set(write_property_function cb)
@@ -2037,12 +2097,7 @@ Loop_PID_Algorithm(struct object_data *pObject, uint32_t elapsed_milliseconds)
 }
 
 /**
- * @brief Updates the object program operation
- * @details In the RUNNING state, the timer is active
- *  and is counting down the remaining time.
- *  The Present_Value property shall indicate the
- *  remaining time until expiration.
- *
+ * @brief Updates the object loop operation
  * @param object_instance - object-instance number of the object
  * @param elapsed_milliseconds - number of milliseconds elapsed
  */
@@ -2193,6 +2248,14 @@ void Loop_Cleanup(void)
         Keylist_Delete(Object_List);
         Object_List = NULL;
     }
+}
+
+/**
+ * @brief Returns the approximate size of each Loop object data
+ */
+size_t Loop_Size(void)
+{
+    return sizeof(struct object_data);
 }
 
 /**
