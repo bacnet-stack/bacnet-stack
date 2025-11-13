@@ -140,14 +140,14 @@ static void test_Loop_Read_Write(void)
     /* write minimum-output and maximum-output */
     wp_data.object_property = PROP_MINIMUM_OUTPUT;
     value.tag = BACNET_APPLICATION_TAG_REAL;
-    value.type.Unsigned_Int = 1.0f;
+    value.type.Real = 1.0f;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Loop_Write_Property(&wp_data);
     zassert_true(status, NULL);
     wp_data.object_property = PROP_MAXIMUM_OUTPUT;
     value.tag = BACNET_APPLICATION_TAG_REAL;
-    value.type.Unsigned_Int = 100.0f;
+    value.type.Real = 100.0f;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Loop_Write_Property(&wp_data);

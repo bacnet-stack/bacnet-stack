@@ -157,7 +157,7 @@ BACNET_STACK_EXPORT
 bool Loop_Minimum_Output_Set(uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
-uint8_t Loop_Priority_For_Writing(uint8_t object_instance);
+uint8_t Loop_Priority_For_Writing(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Loop_Priority_For_Writing_Set(uint32_t object_instance, uint8_t value);
 

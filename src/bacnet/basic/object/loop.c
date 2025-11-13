@@ -14,7 +14,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <string.h>
 #include <stdlib.h>
 
 /* BACnet Stack defines - first */
@@ -125,7 +124,7 @@ static const int Properties_Proprietary[] = { -1 };
  * @param pRequired - pointer to list of int terminated by -1, of
  * BACnet required properties for this object.
  * @param pOptional - pointer to list of int terminated by -1, of
- * BACnet optkional properties for this object.
+ * BACnet optional properties for this object.
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
@@ -454,7 +453,7 @@ bool Loop_Reliability_Set(uint32_t object_instance, BACNET_RELIABILITY value)
  */
 float Loop_Present_Value(uint32_t object_instance)
 {
-    uint32_t value = 0;
+    float value = 0.0f;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -880,7 +879,7 @@ bool Loop_Setpoint_Set(uint32_t object_instance, float value)
 
 BACNET_ACTION Loop_Action(uint32_t object_instance)
 {
-    float value = 0;
+    BACNET_ACTION value = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1275,9 +1274,9 @@ bool Loop_Minimum_Output_Set(uint32_t object_instance, float value)
  * @param  object_instance - object-instance number of the object
  * @return priority-for-writing property value
  */
-uint8_t Loop_Priority_For_Writing(uint8_t object_instance)
+uint8_t Loop_Priority_For_Writing(uint32_t object_instance)
 {
-    uint32_t value = 0;
+    uint8_t value = 0;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
@@ -1396,8 +1395,8 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_PRESENT_VALUE:
-            unsigned_value = Loop_Present_Value(rpdata->object_instance);
-            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
+            real_value = Loop_Present_Value(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -1410,6 +1409,8 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
             state = Loop_Out_Of_Service(rpdata->object_instance);
