@@ -57,6 +57,7 @@
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/osv.h"
 #include "bacnet/basic/object/piv.h"
+#include "bacnet/basic/object/loop.h"
 #include "bacnet/basic/object/time_value.h"
 #include "bacnet/basic/object/timer.h"
 #include "bacnet/basic/object/channel.h"
@@ -386,6 +387,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_LOOP, Loop_Init, Loop_Count,
+        Loop_Index_To_Instance, Loop_Valid_Instance,
+        Loop_Object_Name, Loop_Read_Property,
+        Loop_Write_Property, Loop_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Loop_Create, Loop_Delete, Loop_Timer },
     { OBJECT_PROGRAM, Program_Init, Program_Count,
         Program_Index_To_Instance, Program_Valid_Instance,
         Program_Object_Name, Program_Read_Property,

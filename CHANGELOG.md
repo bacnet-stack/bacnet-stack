@@ -28,6 +28,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added a basic creatable Loop object with PID control. Integrated into
+  the basic device object and server examples. (#1141)
 * Added defines for lighting output object present-value special values. (#1137)
 * Added get copy API to timer object for state-change-value (#1134)
 * Added Audit Log and Time Value objects to basic device and builds. (#1128)

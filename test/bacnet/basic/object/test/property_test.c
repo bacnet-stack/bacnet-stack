@@ -216,6 +216,18 @@ int bacnet_object_property_read_test(
         /* test an array index that must be implemented */
         rpdata->array_index = 0;
         read_len = read_property(rpdata);
+        if ((rpdata->object_property >= PROP_PROPRIETARY_RANGE_MIN) &&
+            (rpdata->object_property <= PROP_PROPRIETARY_RANGE_MAX)) {
+            /* all proprietary properties could be a BACnetARRAY */
+            if (read_len == BACNET_STATUS_ERROR) {
+                zassert_equal(
+                    rpdata->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
+                    NULL);
+            }
+            is_array = false;
+        }
+    }
+    if (is_array) {
         zassert_not_equal(
             read_len, BACNET_STATUS_ERROR,
             "property '%s' array_index=0: error code is %s.\n",
@@ -319,8 +331,8 @@ void bacnet_object_properties_read_write_test(
             len, BACNET_STATUS_ERROR,
             "property '%s' array_index=ALL: Missing in property list.\n",
             bactext_property_name(rpdata.object_property));
-        /* shrink the number space and skip proprietary range values */
-        if (property == PROP_RESERVED_RANGE_MAX) {
+        /* shrink the number space and skip most proprietary range values */
+        if (property == (PROP_PROPRIETARY_RANGE_MIN + 1)) {
             property = PROP_RESERVED_RANGE_MIN2 - 1;
         }
         /* shrink the number space to known values */

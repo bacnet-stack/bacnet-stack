@@ -73,6 +73,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/iv.c
     ${SRC_DIR}/bacnet/basic/object/lc.c
     ${SRC_DIR}/bacnet/basic/object/lo.c
+    ${SRC_DIR}/bacnet/basic/object/loop.c
     ${SRC_DIR}/bacnet/basic/object/lsp.c
     ${SRC_DIR}/bacnet/basic/object/lsz.c
     ${SRC_DIR}/bacnet/basic/object/ms-input.c

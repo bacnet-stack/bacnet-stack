@@ -31,6 +31,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/iv.c \
 	$(BACNET_OBJECT_DIR)/lc.c \
 	$(BACNET_OBJECT_DIR)/lo.c \
+	$(BACNET_OBJECT_DIR)/loop.c \
 	$(BACNET_OBJECT_DIR)/lsp.c \
 	$(BACNET_OBJECT_DIR)/lsz.c \
 	$(BACNET_OBJECT_DIR)/ms-input.c \

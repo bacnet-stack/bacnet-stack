@@ -74,6 +74,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\iv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lc.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lo.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\loop.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsz.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ms-input.c" />
