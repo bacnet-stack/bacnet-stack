@@ -1370,7 +1370,6 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_OBJECT_PROPERTY_REFERENCE reference_value;
     float real_value;
     uint8_t *apdu = NULL;
-    int apdu_size;
 
     uint32_t enum_value = 0;
     bool state = false;
@@ -1380,7 +1379,6 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
-    apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(

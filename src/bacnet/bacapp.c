@@ -1322,7 +1322,7 @@ int bacapp_known_property_tag(
             /* BACnetLogRecord */
             return BACNET_APPLICATION_TAG_LOG_RECORD;
         case PROP_ACTION:
-            if (object_type == OBJECT_CHANNEL) {
+            if (object_type == OBJECT_COMMAND) {
                 /* BACnetActionCommand */
                 return BACNET_APPLICATION_TAG_ACTION_COMMAND;
             }
