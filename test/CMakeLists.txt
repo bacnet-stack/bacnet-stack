@@ -165,6 +165,7 @@ list(APPEND testdirs
   bacnet/basic/object/iv
   bacnet/basic/object/lc
   bacnet/basic/object/lo
+  bacnet/basic/object/loop
   bacnet/basic/object/lsp
   bacnet/basic/object/lsz
   bacnet/basic/object/ms-input

@@ -34,10 +34,6 @@
 /* me! */
 #include "bacnet/basic/object/loop.h"
 
-#ifndef BACNET_LOOP_MANIPULATED_PROPERTIES_MAX
-#define BACNET_LOOP_MANIPULATED_PROPERTIES_MAX 8
-#endif
-
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List = NULL;
 /* common object type */
@@ -75,7 +71,6 @@ struct object_data {
     const char *Description;
     const char *Object_Name;
     BACNET_RELIABILITY Reliability;
-    bool Reliability_Evaluation_Inhibit : 1;
     bool Out_Of_Service : 1;
     bool Changed : 1;
     void *Context;
@@ -117,7 +112,7 @@ static const int Properties_Optional[] = {
     PROP_MAXIMUM_OUTPUT,
     PROP_MINIMUM_OUTPUT,
     PROP_COV_INCREMENT,
-    PROP_LOW_DIFF_LIMIT,
+    PROP_UPDATE_INTERVAL,
     -1
 };
 
@@ -484,8 +479,10 @@ bool Loop_Present_Value_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Present_Value = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Present_Value = value;
+            status = true;
+        }
     }
 
     return status;
@@ -578,8 +575,8 @@ bool Loop_Output_Units_Set(uint32_t object_instance, uint16_t units)
  * @param  value - object property reference
  * @return true if the reference is empty
  */
-static bool Loop_Object_Property_Reference_Empty(
-    const BACNET_OBJECT_PROPERTY_REFERENCE *value)
+static bool
+Object_Property_Reference_Empty(const BACNET_OBJECT_PROPERTY_REFERENCE *value)
 {
     bool status = false;
 
@@ -590,6 +587,21 @@ static bool Loop_Object_Property_Reference_Empty(
     }
 
     return status;
+}
+
+/**
+ * For a given object instance-number, sets the reference to be empty
+ * A BACnetObjectPropertyReference containing an object instance number
+ * equal to 4194303 is considered to be 'empty' or 'uninitialized'.
+ * @param  value - object property reference
+ * @return true if the reference is empty
+ */
+static void
+Object_Property_Reference_Set_Empty(BACNET_OBJECT_PROPERTY_REFERENCE *value)
+{
+    if (value) {
+        value->object_identifier.instance = BACNET_MAX_INSTANCE;
+    }
 }
 
 /**
@@ -727,8 +739,10 @@ bool Loop_Controlled_Variable_Value_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Controlled_Variable_Value = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Controlled_Variable_Value = value;
+            status = true;
+        }
     }
 
     return status;
@@ -855,8 +869,10 @@ bool Loop_Setpoint_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Setpoint = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Setpoint = value;
+            status = true;
+        }
     }
 
     return status;
@@ -888,8 +904,10 @@ bool Loop_Action_Set(uint32_t object_instance, BACNET_ACTION value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Action = value;
-        status = true;
+        if (value < BACNET_ACTION_MAX) {
+            pObject->Action = value;
+            status = true;
+        }
     }
 
     return status;
@@ -926,8 +944,10 @@ bool Loop_Proportional_Constant_Set(uint32_t object_instance, float value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Proportional_Constant = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Proportional_Constant = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1003,8 +1023,10 @@ bool Loop_Integral_Constant_Set(uint32_t object_instance, float value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Integral_Constant = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Integral_Constant = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1079,8 +1101,10 @@ bool Loop_Derivative_Constant_Set(uint32_t object_instance, float value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Derivative_Constant = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Derivative_Constant = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1156,8 +1180,10 @@ bool Loop_Bias_Set(uint32_t object_instance, float value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Bias = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Bias = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1194,8 +1220,10 @@ bool Loop_Maximum_Output_Set(uint32_t object_instance, float value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Maximum_Output = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Maximum_Output = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1232,8 +1260,10 @@ bool Loop_Minimum_Output_Set(uint32_t object_instance, float value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Minimum_Output = value;
-        status = true;
+        if (isfinite(value)) {
+            pObject->Minimum_Output = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1313,47 +1343,10 @@ bool Loop_COV_Increment_Set(uint32_t object_instance, float value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->COV_Increment = value;
-        status = true;
-    }
-
-    return status;
-}
-
-/**
- * @brief Gets the property value for a given object instance
- * @param  object_instance - object-instance number of the object
- * @return the property value for a given object instance
- */
-bool Loop_Reliability_Evaluation_Inhibit(uint32_t object_instance)
-{
-    bool value = 0;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        value = pObject->Reliability_Evaluation_Inhibit;
-    }
-
-    return value;
-}
-
-/**
- * @brief Sets the property value for a given object instance
- * @param object_instance - object-instance number of the object
- * @param value - property value to set
- * @return true if the property value was set
- */
-bool Loop_Reliability_Evaluation_Inhibit_Set(
-    uint32_t object_instance, bool value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        pObject->Reliability_Evaluation_Inhibit = value;
-        status = true;
+        if (isfinite(value) && isgreater(value, 0.0)) {
+            pObject->COV_Increment = value;
+            status = true;
+        }
     }
 
     return status;
@@ -1455,6 +1448,10 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_SETPOINT:
             real_value = Loop_Setpoint(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
+            break;
+        case PROP_UPDATE_INTERVAL:
+            unsigned_value = Loop_Update_Interval(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         case PROP_ACTION:
             enum_value = Loop_Action(rpdata->object_instance);
@@ -1573,6 +1570,182 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_ACTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                status = Loop_Action_Set(
+                    wp_data->object_instance, value.type.Enumerated);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_UPDATE_INTERVAL:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = Loop_Update_Interval_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_OUTPUT_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    status = Loop_Output_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_CONTROLLED_VARIABLE_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Loop_Controlled_Variable_Value_Set(
+                    wp_data->object_instance, value.type.Real);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_CONTROLLED_VARIABLE_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    status = Loop_Controlled_Variable_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_PROPORTIONAL_CONSTANT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Loop_Proportional_Constant_Set(
+                    wp_data->object_instance, value.type.Real);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_PROPORTIONAL_CONSTANT_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    status = Loop_Proportional_Constant_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_INTEGRAL_CONSTANT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Loop_Integral_Constant_Set(
+                    wp_data->object_instance, value.type.Real);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_INTEGRAL_CONSTANT_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    status = Loop_Integral_Constant_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_DERIVATIVE_CONSTANT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Loop_Derivative_Constant_Set(
+                    wp_data->object_instance, value.type.Real);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_DERIVATIVE_CONSTANT_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    status = Loop_Derivative_Constant_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_BIAS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status =
+                    Loop_Bias_Set(wp_data->object_instance, value.type.Real);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_SETPOINT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Loop_Setpoint_Set(
+                    wp_data->object_instance, value.type.Real);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
         case PROP_MINIMUM_OUTPUT:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
@@ -1607,6 +1780,60 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 } else {
                     status = false;
                 }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_MANIPULATED_VARIABLE_REFERENCE:
+            status = write_property_type_valid(
+                wp_data, &value,
+                BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
+            if (status) {
+                status = Loop_Manipulated_Variable_Reference_Set(
+                    wp_data->object_instance,
+                    &value.type.Object_Property_Reference);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_CONTROLLED_VARIABLE_REFERENCE:
+            status = write_property_type_valid(
+                wp_data, &value,
+                BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
+            if (status) {
+                status = Loop_Controlled_Variable_Reference_Set(
+                    wp_data->object_instance,
+                    &value.type.Object_Property_Reference);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_SETPOINT_REFERENCE:
+            status = write_property_type_valid(
+                wp_data, &value,
+                BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
+            if (status) {
+                status = Loop_Setpoint_Reference_Set(
+                    wp_data->object_instance,
+                    &value.type.Object_Property_Reference);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_COV_INCREMENT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Loop_COV_Increment_Set(
+                    wp_data->object_instance, value.type.Real);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1684,7 +1911,7 @@ static bool Loop_Read_Variable_Reference_Update(
     int apdu_len = 0, len = 0;
     bool status = false;
 
-    if (!Loop_Object_Property_Reference_Empty(reference)) {
+    if (!Object_Property_Reference_Empty(reference)) {
         data.object_type = reference->object_identifier.type;
         data.object_instance = reference->object_identifier.instance;
         data.object_property = reference->property_identifier;
@@ -1733,7 +1960,7 @@ static bool Loop_Write_Manipulated_Variable(
 
     if (pObject) {
         member = &pObject->Manipulated_Property_Reference;
-        if (Loop_Object_Property_Reference_Empty(member)) {
+        if (Object_Property_Reference_Empty(member)) {
             wp_data.object_type = member->object_identifier.type;
             wp_data.object_instance = member->object_identifier.instance;
             wp_data.object_property = member->property_identifier;
@@ -1764,28 +1991,46 @@ static bool Loop_Write_Manipulated_Variable(
 static float
 Loop_PID_Algorithm(struct object_data *pObject, uint32_t elapsed_milliseconds)
 {
-    float output, error, integral_sum, elapsed_seconds;
+    float output, error, elapsed_seconds;
+    float integral_sum, integral_min, integral_max;
     float proportional, integral, derivative;
 
     if (elapsed_milliseconds == 0) {
         return pObject->Bias;
     }
     error = pObject->Setpoint - pObject->Controlled_Variable_Value;
+    if (pObject->Action == ACTION_REVERSE) {
+        /* In reverse action, an increase in the process variable
+           above the setpoint requires a decrease in the controller output
+           to bring the process variable back to the setpoint. */
+        error = -error;
+    }
     proportional = pObject->Proportional_Constant * error;
     elapsed_seconds = (float)elapsed_milliseconds;
     elapsed_seconds /= 1000.0f;
     integral_sum = error * elapsed_seconds;
     pObject->Integral_Sum += integral_sum;
+    if (islessgreater(pObject->Integral_Constant, 0.0f)) {
+        /* clamp integral sum to prevent windup */
+        integral_max = pObject->Maximum_Output / pObject->Integral_Constant;
+        if (isgreater(pObject->Integral_Sum, integral_max)) {
+            pObject->Integral_Sum = integral_max;
+        }
+        integral_min = pObject->Minimum_Output / pObject->Integral_Constant;
+        if (isless(pObject->Integral_Sum, integral_min)) {
+            pObject->Integral_Sum = integral_min;
+        }
+    }
     integral = pObject->Integral_Constant * pObject->Integral_Sum;
     derivative = pObject->Derivative_Constant *
         ((error - pObject->Error) / elapsed_seconds);
     pObject->Error = error;
     output = proportional + integral + derivative + pObject->Bias;
-    /* clamping */
-    if (output > pObject->Maximum_Output) {
+    /* clamp the output within limits */
+    if (isgreater(output, pObject->Maximum_Output)) {
         output = pObject->Maximum_Output;
     }
-    if (output < pObject->Minimum_Output) {
+    if (isless(output, pObject->Minimum_Output)) {
         output = pObject->Minimum_Output;
     }
 
@@ -1808,31 +2053,41 @@ void Loop_Timer(uint32_t object_instance, uint16_t elapsed_milliseconds)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Update_Timer += elapsed_milliseconds;
-        if (pObject->Update_Timer >= pObject->Update_Interval) {
-            pObject->Update_Timer -= pObject->Update_Interval;
-            /* update any variable references */
-            Loop_Read_Variable_Reference_Update(
-                &pObject->Controlled_Variable_Reference,
-                &pObject->Controlled_Variable_Value);
-            Loop_Read_Variable_Reference_Update(
-                &pObject->Setpoint_Reference, &pObject->Setpoint);
-            /* loop algorithm updates the output */
-            if (!pObject->Out_Of_Service) {
-                /* When Out_Of_Service is TRUE:
-                    (a) the Present_Value property shall be
-                        decoupled from the algorithm;
-                */
-                pObject->Present_Value =
-                    Loop_PID_Algorithm(pObject, pObject->Update_Interval);
+        /* update any variable references */
+        Loop_Read_Variable_Reference_Update(
+            &pObject->Controlled_Variable_Reference,
+            &pObject->Controlled_Variable_Value);
+        Loop_Read_Variable_Reference_Update(
+            &pObject->Setpoint_Reference, &pObject->Setpoint);
+        /* loop algorithm updates the present-value */
+        if (!pObject->Out_Of_Service) {
+            /* When Out_Of_Service is TRUE:
+                (a) the Present_Value property shall be
+                    decoupled from the algorithm;
+            */
+            pObject->Present_Value =
+                Loop_PID_Algorithm(pObject, elapsed_milliseconds);
+        }
+        if (pObject->Update_Interval) {
+            pObject->Update_Timer += elapsed_milliseconds;
+            /*  NOTE: No property that represents the interval at which
+                the process variable is sampled or the algorithm is executed
+                is part of this object.
+                The Update_Interval value may be the same as these other values
+                but could also be different depending on the algorithm utilized.
+                The sampling or execution interval is a local matter and need
+                not be represented as part of this object.*/
+            if (pObject->Update_Timer >= pObject->Update_Interval) {
+                pObject->Update_Timer -= pObject->Update_Interval;
+                /*  The property referenced by Manipulated_Variable_Reference
+                    and other functions that depend on the state of the
+                    Present_Value or Reliability properties shall
+                    respond to changes made to these properties,
+                    as if those changes had been made by the algorithm.*/
+                Loop_Write_Manipulated_Variable(
+                    pObject, pObject->Present_Value,
+                    pObject->Priority_For_Writing);
             }
-            /*  the property referenced by Manipulated_Variable_Reference
-                and other functions that depend on the state of the
-                Present_Value or Reliability properties shall
-                respond to changes made to these properties,
-                as if those changes had been made by the algorithm.*/
-            Loop_Write_Manipulated_Variable(
-                pObject, pObject->Present_Value, pObject->Priority_For_Writing);
         }
     }
 }
@@ -1876,7 +2131,22 @@ uint32_t Loop_Create(uint32_t object_instance)
         free(pObject);
         return BACNET_MAX_INSTANCE;
     }
+    /* only need to set property values that are non-zero */
+    pObject->Output_Units = UNITS_NO_UNITS;
+    pObject->Controlled_Variable_Units = UNITS_NO_UNITS;
+    pObject->Proportional_Constant_Units = UNITS_NO_UNITS;
+    pObject->Integral_Constant_Units = UNITS_NO_UNITS;
+    pObject->Derivative_Constant_Units = UNITS_NO_UNITS;
+    pObject->Action = ACTION_DIRECT;
+    pObject->Maximum_Output = FLT_MAX;
+    pObject->Minimum_Output = FLT_MIN;
+    Object_Property_Reference_Set_Empty(
+        &pObject->Manipulated_Property_Reference);
+    Object_Property_Reference_Set_Empty(
+        &pObject->Controlled_Variable_Reference);
+    Object_Property_Reference_Set_Empty(&pObject->Setpoint_Reference);
     pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
+    pObject->COV_Increment = 1.0f;
     pObject->Description = NULL;
     pObject->Object_Name = NULL;
     pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;

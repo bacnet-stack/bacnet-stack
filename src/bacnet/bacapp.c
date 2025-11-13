@@ -1232,6 +1232,7 @@ int bacapp_known_property_tag(
 
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
         case PROP_CONTROLLED_VARIABLE_REFERENCE:
+        case PROP_SETPOINT_REFERENCE:
         case PROP_INPUT_REFERENCE:
         case PROP_EVENT_ALGORITHM_INHIBIT_REF:
             /* Properties using BACnetObjectPropertyReference */
@@ -1321,8 +1322,11 @@ int bacapp_known_property_tag(
             /* BACnetLogRecord */
             return BACNET_APPLICATION_TAG_LOG_RECORD;
         case PROP_ACTION:
-            /* BACnetActionCommand */
-            return BACNET_APPLICATION_TAG_ACTION_COMMAND;
+            if (object_type == OBJECT_CHANNEL) {
+                /* BACnetActionCommand */
+                return BACNET_APPLICATION_TAG_ACTION_COMMAND;
+            }
+            return -1;
         case PROP_SCALE:
             /* BACnetScale */
             return BACNET_APPLICATION_TAG_SCALE;

@@ -176,6 +176,8 @@ void Loop_Timer(uint32_t object_instance, uint16_t elapsed_milliseconds);
 
 BACNET_STACK_EXPORT
 void Loop_Write_Property_Internal_Callback_Set(write_property_function cb);
+BACNET_STACK_EXPORT
+void Loop_Read_Property_Internal_Callback_Set(read_property_function cb);
 
 BACNET_STACK_EXPORT
 int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
