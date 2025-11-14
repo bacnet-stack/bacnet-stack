@@ -55,6 +55,7 @@
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/time_value.h"
 #include "bacnet/basic/object/timer.h"
+#include "bacnet/basic/object/loop.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lo.h"
@@ -134,6 +135,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE) ||             \
     defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                  \
+    defined(CONFIG_BACNET_BASIC_OBJECT_LOOP) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE))
 #define CONFIG_BACNET_BASIC_OBJECT_ALL
@@ -166,6 +168,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
 #define CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE
 #define CONFIG_BACNET_BASIC_OBJECT_TIMER
+#define CONFIG_BACNET_BASIC_OBJECT_LOOP
 #define CONFIG_BACNET_BASIC_OBJECT_PROGRAM
 #define CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE
 #endif
@@ -827,6 +830,28 @@ static object_functions_t My_Object_Table[] = {
       Timer_Create,
       Timer_Delete,
       Timer_Task },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_LOOP)
+    { OBJECT_LOOP,
+      Loop_Init,
+      Loop_Count,
+      Loop_Index_To_Instance,
+      Loop_Valid_Instance,
+      Loop_Object_Name,
+      Loop_Read_Property,
+      Loop_Write_Property,
+      Loop_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Loop_Create,
+      Loop_Delete,
+      Loop_Timer },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM)
     { OBJECT_BITSTRING_VALUE,

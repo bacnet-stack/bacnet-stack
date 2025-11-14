@@ -28,6 +28,10 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added a basic creatable Loop object with PID control. Integrated into
+  the basic device object and server examples. (#1141)
+* Added defines for lighting output object present-value special values. (#1137)
+* Added get copy API to timer object for state-change-value (#1134)
 * Added Audit Log and Time Value objects to basic device and builds. (#1128)
 * Added ListElement service callback for storing data. (#1128)
 * Added a basic timer object type example. (#1123)
@@ -150,6 +154,9 @@ The git repositories are hosted at the following sites:
   since stdlib rand() is not random and caused duplicate UUID and VMAC
   preventing BACnet/SC from forming any stable connections.
   Enabled debug in BACnet/SC datalink when BUILD=debug used.(#1142)
+* Fixed WPM workaround for BTL Specified Test 9.23.2.X5 by reverting.(#1140)
+* Fixed the API integration for the additional datatypes now supported
+  in the Channel object by adding CHANNEL_VALUE_ALL to enable and test. (#1135)
 * Fixed the error class returned for AlarmAcknowledgment (#1131)
 * Fixed object creation failure when create is called before init. (#1122)
 * Fixed octetstring_copy_value() and added unit tests. (#1121)

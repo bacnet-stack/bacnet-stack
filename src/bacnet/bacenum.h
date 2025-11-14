@@ -599,7 +599,8 @@ typedef enum {
 
 typedef enum BACnetAction {
     ACTION_DIRECT = 0,
-    ACTION_REVERSE = 1
+    ACTION_REVERSE = 1,
+    BACNET_ACTION_MAX = 2
 } BACNET_ACTION;
 
 typedef enum BACnetBinaryPV {
