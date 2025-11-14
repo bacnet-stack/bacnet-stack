@@ -98,4 +98,16 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout);
 
 void bsc_event_signal(BSC_EVENT *ev);
 
+/**
+ * @brief Generate random BACnet Secure Connect VMAC address
+ * @param p - pointer to the VMAC address
+ */
+void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p);
+
+/**
+ * @brief Generate random BACnet Secure Connect UUID
+ * @param p - pointer to the UUID
+ */
+void bsc_generate_random_uuid(BACNET_SC_UUID *p);
+
 #endif
