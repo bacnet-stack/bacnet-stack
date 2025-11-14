@@ -13,7 +13,6 @@
 #include <unistd.h>
 #include <sys/random.h>
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
 #undef DEBUG_PRINTF

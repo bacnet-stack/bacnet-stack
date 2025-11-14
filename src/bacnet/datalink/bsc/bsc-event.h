@@ -9,6 +9,8 @@
 #define BACNET_DATALINK_BSC_EVENT_H
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack Datalink API */
+#include "bacnet/datalink/bsc/bvlc-sc.h"
 
 struct BSC_Event;
 typedef struct BSC_Event BSC_EVENT;
