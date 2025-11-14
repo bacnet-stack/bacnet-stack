@@ -289,7 +289,7 @@ static void hub_function_socket_event(
     DEBUG_PRINTF_VERBOSE(
         "hub_function_socket_event() >>> c = %p, ev = %d, reason = "
         "%s, desc = %p, pdu = %p, pdu_len = %d, decoded_pdu = %p\n",
-        c, ev, bactext_error_code_name(reason), reason, reason_desc, pdu,
+        c, ev, bactext_error_code_name(reason), reason_desc, pdu,
         pdu_len, decoded_pdu);
 
     bws_dispatch_lock();
