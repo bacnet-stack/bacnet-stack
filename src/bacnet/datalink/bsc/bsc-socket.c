@@ -1048,9 +1048,8 @@ static void bsc_process_srv_awaiting_request(
                 c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
             bws_srv_send(c->ctx->sh, c->wh);
         } else {
-            DEBUG_PRINTF(
-                "bsc_process_srv_awaiting_request() sending of "
-                "connect accept failed, err = BSC_SC_NO_RESOURCES\n");
+            DEBUG_PRINTF("bsc_process_srv_awaiting_request() sending of "
+                         "connect accept failed, err = BSC_SC_NO_RESOURCES\n");
             if (c->ctx->funcs->failed_request) {
                 c->ctx->funcs->failed_request(
                     c->ctx, c, &c->vmac, &c->uuid,
@@ -1162,9 +1161,8 @@ static void bsc_dispatch_srv_func(
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         c = bsc_find_free_socket(ctx);
         if (!c) {
-            DEBUG_PRINTF(
-                "bsc_dispatch_srv_func() no free socket, connection "
-                "is dropped\n");
+            DEBUG_PRINTF("bsc_dispatch_srv_func() no free socket, connection "
+                         "is dropped\n");
             bws_srv_disconnect(ctx->sh, h);
         } else {
             bsc_reset_socket(c);
@@ -1314,9 +1312,8 @@ static void bsc_process_cli_awaiting_accept(
         /* disconnect request is received from remote peer after */
         /* connect request. Handle this situation as an error, log */
         /* it and close connection. */
-        DEBUG_PRINTF(
-            "bsc_process_cli_awaiting_accept() got unexpected "
-            "disconnect request\n");
+        DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
+                     "disconnect request\n");
         bsc_cli_process_error(c, ERROR_CODE_OTHER);
     } else if (dm->hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
         /* AB.6.2.2 BACnet/SC Connection Initiating Peer State */

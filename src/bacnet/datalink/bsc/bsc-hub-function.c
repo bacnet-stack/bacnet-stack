@@ -296,8 +296,7 @@ static void hub_function_socket_event(
     f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         DEBUG_PRINTF(
-            "BSC-HUB: socket event %s\n",
-            bsc_socket_event_to_string(ev));
+            "BSC-HUB: socket event %s\n", bsc_socket_event_to_string(ev));
         /* double check that received message does not contain */
         /* originating virtual address and contains dest vaddr */
         /* although such kind of check is already in bsc-socket.c */
@@ -319,7 +318,8 @@ static void hub_function_socket_event(
                             if (ret == BSC_SC_SUCCESS) {
                                 DEBUG_PRINTF(
                                     "BSC-HUB: "
-                                    "sent pdu of %d bytes\n", len);
+                                    "sent pdu of %d bytes\n",
+                                    len);
                             } else {
                                 DEBUG_PRINTF(
                                     "BSC-HUB: "
@@ -348,7 +348,8 @@ static void hub_function_socket_event(
                     if (ret == BSC_SC_SUCCESS) {
                         DEBUG_PRINTF(
                             "BSC-HUB: "
-                            "sent pdu of %d bytes\n", pdu_len);
+                            "sent pdu of %d bytes\n",
+                            pdu_len);
                     } else {
                         DEBUG_PRINTF(
                             "BSC-HUB: sending of pdu of %d bytes failed."
@@ -368,8 +369,8 @@ static void hub_function_socket_event(
         if (reason != ERROR_CODE_SUCCESS) {
             DEBUG_PRINTF(
                 "BSC-HUB: event=%s reason=%s \"%s\"\n",
-                bsc_socket_event_to_string(ev),
-                bactext_error_code_name(reason), reason_desc);
+                bsc_socket_event_to_string(ev), bactext_error_code_name(reason),
+                reason_desc);
         }
     } else if (ev == BSC_SOCKET_EVENT_CONNECTED) {
         hub_function_update_status(f, c, ev, reason, reason_desc);
