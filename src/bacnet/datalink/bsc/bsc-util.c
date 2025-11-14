@@ -294,7 +294,7 @@ bool bsc_cert_files_check(uint32_t netport_instance)
         PRINTF_ERR(
             "Operational Certificate file %u size=0. Path=%s\n", file_instance,
             bacfile_pathname(file_instance));
-        PRINTF_ERR("Certificate file not exist\n");
+        PRINTF_ERR("Operational Certificate file not exist\n");
         return false;
     }
 
