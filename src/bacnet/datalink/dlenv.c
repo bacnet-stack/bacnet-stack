@@ -837,6 +837,8 @@ void bsc_register_as_node(uint32_t instance)
         }
         debug_printf_stderr("Connected to a BACnet/SC hub!\n");
     }
+#else
+    (void)instance;
 #endif
 }
 
