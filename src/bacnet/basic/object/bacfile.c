@@ -558,15 +558,12 @@ uint32_t bacfile_write(
 BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 {
     const char *pathname = NULL;
-    long file_position = 0;
     BACNET_UNSIGNED_INTEGER file_size = 0;
 
     pathname = bacfile_pathname(object_instance);
     if (pathname) {
-        file_position = bacfile_file_size_callback(pathname);
-        if (file_position >= 0) {
-            file_size = (BACNET_UNSIGNED_INTEGER)file_position;
-        }
+        file_size =
+            (BACNET_UNSIGNED_INTEGER)bacfile_file_size_callback(pathname);
     }
 
     return file_size;

@@ -148,6 +148,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the sequence of BACnet/SC datalink initialization that was
+  broken during datalink environment changes and POSIX file refactoring.
+  Refactored the UUID and VMAC random functions into port specific
+  since stdlib rand() is not random and caused duplicate UUID and VMAC
+  preventing BACnet/SC from forming any stable connections.
+  Enabled debug in BACnet/SC datalink when BUILD=debug used.(#1142)
 * Fixed WPM workaround for BTL Specified Test 9.23.2.X5 by reverting.(#1140)
 * Fixed the API integration for the additional datatypes now supported
   in the Channel object by adding CHANNEL_VALUE_ALL to enable and test. (#1135)
