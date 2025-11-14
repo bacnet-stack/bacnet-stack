@@ -35,6 +35,7 @@ add_compile_definitions(
     BACNET_SC_DIRECT_ACCEPT_URI_MAX=6
     MAX_TSM_TRANSACTIONS=0
     BSC_CONF_TX_PRE=0
+    BACFILE=1
     )
 
 include_directories(
