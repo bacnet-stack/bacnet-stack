@@ -1197,7 +1197,7 @@ static void bsc_dispatch_srv_func(
                 c->ctx->sh, c->wh, &p[sizeof(len) + BSC_CONF_TX_PRE], len);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
                 DEBUG_PRINTF(
-                    "bsc_dispatch_srv_func() send data failed."
+                    "bsc_dispatch_srv_func() send data failed. "
                     "Error=%s, start disconnect operation on socket %p\n",
                     bsc_websocket_return_to_string(wret), c);
                 bsc_srv_process_error(
