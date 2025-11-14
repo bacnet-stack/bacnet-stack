@@ -1173,7 +1173,7 @@ static void bsc_dispatch_srv_func(
         }
     } else if (ev == BSC_WEBSOCKET_RECEIVED) {
         DEBUG_PRINTF(
-            "bsc_dispatch_srv_func() BSC_WEBSOCKET_RECEIVED event"
+            "bsc_dispatch_srv_func() BSC_WEBSOCKET_RECEIVED event "
             "socket %p, state = %s\n",
             c, bsc_socket_state_to_string(c->state));
         if (c->state == BSC_SOCK_STATE_AWAITING_REQUEST) {
