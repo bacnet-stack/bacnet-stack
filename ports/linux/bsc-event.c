@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief  Implementation of mutex abstraction used in BACNet secure connect.
+ * @brief Implementation of port specific API used in BACNet secure connect.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date August 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0

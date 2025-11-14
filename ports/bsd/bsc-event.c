@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of mutex abstraction used in BACNet secure connect.
+ * @brief Implementation of port specific API used in BACNet secure connect.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date August 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <sys/random.h>
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
@@ -181,7 +180,7 @@ void bsc_wait_ms(int mseconds)
 
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
 {
-    getrandom(p->address, BVLC_SC_VMAC_SIZE, 0);
+    arc4random_buf(p->address, BVLC_SC_VMAC_SIZE);
 
     /* According H.7.3 EUI-48 and Random-48 VMAC Address:
        The Random-48 VMAC is a 6-octet VMAC address in which the least
@@ -196,7 +195,7 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
 
 void bsc_generate_random_uuid(BACNET_SC_UUID *p)
 {
-    getrandom(p->uuid, BVLC_SC_UUID_SIZE, 0);
+    arc4random_buf(p->uuid, BVLC_SC_UUID_SIZE);
     debug_printf_hex(
         0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid:");
 }
