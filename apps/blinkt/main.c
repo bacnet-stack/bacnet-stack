@@ -213,7 +213,7 @@ static void bacnet_output_init(void)
 {
     unsigned i = 0;
     uint8_t led_max;
-    uint32_t object_instance = 1;
+    uint32_t object_instance = 0, member_element = 0;
     BACNET_COLOR_COMMAND command = { 0 };
     BACNET_OBJECT_ID object_id;
     uint32_t light_channel_instance = 1;
@@ -236,6 +236,8 @@ static void bacnet_output_init(void)
     /* configure outputs and bindings */
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
+        object_instance = 1 + i;
+        member_element = 1 + i;
         /* color */
         Color_Create(object_instance);
         Color_Write_Enable(object_instance);
@@ -255,7 +257,7 @@ static void bacnet_output_init(void)
         member.deviceIdentifier.type = OBJECT_DEVICE;
         member.deviceIdentifier.instance = Device_Object_Instance_Number();
         Channel_Reference_List_Member_Element_Set(
-            color_channel_instance, 1 + i, &member);
+            color_channel_instance, member_element, &member);
 
         /* color temperature */
         Color_Temperature_Create(object_instance);
@@ -273,7 +275,7 @@ static void bacnet_output_init(void)
         member.deviceIdentifier.type = OBJECT_DEVICE;
         member.deviceIdentifier.instance = Device_Object_Instance_Number();
         Channel_Reference_List_Member_Element_Set(
-            temp_channel_instance, 1 + i, &member);
+            temp_channel_instance, member_element, &member);
 
         /* lighting output */
         Lighting_Output_Create(object_instance);
@@ -291,9 +293,7 @@ static void bacnet_output_init(void)
         member.deviceIdentifier.type = OBJECT_DEVICE;
         member.deviceIdentifier.instance = Device_Object_Instance_Number();
         Channel_Reference_List_Member_Element_Set(
-            light_channel_instance, 1 + i, &member);
-
-        object_instance = 1 + i;
+            light_channel_instance, member_element, &member);
     }
     Color_Write_Present_Value_Callback_Set(Color_Write_Value_Handler);
     Color_Temperature_Write_Present_Value_Callback_Set(
