@@ -144,6 +144,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the sequence of BACnet/SC datalink initialization that was
+  broken during datalink environment changes and POSIX file refactoring.
+  Refactored the UUID and VMAC random functions into port specific
+  since stdlib rand() is not random and caused duplicate UUID and VMAC
+  preventing BACnet/SC from forming any stable connections.
+  Enabled debug in BACnet/SC datalink when BUILD=debug used.(#1142)
 * Fixed the error class returned for AlarmAcknowledgment (#1131)
 * Fixed object creation failure when create is called before init. (#1122)
 * Fixed octetstring_copy_value() and added unit tests. (#1121)
