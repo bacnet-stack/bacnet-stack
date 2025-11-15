@@ -141,11 +141,13 @@ void handler_write_property_multiple(
         len = BACNET_STATUS_REJECT;
         debug_print("WPM: Missing Required Parameter. "
                     "Sending Reject!\n");
+#if !BACNET_SEGMENTATION_ENABLED
     } else if (service_data->segmented_message) {
         wp_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
         len = BACNET_STATUS_ABORT;
         debug_print("WPM: Segmented message. "
                     "Sending Abort!\n");
+#endif
     } else {
         /* first time - detect malformed request before writing any data */
         len = write_property_multiple_decode(
