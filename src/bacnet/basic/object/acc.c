@@ -204,9 +204,9 @@ bool Accumulator_Present_Value_Set(
  *
  * @return  units property value
  */
-uint16_t Accumulator_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Accumulator_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
 
     if (object_instance < MAX_ACCUMULATORS) {
         units = UNITS_WATT_HOURS;
