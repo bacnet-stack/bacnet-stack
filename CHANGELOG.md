@@ -16,6 +16,11 @@ The git repositories are hosted at the following sites:
 
 ### Security
 ### Added
+
+* Added segmentation support for server devices for some services.
+  Configure BACNET_SEGMENTATION_ENABLED=1 to include in the library,
+  and adjust BACNET_MAX_SEGMENTS_ACCEPTED for maximum number of segments. (#974)
+
 ### Changed
 ### Fixed
 
