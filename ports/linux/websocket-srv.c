@@ -16,10 +16,8 @@
 #include "websocket-global.h"
 #include <arpa/inet.h>
 
-#define DEBUG_WEBSOCKET_SERVER 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_WEBSOCKET_SERVER == 1
+#if DEBUG_WEBSOCKET_SERVER
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED

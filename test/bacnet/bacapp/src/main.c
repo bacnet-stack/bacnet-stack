@@ -72,7 +72,15 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     /* BACnetShedLevel */
     BACNET_APPLICATION_TAG_SHED_LEVEL,
     /* BACnetAccessRule */
-    BACNET_APPLICATION_TAG_ACCESS_RULE
+    BACNET_APPLICATION_TAG_ACCESS_RULE,
+    /* BACnetChannelValue */
+    BACNET_APPLICATION_TAG_CHANNEL_VALUE,
+    /* BACnetLogRecord */
+    BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* BACnetTimerChangeValue */
+    BACNET_APPLICATION_TAG_TIMER_VALUE,
+    /* no-value - context tagged null */
+    BACNET_APPLICATION_TAG_NO_VALUE
 };
 
 /**

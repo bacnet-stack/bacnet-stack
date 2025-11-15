@@ -286,13 +286,9 @@ static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
         reply.npdu_data.protocol_version) {
         return false;
     }
-#if 0
-    /* the NDPU priority doesn't get passed through the stack, and
-       all outgoing messages have NORMAL priority */
     if (request.npdu_data.priority != reply.npdu_data.priority) {
         return false;
     }
-#endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
         return false;
     }

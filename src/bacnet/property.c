@@ -1851,6 +1851,7 @@ static const int Loop_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
+    PROP_UPDATE_INTERVAL,
     PROP_PROPORTIONAL_CONSTANT,
     PROP_PROPORTIONAL_CONSTANT_UNITS,
     PROP_INTEGRAL_CONSTANT,

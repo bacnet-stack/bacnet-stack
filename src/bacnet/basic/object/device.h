@@ -197,6 +197,11 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Device_Init(object_functions_t *object_table);
+BACNET_STACK_EXPORT
+struct object_functions *Device_Object_Functions(void);
+BACNET_STACK_EXPORT
+struct object_functions *
+Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type);
 
 BACNET_STACK_EXPORT
 void Device_Timer(uint16_t milliseconds);
@@ -390,8 +395,11 @@ BACNET_STACK_EXPORT
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
+void Device_Add_List_Element_Callback_Set(list_element_function cb);
+BACNET_STACK_EXPORT
 int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
-
+BACNET_STACK_EXPORT
+void Device_Remove_List_Element_Callback_Set(list_element_function cb);
 BACNET_STACK_EXPORT
 int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 
@@ -488,7 +496,7 @@ int Routed_Device_Service_Approval(
  * situated in the Device Object, which "knows" how to reach its child Objects.
  *
  * Most of these calls have a common operation:
- *  -# Call Device_Objects_Find_Functions( for the desired Object_Type )
+ *  -# Call Device_Object_Functions_Find( for the desired Object_Type )
  *   - Gets a pointer to the object_functions for this Type of Object.
  *  -# Call the Object's Object_Valid_Instance( for the desired object_instance
  * ) to make sure there is such an instance.

@@ -148,7 +148,7 @@ static void test_BACnetDestination_ASCII(void)
     /* get the length */
     null_len = bacnet_destination_to_ascii(&test_destination, NULL, 0);
     if (null_len > 0) {
-        test_ascii = calloc(null_len, 1);
+        test_ascii = calloc(null_len, sizeof(char));
         if (test_ascii) {
             test_len = bacnet_destination_to_ascii(
                 &test_destination, test_ascii, null_len);

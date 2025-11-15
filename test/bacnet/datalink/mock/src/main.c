@@ -6,7 +6,7 @@
  * @date 2020
  * @copyright SPDX-License-Identifier: MIT
  */
-#include <stdlib.h> /* For calloc() */
+#include <stdlib.h>
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/datalink.h>
 #include "bacnet/apdu.h"

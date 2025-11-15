@@ -581,31 +581,30 @@ bool characterstring_same(
  * @return true if the character encoding and string contents are the same
  */
 bool characterstring_ansi_same(
-    const BACNET_CHARACTER_STRING *dest, const char *src)
+    const BACNET_CHARACTER_STRING *src1, const char *src2)
 {
     size_t i; /* counter */
     bool same_status = false;
 
-    if (src && dest) {
-        if ((dest->encoding == CHARACTER_ANSI_X34) &&
-            (dest->length == strlen(src)) &&
-            (dest->length <= MAX_CHARACTER_STRING_BYTES)) {
+    if (src1 && src2) {
+        if ((src1->encoding == CHARACTER_ANSI_X34) &&
+            (src1->length == strlen(src2)) &&
+            (src1->length <= MAX_CHARACTER_STRING_BYTES)) {
             same_status = true;
-            for (i = 0; i < dest->length; i++) {
-                if (src[i] != dest->value[i]) {
+            for (i = 0; i < src1->length; i++) {
+                if (src2[i] != src1->value[i]) {
                     same_status = false;
                     break;
                 }
             }
         }
-    }
-    /* NULL matches an empty string in our world */
-    else if (src) {
-        if (strlen(src) == 0) {
+    } else if (src2) {
+        /* NULL matches an empty string in our world */
+        if (strlen(src2) == 0) {
             same_status = true;
         }
-    } else if (dest) {
-        if (dest->length == 0) {
+    } else if (src1) {
+        if (src1->length == 0) {
             same_status = true;
         }
     }
@@ -1120,7 +1119,7 @@ size_t octetstring_copy_value(
     size_t i; /* counter */
 
     if (src && dest) {
-        if (length <= src->length) {
+        if (src->length <= length) {
             for (i = 0; i < src->length; i++) {
                 dest[i] = src->value[i];
             }

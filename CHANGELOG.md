@@ -16,12 +16,29 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnetAuthenticationFactorFormat decoding by refactoring deprecated
+  functions and validating with unit testing. (#1127)
+* Secured UnconfirmedEventNotification-Request and
+  ConfirmedEventNotification-Request, BACnetNotificationParameters,
+  and BACnetAuthenticationFactor decoding by refactoring deprecated
+  functions and validating with unit testing. (#1126)
 * Secured I-Am request encoding and decoding, and updated the example apps
   and handlers to use secure version of I-Am decoder. (#1080)
 * Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
 
 ### Added
 
+* Added a basic creatable Loop object with PID control. Integrated into
+  the basic device object and server examples. (#1141)
+* Added defines for lighting output object present-value special values. (#1137)
+* Added get copy API to timer object for state-change-value (#1134)
+* Added Audit Log and Time Value objects to basic device and builds. (#1128)
+* Added ListElement service callback for storing data. (#1128)
+* Added a basic timer object type example. (#1123)
+* Added BACnetLIST utility for handling WriteProperty to a list. (#1123)
+* Added Device_Object_Functions() API to return basic object API table
+  of functions for all objects. Added Device_Object_Functions_Find() API
+  to enable override of basic object API function. (#1115)
 * Added new enumerations, text, BACnetARRAY and BACnetList from
   protocol-revision 30 (#1114)
 * Added a context variable in basic object data structure and API
@@ -109,6 +126,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed enumerations for BACnetNetworkPortCommand where there was a conflict
+  with final assigned values in multiple addenda. (#1124)
 * Changed CharacterString_Value_Out_Of_Service_Set() function to remove
   confusion about an assignment inside an if-statement. (#1113)
 * Changed device object unit test to use common read-write property test.
@@ -129,6 +148,21 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the apps/blinkt example project to control 8 lighting outputs.(#1143)
+* Fixed the sequence of BACnet/SC datalink initialization that was
+  broken during datalink environment changes and POSIX file refactoring.
+  Refactored the UUID and VMAC random functions into port specific
+  since stdlib rand() is not random and caused duplicate UUID and VMAC
+  preventing BACnet/SC from forming any stable connections.
+  Enabled debug in BACnet/SC datalink when BUILD=debug used.(#1142)
+* Fixed WPM workaround for BTL Specified Test 9.23.2.X5 by reverting.(#1140)
+* Fixed the API integration for the additional datatypes now supported
+  in the Channel object by adding CHANNEL_VALUE_ALL to enable and test. (#1135)
+* Fixed the error class returned for AlarmAcknowledgment (#1131)
+* Fixed object creation failure when create is called before init. (#1122)
+* Fixed octetstring_copy_value() and added unit tests. (#1121)
+* Fixed the MS/TP compare DER function which can now include the NPDU network
+  priority in the comparison. (#1119)
 * Fixed basic program object internal datatype for reason-for-fault
   and change properties. (#1110)
 * Fixed compile errors in basic/server/device when BACAPP_TIMESTAMP

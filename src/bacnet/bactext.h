@@ -201,6 +201,11 @@ BACNET_STACK_EXPORT
 const char *bactext_program_error_name(unsigned index);
 
 BACNET_STACK_EXPORT
+const char *bactext_timer_transition_name(unsigned index);
+BACNET_STACK_EXPORT
+const char *bactext_timer_state_name(unsigned index);
+
+BACNET_STACK_EXPORT
 bool bactext_strtoul(const char *search_name, unsigned *found_index);
 BACNET_STACK_EXPORT
 bool bactext_object_property_strtoul(

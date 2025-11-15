@@ -32,6 +32,7 @@
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/bv.h"
@@ -53,6 +54,8 @@
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/time_value.h"
+#include "bacnet/basic/object/timer.h"
+#include "bacnet/basic/object/loop.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lo.h"
@@ -109,6 +112,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE) ||           \
+    defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG) ||              \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE) ||           \
@@ -129,6 +133,9 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
+    defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE) ||             \
+    defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                  \
+    defined(CONFIG_BACNET_BASIC_OBJECT_LOOP) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE))
 #define CONFIG_BACNET_BASIC_OBJECT_ALL
@@ -138,6 +145,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE
@@ -158,6 +166,9 @@
 #define CONFIG_BACNET_BASIC_OBJECT_FILE
 #define CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_TIMER
+#define CONFIG_BACNET_BASIC_OBJECT_LOOP
 #define CONFIG_BACNET_BASIC_OBJECT_PROGRAM
 #define CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE
 #endif
@@ -184,6 +195,10 @@
 #ifdef CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
 #undef CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
 #warning "Network Port is configured, but BACnet Protocol Revision < 17"
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
+#undef CONFIG_BACNET_BASIC_OBJECT_TIMER
+#warning "Timer is configured, but BACnet Protocol Revision < 17"
 #endif
 #endif
 
@@ -285,6 +300,28 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Value_Create,
       Analog_Value_Delete,
+      NULL /* Timer */ },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG)
+    { OBJECT_AUDIT_LOG,
+      Audit_Log_Init,
+      Audit_Log_Count,
+      Audit_Log_Index_To_Instance,
+      Audit_Log_Valid_Instance,
+      Audit_Log_Object_Name,
+      Audit_Log_Read_Property,
+      Audit_Log_Write_Property,
+      Audit_Log_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Audit_Log_Create,
+      Audit_Log_Delete,
       NULL /* Timer */ },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT)
@@ -750,6 +787,72 @@ static object_functions_t My_Object_Table[] = {
       CharacterString_Value_Delete,
       NULL /* Timer */ },
 #endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE)
+    { OBJECT_TIME_VALUE,
+      Time_Value_Init,
+      Time_Value_Count,
+      Time_Value_Index_To_Instance,
+      Time_Value_Valid_Instance,
+      Time_Value_Object_Name,
+      Time_Value_Read_Property,
+      Time_Value_Write_Property,
+      Time_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Time_Value_Create,
+      Time_Value_Delete,
+      NULL /* Timer */ },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIMER)
+    { OBJECT_TIMER,
+      Timer_Init,
+      Timer_Count,
+      Timer_Index_To_Instance,
+      Timer_Valid_Instance,
+      Timer_Object_Name,
+      Timer_Read_Property,
+      Timer_Write_Property,
+      Timer_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      Timer_Add_List_Element,
+      Timer_Remove_List_Element,
+      Timer_Create,
+      Timer_Delete,
+      Timer_Task },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_LOOP)
+    { OBJECT_LOOP,
+      Loop_Init,
+      Loop_Count,
+      Loop_Index_To_Instance,
+      Loop_Valid_Instance,
+      Loop_Object_Name,
+      Loop_Read_Property,
+      Loop_Write_Property,
+      Loop_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Loop_Create,
+      Loop_Delete,
+      Loop_Timer },
+#endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM)
     { OBJECT_BITSTRING_VALUE,
       Program_Init,
@@ -804,8 +907,8 @@ static object_functions_t My_Object_Table[] = {
  * @return Pointer to the group of object helper functions that implement this
  *         type of Object.
  */
-static struct object_functions *
-Device_Objects_Find_Functions(BACNET_OBJECT_TYPE Object_Type)
+struct object_functions *
+Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type)
 {
     struct object_functions *pObject = NULL;
 
@@ -836,7 +939,7 @@ rr_info_function Device_Objects_RR_Info(BACNET_OBJECT_TYPE object_type)
 {
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     return (pObject != NULL ? pObject->Object_RR_Info : NULL);
 }
 
@@ -868,7 +971,7 @@ void Device_Objects_Property_List(
      * to populate the pointers to the individual list counters.
      */
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
         pObject->Object_RPM_List(
             &pPropertyList->Required.pList, &pPropertyList->Optional.pList,
@@ -1025,6 +1128,8 @@ static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static BACNET_CHARACTER_STRING Reinit_Password;
 static write_property_function Device_Write_Property_Store_Callback;
+static list_element_function Device_Add_List_Element_Callback;
+static list_element_function Device_Remove_List_Element_Callback;
 static uint8_t Device_UUID[16];
 static const char *Serial_Number = BACNET_DEVICE_SERIAL_NUMBER;
 static BACNET_TIMESTAMP Time_Of_Device_Restart;
@@ -1618,7 +1723,7 @@ bool Device_Valid_Object_Name(
     for (i = 1; i <= max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
+            pObject = Device_Object_Functions_Find((BACNET_OBJECT_TYPE)type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                  characterstring_same(object_name1, &object_name2))) {
@@ -1648,7 +1753,7 @@ bool Device_Valid_Object_Id(
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
+    pObject = Device_Object_Functions_Find((BACNET_OBJECT_TYPE)object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -1670,7 +1775,7 @@ bool Device_Object_Name_Copy(
     struct object_functions *pObject = NULL;
     bool found = false;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
         found = pObject->Object_Name(object_instance, object_name);
     }
@@ -1783,8 +1888,16 @@ uint32_t Device_Interval_Offset(void)
 }
 #endif
 
-/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
-   BACNET_STATUS_ABORT for abort message */
+/**
+ * ReadProperty handler for this object.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -2007,7 +2120,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param pObject - object table
  * @param rpdata [in,out] Structure with the requested Object & Property info
  *  on entry, and APDU message on return.
- * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
  */
 static int Read_Property_Common(
     const struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
@@ -2019,7 +2133,7 @@ static int Read_Property_Common(
     struct special_property_list_t property_list;
 #endif
 
-    if ((rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -2061,10 +2175,13 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
+    if (!rpdata) {
+        return 0;
+    }
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(rpdata->object_type);
+    pObject = Device_Object_Functions_Find(rpdata->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
@@ -2419,7 +2536,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(wp_data->object_type);
+    pObject = Device_Object_Functions_Find(wp_data->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
@@ -2466,6 +2583,15 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Set the callback for a Add_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Add_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Add_List_Element_Callback = cb;
+}
+
+/**
  * @brief AddListElement from an object list property
  * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
  * which is packed with the information from the request.
@@ -2477,12 +2603,17 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(list_element->object_type);
+    pObject = Device_Object_Functions_Find(list_element->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(list_element->object_instance)) {
             if (pObject->Object_Add_List_Element) {
                 status = pObject->Object_Add_List_Element(list_element);
+                if (status) {
+                    if (Device_Add_List_Element_Callback) {
+                        (void)Device_Add_List_Element_Callback(list_element);
+                    }
+                }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
                 list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -2500,6 +2631,15 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
 }
 
 /**
+ * @brief Set the callback for a Remove_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Remove_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Remove_List_Element_Callback = cb;
+}
+
+/**
  * @brief RemoveListElement from an object list property
  * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
  * which is packed with the information from the request.
@@ -2511,12 +2651,15 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(list_element->object_type);
+    pObject = Device_Object_Functions_Find(list_element->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(list_element->object_instance)) {
             if (pObject->Object_Remove_List_Element) {
                 status = pObject->Object_Remove_List_Element(list_element);
+                if (status) {
+                    Device_Remove_List_Element_Callback(list_element);
+                }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
                 list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -2550,7 +2693,7 @@ bool Device_Encode_Value_List(
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -2575,7 +2718,7 @@ bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
     bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -2597,7 +2740,7 @@ void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -2620,7 +2763,7 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
     struct object_functions *pObject = NULL;
     uint32_t object_instance;
 
-    pObject = Device_Objects_Find_Functions(data->object_type);
+    pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Create) {
             /*  The device supports the object type and may have
@@ -2679,7 +2822,7 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
     bool status = false;
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(data->object_type);
+    pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Delete) {
             /*  The device supports the object type
@@ -2723,7 +2866,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
     bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Value_List) {
             status = true;
@@ -2731,6 +2874,15 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
     }
 
     return (status);
+}
+
+/**
+ * @brief Get the Device object functions table
+ * @return the Device object function table
+ */
+struct object_functions *Device_Object_Functions(void)
+{
+    return Object_Table;
 }
 
 /** Initialize the Device Object.
