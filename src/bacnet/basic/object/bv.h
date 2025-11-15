@@ -121,6 +121,11 @@ BACNET_STACK_EXPORT
 bool Binary_Value_Active_Text_Set(uint32_t instance, const char *new_name);
 
 BACNET_STACK_EXPORT
+void *Binary_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Binary_Value_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
 uint32_t Binary_Value_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Binary_Value_Delete(uint32_t object_instance);

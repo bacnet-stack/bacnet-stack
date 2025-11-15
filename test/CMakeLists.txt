@@ -75,6 +75,7 @@ list(APPEND testdirs
   bacnet/access_rule
   bacnet/alarm_ack
   bacnet/arf
+  bacnet/authentication_factor_format
   bacnet/awf
   bacnet/bacaddr
   bacnet/bacapp
@@ -116,6 +117,7 @@ list(APPEND testdirs
   bacnet/rpm
   bacnet/secure_connect
   bacnet/specialevent
+  bacnet/timer_value
   bacnet/timestamp
   bacnet/timesync
   bacnet/weeklyschedule
@@ -163,6 +165,7 @@ list(APPEND testdirs
   bacnet/basic/object/iv
   bacnet/basic/object/lc
   bacnet/basic/object/lo
+  bacnet/basic/object/loop
   bacnet/basic/object/lsp
   bacnet/basic/object/lsz
   bacnet/basic/object/ms-input
@@ -177,9 +180,12 @@ list(APPEND testdirs
   bacnet/basic/object/schedule
   bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
+  bacnet/basic/object/timer
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic
+  # basic/server
+  bacnet/basic/server/bacnet_device
   # basic/sys
   bacnet/basic/sys/bramfs
   bacnet/basic/sys/bsramfs

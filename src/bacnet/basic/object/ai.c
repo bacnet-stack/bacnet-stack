@@ -958,7 +958,13 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                pObject->Units = value.type.Enumerated;
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    pObject->Units = value.type.Enumerated;
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_COV_INCREMENT:
@@ -1650,6 +1656,38 @@ int Analog_Input_Alarm_Summary(
 #endif /* defined(INTRINSIC_REPORTING) */
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Analog_Input_Context_Get(uint32_t object_instance)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Analog_Input_Context_Set(uint32_t object_instance, void *context)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Analog Input object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1662,6 +1700,9 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
     unsigned j;
 #endif
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

@@ -40,6 +40,7 @@ struct object_data {
     uint8_t Reliability;
     const char *Object_Name;
     OS_Keylist Zone_Members;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -845,6 +846,38 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Life_Safety_Zone_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Life_Safety_Zone_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates an object and initialize its properties to defaults
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -854,6 +887,9 @@ uint32_t Life_Safety_Zone_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

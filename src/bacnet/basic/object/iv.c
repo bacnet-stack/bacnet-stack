@@ -46,6 +46,7 @@ struct integer_object {
     uint32_t Instance;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 } INTERGER_VALUE_DESCR;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -586,6 +587,20 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+        case PROP_UNITS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    Integer_Value_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
         default:
             if (property_lists_member(
                     Integer_Value_Properties_Required,
@@ -706,6 +721,38 @@ void Integer_Value_COV_Increment_Set(uint32_t object_instance, uint32_t value)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Integer_Value_Context_Get(uint32_t object_instance)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Integer_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Integer Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -714,6 +761,9 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
 {
     struct integer_object *pObject = NULL;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

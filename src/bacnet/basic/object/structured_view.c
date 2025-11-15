@@ -37,6 +37,7 @@ struct object_data {
     const char *Description;
     BACNET_NODE_TYPE Node_Type;
     const char *Node_Subtype;
+    void *Context;
     BACNET_SUBORDINATE_DATA *Subordinate_List;
     BACNET_RELATIONSHIP Default_Subordinate_Relationship;
     BACNET_DEVICE_OBJECT_REFERENCE Represents;
@@ -778,6 +779,38 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Structured_View_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Structured_View_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * Creates a Structured View object
  * @param object_instance - object-instance number of the object
  * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
@@ -787,6 +820,9 @@ uint32_t Structured_View_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

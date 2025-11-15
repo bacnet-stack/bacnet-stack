@@ -43,6 +43,7 @@ struct object_data {
     const char *Active_Text;
     const char *Inactive_Text;
     const char *Description;
+    void *Context;
 #if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -1188,6 +1189,38 @@ void Binary_Value_Write_Disable(uint32_t object_instance)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Binary_Value_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Binary_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Binary Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1197,6 +1230,9 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

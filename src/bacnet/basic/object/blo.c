@@ -26,6 +26,7 @@
 
 /* object property values */
 struct object_data {
+    void *Context;
     const char *Object_Name;
     const char *Description;
     BACNET_RELIABILITY Reliability;
@@ -1518,6 +1519,38 @@ void Binary_Lighting_Output_Blink_Warn_Callback_Set(
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Binary_Lighting_Output_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Binary_Lighting_Output_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Color object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1528,6 +1561,9 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
     int index = 0;
     unsigned p = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

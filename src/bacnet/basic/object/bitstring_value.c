@@ -33,6 +33,7 @@ struct object_data {
     BACNET_RELIABILITY Reliability;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -790,6 +791,38 @@ void BitString_Value_Write_Disable(uint32_t object_instance)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *BitString_Value_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void BitString_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * Creates a BitString Value object
  * @param object_instance - object-instance number of the object
  */
@@ -798,6 +831,9 @@ uint32_t BitString_Value_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
