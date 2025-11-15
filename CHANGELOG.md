@@ -18,6 +18,11 @@ The git repositories are hosted at the following sites:
 ### Added
 ### Changed
 ### Fixed
+
+* Fixed segmented ComplexACK in MS/TP by adding postpone reply because
+  transmission of the segmented ComplexACK cannot begin until the node
+  holds the token. (#1116)
+
 ### Removed
 
 ## [1.4.2] - 2025-11-15
