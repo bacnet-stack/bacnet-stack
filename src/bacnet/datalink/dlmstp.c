@@ -117,125 +117,6 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 }
 
 /**
- * @brief Determine if the reply packet is the data expected
- * @param mstp_port - specific MSTP port that is used for this datalink
- * @param reply_pdu - PDU of the data
- * @param reply_pdu_len - number of bytes of PDU data
- * @param dest_address - the destination address for this data
- * @return true if the reply packet is the data expected
- */
-static bool MSTP_Compare_Data_Expecting_Reply(
-    volatile struct mstp_port_struct_t *mstp_port,
-    const uint8_t *reply_pdu,
-    uint16_t reply_pdu_len,
-    const BACNET_ADDRESS *dest_address)
-{
-    uint16_t offset;
-    /* One way to check the message is to compare NPDU
-       src, dest, along with the APDU type, invoke id.
-       Seems a bit overkill */
-    struct DER_compare_t {
-        BACNET_NPDU_DATA npdu_data;
-        BACNET_ADDRESS address;
-        uint8_t pdu_type;
-        uint8_t invoke_id;
-        uint8_t service_choice;
-    };
-    struct DER_compare_t request;
-    struct DER_compare_t reply;
-    uint8_t *request_pdu;
-    uint16_t request_pdu_len;
-    uint8_t src_address;
-
-    request_pdu = &mstp_port->InputBuffer[0];
-    request_pdu_len = mstp_port->DataLength;
-    src_address = mstp_port->SourceAddress;
-    /* decode the request data */
-    request.address.mac[0] = src_address;
-    request.address.mac_len = 1;
-    offset = bacnet_npdu_decode(
-        &request_pdu[0], request_pdu_len, NULL, &request.address,
-        &request.npdu_data);
-    if (request.npdu_data.network_layer_message) {
-        return false;
-    }
-    request.pdu_type = request_pdu[offset] & 0xF0;
-    if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-        return false;
-    }
-    request.invoke_id = request_pdu[offset + 2];
-    /* segmented message? */
-    if (request_pdu[offset] & BIT(3)) {
-        request.service_choice = request_pdu[offset + 5];
-    } else {
-        request.service_choice = request_pdu[offset + 3];
-    }
-    /* decode the reply data */
-    bacnet_address_copy(&reply.address, dest_address);
-    offset = bacnet_npdu_decode(
-        &reply_pdu[0], reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
-    if (reply.npdu_data.network_layer_message) {
-        return false;
-    }
-    /* reply could be a lot of things:
-       confirmed, simple ack, abort, reject, error */
-    reply.pdu_type = reply_pdu[offset] & 0xF0;
-    switch (reply.pdu_type) {
-        case PDU_TYPE_SIMPLE_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            reply.service_choice = reply_pdu[offset + 2];
-            break;
-        case PDU_TYPE_COMPLEX_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            /* segmented message? */
-            if (reply_pdu[offset] & BIT(3)) {
-                reply.service_choice = reply_pdu[offset + 4];
-            } else {
-                reply.service_choice = reply_pdu[offset + 2];
-            }
-            break;
-        case PDU_TYPE_ERROR:
-            reply.invoke_id = reply_pdu[offset + 1];
-            reply.service_choice = reply_pdu[offset + 2];
-            break;
-        case PDU_TYPE_REJECT:
-        case PDU_TYPE_ABORT:
-        case PDU_TYPE_SEGMENT_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            break;
-        default:
-            return false;
-    }
-    /* these don't have service choice included */
-    if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT) ||
-        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
-    } else {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
-        if (request.service_choice != reply.service_choice) {
-            return false;
-        }
-    }
-    if (request.npdu_data.protocol_version !=
-        reply.npdu_data.protocol_version) {
-        return false;
-    }
-    if (request.npdu_data.priority != reply.npdu_data.priority) {
-        return false;
-    }
-    if (!bacnet_address_same(&request.address, &reply.address)) {
-        return false;
-    }
-
-    return true;
-}
-
-/**
  * @brief The MS/TP state machine uses this function for getting data to send
  *  as the reply to a DATA_EXPECTING_REPLY frame, or nothing
  * @param mstp_port MSTP port structure for this port
@@ -263,10 +144,26 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     /* look at next PDU in queue without removing it */
     pkt = (struct dlmstp_packet *)(void *)Ringbuf_Peek(&user->PDU_Queue);
     /* is this the reply to the DER? */
-    matched = MSTP_Compare_Data_Expecting_Reply(
-        mstp_port, pkt->pdu, pkt->pdu_len, &pkt->address);
+    matched = npdu_is_data_expecting_reply(
+        &mstp_port->InputBuffer[0], mstp_port->DataLength,
+        mstp_port->SourceAddress, &pkt->pdu[0], pkt->pdu_len,
+        pkt->address.mac[0]);
     if (!matched) {
         return 0;
+    }
+    if (npdu_is_segmented_complex_ack_reply(pkt->pdu, pkt->pdu_len)) {
+        /* In Clause 5.4.5.3, AWAIT_RESPONSE, in the transition
+            SendSegmentedComplexACK, the text "transmit a BACnet-
+            ComplexACK-PDU..." shall be replaced by "direct the
+            MS/TP data link to transmit a Reply Postponed frame;
+            transmit a BACnet-ComplexACK-PDU...."
+            It is necessary to postpone the reply because
+            transmission of the segmented ComplexACK
+            cannot begin until the node holds the token.*/
+        return MSTP_Create_Frame(
+            &mstp_port->OutputBuffer[0], mstp_port->OutputBufferSize,
+            FRAME_TYPE_REPLY_POSTPONED, mstp_port->SourceAddress,
+            mstp_port->This_Station, NULL, 0);
     }
     /* convert the PDU into the MSTP Frame */
     pdu_len = MSTP_Create_Frame(

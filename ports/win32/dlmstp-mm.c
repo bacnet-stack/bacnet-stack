@@ -304,116 +304,6 @@ void MSTP_Send_Frame(
     RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
-bool dlmstp_compare_data_expecting_reply(
-    const uint8_t *request_pdu,
-    uint16_t request_pdu_len,
-    uint8_t src_address,
-    const uint8_t *reply_pdu,
-    uint16_t reply_pdu_len,
-    const BACNET_ADDRESS *dest_address)
-{
-    uint16_t offset;
-    /* One way to check the message is to compare NPDU
-       src, dest, along with the APDU type, invoke id.
-       Seems a bit overkill */
-    struct DER_compare_t {
-        BACNET_NPDU_DATA npdu_data;
-        BACNET_ADDRESS address;
-        uint8_t pdu_type;
-        uint8_t invoke_id;
-        uint8_t service_choice;
-    };
-    struct DER_compare_t request;
-    struct DER_compare_t reply;
-
-    /* unused parameters */
-    request_pdu_len = request_pdu_len;
-    reply_pdu_len = reply_pdu_len;
-    /* decode the request data */
-    request.address.mac[0] = src_address;
-    request.address.mac_len = 1;
-    offset = bacnet_npdu_decode(
-        request_pdu, request_pdu_len, NULL, &request.address,
-        &request.npdu_data);
-    if (request.npdu_data.network_layer_message) {
-        return false;
-    }
-    request.pdu_type = request_pdu[offset] & 0xF0;
-    if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-        return false;
-    }
-    request.invoke_id = request_pdu[offset + 2];
-    /* segmented message? */
-    if (request_pdu[offset] & BIT(3)) {
-        request.service_choice = request_pdu[offset + 5];
-    } else {
-        request.service_choice = request_pdu[offset + 3];
-    }
-    /* decode the reply data */
-    bacnet_address_copy(&reply.address, dest_address);
-    offset = bacnet_npdu_decode(
-        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
-    if (reply.npdu_data.network_layer_message) {
-        return false;
-    }
-    /* reply could be a lot of things:
-       confirmed, simple ack, abort, reject, error */
-    reply.pdu_type = reply_pdu[offset] & 0xF0;
-    switch (reply.pdu_type) {
-        case PDU_TYPE_SIMPLE_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            reply.service_choice = reply_pdu[offset + 2];
-            break;
-        case PDU_TYPE_COMPLEX_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            /* segmented message? */
-            if (reply_pdu[offset] & BIT(3)) {
-                reply.service_choice = reply_pdu[offset + 4];
-            } else {
-                reply.service_choice = reply_pdu[offset + 2];
-            }
-            break;
-        case PDU_TYPE_ERROR:
-            reply.invoke_id = reply_pdu[offset + 1];
-            reply.service_choice = reply_pdu[offset + 2];
-            break;
-        case PDU_TYPE_REJECT:
-        case PDU_TYPE_ABORT:
-        case PDU_TYPE_SEGMENT_ACK:
-            reply.invoke_id = reply_pdu[offset + 1];
-            break;
-        default:
-            return false;
-    }
-    /* these don't have service choice included */
-    if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT) ||
-        (reply.pdu_type == PDU_TYPE_SEGMENT_ACK)) {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
-    } else {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
-        if (request.service_choice != reply.service_choice) {
-            return false;
-        }
-    }
-    if (request.npdu_data.protocol_version !=
-        reply.npdu_data.protocol_version) {
-        return false;
-    }
-    if (request.npdu_data.priority != reply.npdu_data.priority) {
-        return false;
-    }
-    if (!bacnet_address_same(&request.address, &reply.address)) {
-        return false;
-    }
-
-    return true;
-}
-
 /* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
 uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
@@ -435,10 +325,10 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         return 0;
     }
     /* is this the reply to the DER? */
-    matched = dlmstp_compare_data_expecting_reply(
+    matched = npdu_is_data_expecting_reply(
         &mstp_port->InputBuffer[0], mstp_port->DataLength,
         mstp_port->SourceAddress, &Transmit_Packet.pdu[0],
-        Transmit_Packet.pdu_len, &Transmit_Packet.address);
+        Transmit_Packet.pdu_len, destination);
     if (!matched) {
         return 0;
     }
