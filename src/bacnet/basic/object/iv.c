@@ -50,19 +50,21 @@ struct integer_object {
 } INTERGER_VALUE_DESCR;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                                         PROP_OBJECT_NAME,
-                                                         PROP_OBJECT_TYPE,
-                                                         PROP_PRESENT_VALUE,
-                                                         PROP_STATUS_FLAGS,
-                                                         PROP_UNITS,
-                                                         -1 };
+static const int32_t Integer_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_UNITS,
+    -1
+};
 
-static const int Integer_Value_Properties_Optional[] = {
+static const int32_t Integer_Value_Properties_Optional[] = {
     PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, PROP_COV_INCREMENT, -1
 };
 
-static const int Integer_Value_Properties_Proprietary[] = { -1 };
+static const int32_t Integer_Value_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -76,7 +78,9 @@ static const int Integer_Value_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Integer_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Integer_Value_Properties_Required;

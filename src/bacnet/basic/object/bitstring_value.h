@@ -39,7 +39,9 @@ void BitString_Value_Write_Present_Value_Callback_Set(
 
 BACNET_STACK_EXPORT
 void BitString_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 
 BACNET_STACK_EXPORT
 bool BitString_Value_Valid_Instance(uint32_t object_instance);

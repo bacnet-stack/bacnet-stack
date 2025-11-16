@@ -22,7 +22,9 @@
 extern "C" {
 #endif /* __cplusplus */
 void Analog_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 bool Analog_Value_Valid_Instance(uint32_t object_instance);
 unsigned Analog_Value_Count(void);
 uint32_t Analog_Value_Index_To_Instance(unsigned index);

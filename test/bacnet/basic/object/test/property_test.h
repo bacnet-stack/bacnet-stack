@@ -29,18 +29,18 @@ void bacnet_object_properties_read_write_test(
     rpm_property_lists_function property_list,
     read_property_function read_property,
     write_property_function write_property,
-    const int *skip_fail_property_list);
+    const int32_t *skip_fail_property_list);
 
 int bacnet_object_property_read_test(
     BACNET_READ_PROPERTY_DATA *rpdata,
     read_property_function read_property,
-    const int *skip_fail_property_list);
+    const int32_t *skip_fail_property_list);
 
 bool bacnet_object_property_write_test(
     BACNET_WRITE_PROPERTY_DATA *wpdata,
     write_property_function write_property,
     bool commandable,
-    const int *skip_fail_property_list);
+    const int32_t *skip_fail_property_list);
 
 void bacnet_object_property_write_parameter_init(
     BACNET_WRITE_PROPERTY_DATA *wpdata,

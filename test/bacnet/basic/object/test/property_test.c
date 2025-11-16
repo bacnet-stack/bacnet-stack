@@ -6,6 +6,7 @@
  *
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <stdint.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/property.h>
@@ -27,7 +28,7 @@ bool bacnet_object_property_write_test(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_function write_property,
     bool commandable,
-    const int *skip_fail_property_list)
+    const int32_t *skip_fail_property_list)
 {
     bool status = false;
     bool is_array, is_list;
@@ -143,7 +144,7 @@ void bacnet_object_property_write_parameter_init(
 int bacnet_object_property_read_test(
     BACNET_READ_PROPERTY_DATA *rpdata,
     read_property_function read_property,
-    const int *skip_fail_property_list)
+    const int32_t *skip_fail_property_list)
 {
     int len = 0;
     int test_len = 0;
@@ -292,14 +293,14 @@ void bacnet_object_properties_read_write_test(
     rpm_property_lists_function property_list,
     read_property_function read_property,
     write_property_function write_property,
-    const int *skip_fail_property_list)
+    const int32_t *skip_fail_property_list)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
     BACNET_PROPERTY_ID property;
     int len = 0;
     bool commandable = false;

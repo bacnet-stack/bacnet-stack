@@ -40,7 +40,7 @@ static void test_Timer_Read_Write(void)
     const char *test_name = NULL;
     uint32_t test_instance = 0;
     bool status = false;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 }, *test_member = NULL;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };

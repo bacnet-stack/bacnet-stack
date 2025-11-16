@@ -56,7 +56,7 @@ static const char *Default_State_Text = "State 1\0"
                                         "State 2\0"
                                         "State 3\0";
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* list of required properties in the object */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -74,12 +74,12 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* list of required properties in the object */
     PROP_STATE_TEXT, PROP_DESCRIPTION, PROP_RELIABILITY, -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 /**
  * @brief Returns the list of required, optional, and proprietary properties.
@@ -92,7 +92,9 @@ static const int Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Multistate_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
