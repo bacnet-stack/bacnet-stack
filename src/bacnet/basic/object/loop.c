@@ -77,7 +77,7 @@ struct object_data {
 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -98,7 +98,7 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -117,8 +117,8 @@ static const int Properties_Optional[] = {
 };
 
 /* handling for proprietary properties */
-static const int Properties_Proprietary[] = { -1 };
-static const int *Properties_Proprietary_Extended;
+static const int32_t Properties_Proprietary[] = { -1 };
+static const int32_t *Properties_Proprietary_Extended;
 static write_property_function Write_Property_Proprietary_Callback;
 static read_property_function Read_Property_Proprietary_Callback;
 
@@ -134,7 +134,9 @@ static read_property_function Read_Property_Proprietary_Callback;
  * BACnet proprietary properties for this object.
  */
 void Loop_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -160,9 +162,9 @@ void Loop_Property_Lists(
  */
 static bool Loop_Property_Lists_Member(int object_property)
 {
-    const int *pRequired;
-    const int *pOptional;
-    const int *pProprietary;
+    const int32_t *pRequired;
+    const int32_t *pOptional;
+    const int32_t *pProprietary;
 
     Loop_Property_Lists(&pRequired, &pOptional, &pProprietary);
     return property_lists_member(
@@ -175,7 +177,7 @@ static bool Loop_Property_Lists_Member(int object_property)
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
-void Loop_Proprietary_Property_List_Set(const int *pProprietary)
+void Loop_Proprietary_Property_List_Set(const int32_t *pProprietary)
 {
     Properties_Proprietary_Extended = pProprietary;
 }

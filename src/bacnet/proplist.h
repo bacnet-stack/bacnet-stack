@@ -41,13 +41,13 @@ bool property_lists_member(
     const int32_t *pProprietary,
     int32_t object_property);
 BACNET_STACK_EXPORT
-int32_t property_list_encode(
+int property_list_encode(
     BACNET_READ_PROPERTY_DATA *rpdata,
     const int32_t *pListRequired,
     const int32_t *pListOptional,
     const int32_t *pListProprietary);
 BACNET_STACK_EXPORT
-int32_t property_list_common_encode(
+int property_list_common_encode(
     BACNET_READ_PROPERTY_DATA *rpdata, uint32_t device_instance_number);
 BACNET_STACK_EXPORT
 bool property_list_common(BACNET_PROPERTY_ID property);

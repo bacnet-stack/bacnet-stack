@@ -38,13 +38,13 @@ static analog_value_write_present_value_callback
 
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Analog_Value_Properties_Required[] = {
+static const int32_t Analog_Value_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE, PROP_UNITS, -1
 };
 
-static const int Analog_Value_Properties_Optional[] = {
+static const int32_t Analog_Value_Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_RELIABILITY, PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
@@ -55,7 +55,7 @@ static const int Analog_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Analog_Value_Properties_Proprietary[] = {
+static const int32_t Analog_Value_Properties_Proprietary[] = {
     -1
 };
 /* clang-format on */
@@ -69,7 +69,9 @@ static const int Analog_Value_Properties_Proprietary[] = {
  * @param pProprietary - Pointer to the pointer of properitary values.
  */
 void Analog_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Analog_Value_Properties_Required;

@@ -26,7 +26,7 @@ static void testAccessRights(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
 
     Access_Rights_Init();
     count = Access_Rights_Count();

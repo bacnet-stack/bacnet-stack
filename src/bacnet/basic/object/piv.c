@@ -26,7 +26,7 @@
 static POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int PositiveInteger_Value_Properties_Required[] = {
+static const int32_t PositiveInteger_Value_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -36,14 +36,16 @@ static const int PositiveInteger_Value_Properties_Required[] = {
     -1
 };
 
-static const int PositiveInteger_Value_Properties_Optional[] = {
+static const int32_t PositiveInteger_Value_Properties_Optional[] = {
     PROP_OUT_OF_SERVICE, -1
 };
 
-static const int PositiveInteger_Value_Properties_Proprietary[] = { -1 };
+static const int32_t PositiveInteger_Value_Properties_Proprietary[] = { -1 };
 
 void PositiveInteger_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = PositiveInteger_Value_Properties_Required;

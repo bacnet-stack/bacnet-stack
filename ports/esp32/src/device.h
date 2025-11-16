@@ -231,9 +231,9 @@ extern "C" {
     bool Device_Interval_Offset_Set(uint32_t value);
 
     void Device_Property_Lists(
-        const int **pRequired,
-        const int **pOptional,
-        const int **pProprietary);
+        const int32_t **pRequired,
+        const int32_t **pOptional,
+        const int32_t **pProprietary);
     void Device_Objects_Property_List(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
@@ -391,11 +391,11 @@ extern "C" {
         const uint8_t * mac_adress);
     bool Routed_Device_GetNext(
         const BACNET_ADDRESS * dest,
-        const int *DNET_list,
+        const int32_t *DNET_list,
         int *cursor);
     bool Routed_Device_Is_Valid_Network(
         uint16_t dest_net,
-        const int *DNET_list);
+        const int32_t *DNET_list);
 
     uint32_t Routed_Device_Index_To_Instance(
         unsigned index);

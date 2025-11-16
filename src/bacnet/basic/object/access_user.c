@@ -23,19 +23,21 @@ static bool Access_User_Initialized = false;
 static ACCESS_USER_DESCR au_descr[MAX_ACCESS_USERS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_GLOBAL_IDENTIFIER, PROP_STATUS_FLAGS, PROP_RELIABILITY,
     PROP_USER_TYPE,         PROP_CREDENTIALS,  -1
 };
 
-static const int Properties_Optional[] = { -1 };
+static const int32_t Properties_Optional[] = { -1 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 void Access_User_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
