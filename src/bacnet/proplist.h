@@ -16,8 +16,8 @@
 #include "bacnet/rp.h"
 
 struct property_list_t {
-    const int *pList;
-    unsigned count;
+    const int32_t *pList;
+    uint32_t count;
 };
 
 struct special_property_list_t {
@@ -31,34 +31,34 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-unsigned property_list_count(const int *pList);
+uint32_t property_list_count(const int32_t *pList);
 BACNET_STACK_EXPORT
-bool property_list_member(const int *pList, int object_property);
+bool property_list_member(const int32_t *pList, int32_t object_property);
 BACNET_STACK_EXPORT
 bool property_lists_member(
-    const int *pRequired,
-    const int *pOptional,
-    const int *pProprietary,
-    int object_property);
+    const int32_t *pRequired,
+    const int32_t *pOptional,
+    const int32_t *pProprietary,
+    int32_t object_property);
 BACNET_STACK_EXPORT
-int property_list_encode(
+int32_t property_list_encode(
     BACNET_READ_PROPERTY_DATA *rpdata,
-    const int *pListRequired,
-    const int *pListOptional,
-    const int *pListProprietary);
+    const int32_t *pListRequired,
+    const int32_t *pListOptional,
+    const int32_t *pListProprietary);
 BACNET_STACK_EXPORT
-int property_list_common_encode(
+int32_t property_list_common_encode(
     BACNET_READ_PROPERTY_DATA *rpdata, uint32_t device_instance_number);
 BACNET_STACK_EXPORT
 bool property_list_common(BACNET_PROPERTY_ID property);
 
 BACNET_STACK_EXPORT
-const int *property_list_bacnet_array(void);
+const int32_t *property_list_bacnet_array(void);
 BACNET_STACK_EXPORT
 bool property_list_bacnet_array_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);
 BACNET_STACK_EXPORT
-const int *property_list_bacnet_list(void);
+const int32_t *property_list_bacnet_list(void);
 BACNET_STACK_EXPORT
 bool property_list_bacnet_list_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);
