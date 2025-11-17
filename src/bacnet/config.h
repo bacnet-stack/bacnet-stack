@@ -164,23 +164,9 @@
 #endif
 #endif
 
-#ifndef SC_NETPORT_BVLC_MAX
-#define SC_NETPORT_BVLC_MAX 1500
-#endif
-#ifndef SC_NETPORT_NPDU_MAX
-#define SC_NETPORT_NPDU_MAX 1500
-#endif
-#ifndef SC_NETPORT_CONNECT_TIMEOUT
-#define SC_NETPORT_CONNECT_TIMEOUT 5
-#endif
-#ifndef SC_NETPORT_HEARTBEAT_TIMEOUT
-#define SC_NETPORT_HEARTBEAT_TIMEOUT 60
-#endif
-#ifndef SC_NETPORT_DISCONNECT_TIMEOUT
-#define SC_NETPORT_DISCONNECT_TIMEOUT 150
-#endif
-#ifndef SC_NETPORT_RECONNECT_TIME
-#define SC_NETPORT_RECONNECT_TIME 2
+/* Enable or disable segmentation support in the library */
+#ifndef BACNET_SEGMENTATION_ENABLED
+#define BACNET_SEGMENTATION_ENABLED 0
 #endif
 
 /* for confirmed messages, this is the number of transactions */
@@ -244,6 +230,8 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_TIMER_VALUE) || \
+    defined(BACAPP_NO_VALUE) || \
     defined(BACAPP_LOG_RECORD) || \
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
@@ -294,6 +282,8 @@
 #define BACAPP_SHED_LEVEL
 #define BACAPP_ACCESS_RULE
 #define BACAPP_CHANNEL_VALUE
+#define BACAPP_TIMER_VALUE
+#define BACAPP_NO_VALUE
 #define BACAPP_LOG_RECORD
 #define BACAPP_SECURE_CONNECT
 #endif
@@ -321,6 +311,8 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_TIMER_VALUE) || \
+    defined(BACAPP_NO_VALUE) || \
     defined(BACAPP_LOG_RECORD)
 #define BACAPP_COMPLEX_TYPES
 #endif

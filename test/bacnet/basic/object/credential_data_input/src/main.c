@@ -27,9 +27,9 @@ static void testCredentialDataInput(void)
 {
     unsigned count = 0;
     uint32_t object_instance = 0;
-    const int skip_fail_property_list[] = { PROP_PRESENT_VALUE,
-                                            PROP_UPDATE_TIME,
-                                            PROP_SUPPORTED_FORMATS, -1 };
+    const int32_t skip_fail_property_list[] = { PROP_PRESENT_VALUE,
+                                                PROP_UPDATE_TIME,
+                                                PROP_SUPPORTED_FORMATS, -1 };
 
     Credential_Data_Input_Init();
     count = Credential_Data_Input_Count();

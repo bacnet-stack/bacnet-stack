@@ -35,6 +35,7 @@ add_compile_definitions(
     BACNET_SC_DIRECT_ACCEPT_URI_MAX=6
     MAX_TSM_TRANSACTIONS=0
     BSC_CONF_TX_PRE=0
+    BACFILE=1
     )
 
 include_directories(
@@ -70,6 +71,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/property.c
+    ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c

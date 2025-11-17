@@ -5,9 +5,10 @@
 # sudo apt-get install -qq build-essential mingw-w64 curl git
 #
 # Prior to running this script, be sure to:
-# a) update CHANGELOG and version.h with new version number, and commit changes.
+# a) update CHANGELOG, version.h and CMakeLists.txt with new version number
+# b) commit changes into master branch
 # After running this script, be sure to:
-# a) create long term branch as bacnet-stack-x.y if needed
+# c) create long term branch as bacnet-stack-x.y if needed
 
 USERNAME='skarg'
 
@@ -40,11 +41,8 @@ function bacnet_create_work_tree() {
 function bacnet_build_apps() {
     echo ""
     echo "Build Win32 Apps"
-    export CC=i686-w64-mingw32-gcc
-    export LD=i686-w64-mingw32-ld
-    i686-w64-mingw32-gcc --version
     make -C $work_tree clean
-    make -C $work_tree -s LEGACY=true win32
+    make -C $work_tree -s LEGACY=true mingw32
 }
 
 function bacnet_zip_apps() {

@@ -10169,7 +10169,7 @@ static void test_sc_datalink(void)
 
     init_node_ev(&node_ev2);
     init_node_ev(&node_ev3);
-    zassert_equal(bsc_cert_files_check(), true, NULL);
+    zassert_equal(bsc_cert_files_check(SC_DATALINK_INSTANCE), true, NULL);
     zassert_equal(bsc_init(NULL), true, NULL);
     zassert_equal(bsc_init(NULL), false, NULL);
     memset(broadcast, 0xFF, sizeof(broadcast));
@@ -10432,7 +10432,7 @@ static void test_sc_datalink_properties(void)
     init_node_ev(&node_ev2);
     init_node_ev(&node_ev3);
     init_node_ev(&node_ev4);
-    zassert_equal(bsc_cert_files_check(), true, NULL);
+    zassert_equal(bsc_cert_files_check(SC_DATALINK_INSTANCE), true, NULL);
     zassert_equal(bsc_init(NULL), true, NULL);
 
     conf2.ca_cert_chain = ca_cert;

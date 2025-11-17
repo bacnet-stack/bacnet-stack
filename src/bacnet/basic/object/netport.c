@@ -136,7 +136,7 @@ static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 static uint32_t Link_Speeds[] = { 9600, 19200, 38400, 57600, 76800, 115200 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Network_Port_Properties_Required[] = {
+static const int32_t Network_Port_Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -156,7 +156,7 @@ static const int Network_Port_Properties_Required[] = {
     -1
 };
 
-static const int Ethernet_Port_Properties_Optional[] = {
+static const int32_t Ethernet_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -169,7 +169,7 @@ static const int Ethernet_Port_Properties_Optional[] = {
     -1
 };
 
-static const int Zigbee_Port_Properties_Optional[] = {
+static const int32_t Zigbee_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -183,7 +183,7 @@ static const int Zigbee_Port_Properties_Optional[] = {
     -1
 };
 
-static const int MSTP_Port_Properties_Optional[] = {
+static const int32_t MSTP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -199,7 +199,7 @@ static const int MSTP_Port_Properties_Optional[] = {
     -1
 };
 
-static const int BIP_Port_Properties_Optional[] = {
+static const int32_t BIP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -233,7 +233,7 @@ static const int BIP_Port_Properties_Optional[] = {
     -1
 };
 
-static const int BIP6_Port_Properties_Optional[] = {
+static const int32_t BIP6_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -270,7 +270,7 @@ static const int BIP6_Port_Properties_Optional[] = {
     -1
 };
 
-static const int BSC_Port_Properties_Optional[] = {
+static const int32_t BSC_Port_Properties_Optional[] = {
     PROP_NETWORK_NUMBER,
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_APDU_LENGTH,
@@ -317,7 +317,7 @@ static const int BSC_Port_Properties_Optional[] = {
     -1
 };
 
-static const int Network_Port_Properties_Proprietary[] = { -1 };
+static const int32_t Network_Port_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -333,9 +333,9 @@ static const int Network_Port_Properties_Proprietary[] = { -1 };
  */
 void Network_Port_Property_List(
     uint32_t object_instance,
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     unsigned index = 0;
 
@@ -387,7 +387,9 @@ void Network_Port_Property_List(
  * BACnet proprietary properties for this object.
  */
 void Network_Port_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     Network_Port_Property_List(
         Object_List[0].Instance_Number, pRequired, pOptional, pProprietary);
@@ -402,9 +404,9 @@ void Network_Port_Property_Lists(
 static bool Property_List_Member(uint32_t object_instance, int object_property)
 {
     bool found = false;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
 
     Network_Port_Property_List(
         object_instance, &pRequired, &pOptional, &pProprietary);

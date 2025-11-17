@@ -65,7 +65,7 @@ static lighting_command_tracking_value_callback
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -94,7 +94,7 @@ static const int Properties_Required[] = {
 #endif
     -1
 };
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_TRANSITION,
@@ -111,7 +111,7 @@ static const int Properties_Optional[] = {
     -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 /**
  * @brief compare two floating point values to 3 decimal places
@@ -137,7 +137,9 @@ static bool is_float_equal(float x1, float x2)
  * BACnet proprietary properties for this object.
  */
 void Lighting_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -873,38 +875,47 @@ bool Lighting_Output_Present_Value_Set(
                 the corresponding lighting command and is subject to the same
                 restrictions. The special value itself is not written to the
                 priority array. */
-            if (is_float_equal(value, -1.0)) {
+            if (is_float_equal(value, BACNET_LIGHTING_SPECIAL_VALUE_WARN)) {
                 /* Provides the same functionality as the
                    WARN lighting command. */
                 Lighting_Command_Warn(pObject, priority);
                 status = true;
-            } else if (is_float_equal(value, -2.0)) {
+            } else if (is_float_equal(
+                           value,
+                           BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH)) {
                 /* Provides the same functionality as the
                    WARN_RELINQUISH lighting command. */
                 Lighting_Command_Warn_Relinquish(pObject, priority);
                 status = true;
-            } else if (is_float_equal(value, -3.0)) {
+            } else if (is_float_equal(
+                           value, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF)) {
                 /* Provides the same functionality as the
                    WARN_OFF lighting command. */
                 Lighting_Command_Warn_Off(pObject, priority);
                 status = true;
 #if (BACNET_PROTOCOL_REVISION >= 28)
-            } else if (is_float_equal(value, -4.0)) {
+            } else if (is_float_equal(
+                           value, BACNET_LIGHTING_SPECIAL_VALUE_RESTORE_ON)) {
                 /* Provides the same functionality as the
                    RESTORE_ON lighting command. */
                 Lighting_Command_Restore_On(pObject, priority);
                 status = true;
-            } else if (is_float_equal(value, -5.0)) {
+            } else if (is_float_equal(
+                           value, BACNET_LIGHTING_SPECIAL_VALUE_DEFAULT_ON)) {
                 /* Provides the same functionality as the
                    DEFAULT_ON lighting command. */
                 Lighting_Command_Default_On(pObject, priority);
                 status = true;
-            } else if (is_float_equal(value, -6.0)) {
+            } else if (is_float_equal(
+                           value,
+                           BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_RESTORE)) {
                 /* Provides the same functionality as the
                    TOGGLE_RESTORE lighting command. */
                 Lighting_Command_Toggle_Restore(pObject, priority);
                 status = true;
-            } else if (is_float_equal(value, -7.0)) {
+            } else if (is_float_equal(
+                           value,
+                           BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_DEFAULT)) {
                 /* Provides the same functionality as the
                    TOGGLE_DEFAULT lighting command. */
                 Lighting_Command_Toggle_Default(pObject, priority);
@@ -3421,6 +3432,9 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
     int index = 0;
     unsigned p = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

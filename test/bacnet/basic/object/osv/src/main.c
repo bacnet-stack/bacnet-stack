@@ -28,7 +28,7 @@ static void testOctetString_Value(void)
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *required_property = NULL;
+    const int32_t *required_property = NULL;
     const uint32_t instance = 1;
 
     OctetString_Value_Init();

@@ -127,7 +127,7 @@ static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static uint8_t Device_UUID[16];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Device_Properties_Required[] = {
+static const int32_t Device_Properties_Required[] = {
     /* required properties for this object */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -152,7 +152,7 @@ static const int Device_Properties_Required[] = {
     -1
 };
 
-static const int Device_Properties_Optional[] = {
+static const int32_t Device_Properties_Optional[] = {
     /* optional properties for this object */
     PROP_DESCRIPTION,
     PROP_LOCATION,
@@ -166,7 +166,7 @@ static const int Device_Properties_Optional[] = {
     -1
 };
 
-static const int Device_Properties_Proprietary[] = { -1 };
+static const int32_t Device_Properties_Proprietary[] = { -1 };
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
@@ -286,7 +286,9 @@ bool Device_Objects_Property_List_Member(
  * @ingroup ObjIntf
  */
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Device_Properties_Required;

@@ -17,12 +17,12 @@
 /**
  * Function that returns the number of BACnet object properties in a list
  *
- * @param pList - array of type 'int' that is a list of BACnet object
+ * @param pList - array of type 'int32_t' that is a list of BACnet object
  * properties, terminated by a '-1' value.
  */
-unsigned property_list_count(const int *pList)
+uint32_t property_list_count(const int32_t *pList)
 {
-    unsigned property_count = 0;
+    uint32_t property_count = 0;
 
     if (pList) {
         while (*pList != -1) {
@@ -37,12 +37,12 @@ unsigned property_list_count(const int *pList)
 /**
  * For a given object property, returns the true if in the property list
  *
- * @param pList - array of type 'int' that is a list of BACnet object
+ * @param pList - array of type 'int32_t' that is a list of BACnet object
  * @param object_property - property enumeration or propritary value
  *
  * @return true if object_property is a member of the property list
  */
-bool property_list_member(const int *pList, int object_property)
+bool property_list_member(const int32_t *pList, int32_t object_property)
 {
     bool status = false;
 
@@ -61,17 +61,20 @@ bool property_list_member(const int *pList, int object_property)
 
 /**
  * @brief Determine if the object property is a member of any of the lists
- * @param pRequired - array of type 'int' that is a list of BACnet properties
- * @param pOptional - array of type 'int' that is a list of BACnet properties
- * @param pProprietary - array of type 'int' that is a list of BACnet properties
+ * @param pRequired - array of type 'int32_t' that is a list of BACnet
+ * properties
+ * @param pOptional - array of type 'int32_t' that is a list of BACnet
+ * properties
+ * @param pProprietary - array of type 'int32_t' that is a list of BACnet
+ * properties
  * @param object_property - object-property to be checked
  * @return true if the property is a member of any of these lists
  */
 bool property_lists_member(
-    const int *pRequired,
-    const int *pOptional,
-    const int *pProprietary,
-    int object_property)
+    const int32_t *pRequired,
+    const int32_t *pOptional,
+    const int32_t *pProprietary,
+    int32_t object_property)
 {
     bool found = false;
 
@@ -98,19 +101,19 @@ bool property_lists_member(
  */
 int property_list_encode(
     BACNET_READ_PROPERTY_DATA *rpdata,
-    const int *pListRequired,
-    const int *pListOptional,
-    const int *pListProprietary)
+    const int32_t *pListRequired,
+    const int32_t *pListOptional,
+    const int32_t *pListProprietary)
 {
     int apdu_len = 0; /* return value */
     uint8_t *apdu = NULL;
     int max_apdu_len = 0;
     uint32_t count = 0;
-    unsigned required_count = 0;
-    unsigned optional_count = 0;
-    unsigned proprietary_count = 0;
+    uint32_t required_count = 0;
+    uint32_t optional_count = 0;
+    uint32_t proprietary_count = 0;
     int len = 0;
-    unsigned i = 0; /* loop index */
+    uint32_t i = 0; /* loop index */
 
     required_count = property_list_count(pListRequired);
     optional_count = property_list_count(pListOptional);
@@ -323,7 +326,7 @@ bool property_list_common(BACNET_PROPERTY_ID property)
 
 /* standard properties that are arrays
    but not required to be supported in every object */
-static const int Properties_BACnetARRAY[] = {
+static const int32_t Properties_BACnetARRAY[] = {
     /* unordered list of properties */
     PROP_OBJECT_LIST,
     PROP_STRUCTURED_OBJECT_LIST,
@@ -391,10 +394,10 @@ static const int Properties_BACnetARRAY[] = {
  *
  * @param object_type - enumerated BACNET_OBJECT_TYPE
  * @return returns a pointer to a '-1' terminated array of
- * type 'int' that contain BACnet object properties for the given object
+ * type 'int32_t' that contain BACnet object properties for the given object
  * type.
  */
-const int *property_list_bacnet_array(void)
+const int32_t *property_list_bacnet_array(void)
 {
     return Properties_BACnetARRAY;
 }
@@ -408,7 +411,8 @@ const int *property_list_bacnet_array(void)
 bool property_list_bacnet_array_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
 {
-    /* exceptions where property is an BACnetARRAY only in specific objects */
+    /* exceptions where a property is an BACnetARRAY or a BACnetLIST
+       only in specific object types */
     switch (object_type) {
         case OBJECT_GLOBAL_GROUP:
             switch (object_property) {
@@ -447,7 +451,7 @@ bool property_list_bacnet_array_member(
 }
 
 /* standard properties that are BACnetLIST */
-static const int Properties_BACnetLIST[] = {
+static const int32_t Properties_BACnetLIST[] = {
     /* unordered list of properties */
     PROP_DATE_LIST,
     PROP_VT_CLASSES_SUPPORTED,
@@ -459,6 +463,7 @@ static const int Properties_BACnetLIST[] = {
     PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
     PROP_ACTIVE_COV_MULTIPLE_SUBSCRIPTIONS,
     PROP_LIST_OF_GROUP_MEMBERS,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_ACCEPTED_MODES,
     PROP_LIFE_SAFETY_ALARM_VALUES,
     PROP_ALARM_VALUES,
@@ -497,10 +502,10 @@ static const int Properties_BACnetLIST[] = {
  *
  * @param object_type - enumerated BACNET_OBJECT_TYPE
  * @return returns a pointer to a '-1' terminated array of
- * type 'int' that contain BACnet object properties for the given object
+ * type 'int32_t' that contain BACnet object properties for the given object
  * type.
  */
-const int *property_list_bacnet_list(void)
+const int32_t *property_list_bacnet_list(void)
 {
     return Properties_BACnetLIST;
 }
@@ -524,11 +529,10 @@ bool property_list_bacnet_list_member(
                     break;
             }
             break;
-        case OBJECT_SCHEDULE:
-        case OBJECT_TIMER:
+        case OBJECT_CHANNEL:
             switch (object_property) {
                 case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-                    return true;
+                    return false;
                 default:
                     break;
             }

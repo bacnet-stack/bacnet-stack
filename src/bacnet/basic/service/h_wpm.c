@@ -77,15 +77,6 @@ static int write_property_multiple_decode(
                         }
                         if (device_write_property) {
                             if (device_write_property(wp_data) == false) {
-                                /* Workaround BTL Specified Test 9.23.2.X5 */
-                                if ((wp_data->error_class ==
-                                     ERROR_CLASS_PROPERTY) &&
-                                    (wp_data->error_code ==
-                                     ERROR_CODE_INVALID_DATA_TYPE)) {
-                                    wp_data->error_class = ERROR_CLASS_SERVICES;
-                                    wp_data->error_code =
-                                        ERROR_CODE_INVALID_TAG;
-                                }
                                 return BACNET_STATUS_ERROR;
                             }
                         }
@@ -150,11 +141,13 @@ void handler_write_property_multiple(
         len = BACNET_STATUS_REJECT;
         debug_print("WPM: Missing Required Parameter. "
                     "Sending Reject!\n");
+#if !BACNET_SEGMENTATION_ENABLED
     } else if (service_data->segmented_message) {
         wp_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
         len = BACNET_STATUS_ABORT;
         debug_print("WPM: Segmented message. "
                     "Sending Abort!\n");
+#endif
     } else {
         /* first time - detect malformed request before writing any data */
         len = write_property_multiple_decode(

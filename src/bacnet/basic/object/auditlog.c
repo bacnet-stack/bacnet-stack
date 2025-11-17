@@ -108,7 +108,7 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* required properties that are supported for this object */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -123,11 +123,11 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int32_t Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
-static const int BACnetARRAY_Properties[] = {
+static const int32_t BACnetARRAY_Properties[] = {
     /* standard properties that are arrays for this object */
     PROP_LOG_BUFFER,
     PROP_EVENT_TIME_STAMPS,
@@ -159,7 +159,9 @@ static bool BACnetARRAY_Property(int object_property)
  * BACnet proprietary properties for this object.
  */
 void Audit_Log_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -653,14 +655,12 @@ int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string = { 0 };
     BACNET_BIT_STRING bit_string = { 0 };
     uint8_t *apdu = NULL;
-    int apdu_max = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
-    apdu_max = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -1421,6 +1421,9 @@ uint32_t Audit_Log_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

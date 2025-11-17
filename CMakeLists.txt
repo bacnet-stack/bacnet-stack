@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.1
+  VERSION 1.5.0
   LANGUAGES C)
 
 #
@@ -83,6 +83,11 @@ option(
   BACDL_BSC
   "compile with secure-connect support"
   OFF)
+
+option(
+  BACNET_SEGMENTATION_ENABLED
+  "enable segmentation"
+  ON)
 
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
@@ -259,6 +264,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bacaction.h
   src/bacnet/bacapp.c
   src/bacnet/bacapp.h
+  src/bacnet/bacaudit.c
+  src/bacnet/bacaudit.h
   src/bacnet/bacdcode.c
   src/bacnet/bacdcode.h
   src/bacnet/bacdef.h
@@ -340,6 +347,9 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/access_zone.c
   src/bacnet/basic/object/access_zone.h
   src/bacnet/basic/object/acc.c
+  src/bacnet/basic/object/acc.h
+  src/bacnet/basic/object/auditlog.c
+  src/bacnet/basic/object/auditlog.h
   src/bacnet/basic/object/ai.c
   src/bacnet/basic/object/ai.h
   src/bacnet/basic/object/ao.c
@@ -382,6 +392,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/lc.h
   src/bacnet/basic/object/lo.c
   src/bacnet/basic/object/lo.h
+  src/bacnet/basic/object/loop.c
+  src/bacnet/basic/object/loop.h
   src/bacnet/basic/object/lsp.c
   src/bacnet/basic/object/lsp.h
   src/bacnet/basic/object/lsz.c
@@ -412,6 +424,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/structured_view.h
   src/bacnet/basic/object/time_value.c
   src/bacnet/basic/object/time_value.h
+  src/bacnet/basic/object/timer.c
+  src/bacnet/basic/object/timer.h
   src/bacnet/basic/object/trendlog.c
   src/bacnet/basic/object/trendlog.h
   src/bacnet/basic/service/h_alarm_ack.c
@@ -663,6 +677,10 @@ add_library(${PROJECT_NAME}
   src/bacnet/rp.h
   src/bacnet/rpm.c
   src/bacnet/rpm.h
+  $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:src/bacnet/segmentack.c>
+  $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:src/bacnet/segmentack.h>
+  src/bacnet/timer_value.c
+  src/bacnet/timer_value.h
   src/bacnet/timestamp.c
   src/bacnet/timestamp.h
   src/bacnet/timesync.c
@@ -712,6 +730,7 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
+  $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:BACNET_SEGMENTATION_ENABLED>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
@@ -1264,3 +1283,4 @@ message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ZIGBEE:...................\"${BACDL_ZIGBEE}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
+message(STATUS "BACNET: BACNET_SEGMENTATION_ENABLED:....\"${BACNET_SEGMENTATION_ENABLED}\"")

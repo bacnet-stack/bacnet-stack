@@ -39,19 +39,21 @@ static NOTIFICATION_CLASS_INFO NC_Info[MAX_NOTIFICATION_CLASSES];
 static uint8_t Event_Buffer[MAX_APDU];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
     PROP_PRIORITY,          PROP_ACK_REQUIRED,
     PROP_RECIPIENT_LIST,    -1
 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int32_t Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 void Notification_Class_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -803,11 +805,15 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
         return BACNET_STATUS_ABORT;
     }
     if (list_element->object_property != PROP_RECIPIENT_LIST) {
-        list_element->error_class = ERROR_CLASS_SERVICES;
-        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+        /* The specified property is currently not modifiable
+           by the requester.*/
+        list_element->error_class = ERROR_CLASS_PROPERTY;
+        list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         return BACNET_STATUS_ERROR;
     }
     if (list_element->array_index != BACNET_ARRAY_ALL) {
+        /* An array index is provided but the property is
+           not a BACnetARRAY of BACnetLIST.*/
         list_element->error_class = ERROR_CLASS_PROPERTY;
         list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return BACNET_STATUS_ERROR;
@@ -963,11 +969,15 @@ int Notification_Class_Remove_List_Element(
         return BACNET_STATUS_ABORT;
     }
     if (list_element->object_property != PROP_RECIPIENT_LIST) {
-        list_element->error_class = ERROR_CLASS_SERVICES;
-        list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+        /* The specified property is currently not modifiable
+           by the requester.*/
+        list_element->error_class = ERROR_CLASS_PROPERTY;
+        list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         return BACNET_STATUS_ERROR;
     }
     if (list_element->array_index != BACNET_ARRAY_ALL) {
+        /* An array index is provided but the property is
+           not a BACnetARRAY of BACnetLIST.*/
         list_element->error_class = ERROR_CLASS_PROPERTY;
         list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return BACNET_STATUS_ERROR;

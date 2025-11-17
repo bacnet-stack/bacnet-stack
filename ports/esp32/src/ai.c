@@ -31,11 +31,11 @@
 ANALOG_INPUT_DESCR AI_Descr[MAX_ANALOG_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int32_t Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
+static const int32_t Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
     PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT, PROP_LOW_LIMIT,
@@ -44,10 +44,10 @@ static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
 #endif
     -1 };
 
-static const int Properties_Proprietary[] = { 9997, 9998, 9999, -1 };
+static const int32_t Properties_Proprietary[] = { 9997, 9998, 9999, -1 };
 
 void Analog_Input_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired, const int32_t **pOptional, const int32_t **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;

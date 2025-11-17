@@ -388,12 +388,12 @@ bool bacnet_channel_value_same(
 #endif
 #if defined(CHANNEL_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-            return characterstring_value_same(
+            return characterstring_same(
                 &value1->type.Character_String, &value2->type.Character_String);
 #endif
 #if defined(CHANNEL_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
-            return bitstring_value_same(
+            return bitstring_same(
                 &value1->type.Bit_String, &value2->type.Bit_String);
 #endif
 #if defined(CHANNEL_ENUMERATED)
@@ -402,16 +402,18 @@ bool bacnet_channel_value_same(
 #endif
 #if defined(CHANNEL_DATE)
         case BACNET_APPLICATION_TAG_DATE:
-            return date_value_same(&value1->type.Date, &value2->type.Date);
+            return datetime_date_same(&value1->type.Date, &value2->type.Date);
+            break;
 #endif
 #if defined(CHANNEL_TIME)
         case BACNET_APPLICATION_TAG_TIME:
-            return time_value_same(&value1->type.Time, &value2->type.Time);
+            return datetime_time_same(&value1->type.Time, &value2->type.Time);
 #endif
 #if defined(CHANNEL_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            return object_id_value_same(
-                &value1->type.Object_Id, &value2->type.Object_Id);
+            return bacnet_object_id_same(
+                value1->type.Object_Id.type, value1->type.Object_Id.instance,
+                value2->type.Object_Id.type, value2->type.Object_Id.instance);
 #endif
 #if defined(CHANNEL_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
@@ -498,11 +500,13 @@ bool bacnet_channel_value_copy(
 #endif
 #if defined(CHANNEL_DATE)
         case BACNET_APPLICATION_TAG_DATE:
-            return datetime_copy_date(&dest->type.Date, &src->type.Date);
+            datetime_copy_date(&dest->type.Date, &src->type.Date);
+            return true;
 #endif
 #if defined(CHANNEL_TIME)
         case BACNET_APPLICATION_TAG_TIME:
-            return datetime_copy_time(&dest->type.Time, &src->type.Time);
+            datetime_copy_time(&dest->type.Time, &src->type.Time);
+            return true;
 #endif
 #if defined(CHANNEL_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:

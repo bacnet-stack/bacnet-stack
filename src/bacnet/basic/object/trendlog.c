@@ -36,21 +36,23 @@ static TL_DATA_REC Logs[MAX_TREND_LOGS][TL_MAX_ENTRIES];
 static TL_LOG_INFO LogInfo[MAX_TREND_LOGS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Trend_Log_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                                     PROP_OBJECT_NAME,
-                                                     PROP_OBJECT_TYPE,
-                                                     PROP_ENABLE,
-                                                     PROP_STOP_WHEN_FULL,
-                                                     PROP_BUFFER_SIZE,
-                                                     PROP_LOG_BUFFER,
-                                                     PROP_RECORD_COUNT,
-                                                     PROP_TOTAL_RECORD_COUNT,
-                                                     PROP_EVENT_STATE,
-                                                     PROP_LOGGING_TYPE,
-                                                     PROP_STATUS_FLAGS,
-                                                     -1 };
+static const int32_t Trend_Log_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_ENABLE,
+    PROP_STOP_WHEN_FULL,
+    PROP_BUFFER_SIZE,
+    PROP_LOG_BUFFER,
+    PROP_RECORD_COUNT,
+    PROP_TOTAL_RECORD_COUNT,
+    PROP_EVENT_STATE,
+    PROP_LOGGING_TYPE,
+    PROP_STATUS_FLAGS,
+    -1
+};
 
-static const int Trend_Log_Properties_Optional[] = {
+static const int32_t Trend_Log_Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_START_TIME, PROP_STOP_TIME,
     PROP_LOG_DEVICE_OBJECT_PROPERTY, PROP_LOG_INTERVAL,
 
@@ -71,10 +73,12 @@ static const int Trend_Log_Properties_Optional[] = {
     PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET, PROP_TRIGGER, -1
 };
 
-static const int Trend_Log_Properties_Proprietary[] = { -1 };
+static const int32_t Trend_Log_Properties_Proprietary[] = { -1 };
 
 void Trend_Log_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Trend_Log_Properties_Required;

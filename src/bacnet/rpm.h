@@ -51,7 +51,9 @@ typedef struct BACnet_Read_Access_Data {
  *                           properties for this BACNET_OBJECT_TYPE.
  */
 typedef void (*rpm_property_lists_function)(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 
 typedef void (*rpm_object_property_lists_function)(
     BACNET_OBJECT_TYPE object_type,
