@@ -23,6 +23,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed basic object API for units properties to use BACNET_ENGINEERING_UNITS
+  datatype. (#1104)
 * Changed all the property list values into int32_t to support the larger
   BACnet property enumerations when an int is 8-bit or 16-bit in size. (#1145)
 
