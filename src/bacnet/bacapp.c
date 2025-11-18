@@ -4537,7 +4537,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                status = bacnet_strtoul(argv, &unsigned_long_value);
+                status = bacnet_string_to_unsigned(argv, &unsigned_long_value);
                 if (!status) {
                     return false;
                 }
