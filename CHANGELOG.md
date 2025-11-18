@@ -16,6 +16,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 ### Added
+
+* Added library specific string-to functions similar to stdlib.
+  Added library specific string-to functions for BACnet primitives. (#1151)
+
 ### Changed
 
 * Changed basic object API for units properties to use BACNET_ENGINEERING_UNITS
