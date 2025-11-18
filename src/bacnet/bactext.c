@@ -36,6 +36,10 @@ bool bactext_strtoul(const char *search_name, uint32_t *found_index)
            {ULONG_MAX} shall be returned */
         return false;
     }
+    if (value > UINT32_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
     if (*endptr != '\0') {
         /* Extra text found */
         return false;
@@ -1882,6 +1886,12 @@ const char *bactext_notify_type_name(uint32_t index)
 bool bactext_notify_type_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
+        bacnet_notify_type_names, search_name, found_index);
+}
+
+bool bactext_notify_type_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_strtoul_index(
         bacnet_notify_type_names, search_name, found_index);
 }
 
