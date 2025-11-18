@@ -52,9 +52,9 @@ bool Accumulator_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 
 BACNET_STACK_EXPORT
-bool Accumulator_Units_Set(uint32_t instance, uint16_t units);
+bool Accumulator_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS units);
 BACNET_STACK_EXPORT
-uint16_t Accumulator_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Accumulator_Units(uint32_t instance);
 
 BACNET_STACK_EXPORT
 int Accumulator_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

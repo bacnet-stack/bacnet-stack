@@ -49,20 +49,20 @@ struct object_data {
     /* variables for object properties */
     uint32_t Update_Interval;
     float Present_Value;
-    uint16_t Output_Units;
+    BACNET_ENGINEERING_UNITS Output_Units;
     BACNET_OBJECT_PROPERTY_REFERENCE Manipulated_Property_Reference;
-    uint16_t Controlled_Variable_Units;
+    BACNET_ENGINEERING_UNITS Controlled_Variable_Units;
     float Controlled_Variable_Value;
     BACNET_OBJECT_PROPERTY_REFERENCE Controlled_Variable_Reference;
     float Setpoint;
     BACNET_OBJECT_PROPERTY_REFERENCE Setpoint_Reference;
     BACNET_ACTION Action;
     float Proportional_Constant;
-    uint16_t Proportional_Constant_Units;
+    BACNET_ENGINEERING_UNITS Proportional_Constant_Units;
     float Integral_Constant;
-    uint16_t Integral_Constant_Units;
+    BACNET_ENGINEERING_UNITS Integral_Constant_Units;
     float Derivative_Constant;
-    uint16_t Derivative_Constant_Units;
+    BACNET_ENGINEERING_UNITS Derivative_Constant_Units;
     float Bias;
     float Maximum_Output;
     float Minimum_Output;
@@ -590,9 +590,9 @@ bool Loop_Update_Interval_Set(uint32_t object_instance, uint32_t value)
  * @param  object_instance - object-instance number of the object
  * @return  output-units property value
  */
-uint16_t Loop_Output_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Loop_Output_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -609,7 +609,8 @@ uint16_t Loop_Output_Units(uint32_t object_instance)
  * @param units - units property value
  * @return true if the output-units property value was set
  */
-bool Loop_Output_Units_Set(uint32_t object_instance, uint16_t units)
+bool Loop_Output_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct object_data *pObject;
@@ -809,9 +810,10 @@ bool Loop_Controlled_Variable_Value_Set(uint32_t object_instance, float value)
  * @param  object_instance - object-instance number of the object
  * @return  output-units property value
  */
-uint16_t Loop_Controlled_Variable_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS
+Loop_Controlled_Variable_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -830,7 +832,7 @@ uint16_t Loop_Controlled_Variable_Units(uint32_t object_instance)
  * @return true if the output-units property value was set
  */
 bool Loop_Controlled_Variable_Units_Set(
-    uint32_t object_instance, uint16_t units)
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct object_data *pObject;
@@ -1013,9 +1015,10 @@ bool Loop_Proportional_Constant_Set(uint32_t object_instance, float value)
  * @param object_instance - object-instance number of the object
  * @return units property value
  */
-uint16_t Loop_Proportional_Constant_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS
+Loop_Proportional_Constant_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1033,7 +1036,7 @@ uint16_t Loop_Proportional_Constant_Units(uint32_t object_instance)
  * @return true if the units property value was set
  */
 bool Loop_Proportional_Constant_Units_Set(
-    uint32_t object_instance, uint16_t units)
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct object_data *pObject;
@@ -1092,9 +1095,9 @@ bool Loop_Integral_Constant_Set(uint32_t object_instance, float value)
  * @param object_instance - object-instance number of the object
  * @return units property value
  */
-uint16_t Loop_Integral_Constant_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Loop_Integral_Constant_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1111,7 +1114,8 @@ uint16_t Loop_Integral_Constant_Units(uint32_t object_instance)
  * @param units - units property value
  * @return true if the units property value was set
  */
-bool Loop_Integral_Constant_Units_Set(uint32_t object_instance, uint16_t units)
+bool Loop_Integral_Constant_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct object_data *pObject;
@@ -1170,9 +1174,10 @@ bool Loop_Derivative_Constant_Set(uint32_t object_instance, float value)
  * @param object_instance - object-instance number of the object
  * @return units property value
  */
-uint16_t Loop_Derivative_Constant_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS
+Loop_Derivative_Constant_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1190,7 +1195,7 @@ uint16_t Loop_Derivative_Constant_Units(uint32_t object_instance)
  * @return true if the units property value was set
  */
 bool Loop_Derivative_Constant_Units_Set(
-    uint32_t object_instance, uint16_t units)
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct object_data *pObject;

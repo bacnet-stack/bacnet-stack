@@ -23,7 +23,7 @@ extern "C" {
 typedef struct positiveinteger_value_descr {
     bool Out_Of_Service : 1;
     uint32_t Present_Value;
-    uint16_t Units;
+    BACNET_ENGINEERING_UNITS Units;
 } POSITIVEINTEGER_VALUE_DESCR;
 
 BACNET_STACK_EXPORT
