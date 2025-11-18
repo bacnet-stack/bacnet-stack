@@ -223,6 +223,11 @@ ifeq (${LEGACY},true)
 BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
+ifeq (${SEGMENT},true)
+# enable segmentation support
+BACNET_DEFINES += -DBACNET_SEGMENTATION_ENABLED=1
+endif
+
 ifeq (${NOTIFY},false)
 # disable intrinsic reporting
 else

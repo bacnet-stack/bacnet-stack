@@ -224,6 +224,10 @@ server-discover:
 server-mini:
 	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
+.PHONY: server-segmentation
+server-segmentation:
+	$(MAKE) LEGACY=true SEGMENT=true -s -C apps server
+
 .PHONY: sc-hub
 sc-hub:
 	$(MAKE) LEGACY=true BACDL=bsc -s -C apps $@
