@@ -174,20 +174,6 @@ static void Init_Service_Handlers(void)
                 (unsigned)object_data.object_instance);
         }
     }
-#if BACNET_SEGMENTATION_ENABLED
-    printf("Segmentation is enabled.\n");
-    /* create extra object to stress the object list */
-    for (i = 0; i < 500; i++) {
-        object_data.object_instance = BACNET_MAX_INSTANCE;
-        object_data.object_type = OBJECT_ANALOG_INPUT;
-        if (Device_Create_Object(&object_data)) {
-            printf(
-                "Created object %s-%u\n",
-                bactext_object_type_name(object_data.object_type),
-                (unsigned)object_data.object_instance);
-        }
-    }
-#endif
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_who_am_i_unicast);

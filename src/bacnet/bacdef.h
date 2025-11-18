@@ -212,24 +212,8 @@ typedef struct BACnet_Object_Id {
     uint32_t instance;
 } BACNET_OBJECT_ID;
 
-#if !defined(BACNET_MAX_SEGMENTS_ACCEPTED)
-#if BACNET_SEGMENTATION_ENABLED
-/* note: BACNET_MAX_SEGMENTS_ACCEPTED can be 1..255.
-   ASDU in this library is usually sized for 16-bit at 65535 max.
-   Therefore, the default here is limited to avoid overflow warnings. */
-#define BACNET_MAX_SEGMENTS_ACCEPTED 32
-#else
-#define BACNET_MAX_SEGMENTS_ACCEPTED 1
-#endif
-#endif
-#if !defined(MAX_APDU)
-#define MAX_APDU 1476
-#endif
 #define MAX_NPDU (1 + 1 + 2 + 1 + MAX_MAC_LEN + 2 + 1 + MAX_MAC_LEN + 1 + 1 + 2)
 #define MAX_PDU (MAX_APDU + MAX_NPDU)
-/* Application Service Data Unit (ASDU) that has not yet been segmented
-   into a protocol data unit (PDU) by the lower layer. */
-#define MAX_ASDU ((MAX_APDU * BACNET_MAX_SEGMENTS_ACCEPTED) + MAX_NPDU)
 
 #define BACNET_ID_VALUE(bacnet_object_instance, bacnet_object_type)         \
     ((((bacnet_object_type) & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \

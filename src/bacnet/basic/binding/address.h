@@ -44,14 +44,6 @@ bool address_get_by_device(
     uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src);
 
 BACNET_STACK_EXPORT
-bool address_segment_get_by_device(
-    uint32_t device_id,
-    unsigned *max_apdu,
-    BACNET_ADDRESS *src,
-    uint8_t *segmentation,
-    uint16_t *maxsegments);
-
-BACNET_STACK_EXPORT
 bool address_get_by_index(
     unsigned index,
     uint32_t *device_id,
