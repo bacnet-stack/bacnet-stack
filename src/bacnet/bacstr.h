@@ -176,8 +176,30 @@ BACNET_STACK_EXPORT
 int bacnet_stricmp(const char *a, const char *b);
 BACNET_STACK_EXPORT
 int bacnet_strnicmp(const char *a, const char *b, size_t length);
+
 BACNET_STACK_EXPORT
 size_t bacnet_strnlen(const char *str, size_t maxlen);
+
+BACNET_STACK_EXPORT
+bool bacnet_strtoul(const char *str, unsigned long *long_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtol(const char *str, long *long_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtof(const char *str, float *float_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtod(const char *str, double *double_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtold(const char *str, long double *long_double_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtouint8(const char *str, uint8_t *uint8_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtouint16(const char *str, uint16_t *uint16_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtouint32(const char *str, uint32_t *uint32_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtoint32(const char *str, int32_t *int32_value);
+BACNET_STACK_EXPORT
+bool bacnet_strtobool(const char *str, bool *bool_value);
 
 #ifdef __cplusplus
 }

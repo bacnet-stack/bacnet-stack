@@ -1366,3 +1366,357 @@ size_t bacnet_strnlen(const char *str, size_t maxlen)
     }
     return (p - str);
 }
+
+/**
+ * @brief Attempt to convert a numeric string into a unsigned long value
+ * @param str - string to convert
+ * @param long_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtoul(const char *str, unsigned long *long_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (value == ULONG_MAX) {
+        /* If the correct value is outside the range of representable values,
+           {ULONG_MAX} shall be returned */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_value) {
+        *long_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a signed long integer
+ * @param str - string to convert
+ * @param long_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtol(const char *str, long *long_value)
+{
+    char *endptr;
+    long value;
+
+    value = strtol(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (value == LONG_MAX || value == LONG_MIN) {
+        /* If the correct value is outside the range of representable values,
+           {LONG_MAX} or {LONG_MIN} shall be returned */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_value) {
+        *long_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite floating point value
+ * @param str - string to convert
+ * @param float_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtof(const char *str, float *float_value)
+{
+    char *endptr;
+    float value;
+
+    value = strtof(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (!isfinite(value)) {
+        /* the given floating-point number arg is not a finite value
+           i.e. it is infinite or NaN.  */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (float_value) {
+        *float_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite double precision
+ *  floating point value
+ * @param str - string to convert
+ * @param double_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtod(const char *str, double *double_value)
+{
+    char *endptr;
+    double value;
+
+    value = strtod(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (!isfinite(value)) {
+        /* the given floating-point number arg is not a finite value
+           i.e. it is infinite or NaN.  */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (double_value) {
+        *double_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite double precision
+ *  floating point value
+ * @param str - string to convert
+ * @param long_double_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtold(const char *str, long double *long_double_value)
+{
+    char *endptr;
+    long double value;
+
+    value = strtold(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (!isfinite(value)) {
+        /* the given floating-point number arg is not a finite value
+           i.e. it is infinite or NaN.  */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_double_value) {
+        *long_double_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint8_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtouint8(const char *str, uint8_t *uint8_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (value == ULONG_MAX) {
+        /* If the value is outside the range of representable values,
+           {ULONG_MAX} shall be returned */
+        return false;
+    }
+    if (value > UINT8_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint8_value) {
+        *uint8_value = (uint8_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint16_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtouint16(const char *str, uint16_t *uint16_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (value == ULONG_MAX) {
+        /* If the value is outside the range of representable values,
+           {ULONG_MAX} shall be returned */
+        return false;
+    }
+    if (value > UINT16_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint16_value) {
+        *uint16_value = (uint16_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint32_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtouint32(const char *str, uint32_t *uint32_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (value == ULONG_MAX) {
+        /* If the value is outside the range of representable values,
+           {ULONG_MAX} shall be returned */
+        return false;
+    }
+    if (value > UINT32_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint32_value) {
+        *uint32_value = (uint32_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into an int32_t value
+ * @param str - string to convert
+ * @param int32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtoint32(const char *str, int32_t *int32_value)
+{
+    char *endptr;
+    long value;
+
+    value = strtol(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (value == LONG_MAX || value == LONG_MIN) {
+        /* If the value is outside the range of representable values,
+           {LONG_MAX} or {LONG_MIN} shall be returned */
+        return false;
+    }
+    if (value < INT32_MIN || value > INT32_MAX) {
+        /* The correct value is outside the range of this data type */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (int32_value) {
+        *int32_value = (int32_t)value;
+    }
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into an int32_t value
+ * @param str - string to convert
+ * @param int32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtobool(const char *str, bool *bool_value)
+{
+    bool status = false;
+    long long_value = 0;
+
+    if (bacnet_stricmp(str, "true") == 0 ||
+        bacnet_stricmp(str, "active") == 0) {
+        status = true;
+        if (bool_value) {
+            *bool_value = true;
+        }
+    } else if (
+        bacnet_stricmp(str, "false") == 0 ||
+        bacnet_stricmp(str, "inactive") == 0) {
+        status = true;
+        if (bool_value) {
+            *bool_value = false;
+        }
+    } else {
+        status = bacnet_strtol(str, &long_value);
+        if (!status) {
+            return false;
+        }
+        if (bool_value) {
+            *bool_value = true;
+        } else {
+            *bool_value = false;
+        }
+    }
+
+    return status;
+}
