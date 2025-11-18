@@ -1980,6 +1980,12 @@ bool bactext_event_type_index(const char *search_name, uint32_t *found_index)
         bacnet_event_type_names, search_name, found_index);
 }
 
+bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_strtoul_index(
+        bacnet_event_type_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_binary_present_value_names[] = {
     { BINARY_INACTIVE, "inactive" }, { BINARY_ACTIVE, "active" }, { 0, NULL }
 };
