@@ -14,6 +14,7 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -1379,14 +1380,15 @@ bool bacnet_strtoul(const char *str, unsigned long *long_value)
     char *endptr;
     unsigned long value;
 
+    errno = 0;
     value = strtoul(str, &endptr, 0);
     if (endptr == str) {
-        /* No digits found */
+        /* Conversion was not possible */
         return false;
     }
-    if (value == ULONG_MAX) {
-        /* If the correct value is outside the range of representable values,
-           {ULONG_MAX} shall be returned */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (*endptr != '\0') {
@@ -1395,56 +1397,6 @@ bool bacnet_strtoul(const char *str, unsigned long *long_value)
     }
     if (long_value) {
         *long_value = value;
-    }
-
-    return true;
-}
-
-/**
- * @brief Attempt to convert a numeric string into a unsigned long value
- * @param str - string to convert
- * @param unsigned_int - where to put the converted value
- * @return true if converted and value is set
- * @return false if not converted and value is not set
- */
-bool bacnet_string_to_unsigned(
-    const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int)
-{
-    char *endptr;
-#ifdef UINT64_MAX
-    unsigned long long value;
-#else
-    unsigned long value;
-#endif
-
-#ifdef UINT64_MAX
-    value = strtoull(str, &endptr, 0);
-#else
-    value = strtoul(str, &endptr, 0);
-#endif
-    if (endptr == str) {
-        /* No digits found */
-        return false;
-    }
-#ifdef UINT64_MAX
-    if (value == ULLONG_MAX) {
-        /* If the value is outside the range of representable values,
-           {ULLONG_MAX} shall be returned */
-        return false;
-    }
-#else
-    if (value == ULONG_MAX) {
-        /* If the value is outside the range of representable values,
-           {ULONG_MAX} shall be returned */
-        return false;
-    }
-#endif
-    if (*endptr != '\0') {
-        /* Extra text found */
-        return false;
-    }
-    if (unsigned_int) {
-        *unsigned_int = (BACNET_UNSIGNED_INTEGER)value;
     }
 
     return true;
@@ -1462,14 +1414,15 @@ bool bacnet_strtol(const char *str, long *long_value)
     char *endptr;
     long value;
 
+    errno = 0;
     value = strtol(str, &endptr, 0);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (value == LONG_MAX || value == LONG_MIN) {
-        /* If the correct value is outside the range of representable values,
-           {LONG_MAX} or {LONG_MIN} shall be returned */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (*endptr != '\0') {
@@ -1495,14 +1448,15 @@ bool bacnet_strtof(const char *str, float *float_value)
     char *endptr;
     float value;
 
+    errno = 0;
     value = strtof(str, &endptr);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (!isfinite(value)) {
-        /* the given floating-point number arg is not a finite value
-           i.e. it is infinite or NaN.  */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (*endptr != '\0') {
@@ -1529,14 +1483,15 @@ bool bacnet_strtod(const char *str, double *double_value)
     char *endptr;
     double value;
 
+    errno = 0;
     value = strtod(str, &endptr);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (!isfinite(value)) {
-        /* the given floating-point number arg is not a finite value
-           i.e. it is infinite or NaN.  */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (*endptr != '\0') {
@@ -1563,14 +1518,15 @@ bool bacnet_strtold(const char *str, long double *long_double_value)
     char *endptr;
     long double value;
 
+    errno = 0;
     value = strtold(str, &endptr);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (!isfinite(value)) {
-        /* the given floating-point number arg is not a finite value
-           i.e. it is infinite or NaN.  */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (*endptr != '\0') {
@@ -1596,14 +1552,15 @@ bool bacnet_string_to_uint8(const char *str, uint8_t *uint8_value)
     char *endptr;
     unsigned long value;
 
+    errno = 0;
     value = strtoul(str, &endptr, 0);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (value == ULONG_MAX) {
-        /* If the value is outside the range of representable values,
-           {ULONG_MAX} shall be returned */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (value > UINT8_MAX) {
@@ -1633,14 +1590,15 @@ bool bacnet_string_to_uint16(const char *str, uint16_t *uint16_value)
     char *endptr;
     unsigned long value;
 
+    errno = 0;
     value = strtoul(str, &endptr, 0);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (value == ULONG_MAX) {
-        /* If the value is outside the range of representable values,
-           {ULONG_MAX} shall be returned */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (value > UINT16_MAX) {
@@ -1670,14 +1628,15 @@ bool bacnet_string_to_uint32(const char *str, uint32_t *uint32_value)
     char *endptr;
     unsigned long value;
 
+    errno = 0;
     value = strtoul(str, &endptr, 0);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (value == ULONG_MAX) {
-        /* If the value is outside the range of representable values,
-           {ULONG_MAX} shall be returned */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (value > UINT32_MAX) {
@@ -1707,14 +1666,15 @@ bool bacnet_string_to_int32(const char *str, int32_t *int32_value)
     char *endptr;
     long value;
 
+    errno = 0;
     value = strtol(str, &endptr, 0);
     if (endptr == str) {
         /* No digits found */
         return false;
     }
-    if (value == LONG_MAX || value == LONG_MIN) {
-        /* If the value is outside the range of representable values,
-           {LONG_MAX} or {LONG_MIN} shall be returned */
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
         return false;
     }
     if (value < INT32_MIN || value > INT32_MAX) {
@@ -1732,9 +1692,9 @@ bool bacnet_string_to_int32(const char *str, int32_t *int32_value)
 }
 
 /**
- * @brief Attempt to convert a numeric string into an int32_t value
+ * @brief Attempt to convert a numeric string into an bool value
  * @param str - string to convert
- * @param int32_value - where to put the converted value
+ * @param bool_value - where to put the converted value
  * @return true if converted and value is set
  * @return false if not converted and value is not set
  */
@@ -1762,11 +1722,56 @@ bool bacnet_string_to_bool(const char *str, bool *bool_value)
             return false;
         }
         if (bool_value) {
-            *bool_value = true;
-        } else {
-            *bool_value = false;
+            if (long_value) {
+                *bool_value = true;
+            } else {
+                *bool_value = false;
+            }
         }
     }
 
     return status;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a unsigned long value
+ * @param str - string to convert
+ * @param unsigned_int - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_unsigned(
+    const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int)
+{
+    char *endptr;
+#ifdef UINT64_MAX
+    unsigned long long value;
+#else
+    unsigned long value;
+#endif
+
+    errno = 0;
+#ifdef UINT64_MAX
+    value = strtoull(str, &endptr, 0);
+#else
+    value = strtoul(str, &endptr, 0);
+#endif
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (unsigned_int) {
+        *unsigned_int = (BACNET_UNSIGNED_INTEGER)value;
+    }
+
+    return true;
 }
