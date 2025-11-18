@@ -190,16 +190,20 @@ BACNET_STACK_EXPORT
 bool bacnet_strtod(const char *str, double *double_value);
 BACNET_STACK_EXPORT
 bool bacnet_strtold(const char *str, long double *long_double_value);
+
 BACNET_STACK_EXPORT
-bool bacnet_strtouint8(const char *str, uint8_t *uint8_value);
+bool bacnet_string_to_uint8(const char *str, uint8_t *uint8_value);
 BACNET_STACK_EXPORT
-bool bacnet_strtouint16(const char *str, uint16_t *uint16_value);
+bool bacnet_string_to_uint16(const char *str, uint16_t *uint16_value);
 BACNET_STACK_EXPORT
-bool bacnet_strtouint32(const char *str, uint32_t *uint32_value);
+bool bacnet_string_to_uint32(const char *str, uint32_t *uint32_value);
 BACNET_STACK_EXPORT
-bool bacnet_strtoint32(const char *str, int32_t *int32_value);
+bool bacnet_string_to_int32(const char *str, int32_t *int32_value);
 BACNET_STACK_EXPORT
-bool bacnet_strtobool(const char *str, bool *bool_value);
+bool bacnet_string_to_bool(const char *str, bool *bool_value);
+BACNET_STACK_EXPORT
+bool bacnet_string_to_unsigned(
+    const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int);
 
 #ifdef __cplusplus
 }

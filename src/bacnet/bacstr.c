@@ -1401,6 +1401,56 @@ bool bacnet_strtoul(const char *str, unsigned long *long_value)
 }
 
 /**
+ * @brief Attempt to convert a numeric string into a unsigned long value
+ * @param str - string to convert
+ * @param unsigned_int - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_unsigned(
+    const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int)
+{
+    char *endptr;
+#ifdef UINT64_MAX
+    unsigned long long value;
+#else
+    unsigned long value;
+#endif
+
+#ifdef UINT64_MAX
+    value = strtoull(str, &endptr, 0);
+#else
+    value = strtoul(str, &endptr, 0);
+#endif
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+#ifdef UINT64_MAX
+    if (value == ULLONG_MAX) {
+        /* If the value is outside the range of representable values,
+           {ULLONG_MAX} shall be returned */
+        return false;
+    }
+#else
+    if (value == ULONG_MAX) {
+        /* If the value is outside the range of representable values,
+           {ULONG_MAX} shall be returned */
+        return false;
+    }
+#endif
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (unsigned_int) {
+        *unsigned_int = (BACNET_UNSIGNED_INTEGER)value;
+    }
+
+    return true;
+}
+
+/**
  * @brief Attempt to convert a numeric string into a signed long integer
  * @param str - string to convert
  * @param long_value - where to put the converted value
@@ -1541,7 +1591,7 @@ bool bacnet_strtold(const char *str, long double *long_double_value)
  * @return true if converted and value is set
  * @return false if not converted and value is not set
  */
-bool bacnet_strtouint8(const char *str, uint8_t *uint8_value)
+bool bacnet_string_to_uint8(const char *str, uint8_t *uint8_value)
 {
     char *endptr;
     unsigned long value;
@@ -1578,7 +1628,7 @@ bool bacnet_strtouint8(const char *str, uint8_t *uint8_value)
  * @return true if converted and value is set
  * @return false if not converted and value is not set
  */
-bool bacnet_strtouint16(const char *str, uint16_t *uint16_value)
+bool bacnet_string_to_uint16(const char *str, uint16_t *uint16_value)
 {
     char *endptr;
     unsigned long value;
@@ -1615,7 +1665,7 @@ bool bacnet_strtouint16(const char *str, uint16_t *uint16_value)
  * @return true if converted and value is set
  * @return false if not converted and value is not set
  */
-bool bacnet_strtouint32(const char *str, uint32_t *uint32_value)
+bool bacnet_string_to_uint32(const char *str, uint32_t *uint32_value)
 {
     char *endptr;
     unsigned long value;
@@ -1652,7 +1702,7 @@ bool bacnet_strtouint32(const char *str, uint32_t *uint32_value)
  * @return true if converted and value is set
  * @return false if not converted and value is not set
  */
-bool bacnet_strtoint32(const char *str, int32_t *int32_value)
+bool bacnet_string_to_int32(const char *str, int32_t *int32_value)
 {
     char *endptr;
     long value;
@@ -1688,7 +1738,7 @@ bool bacnet_strtoint32(const char *str, int32_t *int32_value)
  * @return true if converted and value is set
  * @return false if not converted and value is not set
  */
-bool bacnet_strtobool(const char *str, bool *bool_value)
+bool bacnet_string_to_bool(const char *str, bool *bool_value)
 {
     bool status = false;
     long long_value = 0;
