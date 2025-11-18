@@ -25,6 +25,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed ReadRangeACK by sequence and time in Trend Log object.
 * Fixed segmented ComplexACK in MS/TP by adding postpone reply because
   transmission of the segmented ComplexACK cannot begin until the node
   holds the token. (#1116)
