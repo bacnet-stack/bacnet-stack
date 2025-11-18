@@ -471,6 +471,11 @@ int uevent_notify_send(
     BACNET_EVENT_NOTIFICATION_DATA *data,
     BACNET_ADDRESS *dest);
 
+BACNET_STACK_EXPORT
+int event_notify_parse(
+    BACNET_EVENT_NOTIFICATION_DATA *data,
+    int argc, const char *argv[]);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

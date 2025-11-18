@@ -153,7 +153,10 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
-                dnet = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
                     specific_address = true;
                 }
@@ -166,16 +169,28 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                Target_Error_Class = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtouint16(argv[argi], &Target_Error_Class)) {
+                    fprintf(stderr, "error-class=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else if (target_args == 1) {
-                Target_Error_Code = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtouint16(argv[argi], &Target_Error_Code)) {
+                    fprintf(stderr, "error-code=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else if (target_args == 2) {
-                Target_Service = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtouint16(argv[argi], &Target_Service)) {
+                    fprintf(stderr, "service=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
-            } else if (target_args == 2) {
-                Target_Invoke_ID = strtol(argv[argi], NULL, 0);
+            } else if (target_args == 3) {
+                if (!bacnet_strtouint8(argv[argi], &Target_Invoke_ID)) {
+                    fprintf(stderr, "invoke-id=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else {
                 print_usage(filename);
@@ -185,34 +200,7 @@ int main(int argc, char *argv[])
     }
     address_init();
     if (specific_address) {
-        if (adr.len && mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            memcpy(&dest.adr[0], &adr.adr[0], adr.len);
-            dest.len = adr.len;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-        } else if (mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            dest.len = 0;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = 0;
-            }
-        } else {
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-            dest.mac_len = 0;
-            dest.len = 0;
-        }
+        bacnet_address_init(&dest, &mac, dnet, &adr);
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
