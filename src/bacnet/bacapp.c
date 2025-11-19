@@ -2196,10 +2196,12 @@ int bacapp_snprintf_octet_string(
     int len = 0;
     int slen = 0;
     int i = 0;
+    const uint8_t *octet_str;
 
+    slen = bacapp_snprintf(str, str_len, "X'");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     len = octetstring_length(value);
     if (len > 0) {
-        const uint8_t *octet_str;
         octet_str = octetstring_value((BACNET_OCTET_STRING *)value);
         for (i = 0; i < len; i++) {
             slen = bacapp_snprintf(str, str_len, "%02X", *octet_str);
@@ -2207,6 +2209,8 @@ int bacapp_snprintf_octet_string(
             octet_str++;
         }
     }
+    slen = bacapp_snprintf(str, str_len, "'");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
