@@ -13,6 +13,7 @@
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
+#include "bacnet/bactext.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/basic/services.h"
@@ -25,6 +26,19 @@
 
 static uint16_t Local_Network_Number;
 static uint8_t Local_Network_Number_Status = NETWORK_NUMBER_LEARNED;
+
+static i_am_router_to_network_function I_Am_Router_To_Network_Function;
+
+/**
+ * @brief Set a handler function called for the I Am Router To Network message
+ *
+ * @param pFunction  Pointer to the function
+ */
+void npdu_set_i_am_router_to_network_handler(
+    i_am_router_to_network_function pFunction)
+{
+    I_Am_Router_To_Network_Function = pFunction;
+}
 
 /**
  * @brief get the local network number
@@ -138,6 +152,8 @@ static void network_control_handler(
 {
     uint16_t dnet = 0;
     uint8_t status = 0;
+    uint16_t npdu_offset = 0;
+    uint16_t len = 0;
 
     switch (npdu_data->network_message_type) {
         case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
@@ -175,6 +191,16 @@ static void network_control_handler(
                 /*  Devices shall ignore Network-Number-Is messages that
                     contain SNET/SADR or DNET/DADR information In the NPCI or
                     that are sent with a local unicast address. */
+            }
+            break;
+        case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
+            if (I_Am_Router_To_Network_Function) {
+                while (npdu_len >= 2) {
+                    len = decode_unsigned16(&npdu[npdu_offset], &dnet);
+                    I_Am_Router_To_Network_Function(src, dnet);
+                    npdu_len -= len;
+                    npdu_offset += len;
+                }
             }
             break;
         default:
