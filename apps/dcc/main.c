@@ -121,27 +121,59 @@ static void Init_Service_Handlers(void)
 static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance state [timeout [password]]\n", filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
 static void print_help(const char *filename)
 {
+    printf("Send BACnet DeviceCommunicationControl service to device.\n");
+    printf("\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("device-instance:\n"
+           "BACnet Device Object Instance number that you are\n"
+           "trying to communicate to.  This number will be used\n"
+           "to try and bind with the device using Who-Is and\n"
+           "I-Am services.  For example, if you were writing\n"
+           "Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf("state:\n"
+           "Possible state values:\n"
+           "  0=enable\n"
+           "  1=disable\n"
+           "  2=disable-initiation\n");
+    printf("\n");
+    printf("timeout:\n"
+           "The timeout can be 0 for infinite, or a value in minutes for "
+           "disable.\n");
+    printf("\n");
     printf(
-        "Send BACnet DeviceCommunicationControl service to device.\n"
-        "\n"
-        "The device-instance can be 0 to %lu.\n"
-        "Possible state values:\n"
-        "  0=enable\n"
-        "  1=disable\n"
-        "  2=disable-initiation\n"
-        "The timeout can be 0 for infinite, or a value in minutes for "
-        "disable.\n"
-        "The optional password is a character string of 1 to 20 characters.\n"
-        "\nExample:\n"
+        "password:\n"
+        "The optional password is a character string of 1 to 20 characters.\n");
+    printf("\n");
+    printf(
+        "Example:\n"
         "If you want disable Device Communications in Device 123\n"
         "for 60 minutes with password 'filister', use the following command:\n"
         "%s 123 1 60 filister\n",
-        (unsigned long)BACNET_MAX_INSTANCE, filename);
+        filename);
 }
 
 int main(int argc, char *argv[])
@@ -156,6 +188,12 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     uint8_t invoke_id = 0;
     bool found = false;
+    long dnet = -1;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    bool specific_address = false;
+    unsigned int target_args = 0;
     int argi = 0;
     const char *filename = NULL;
 
@@ -175,31 +213,73 @@ int main(int argc, char *argv[])
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
+        if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dnet") == 0) {
+            if (++argi < argc) {
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if ((dnet >= 0) && (dnet <= UINT16_MAX)) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else {
+            /* unnamed arguments */
+            if (target_args == 0) {
+                if (!bacnet_strtouint32(
+                        argv[argi], &Target_Device_Object_Instance)) {
+                    fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+                    fprintf(
+                        stderr, "device-instance=%u - not greater than %u\n",
+                        Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+                    return 1;
+                }
+                target_args++;
+            } else if (target_args == 1) {
+                if (!bacnet_strtouint16(argv[argi], &Communication_State)) {
+                    fprintf(stderr, "state=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                target_args++;
+            } else if (target_args == 2) {
+                if (!bacnet_strtouint16(
+                        argv[argi], &Communication_Timeout_Minutes)) {
+                    fprintf(stderr, "timeout=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                target_args++;
+            } else if (target_args == 3) {
+                Communication_Password = argv[argi];
+                target_args++;
+            }
+        }
     }
     if (argc < 3) {
         print_usage(filename);
         return 0;
     }
-    /* decode the command line parameters */
-    Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    Communication_State = (uint16_t)strtol(argv[2], NULL, 0);
-    /* optional timeout, required if password is included */
-    if (argc > 3) {
-        Communication_Timeout_Minutes = (uint16_t)strtol(argv[3], NULL, 0);
-    }
-    /* optional password */
-    if (argc > 4) {
-        Communication_Password = argv[4];
-    }
-    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(
-            stderr, "device-instance=%u - not greater than %u\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
-        return 1;
-    }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
+    if (specific_address) {
+        bacnet_address_init(&dest, &mac, dnet, &adr);
+        address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
+    }
+    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);

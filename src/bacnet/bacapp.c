@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h> /* for strtol */
 #include <ctype.h> /* for isalnum */
-#include <errno.h>
 #include <math.h>
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <wchar.h>
@@ -4285,60 +4284,6 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 }
 #endif
 
-#if defined(BACAPP_SIGNED) || defined(BACAPP_BOOLEAN)
-static bool strtol_checked(const char *s, long *out)
-{
-    char *end;
-    errno = 0;
-    *out = strtol(s, &end, 0);
-    if (end == s) {
-        /* Conversion was not possible */
-        return false;
-    }
-    if (errno == ERANGE) {
-        /* Number too large */
-        return false;
-    }
-    return true;
-}
-#endif
-
-#if defined(BACAPP_UNSIGNED) || defined(BACAPP_ENUMERATED)
-static bool strtoul_checked(const char *s, BACNET_UNSIGNED_INTEGER *out)
-{
-    char *end;
-    errno = 0;
-    *out = strtoul(s, &end, 0);
-    if (end == s) {
-        /* Conversion was not possible */
-        return false;
-    }
-    if (errno == ERANGE) {
-        /* Number too large */
-        return false;
-    }
-    return true;
-}
-#endif
-
-#if defined(BACAPP_REAL) || defined(BACAPP_DOUBLE)
-static bool strtod_checked(const char *s, double *out)
-{
-    char *end;
-    errno = 0;
-    *out = strtod(s, &end);
-    if (end == s) {
-        /* Conversion was not possible */
-        return false;
-    }
-    if (errno == ERANGE) {
-        /* Number too large */
-        return false;
-    }
-    return true;
-}
-#endif
-
 #if defined(BACAPP_SCALE)
 /**
  * @brief Parse a string into a BACnetScale value
@@ -4577,7 +4522,7 @@ bool bacapp_parse_application_data(
                     bacnet_stricmp(argv, "inactive") == 0) {
                     value->type.Boolean = false;
                 } else {
-                    status = strtol_checked(argv, &long_value);
+                    status = bacnet_strtol(argv, &long_value);
                     if (!status) {
                         return false;
                     }
@@ -4591,7 +4536,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                status = strtoul_checked(argv, &unsigned_long_value);
+                status = bacnet_string_to_unsigned(argv, &unsigned_long_value);
                 if (!status) {
                     return false;
                 }
@@ -4603,7 +4548,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                status = strtol_checked(argv, &long_value);
+                status = bacnet_strtol(argv, &long_value);
                 if (!status || long_value > INT32_MAX ||
                     long_value < INT32_MIN) {
                     return false;
@@ -4613,7 +4558,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                status = strtod_checked(argv, &double_value);
+                status = bacnet_strtod(argv, &double_value);
                 if (!status) {
                     return false;
                 }
@@ -4622,7 +4567,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                status = strtod_checked(argv, &double_value);
+                status = bacnet_strtod(argv, &double_value);
                 if (!status) {
                     return false;
                 }
@@ -4648,7 +4593,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
-                status = strtoul_checked(argv, &unsigned_long_value);
+                status = bacnet_string_to_unsigned(argv, &unsigned_long_value);
                 if (!status || unsigned_long_value > UINT32_MAX) {
                     return false;
                 }

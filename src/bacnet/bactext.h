@@ -80,6 +80,8 @@ const char *bactext_notify_type_name(uint32_t index);
 BACNET_STACK_EXPORT
 bool bactext_notify_type_index(const char *search_name, uint32_t *found_index);
 BACNET_STACK_EXPORT
+bool bactext_notify_type_strtol(const char *search_name, uint32_t *found_index);
+BACNET_STACK_EXPORT
 const char *bactext_event_state_name(uint32_t index);
 BACNET_STACK_EXPORT
 bool bactext_event_state_index(const char *search_name, uint32_t *found_index);
@@ -89,6 +91,8 @@ BACNET_STACK_EXPORT
 const char *bactext_event_type_name(uint32_t index);
 BACNET_STACK_EXPORT
 bool bactext_event_type_index(const char *search_name, uint32_t *found_index);
+BACNET_STACK_EXPORT
+bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index);
 BACNET_STACK_EXPORT
 const char *bactext_binary_present_value_name(uint32_t index);
 BACNET_STACK_EXPORT
@@ -206,7 +210,14 @@ BACNET_STACK_EXPORT
 const char *bactext_timer_state_name(uint32_t index);
 
 BACNET_STACK_EXPORT
-bool bactext_strtoul(const char *search_name, uint32_t *found_index);
+const char *bactext_boolean_value_name(uint32_t index);
+
+BACNET_STACK_EXPORT
+bool bactext_property_states_strtoul(
+    BACNET_PROPERTY_STATES object_property,
+    const char *search_name,
+    uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 bool bactext_object_property_strtoul(
     BACNET_OBJECT_TYPE object_type,
