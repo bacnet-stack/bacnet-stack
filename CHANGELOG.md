@@ -22,6 +22,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed apps to use common BACnet value string parsing functions. (#1152)
 * Changed basic object API for units properties to use BACNET_ENGINEERING_UNITS
   datatype. (#1104)
 * Changed all the property list values into int32_t to support the larger
