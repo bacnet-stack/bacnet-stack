@@ -3130,8 +3130,7 @@ int event_notify_decode_service_request(
  * @return true if successful, false if error
  */
 bool event_notify_parse(
-    BACNET_EVENT_NOTIFICATION_DATA *data,
-    int argc, const char *argv[])
+    BACNET_EVENT_NOTIFICATION_DATA *data, int argc, char *argv[])
 {
     int argi = 0;
     unsigned int target_args = 1;
@@ -3158,8 +3157,7 @@ bool event_notify_parse(
             if (long_value > BACNET_MAX_INSTANCE) {
                 return false;
             }
-            data->initiatingObjectIdentifier.instance =
-                (uint32_t)long_value;
+            data->initiatingObjectIdentifier.instance = (uint32_t)long_value;
             target_args++;
         } else if (target_args == 3) {
             /* event-object-type */
@@ -3176,8 +3174,7 @@ bool event_notify_parse(
             if (long_value > BACNET_MAX_INSTANCE) {
                 return false;
             }
-            data->eventObjectIdentifier.instance =
-                (uint32_t)long_value;
+            data->eventObjectIdentifier.instance = (uint32_t)long_value;
             target_args++;
         } else if (target_args == 5) {
             /* sequence-number */
@@ -3244,14 +3241,13 @@ bool event_notify_parse(
         } else {
             if (data->eventType == EVENT_CHANGE_OF_BITSTRING) {
                 if (target_args == 14) {
-                    pBitString =
-                        &data->notificationParams.changeOfBitstring
-                                .referencedBitString;
+                    pBitString = &data->notificationParams.changeOfBitstring
+                                      .referencedBitString;
                     bitstring_init_ascii(pBitString, argv[argi]);
                     target_args++;
                 } else if (target_args == 15) {
-                    pBitString = &data->notificationParams
-                                        .changeOfBitstring.statusFlags;
+                    pBitString =
+                        &data->notificationParams.changeOfBitstring.statusFlags;
                     bitstring_init_ascii(pBitString, argv[argi]);
                     target_args++;
                 } else {
@@ -3263,72 +3259,71 @@ bool event_notify_parse(
                         return false;
                     }
                     tag = (BACNET_PROPERTY_STATES)long_value;
-                    data->notificationParams.changeOfState.newState
-                        .tag = tag;
+                    data->notificationParams.changeOfState.newState.tag = tag;
                     target_args++;
                 } else if (target_args == 15) {
+                    if (!bactext_property_states_strtoul(
+                            tag, argv[argi], &found_index)) {
+                        return false;
+                    }
                     if (tag == PROP_STATE_BOOLEAN_VALUE) {
-                        if (!bacnet_string_to_bool(
-                                argv[argi],
-                                &data->notificationParams.changeOfState
-                                        .newState.state.booleanValue)) {
-                            return false;
+                        if (found_index) {
+                            data->notificationParams.changeOfState.newState
+                                .state.booleanValue = true;
+                        } else {
+                            data->notificationParams.changeOfState.newState
+                                .state.booleanValue = true;
                         }
                     } else if (tag == PROP_STATE_BINARY_VALUE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.binaryValue =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .binaryValue = (BACNET_BINARY_PV)found_index;
                     } else if (tag == PROP_STATE_EVENT_TYPE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.eventType = strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .eventType = (BACNET_EVENT_TYPE)found_index;
                     } else if (tag == PROP_STATE_POLARITY) {
-                        data->notificationParams.changeOfState.newState
-                            .state.polarity = strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .polarity = (BACNET_POLARITY)found_index;
                     } else if (tag == PROP_STATE_PROGRAM_CHANGE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.programChange =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .programChange =
+                            (BACNET_PROGRAM_REQUEST)found_index;
                     } else if (tag == PROP_STATE_PROGRAM_STATE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.programState =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .programState = (BACNET_PROGRAM_STATE)found_index;
                     } else if (tag == PROP_STATE_REASON_FOR_HALT) {
-                        data->notificationParams.changeOfState.newState
-                            .state.programError =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .programError = (BACNET_PROGRAM_ERROR)found_index;
                     } else if (tag == PROP_STATE_RELIABILITY) {
-                        data->notificationParams.changeOfState.newState
-                            .state.reliability =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .reliability = (BACNET_RELIABILITY)found_index;
                     } else if (tag == PROP_STATE_EVENT_STATE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.state = strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .state = (BACNET_EVENT_STATE)found_index;
                     } else if (tag == PROP_STATE_SYSTEM_STATUS) {
-                        data->notificationParams.changeOfState.newState
-                            .state.systemStatus =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .systemStatus = (BACNET_DEVICE_STATUS)found_index;
                     } else if (tag == PROP_STATE_UNITS) {
-                        data->notificationParams.changeOfState.newState
-                            .state.units = strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .units = (BACNET_ENGINEERING_UNITS)found_index;
                     } else if (tag == PROP_STATE_UNSIGNED_VALUE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.unsignedValue =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .unsignedValue =
+                            (BACNET_UNSIGNED_INTEGER)found_index;
                     } else if (tag == PROP_STATE_LIFE_SAFETY_MODE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.lifeSafetyMode =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .lifeSafetyMode =
+                            (BACNET_LIFE_SAFETY_MODE)found_index;
                     } else if (tag == PROP_STATE_LIFE_SAFETY_STATE) {
-                        data->notificationParams.changeOfState.newState
-                            .state.lifeSafetyState =
-                            strtol(argv[argi], NULL, 0);
+                        data->notificationParams.changeOfState.newState.state
+                            .lifeSafetyState =
+                            (BACNET_LIFE_SAFETY_STATE)found_index;
                     } else {
                         return false;
                     }
                     target_args++;
                 } else if (target_args == 16) {
-                    pBitString = &data->notificationParams
-                                        .changeOfBitstring.statusFlags;
+                    pBitString =
+                        &data->notificationParams.changeOfBitstring.statusFlags;
                     bitstring_init_ascii(pBitString, argv[argi]);
                     target_args++;
                 } else {
@@ -3342,8 +3337,7 @@ bool event_notify_parse(
                 /* FIXME: add event type parameters */
             } else if (data->eventType == EVENT_OUT_OF_RANGE) {
                 /* FIXME: add event type parameters */
-            } else if (
-                data->eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
+            } else if (data->eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
                 /* FIXME: add event type parameters */
             } else if (data->eventType == EVENT_EXTENDED) {
                 /* FIXME: add event type parameters */
@@ -3357,22 +3351,17 @@ bool event_notify_parse(
                 /* FIXME: add event type parameters */
             } else if (data->eventType == EVENT_SIGNED_OUT_OF_RANGE) {
                 /* FIXME: add event type parameters */
-            } else if (
-                data->eventType == EVENT_UNSIGNED_OUT_OF_RANGE) {
+            } else if (data->eventType == EVENT_UNSIGNED_OUT_OF_RANGE) {
                 /* FIXME: add event type parameters */
-            } else if (
-                data->eventType == EVENT_CHANGE_OF_CHARACTERSTRING) {
+            } else if (data->eventType == EVENT_CHANGE_OF_CHARACTERSTRING) {
                 /* FIXME: add event type parameters */
-            } else if (
-                data->eventType == EVENT_CHANGE_OF_STATUS_FLAGS) {
+            } else if (data->eventType == EVENT_CHANGE_OF_STATUS_FLAGS) {
                 /* FIXME: add event type parameters */
-            } else if (
-                data->eventType == EVENT_CHANGE_OF_RELIABILITY) {
+            } else if (data->eventType == EVENT_CHANGE_OF_RELIABILITY) {
                 /* FIXME: add event type parameters */
             } else if (data->eventType == EVENT_NONE) {
                 /* FIXME: add event type parameters */
-            } else if (
-                data->eventType == EVENT_CHANGE_OF_DISCRETE_VALUE) {
+            } else if (data->eventType == EVENT_CHANGE_OF_DISCRETE_VALUE) {
                 /* FIXME: add event type parameters */
             } else if (data->eventType == EVENT_CHANGE_OF_TIMER) {
                 /* FIXME: add event type parameters */
@@ -3389,4 +3378,3 @@ bool event_notify_parse(
 
     return true;
 }
-

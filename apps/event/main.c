@@ -232,11 +232,7 @@ static void print_help(const char *filename)
 int main(int argc, char *argv[])
 {
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
-    BACNET_BIT_STRING *pBitString;
-    BACNET_CHARACTER_STRING bcstring;
-    BACNET_PROPERTY_STATES tag = PROP_STATE_BOOLEAN_VALUE;
     unsigned long long_value = 0;
-    uint32_t object_type = 0;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     unsigned timeout = 100; /* milliseconds */
     uint16_t pdu_len = 0;
@@ -254,7 +250,6 @@ int main(int argc, char *argv[])
     int argi = 0;
     unsigned int target_args = 0;
     const char *filename = NULL;
-    uint32_t found_index = 0;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -303,14 +298,15 @@ int main(int argc, char *argv[])
                 }
                 if (long_value > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device-id=%u - exceeds %u\n", long_value,
+                        stderr, "device-id=%lu - exceeds %u\n", long_value,
                         BACNET_MAX_INSTANCE);
                     return 1;
                 }
                 Target_Device_Object_Instance = (uint32_t)long_value;
                 target_args++;
             } else if (target_args == 1) {
-                if (!event_notify_parse(&event_data, argc-argi, &argv[argi])) {
+                if (!event_notify_parse(
+                        &event_data, argc - argi, &argv[argi])) {
                     fprintf(stderr, "event=%s invalid\n", argv[argi]);
                 }
             } else {

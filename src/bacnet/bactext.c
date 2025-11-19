@@ -2744,6 +2744,179 @@ const char *bactext_timer_transition_name(uint32_t index)
         bactext_timer_transition_names, index, ASHRAE_Reserved_String);
 }
 
+INDTEXT_DATA bactext_boolean_value_names[] = { { false, "false" },
+                                               { true, "true" },
+                                               { 0, NULL } };
+
+const char *bactext_boolean_value_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bactext_boolean_value_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_property_states_strtoul(
+    BACNET_PROPERTY_STATES property_state,
+    const char *search_name,
+    uint32_t *found_index)
+{
+    bool status = false;
+
+    switch (property_state) {
+        case PROP_STATE_BOOLEAN_VALUE:
+            status = bactext_string_to_uint32_index(
+                bactext_boolean_value_names, search_name, found_index);
+            break;
+        case PROP_STATE_BINARY_VALUE:
+            status = bactext_string_to_uint32_index(
+                bacnet_binary_present_value_names, search_name, found_index);
+            break;
+        case PROP_STATE_EVENT_TYPE:
+            status = bactext_string_to_uint32_index(
+                bacnet_event_type_names, search_name, found_index);
+            break;
+        case PROP_STATE_POLARITY:
+            status = bactext_string_to_uint32_index(
+                bacnet_binary_polarity_names, search_name, found_index);
+            break;
+        case PROP_STATE_PROGRAM_CHANGE:
+            status = bactext_string_to_uint32_index(
+                bactext_program_request_names, search_name, found_index);
+            break;
+        case PROP_STATE_PROGRAM_STATE:
+            status = bactext_string_to_uint32_index(
+                bactext_program_state_names, search_name, found_index);
+            break;
+        case PROP_STATE_REASON_FOR_HALT:
+            status = bactext_string_to_uint32_index(
+                bactext_program_error_names, search_name, found_index);
+            break;
+        case PROP_STATE_RELIABILITY:
+            status = bactext_string_to_uint32_index(
+                bacnet_reliability_names, search_name, found_index);
+            break;
+        case PROP_STATE_EVENT_STATE:
+            status = bactext_string_to_uint32_index(
+                bacnet_event_state_names, search_name, found_index);
+            break;
+        case PROP_STATE_SYSTEM_STATUS:
+            status = bactext_string_to_uint32_index(
+                bacnet_device_status_names, search_name, found_index);
+            break;
+        case PROP_STATE_UNITS:
+            status = bactext_string_to_uint32_index(
+                bacnet_engineering_unit_names, search_name, found_index);
+            break;
+        case PROP_STATE_LIFE_SAFETY_MODE:
+            status = bactext_string_to_uint32_index(
+                bactext_life_safety_mode_names, search_name, found_index);
+            break;
+        case PROP_STATE_LIFE_SAFETY_STATE:
+            status = bactext_string_to_uint32_index(
+                bactext_life_safety_state_names, search_name, found_index);
+            break;
+        case PROP_STATE_RESTART_REASON:
+            status = bactext_string_to_uint32_index(
+                bactext_restart_reason_names, search_name, found_index);
+            break;
+        case PROP_STATE_LIFE_SAFETY_OPERATION:
+            status = bactext_string_to_uint32_index(
+                bactext_life_safety_operation_names, search_name, found_index);
+            break;
+        case PROP_STATE_NODE_TYPE:
+            status = bactext_string_to_uint32_index(
+                bacnet_node_type_names, search_name, found_index);
+            break;
+        case PROP_STATE_NOTIFY_TYPE:
+            status = bactext_string_to_uint32_index(
+                bacnet_notify_type_names, search_name, found_index);
+            break;
+        case PROP_STATE_SHED_STATE:
+            status = bactext_string_to_uint32_index(
+                bacnet_shed_state_names, search_name, found_index);
+            break;
+        case PROP_STATE_SILENCED_STATE:
+            status = bactext_string_to_uint32_index(
+                bactext_silenced_state_names, search_name, found_index);
+            break;
+        case PROP_STATE_LIGHTING_IN_PROGRESS:
+            status = bactext_string_to_uint32_index(
+                bacnet_lighting_in_progress_names, search_name, found_index);
+            break;
+        case PROP_STATE_LIGHTING_OPERATION:
+            status = bactext_string_to_uint32_index(
+                bacnet_lighting_operation_names, search_name, found_index);
+            break;
+        case PROP_STATE_LIGHTING_TRANSITION:
+            status = bactext_string_to_uint32_index(
+                bacnet_lighting_transition_names, search_name, found_index);
+            break;
+        case PROP_STATE_BINARY_LIGHTING_VALUE:
+            status = bactext_string_to_uint32_index(
+                bacnet_binary_lighting_pv_names, search_name, found_index);
+            break;
+        case PROP_STATE_TIMER_STATE:
+            status = bactext_string_to_uint32_index(
+                bactext_timer_state_names, search_name, found_index);
+            break;
+        case PROP_STATE_TIMER_TRANSITION:
+            status = bactext_string_to_uint32_index(
+                bactext_timer_transition_names, search_name, found_index);
+            break;
+        case PROP_STATE_NETWORK_PORT_COMMAND:
+            status = bactext_string_to_uint32_index(
+                bactext_network_port_command_names, search_name, found_index);
+            break;
+        case PROP_STATE_NETWORK_TYPE:
+            status = bactext_string_to_uint32_index(
+                bactext_network_port_type_names, search_name, found_index);
+            break;
+        case PROP_STATE_NETWORK_NUMBER_QUALITY:
+            status = bactext_string_to_uint32_index(
+                bactext_network_number_quality_names, search_name, found_index);
+            break;
+        case PROP_STATE_PROTOCOL_LEVEL:
+            status = bactext_string_to_uint32_index(
+                bactext_protocol_level_names, search_name, found_index);
+            break;
+        case PROP_STATE_ACTION:
+        case PROP_STATE_DOOR_SECURED_STATUS:
+        case PROP_STATE_DOOR_STATUS:
+        case PROP_STATE_DOOR_VALUE:
+        case PROP_STATE_FILE_ACCESS_METHOD:
+        case PROP_STATE_LOCK_STATUS:
+        case PROP_STATE_MAINTENANCE:
+        case PROP_STATE_SECURITY_LEVEL:
+        case PROP_STATE_ACCESS_EVENT:
+        case PROP_STATE_ZONE_OCCUPANCY_STATE:
+        case PROP_STATE_ACCESS_CRED_DISABLE_REASON:
+        case PROP_STATE_ACCESS_CRED_DISABLE:
+        case PROP_STATE_AUTHENTICATION_STATUS:
+        case PROP_STATE_BACKUP_STATE:
+        case PROP_STATE_WRITE_STATUS:
+        case PROP_STATE_INTEGER_VALUE:
+        case PROP_STATE_BACNET_IP_MODE:
+        case PROP_STATE_ESCALATOR_OPERATION_DIRECTION:
+        case PROP_STATE_ESCALATOR_FAULT:
+        case PROP_STATE_ESCALATOR_MODE:
+        case PROP_STATE_LIFT_CAR_DIRECTION:
+        case PROP_STATE_LIFT_CAR_DOOR_COMMAND:
+        case PROP_STATE_LIFT_CAR_DRIVE_STATUS:
+        case PROP_STATE_LIFT_CAR_MODE:
+        case PROP_STATE_LIFT_GROUP_MODE:
+        case PROP_STATE_LIFT_FAULT:
+        case PROP_STATE_AUDIT_LEVEL:
+        case PROP_STATE_AUDIT_OPERATION:
+        case PROP_STATE_EXTENDED_VALUE:
+        case PROP_STATE_DOOR_ALARM_STATE:
+        case PROP_STATE_UNSIGNED_VALUE:
+        default:
+            status = bacnet_string_to_uint32(search_name, found_index);
+            break;
+    }
+
+    return status;
+}
+
 /**
  * @brief For a given enumerated object property string,
  *  find the enumeration value
