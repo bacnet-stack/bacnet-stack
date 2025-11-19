@@ -9,52 +9,22 @@
 #include <stdlib.h>
 #include "bacnet/indtext.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 
 static const char *ASHRAE_Reserved_String = "Reserved for Use by ASHRAE";
 static const char *Vendor_Proprietary_String = "Vendor Proprietary Value";
 
-/**
- * @brief Attempt to convert a numeric string into a uint32_t value
- * @param search_name - string to convert
- * @param found_index - where to put the converted value
- * @return true if converted and found_index is set
- * @return false if not converted and found_index is not set
- */
-bool bactext_strtoul(const char *search_name, uint32_t *found_index)
-{
-    char *endptr;
-    unsigned long value;
-
-    value = strtoul(search_name, &endptr, 0);
-    if (endptr == search_name) {
-        /* No digits found */
-        return false;
-    }
-    if (value == ULONG_MAX) {
-        /* If the correct value is outside the range of representable values,
-           {ULONG_MAX} shall be returned */
-        return false;
-    }
-    if (*endptr != '\0') {
-        /* Extra text found */
-        return false;
-    }
-    *found_index = (uint32_t)value;
-
-    return true;
-}
-
 /* Search for a text value first based on the corresponding text list, then by
  * attempting to convert to an integer value. */
-static bool bactext_strtoul_index(
+static bool bactext_string_to_uint32_index(
     INDTEXT_DATA *istring, const char *search_name, uint32_t *found_index)
 {
     if (indtext_by_istring(istring, search_name, found_index) == true) {
         return true;
     }
 
-    return bactext_strtoul(search_name, found_index);
+    return bacnet_string_to_uint32(search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_confirmed_service_names[] = {
@@ -364,7 +334,7 @@ bool bactext_object_type_index(const char *search_name, uint32_t *found_index)
 
 bool bactext_object_type_strtol(const char *search_name, uint32_t *found_index)
 {
-    return bactext_strtoul_index(
+    return bactext_string_to_uint32_index(
         bacnet_object_type_names, search_name, found_index);
 }
 
@@ -963,7 +933,7 @@ bool bactext_property_index(const char *search_name, uint32_t *found_index)
 
 bool bactext_property_strtol(const char *search_name, uint32_t *found_index)
 {
-    return bactext_strtoul_index(
+    return bactext_string_to_uint32_index(
         bacnet_property_names, search_name, found_index);
 }
 
@@ -1885,6 +1855,12 @@ bool bactext_notify_type_index(const char *search_name, uint32_t *found_index)
         bacnet_notify_type_names, search_name, found_index);
 }
 
+bool bactext_notify_type_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_notify_type_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_event_transition_names[] = {
     { TRANSITION_TO_OFFNORMAL, "offnormal" },
     { TRANSITION_TO_NORMAL, "normal" },
@@ -1929,7 +1905,7 @@ bool bactext_event_state_index(const char *search_name, uint32_t *found_index)
 
 bool bactext_event_state_strtol(const char *search_name, uint32_t *found_index)
 {
-    return bactext_strtoul_index(
+    return bactext_string_to_uint32_index(
         bacnet_event_state_names, search_name, found_index);
 }
 
@@ -1967,6 +1943,12 @@ const char *bactext_event_type_name(uint32_t index)
 bool bactext_event_type_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
+        bacnet_event_type_names, search_name, found_index);
+}
+
+bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
         bacnet_event_type_names, search_name, found_index);
 }
 
@@ -2339,7 +2321,7 @@ const char *bactext_lighting_operation_name(uint32_t index)
 bool bactext_lighting_operation_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return bactext_strtoul_index(
+    return bactext_string_to_uint32_index(
         bacnet_lighting_operation_names, search_name, found_index);
 }
 
@@ -2369,7 +2351,7 @@ const char *bactext_binary_lighting_pv_name(uint32_t index)
 bool bactext_binary_lighting_pv_names_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return bactext_strtoul_index(
+    return bactext_string_to_uint32_index(
         bacnet_binary_lighting_pv_names, search_name, found_index);
 }
 
@@ -2782,23 +2764,23 @@ bool bactext_object_property_strtoul(
 
     switch (object_property) {
         case PROP_PROPERTY_LIST:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_property_names, search_name, found_index);
             break;
         case PROP_OBJECT_TYPE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_object_type_names, search_name, found_index);
             break;
         case PROP_EVENT_STATE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_event_state_names, search_name, found_index);
             break;
         case PROP_UNITS:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_engineering_unit_names, search_name, found_index);
             break;
         case PROP_POLARITY:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_binary_polarity_names, search_name, found_index);
             break;
         case PROP_PRESENT_VALUE:
@@ -2807,12 +2789,12 @@ bool bactext_object_property_strtoul(
                 case OBJECT_BINARY_INPUT:
                 case OBJECT_BINARY_OUTPUT:
                 case OBJECT_BINARY_VALUE:
-                    status = bactext_strtoul_index(
+                    status = bactext_string_to_uint32_index(
                         bacnet_binary_present_value_names, search_name,
                         found_index);
                     break;
                 case OBJECT_BINARY_LIGHTING_OUTPUT:
-                    status = bactext_strtoul_index(
+                    status = bactext_string_to_uint32_index(
                         bacnet_binary_lighting_pv_names, search_name,
                         found_index);
                     break;
@@ -2821,47 +2803,47 @@ bool bactext_object_property_strtoul(
             }
             break;
         case PROP_RELIABILITY:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_reliability_names, search_name, found_index);
             break;
         case PROP_SYSTEM_STATUS:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_device_status_names, search_name, found_index);
             break;
         case PROP_SEGMENTATION_SUPPORTED:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_segmentation_names, search_name, found_index);
             break;
         case PROP_NODE_TYPE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_node_type_names, search_name, found_index);
             break;
         case PROP_TRANSITION:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_lighting_transition_names, search_name, found_index);
             break;
         case PROP_IN_PROGRESS:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_lighting_in_progress_names, search_name, found_index);
             break;
         case PROP_LOGGING_TYPE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_logging_type_names, search_name, found_index);
             break;
         case PROP_MODE:
         case PROP_ACCEPTED_MODES:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_life_safety_mode_names, search_name, found_index);
             break;
         case PROP_OPERATION_EXPECTED:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_life_safety_operation_names, search_name, found_index);
             break;
         case PROP_TRACKING_VALUE:
             switch (object_type) {
                 case OBJECT_LIFE_SAFETY_POINT:
                 case OBJECT_LIFE_SAFETY_ZONE:
-                    status = bactext_strtoul_index(
+                    status = bactext_string_to_uint32_index(
                         bactext_life_safety_state_names, search_name,
                         found_index);
                     break;
@@ -2870,47 +2852,47 @@ bool bactext_object_property_strtoul(
             }
             break;
         case PROP_PROGRAM_CHANGE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_program_request_names, search_name, found_index);
             break;
         case PROP_PROGRAM_STATE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_program_state_names, search_name, found_index);
             break;
         case PROP_REASON_FOR_HALT:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_program_error_names, search_name, found_index);
             break;
         case PROP_NETWORK_NUMBER_QUALITY:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_network_number_quality_names, search_name, found_index);
             break;
         case PROP_NETWORK_TYPE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_network_port_type_names, search_name, found_index);
             break;
         case PROP_PROTOCOL_LEVEL:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_protocol_level_names, search_name, found_index);
             break;
         case PROP_EVENT_TYPE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_event_type_names, search_name, found_index);
             break;
         case PROP_NOTIFY_TYPE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bacnet_notify_type_names, search_name, found_index);
             break;
         case PROP_TIMER_STATE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_timer_state_names, search_name, found_index);
             break;
         case PROP_LAST_STATE_CHANGE:
-            status = bactext_strtoul_index(
+            status = bactext_string_to_uint32_index(
                 bactext_timer_transition_names, search_name, found_index);
             break;
         default:
-            status = bactext_strtoul(search_name, found_index);
+            status = bacnet_string_to_uint32(search_name, found_index);
             break;
     }
 
