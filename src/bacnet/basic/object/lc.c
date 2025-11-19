@@ -97,7 +97,7 @@ static OS_Keylist Object_List;
 
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Load_Control_Properties_Required[] = {
+static const int32_t Load_Control_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -116,19 +116,21 @@ static const int Load_Control_Properties_Required[] = {
     -1
 };
 
-static const int Load_Control_Properties_Optional[] = {
+static const int32_t Load_Control_Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_FULL_DUTY_BASELINE,
     -1
 };
 
-static const int Load_Control_Properties_Proprietary[] = {
+static const int32_t Load_Control_Properties_Proprietary[] = {
     -1
 };
 /* clang-format on */
 
 void Load_Control_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Load_Control_Properties_Required;
@@ -1713,6 +1715,9 @@ uint32_t Load_Control_Create(uint32_t object_instance)
     struct shed_level_data *entry;
     unsigned i = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

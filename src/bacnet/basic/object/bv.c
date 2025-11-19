@@ -69,7 +69,7 @@ static binary_value_write_present_value_callback
 
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Value_Properties_Required[] = {
+static const int32_t Binary_Value_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -80,7 +80,7 @@ static const int Binary_Value_Properties_Required[] = {
     -1
 };
 
-static const int Binary_Value_Properties_Optional[] = {
+static const int32_t Binary_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
     PROP_ACTIVE_TEXT,
@@ -98,7 +98,7 @@ static const int Binary_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Binary_Value_Properties_Proprietary[] = {
+static const int32_t Binary_Value_Properties_Proprietary[] = {
     -1
 };
 /* clang-format on */
@@ -112,7 +112,9 @@ static const int Binary_Value_Properties_Proprietary[] = {
  * @param pProprietary - Pointer to the pointer of properitary values.
  */
 void Binary_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Binary_Value_Properties_Required;
@@ -1230,6 +1232,9 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

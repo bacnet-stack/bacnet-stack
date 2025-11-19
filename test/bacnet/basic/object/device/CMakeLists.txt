@@ -68,6 +68,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/iv.c
     ${SRC_DIR}/bacnet/basic/object/lc.c
     ${SRC_DIR}/bacnet/basic/object/lo.c
+    ${SRC_DIR}/bacnet/basic/object/loop.c
     ${SRC_DIR}/bacnet/basic/object/lsp.c
     ${SRC_DIR}/bacnet/basic/object/lsz.c
     ${SRC_DIR}/bacnet/basic/object/ms-input.c
@@ -80,6 +81,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/schedule.c
     ${SRC_DIR}/bacnet/basic/object/structured_view.c
     ${SRC_DIR}/bacnet/basic/object/time_value.c
+    ${SRC_DIR}/bacnet/basic/object/timer.c
     ${SRC_DIR}/bacnet/basic/object/trendlog.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
@@ -100,6 +102,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/property.c
     ${SRC_DIR}/bacnet/reject.c
+    ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c

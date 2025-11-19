@@ -29,7 +29,7 @@ static void testMultistateValue(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
 
     Multistate_Value_Init();
     object_instance = Multistate_Value_Create(object_instance);

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of mutex abstraction used in BACNet secure connect.
+ * @brief Implementation of port specific API used in BACNet secure connect.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date August 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -14,10 +14,8 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-#define DEBUG_BSC_EVENT 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_EVENT == 1
+#if DEBUG_BSC_EVENT
 #define DEBUG_PRINTF printf
 #else
 #undef DEBUG_ENABLED
@@ -178,4 +176,26 @@ void bsc_wait(int seconds)
 void bsc_wait_ms(int mseconds)
 {
     usleep(mseconds * 1000);
+}
+
+void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
+{
+    arc4random_buf(p->address, BVLC_SC_VMAC_SIZE);
+
+    /* According H.7.3 EUI-48 and Random-48 VMAC Address:
+       The Random-48 VMAC is a 6-octet VMAC address in which the least
+       significant 4 bits (Bit 3 to Bit 0) in the first octet shall be
+       B'0010' (X'2'), and all other 44 bits are randomly selected to be
+       0 or 1. */
+    p->address[0] = (p->address[0] & 0xF0) | 0x02;
+
+    debug_printf_hex(
+        0, p->address, BVLC_SC_VMAC_SIZE, "bsc_generate_random_vmac:");
+}
+
+void bsc_generate_random_uuid(BACNET_SC_UUID *p)
+{
+    arc4random_buf(p->uuid, BVLC_SC_UUID_SIZE);
+    debug_printf_hex(
+        0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid:");
 }

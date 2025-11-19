@@ -9,7 +9,7 @@
 #
 # Assumes rm and cp are available
 
-CFLAGS += -Dbacnet_stack_EXPORTS
+CFLAGS += -DBACNET_STACK_EXPORTS
 
 ifeq ($(STATIC),1)
 	CFLAGS += -DBACNET_STACK_STATIC_DEFINE

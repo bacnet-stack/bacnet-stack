@@ -28,7 +28,7 @@ static void testAccessCredential(void)
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_APPLICATION_DATA_VALUE value2 = { 0 };
-    const int *required_property = NULL;
+    const int32_t *required_property = NULL;
     bool status = false;
 
     Access_Credential_Init();

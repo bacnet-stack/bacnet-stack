@@ -16,10 +16,8 @@
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/bactext.h"
 
-#define DEBUG_BSC_HUB_CONNECTOR 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_HUB_CONNECTOR == 1
+#if DEBUG_BSC_HUB_CONNECTOR
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED

@@ -25,7 +25,7 @@ ZTEST(bitstring_value_object_tests, test_BitString_Value_Object)
 static void test_BitString_Value_Object(void)
 #endif
 {
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     const uint32_t instance = 123;
     uint32_t test_instance = 0;
     unsigned test_count = 0;

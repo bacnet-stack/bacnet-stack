@@ -599,7 +599,8 @@ typedef enum {
 
 typedef enum BACnetAction {
     ACTION_DIRECT = 0,
-    ACTION_REVERSE = 1
+    ACTION_REVERSE = 1,
+    BACNET_ACTION_MAX = 2
 } BACNET_ACTION;
 
 typedef enum BACnetBinaryPV {
@@ -1309,12 +1310,14 @@ typedef enum BACnetEventType {
     EVENT_COMMAND_FAILURE = 3,
     EVENT_FLOATING_LIMIT = 4,
     EVENT_OUT_OF_RANGE = 5,
-    /*  complex-event-type        (6), -- see comment below */
+    EVENT_COMPLEX_EVENT_TYPE = 6, /* -- see comment below */
     /*  event-buffer-ready   (7), -- context tag 7 is deprecated */
     EVENT_CHANGE_OF_LIFE_SAFETY = 8,
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11,
+    /* -- context tag 12 is reserved for future addenda
+       since it conflicts with event-values[12] OPTIONAL */
     EVENT_ACCESS_EVENT = 13,
     EVENT_DOUBLE_OUT_OF_RANGE = 14,
     EVENT_SIGNED_OUT_OF_RANGE = 15,
@@ -1683,7 +1686,15 @@ typedef enum {
     /* BACnetChannelValue */
     BACNET_APPLICATION_TAG_CHANNEL_VALUE,
     /* BACnetLogRecord */
-    BACNET_APPLICATION_TAG_LOG_RECORD
+    BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* BACnetPropertyValue */
+    BACNET_APPLICATION_TAG_PROPERTY_VALUE,
+    /* BACnetTimerStateChangeValue */
+    BACNET_APPLICATION_TAG_TIMER_VALUE,
+    /* no-value - context tagged null */
+    BACNET_APPLICATION_TAG_NO_VALUE,
+    /* ABSTRACT-SYNTAX - constructed value */
+    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -2619,10 +2630,13 @@ typedef enum BACnetAccessEvent {
     ACCESS_EVENT_DENIED_LOCKOUT = 161,
     ACCESS_EVENT_DENIED_VERIFICATION_FAILED = 162,
     ACCESS_EVENT_DENIED_VERIFICATION_TIMEOUT = 163,
-    ACCESS_EVENT_DENIED_OTHER = 164
+    ACCESS_EVENT_DENIED_OTHER = 164,
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    ACCESS_EVENT_PROPRIETARY_MIN = 512,
+    ACCESS_EVENT_PROPRIETARY_MAX = 65535
+
 } BACNET_ACCESS_EVENT;
 
 /* Authentication Status */
@@ -2781,9 +2795,9 @@ typedef enum BACnetNetworkPortCommand {
     PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
     PORT_COMMAND_DISCONNECT = 6,
     PORT_COMMAND_RESTART_PORT = 7,
-    PORT_COMMAND_RESTART_DISCOVERY = 8,
-    PORT_COMMAND_GENERATE_CSR_FILE = 9,
-    PORT_COMMAND_VALIDATE_CHANGES = 10,
+    PORT_COMMAND_GENERATE_CSR_FILE = 8,
+    PORT_COMMAND_VALIDATE_CHANGES = 9,
+    PORT_COMMAND_RESTART_DISCOVERY = 10,
     PORT_COMMAND_RESERVED_MIN = 11,
     PORT_COMMAND_RESERVED_MAX = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
@@ -2955,7 +2969,8 @@ typedef enum BACnetBackupState {
 typedef enum BACnetTimerState {
     TIMER_STATE_IDLE = 0,
     TIMER_STATE_RUNNING = 1,
-    TIMER_STATE_EXPIRED = 2
+    TIMER_STATE_EXPIRED = 2,
+    TIMER_STATE_MAX = 3
 } BACNET_TIMER_STATE;
 
 typedef enum BACnetTimerTransition {
@@ -2966,7 +2981,8 @@ typedef enum BACnetTimerTransition {
     TIMER_TRANSITION_RUNNING_TO_EXPIRED = 4,
     TIMER_TRANSITION_FORCED_TO_EXPIRED = 5,
     TIMER_TRANSITION_EXPIRED_TO_IDLE = 6,
-    TIMER_TRANSITION_EXPIRED_TO_RUNNING = 7
+    TIMER_TRANSITION_EXPIRED_TO_RUNNING = 7,
+    TIMER_TRANSITION_MAX = 8
 } BACNET_TIMER_TRANSITION;
 
 typedef enum BACnetEscalatorFault {

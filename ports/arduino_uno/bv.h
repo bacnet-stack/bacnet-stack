@@ -23,7 +23,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 void Binary_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 bool Binary_Value_Valid_Instance(uint32_t object_instance);
 unsigned Binary_Value_Count(void);
 uint32_t Binary_Value_Index_To_Instance(unsigned index);

@@ -28,18 +28,18 @@ static OS_Keylist Object_List = NULL;
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_CHARACTERSTRING_VALUE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* list of the optional properties */
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 typedef struct characterstring_object {
     /* Writable out-of-service allows others to manipulate our Present Value */
@@ -63,7 +63,9 @@ typedef struct characterstring_object {
  * @param pProprietary - Pointer to the pointer of properitary values.
  */
 void CharacterString_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -120,6 +122,9 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
     struct characterstring_object *pObject = NULL;
     int index;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

@@ -13,6 +13,7 @@
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/bacfile.h"
 
 #ifndef FILE_RECORD_SIZE
@@ -57,6 +58,8 @@ size_t bacfile_posix_file_size(const char *pathname)
                 file_size = (size_t)file_position;
             }
             fclose(pFile);
+        } else {
+            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
         }
     }
 
@@ -103,6 +106,8 @@ size_t bacfile_posix_read_stream_data(
             (void)fseek(pFile, fileStartPosition, SEEK_SET);
             len = fread(fileData, 1, fileDataLen, pFile);
             fclose(pFile);
+        } else {
+            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
         }
     }
 
@@ -145,6 +150,8 @@ size_t bacfile_posix_write_stream_data(
             }
             bytes_written = fwrite(fileData, fileDataLen, 1, pFile);
             fclose(pFile);
+        } else {
+            debug_printf_stderr("Failed to open %s for writing!\n", pathname);
         }
     }
 
@@ -204,6 +211,8 @@ bool bacfile_posix_write_record_data(
                 status = true;
             }
             fclose(pFile);
+        } else {
+            debug_printf_stderr("Failed to open %s for writing!\n", pathname);
         }
     }
 
@@ -250,6 +259,8 @@ bool bacfile_posix_read_record_data(
                 status = true;
             }
             fclose(pFile);
+        } else {
+            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
         }
     }
 
@@ -268,5 +279,7 @@ void bacfile_posix_init(void)
     bacfile_read_record_data_callback_set(bacfile_posix_read_record_data);
     bacfile_file_size_callback_set(bacfile_posix_file_size);
     bacfile_file_size_set_callback_set(bacfile_posix_file_size_set);
+#elif defined(BACDL_BSC)
+#error BACFILE is not defined for BACnet/SC!
 #endif
 }

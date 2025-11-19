@@ -48,7 +48,7 @@ struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 static uint32_t Link_Speeds[] = { 9600, 19200, 38400, 57600, 76800, 115200 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Network_Port_Properties_Required[] = {
+static const int32_t Network_Port_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -67,7 +67,7 @@ static const int Network_Port_Properties_Required[] = {
     -1
 };
 
-static const int Network_Port_Properties_Optional[] = {
+static const int32_t Network_Port_Properties_Optional[] = {
     PROP_MAC_ADDRESS,
     PROP_MAX_MASTER,
     PROP_MAX_INFO_FRAMES,
@@ -81,7 +81,7 @@ static const int Network_Port_Properties_Optional[] = {
     -1
 };
 
-static const int Network_Port_Properties_Proprietary[] = { -1 };
+static const int32_t Network_Port_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -97,9 +97,9 @@ static const int Network_Port_Properties_Proprietary[] = { -1 };
  */
 void Network_Port_Property_List(
     uint32_t object_instance,
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     (void)object_instance;
     if (pRequired) {
@@ -127,7 +127,9 @@ void Network_Port_Property_List(
  * BACnet proprietary properties for this object.
  */
 void Network_Port_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     Network_Port_Property_List(
         BACNET_NETWORK_PORT_INSTANCE, pRequired, pOptional, pProprietary);
@@ -533,9 +535,9 @@ static bool
 Network_Port_Property_List_Member(uint32_t object_instance, int object_property)
 {
     bool found = false;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
 
     Network_Port_Property_List(
         object_instance, &pRequired, &pOptional, &pProprietary);

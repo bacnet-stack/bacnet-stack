@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <limits.h>
+#include <float.h>
 /* config is always first to allow developers to override */
 #include "bacnet/config.h"
 /* BACnet Stack core enumerations */

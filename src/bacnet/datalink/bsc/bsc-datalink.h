@@ -56,7 +56,7 @@ void bsc_cleanup(void);
  */
 
 BACNET_STACK_EXPORT
-bool bsc_cert_files_check(void);
+bool bsc_cert_files_check(uint32_t netport_instance);
 
 /**
  * @brief Blocking thread-safe bsc_send_pdu() function

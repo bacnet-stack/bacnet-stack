@@ -6,6 +6,7 @@
  *
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <stdint.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/property.h>
@@ -27,7 +28,7 @@ bool bacnet_object_property_write_test(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_function write_property,
     bool commandable,
-    const int *skip_fail_property_list)
+    const int32_t *skip_fail_property_list)
 {
     bool status = false;
     bool is_array, is_list;
@@ -143,7 +144,7 @@ void bacnet_object_property_write_parameter_init(
 int bacnet_object_property_read_test(
     BACNET_READ_PROPERTY_DATA *rpdata,
     read_property_function read_property,
-    const int *skip_fail_property_list)
+    const int32_t *skip_fail_property_list)
 {
     int len = 0;
     int test_len = 0;
@@ -216,6 +217,18 @@ int bacnet_object_property_read_test(
         /* test an array index that must be implemented */
         rpdata->array_index = 0;
         read_len = read_property(rpdata);
+        if ((rpdata->object_property >= PROP_PROPRIETARY_RANGE_MIN) &&
+            (rpdata->object_property <= PROP_PROPRIETARY_RANGE_MAX)) {
+            /* all proprietary properties could be a BACnetARRAY */
+            if (read_len == BACNET_STATUS_ERROR) {
+                zassert_equal(
+                    rpdata->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
+                    NULL);
+            }
+            is_array = false;
+        }
+    }
+    if (is_array) {
         zassert_not_equal(
             read_len, BACNET_STATUS_ERROR,
             "property '%s' array_index=0: error code is %s.\n",
@@ -227,7 +240,9 @@ int bacnet_object_property_read_test(
             apdu_len = read_len;
             len =
                 bacnet_unsigned_application_decode(apdu, apdu_len, &array_size);
-            zassert_true(len > 0, NULL);
+            zassert_true(
+                len > 0, "property '%s' array_index=0\n",
+                bactext_property_name(rpdata->object_property));
             zassert_true(
                 len == read_len, "property '%s' array_index=0.\n",
                 bactext_property_name(rpdata->object_property));
@@ -243,6 +258,19 @@ int bacnet_object_property_read_test(
                 }
             }
         }
+        /* test an array index that is likely out of range */
+        rpdata->array_index = BACNET_ARRAY_ALL - 1;
+        read_len = read_property(rpdata);
+        zassert_equal(
+            read_len, BACNET_STATUS_ERROR,
+            "property '%s' array_index=%u: error code is %s.\n",
+            bactext_property_name(rpdata->object_property), rpdata->array_index,
+            bactext_error_code_name(rpdata->error_code));
+        zassert_equal(
+            rpdata->error_code, ERROR_CODE_INVALID_ARRAY_INDEX,
+            "property '%s' array_index=%u: error code is %s.\n",
+            bactext_property_name(rpdata->object_property), rpdata->array_index,
+            bactext_error_code_name(rpdata->error_code));
     }
 
     return len;
@@ -265,19 +293,22 @@ void bacnet_object_properties_read_write_test(
     rpm_property_lists_function property_list,
     read_property_function read_property,
     write_property_function write_property,
-    const int *skip_fail_property_list)
+    const int32_t *skip_fail_property_list)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
     BACNET_PROPERTY_ID property;
     int len = 0;
     bool commandable = false;
     bool status = false;
 
+    /* negative test */
+    len = read_property(NULL);
+    zassert_equal(len, 0, NULL);
     /* ReadProperty parameters */
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
@@ -301,8 +332,8 @@ void bacnet_object_properties_read_write_test(
             len, BACNET_STATUS_ERROR,
             "property '%s' array_index=ALL: Missing in property list.\n",
             bactext_property_name(rpdata.object_property));
-        /* shrink the number space and skip proprietary range values */
-        if (property == PROP_RESERVED_RANGE_MAX) {
+        /* shrink the number space and skip most proprietary range values */
+        if (property == (PROP_PROPRIETARY_RANGE_MIN + 1)) {
             property = PROP_RESERVED_RANGE_MIN2 - 1;
         }
         /* shrink the number space to known values */
