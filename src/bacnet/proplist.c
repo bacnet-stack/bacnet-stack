@@ -598,3 +598,186 @@ bool property_list_commandable_member(
 
     return status;
 }
+
+/**
+ * @brief Determine if the object property is a READ-ONLY property
+ * @param object_type - object-type to be checked
+ * @param object_property - object-property to be checked
+ * @return true if the property is a READ-ONLY property
+ * @note generally read-only per EPICS gathering, sometimes stated in the
+ *  standard and sometimes not.
+ */
+bool property_list_read_only_member(
+    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
+{
+    /* exceptions where property is an BACnetLIST only in specific objects */
+    switch (object_type) {
+        case OBJECT_AVERAGING:
+            switch (object_property) {
+                case PROP_MINIMUM_VALUE:
+                case PROP_MINIMUM_VALUE_TIMESTAMP:
+                case PROP_AVERAGE_VALUE:
+                case PROP_VARIANCE_VALUE:
+                case PROP_MAXIMUM_VALUE:
+                case PROP_MAXIMUM_VALUE_TIMESTAMP:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_CALENDAR:
+            switch (object_property) {
+                case PROP_PRESENT_VALUE:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_COMMAND:
+            switch (object_property) {
+                case PROP_IN_PROCESS:
+                case PROP_ALL_WRITES_SUCCESSFUL:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_DEVICE:
+            switch (object_property) {
+                case PROP_SYSTEM_STATUS:
+                case PROP_VENDOR_NAME:
+                case PROP_VENDOR_IDENTIFIER:
+                case PROP_MODEL_NAME:
+                case PROP_FIRMWARE_REVISION:
+                case PROP_APPLICATION_SOFTWARE_VERSION:
+                case PROP_PROTOCOL_VERSION:
+                case PROP_PROTOCOL_REVISION:
+                case PROP_PROTOCOL_SERVICES_SUPPORTED:
+                case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
+                case PROP_SEGMENTATION_SUPPORTED:
+                case PROP_ACTIVE_VT_SESSIONS:
+                case PROP_DATABASE_REVISION:
+                case PROP_LAST_RESTORE_TIME:
+                case PROP_TIME_OF_DEVICE_RESTART:
+                case PROP_BACKUP_AND_RESTORE_STATE:
+                case PROP_ACTIVE_COV_MULTIPLE_SUBSCRIPTIONS:
+                case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_PROGRAM:
+            switch (object_property) {
+                case PROP_REASON_FOR_HALT:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_FILE:
+            switch (object_property) {
+                case PROP_MODIFICATION_DATE:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_PULSE_CONVERTER:
+            switch (object_property) {
+                case PROP_COUNT_BEFORE_CHANGE:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_TRENDLOG:
+        case OBJECT_EVENT_LOG:
+        case OBJECT_AUDIT_LOG:
+        case OBJECT_TREND_LOG_MULTIPLE:
+            switch (object_property) {
+                case PROP_TOTAL_RECORD_COUNT:
+                case PROP_RECORDS_SINCE_NOTIFICATION:
+                case PROP_LAST_NOTIFY_RECORD:
+                case PROP_LOG_BUFFER:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_GLOBAL_GROUP:
+            switch (object_property) {
+                case PROP_MEMBER_STATUS_FLAGS:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_CHANNEL:
+            switch (object_property) {
+                case PROP_WRITE_STATUS:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_LIGHTING_OUTPUT:
+            switch (object_property) {
+                case PROP_IN_PROGRESS:
+                case PROP_EGRESS_ACTIVE:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_BINARY_LIGHTING_OUTPUT:
+            switch (object_property) {
+                case PROP_EGRESS_ACTIVE:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_NETWORK_PORT:
+            switch (object_property) {
+                case PROP_CHANGES_PENDING:
+                case PROP_SLAVE_ADDRESS_BINDING:
+                case PROP_WRITE_STATUS:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        case OBJECT_LOAD_CONTROL:
+            switch (object_property) {
+                case PROP_PRESENT_VALUE:
+                case PROP_EXPECTED_SHED_LEVEL:
+                case PROP_ACTUAL_SHED_LEVEL:
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+    if ((object_property >= PROP_PROPRIETARY_RANGE_MIN) &&
+        (object_property <= PROP_PROPRIETARY_RANGE_MAX)) {
+        /* all proprietary properties could be read-only */
+        return true;
+    }
+    /* Some properties, like Present_Value and Reliability,
+       may be temporarily writable under specific test
+       conditions (per Addendum 2020ci), but are defined
+       as read-only by default.*/
+    if (object_property == PROP_PRESENT_VALUE) {
+        if (!property_list_commandable_member(object_type, object_property)) {
+            return true;
+        }
+    }
+    if (object_property == PROP_RELIABILITY) {
+        return true;
+    }
+
+    return false;
+}

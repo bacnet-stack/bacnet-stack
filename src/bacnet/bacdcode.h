@@ -381,6 +381,9 @@ BACNET_STACK_EXPORT
 int encode_application_octet_string(
     uint8_t *apdu, const BACNET_OCTET_STRING *octet_string);
 BACNET_STACK_EXPORT
+int encode_application_octet_string_buffer(
+    uint8_t *apdu, const uint8_t *buffer, size_t buffer_size);
+BACNET_STACK_EXPORT
 int encode_context_octet_string(
     uint8_t *apdu, uint8_t tag_number, const BACNET_OCTET_STRING *octet_string);
 BACNET_STACK_EXPORT
