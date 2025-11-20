@@ -29,6 +29,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed unit test stack corruption from using stack based message text
+  characterstring pointer in multiple functions and setting the value
+  in the global event and test event data structures. (#1154)
 * Fix timesync recipient encoding to check for OBJECT_DEVICE type before
   encoding. (#1153)
 * Fixed segmented ComplexACK in MS/TP by adding postpone reply because
