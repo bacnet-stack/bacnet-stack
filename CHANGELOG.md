@@ -29,6 +29,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fix timesync recipient encoding to check for OBJECT_DEVICE type before
+  encoding. (#1153)
 * Fixed segmented ComplexACK in MS/TP by adding postpone reply because
   transmission of the segmented ComplexACK cannot begin until the node
   holds the token. (#1116)

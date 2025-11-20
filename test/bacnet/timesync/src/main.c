@@ -101,6 +101,7 @@ static void testTimeSyncRecipient(void)
     recipient[2].type.address.adr[0] = 127;
     recipient[2].type.address.len = 1;
     /* network = zero */
+    recipient[3].tag = 1;
     recipient[3].type.address.net = 0;
     recipient[3].type.address.mac[0] = 10;
     recipient[3].type.address.mac[1] = 1;
