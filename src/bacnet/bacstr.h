@@ -219,6 +219,13 @@ BACNET_STACK_EXPORT
 char *
 bacnet_sprintf_to_ascii(char *buffer, size_t count, const char *format, ...);
 
+BACNET_STACK_EXPORT
+char *bacnet_ltrim(char *str, const char *trimmedchars);
+BACNET_STACK_EXPORT
+char *bacnet_rtrim(char *str, const char *trimmedchars);
+BACNET_STACK_EXPORT
+char *bacnet_trim(char *str, const char *trimmedchars);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
