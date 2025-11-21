@@ -2223,7 +2223,7 @@ uint32_t Loop_Create(uint32_t object_instance)
     /* set the references to self */
     Object_Property_Reference_Set(
         &pObject->Manipulated_Variable_Reference, OBJECT_LOOP, object_instance,
-        PROP_PRESENT_VALUE, BACNET_ARRAY_ALL);
+        PROP_CONTROLLED_VARIABLE_VALUE, BACNET_ARRAY_ALL);
     Object_Property_Reference_Set(
         &pObject->Controlled_Variable_Reference, OBJECT_LOOP, object_instance,
         PROP_CONTROLLED_VARIABLE_VALUE, BACNET_ARRAY_ALL);
