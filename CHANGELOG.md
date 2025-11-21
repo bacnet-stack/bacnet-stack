@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 
+* Added BACnet library itoa, ltoa, ultoa, dtoa, and utoa ASCII
+  functions for ease of printing formatted values. (#1157)
 * Added library specific string-to functions similar to stdlib.
   Added library specific string-to functions for BACnet primitives. (#1151)
 
