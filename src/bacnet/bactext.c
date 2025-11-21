@@ -334,7 +334,7 @@ const char *bactext_object_type_name(uint32_t index)
 }
 
 const char *
-bactext_object_type_name_default(uint32_t index, const char *default_string);
+bactext_object_type_name_default(uint32_t index, const char *default_string)
 {
     return indtext_by_index_default(
         bacnet_object_type_names, index, default_string);

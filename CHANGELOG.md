@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 
+* Added default option to bactext name functions so that NULL can be
+  returned when a name does not exist. (#1160)
 * Added library specific ltrim, rtrim, and trim string functions. (#1159)
 * Added library specific itoa, ltoa, ultoa, dtoa, utoa, and general
   print format with ASCII return functions. (#1157)
