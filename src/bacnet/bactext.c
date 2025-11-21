@@ -74,6 +74,13 @@ const char *bactext_confirmed_service_name(uint32_t index)
         bacnet_confirmed_service_names, index, ASHRAE_Reserved_String);
 }
 
+const char *bactext_confirmed_service_name_default(
+    uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_confirmed_service_names, index, default_string);
+}
+
 INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
     { SERVICE_UNCONFIRMED_I_AM, "I-Am" },
     { SERVICE_UNCONFIRMED_I_HAVE, "I-Have" },
@@ -98,6 +105,13 @@ const char *bactext_unconfirmed_service_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_unconfirmed_service_names, index, ASHRAE_Reserved_String);
+}
+
+const char *bactext_unconfirmed_service_name_default(
+    uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_unconfirmed_service_names, index, default_string);
 }
 
 INDTEXT_DATA bacnet_application_tag_names[] = {
@@ -319,11 +333,25 @@ const char *bactext_object_type_name(uint32_t index)
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+const char *
+bactext_object_type_name_default(uint32_t index, const char *default_string);
+{
+    return indtext_by_index_default(
+        bacnet_object_type_names, index, default_string);
+}
+
 const char *bactext_object_type_name_capitalized(uint32_t index)
 {
     return indtext_by_index_split_default(
         bacnet_object_type_names_capitalized, index, OBJECT_PROPRIETARY_MIN,
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
+}
+
+const char *bactext_object_type_name_capitalized_default(
+    uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_object_type_names_capitalized, index, default_string);
 }
 
 bool bactext_object_type_index(const char *search_name, uint32_t *found_index)
@@ -1415,6 +1443,13 @@ const char *bactext_engineering_unit_name(uint32_t index)
     return ASHRAE_Reserved_String;
 }
 
+const char *bactext_engineering_unit_name_default(
+    uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_engineering_unit_names, index, default_string);
+}
+
 bool bactext_engineering_unit_index(
     const char *search_name, uint32_t *found_index)
 {
@@ -1446,6 +1481,13 @@ const char *bactext_reject_reason_name(uint32_t index)
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+const char *
+bactext_reject_reason_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_reject_reason_names, index, default_string);
+}
+
 INDTEXT_DATA bacnet_abort_reason_names[] = {
     { ABORT_REASON_OTHER, "Other" },
     { ABORT_REASON_BUFFER_OVERFLOW, "Buffer Overflow" },
@@ -1472,6 +1514,13 @@ const char *bactext_abort_reason_name(uint32_t index)
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+const char *
+bactext_abort_reason_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_abort_reason_names, index, default_string);
+}
+
 INDTEXT_DATA bacnet_error_class_names[] = {
     { ERROR_CLASS_DEVICE, "device" },
     { ERROR_CLASS_OBJECT, "object" },
@@ -1489,6 +1538,13 @@ const char *bactext_error_class_name(uint32_t index)
     return indtext_by_index_split_default(
         bacnet_error_class_names, index, ERROR_CLASS_PROPRIETARY_FIRST,
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
+}
+
+const char *
+bactext_error_class_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_error_class_names, index, default_string);
 }
 
 INDTEXT_DATA bacnet_error_code_names[] = {
@@ -1768,6 +1824,13 @@ const char *bactext_error_code_name(uint32_t index)
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+const char *
+bactext_error_code_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_error_code_names, index, default_string);
+}
+
 INDTEXT_DATA bacnet_month_names[] = {
     { 1, "January" },     { 2, "February" },     { 3, "March" },
     { 4, "April" },       { 5, "May" },          { 6, "June" },
@@ -1783,6 +1846,12 @@ const char *bactext_month_name(uint32_t index)
         bacnet_month_names, index, ASHRAE_Reserved_String);
 }
 
+const char *
+bactext_month_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(bacnet_month_names, index, default_string);
+}
+
 INDTEXT_DATA bacnet_week_of_month_names[] = {
     { 1, "days numbered 1-7" },        { 2, "days numbered 8-14" },
     { 3, "days numbered 15-21" },      { 4, "days numbered 22-28" },
@@ -1794,6 +1863,13 @@ const char *bactext_week_of_month_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_week_of_month_names, index, ASHRAE_Reserved_String);
+}
+
+const char *
+bactext_week_of_month_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_week_of_month_names, index, default_string);
 }
 
 /* note: different than DaysOfWeek bit string where 0=monday */
@@ -1809,6 +1885,13 @@ const char *bactext_day_of_week_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_day_of_week_names, index, ASHRAE_Reserved_String);
+}
+
+const char *
+bactext_day_of_week_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_day_of_week_names, index, default_string);
 }
 
 /* note: different than DayOfWeek bit string where 1=monday */
