@@ -45,6 +45,8 @@ static uint16_t BIP_Port;
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
 static struct in_addr BIP_Broadcast_Addr;
+/* IP netmask - stored here in network byte order */
+static struct in_addr BIP_Netmask;
 /* broadcast binding mechanism */
 static bool BIP_Broadcast_Binding_Address_Override;
 static struct in_addr BIP_Broadcast_Binding_Address;
@@ -233,9 +235,24 @@ bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_subnet_prefix(uint8_t prefix)
 {
-    /* not something we do within this driver */
-    (void)prefix;
-    return false;
+    uint32_t mask = 0;
+
+    if ((prefix == 0) || (prefix > 32)) {
+        return false;
+    }
+
+    mask = (prefix == 32) ? UINT32_MAX : (UINT32_MAX << (32 - prefix));
+    BIP_Netmask.s_addr = htonl(mask);
+
+#if !defined(BACNET_IP_BROADCAST_USE_CLASSADDR)
+    if ((BIP_Address.s_addr != 0) && !BIP_Broadcast_Binding_Address_Override) {
+        uint32_t address = ntohl(BIP_Address.s_addr);
+        uint32_t broadcast = (address & mask) | (~mask);
+        BIP_Broadcast_Addr.s_addr = htonl(broadcast);
+    }
+#endif
+
+    return true;
 }
 
 /**
@@ -244,19 +261,22 @@ bool bip_set_subnet_prefix(uint8_t prefix)
  */
 uint8_t bip_get_subnet_prefix(void)
 {
-    uint32_t address = 0;
-    uint32_t broadcast = 0;
-    uint32_t mask = 0xFFFFFFFE;
+    uint32_t mask = 0;
     uint8_t prefix = 0;
 
-    address = BIP_Address.s_addr;
-    broadcast = BIP_Broadcast_Addr.s_addr;
-    /* calculate the subnet prefix from the broadcast address */
-    for (prefix = 1; prefix <= 32; prefix++) {
-        if ((address | mask) == broadcast) {
-            break;
-        }
+    mask = ntohl(BIP_Netmask.s_addr);
+    if (mask == 0) {
+        return 0;
+    }
+
+    while ((mask & 0x80000000) != 0) {
+        prefix++;
         mask = mask << 1;
+    }
+
+    if (mask != 0) {
+        /* non-contiguous netmask */
+        return 0;
     }
 
     return prefix;
@@ -774,6 +794,13 @@ void bip_set_interface(const char *ifname)
         fprintf(stderr, "BIP: Address: %s\n", inet_ntoa(local_address));
         fflush(stderr);
     }
+    /* cache interface netmask */
+    rv = bip_get_local_address_ioctl(ifname, &netmask, SIOCGIFNETMASK);
+    if (rv < 0) {
+        BIP_Netmask.s_addr = 0;
+    } else {
+        BIP_Netmask.s_addr = netmask.s_addr;
+    }
     /* setup local broadcast address */
 #ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
     long broadcast_address;
@@ -798,7 +825,6 @@ void bip_set_interface(const char *ifname)
     }
     BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
 #else
-    rv = bip_get_local_address_ioctl(ifname, &netmask, SIOCGIFNETMASK);
     if (rv < 0) {
         BIP_Broadcast_Addr.s_addr = ~0;
     } else {
@@ -980,6 +1006,7 @@ void bip_cleanup(void)
     /* these were set non-zero during interface configuration */
     BIP_Address.s_addr = 0;
     BIP_Broadcast_Addr.s_addr = 0;
+    BIP_Netmask.s_addr = 0;
 
     return;
 }
