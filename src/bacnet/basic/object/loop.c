@@ -2208,6 +2208,8 @@ uint32_t Loop_Create(uint32_t object_instance)
         return BACNET_MAX_INSTANCE;
     }
     /* only need to set property values that are non-zero */
+    pObject->Maximum_Output = 10.0f;
+    pObject->Minimum_Output = 0.0f;
     pObject->Output_Units = UNITS_NO_UNITS;
     pObject->Controlled_Variable_Units = UNITS_NO_UNITS;
     pObject->Proportional_Constant = 1.0f;
@@ -2217,8 +2219,7 @@ uint32_t Loop_Create(uint32_t object_instance)
     pObject->Derivative_Constant = 0.05f;
     pObject->Derivative_Constant_Units = UNITS_NO_UNITS;
     pObject->Action = ACTION_DIRECT;
-    pObject->Maximum_Output = FLT_MAX;
-    pObject->Minimum_Output = FLT_MIN;
+    pObject->Update_Interval = 1000;
     /* set the references to self */
     Object_Property_Reference_Set(
         &pObject->Manipulated_Variable_Reference, OBJECT_LOOP, object_instance,
