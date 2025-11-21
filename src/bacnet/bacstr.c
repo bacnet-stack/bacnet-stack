@@ -1857,3 +1857,55 @@ char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
 {
     return bacnet_sprintf_to_ascii(buffer, size, "%lu", value);
 }
+
+/**
+ * @brief trim characters from the left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_ltrim(char *str, const char *trimmedchars)
+{
+    if (str[0] == 0) {
+        return str;
+    }
+    while (strchr(trimmedchars, *str)) {
+        str++;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_rtrim(char *str, const char *trimmedchars)
+{
+    char *end;
+
+    if (str[0] == 0) {
+        return str;
+    }
+    end = str + strlen(str) - 1;
+    while (strchr(trimmedchars, *end)) {
+        *end = 0;
+        if (end == str) {
+            break;
+        }
+        end--;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side and left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_trim(char *str, const char *trimmedchars)
+{
+    return bacnet_ltrim(bacnet_rtrim(str, trimmedchars), trimmedchars);
+}

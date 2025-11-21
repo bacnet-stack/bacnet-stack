@@ -4120,40 +4120,6 @@ bool bacapp_print_value(
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
-static char *ltrim(char *str, const char *trimmedchars)
-{
-    if (str[0] == 0) {
-        return str;
-    }
-    while (strchr(trimmedchars, *str)) {
-        str++;
-    }
-    return str;
-}
-
-static char *rtrim(char *str, const char *trimmedchars)
-{
-    char *end;
-
-    if (str[0] == 0) {
-        return str;
-    }
-    end = str + strlen(str) - 1;
-    while (strchr(trimmedchars, *end)) {
-        *end = 0;
-        if (end == str) {
-            break;
-        }
-        end--;
-    }
-    return str;
-}
-
-static char *trim(char *str, const char *trimmedchars)
-{
-    return ltrim(rtrim(str, trimmedchars), trimmedchars);
-}
-
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 static bool
 parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
@@ -4183,7 +4149,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 
     /* Parse the inner tag */
     chunk = strtok(str, ";");
-    chunk = ltrim(chunk, "(");
+    chunk = bacnet_ltrim(chunk, "(");
     if (false ==
         bacapp_parse_application_data(
             BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
@@ -4208,7 +4174,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
         }
 
         /* Extract the inner list of time-values */
-        chunk = rtrim(ltrim(chunk, "([ "), " ])");
+        chunk = bacnet_rtrim(bacnet_ltrim(chunk, "([ "), " ])");
 
         /* The list can be empty */
         if (chunk[0] != 0) {
@@ -4221,7 +4187,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                     *comma = 0;
                 }
                 /* trim the time-value pair and find the delimiter space */
-                chunk = trim(chunk, " ");
+                chunk = bacnet_trim(chunk, " ");
                 space = strchr(chunk, ' ');
                 if (!space) {
                     /* malformed time-value pair */
@@ -4233,7 +4199,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                 t = chunk;
                 /* value starts one byte after the space, and there can be */
                 /* multiple spaces */
-                chunk = ltrim(space + 1, " ");
+                chunk = bacnet_ltrim(space + 1, " ");
                 v = chunk;
 
                 /* Parse time */
