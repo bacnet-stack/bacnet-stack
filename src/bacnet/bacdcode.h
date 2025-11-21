@@ -242,6 +242,8 @@ int bacnet_bitstring_decode(
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_BIT_STRING *value);
+BACNET_STACK_EXPORT
+uint8_t bacnet_byte_reverse_bits(uint8_t in_byte);
 
 BACNET_STACK_EXPORT
 int bacnet_bitstring_application_encode(
