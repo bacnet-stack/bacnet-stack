@@ -1775,3 +1775,137 @@ bool bacnet_string_to_unsigned(
 
     return true;
 }
+
+/**
+ * @brief General purpose print formatter which returns the formatted string
+ * @param buffer - destination string
+ * @param count - length of the destination string
+ * @param format - format string
+ * @return character string buffer
+ */
+char *
+bacnet_sprintf_to_ascii(char *buffer, size_t size, const char *format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    /* The vsnprintf function always writes a null terminator,
+       even if it truncates the output. */
+    (void)vsnprintf(buffer, size, format, args);
+    va_end(args);
+
+    return buffer;
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @param precision Number of decimal places
+ * @return character string buffer
+ */
+char *bacnet_dtoa(double value, char *buffer, size_t size, unsigned precision)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%.*f", precision, value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_itoa(int value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%d", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_ltoa(long value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%ld", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_utoa(unsigned value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%u", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%lu", value);
+}
+
+/**
+ * @brief trim characters from the left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_ltrim(char *str, const char *trimmedchars)
+{
+    if (str[0] == 0) {
+        return str;
+    }
+    while (strchr(trimmedchars, *str)) {
+        str++;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_rtrim(char *str, const char *trimmedchars)
+{
+    char *end;
+
+    if (str[0] == 0) {
+        return str;
+    }
+    end = str + strlen(str) - 1;
+    while (strchr(trimmedchars, *end)) {
+        *end = 0;
+        if (end == str) {
+            break;
+        }
+        end--;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side and left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_trim(char *str, const char *trimmedchars)
+{
+    return bacnet_ltrim(bacnet_rtrim(str, trimmedchars), trimmedchars);
+}

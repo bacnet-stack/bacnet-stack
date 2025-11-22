@@ -205,6 +205,27 @@ BACNET_STACK_EXPORT
 bool bacnet_string_to_unsigned(
     const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int);
 
+BACNET_STACK_EXPORT
+char *bacnet_dtoa(double value, char *buffer, size_t size, unsigned precision);
+BACNET_STACK_EXPORT
+char *bacnet_itoa(int value, char *buffer, size_t size);
+BACNET_STACK_EXPORT
+char *bacnet_ltoa(long value, char *buffer, size_t size);
+BACNET_STACK_EXPORT
+char *bacnet_utoa(unsigned value, char *buffer, size_t size);
+BACNET_STACK_EXPORT
+char *bacnet_ultoa(unsigned long value, char *buffer, size_t size);
+BACNET_STACK_EXPORT
+char *
+bacnet_sprintf_to_ascii(char *buffer, size_t count, const char *format, ...);
+
+BACNET_STACK_EXPORT
+char *bacnet_ltrim(char *str, const char *trimmedchars);
+BACNET_STACK_EXPORT
+char *bacnet_rtrim(char *str, const char *trimmedchars);
+BACNET_STACK_EXPORT
+char *bacnet_trim(char *str, const char *trimmedchars);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

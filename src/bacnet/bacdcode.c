@@ -1466,12 +1466,10 @@ int bacnet_null_context_decode(
 
 /**
  * @brief Reverse the bits of the given byte.
- *
  * @param in_byte  Byte to reverse.
- *
  * @return Byte with reversed bit order.
  */
-static uint8_t byte_reverse_bits(uint8_t in_byte)
+uint8_t bacnet_byte_reverse_bits(uint8_t in_byte)
 {
     uint8_t out_byte = 0;
 
@@ -1534,7 +1532,8 @@ int decode_bitstring(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        bit_string, (uint8_t)i, byte_reverse_bits(apdu[len++]));
+                        bit_string, (uint8_t)i,
+                        bacnet_byte_reverse_bits(apdu[len++]));
                 }
                 /* Erase the remaining unused bits. */
                 unused_bits = (uint8_t)(apdu[0] & 0x07);
@@ -1581,7 +1580,7 @@ int bacnet_bitstring_decode(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        value, (uint8_t)i, byte_reverse_bits(apdu[len]));
+                        value, (uint8_t)i, bacnet_byte_reverse_bits(apdu[len]));
                     len++;
                 }
                 /* Erase the remaining unused bits. */
@@ -1775,7 +1774,8 @@ int encode_bitstring(uint8_t *apdu, const BACNET_BIT_STRING *bit_string)
         len++;
         for (i = 0; i < used_bytes; i++) {
             if (apdu) {
-                apdu[len] = byte_reverse_bits(bitstring_octet(bit_string, i));
+                apdu[len] =
+                    bacnet_byte_reverse_bits(bitstring_octet(bit_string, i));
             }
             len++;
         }
