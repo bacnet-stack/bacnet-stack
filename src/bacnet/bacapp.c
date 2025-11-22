@@ -535,6 +535,18 @@ int bacapp_encode_application_data(
                     apdu, &value->type.Timer_Value);
                 break;
 #endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                apdu_len =
+                    bacnet_recipient_encode(apdu, &value->type.Recipient);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                apdu_len = bacnet_address_binding_encode(
+                    apdu, &value->type.Address_Binding);
+                break;
+#endif
 #if defined(BACAPP_NO_VALUE)
             case BACNET_APPLICATION_TAG_NO_VALUE:
                 apdu_len = bacnet_timer_value_no_value_encode(apdu);
@@ -1308,14 +1320,14 @@ int bacapp_known_property_tag(
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
         case PROP_RESTART_NOTIFICATION_RECIPIENTS:
         case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
-            /* FIXME: Properties using BACnetRecipient */
-            return -1;
+            /* Properties using BACnetRecipient */
+            return BACNET_APPLICATION_TAG_RECIPIENT;
 
         case PROP_DEVICE_ADDRESS_BINDING:
         case PROP_MANUAL_SLAVE_ADDRESS_BINDING:
         case PROP_SLAVE_ADDRESS_BINDING:
-            /* FIXME: BACnetAddressBinding */
-            return -1;
+            /* BACnetAddressBinding */
+            return BACNET_APPLICATION_TAG_ADDRESS_BINDING;
 
         case PROP_LOG_BUFFER:
             /* BACnetLogRecord */
@@ -1682,6 +1694,18 @@ int bacapp_decode_application_tag_value(
             /* BACnetTimerStateChangeValue */
             apdu_len = bacnet_timer_value_decode(
                 apdu, apdu_size, &value->type.Timer_Value);
+            break;
+#endif
+#if defined(BACAPP_RECIPIENT)
+        case BACNET_APPLICATION_TAG_RECIPIENT:
+            apdu_len = bacnet_timer_value_decode(
+                apdu, apdu_size, &value->type.Recipient);
+            break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+        case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+            apdu_len = bacnet_address_binding_decode(
+                apdu, apdu_size, &value->type.Address_Binding);
             break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
@@ -4031,6 +4055,18 @@ int bacapp_snprintf_value(
                     &value->type.Timer_Value, str, str_len);
                 break;
 #endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                ret_val = bacnet_recipient_to_ascii(
+                    &value->type.Recipient, str, str_len);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                ret_val = bacnet_address_binding_to_ascii(
+                    &value->type.Address_Binding, str, str_len);
+                break;
+#endif
 #if defined(BACAPP_NO_VALUE)
             case BACNET_APPLICATION_TAG_NO_VALUE:
                 ret_val = bacnet_timer_value_no_value_to_ascii(str, str_len);
@@ -4743,6 +4779,18 @@ bool bacapp_parse_application_data(
             case BACNET_APPLICATION_TAG_TIMER_VALUE:
                 status = bacnet_timer_value_from_ascii(
                     &value->type.Timer_Value, argv);
+                break;
+#endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                status =
+                    bacnet_recipient_from_ascii(&value->type.Timer_Value, argv);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                status = bacnet_address_binding_from_ascii(
+                    &value->type.Address_Binding, argv);
                 break;
 #endif
 #if defined(BACAPP_NO_VALUE)
@@ -5497,6 +5545,19 @@ bool bacapp_same_value(
             case BACNET_APPLICATION_TAG_TIMER_VALUE:
                 status = bacnet_timer_value_same(
                     &value->type.Timer_Value, &test_value->type.Timer_Value);
+                break;
+#endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                status = bacnet_recipient_same(
+                    &value->type.Recipient, &test_value->type.Recipient);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                status = bacnet_address_binding_same(
+                    &value->type.Address_Binding,
+                    &test_value->type.Address_Binding);
                 break;
 #endif
 #if defined(BACAPP_NO_VALUE)

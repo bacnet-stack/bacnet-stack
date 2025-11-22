@@ -357,7 +357,7 @@ static void PrettyPrintPropertyValue(BACNET_OBJECT_PROPERTY_VALUE *object_value)
         /* Meanwhile, a fallback plan */
         bacapp_print_value(stdout, object_value);
     } else {
-        printf("? \n");
+        printf("???\n");
     }
 }
 
@@ -419,35 +419,12 @@ bool Writeable_Properties(
         /* don't attempt to write to any BACnetARRAY properties */
         return false;
     }
-    switch (property) {
-        case MAX_BACNET_PROPERTY_ID:
-        case PROP_PRIORITY_ARRAY:
-        case PROP_STATUS_FLAGS:
-        case PROP_PROPERTY_LIST:
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_TYPE:
-        case PROP_OBJECT_LIST:
-        case PROP_COMMAND:
-        case PROP_SYSTEM_STATUS:
-        case PROP_VENDOR_NAME:
-        case PROP_VENDOR_IDENTIFIER:
-        case PROP_MODEL_NAME:
-        case PROP_FIRMWARE_REVISION:
-        case PROP_APPLICATION_SOFTWARE_VERSION:
-        case PROP_PROTOCOL_VERSION:
-        case PROP_PROTOCOL_REVISION:
-        case PROP_PROTOCOL_SERVICES_SUPPORTED:
-        case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
-        case PROP_SEGMENTATION_SUPPORTED:
-        case PROP_DATABASE_REVISION:
-        case PROP_EVENT_TIME_STAMPS:
-        case PROP_LOG_BUFFER:
-            /* read-only or complex data types - don't attempt to write */
-            return false;
-        default:
-            /* try to write everything else */
-            return true;
+    if (property_list_read_only_member(object_type, property)) {
+        /* don't attempt to write to any read-only properties */
+        return false;
     }
+
+    return true;
 }
 
 /** Print out the value(s) for one Property.
@@ -486,6 +463,12 @@ static void PrintReadPropertyData(
     object_value.object_property = rpm_property->propertyIdentifier;
     object_value.array_index = rpm_property->propertyArrayIndex;
     object_value.value = value;
+    if (property_list_bacnet_array_member(
+            object_type, rpm_property->propertyIdentifier) ||
+        property_list_bacnet_list_member(
+            object_type, rpm_property->propertyIdentifier)) {
+        is_array = true;
+    }
     if (!print_finished) {
         switch (rpm_property->propertyIdentifier) {
             /* Specific properties where BTF/VTS expects a value of '?' */
@@ -522,7 +505,11 @@ static void PrintReadPropertyData(
             case PROP_CURRENT_HEALTH:
             case PROP_EXCEPTION_SCHEDULE:
                 if (!ShowValues) {
-                    printf("?");
+                    if (is_array) {
+                        printf("{ ? }");
+                    } else {
+                        printf("?");
+                    }
                     print_finished = true;
                 }
                 break;
@@ -532,7 +519,6 @@ static void PrintReadPropertyData(
                 print_finished = true;
                 break;
             default:
-                /* try to ready everything else */
                 break;
         }
     }
@@ -542,12 +528,6 @@ static void PrintReadPropertyData(
         array_index = 0;
         while (value != NULL) {
             object_value.value = value;
-            if (property_list_bacnet_array_member(
-                    object_type, rpm_property->propertyIdentifier) ||
-                property_list_bacnet_list_member(
-                    object_type, rpm_property->propertyIdentifier)) {
-                is_array = true;
-            }
             if (is_array) {
                 if (array_index == 0) {
                     /* first entry in array */
@@ -555,7 +535,11 @@ static void PrintReadPropertyData(
                 }
                 if (value->tag == BACNET_APPLICATION_TAG_NULL) {
                     /* the array or list is empty */
-                    printf("?");
+                    if (ShowValues) {
+                        printf("EMPTY");
+                    } else {
+                        printf("?");
+                    }
                     rpm_property->value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
                 } else {
                     if (value->next && (array_index == 0)) {
@@ -680,9 +664,6 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         }
-        if (strcmp(argv[argi], "--debug") == 0) {
-            Debug_Enabled = true;
-        }
     }
     if (argc < 2) {
         print_usage(filename);
@@ -690,7 +671,9 @@ static int CheckCommandLineArgs(int argc, char *argv[])
     }
     for (i = 1; i < argc; i++) {
         char *anArg = argv[i];
-        if (anArg[0] == '-') {
+        if (strcmp(anArg, "--debug") == 0) {
+            Debug_Enabled = true;
+        } else if (anArg[0] == '-') {
             switch (anArg[1]) {
                 case 'o':
                     Optional_Properties = true;
@@ -758,8 +741,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             /* decode the Target Device Instance parameter */
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
             if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-                fprintf(
-                    stderr, "Error: device-instance=%u - not greater than %u\n",
+                printf(
+                    "Error: device-instance=%u - not greater than %u\n",
                     Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                 print_usage(filename);
                 exit(0);
@@ -768,7 +751,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
         }
     }
     if (!bFoundTarget) {
-        fprintf(stderr, "Error: Must provide a device-instance \n\n");
+        printf("Error: Must provide a device-instance\n");
         print_usage(filename);
         exit(0);
     }
@@ -830,7 +813,7 @@ static void get_print_value(
                     property != PROP_OBJECT_NAME) {
                     /* standard property, other than above, in a proprietary
                      * object
-                     * - BTF wants them remmed out */
+                     * - BTF wants them commented out */
                     printf("-- ");
                 }
             }
@@ -1487,7 +1470,12 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                 prop_list[j].printed = true;
             }
         }
-        printf("  },\n"); /* And opening brace for the first object */
+        if (ShowDeviceObjectOnly) {
+            printf("  }\n");
+            goto skip_device_objects;
+        } else {
+            printf("  },\n");
+        }
         /* now get and print the rest of the objects */
         for (i = 1; i <= num_objects; i++) {
             /* get object ids from device object object_list */
@@ -1632,6 +1620,7 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
         error++;
         return error;
     }
+skip_device_objects:
     printf("} \n");
     printf("End of BACnet Protocol Implementation Conformance Statement\n\n");
     return error;
@@ -1757,10 +1746,9 @@ int main(int argc, char *argv[])
                     /* increment timer - exit if timed out */
                     elapsed_seconds += (current_seconds - last_seconds);
                     if (elapsed_seconds > timeout_seconds) {
-                        fprintf(
-                            stderr,
-                            "\rError: Unable to bind to %u after waiting %ld "
-                            "seconds.\n",
+                        printf(
+                            "\rError: Unable to bind to %u. "
+                            "Waited for %ld seconds.\n",
                             Target_Device_Object_Instance,
                             (long int)elapsed_seconds);
                         break;
@@ -1792,8 +1780,8 @@ int main(int argc, char *argv[])
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                fprintf(
-                    stderr, "\rError: APDU Timeout! (%lds)\n",
+                printf(
+                    "\rError: APDU Timeout! (%lds)\n",
                     (long int)elapsed_seconds);
                 break;
             }

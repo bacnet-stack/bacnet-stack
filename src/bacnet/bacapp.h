@@ -17,6 +17,7 @@
 /* BACnet Stack API */
 #include "bacnet/access_rule.h"
 #include "bacnet/bacaction.h"
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
 #include "bacnet/baclog.h"
@@ -178,6 +179,12 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined(BACAPP_TIMER_VALUE)
         BACNET_TIMER_STATE_CHANGE_VALUE Timer_Value;
+#endif
+#if defined(BACAPP_RECIPIENT)
+        BACNET_RECIPIENT Recipient;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+        BACNET_ADDRESS_BINDING Address_Binding;
 #endif
 #if defined(BACAPP_LOG_RECORD)
         BACNET_LOG_RECORD Log_Record;
