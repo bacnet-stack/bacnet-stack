@@ -1165,3 +1165,80 @@ parse_end:
 
     return true;
 }
+
+/**
+ * Parse BACnet_Recipient from ASCII string (as entered by user)
+ * @param value - struct to store data parsed from the ASCII
+ * @param str - ASCII string, zero terminated
+ * @return true on success
+ * @note
+ *  BACnetRecipient ::= CHOICE {
+ *      device [0] BACnetObjectIdentifier,
+ *      address [1] BACnetAddress
+ *  }
+ */
+bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str)
+{
+    BACNET_RECIPIENT value = { 0 };
+    const char *tag_names[] = { { "device" }, { "address" } };
+    const char *substring, *startstring;
+    unsigned i;
+
+    if (!str) {
+        return false;
+    }
+    for (i = 0; i < ARRAY_SIZE(tag_names); i++) {
+        startstring = strstr(str, tag_names[i]);
+        if (!startstring) {
+            continue;
+        }
+        switch (i) {
+            case BACNET_RECIPIENT_TAG_DEVICE:
+                value.tag = BACNET_RECIPIENT_TAG_DEVICE;
+                value.type.device.type = OBJECT_DEVICE;
+                substring = startstring + strlen(tag_names[i]);
+                if (!bacnet_string_to_uint32(
+                        substring, &value.type.device.instance)) {
+                    return false;
+                }
+                break;
+            case BACNET_RECIPIENT_TAG_ADDRESS:
+                value.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+                substring = startstring + strlen(tag_names[i]);
+                if (!bacnet_address_from_ascii(
+                        &value.type.address, substring)) {
+                    return false;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    if (value_out) {
+        bacnet_recipient_copy(value_out, &value);
+    }
+
+    return true;
+}
+
+/**
+ * @brief Convert BACnet_Destination to ASCII for printing
+ * @note
+ *  BACnetRecipient ::= CHOICE {
+ *      device [0] BACnetObjectIdentifier,
+ *      address [1] BACnetAddress
+ *  }
+ *  Output format:
+ *      (device, 1234)
+ *      (address, net=1234,mac=c0:a8:00:0f)
+ * @param value - struct to convert to ASCII
+ * @param buf - ASCII output buffer
+ * @param buf_size - ASCII output buffer capacity
+ * @return the number of characters which would be generated for the given
+ *  input, excluding the trailing null.
+ * @note buf and buf_size may be null and zero to return only the size
+ */
+bool bacnet_recipient_to_ascii(
+    const BACNET_RECIPIENT *value, char *buf, size_t buf_size)
+{
+}

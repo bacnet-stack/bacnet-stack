@@ -1691,6 +1691,8 @@ typedef enum {
     BACNET_APPLICATION_TAG_PROPERTY_VALUE,
     /* BACnetTimerStateChangeValue */
     BACNET_APPLICATION_TAG_TIMER_VALUE,
+    /* BACnetAddressBinding */
+    BACNET_APPLICATION_TAG_ADDRESS_BINDING,
     /* no-value - context tagged null */
     BACNET_APPLICATION_TAG_NO_VALUE,
     /* ABSTRACT-SYNTAX - constructed value */
