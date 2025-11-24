@@ -217,6 +217,27 @@ static void test_BACnetAddress_Codec(void)
     zassert_equal(value.mac_len, 6, NULL);
     test_len = bacnet_address_decode(apdu, sizeof(apdu), NULL);
     zassert_equal(len, test_len, NULL);
+    /* network address */
+    value.net = 1;
+    value.len = 3;
+    value.adr[0] = 1;
+    value.adr[1] = 2;
+    value.adr[2] = 3;
+    len = encode_bacnet_address(NULL, &value);
+    test_len = encode_bacnet_address(apdu, &value);
+    zassert_true(len > 0, NULL);
+    zassert_true(test_len > 0, NULL);
+    zassert_equal(len, test_len, "len=%d test_len=%d", len, test_len);
+    test_len = bacnet_address_decode(apdu, sizeof(apdu), &test_value);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(value.net, test_value.net, NULL);
+    zassert_equal(value.mac_len, test_value.mac_len, NULL);
+    zassert_equal(value.len, test_value.len, NULL);
+    zassert_equal(value.len, 3, NULL);
+    zassert_equal(value.adr[0], test_value.adr[0], NULL);
+    zassert_equal(value.adr[1], test_value.adr[1], NULL);
+    zassert_equal(value.adr[2], test_value.adr[2], NULL);
+    /* context tagged */
     tag_number = 1;
     len = encode_context_bacnet_address(NULL, tag_number, &value);
     test_len = encode_context_bacnet_address(apdu, tag_number, &value);
@@ -257,8 +278,11 @@ static void test_bacnet_vmac_entry_codec(void)
     uint8_t apdu[MAX_APDU];
     BACNET_VMAC_ENTRY value = { 0 }, test_value = { 0 };
     int test_len = 0, apdu_len = 0, null_len = 0;
+    bool status = false;
     unsigned i;
 
+    status = bacnet_vmac_address_set(NULL, 0);
+    zassert_false(status, NULL);
     value.virtual_mac_address.adr[0] = 1;
     value.virtual_mac_address.adr[1] = 2;
     value.virtual_mac_address.adr[2] = 3;
@@ -268,6 +292,8 @@ static void test_bacnet_vmac_entry_codec(void)
     value.native_mac_address[2] = 6;
     value.native_mac_address[3] = 7;
     value.native_mac_address_len = 4;
+    null_len = bacnet_vmac_entry_encode(NULL, sizeof(apdu), NULL);
+    zassert_equal(null_len, 0, NULL);
     null_len = bacnet_vmac_entry_encode(NULL, sizeof(apdu), &value);
     apdu_len = bacnet_vmac_entry_encode(apdu, sizeof(apdu), &value);
     zassert_true(apdu_len > 0, NULL);
@@ -302,6 +328,46 @@ static void test_bacnet_vmac_entry_codec(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_address_tests, test_bacnet_address_ascii)
+#else
+static void test_bacnet_address_ascii(void)
+#endif
+{
+    char ascii_mac_net_adr[80] = "ff:00:ff:01:ff:02 1 7f";
+    char ascii_mac_net[80] = "192.168.1.1:47808 0";
+    BACNET_ADDRESS value = { 0 };
+    bool status;
+
+    status = bacnet_address_from_ascii(NULL, NULL);
+    zassert_false(status, NULL);
+    status = bacnet_address_from_ascii(&value, NULL);
+    zassert_false(status, NULL);
+    status = bacnet_address_from_ascii(NULL, ascii_mac_net_adr);
+    zassert_false(status, NULL);
+    status = bacnet_address_from_ascii(&value, ascii_mac_net_adr);
+    zassert_true(status, NULL);
+    zassert_equal(value.mac_len, 6, NULL);
+    zassert_equal(value.mac[0], 0xff, NULL);
+    zassert_equal(value.mac[1], 0x00, NULL);
+    zassert_equal(value.mac[2], 0xff, NULL);
+    zassert_equal(value.mac[3], 0x01, NULL);
+    zassert_equal(value.mac[4], 0xff, NULL);
+    zassert_equal(value.mac[5], 0x02, NULL);
+    zassert_equal(value.net, 1, NULL);
+    zassert_equal(value.len, 1, NULL);
+    zassert_equal(value.adr[0], 0x7f, NULL);
+    status = bacnet_address_from_ascii(&value, ascii_mac_net);
+    zassert_true(status, NULL);
+    zassert_equal(value.mac_len, 6, NULL);
+    zassert_equal(value.mac[0], 192, NULL);
+    zassert_equal(value.mac[1], 168, NULL);
+    zassert_equal(value.mac[2], 1, NULL);
+    zassert_equal(value.mac[3], 1, NULL);
+    zassert_equal(value.net, 0, NULL);
+    zassert_equal(value.len, 0, NULL);
+}
+
 /**
  * @}
  */
@@ -314,8 +380,8 @@ void test_main(void)
         bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
         ztest_unit_test(test_BACNET_MAC_ADDRESS),
         ztest_unit_test(test_BACnetAddress_Codec),
-        ztest_unit_test(test_bacnet_vmac_entry_codec));
-
+        ztest_unit_test(test_bacnet_vmac_entry_codec),
+        ztest_unit_test(test_bacnet_address_ascii));
     ztest_run_test_suite(bacnet_address_tests);
 }
 #endif

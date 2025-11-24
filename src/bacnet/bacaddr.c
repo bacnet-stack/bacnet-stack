@@ -20,7 +20,7 @@
 #include "bacnet/bacaddr.h"
 
 /**
- * @brief Copy a #BACNET_ADDRESS value to another
+ * @brief Copy a #BACNET_ADDRESS value to another, or initialize if src=NULL
  * @param dest - #BACNET_ADDRESS to be copied into
  * @param src -  #BACNET_ADDRESS to be copied from
  */
@@ -37,6 +37,16 @@ void bacnet_address_copy(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
         dest->len = src->len;
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = src->adr[i];
+        }
+    } else if (dest) {
+        dest->mac_len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->mac[i] = 0;
+        }
+        dest->net = 0;
+        dest->len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->adr[i] = 0;
         }
     }
 }
@@ -195,6 +205,10 @@ void bacnet_address_mac_init(
 
 /**
  * @brief Parse an ASCII string for a bacnet-address
+ * @details Address formats:
+ *  192.168.1.42:47808 - for BACnet/IP
+ *  ff:aa:ff:bb:ff:cc - for Ethernet
+ *  fa or 127 - for ARCNET or MS/TP
  * @param mac [out] BACNET_MAC_ADDRESS structure to store the results
  * @param arg [in] nul terminated ASCII string to parse
  * @return true if the address was parsed
@@ -227,7 +241,6 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
         c = sscanf(
             arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3], &a[4],
             &a[5]);
-
         if (c > 0) {
             for (i = 0; i < c; i++) {
                 mac->adr[i] = a[i];
@@ -242,6 +255,11 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
 
 /**
  * @brief Parse an ASCII string for a bacnet-address
+ * @details Address formats: mac net addr
+ *  192.168.1.42:47808 - for BACnet/IP
+ *  ff:aa:ff:bb:ff:cc - for Ethernet
+ *  fa - for ARCNET or MS/TP
+ *  65535 - network number, 0 if mac but no addr
  * @param src [out] BACNET_MAC_ADDRESS structure to store the results
  * @param arg [in] null terminated ASCII string to parse
  * @return true if the address was parsed
@@ -251,10 +269,12 @@ bool bacnet_address_from_ascii(BACNET_ADDRESS *src, const char *arg)
     bool status = false;
     int count = 0;
     unsigned snet = 0, i;
-    unsigned max_apdu = 0;
     char mac_string[80] = { "" }, sadr_string[80] = { "" };
     BACNET_MAC_ADDRESS mac = { 0 };
 
+    if (!(src && arg)) {
+        return false;
+    }
     count =
         sscanf(arg, "%79s %5u %79s", &mac_string[0], &snet, &sadr_string[0]);
     if (count > 0) {
@@ -316,6 +336,9 @@ int bacnet_address_decode(
     BACNET_UNSIGNED_INTEGER snet = 0;
     BACNET_OCTET_STRING mac_addr = { 0 };
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     /* network number */
     len = bacnet_unsigned_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &snet);
@@ -384,6 +407,9 @@ int bacnet_address_context_decode(
     int len = 0;
     int apdu_len = 0;
 
+    if (!apdu) {
+        return false;
+    }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return BACNET_STATUS_ERROR;
@@ -572,6 +598,9 @@ int bacnet_vmac_entry_decode(
     size_t i = 0;
     BACNET_OCTET_STRING mac_addr = { 0 };
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     /* virtual-mac-address [0] OctetString */
     len = bacnet_octet_string_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &mac_addr);
@@ -651,7 +680,7 @@ bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
 int bacnet_address_binding_type_encode(
     uint8_t *apdu, const BACNET_ADDRESS_BINDING *value)
 {
-    int apdu_len = 0, len = 0, adr_len = 0, mac_len = 0;
+    int apdu_len = 0, len = 0;
 
     if (!value) {
         return 0;
@@ -677,7 +706,7 @@ int bacnet_address_binding_type_encode(
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param apdu_size - size of the APDU buffer
  * @param  value - BACnetAddressBinding value
- * @return  number of bytes in the APDU, or BACNET_STATUS_ERROR
+ * @return  number of bytes in the APDU, or 0 if unable to fit.
  */
 int bacnet_address_binding_encode(
     uint8_t *apdu, size_t apdu_size, const BACNET_ADDRESS_BINDING *value)
@@ -711,9 +740,11 @@ int bacnet_address_binding_decode(
     int apdu_len = 0, len = 0;
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
-    BACNET_UNSIGNED_INTEGER snet;
     BACNET_ADDRESS *address = NULL;
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     len = bacnet_object_id_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &object_type, &object_instance);
     if (len > 0) {
@@ -771,7 +802,7 @@ bool bacnet_address_binding_same(
 bool bacnet_address_binding_copy(
     BACNET_ADDRESS_BINDING *dest, const BACNET_ADDRESS_BINDING *src)
 {
-    if (!dest || !src) {
+    if (!(dest && src)) {
         return false;
     }
     dest->device_identifier = src->device_identifier;
@@ -792,7 +823,7 @@ bool bacnet_address_binding_init(
     uint32_t device_id,
     const BACNET_ADDRESS *address)
 {
-    if (!dest || !address) {
+    if (!dest) {
         return false;
     }
     dest->device_identifier = device_id;
@@ -820,43 +851,43 @@ int bacnet_address_binding_to_ascii(
     if (!value) {
         return 0;
     }
-    slen = bacapp_snprintf(str, str_len, "{");
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacnet_snprintf(str, str_len, "{");
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
     /* device-identifier */
-    slen = bacapp_snprintf(str, str_len, "(");
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = bacapp_snprintf(
+    slen = bacnet_snprintf(str, str_len, "(");
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacnet_snprintf(
         str, str_len, "%s, ", bactext_object_type_name(OBJECT_DEVICE));
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = bacapp_snprintf(
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacnet_snprintf(
         str, str_len, "%lu),", (unsigned long)value->device_identifier);
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
     /* snet */
-    slen = bacapp_snprintf(
+    slen = bacnet_snprintf(
         str, str_len, "%lu,", (unsigned long)value->device_address.net);
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
     /* octetstring */
-    slen = bacapp_snprintf(str, str_len, "X'");
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacnet_snprintf(str, str_len, "X'");
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
     if (value->device_address.net) {
         /* adr */
         for (i = 0; i < value->device_address.len; i++) {
-            slen = bacapp_snprintf(
+            slen = bacnet_snprintf(
                 str, str_len, "%02X", (unsigned)value->device_address.adr[i]);
-            buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
+            buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
         }
     } else {
         /* mac */
         for (i = 0; i < value->device_address.mac_len; i++) {
-            slen = bacapp_snprintf(
+            slen = bacnet_snprintf(
                 str, str_len, "%02X", (unsigned)value->device_address.mac[i]);
-            buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
+            buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
         }
     }
-    slen = bacapp_snprintf(str, str_len, "'");
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = bacapp_snprintf(str, str_len, "}");
-    buf_len += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacnet_snprintf(str, str_len, "'");
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacnet_snprintf(str, str_len, "}");
+    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
 
     return buf_len;
 }
@@ -873,14 +904,17 @@ bool bacnet_address_binding_from_ascii(
     BACNET_ADDRESS_BINDING *value, const char *arg)
 {
     int count = 0;
-    unsigned snet = 0, i;
+    unsigned snet = 0;
     char mac_string[80] = { "" }, obj_string[80] = { "" };
     BACNET_MAC_ADDRESS mac = { 0 };
     uint32_t object_type = 0;
     unsigned long object_instance = 0;
 
+    if (!(value && arg)) {
+        return false;
+    }
     count = sscanf(
-        arg, "(%79s,%u),%lu,%79s", obj_string, &object_instance, &snet,
+        arg, "(%79s,%lu),%u,%79s", obj_string, &object_instance, &snet,
         mac_string);
     if (count == 4) {
         if (!bactext_object_type_strtol(obj_string, &object_type)) {
