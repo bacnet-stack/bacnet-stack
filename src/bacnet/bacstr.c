@@ -1273,14 +1273,8 @@ bool octetstring_value_same(
 }
 #endif
 
-/**
- * @brief Compare two strings, case insensitive
- * @param a - first string
- * @param b - second string
- * @return 0 if the strings are equal, non-zero if not
- * @note The stricmp() function is not included in the C standard.
- */
-int bacnet_stricmp(const char *a, const char *b)
+static int bacnet_strnicmp_internal(
+    const char *a, const char *b, size_t length, bool case_insensitive)
 {
     int twin_a, twin_b;
 
@@ -1290,16 +1284,64 @@ int bacnet_stricmp(const char *a, const char *b)
     if (b == NULL) {
         return 1;
     }
+    if (length == 0) {
+        length = strlen(a);
+    }
     do {
         twin_a = *(const unsigned char *)a;
         twin_b = *(const unsigned char *)b;
-        twin_a = tolower(toupper(twin_a));
-        twin_b = tolower(toupper(twin_b));
+        if (case_insensitive) {
+            twin_a = tolower(toupper(twin_a));
+            twin_b = tolower(toupper(twin_b));
+        }
         a++;
         b++;
-    } while ((twin_a == twin_b) && (twin_a != '\0'));
+        length--;
+    } while ((twin_a == twin_b) && (twin_a != '\0') && (length > 0));
 
     return twin_a - twin_b;
+}
+
+/**
+ * @brief Compare two strings, case sensitive
+ * @param a - first string
+ * @param b - second string
+ * @return 0 if the strings are equal, non-zero if not
+ */
+int bacnet_strcmp(const char *a, const char *b)
+{
+    return bacnet_strnicmp_internal(a, b, 0, false);
+}
+
+/**
+ * @brief Compare two strings, case insensitive
+ * @param a - first string
+ * @param b - second string
+ * @return 0 if the strings are equal, non-zero if not
+ * @note The stricmp() function is not included in the C standard.
+ */
+int bacnet_stricmp(const char *a, const char *b)
+{
+    return bacnet_strnicmp_internal(a, b, 0, true);
+}
+
+/**
+ * @brief Compare two strings, case sensitive, with length limit
+ * @details The strncmp() function compares, at most, the first n characters
+ *  of string1 and string2 with sensitivity to case.
+ *
+ *  The function operates on null terminated strings.
+ *  The string arguments to the function are expected to contain
+ *  a null character (\0) marking the end of the string.
+ *
+ * @param a - first string
+ * @param b - second string
+ * @param length - maximum length to compare
+ * @return 0 if the strings are equal, non-zero if not
+ */
+int bacnet_strncmp(const char *a, const char *b, size_t length)
+{
+    return bacnet_strnicmp_internal(a, b, length, false);
 }
 
 /**
@@ -1319,28 +1361,7 @@ int bacnet_stricmp(const char *a, const char *b)
  */
 int bacnet_strnicmp(const char *a, const char *b, size_t length)
 {
-    int twin_a, twin_b;
-
-    if (length == 0) {
-        return 0;
-    }
-    if (a == NULL) {
-        return -1;
-    }
-    if (b == NULL) {
-        return 1;
-    }
-    do {
-        twin_a = *(const unsigned char *)a;
-        twin_b = *(const unsigned char *)b;
-        twin_a = tolower(toupper(twin_a));
-        twin_b = tolower(toupper(twin_b));
-        a++;
-        b++;
-        length--;
-    } while ((twin_a == twin_b) && (twin_a != '\0') && (length > 0));
-
-    return twin_a - twin_b;
+    return bacnet_strnicmp_internal(a, b, length, true);
 }
 
 /**
@@ -1908,4 +1929,49 @@ char *bacnet_rtrim(char *str, const char *trimmedchars)
 char *bacnet_trim(char *str, const char *trimmedchars)
 {
     return bacnet_ltrim(bacnet_rtrim(str, trimmedchars), trimmedchars);
+}
+
+/**
+ * @brief General purpose print formatter snprintf() function.
+ * @param buffer - destination string
+ * @param count - length of the destination string
+ * @param format - format string
+ * @return number of characters written
+ */
+int bacnet_snprintf(char *buffer, size_t count, const char *format, ...)
+{
+    int length = 0;
+    va_list args;
+
+    va_start(args, format);
+    length = vsnprintf(buffer, count, format, args);
+    va_end(args);
+
+    return length;
+}
+
+/**
+ * @brief Shift the buffer pointer and decrease the size after an snprintf
+ * @param len - number of bytes (excluding terminating NULL byte) from
+ * snprintf operation
+ * @param buf - pointer to the buffer pointer
+ * @param buf_size - pointer to the buffer size
+ * @return number of bytes (excluding terminating NULL byte) from snprintf
+ */
+int bacnet_snprintf_shift(int len, char **buf, size_t *buf_size)
+{
+    if (buf) {
+        if (*buf) {
+            *buf += len;
+        }
+    }
+    if (buf_size) {
+        if ((*buf_size) >= len) {
+            *buf_size -= len;
+        } else {
+            *buf_size = 0;
+        }
+    }
+
+    return len;
 }

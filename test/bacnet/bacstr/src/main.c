@@ -5,8 +5,23 @@
  * @date 2004
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
+
+/**
+ * @brief compare two double precision floating points to 3 decimal places
+ * @param x1 - first comparison value
+ * @param x2 - second comparison value
+ * @return true if the value is the same to 3 decimal points
+ */
+static bool is_float_equal(double x1, double x2)
+{
+    return fabs(x1 - x2) < 0.001;
+}
 
 /**
  * @addtogroup bacnet_tests
@@ -394,6 +409,17 @@ static void test_bacnet_stricmp(void)
     zassert_not_equal(rv, 0, NULL);
     rv = bacnet_stricmp(test_name_a, NULL);
     zassert_not_equal(rv, 0, NULL);
+    /* case sensitive */
+    rv = bacnet_strcmp(name_a, name_a);
+    zassert_equal(rv, 0, NULL);
+    rv = bacnet_strcmp(name_a, test_name_a);
+    zassert_not_equal(rv, 0, NULL);
+    rv = bacnet_strcmp(test_name_a, test_name_b);
+    zassert_not_equal(rv, 0, NULL);
+    rv = bacnet_strcmp(NULL, test_name_b);
+    zassert_not_equal(rv, 0, NULL);
+    rv = bacnet_strcmp(test_name_a, NULL);
+    zassert_not_equal(rv, 0, NULL);
 }
 
 /**
@@ -409,6 +435,18 @@ static void test_bacnet_strnicmp(void)
     const char *name_a = "Patricia", *test_name_a = "patricia";
     const char *name_b = "CamelCase", *test_name_b = "CAMELCASE";
 
+    /* case sensitive */
+    rv = bacnet_strncmp(name_a, name_a, strlen(name_a));
+    zassert_equal(rv, 0, NULL);
+    rv = bacnet_strncmp(name_a, test_name_a, strlen(name_a));
+    zassert_not_equal(rv, 0, NULL);
+    rv = bacnet_strncmp(test_name_a, test_name_b, strlen(test_name_a));
+    zassert_not_equal(rv, 0, NULL);
+    rv = bacnet_strncmp(NULL, test_name_b, strlen(test_name_b));
+    zassert_not_equal(rv, 0, NULL);
+    rv = bacnet_strncmp(test_name_a, NULL, strlen(test_name_a));
+    zassert_not_equal(rv, 0, NULL);
+    /* case insensitive */
     rv = bacnet_strnicmp(name_a, test_name_a, strlen(name_a));
     zassert_equal(rv, 0, NULL);
     rv = bacnet_strnicmp(name_b, test_name_b, strlen(name_b));
@@ -451,6 +489,216 @@ static void test_bacnet_strnlen(void)
     test_len = bacnet_strnlen(test_name, 512);
     zassert_equal(len, test_len, "len=%u test_len=%d", len, test_len);
 }
+
+/**
+ * @brief Test encode/decode API for bacnet_strto. functions
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_strto)
+#else
+static void test_bacnet_strto(void)
+#endif
+{
+    bool status;
+    const char *empty_string = "";
+    const char *extra_text_string = "123yyx";
+    const char *test_unsigned_long_string = "1234567890";
+    unsigned long unsigned_long_value, test_unsigned_long_value = 1234567890;
+    const char *test_long_string = "-1234567890";
+    long long_value, test_long_value = -1234567890;
+    const char *test_float_positive_string = "1.23";
+    float float_value, test_float_value = 1.23f;
+    double double_value, test_double_value = 1.23;
+    long double long_double_value, test_long_double_value = 1.23L;
+    const char *test_float_negative_string = "-1.23";
+    float float_negative_value, test_float_negative_value = -1.23f;
+    double double_negative_value, test_double_negative_value = -1.23;
+    long double long_double_negative_value,
+        test_long_double_negative_value = -1.23L;
+    char buffer[80] = "", *ascii_result = NULL;
+
+    /* unsigned long */
+    status = bacnet_strtoul(test_unsigned_long_string, &unsigned_long_value);
+    zassert_true(status, NULL);
+    zassert_equal(unsigned_long_value, test_unsigned_long_value, NULL);
+    status = bacnet_strtoul(empty_string, &unsigned_long_value);
+    zassert_false(status, NULL);
+    status = bacnet_strtoul(extra_text_string, &unsigned_long_value);
+    zassert_false(status, NULL);
+    ascii_result = bacnet_ultoa(unsigned_long_value, buffer, sizeof(buffer));
+    zassert_equal(bacnet_strcmp(buffer, test_unsigned_long_string), 0, NULL);
+    zassert_equal(ascii_result, buffer, NULL);
+    ascii_result = bacnet_utoa(unsigned_long_value, buffer, sizeof(buffer));
+    zassert_equal(bacnet_strcmp(buffer, test_unsigned_long_string), 0, NULL);
+    zassert_equal(ascii_result, buffer, NULL);
+    /* long */
+    status = bacnet_strtol(test_long_string, &long_value);
+    zassert_true(status, NULL);
+    zassert_equal(long_value, test_long_value, NULL);
+    status = bacnet_strtol(empty_string, &long_value);
+    zassert_false(status, NULL);
+    status = bacnet_strtol(extra_text_string, &long_value);
+    zassert_false(status, NULL);
+    ascii_result = bacnet_ltoa(long_value, buffer, sizeof(buffer));
+    zassert_equal(bacnet_strcmp(buffer, test_long_string), 0, NULL);
+    zassert_equal(ascii_result, buffer, NULL);
+    ascii_result = bacnet_itoa(long_value, buffer, sizeof(buffer));
+    zassert_equal(bacnet_strcmp(buffer, test_long_string), 0, NULL);
+    zassert_equal(ascii_result, buffer, NULL);
+    /* single precision */
+    status = bacnet_strtof(test_float_positive_string, &float_value);
+    zassert_true(status, NULL);
+    zassert_true(is_float_equal(float_value, test_float_value), NULL);
+    status = bacnet_strtof(test_float_negative_string, &float_negative_value);
+    zassert_true(status, NULL);
+    zassert_true(
+        is_float_equal(float_negative_value, test_float_negative_value), NULL);
+    status = bacnet_strtof(empty_string, &float_value);
+    zassert_false(status, NULL);
+    status = bacnet_strtof(extra_text_string, &float_value);
+    zassert_false(status, NULL);
+    /* double precision */
+    status = bacnet_strtod(test_float_positive_string, &double_value);
+    zassert_true(status, NULL);
+    zassert_true(is_float_equal(double_value, test_double_value), NULL);
+    status = bacnet_strtod(test_float_negative_string, &double_negative_value);
+    zassert_true(status, NULL);
+    zassert_true(
+        is_float_equal(double_negative_value, test_double_negative_value),
+        NULL);
+    status = bacnet_strtod(empty_string, &double_value);
+    zassert_false(status, NULL);
+    status = bacnet_strtod(extra_text_string, &double_value);
+    zassert_false(status, NULL);
+    ascii_result =
+        bacnet_dtoa(double_negative_value, buffer, sizeof(buffer), 2);
+    zassert_equal(bacnet_strcmp(buffer, test_float_negative_string), 0, NULL);
+    zassert_equal(ascii_result, buffer, NULL);
+    /* long double precision */
+    status = bacnet_strtold(test_float_positive_string, &long_double_value);
+    zassert_true(status, NULL);
+    zassert_true(
+        is_float_equal(long_double_value, test_long_double_value), NULL);
+    status =
+        bacnet_strtold(test_float_negative_string, &long_double_negative_value);
+    zassert_true(status, NULL);
+    zassert_true(
+        is_float_equal(
+            long_double_negative_value, test_long_double_negative_value),
+        NULL);
+    status = bacnet_strtold(empty_string, &long_double_value);
+    zassert_false(status, NULL);
+    status = bacnet_strtold(extra_text_string, &long_double_value);
+    zassert_false(status, NULL);
+}
+
+/**
+ * @brief Test encode/decode API for bacnet_string_to_x functions
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_string_to_x)
+#else
+static void test_bacnet_string_to_x(void)
+#endif
+{
+    bool status;
+    const char *empty_string = "";
+    const char *extra_text_string = "123yyx";
+    const char *test_uint8_t_string = "123";
+    const char *test_uint16_t_string = "12345";
+    const char *test_uint32_t_string = "1234567890";
+    const char *test_int32_t_string = "-1234567890";
+    const char *test_true_string = "true";
+    const char *test_false_string = "false";
+    const char *test_active_string = "active";
+    const char *test_inactive_string = "inactive";
+    const char *test_true_numeric_string = "1";
+    const char *test_false_numeric_string = "0";
+    const char *test_unsigned_string = "1234567890";
+    const char *test_ascii_string = "abcdefghijklmnopqrstuvwxyz";
+    uint8_t uint8_t_value, test_uint8_t_value = 123;
+    uint16_t uint16_t_value, test_uint16_t_value = 12345;
+    uint32_t uint32_t_value, test_uint32_t_value = 1234567890;
+    int32_t int32_t_value, test_int32_t_value = -1234567890;
+    BACNET_UNSIGNED_INTEGER bacnet_unsigned_integer,
+        test_bacnet_unsigned_integer = 1234567890;
+    bool bool_value, test_true_value = true, test_false_value = false;
+    char ascii_string[80] = "", *ascii_string_result = NULL;
+
+    /* uint8_t */
+    status = bacnet_string_to_uint8(test_uint8_t_string, &uint8_t_value);
+    zassert_true(status, NULL);
+    zassert_equal(uint8_t_value, test_uint8_t_value, NULL);
+    status = bacnet_string_to_uint8(empty_string, &uint8_t_value);
+    zassert_false(status, NULL);
+    status = bacnet_string_to_uint8(extra_text_string, &uint8_t_value);
+    zassert_false(status, NULL);
+    /* uint16_t */
+    status = bacnet_string_to_uint16(test_uint16_t_string, &uint16_t_value);
+    zassert_true(status, NULL);
+    zassert_equal(uint16_t_value, test_uint16_t_value, NULL);
+    status = bacnet_string_to_uint16(empty_string, &uint16_t_value);
+    zassert_false(status, NULL);
+    status = bacnet_string_to_uint16(extra_text_string, &uint16_t_value);
+    zassert_false(status, NULL);
+    /* uint32_t */
+    status = bacnet_string_to_uint32(test_uint32_t_string, &uint32_t_value);
+    zassert_true(status, NULL);
+    zassert_equal(uint32_t_value, test_uint32_t_value, NULL);
+    status = bacnet_string_to_uint32(empty_string, &uint32_t_value);
+    zassert_false(status, NULL);
+    status = bacnet_string_to_uint32(extra_text_string, &uint32_t_value);
+    zassert_false(status, NULL);
+    /* int32_t */
+    status = bacnet_string_to_int32(test_int32_t_string, &int32_t_value);
+    zassert_true(status, NULL);
+    zassert_equal(int32_t_value, test_int32_t_value, NULL);
+    status = bacnet_string_to_int32(empty_string, &int32_t_value);
+    zassert_false(status, NULL);
+    /* bool */
+    status = bacnet_string_to_bool(test_true_string, &bool_value);
+    zassert_true(status, NULL);
+    zassert_equal(bool_value, test_true_value, NULL);
+    status = bacnet_string_to_bool(test_false_string, &bool_value);
+    zassert_true(status, NULL);
+    zassert_equal(bool_value, test_false_value, NULL);
+    status = bacnet_string_to_bool(empty_string, &bool_value);
+    zassert_false(status, NULL);
+    status = bacnet_string_to_bool(extra_text_string, &bool_value);
+    zassert_false(status, NULL);
+    /* active/inactive */
+    status = bacnet_string_to_bool(test_active_string, &bool_value);
+    zassert_true(status, NULL);
+    zassert_equal(bool_value, test_true_value, NULL);
+    status = bacnet_string_to_bool(test_inactive_string, &bool_value);
+    zassert_true(status, NULL);
+    zassert_equal(bool_value, test_false_value, NULL);
+    status = bacnet_string_to_bool(empty_string, &bool_value);
+    zassert_false(status, NULL);
+    /* 0/1 */
+    status = bacnet_string_to_bool(test_true_numeric_string, &bool_value);
+    zassert_true(status, NULL);
+    zassert_equal(bool_value, test_true_value, NULL);
+    status = bacnet_string_to_bool(test_false_numeric_string, &bool_value);
+    zassert_true(status, NULL);
+    zassert_equal(bool_value, test_false_value, NULL);
+    /* bacnet_unsigned_integer */
+    status = bacnet_string_to_unsigned(
+        test_unsigned_string, &bacnet_unsigned_integer);
+    zassert_true(status, NULL);
+    zassert_equal(bacnet_unsigned_integer, test_bacnet_unsigned_integer, NULL);
+    status = bacnet_string_to_unsigned(empty_string, &bacnet_unsigned_integer);
+    zassert_false(status, NULL);
+    status =
+        bacnet_string_to_unsigned(extra_text_string, &bacnet_unsigned_integer);
+    zassert_false(status, NULL);
+    /* ascii string */
+    ascii_string_result = bacnet_sprintf_to_ascii(
+        ascii_string, sizeof(ascii_string), "%s", test_ascii_string);
+    zassert_equal(
+        bacnet_strcmp(ascii_string_result, test_ascii_string), 0, NULL);
+}
+
 /**
  * @}
  */
@@ -465,8 +713,9 @@ void test_main(void)
         ztest_unit_test(testCharacterString), ztest_unit_test(testOctetString),
         ztest_unit_test(test_bacnet_stricmp),
         ztest_unit_test(test_bacnet_strnicmp),
-        ztest_unit_test(test_bacnet_strnlen));
-
+        ztest_unit_test(test_bacnet_strnlen),
+        ztest_unit_test(test_bacnet_strto), ztest_unit_test(test_bacnet_strto),
+        ztest_unit_test(test_bacnet_string_to_x));
     ztest_run_test_suite(bacstr_tests);
 }
 #endif

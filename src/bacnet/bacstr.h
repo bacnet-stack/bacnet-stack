@@ -173,7 +173,11 @@ bool octetstring_value_same(
     const BACNET_OCTET_STRING *octet_string2);
 
 BACNET_STACK_EXPORT
+int bacnet_strcmp(const char *a, const char *b);
+BACNET_STACK_EXPORT
 int bacnet_stricmp(const char *a, const char *b);
+BACNET_STACK_EXPORT
+int bacnet_strncmp(const char *a, const char *b, size_t length);
 BACNET_STACK_EXPORT
 int bacnet_strnicmp(const char *a, const char *b, size_t length);
 
@@ -225,6 +229,11 @@ BACNET_STACK_EXPORT
 char *bacnet_rtrim(char *str, const char *trimmedchars);
 BACNET_STACK_EXPORT
 char *bacnet_trim(char *str, const char *trimmedchars);
+
+BACNET_STACK_EXPORT
+int bacnet_snprintf(char *buffer, size_t count, const char *format, ...);
+BACNET_STACK_EXPORT
+int bacnet_snprintf_shift(int len, char **buf, size_t *buf_size);
 
 #ifdef __cplusplus
 }
