@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h> /* for strtol */
 #include <ctype.h> /* for isalnum */
-#include <errno.h>
 #include <math.h>
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <wchar.h>
@@ -4121,40 +4120,6 @@ bool bacapp_print_value(
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
-static char *ltrim(char *str, const char *trimmedchars)
-{
-    if (str[0] == 0) {
-        return str;
-    }
-    while (strchr(trimmedchars, *str)) {
-        str++;
-    }
-    return str;
-}
-
-static char *rtrim(char *str, const char *trimmedchars)
-{
-    char *end;
-
-    if (str[0] == 0) {
-        return str;
-    }
-    end = str + strlen(str) - 1;
-    while (strchr(trimmedchars, *end)) {
-        *end = 0;
-        if (end == str) {
-            break;
-        }
-        end--;
-    }
-    return str;
-}
-
-static char *trim(char *str, const char *trimmedchars)
-{
-    return ltrim(rtrim(str, trimmedchars), trimmedchars);
-}
-
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 static bool
 parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
@@ -4184,7 +4149,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 
     /* Parse the inner tag */
     chunk = strtok(str, ";");
-    chunk = ltrim(chunk, "(");
+    chunk = bacnet_ltrim(chunk, "(");
     if (false ==
         bacapp_parse_application_data(
             BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
@@ -4209,7 +4174,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
         }
 
         /* Extract the inner list of time-values */
-        chunk = rtrim(ltrim(chunk, "([ "), " ])");
+        chunk = bacnet_rtrim(bacnet_ltrim(chunk, "([ "), " ])");
 
         /* The list can be empty */
         if (chunk[0] != 0) {
@@ -4222,7 +4187,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                     *comma = 0;
                 }
                 /* trim the time-value pair and find the delimiter space */
-                chunk = trim(chunk, " ");
+                chunk = bacnet_trim(chunk, " ");
                 space = strchr(chunk, ' ');
                 if (!space) {
                     /* malformed time-value pair */
@@ -4234,7 +4199,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                 t = chunk;
                 /* value starts one byte after the space, and there can be */
                 /* multiple spaces */
-                chunk = ltrim(space + 1, " ");
+                chunk = bacnet_ltrim(space + 1, " ");
                 v = chunk;
 
                 /* Parse time */
@@ -4281,60 +4246,6 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
         value->type.Weekly_Schedule.singleDay = true;
     }
 
-    return true;
-}
-#endif
-
-#if defined(BACAPP_SIGNED) || defined(BACAPP_BOOLEAN)
-static bool strtol_checked(const char *s, long *out)
-{
-    char *end;
-    errno = 0;
-    *out = strtol(s, &end, 0);
-    if (end == s) {
-        /* Conversion was not possible */
-        return false;
-    }
-    if (errno == ERANGE) {
-        /* Number too large */
-        return false;
-    }
-    return true;
-}
-#endif
-
-#if defined(BACAPP_UNSIGNED) || defined(BACAPP_ENUMERATED)
-static bool strtoul_checked(const char *s, BACNET_UNSIGNED_INTEGER *out)
-{
-    char *end;
-    errno = 0;
-    *out = strtoul(s, &end, 0);
-    if (end == s) {
-        /* Conversion was not possible */
-        return false;
-    }
-    if (errno == ERANGE) {
-        /* Number too large */
-        return false;
-    }
-    return true;
-}
-#endif
-
-#if defined(BACAPP_REAL) || defined(BACAPP_DOUBLE)
-static bool strtod_checked(const char *s, double *out)
-{
-    char *end;
-    errno = 0;
-    *out = strtod(s, &end);
-    if (end == s) {
-        /* Conversion was not possible */
-        return false;
-    }
-    if (errno == ERANGE) {
-        /* Number too large */
-        return false;
-    }
     return true;
 }
 #endif
@@ -4577,7 +4488,7 @@ bool bacapp_parse_application_data(
                     bacnet_stricmp(argv, "inactive") == 0) {
                     value->type.Boolean = false;
                 } else {
-                    status = strtol_checked(argv, &long_value);
+                    status = bacnet_strtol(argv, &long_value);
                     if (!status) {
                         return false;
                     }
@@ -4591,7 +4502,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                status = strtoul_checked(argv, &unsigned_long_value);
+                status = bacnet_string_to_unsigned(argv, &unsigned_long_value);
                 if (!status) {
                     return false;
                 }
@@ -4603,7 +4514,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                status = strtol_checked(argv, &long_value);
+                status = bacnet_strtol(argv, &long_value);
                 if (!status || long_value > INT32_MAX ||
                     long_value < INT32_MIN) {
                     return false;
@@ -4613,7 +4524,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                status = strtod_checked(argv, &double_value);
+                status = bacnet_strtod(argv, &double_value);
                 if (!status) {
                     return false;
                 }
@@ -4622,7 +4533,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                status = strtod_checked(argv, &double_value);
+                status = bacnet_strtod(argv, &double_value);
                 if (!status) {
                     return false;
                 }
@@ -4648,7 +4559,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
-                status = strtoul_checked(argv, &unsigned_long_value);
+                status = bacnet_string_to_unsigned(argv, &unsigned_long_value);
                 if (!status || unsigned_long_value > UINT32_MAX) {
                     return false;
                 }

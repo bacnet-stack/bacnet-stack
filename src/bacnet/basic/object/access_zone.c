@@ -23,7 +23,7 @@ static bool Access_Zone_Initialized = false;
 static ACCESS_ZONE_DESCR az_descr[MAX_ACCESS_ZONES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,     PROP_OBJECT_TYPE,
     PROP_GLOBAL_IDENTIFIER, PROP_OCCUPANCY_STATE, PROP_STATUS_FLAGS,
@@ -31,12 +31,14 @@ static const int Properties_Required[] = {
     PROP_ENTRY_POINTS,      PROP_EXIT_POINTS,     -1
 };
 
-static const int Properties_Optional[] = { -1 };
+static const int32_t Properties_Optional[] = { -1 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 void Access_Zone_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;

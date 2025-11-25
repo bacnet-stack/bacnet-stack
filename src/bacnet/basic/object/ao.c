@@ -42,7 +42,7 @@ struct object_data {
     float Relinquish_Default;
     float Min_Pres_Value;
     float Max_Pres_Value;
-    uint16_t Units;
+    BACNET_ENGINEERING_UNITS Units;
     uint8_t Reliability;
     const char *Object_Name;
     const char *Description;
@@ -58,7 +58,7 @@ static analog_output_write_present_value_callback
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -76,13 +76,13 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_RELIABILITY,    PROP_DESCRIPTION,    PROP_COV_INCREMENT,
     PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE, -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 /**
  * @brief Returns the list of required, optional, and proprietary properties.
@@ -95,7 +95,9 @@ static const int Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Analog_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -604,9 +606,9 @@ const char *Analog_Output_Name_ASCII(uint32_t object_instance)
  *
  * @return  units property value
  */
-uint16_t Analog_Output_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Analog_Output_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -625,7 +627,8 @@ uint16_t Analog_Output_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Analog_Output_Units_Set(uint32_t object_instance, uint16_t units)
+bool Analog_Output_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct object_data *pObject;

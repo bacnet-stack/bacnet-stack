@@ -71,7 +71,7 @@ static void Read_Properties(void)
        Device Object
        note: you could just loop through
        all the properties in all the objects. */
-    const int object_props[] = {
+    const int32_t object_props[] = {
         PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
         PROP_SYSTEM_STATUS, PROP_VENDOR_NAME, PROP_VENDOR_IDENTIFIER,
         PROP_MODEL_NAME, PROP_FIRMWARE_REVISION,

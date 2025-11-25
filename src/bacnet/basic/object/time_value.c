@@ -50,16 +50,16 @@ static time_value_write_present_value_callback
     Time_Value_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Time_Value_Properties_Required[] = {
+static const int32_t Time_Value_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Time_Value_Properties_Optional[] = { PROP_DESCRIPTION,
-                                                      PROP_EVENT_STATE,
-                                                      PROP_OUT_OF_SERVICE, -1 };
+static const int32_t Time_Value_Properties_Optional[] = {
+    PROP_DESCRIPTION, PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1
+};
 
-static const int Time_Value_Properties_Proprietary[] = { -1 };
+static const int32_t Time_Value_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -73,7 +73,9 @@ static const int Time_Value_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Time_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Time_Value_Properties_Required;

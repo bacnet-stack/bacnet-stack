@@ -33,7 +33,9 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Analog_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 BACNET_STACK_EXPORT
 bool Analog_Output_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -98,9 +100,9 @@ BACNET_STACK_EXPORT
 bool Analog_Output_Description_Set(uint32_t instance, const char *new_name);
 
 BACNET_STACK_EXPORT
-bool Analog_Output_Units_Set(uint32_t instance, uint16_t units);
+bool Analog_Output_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS units);
 BACNET_STACK_EXPORT
-uint16_t Analog_Output_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Analog_Output_Units(uint32_t instance);
 
 BACNET_STACK_EXPORT
 bool Analog_Output_Out_Of_Service(uint32_t instance);

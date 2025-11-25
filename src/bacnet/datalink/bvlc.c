@@ -2474,10 +2474,11 @@ bool bvlc_address_port_from_ascii(
     unsigned long port = 0;
 
     if (bvlc_address_from_ascii(addr, addrstr)) {
-        port = strtoul(portstr, NULL, 0);
-        if (port <= UINT16_MAX) {
-            addr->port = port;
-            status = true;
+        if (bacnet_strtoul(portstr, &port)) {
+            if (port <= UINT16_MAX) {
+                addr->port = (uint16_t)port;
+                status = true;
+            }
         }
     }
 

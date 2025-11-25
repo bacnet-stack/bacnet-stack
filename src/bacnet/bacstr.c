@@ -14,6 +14,7 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -1365,4 +1366,546 @@ size_t bacnet_strnlen(const char *str, size_t maxlen)
         return maxlen;
     }
     return (p - str);
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a unsigned long value
+ * @param str - string to convert
+ * @param long_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtoul(const char *str, unsigned long *long_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* Conversion was not possible */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_value) {
+        *long_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a signed long integer
+ * @param str - string to convert
+ * @param long_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtol(const char *str, long *long_value)
+{
+    char *endptr;
+    long value;
+
+    errno = 0;
+    value = strtol(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_value) {
+        *long_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite floating point value
+ * @param str - string to convert
+ * @param float_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtof(const char *str, float *float_value)
+{
+    char *endptr;
+    float value;
+
+    errno = 0;
+    value = strtof(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (float_value) {
+        *float_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite double precision
+ *  floating point value
+ * @param str - string to convert
+ * @param double_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtod(const char *str, double *double_value)
+{
+    char *endptr;
+    double value;
+
+    errno = 0;
+    value = strtod(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (double_value) {
+        *double_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite double precision
+ *  floating point value
+ * @param str - string to convert
+ * @param long_double_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtold(const char *str, long double *long_double_value)
+{
+    char *endptr;
+    long double value;
+
+    errno = 0;
+    value = strtold(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_double_value) {
+        *long_double_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint8_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_uint8(const char *str, uint8_t *uint8_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value > UINT8_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint8_value) {
+        *uint8_value = (uint8_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint16_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_uint16(const char *str, uint16_t *uint16_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value > UINT16_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint16_value) {
+        *uint16_value = (uint16_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint32_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_uint32(const char *str, uint32_t *uint32_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value > UINT32_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint32_value) {
+        *uint32_value = (uint32_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into an int32_t value
+ * @param str - string to convert
+ * @param int32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_int32(const char *str, int32_t *int32_value)
+{
+    char *endptr;
+    long value;
+
+    errno = 0;
+    value = strtol(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value < INT32_MIN || value > INT32_MAX) {
+        /* The correct value is outside the range of this data type */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (int32_value) {
+        *int32_value = (int32_t)value;
+    }
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into an bool value
+ * @param str - string to convert
+ * @param bool_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_bool(const char *str, bool *bool_value)
+{
+    bool status = false;
+    long long_value = 0;
+
+    if (bacnet_stricmp(str, "true") == 0 ||
+        bacnet_stricmp(str, "active") == 0) {
+        status = true;
+        if (bool_value) {
+            *bool_value = true;
+        }
+    } else if (
+        bacnet_stricmp(str, "false") == 0 ||
+        bacnet_stricmp(str, "inactive") == 0) {
+        status = true;
+        if (bool_value) {
+            *bool_value = false;
+        }
+    } else {
+        status = bacnet_strtol(str, &long_value);
+        if (!status) {
+            return false;
+        }
+        if (bool_value) {
+            if (long_value) {
+                *bool_value = true;
+            } else {
+                *bool_value = false;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a unsigned long value
+ * @param str - string to convert
+ * @param unsigned_int - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_unsigned(
+    const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int)
+{
+    char *endptr;
+#ifdef UINT64_MAX
+    unsigned long long value;
+#else
+    unsigned long value;
+#endif
+
+    errno = 0;
+#ifdef UINT64_MAX
+    value = strtoull(str, &endptr, 0);
+#else
+    value = strtoul(str, &endptr, 0);
+#endif
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (unsigned_int) {
+        *unsigned_int = (BACNET_UNSIGNED_INTEGER)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief General purpose print formatter which returns the formatted string
+ * @param buffer - destination string
+ * @param count - length of the destination string
+ * @param format - format string
+ * @return character string buffer
+ */
+char *
+bacnet_sprintf_to_ascii(char *buffer, size_t size, const char *format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    /* The vsnprintf function always writes a null terminator,
+       even if it truncates the output. */
+    (void)vsnprintf(buffer, size, format, args);
+    va_end(args);
+
+    return buffer;
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @param precision Number of decimal places
+ * @return character string buffer
+ */
+char *bacnet_dtoa(double value, char *buffer, size_t size, unsigned precision)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%.*f", precision, value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_itoa(int value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%d", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_ltoa(long value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%ld", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_utoa(unsigned value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%u", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
+{
+    return bacnet_sprintf_to_ascii(buffer, size, "%lu", value);
+}
+
+/**
+ * @brief trim characters from the left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_ltrim(char *str, const char *trimmedchars)
+{
+    if (str[0] == 0) {
+        return str;
+    }
+    while (strchr(trimmedchars, *str)) {
+        str++;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_rtrim(char *str, const char *trimmedchars)
+{
+    char *end;
+
+    if (str[0] == 0) {
+        return str;
+    }
+    end = str + strlen(str) - 1;
+    while (strchr(trimmedchars, *end)) {
+        *end = 0;
+        if (end == str) {
+            break;
+        }
+        end--;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side and left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_trim(char *str, const char *trimmedchars)
+{
+    return bacnet_ltrim(bacnet_rtrim(str, trimmedchars), trimmedchars);
 }

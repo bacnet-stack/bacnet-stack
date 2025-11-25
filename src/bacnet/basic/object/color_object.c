@@ -63,7 +63,7 @@ static OS_Keylist Object_List;
 static color_write_present_value_callback Color_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Color_Properties_Required[] = {
+static const int32_t Color_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
     PROP_TRACKING_VALUE,    PROP_COLOR_COMMAND,
@@ -71,10 +71,10 @@ static const int Color_Properties_Required[] = {
     PROP_DEFAULT_FADE_TIME, -1
 };
 
-static const int Color_Properties_Optional[] = { PROP_DESCRIPTION,
-                                                 PROP_TRANSITION, -1 };
+static const int32_t Color_Properties_Optional[] = { PROP_DESCRIPTION,
+                                                     PROP_TRANSITION, -1 };
 
-static const int Color_Properties_Proprietary[] = { -1 };
+static const int32_t Color_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -88,7 +88,9 @@ static const int Color_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Color_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Color_Properties_Required;

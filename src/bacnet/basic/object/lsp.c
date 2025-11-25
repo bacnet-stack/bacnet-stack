@@ -38,7 +38,7 @@ static OS_Keylist Object_List;
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LIFE_SAFETY_POINT;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Life_Safety_Point_Properties_Required[] = {
+static const int32_t Life_Safety_Point_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,  PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,        PROP_PRESENT_VALUE,
     PROP_TRACKING_VALUE,     PROP_STATUS_FLAGS,
@@ -48,9 +48,9 @@ static const int Life_Safety_Point_Properties_Required[] = {
     PROP_OPERATION_EXPECTED, -1
 };
 
-static const int Life_Safety_Point_Properties_Optional[] = { -1 };
+static const int32_t Life_Safety_Point_Properties_Optional[] = { -1 };
 
-static const int Life_Safety_Point_Properties_Proprietary[] = { -1 };
+static const int32_t Life_Safety_Point_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -64,7 +64,9 @@ static const int Life_Safety_Point_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Life_Safety_Point_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Life_Safety_Point_Properties_Required;

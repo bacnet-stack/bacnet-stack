@@ -64,7 +64,7 @@ static void testLightingOutput(void)
     uint32_t unsigned_value, test_unsigned;
     unsigned priority, test_priority;
     BACNET_OBJECT_ID object_id, test_object_id;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
 
     Lighting_Output_Init();
     Lighting_Output_Create(instance);

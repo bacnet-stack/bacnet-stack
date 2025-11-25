@@ -39,19 +39,21 @@ static NOTIFICATION_CLASS_INFO NC_Info[MAX_NOTIFICATION_CLASSES];
 static uint8_t Event_Buffer[MAX_APDU];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
     PROP_PRIORITY,          PROP_ACK_REQUIRED,
     PROP_RECIPIENT_LIST,    -1
 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int32_t Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 void Notification_Class_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;

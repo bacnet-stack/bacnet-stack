@@ -35,7 +35,7 @@ static COMMAND_DESCR Command_Descr[MAX_COMMANDS];
 
 /* clang-format off */
 /* These arrays are used by the ReadPropertyMultiple handler */
-static const int Command_Properties_Required[] = {
+static const int32_t Command_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -45,9 +45,9 @@ static const int Command_Properties_Required[] = {
     PROP_ACTION,
     -1 };
 
-static const int Command_Properties_Optional[] = { -1 };
+static const int32_t Command_Properties_Optional[] = { -1 };
 
-static const int Command_Properties_Proprietary[] = { -1 };
+static const int32_t Command_Properties_Proprietary[] = { -1 };
 /* clang-format on */
 
 /**
@@ -62,7 +62,9 @@ static const int Command_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Command_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Command_Properties_Required;

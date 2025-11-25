@@ -76,7 +76,7 @@ static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int32_t Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_SYSTEM_STATUS, PROP_VENDOR_NAME,
     PROP_VENDOR_IDENTIFIER, PROP_MODEL_NAME, PROP_FIRMWARE_REVISION,
     PROP_APPLICATION_SOFTWARE_VERSION, PROP_PROTOCOL_VERSION,
@@ -86,10 +86,10 @@ static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_APDU_TIMEOUT, PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
     PROP_DATABASE_REVISION, -1 };
 
-static const int Device_Properties_Optional[] = { PROP_MAX_MASTER,
+static const int32_t Device_Properties_Optional[] = { PROP_MAX_MASTER,
     PROP_MAX_INFO_FRAMES, PROP_DESCRIPTION, PROP_LOCATION, -1 };
 
-static const int Device_Properties_Proprietary[] = { -1 };
+static const int32_t Device_Properties_Proprietary[] = { -1 };
 
 static struct my_object_functions *Device_Objects_Find_Functions(
     BACNET_OBJECT_TYPE Object_Type)
@@ -199,7 +199,7 @@ void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
 }
 
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired, const int32_t **pOptional, const int32_t **pProprietary)
 {
     if (pRequired)
         *pRequired = Device_Properties_Required;

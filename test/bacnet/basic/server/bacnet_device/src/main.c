@@ -24,7 +24,7 @@ static void test_Device_Data_Sharing(void)
     unsigned count;
     bool status = false;
     uint32_t test_instance;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
 
     Device_Init(NULL);
     status = Device_Set_Object_Instance_Number(instance);

@@ -28,9 +28,9 @@ static void test_object_access_door(void)
     BACNET_READ_PROPERTY_DATA rpdata;
     /* for decode value data */
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
     unsigned count = 0;
     uint32_t object_instance = 0;
 

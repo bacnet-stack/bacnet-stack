@@ -510,7 +510,7 @@ void Device_Objects_Property_List(
 }
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Device_Properties_Required[] = {
+static const int32_t Device_Properties_Required[] = {
     /* List of Required properties in this object */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -535,7 +535,7 @@ static const int Device_Properties_Required[] = {
     -1
 };
 
-static const int Device_Properties_Optional[] = {
+static const int32_t Device_Properties_Optional[] = {
 /* List of Optional properties in this object */
 #if defined(BACDL_MSTP)
     PROP_MAX_MASTER,
@@ -559,7 +559,7 @@ static const int Device_Properties_Optional[] = {
     -1
 };
 
-static const int Device_Properties_Proprietary[] = { -1 };
+static const int32_t Device_Properties_Proprietary[] = { -1 };
 
 /**
  * @brief Returns the list of required, optional, and proprietary properties
@@ -573,7 +573,9 @@ static const int Device_Properties_Proprietary[] = { -1 };
  * @ingroup ObjIntf
  */
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Device_Properties_Required;

@@ -12,6 +12,44 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
+## [Unreleased] - 2025-11-15
+
+### Security
+### Added
+
+* Added default option to bactext name functions so that NULL can be
+  returned when a name does not exist. (#1160)
+* Added library specific ltrim, rtrim, and trim string functions. (#1159)
+* Added library specific itoa, ltoa, ultoa, dtoa, utoa, and general
+  print format with ASCII return functions. (#1157)
+* Added library specific string-to functions similar to stdlib.
+  Added library specific string-to functions for BACnet primitives. (#1151)
+
+### Changed
+
+* Changed basic object API for units properties to use BACNET_ENGINEERING_UNITS
+  datatype. (#1104)
+* Changed all the property list values into int32_t to support the larger
+  BACnet property enumerations when an int is 8-bit or 16-bit in size. (#1145)
+
+### Fixed
+
+* Fixed the ports/linux BACnet/IP cache netmask for accurate subnet
+  prefix calculation implementation which had always returned 0. (#1155)
+* Fixed the loop object empty reference property by initializing to self.
+  When configured for self, the manipulated property value will update
+  the controlled variable value for simulation.(#1158)
+* Fixed unit test stack corruption from using stack based message text
+  characterstring pointer in multiple functions and setting the value
+  in the global event and test event data structures. (#1154)
+* Fix timesync recipient encoding to check for OBJECT_DEVICE type before
+  encoding. (#1153)
+* Fixed segmented ComplexACK in MS/TP by adding postpone reply because
+  transmission of the segmented ComplexACK cannot begin until the node
+  holds the token. (#1116)
+
+### Removed
+
 ## [1.4.2] - 2025-11-15
 
 ### Security

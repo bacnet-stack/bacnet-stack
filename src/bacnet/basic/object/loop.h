@@ -24,9 +24,11 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Loop_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 BACNET_STACK_EXPORT
-void Loop_Proprietary_Property_List_Set(const int *pProprietary);
+void Loop_Proprietary_Property_List_Set(const int32_t *pProprietary);
 BACNET_STACK_EXPORT
 void Loop_Read_Property_Proprietary_Callback_Set(read_property_function cb);
 BACNET_STACK_EXPORT
@@ -78,9 +80,9 @@ BACNET_STACK_EXPORT
 bool Loop_Update_Interval_Set(uint32_t object_instance, uint32_t value);
 
 BACNET_STACK_EXPORT
-uint16_t Loop_Output_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Loop_Output_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Loop_Output_Units_Set(uint32_t instance, uint16_t units);
+bool Loop_Output_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS units);
 
 BACNET_STACK_EXPORT
 bool Loop_Manipulated_Variable_Reference(
@@ -102,9 +104,10 @@ BACNET_STACK_EXPORT
 bool Loop_Controlled_Variable_Value_Set(uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
-uint16_t Loop_Controlled_Variable_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Loop_Controlled_Variable_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Loop_Controlled_Variable_Units_Set(uint32_t instance, uint16_t units);
+bool Loop_Controlled_Variable_Units_Set(
+    uint32_t instance, BACNET_ENGINEERING_UNITS units);
 
 BACNET_STACK_EXPORT
 bool Loop_Setpoint_Reference(
@@ -128,25 +131,28 @@ float Loop_Proportional_Constant(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Loop_Proportional_Constant_Set(uint32_t object_instance, float value);
 BACNET_STACK_EXPORT
-uint16_t Loop_Proportional_Constant_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Loop_Proportional_Constant_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Loop_Proportional_Constant_Units_Set(uint32_t instance, uint16_t units);
+bool Loop_Proportional_Constant_Units_Set(
+    uint32_t instance, BACNET_ENGINEERING_UNITS units);
 BACNET_STACK_EXPORT
 float Loop_Integral_Constant(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Loop_Integral_Constant_Set(uint32_t object_instance, float value);
 BACNET_STACK_EXPORT
-uint16_t Loop_Integral_Constant_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Loop_Integral_Constant_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Loop_Integral_Constant_Units_Set(uint32_t instance, uint16_t units);
+bool Loop_Integral_Constant_Units_Set(
+    uint32_t instance, BACNET_ENGINEERING_UNITS units);
 BACNET_STACK_EXPORT
 float Loop_Derivative_Constant(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Loop_Derivative_Constant_Set(uint32_t object_instance, float value);
 BACNET_STACK_EXPORT
-uint16_t Loop_Derivative_Constant_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Loop_Derivative_Constant_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Loop_Derivative_Constant_Units_Set(uint32_t instance, uint16_t units);
+bool Loop_Derivative_Constant_Units_Set(
+    uint32_t instance, BACNET_ENGINEERING_UNITS units);
 
 BACNET_STACK_EXPORT
 float Loop_Bias(uint32_t object_instance);
