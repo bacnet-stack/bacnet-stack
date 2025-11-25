@@ -368,6 +368,25 @@ static void test_bacnet_address_ascii(void)
     zassert_equal(value.len, 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_address_tests, test_BACNET_ADDRESS_BINDING)
+#else
+static void test_BACNET_ADDRESS_BINDING(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_MAC_ADDRESS mac = { .adr[0] = 0x01, .len = 1 };
+    BACNET_ADDRESS_BINDING binding = { 0 }, test_binding = { 0 };
+    bool status = false;
+    int len, test_len, apdu_len, null_len;
+
+    null_len = bacnet_address_binding_type_encode(NULL, NULL);
+    zassert_equal(null_len, 0, NULL);
+    status = bacnet_address_init(&binding.device_address, &mac, 0, NULL);
+    null_len = bacnet_address_binding_type_encode(NULL, &binding);
+    zassert_not_equal(null_len, 0, NULL);
+}
+
 /**
  * @}
  */
@@ -381,7 +400,8 @@ void test_main(void)
         ztest_unit_test(test_BACNET_MAC_ADDRESS),
         ztest_unit_test(test_BACnetAddress_Codec),
         ztest_unit_test(test_bacnet_vmac_entry_codec),
-        ztest_unit_test(test_bacnet_address_ascii));
+        ztest_unit_test(test_bacnet_address_ascii),
+        ztest_unit_test(test_BACNET_ADDRESS_BINDING));
     ztest_run_test_suite(bacnet_address_tests);
 }
 #endif
