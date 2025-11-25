@@ -123,7 +123,7 @@ int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
     pdu_len = npdu_encode_pdu(pdu, &daddr, &saddr, &npdu_data);
 
     /* Now send the message */
-    return datalink_send_pdu(dst, &npdu_data, pdu, pdu_len);
+    return datalink_send_pdu(&daddr, &npdu_data, pdu, pdu_len);
 }
 
 /** @file h_npdu.c  Handles messages at the NPDU level of the BACnet stack. */
