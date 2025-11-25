@@ -1,138 +1,217 @@
-/**
- * @file
- * @brief Initializes BACnet/IP interface (Linux).
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2016
- * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- */
-#include <ifaddrs.h>
+/**************************************************************************
+ *
+ * Copyright (C) 2016 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
-#include <errno.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/config.h"
-#include "bacnet/datalink/bip6.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
-#if DEBUG_ENABLED
-#include "bacnet/basic/sys/debug.h"
-#endif
+#include "bacnet/datalink/bip6.h"
 #include "bacport.h"
+
+/* Win32 Socket */
+static SOCKET BIP6_Socket = INVALID_SOCKET;
+static int BIP6_Socket_Scope_Id = 0;
+/* local address - filled by init functions */
+static BACNET_IP6_ADDRESS BIP6_Addr;
+static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
 
 /* enable debugging */
 static bool BIP6_Debug = false;
 
 /**
- * @brief Conditionally use the debug_printf function
- *
- * @param stream - file stream to print to
- * @param format - printf format string
- * @param ... - variable arguments
- * @note This function is only works if
- * PRINT_ENABLED and BIP6_Debug is non-zero
+ * @brief Print the IPv6 address with debug info
+ * @param str - debug info string
+ * @param addr - IPv6 address
  */
-static void debug_fprintf_bip6(FILE *stream, const char *format, ...)
+static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
 {
-#if DEBUG_ENABLED
-    va_list ap;
+#if PRINT_ENABLED
+    char addstr[40] = { 0 };
+    BACNET_IP6_ADDRESS bip6_addr = { 0 };
 
-    if (BIP6_Debug) {
-        va_start(ap, format);
-        debug_fprintf(stream, format, ap);
-        va_end(ap);
+    if (str && addr) {
+        memcpy(&bip6_addr.address[0], &addr->s6_addr[0], IP6_ADDRESS_MAX);
+        bvlc6_address_to_ascii(&bip6_addr, addstr, sizeof(addstr));
+        if (BIP6_Debug) {
+            debug_fprintf(stdout, "BIP6: %s %s\n", str, addstr);
+        }
     }
-#else
-    (void)stream;
-    (void)format;
 #endif
 }
 
 /**
- * @brief Print the IPv6 address with debug info
- * @param str - debug info string
- * @param addr - IPv4 address
- */
-static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
-{
-    debug_fprintf_bip6(
-        stdout,
-        "BIP6: %s "
-        "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
-        "%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
-        str, (int)addr->s6_addr[0], (int)addr->s6_addr[1],
-        (int)addr->s6_addr[2], (int)addr->s6_addr[3], (int)addr->s6_addr[4],
-        (int)addr->s6_addr[5], (int)addr->s6_addr[6], (int)addr->s6_addr[7],
-        (int)addr->s6_addr[8], (int)addr->s6_addr[9], (int)addr->s6_addr[10],
-        (int)addr->s6_addr[11], (int)addr->s6_addr[12], (int)addr->s6_addr[13],
-        (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
-}
-
-/**
- * @brief Enabled debug printing of BACnet/IPv6
+ * @brief Enabled debug printing of BACnet/IPv4
  */
 void bip6_debug_enable(void)
 {
     BIP6_Debug = true;
 }
 
-/** @file linux/bip6.c  Initializes BACnet/IPv6 interface (Linux). */
+static LPSTR PrintError(int ErrorCode)
+{
+    static char Message[1024];
 
-/* unix socket */
-static int BIP6_Socket = -1;
-static int BIP6_Socket_Scope_Id = 0;
-/* local address - filled by init functions */
-static BACNET_IP6_ADDRESS BIP6_Addr;
-static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
+    /* If this program was multithreaded, we'd want to use
+       FORMAT_MESSAGE_ALLOCATE_BUFFER instead of a static buffer here.
+       (And of course, free the buffer when we were done with it) */
 
-/**
- * Set the interface name. On Linux, ifname is the /dev/ name of the interface.
- *
- * @param ifname - C string for name or text address
- */
+    FormatMessage(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+            FORMAT_MESSAGE_MAX_WIDTH_MASK,
+        NULL, ErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPSTR)Message, 1024, NULL);
+    return Message;
+}
+
+/* on Windows, ifname is the IPv6 address of the interface */
 void bip6_set_interface(char *ifname)
 {
-    struct ifaddrs *ifa, *ifa_tmp;
+    int i, RetVal;
+    struct addrinfo Hints, *AddrInfo, *AI;
     struct sockaddr_in6 *sin;
-    bool found = false;
+    SOCKET ServSock[FD_SETSIZE] = { 0 };
+    char port[6] = "";
+    int sockopt = 0;
 
-    if (getifaddrs(&ifa) == -1) {
-        debug_perror("BIP6: getifaddrs failed");
-        exit(1);
+    /* By setting the AI_PASSIVE flag in the hints to getaddrinfo, we're
+       indicating that we intend to use the resulting address(es) to bind
+       to a socket(s) for accepting incoming connections.  This means that
+       when the Address parameter is NULL, getaddrinfo will return one
+       entry per allowed protocol family containing the unspecified address
+       for that family. */
+    memset(&Hints, 0, sizeof(Hints));
+    Hints.ai_family = AF_INET6;
+    Hints.ai_socktype = SOCK_DGRAM;
+    Hints.ai_protocol = IPPROTO_UDP;
+    Hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
+    snprintf(port, sizeof(port), "%u", (unsigned)BIP6_Addr.port);
+    if (BIP6_Debug) {
+        debug_fprintf(
+            stderr, "BIP6: seeking IPv6 address %s port %s...\n", ifname, port);
     }
-    ifa_tmp = ifa;
-    debug_fprintf_bip6(stdout, "BIP6: seeking interface: %s\n", ifname);
-
-    while (ifa_tmp) {
-        if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6)) {
-            debug_fprintf_bip6(
-                stdout, "BIP6: found interface: %s\n", ifa_tmp->ifa_name);
-        }
-        if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6) &&
-            (bacnet_stricmp(ifa_tmp->ifa_name, ifname) == 0)) {
-            sin = (struct sockaddr_in6 *)ifa_tmp->ifa_addr;
-            bvlc6_address_set(
-                &BIP6_Addr, ntohs(sin->sin6_addr.s6_addr16[0]),
-                ntohs(sin->sin6_addr.s6_addr16[1]),
-                ntohs(sin->sin6_addr.s6_addr16[2]),
-                ntohs(sin->sin6_addr.s6_addr16[3]),
-                ntohs(sin->sin6_addr.s6_addr16[4]),
-                ntohs(sin->sin6_addr.s6_addr16[5]),
-                ntohs(sin->sin6_addr.s6_addr16[6]),
-                ntohs(sin->sin6_addr.s6_addr16[7]));
-            debug_print_ipv6(ifname, (&sin->sin6_addr));
-            found = true;
-            BIP6_Socket_Scope_Id = if_nametoindex(ifname);
+    RetVal = getaddrinfo(ifname, &port[0], &Hints, &AddrInfo);
+    if (RetVal != 0) {
+        debug_fprintf(
+            stderr, "BIP6: getaddrinfo failed with error %d: %s\n", RetVal,
+            gai_strerror(RetVal));
+        WSACleanup();
+        return;
+    }
+    if (BIP6_Debug) {
+        debug_fprintf(stderr, "BIP6: getaddrinfo() succeeded!\n");
+    }
+    /* Find the first matching address getaddrinfo returned so that
+       we can create a new socket and bind that address to it,
+       and create a queue to listen on. */
+    for (i = 0, AI = AddrInfo; AI != NULL; AI = AI->ai_next) {
+        /* Highly unlikely, but check anyway. */
+        if (i == FD_SETSIZE) {
+            debug_fprintf(
+                stderr,
+                "BIP6: getaddrinfo returned more addresses than we could "
+                "use.\n");
             break;
         }
-        ifa_tmp = ifa_tmp->ifa_next;
+        /* only support AF_INET6. */
+        if (AI->ai_family != AF_INET6) {
+            continue;
+        }
+        /* only support SOCK_DGRAM. */
+        if (AI->ai_socktype != SOCK_DGRAM) {
+            continue;
+        }
+        /* only support IPPROTO_UDP. */
+        if (AI->ai_protocol != IPPROTO_UDP) {
+            continue;
+        }
+        BIP6_Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+        if (BIP6_Socket == INVALID_SOCKET) {
+            debug_fprintf(
+                stderr, "BIP6: socket() failed with error %d: %s\n",
+                WSAGetLastError(), PrintError(WSAGetLastError()));
+            continue;
+        }
+        sin = (struct sockaddr_in6 *)AI->ai_addr;
+        if ((AI->ai_family == AF_INET6) &&
+            IN6_IS_ADDR_LINKLOCAL(&sin->sin6_addr) &&
+            (sin->sin6_scope_id == 0)) {
+            debug_fprintf(
+                stderr, "BIP6: IPv6 link local addresses needs a scope ID!\n");
+        }
+        BIP6_Socket_Scope_Id = if_nametoindex(ifname);
+        /* Allow us to use the same socket for sending and receiving */
+        /* This makes sure that the src port is correct when sending */
+        sockopt = 1;
+        RetVal = setsockopt(
+            BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, (char *)&sockopt,
+            sizeof(sockopt));
+        if (RetVal < 0) {
+            closesocket(BIP6_Socket);
+            BIP6_Socket = INVALID_SOCKET;
+            debug_fprintf(
+                stderr,
+                "BIP6: setsockopt(SO_REUSEADDR) failed with error %d: %s\n",
+                WSAGetLastError(), PrintError(WSAGetLastError()));
+            continue;
+        }
+        /* allow us to send a broadcast */
+        RetVal = setsockopt(
+            BIP6_Socket, SOL_SOCKET, SO_BROADCAST, (char *)&sockopt,
+            sizeof(sockopt));
+        if (RetVal < 0) {
+            closesocket(BIP6_Socket);
+            BIP6_Socket = INVALID_SOCKET;
+            debug_fprintf(
+                stderr,
+                "BIP6: setsockopt(SO_BROADCAST) failed "
+                "with error %d: %s\n",
+                WSAGetLastError(), PrintError(WSAGetLastError()));
+            continue;
+        }
+        bip6_join_group();
+        /* bind() associates a local address and port combination
+           with the socket just created. This is most useful when
+           the application is a server that has a well-known port
+           that clients know about in advance. */
+        if (bind(BIP6_Socket, AI->ai_addr, AI->ai_addrlen) == SOCKET_ERROR) {
+            debug_fprintf(
+                stderr, "BIP6: bind() failed with error %d: %s\n",
+                WSAGetLastError(), PrintError(WSAGetLastError()));
+            closesocket(ServSock[i]);
+            continue;
+        } else {
+            sin = (struct sockaddr_in6 *)AI->ai_addr;
+            bvlc6_address_set(
+                &BIP6_Addr, ntohs(sin->sin6_addr.u.Word[0]),
+                ntohs(sin->sin6_addr.u.Word[1]),
+                ntohs(sin->sin6_addr.u.Word[2]),
+                ntohs(sin->sin6_addr.u.Word[3]),
+                ntohs(sin->sin6_addr.u.Word[4]),
+                ntohs(sin->sin6_addr.u.Word[5]),
+                ntohs(sin->sin6_addr.u.Word[6]),
+                ntohs(sin->sin6_addr.u.Word[7]));
+            debug_print_ipv6("bind() succeeded!", &sin->sin6_addr);
+            /* https://msdn.microsoft.com/en-us/library/windows/desktop/ms740496(v=vs.85).aspx
+             */
+        }
+        i++;
+        if (BIP6_Socket != INVALID_SOCKET) {
+            break;
+        }
     }
-    if (!found) {
-        debug_fprintf_bip6(
-            stderr, "BIP6: unable to set interface: %s\n", ifname);
-        exit(1);
+    freeaddrinfo(AddrInfo);
+    if (BIP6_Socket == INVALID_SOCKET) {
+        debug_fprintf(
+            stderr, "BIP6: AF_INET6 address not found getaddrinfo()\n");
     }
 }
 
@@ -208,6 +287,18 @@ bool bip6_get_addr(BACNET_IP6_ADDRESS *addr)
 }
 
 /**
+ * Determine if the BACnet/IPv6 address matches our own address
+ *
+ * @param addr - network IPv6 address
+ *
+ * @return true if the BACnet/IPv6 address matches our own address
+ */
+bool bip6_address_match_self(const BACNET_IP6_ADDRESS *addr)
+{
+    return !bvlc6_address_different(addr, &BIP6_Addr);
+}
+
+/**
  * Set the BACnet/IP address
  *
  * @param addr - network IPv6 address
@@ -245,7 +336,7 @@ int bip6_send_mpdu(
     uint16_t addr16[8];
 
     /* assumes that the driver has already been initialized */
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return 0;
     }
     /* load destination IP address */
@@ -253,21 +344,21 @@ int bip6_send_mpdu(
     bvlc6_address_get(
         dest, &addr16[0], &addr16[1], &addr16[2], &addr16[3], &addr16[4],
         &addr16[5], &addr16[6], &addr16[7]);
-    bvlc_dest.sin6_addr.s6_addr16[0] = htons(addr16[0]);
-    bvlc_dest.sin6_addr.s6_addr16[1] = htons(addr16[1]);
-    bvlc_dest.sin6_addr.s6_addr16[2] = htons(addr16[2]);
-    bvlc_dest.sin6_addr.s6_addr16[3] = htons(addr16[3]);
-    bvlc_dest.sin6_addr.s6_addr16[4] = htons(addr16[4]);
-    bvlc_dest.sin6_addr.s6_addr16[5] = htons(addr16[5]);
-    bvlc_dest.sin6_addr.s6_addr16[6] = htons(addr16[6]);
-    bvlc_dest.sin6_addr.s6_addr16[7] = htons(addr16[7]);
+    bvlc_dest.sin6_addr.u.Word[0] = htons(addr16[0]);
+    bvlc_dest.sin6_addr.u.Word[1] = htons(addr16[1]);
+    bvlc_dest.sin6_addr.u.Word[2] = htons(addr16[2]);
+    bvlc_dest.sin6_addr.u.Word[3] = htons(addr16[3]);
+    bvlc_dest.sin6_addr.u.Word[4] = htons(addr16[4]);
+    bvlc_dest.sin6_addr.u.Word[5] = htons(addr16[5]);
+    bvlc_dest.sin6_addr.u.Word[6] = htons(addr16[6]);
+    bvlc_dest.sin6_addr.u.Word[7] = htons(addr16[7]);
     bvlc_dest.sin6_port = htons(dest->port);
     bvlc_dest.sin6_scope_id = BIP6_Socket_Scope_Id;
     debug_print_ipv6("Sending MPDU->", &bvlc_dest.sin6_addr);
     /* Send the packet */
     return sendto(
         BIP6_Socket, (const char *)mtu, mtu_len, 0,
-        (struct sockaddr *)&bvlc_dest, sizeof(bvlc_dest));
+        (const struct sockaddr *)&bvlc_dest, sizeof(bvlc_dest));
 }
 
 /**
@@ -316,7 +407,7 @@ uint16_t bip6_receive(
     uint16_t i = 0;
 
     /* Make sure the socket is open */
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return 0;
     }
     /* we could just use a non-blocking socket, but that consumes all
@@ -354,14 +445,8 @@ uint16_t bip6_receive(
         return 0;
     }
     /* pass the packet into the BBMD handler */
-    debug_print_ipv6("Received MPDU->", &sin.sin6_addr);
-    bvlc6_address_set(
-        &addr, ntohs(sin.sin6_addr.s6_addr16[0]),
-        ntohs(sin.sin6_addr.s6_addr16[1]), ntohs(sin.sin6_addr.s6_addr16[2]),
-        ntohs(sin.sin6_addr.s6_addr16[3]), ntohs(sin.sin6_addr.s6_addr16[4]),
-        ntohs(sin.sin6_addr.s6_addr16[5]), ntohs(sin.sin6_addr.s6_addr16[6]),
-        ntohs(sin.sin6_addr.s6_addr16[7]));
-    addr.port = ntohs(sin.sin6_port);
+    memcpy(&addr.address[0], &(sin.sin6_addr), 16);
+    memcpy(&addr.port, &sin.sin6_port, 2);
     offset = bvlc6_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
@@ -383,11 +468,12 @@ uint16_t bip6_receive(
  */
 void bip6_cleanup(void)
 {
-    bvlc6_cleanup();
-    if (BIP6_Socket != -1) {
-        close(BIP6_Socket);
+    if (BIP6_Socket == INVALID_SOCKET) {
+        return;
     }
-    BIP6_Socket = -1;
+    closesocket(BIP6_Socket);
+    BIP6_Socket = INVALID_SOCKET;
+    WSACleanup();
 
     return;
 }
@@ -401,7 +487,7 @@ void bip6_join_group(void)
     struct ipv6_mreq join_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return;
     }
     /* join a multicast group */
@@ -414,10 +500,14 @@ void bip6_join_group(void)
     /* Let system not choose the interface */
     join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &join_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&join_request,
         sizeof(join_request));
     if (status < 0) {
-        debug_perror("BIP6: setsockopt(IPV6_JOIN_GROUP)");
+        debug_fprintf(
+            stderr,
+            "BIP6: setsockopt(IPV6_JOIN_GROUP) failed "
+            "with error %d: %s\n",
+            WSAGetLastError(), PrintError(WSAGetLastError()));
     }
 }
 
@@ -430,7 +520,7 @@ void bip6_leave_group(void)
     struct ipv6_mreq leave_request = { 0 };
     int status = 0; /* return from socket lib calls */
 
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return;
     }
     /* leave a multicast address */
@@ -441,10 +531,14 @@ void bip6_leave_group(void)
         &leave_request.ipv6mr_multiaddr, &broadcast_address,
         sizeof(struct in6_addr));
     status = setsockopt(
-        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &leave_request,
+        BIP6_Socket, IPPROTO_IPV6, IPV6_LEAVE_GROUP, (char *)&leave_request,
         sizeof(leave_request));
     if (status < 0) {
-        debug_perror("BIP6: setsockopt(IPV6_LEAVE_GROUP)");
+        debug_fprintf(
+            stderr,
+            "BIP6: setsockopt(IPV6_LEAVE_GROUP) failed "
+            "with error %d: %s\n",
+            WSAGetLastError(), PrintError(WSAGetLastError()));
     }
 }
 
@@ -458,96 +552,47 @@ void bip6_leave_group(void)
  * -# Binds the socket to the local IP address at the specified port for
  *    BACnet/IPv6 (by default, 0xBAC0 = 47808).
  *
- * @note For Linux, ifname is eth0, ath0, arc0, and others.
+ * @note For Windows, ifname is the IPv6 address of the interface.
+ *
+ * https://msdn.microsoft.com/en-us/library/windows/desktop/ms738639(v=vs.85).aspx
  *
  * @param ifname [in] The named interface to use for the network layer.
- *        If NULL, the "eth0" interface is assigned.
- * @return True if the socket is successfully opened for BACnet/IP,
+ *
+ * @return True if the socket is successfully opened for BACnet/IPv6,
  *         else False if the socket functions fail.
  */
 bool bip6_init(char *ifname)
 {
-    int status = 0; /* return from socket lib calls */
-    struct sockaddr_in6 server = { 0 };
-    int sockopt = 0;
+    WSADATA wd;
+    int RetVal;
 
-    if (ifname) {
-        bip6_set_interface(ifname);
-    } else {
-        bip6_set_interface("eth0");
+    /* Ask for Winsock version 2.2. */
+    if ((RetVal = WSAStartup(MAKEWORD(2, 2), &wd)) != 0) {
+        debug_fprintf(
+            stderr, "BIP6: WSAStartup failed with error %d: %s\n", RetVal,
+            PrintError(RetVal));
+        WSACleanup();
+        exit(1);
     }
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
-    debug_fprintf_bip6(stdout, "BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
+    if (BIP6_Debug) {
+        debug_fprintf(
+            stderr, "BIP6: IPv6 UDP port: 0x%04X\n", (unsigned)BIP6_Addr.port);
+    }
+    bip6_set_interface(ifname);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(
-            &BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
+            &BIP6_Broadcast_Addr, BIP6_MULTICAST_LINK_LOCAL, 0, 0, 0, 0, 0, 0,
             BIP6_MULTICAST_GROUP_ID);
-        BIP6_Broadcast_Addr.port = BIP6_Addr.port;
     }
-    /* assumes that the driver has already been initialized */
-    BIP6_Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-    if (BIP6_Socket < 0) {
-        return false;
+    if (BIP6_Socket == INVALID_SOCKET) {
+        debug_fprintf(
+            stderr, "BIP6: Fatal error: unable to serve on any address.\n");
+        WSACleanup();
+        exit(1);
     }
-
-    if (BIP6_Socket_Scope_Id > 0) {
-        unsigned int idx = BIP6_Socket_Scope_Id;
-        /* Explicitly set the interface for OUTGOING multicast packets */
-        status = setsockopt(
-            BIP6_Socket, IPPROTO_IPV6, IPV6_MULTICAST_IF, &idx, sizeof(idx));
-        if (status < 0) {
-            debug_perror("BIP6: setsockopt(IPV6_MULTICAST_IF)");
-        }
-    }
-
-    /* Allow us to use the same socket for sending and receiving */
-    /* This makes sure that the src port is correct when sending */
-    sockopt = 1;
-    status = setsockopt(
-        BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
-    if (status < 0) {
-        close(BIP6_Socket);
-        BIP6_Socket = -1;
-        return status;
-    }
-    /* allow us to send a broadcast */
-    status = setsockopt(
-        BIP6_Socket, SOL_SOCKET, SO_BROADCAST, &sockopt, sizeof(sockopt));
-    if (status < 0) {
-        close(BIP6_Socket);
-        BIP6_Socket = -1;
-        return false;
-    }
-    bip6_join_group();
-    /* bind the socket to the local port number and IP address */
-    server.sin6_family = AF_INET6;
-#if 0
-    uint16_t addr16[8];
-    bvlc6_address_get(&BIP6_Addr, &addr16[0], &addr16[1], &addr16[2],
-        &addr16[3], &addr16[4], &addr16[5], &addr16[6], &addr16[7]);
-    server.sin6_addr.s6_addr16[0] = htons(addr16[0]);
-    server.sin6_addr.s6_addr16[1] = htons(addr16[1]);
-    server.sin6_addr.s6_addr16[2] = htons(addr16[2]);
-    server.sin6_addr.s6_addr16[3] = htons(addr16[3]);
-    server.sin6_addr.s6_addr16[4] = htons(addr16[4]);
-    server.sin6_addr.s6_addr16[5] = htons(addr16[5]);
-    server.sin6_addr.s6_addr16[6] = htons(addr16[6]);
-    server.sin6_addr.s6_addr16[7] = htons(addr16[7]);
-#else
-    server.sin6_addr = in6addr_any;
-#endif
-    server.sin6_port = htons(BIP6_Addr.port);
-    debug_print_ipv6("Binding->", &server.sin6_addr);
-    status = bind(BIP6_Socket, (const void *)&server, sizeof(server));
-    if (status < 0) {
-        debug_perror("BIP6: bind");
-        close(BIP6_Socket);
-        BIP6_Socket = -1;
-        return false;
-    }
-    bvlc6_init();
 
     return true;
 }
