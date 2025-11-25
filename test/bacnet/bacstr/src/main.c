@@ -700,6 +700,35 @@ static void test_bacnet_string_to_x(void)
 }
 
 /**
+ * @brief Test encode/decode API for bacnet trim functions
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_string_trim)
+#else
+static void test_bacnet_string_trim(void)
+#endif
+{
+    char trim_left[80] = "    abcdefg", *trim_left_result = NULL;
+    char trim_right[80] = "abcdefg    ", *trim_right_result = NULL;
+    char trim_both[80] = "   abcdefg   ", *trim_both_result = NULL;
+    char *trim_test_value = "abcdefg";
+    char *empty_string = "";
+
+    trim_left_result = bacnet_ltrim(trim_left, " ");
+    trim_right_result = bacnet_rtrim(trim_right, " ");
+    trim_both_result = bacnet_trim(trim_both, " ");
+    zassert_equal(bacnet_strcmp(trim_left_result, trim_test_value), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_right_result, trim_test_value), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_both_result, trim_test_value), 0, NULL);
+    trim_left_result = bacnet_ltrim(empty_string, " ");
+    trim_right_result = bacnet_rtrim(empty_string, " ");
+    trim_both_result = bacnet_trim(empty_string, " ");
+    zassert_equal(bacnet_strcmp(trim_left_result, empty_string), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_right_result, empty_string), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_both_result, empty_string), 0, NULL);
+}
+
+/**
  * @}
  */
 
@@ -715,7 +744,8 @@ void test_main(void)
         ztest_unit_test(test_bacnet_strnicmp),
         ztest_unit_test(test_bacnet_strnlen),
         ztest_unit_test(test_bacnet_strto), ztest_unit_test(test_bacnet_strto),
-        ztest_unit_test(test_bacnet_string_to_x));
+        ztest_unit_test(test_bacnet_string_to_x),
+        ztest_unit_test(test_bacnet_string_trim));
     ztest_run_test_suite(bacstr_tests);
 }
 #endif
