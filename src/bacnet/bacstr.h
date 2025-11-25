@@ -231,9 +231,8 @@ BACNET_STACK_EXPORT
 char *bacnet_trim(char *str, const char *trimmedchars);
 
 BACNET_STACK_EXPORT
-int bacnet_snprintf(char *buffer, size_t count, const char *format, ...);
-BACNET_STACK_EXPORT
-int bacnet_snprintf_shift(int len, char **buf, size_t *buf_size);
+int bacnet_snprintf(
+    char *buffer, size_t count, int offset, const char *format, ...);
 
 #ifdef __cplusplus
 }

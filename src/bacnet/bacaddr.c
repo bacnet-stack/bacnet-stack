@@ -844,52 +844,43 @@ bool bacnet_address_binding_init(
 int bacnet_address_binding_to_ascii(
     BACNET_ADDRESS_BINDING *value, char *str, size_t str_len)
 {
-    int slen = 0;
-    int buf_len = 0;
+    int offset = 0;
     int i;
 
     if (!value) {
         return 0;
     }
-    slen = bacnet_snprintf(str, str_len, "{");
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    offset = bacnet_snprintf(str, str_len, offset, "{");
     /* device-identifier */
-    slen = bacnet_snprintf(str, str_len, "(");
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(
-        str, str_len, "%s, ", bactext_object_type_name(OBJECT_DEVICE));
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(
-        str, str_len, "%lu),", (unsigned long)value->device_identifier);
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    offset = bacnet_snprintf(str, str_len, offset, "(");
+    offset = bacnet_snprintf(
+        str, str_len, offset, "%s, ", bactext_object_type_name(OBJECT_DEVICE));
+    offset = bacnet_snprintf(
+        str, str_len, offset, "%lu),", (unsigned long)value->device_identifier);
     /* snet */
-    slen = bacnet_snprintf(
-        str, str_len, "%lu,", (unsigned long)value->device_address.net);
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    offset = bacnet_snprintf(
+        str, str_len, offset, "%lu,", (unsigned long)value->device_address.net);
     /* octetstring */
-    slen = bacnet_snprintf(str, str_len, "X'");
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    offset = bacnet_snprintf(str, str_len, offset, "X'");
     if (value->device_address.net) {
         /* adr */
         for (i = 0; i < value->device_address.len; i++) {
-            slen = bacnet_snprintf(
-                str, str_len, "%02X", (unsigned)value->device_address.adr[i]);
-            buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+            offset = bacnet_snprintf(
+                str, str_len, offset, "%02X",
+                (unsigned)value->device_address.adr[i]);
         }
     } else {
         /* mac */
         for (i = 0; i < value->device_address.mac_len; i++) {
-            slen = bacnet_snprintf(
-                str, str_len, "%02X", (unsigned)value->device_address.mac[i]);
-            buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+            offset = bacnet_snprintf(
+                str, str_len, offset, "%02X",
+                (unsigned)value->device_address.mac[i]);
         }
     }
-    slen = bacnet_snprintf(str, str_len, "'");
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, "}");
-    buf_len += bacnet_snprintf_shift(slen, &str, &str_len);
+    offset = bacnet_snprintf(str, str_len, offset, "'");
+    offset = bacnet_snprintf(str, str_len, offset, "}");
 
-    return buf_len;
+    return offset;
 }
 
 /**

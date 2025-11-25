@@ -135,6 +135,8 @@ static void testCharacterString(void)
 {
     BACNET_CHARACTER_STRING bacnet_string = { 0 }, bacnet_string2 = { 0 };
     const char *value = "Joshua,Mary,Anna,Christopher";
+    const char *utf8_value = "Joshua😍Mary😍Anna😍Christopher";
+    const char *result = NULL;
     char test_value[MAX_APDU] = "Patricia";
     char test_append_value[MAX_APDU] = " and the Kids";
     char test_append_string[MAX_APDU] = "";
@@ -144,12 +146,19 @@ static void testCharacterString(void)
     size_t test_length = 0;
     size_t i = 0;
 
-    /* verify initialization */
+    /* verify UTF8 initialization */
+    status = characterstring_init(&bacnet_string, CHARACTER_UTF8, NULL, 0);
+    zassert_true(status, NULL);
+    zassert_equal(characterstring_length(&bacnet_string), 0, NULL);
+    zassert_equal(
+        characterstring_encoding(&bacnet_string), CHARACTER_UTF8, NULL);
+    /* verify ANSI initialization */
     status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
     zassert_true(status, NULL);
     zassert_equal(characterstring_length(&bacnet_string), 0, NULL);
     zassert_equal(
         characterstring_encoding(&bacnet_string), CHARACTER_ANSI_X34, NULL);
+
     /* empty string is the same as NULL */
     status = characterstring_same(&bacnet_string, NULL);
     zassert_true(status, NULL);
@@ -171,11 +180,11 @@ static void testCharacterString(void)
     status = characterstring_init(
         &bacnet_string, CHARACTER_ANSI_X34, &test_value[0], test_length);
     zassert_true(status, NULL);
-    value = characterstring_value(&bacnet_string);
+    result = characterstring_value(&bacnet_string);
     length = characterstring_length(&bacnet_string);
     zassert_equal(length, test_length, NULL);
     for (i = 0; i < test_length; i++) {
-        zassert_equal(value[i], test_value[i], NULL);
+        zassert_equal(result[i], test_value[i], NULL);
     }
     test_length = characterstring_copy_value(
         test_string, sizeof(test_string), &bacnet_string);
@@ -189,10 +198,10 @@ static void testCharacterString(void)
     test_length = strlen(test_append_string);
     zassert_true(status, NULL);
     length = characterstring_length(&bacnet_string);
-    value = characterstring_value(&bacnet_string);
+    result = characterstring_value(&bacnet_string);
     zassert_equal(length, test_length, NULL);
     for (i = 0; i < test_length; i++) {
-        zassert_equal(value[i], test_append_string[i], NULL);
+        zassert_equal(result[i], test_append_string[i], NULL);
     }
     /* init from valid ASCII string */
     status = characterstring_init_ansi(&bacnet_string, value);
@@ -238,6 +247,22 @@ static void testCharacterString(void)
     status = characterstring_ansi_copy(
         test_append_string, sizeof(test_append_string), &bacnet_string);
     zassert_equal(strncmp(value, test_append_string, strlen(value)), 0, NULL);
+    /* UTF-8 specific */
+    status = characterstring_init_ansi(&bacnet_string, value);
+    zassert_true(status, NULL);
+    length = characterstring_length(&bacnet_string);
+    status = characterstring_init_ansi(&bacnet_string, utf8_value);
+    zassert_true(status, NULL);
+    zassert_equal(
+        characterstring_encoding(&bacnet_string), CHARACTER_UTF8, NULL);
+    status = characterstring_valid(&bacnet_string);
+    zassert_true(status, NULL);
+    test_length = characterstring_utf8_length(&bacnet_string);
+    zassert_equal(
+        length, test_length, "value=\"%s\" length=%d, test_length=%d", value,
+        length, test_length);
+    status = characterstring_printable(&bacnet_string);
+    zassert_false(status, NULL);
 }
 
 /**
@@ -729,6 +754,32 @@ static void test_bacnet_string_trim(void)
 }
 
 /**
+ * @brief Test encode/decode API for bacnet snprintf and shift functions
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_snprintf)
+#else
+static void test_bacnet_snprintf(void)
+#endif
+{
+    int buf_len = 0, str_len;
+    int i;
+    char str[30] = "";
+
+    str_len = sizeof(str);
+    for (i = 0; i < 5; i++) {
+        /* appending formatted strings */
+        buf_len = bacnet_snprintf(str, str_len, buf_len, "{");
+        buf_len =
+            bacnet_snprintf(str, str_len, buf_len, "REALLY BIG STRING BASS");
+        buf_len = bacnet_snprintf(str, str_len, buf_len, "}");
+    }
+    zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
+    zassert_equal(
+        str[buf_len - 1], 0, "str[%d]=%c", buf_len - 1, str[buf_len - 1]);
+}
+
+/**
  * @}
  */
 
@@ -745,7 +796,8 @@ void test_main(void)
         ztest_unit_test(test_bacnet_strnlen),
         ztest_unit_test(test_bacnet_strto), ztest_unit_test(test_bacnet_strto),
         ztest_unit_test(test_bacnet_string_to_x),
-        ztest_unit_test(test_bacnet_string_trim));
+        ztest_unit_test(test_bacnet_string_trim),
+        ztest_unit_test(test_bacnet_snprintf));
     ztest_run_test_suite(bacstr_tests);
 }
 #endif

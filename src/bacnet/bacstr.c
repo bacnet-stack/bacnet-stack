@@ -1932,46 +1932,29 @@ char *bacnet_trim(char *str, const char *trimmedchars)
 }
 
 /**
- * @brief General purpose print formatter snprintf() function.
+ * @brief General purpose print formatter snprintf() function with offset
  * @param buffer - destination string
- * @param count - length of the destination string
+ * @param size - length of the destination string
+ * @param offset - offset into the buffer to start the string
  * @param format - format string
- * @return number of characters written
+ * @return total number of characters written from the beginning of buffer
  */
-int bacnet_snprintf(char *buffer, size_t count, const char *format, ...)
+int bacnet_snprintf(
+    char *buffer, size_t size, int offset, const char *format, ...)
 {
     int length = 0;
     va_list args;
 
-    va_start(args, format);
-    length = vsnprintf(buffer, count, format, args);
-    va_end(args);
-
-    return length;
-}
-
-/**
- * @brief Shift the buffer pointer and decrease the size after an snprintf
- * @param len - number of bytes (excluding terminating NULL byte) from
- * snprintf operation
- * @param buf - pointer to the buffer pointer
- * @param buf_size - pointer to the buffer size
- * @return number of bytes (excluding terminating NULL byte) from snprintf
- */
-int bacnet_snprintf_shift(int len, char **buf, size_t *buf_size)
-{
-    if (buf) {
-        if (*buf) {
-            *buf += len;
+    if (offset < size) {
+        size -= offset;
+        if (buffer) {
+            buffer += offset;
         }
-    }
-    if (buf_size) {
-        if ((*buf_size) >= len) {
-            *buf_size -= len;
-        } else {
-            *buf_size = 0;
-        }
+        va_start(args, format);
+        length = vsnprintf(buffer, size, format, args);
+        va_end(args);
+        return offset + length;
     }
 
-    return len;
+    return size;
 }
