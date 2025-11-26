@@ -12,6 +12,13 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
+## [Unreleased] - 2025-11-25
+
+### Security
+### Fixed
+
+* Fixed datetime integer overflow on 8-bit AVR compiler (#1162)
+
 ## [1.4.2] - 2025-11-15
 
 ### Security
