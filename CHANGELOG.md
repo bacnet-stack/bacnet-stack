@@ -34,6 +34,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed datetime integer overflow on 8-bit AVR compiler (#1162)
 * Fixed the ports/linux BACnet/IP cache netmask for accurate subnet
   prefix calculation implementation which had always returned 0. (#1155)
 * Fixed the loop object empty reference property by initializing to self.
