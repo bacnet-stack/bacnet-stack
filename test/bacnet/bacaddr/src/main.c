@@ -105,6 +105,11 @@ static void test_BACNET_ADDRESS(void)
     zassert_true(status, NULL);
     status = bacnet_address_same(&dest, &src);
     zassert_true(status, NULL);
+    /* initialize using copy */
+    bacnet_address_copy(&dest, NULL);
+    zassert_equal(dest.mac_len, 0, NULL);
+    zassert_equal(dest.len, 0, NULL);
+    zassert_equal(dest.net, 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -215,6 +220,13 @@ static void test_BACnetAddress_Codec(void)
     zassert_equal(value.net, test_value.net, NULL);
     zassert_equal(value.mac_len, test_value.mac_len, NULL);
     zassert_equal(value.mac_len, 6, NULL);
+    /* test deprecated function */
+    test_len = decode_bacnet_address(apdu, &test_value);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(value.net, test_value.net, NULL);
+    zassert_equal(value.mac_len, test_value.mac_len, NULL);
+    zassert_equal(value.mac_len, 6, NULL);
+    /* negative tests - NULL value */
     test_len = bacnet_address_decode(apdu, sizeof(apdu), NULL);
     zassert_equal(len, test_len, NULL);
     /* network address */
@@ -250,6 +262,12 @@ static void test_BACnetAddress_Codec(void)
     zassert_equal(value.net, test_value.net, NULL);
     zassert_equal(value.mac_len, test_value.mac_len, NULL);
     zassert_equal(value.mac_len, 6, NULL);
+    /* validate deprecated function */
+    test_len = decode_context_bacnet_address(apdu, tag_number, &test_value);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(value.net, test_value.net, NULL);
+    zassert_equal(value.mac_len, test_value.mac_len, NULL);
+    zassert_equal(value.mac_len, 6, NULL);
     test_len = bacnet_address_context_decode(
         apdu, sizeof(apdu), tag_number, &test_value);
     /* negative tests - NULL value */
@@ -277,12 +295,18 @@ static void test_bacnet_vmac_entry_codec(void)
 {
     uint8_t apdu[MAX_APDU];
     BACNET_VMAC_ENTRY value = { 0 }, test_value = { 0 };
+    BACNET_ADDRESS test_addr = { 0 };
     int test_len = 0, apdu_len = 0, null_len = 0;
     bool status = false;
     unsigned i;
 
     status = bacnet_vmac_address_set(NULL, 0);
     zassert_false(status, NULL);
+    status = bacnet_vmac_address_set(&test_addr, 12345);
+    zassert_true(status, NULL);
+    zassert_equal(test_addr.mac_len, 3, NULL);
+    zassert_equal(test_addr.net, 0, NULL);
+    /* VMAC */
     value.virtual_mac_address.adr[0] = 1;
     value.virtual_mac_address.adr[1] = 2;
     value.virtual_mac_address.adr[2] = 3;
@@ -431,6 +455,19 @@ static void test_BACNET_ADDRESS_BINDING(void)
     zassert_true(status, NULL);
     status = bacnet_address_binding_same(&test_binding, &binding);
     zassert_true(status, NULL);
+    /* negative tests - NULL value */
+    status = bacnet_address_binding_same(NULL, &binding);
+    zassert_false(status, NULL);
+    status = bacnet_address_binding_same(&test_binding, NULL);
+    zassert_false(status, NULL);
+    status = bacnet_address_binding_copy(NULL, &binding);
+    zassert_false(status, NULL);
+    status = bacnet_address_binding_copy(&test_binding, NULL);
+    zassert_false(status, NULL);
+    status = bacnet_address_binding_init(NULL, 0, &addr);
+    zassert_false(status, NULL);
+    len = bacnet_address_binding_to_ascii(NULL, str, sizeof(str));
+    zassert_equal(len, 0, NULL);
 }
 
 /**

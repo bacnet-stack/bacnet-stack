@@ -50,6 +50,9 @@ void bacnet_address_copy(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
 BACNET_STACK_EXPORT
 bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
 BACNET_STACK_EXPORT
+bool bacnet_address_net_same(
+    const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
+BACNET_STACK_EXPORT
 bool bacnet_address_init(
     BACNET_ADDRESS *dest,
     const BACNET_MAC_ADDRESS *mac,

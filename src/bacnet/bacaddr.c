@@ -99,6 +99,54 @@ bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
 }
 
 /**
+ * @brief Compare two BACnetAddress strictly from encoding based
+ *  on network number.
+ *  BACnetAddress ::= SEQUENCE {
+ *      network-number Unsigned16,-- A value of 0 indicates the local network
+ *      mac-address OctetString -- A string of length 0 indicates a broadcast
+ *  }
+ * @param dest - BACnetAddress to be compared
+ * @param src -  BACnetAddress to be compared
+ * @return true if the same values
+ */
+bool bacnet_address_net_same(
+    const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
+{
+    uint8_t i = 0; /* loop counter */
+
+    if (!dest || !src) {
+        return false;
+    }
+    if (dest->net == 0) {
+        /* local address stored in MAC */
+        if (dest->mac_len != src->mac_len) {
+            return false;
+        }
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            if (i < dest->mac_len) {
+                if (dest->mac[i] != src->mac[i]) {
+                    return false;
+                }
+            }
+        }
+    } else {
+        /* remote address stored in ADR */
+        if (dest->len != src->len) {
+            return false;
+        }
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            if (i < dest->len) {
+                if (dest->adr[i] != src->adr[i]) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
  * @brief Configure a #BACNET_ADDRESS from mac, dnet, and adr
  * @param dest - #BACNET_ADDRESS to be configured
  * @param mac - #BACNET_MAC_ADDRESS used in configuration

@@ -92,6 +92,9 @@ void bacnet_recipient_copy(BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src);
 BACNET_STACK_EXPORT
 bool bacnet_recipient_same(
     const BACNET_RECIPIENT *r1, const BACNET_RECIPIENT *r2);
+
+BACNET_STACK_EXPORT
+void bacnet_recipient_device_wildcard_set(BACNET_RECIPIENT *recipient);
 BACNET_STACK_EXPORT
 bool bacnet_recipient_device_wildcard(const BACNET_RECIPIENT *recipient);
 BACNET_STACK_EXPORT
