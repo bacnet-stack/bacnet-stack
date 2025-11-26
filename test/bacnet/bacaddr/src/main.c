@@ -31,6 +31,10 @@ static void test_BACNET_ADDRESS(void)
     zassert_false(status, NULL);
     status = bacnet_address_same(NULL, NULL);
     zassert_false(status, NULL);
+    bacnet_address_copy(&dest, NULL);
+    bacnet_address_copy(&src, NULL);
+    status = bacnet_address_same(&dest, &src);
+    zassert_true(status, NULL);
 
     /* happy day cases */
     status = bacnet_address_same(&dest, &dest);
@@ -44,6 +48,42 @@ static void test_BACNET_ADDRESS(void)
     zassert_true(status, NULL);
     status = bacnet_address_same(&dest, &src);
     zassert_true(status, NULL);
+    mac.len = 1;
+    mac.adr[0] = 3;
+    adr.len = 1;
+    adr.adr[0] = 4;
+    dnet = 1234;
+    status = bacnet_address_init(&src, &mac, dnet, &adr);
+    zassert_true(status, NULL);
+    bacnet_address_copy(&dest, &src);
+    zassert_true(status, NULL);
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_true(status, NULL);
+    dnet = 0;
+    status = bacnet_address_init(&src, &mac, dnet, &adr);
+    zassert_true(status, NULL);
+    bacnet_address_copy(&dest, &src);
+    zassert_true(status, NULL);
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_true(status, NULL);
+    /* net + adr */
+    dnet = 1;
+    status = bacnet_address_init(&src, NULL, dnet, &adr);
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_false(status, NULL);
+    /* net=0, mac */
+    dnet = 1;
+    status = bacnet_address_init(&dest, NULL, dnet, &adr);
+    zassert_true(status, NULL);
+    dnet = 0;
+    status = bacnet_address_init(&src, &mac, dnet, NULL);
+    zassert_true(status, NULL);
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_false(status, NULL);
+    status = bacnet_address_net_same(NULL, &src);
+    zassert_false(status, NULL);
+    status = bacnet_address_net_same(&dest, NULL);
+    zassert_false(status, NULL);
     /* remote dnet is non-zero */
     dnet = 1;
     status = bacnet_address_init(&dest, &mac, dnet, &adr);

@@ -117,6 +117,9 @@ bool bacnet_address_net_same(
     if (!dest || !src) {
         return false;
     }
+    if (dest->net != src->net) {
+        return false;
+    }
     if (dest->net == 0) {
         /* local address stored in MAC */
         if (dest->mac_len != src->mac_len) {
