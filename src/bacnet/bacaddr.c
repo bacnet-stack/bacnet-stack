@@ -889,12 +889,12 @@ int bacnet_address_binding_to_ascii(
  * @param argv [in] The string to parse
  * @return true on success, else false
  * @details format:
- *      (device, 1234),1234,X'c0:a8:00:0f'
+ *      {(device, 1234),1234,X'c0:a8:00:0f'}
  */
 bool bacnet_address_binding_from_ascii(
     BACNET_ADDRESS_BINDING *value, const char *arg)
 {
-    int count = 0;
+    int count = 0, i = 0;
     unsigned snet = 0;
     char mac_string[80] = { "" }, obj_string[80] = { "" };
     BACNET_MAC_ADDRESS mac = { 0 };
@@ -905,8 +905,8 @@ bool bacnet_address_binding_from_ascii(
         return false;
     }
     count = sscanf(
-        arg, "(%79s,%lu),%u,%79s", obj_string, &object_instance, &snet,
-        mac_string);
+        arg, "{(%79[^,], %lu),%u,X'%79[^']'}", obj_string, &object_instance,
+        &snet, mac_string);
     if (count == 4) {
         if (!bactext_object_type_strtol(obj_string, &object_type)) {
             return false;
@@ -921,9 +921,18 @@ bool bacnet_address_binding_from_ascii(
             value->device_identifier = object_instance;
             value->device_address.net = snet;
             if (snet) {
+                value->device_address.len = mac.len;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    value->device_address.adr[i] = mac.adr[i];
+                }
             } else {
+                value->device_address.mac_len = mac.len;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    value->device_address.mac[i] = mac.adr[i];
+                }
             }
         }
+        return true;
     } else {
         return false;
     }

@@ -375,16 +375,62 @@ static void test_BACNET_ADDRESS_BINDING(void)
 #endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
-    BACNET_MAC_ADDRESS mac = { .adr[0] = 0x01, .len = 1 };
+    BACNET_ADDRESS addr = {
+        .mac_len = 1, .mac[0] = 0x01, .net = 0, .adr[0] = 0, .len = 0
+    };
     BACNET_ADDRESS_BINDING binding = { 0 }, test_binding = { 0 };
     bool status = false;
     int len, test_len, apdu_len, null_len;
+    char str[80] = "";
 
     null_len = bacnet_address_binding_type_encode(NULL, NULL);
     zassert_equal(null_len, 0, NULL);
-    status = bacnet_address_init(&binding.device_address, &mac, 0, NULL);
+    status = bacnet_address_binding_init(&binding, 12345, &addr);
+    len = bacnet_address_binding_type_encode(NULL, &binding);
     null_len = bacnet_address_binding_type_encode(NULL, &binding);
     zassert_not_equal(null_len, 0, NULL);
+    apdu_len = bacnet_address_binding_type_encode(apdu, &binding);
+    zassert_not_equal(null_len, 0, NULL);
+    zassert_equal(null_len, apdu_len, NULL);
+    test_len = bacnet_address_binding_decode(apdu, apdu_len, &test_binding);
+    zassert_equal(apdu_len, test_len, NULL);
+    status = bacnet_address_same(
+        &binding.device_address, &test_binding.device_address);
+    zassert_true(status, NULL);
+    status = bacnet_address_binding_same(&binding, &test_binding);
+    zassert_true(status, NULL);
+    null_len = bacnet_address_binding_encode(NULL, 0, &binding);
+    zassert_equal(null_len, 0, NULL);
+    null_len = bacnet_address_binding_encode(NULL, 0, NULL);
+    zassert_equal(null_len, 0, NULL);
+    null_len = bacnet_address_binding_encode(NULL, sizeof(apdu), &binding);
+    zassert_not_equal(null_len, 0, NULL);
+    apdu_len = bacnet_address_binding_encode(apdu, sizeof(apdu), &binding);
+    zassert_equal(null_len, apdu_len, NULL);
+    /* shrink the apdu size for decoding test */
+    while (apdu_len) {
+        apdu_len--;
+        test_len = bacnet_address_binding_decode(apdu, apdu_len, &test_binding);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
+    /* negative tests - NULL value */
+    apdu_len = bacnet_address_binding_encode(apdu, sizeof(apdu), &binding);
+    zassert_equal(null_len, apdu_len, NULL);
+    test_len = bacnet_address_binding_decode(apdu, sizeof(apdu), NULL);
+    zassert_equal(apdu_len, test_len, NULL);
+    test_len = bacnet_address_binding_decode(NULL, 0, NULL);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    status = bacnet_address_binding_copy(&test_binding, &binding);
+    zassert_true(status, NULL);
+    status = bacnet_address_binding_same(&test_binding, &binding);
+    zassert_true(status, NULL);
+    /* ASCII */
+    len = bacnet_address_binding_to_ascii(&binding, str, sizeof(str));
+    zassert_true(len > 0, NULL);
+    status = bacnet_address_binding_from_ascii(&test_binding, str);
+    zassert_true(status, NULL);
+    status = bacnet_address_binding_same(&test_binding, &binding);
+    zassert_true(status, NULL);
 }
 
 /**
