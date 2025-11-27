@@ -890,7 +890,7 @@ bool bacnet_address_binding_init(
  * @param str_size [in] The size of the string buffer
  * @return length of the produced string
  * @details Output format:
- *      (device, 1234),1234,X'c0:a8:00:0f'
+ *      {(device, 1234),1234,X'c0:a8:00:0f'}
  */
 int bacnet_address_binding_to_ascii(
     const BACNET_ADDRESS_BINDING *value, char *str, size_t str_len)
