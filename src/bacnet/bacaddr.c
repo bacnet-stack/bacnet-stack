@@ -893,7 +893,7 @@ bool bacnet_address_binding_init(
  *      (device, 1234),1234,X'c0:a8:00:0f'
  */
 int bacnet_address_binding_to_ascii(
-    BACNET_ADDRESS_BINDING *value, char *str, size_t str_len)
+    const BACNET_ADDRESS_BINDING *value, char *str, size_t str_len)
 {
     int offset = 0;
     int i;
