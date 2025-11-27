@@ -17,6 +17,14 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 
+* Added BACnetRecipient and BACnetAddressBinding codecs for EPICS application.
+  The implementation includes full encode/decode, ASCII conversion,
+  comparison, and copy functions for both data types, along with
+  comprehensive test coverage and supporting string utility functions.
+  Integrated the new types into the application data framework with
+  application tag assignments. (#1163)
+* Added library specific string manipulation utilities including strcmp,
+  strncmp, and snprintf with offset functions. (#1163)
 * Added default option to bactext name functions so that NULL can be
   returned when a name does not exist. (#1160)
 * Added library specific ltrim, rtrim, and trim string functions. (#1159)
