@@ -123,7 +123,7 @@ int bacnet_recipient_context_decode(
 BACNET_STACK_EXPORT
 bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str);
 BACNET_STACK_EXPORT
-bool bacnet_recipient_to_ascii(
+int bacnet_recipient_to_ascii(
     const BACNET_RECIPIENT *value, char *buf, size_t buf_size);
 
 BACNET_STACK_EXPORT

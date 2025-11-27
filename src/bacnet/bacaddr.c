@@ -459,7 +459,7 @@ int bacnet_address_context_decode(
     int apdu_len = 0;
 
     if (!apdu) {
-        return false;
+        return BACNET_STATUS_ERROR;
     }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
@@ -841,7 +841,7 @@ bool bacnet_address_binding_same(
         return false;
     }
     return bacnet_address_same(
-        &value1->device_address, &value1->device_address);
+        &value1->device_address, &value2->device_address);
 }
 
 /**

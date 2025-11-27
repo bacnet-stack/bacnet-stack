@@ -1,4 +1,4 @@
-# BACnet Stack Verifification and Validation Testing
+# BACnet Stack Verification and Validation Testing
 
 CMake and C99 are used for the verification and validation testing.
 

@@ -794,7 +794,7 @@ void test_main(void)
         ztest_unit_test(test_bacnet_stricmp),
         ztest_unit_test(test_bacnet_strnicmp),
         ztest_unit_test(test_bacnet_strnlen),
-        ztest_unit_test(test_bacnet_strto), ztest_unit_test(test_bacnet_strto),
+        ztest_unit_test(test_bacnet_strto),
         ztest_unit_test(test_bacnet_string_to_x),
         ztest_unit_test(test_bacnet_string_trim),
         ztest_unit_test(test_bacnet_snprintf));

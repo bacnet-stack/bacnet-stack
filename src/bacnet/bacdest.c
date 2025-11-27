@@ -84,7 +84,8 @@ bool bacnet_recipient_same(
                     status = true;
                 }
             } else if (r1->tag == BACNET_RECIPIENT_TAG_ADDRESS) {
-                bacnet_address_net_same(&r1->type.address, &r2->type.address);
+                status = bacnet_address_net_same(
+                    &r1->type.address, &r2->type.address);
             } else {
                 status = false;
             }

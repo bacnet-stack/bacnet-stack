@@ -42,6 +42,7 @@ static void testBACnetDestination(void)
     test_len = bacnet_destination_decode(apdu, apdu_len, &test_destination);
     zassert_equal(apdu_len, test_len, NULL);
     status = bacnet_destination_same(&destination, &test_destination);
+    zassert_true(status, NULL);
 
     destination.Recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
     destination.Recipient.type.address.net = 1234;
