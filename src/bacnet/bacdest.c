@@ -1276,7 +1276,7 @@ int bacnet_recipient_to_ascii(
             str, str_len, offset, "%s, ",
             bactext_object_type_name(value->type.device.type));
         offset = bacnet_snprintf(
-            str, str_len, offset, "%lu),",
+            str, str_len, offset, "%lu)",
             (unsigned long)value->type.device.instance);
     } else {
         offset = bacnet_snprintf(str, str_len, offset, "{");
