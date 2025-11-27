@@ -455,6 +455,46 @@ int bacnet_destination_decode(
 }
 
 /**
+ * @brief Decode the BACnetDestination context tagged complex data
+ * @param apdu  Pointer to the APDU buffer.
+ * @param apdu_size - the APDU buffer length
+ * @param tag_number  The tag number that shall
+ *                    hold the time stamp.
+ * @param value  Pointer to the variable that shall
+ *               take the time stamp values.
+ * @return number of bytes decoded, zero if tag mismatch,
+ *  or BACNET_STATUS_ERROR if an error occurs
+ */
+int bacnet_destination_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DESTINATION *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return 0;
+    }
+    apdu_len += len;
+    len =
+        bacnet_destination_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
  * @brief Encode the BACnetRecipient complex data
  *
  * BACnetRecipient ::= CHOICE {
@@ -1164,38 +1204,35 @@ parse_end:
 bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str)
 {
     BACNET_RECIPIENT value = { 0 };
-    const char *tag_names[] = { "device", "address" };
-    const char *substring, *startstring;
-    unsigned i;
+    char object_string[80] = "";
+    unsigned long object_instance = 0;
+    int count;
 
     if (!str) {
         return false;
     }
-    for (i = 0; i < ARRAY_SIZE(tag_names); i++) {
-        startstring = strstr(str, tag_names[i]);
-        if (!startstring) {
-            continue;
-        }
-        switch (i) {
-            case BACNET_RECIPIENT_TAG_DEVICE:
+    if (str[0] == 0) {
+        return false;
+    }
+    if (str[0] == '(') {
+        /* (device, 1234) */
+        count = sscanf(str, "(%79[^,], %lu)", object_string, &object_instance);
+        if (count == 2) {
+            if (bactext_object_type_strtol(
+                    object_string, &value.type.device.type)) {
                 value.tag = BACNET_RECIPIENT_TAG_DEVICE;
-                value.type.device.type = OBJECT_DEVICE;
-                substring = startstring + strlen(tag_names[i]);
-                if (!bacnet_string_to_uint32(
-                        substring, &value.type.device.instance)) {
-                    return false;
-                }
-                break;
-            case BACNET_RECIPIENT_TAG_ADDRESS:
-                value.tag = BACNET_RECIPIENT_TAG_ADDRESS;
-                substring = startstring + strlen(tag_names[i]);
-                if (!bacnet_address_from_ascii(
-                        &value.type.address, substring)) {
-                    return false;
-                }
-                break;
-            default:
-                break;
+                value.type.device.instance = object_instance;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    } else if (str[0] == '{') {
+        value.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+        /* {X'c0:a8:00:0f',1234,X'c0:a8:00:0f'} */
+        if (!bacnet_address_from_ascii(&value.type.address, str)) {
+            return false;
         }
     }
     if (value_out) {

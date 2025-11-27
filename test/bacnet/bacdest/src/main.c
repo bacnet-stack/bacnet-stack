@@ -76,6 +76,16 @@ static void testBACnetDestination(void)
     zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
     test_len = bacnet_destination_decode(apdu, 0, &test_destination);
     zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
+    /* context */
+    null_len = bacnet_destination_context_encode(NULL, 4, &destination);
+    apdu_len = bacnet_destination_context_encode(apdu, 4, &destination);
+    zassert_equal(apdu_len, null_len, NULL);
+    test_len =
+        bacnet_destination_context_decode(apdu, apdu_len, 4, &test_destination);
+    zassert_equal(apdu_len, test_len, NULL);
+    /* defaults */
+    status = bacnet_destination_default(&destination);
+    zassert_false(status, NULL);
 }
 /**
  * @}
@@ -186,6 +196,40 @@ static void testBACnetRecipient(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_destination_tests, test_BACnetRecipient_ASCII)
+#else
+static void test_BACnetRecipient_ASCII(void)
+#endif
+{
+    bool status = false;
+    BACNET_RECIPIENT value = { 0 }, test_value = { 0 };
+    BACNET_ADDRESS address = { 0 };
+    BACNET_MAC_ADDRESS mac = { .len = 1, .adr[0] = 0x01 };
+    BACNET_MAC_ADDRESS adr = { .len = 1, .adr[0] = 0x02 };
+    uint16_t snet = 1234;
+    int len = 0;
+    char ascii[80] = "";
+
+    bacnet_recipient_device_set(&value, OBJECT_DEVICE, 4194303);
+    len = bacnet_recipient_to_ascii(&value, ascii, sizeof(ascii));
+    zassert_true(len > 0, NULL);
+    status = bacnet_recipient_from_ascii(&test_value, ascii);
+    zassert_true(status, "ascii=%s", ascii);
+    status = bacnet_recipient_same(&value, &test_value);
+    zassert_true(status, NULL);
+
+    status = bacnet_address_init(&address, &mac, snet, &adr);
+    zassert_true(status, NULL);
+    bacnet_recipient_address_set(&value, &address);
+    len = bacnet_recipient_to_ascii(&value, ascii, sizeof(ascii));
+    zassert_true(len > 0, NULL);
+    status = bacnet_recipient_from_ascii(&test_value, ascii);
+    zassert_true(status, "ascii=%s", ascii);
+    status = bacnet_recipient_same(&value, &test_value);
+    zassert_true(status, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bacnet_destination_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
@@ -193,7 +237,8 @@ void test_main(void)
     ztest_test_suite(
         bacnet_destination_tests, ztest_unit_test(testBACnetDestination),
         ztest_unit_test(test_BACnetDestination_ASCII),
-        ztest_unit_test(testBACnetRecipient));
+        ztest_unit_test(testBACnetRecipient),
+        ztest_unit_test(test_BACnetRecipient_ASCII));
 
     ztest_run_test_suite(bacnet_destination_tests);
 }

@@ -398,8 +398,8 @@ ZTEST(bacnet_address_tests, test_bacnet_address_ascii)
 static void test_bacnet_address_ascii(void)
 #endif
 {
-    char ascii_mac_net_adr[80] = "ff:00:ff:01:ff:02 1 7f";
-    char ascii_mac_net[80] = "192.168.1.1:47808 0";
+    char ascii_mac_net_adr[80] = "{ff:00:ff:01:ff:02,1,7f}";
+    char ascii_mac_net[80] = "{192.168.1.1:47808,0}";
     BACNET_ADDRESS value = { 0 };
     bool status;
 

@@ -71,6 +71,12 @@ BACNET_STACK_EXPORT
 int bacnet_destination_decode(
     const uint8_t *apdu, int apdu_len, BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
+int bacnet_destination_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DESTINATION *value);
+BACNET_STACK_EXPORT
 void bacnet_destination_default_init(BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
 bool bacnet_destination_default(const BACNET_DESTINATION *destination);
