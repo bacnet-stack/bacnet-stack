@@ -1260,7 +1260,7 @@ bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str)
  *  input, excluding the trailing null.
  * @note buf and buf_size may be null and zero to return only the size
  */
-bool bacnet_recipient_to_ascii(
+int bacnet_recipient_to_ascii(
     const BACNET_RECIPIENT *value, char *str, size_t str_len)
 {
     int offset = 0;
