@@ -1263,6 +1263,7 @@ bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str)
     BACNET_RECIPIENT value = { 0 };
     char object_string[80] = "";
     unsigned long object_instance = 0;
+    uint32_t found_index = 0;
     int count;
 
     if (!str) {
@@ -1275,9 +1276,9 @@ bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str)
         /* (device, 1234) */
         count = sscanf(str, "(%79[^,], %lu)", object_string, &object_instance);
         if (count == 2) {
-            if (bactext_object_type_strtol(
-                    object_string, &value.type.device.type)) {
+            if (bactext_object_type_strtol(object_string, &found_index)) {
                 value.tag = BACNET_RECIPIENT_TAG_DEVICE;
+                value.type.device.type = (BACNET_OBJECT_TYPE)found_index;
                 value.type.device.instance = object_instance;
             } else {
                 return false;

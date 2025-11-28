@@ -984,8 +984,6 @@ bool bacnet_address_binding_from_ascii(
             }
         }
         return true;
-    } else {
-        return false;
     }
 
     return false;
