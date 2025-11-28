@@ -1088,6 +1088,32 @@ bool octetstring_init_ascii_hex(
 }
 
 /**
+ * @brief Converts an null terminated ASCII Hex EPICS formatted string
+ *  to an octet string.
+ * @details format: X'c0:a8:00:0f'
+ * @param octet_string  Pointer to the octet string.
+ * @param arg  Pointer to the HEX-ASCII EPICS format string
+ * @return true if successfully converted and fits; false if too long
+ */
+bool octetstring_init_ascii_epics(
+    BACNET_OCTET_STRING *octet_string, const char *arg)
+{
+    bool status = false; /* return value */
+
+    if (!octet_string) {
+        return false;
+    }
+    if (!arg) {
+        return false;
+    }
+    if (bacnet_strnicmp(arg, "X'", 2) == 0) {
+        status = octetstring_init_ascii_hex(octet_string, arg + 2);
+    }
+
+    return status;
+}
+
+/**
  * Copy an octet string from source to destination.
  *
  * @param dest  Pointer to the destination octet string.
@@ -1805,7 +1831,7 @@ bool bacnet_string_to_unsigned(
  * @return character string buffer
  */
 char *
-bacnet_sprintf_to_ascii(char *buffer, size_t size, const char *format, ...)
+bacnet_snprintf_to_ascii(char *buffer, size_t size, const char *format, ...)
 {
     va_list args;
 
@@ -1828,7 +1854,7 @@ bacnet_sprintf_to_ascii(char *buffer, size_t size, const char *format, ...)
  */
 char *bacnet_dtoa(double value, char *buffer, size_t size, unsigned precision)
 {
-    return bacnet_sprintf_to_ascii(buffer, size, "%.*f", precision, value);
+    return bacnet_snprintf_to_ascii(buffer, size, "%.*f", precision, value);
 }
 
 /**
@@ -1840,7 +1866,7 @@ char *bacnet_dtoa(double value, char *buffer, size_t size, unsigned precision)
  */
 char *bacnet_itoa(int value, char *buffer, size_t size)
 {
-    return bacnet_sprintf_to_ascii(buffer, size, "%d", value);
+    return bacnet_snprintf_to_ascii(buffer, size, "%d", value);
 }
 
 /**
@@ -1852,7 +1878,7 @@ char *bacnet_itoa(int value, char *buffer, size_t size)
  */
 char *bacnet_ltoa(long value, char *buffer, size_t size)
 {
-    return bacnet_sprintf_to_ascii(buffer, size, "%ld", value);
+    return bacnet_snprintf_to_ascii(buffer, size, "%ld", value);
 }
 
 /**
@@ -1864,7 +1890,7 @@ char *bacnet_ltoa(long value, char *buffer, size_t size)
  */
 char *bacnet_utoa(unsigned value, char *buffer, size_t size)
 {
-    return bacnet_sprintf_to_ascii(buffer, size, "%u", value);
+    return bacnet_snprintf_to_ascii(buffer, size, "%u", value);
 }
 
 /**
@@ -1876,7 +1902,7 @@ char *bacnet_utoa(unsigned value, char *buffer, size_t size)
  */
 char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
 {
-    return bacnet_sprintf_to_ascii(buffer, size, "%lu", value);
+    return bacnet_snprintf_to_ascii(buffer, size, "%lu", value);
 }
 
 /**
@@ -1929,6 +1955,65 @@ char *bacnet_rtrim(char *str, const char *trimmedchars)
 char *bacnet_trim(char *str, const char *trimmedchars)
 {
     return bacnet_ltrim(bacnet_rtrim(str, trimmedchars), trimmedchars);
+}
+
+/**
+ * @brief Parse a token from a string.
+ * @details From a string, a buffer to receive the "token" that gets scanned,
+ *  the length of the buffer, and a string of "break" characters that stop
+ *  the scan. The function will copy the string into the buffer up to any
+ *  of the break characters, or until the buffer is full, and will always
+ *  leave the buffer null-terminated. The function will return a pointer
+ *  to the first non-breaking character after the one that stopped the scan.
+ * @param s string to parse
+ * @param tok buffer that receives the "token" that gets scanned
+ * @param toklen length of the buffer
+ * @param brk string of break characters that will stop the scan
+ * @return a pointer to the first non-breaking character after the one that
+ *  stopped the scan or NULL on error or end of string.
+ * @note public domain by Ray Gardner, modified by Bob Stout and Steve Karg
+ */
+char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
+{
+    char *lim; /* limit of token */
+    const char *b; /* current break character */
+
+    /* check for invalid pointers */
+    if (!s || !tok || !brk) {
+        return NULL;
+    }
+
+    /* check for empty string */
+    if (!*s) {
+        return NULL;
+    }
+
+    lim = tok + toklen - 1;
+    while (*s && tok < lim) {
+        for (b = brk; *b; b++) {
+            if (*s == *b) {
+                *tok = 0;
+                for (++s, b = brk; *s && *b; ++b) {
+                    if (*s == *b) {
+                        ++s;
+                        b = brk;
+                    }
+                }
+                if (!*s) {
+                    return NULL;
+                }
+                return (char *)s;
+            }
+        }
+        *tok++ = *s++;
+    }
+    *tok = 0;
+
+    if (!*s) {
+        return NULL;
+    }
+
+    return (char *)s;
 }
 
 /**

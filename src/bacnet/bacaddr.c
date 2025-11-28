@@ -327,7 +327,7 @@ bool bacnet_address_from_ascii(BACNET_ADDRESS *src, const char *arg)
         return false;
     }
     count = sscanf(
-        arg, "{X'%79s',%5u,X'%79s'}", &mac_string[0], &snet, &sadr_string[0]);
+        arg, "{%79[^,],%u,%79[^}]}", &mac_string[0], &snet, &sadr_string[0]);
     if (count > 0) {
         if (bacnet_address_mac_from_ascii(&mac, mac_string)) {
             if (src) {

@@ -1192,6 +1192,62 @@ parse_end:
 }
 
 /**
+ * @brief Parse an ASCII string for a BACnetRecipient address
+ * @details Address format: {X'c0:a8:00:0f',1234,X'c0:a8:00:0f'}
+ * @param src [out] BACNET_MAC_ADDRESS structure to store the results
+ * @param arg [in] null terminated ASCII string to parse
+ * @return true if the address was parsed
+ */
+bool bacnet_recipient_address_from_ascii(BACNET_ADDRESS *src, const char *arg)
+{
+    bool status = false;
+    int count = 0;
+    unsigned snet = 0, i;
+    char mac_string[80] = { "" }, sadr_string[80] = { "" };
+    BACNET_MAC_ADDRESS mac = { 0 };
+
+    if (!(src && arg)) {
+        return false;
+    }
+    count = sscanf(
+        arg, "{X'%79[^']',%u,X'%79[^']'}", &mac_string[0], &snet,
+        &sadr_string[0]);
+    if (count > 0) {
+        if (bacnet_address_mac_from_ascii(&mac, mac_string)) {
+            if (src) {
+                src->mac_len = mac.len;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    src->mac[i] = mac.adr[i];
+                }
+            }
+        }
+        if (src) {
+            src->net = (uint16_t)snet;
+        }
+        if (snet) {
+            if (bacnet_address_mac_from_ascii(&mac, sadr_string)) {
+                if (src) {
+                    src->len = mac.len;
+                    for (i = 0; i < MAX_MAC_LEN; i++) {
+                        src->adr[i] = mac.adr[i];
+                    }
+                }
+            }
+        } else {
+            if (src) {
+                src->len = 0;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    src->adr[i] = 0;
+                }
+            }
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * Parse BACnet_Recipient from ASCII string (as entered by user)
  * @param value - struct to store data parsed from the ASCII
  * @param str - ASCII string, zero terminated
@@ -1232,7 +1288,7 @@ bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str)
     } else if (str[0] == '{') {
         value.tag = BACNET_RECIPIENT_TAG_ADDRESS;
         /* {X'c0:a8:00:0f',1234,X'c0:a8:00:0f'} */
-        if (!bacnet_address_from_ascii(&value.type.address, str)) {
+        if (!bacnet_recipient_address_from_ascii(&value.type.address, str)) {
             return false;
         }
     }

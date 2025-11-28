@@ -144,6 +144,9 @@ BACNET_STACK_EXPORT
 bool octetstring_init_ascii_hex(
     BACNET_OCTET_STRING *octet_string, const char *ascii_hex);
 BACNET_STACK_EXPORT
+bool octetstring_init_ascii_epics(
+    BACNET_OCTET_STRING *octet_string, const char *arg);
+BACNET_STACK_EXPORT
 bool octetstring_copy(
     BACNET_OCTET_STRING *dest, const BACNET_OCTET_STRING *src);
 BACNET_STACK_EXPORT
@@ -221,7 +224,10 @@ BACNET_STACK_EXPORT
 char *bacnet_ultoa(unsigned long value, char *buffer, size_t size);
 BACNET_STACK_EXPORT
 char *
-bacnet_sprintf_to_ascii(char *buffer, size_t count, const char *format, ...);
+bacnet_snprintf_to_ascii(char *buffer, size_t count, const char *format, ...);
+BACNET_STACK_EXPORT
+int bacnet_snprintf(
+    char *buffer, size_t count, int offset, const char *format, ...);
 
 BACNET_STACK_EXPORT
 char *bacnet_ltrim(char *str, const char *trimmedchars);
@@ -231,8 +237,7 @@ BACNET_STACK_EXPORT
 char *bacnet_trim(char *str, const char *trimmedchars);
 
 BACNET_STACK_EXPORT
-int bacnet_snprintf(
-    char *buffer, size_t count, int offset, const char *format, ...);
+char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk);
 
 #ifdef __cplusplus
 }

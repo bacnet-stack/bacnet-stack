@@ -4582,8 +4582,11 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
-                status =
-                    octetstring_init_ascii_hex(&value->type.Octet_String, argv);
+                if (!octetstring_init_ascii_epics(
+                        &value->type.Octet_String, argv)) {
+                    status = octetstring_init_ascii_hex(
+                        &value->type.Octet_String, argv);
+                }
                 break;
 #endif
 #if defined(BACAPP_CHARACTER_STRING)

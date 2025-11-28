@@ -718,7 +718,7 @@ static void test_bacnet_string_to_x(void)
         bacnet_string_to_unsigned(extra_text_string, &bacnet_unsigned_integer);
     zassert_false(status, NULL);
     /* ascii string */
-    ascii_string_result = bacnet_sprintf_to_ascii(
+    ascii_string_result = bacnet_snprintf_to_ascii(
         ascii_string, sizeof(ascii_string), "%s", test_ascii_string);
     zassert_equal(
         bacnet_strcmp(ascii_string_result, test_ascii_string), 0, NULL);
@@ -751,6 +751,34 @@ static void test_bacnet_string_trim(void)
     zassert_equal(bacnet_strcmp(trim_left_result, empty_string), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_right_result, empty_string), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_both_result, empty_string), 0, NULL);
+}
+
+/**
+ * @brief Test bacnet_stptok string tokenizer
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_stptok)
+#else
+static void test_bacnet_stptok(void)
+#endif
+{
+    char *pCmd = "I Love You\r\n";
+    char token[80] = "";
+
+    pCmd = bacnet_stptok(pCmd, token, sizeof(token), " \r\n");
+
+    zassert_true(bacnet_strcmp(token, "I") == 0, NULL);
+    zassert_true(bacnet_strcmp(pCmd, "Love You\r\n") == 0, NULL);
+
+    pCmd = bacnet_stptok(pCmd, token, sizeof(token), " \r\n");
+
+    zassert_true(bacnet_strcmp(token, "Love") == 0, NULL);
+    zassert_true(bacnet_strcmp(pCmd, "You\r\n") == 0, NULL);
+
+    pCmd = bacnet_stptok(pCmd, token, sizeof(token), " \r\n");
+
+    zassert_true(bacnet_strcmp(token, "You") == 0, NULL);
+    zassert_true(pCmd == NULL, NULL);
 }
 
 /**
@@ -797,6 +825,7 @@ void test_main(void)
         ztest_unit_test(test_bacnet_strto),
         ztest_unit_test(test_bacnet_string_to_x),
         ztest_unit_test(test_bacnet_string_trim),
+        ztest_unit_test(test_bacnet_stptok),
         ztest_unit_test(test_bacnet_snprintf));
     ztest_run_test_suite(bacstr_tests);
 }
