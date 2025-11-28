@@ -50,6 +50,9 @@ void bacnet_address_copy(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
 BACNET_STACK_EXPORT
 bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
 BACNET_STACK_EXPORT
+bool bacnet_address_net_same(
+    const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
+BACNET_STACK_EXPORT
 bool bacnet_address_init(
     BACNET_ADDRESS *dest,
     const BACNET_MAC_ADDRESS *mac,
@@ -124,8 +127,8 @@ bool bacnet_address_binding_init(
     uint32_t device_id,
     const BACNET_ADDRESS *address);
 BACNET_STACK_EXPORT
-bool bacnet_address_binding_to_ascii(
-    BACNET_ADDRESS_BINDING *value, char *buf, size_t buf_size);
+int bacnet_address_binding_to_ascii(
+    const BACNET_ADDRESS_BINDING *value, char *buf, size_t buf_size);
 BACNET_STACK_EXPORT
 bool bacnet_address_binding_from_ascii(
     BACNET_ADDRESS_BINDING *value, const char *arg);

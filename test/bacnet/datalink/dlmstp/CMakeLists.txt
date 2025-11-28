@@ -40,8 +40,10 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/basic/sys/ringbuf.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/npdu.c
     # Test and test library files
     ./src/main.c

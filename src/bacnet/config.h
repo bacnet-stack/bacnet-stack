@@ -312,7 +312,7 @@
     defined(BACAPP_CHANNEL_VALUE) || \
     defined(BACAPP_TIMER_VALUE) || \
     defined(BACAPP_RECIPIENT) || \
-    defined(BACAPP_ADDRESS_BINDING)|| \
+    defined(BACAPP_ADDRESS_BINDING) || \
     defined(BACAPP_NO_VALUE) || \
     defined(BACAPP_LOG_RECORD)
 #define BACAPP_COMPLEX_TYPES

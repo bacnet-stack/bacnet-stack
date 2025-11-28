@@ -543,7 +543,7 @@ int bacapp_encode_application_data(
 #endif
 #if defined(BACAPP_ADDRESS_BINDING)
             case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
-                apdu_len = bacnet_address_binding_encode(
+                apdu_len = bacnet_address_binding_type_encode(
                     apdu, &value->type.Address_Binding);
                 break;
 #endif
@@ -1698,7 +1698,7 @@ int bacapp_decode_application_tag_value(
 #endif
 #if defined(BACAPP_RECIPIENT)
         case BACNET_APPLICATION_TAG_RECIPIENT:
-            apdu_len = bacnet_timer_value_decode(
+            apdu_len = bacnet_recipient_decode(
                 apdu, apdu_size, &value->type.Recipient);
             break;
 #endif
@@ -4582,8 +4582,11 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
-                status =
-                    octetstring_init_ascii_hex(&value->type.Octet_String, argv);
+                if (!octetstring_init_ascii_epics(
+                        &value->type.Octet_String, argv)) {
+                    status = octetstring_init_ascii_hex(
+                        &value->type.Octet_String, argv);
+                }
                 break;
 #endif
 #if defined(BACAPP_CHARACTER_STRING)
@@ -4784,7 +4787,7 @@ bool bacapp_parse_application_data(
 #if defined(BACAPP_RECIPIENT)
             case BACNET_APPLICATION_TAG_RECIPIENT:
                 status =
-                    bacnet_recipient_from_ascii(&value->type.Timer_Value, argv);
+                    bacnet_recipient_from_ascii(&value->type.Recipient, argv);
                 break;
 #endif
 #if defined(BACAPP_ADDRESS_BINDING)
