@@ -16,10 +16,11 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
+#include "bacnet/bactext.h"
 #include "bacnet/bacaddr.h"
 
 /**
- * @brief Copy a #BACNET_ADDRESS value to another
+ * @brief Copy a #BACNET_ADDRESS value to another, or initialize if src=NULL
  * @param dest - #BACNET_ADDRESS to be copied into
  * @param src -  #BACNET_ADDRESS to be copied from
  */
@@ -36,6 +37,16 @@ void bacnet_address_copy(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
         dest->len = src->len;
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = src->adr[i];
+        }
+    } else if (dest) {
+        dest->mac_len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->mac[i] = 0;
+        }
+        dest->net = 0;
+        dest->len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->adr[i] = 0;
         }
     }
 }
@@ -80,6 +91,57 @@ bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
         if (i < dest->len) {
             if (dest->adr[i] != src->adr[i]) {
                 return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Compare two BACnetAddress strictly from encoding based
+ *  on network number.
+ *  BACnetAddress ::= SEQUENCE {
+ *      network-number Unsigned16,-- A value of 0 indicates the local network
+ *      mac-address OctetString -- A string of length 0 indicates a broadcast
+ *  }
+ * @param dest - BACnetAddress to be compared
+ * @param src -  BACnetAddress to be compared
+ * @return true if the same values
+ */
+bool bacnet_address_net_same(
+    const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
+{
+    uint8_t i = 0; /* loop counter */
+
+    if (!dest || !src) {
+        return false;
+    }
+    if (dest->net != src->net) {
+        return false;
+    }
+    if (dest->net == 0) {
+        /* local address stored in MAC */
+        if (dest->mac_len != src->mac_len) {
+            return false;
+        }
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            if (i < dest->mac_len) {
+                if (dest->mac[i] != src->mac[i]) {
+                    return false;
+                }
+            }
+        }
+    } else {
+        /* remote address stored in ADR */
+        if (dest->len != src->len) {
+            return false;
+        }
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            if (i < dest->len) {
+                if (dest->adr[i] != src->adr[i]) {
+                    return false;
+                }
             }
         }
     }
@@ -194,6 +256,10 @@ void bacnet_address_mac_init(
 
 /**
  * @brief Parse an ASCII string for a bacnet-address
+ * @details Address formats:
+ *  192.168.1.42:47808 - for BACnet/IP
+ *  ff:aa:ff:bb:ff:cc - for Ethernet
+ *  fa or 127 - for ARCNET or MS/TP
  * @param mac [out] BACNET_MAC_ADDRESS structure to store the results
  * @param arg [in] nul terminated ASCII string to parse
  * @return true if the address was parsed
@@ -226,7 +292,6 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
         c = sscanf(
             arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3], &a[4],
             &a[5]);
-
         if (c > 0) {
             for (i = 0; i < c; i++) {
                 mac->adr[i] = a[i];
@@ -234,6 +299,65 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
             mac->len = c;
             status = true;
         }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Parse an ASCII string for a bacnet-address
+ * @details Address formats: mac net addr
+ *  192.168.1.42:47808 - for BACnet/IP
+ *  ff:aa:ff:bb:ff:cc - for Ethernet
+ *  fa - for ARCNET or MS/TP
+ *  65535 - network number, 0 if mac but no addr
+ * @param src [out] BACNET_MAC_ADDRESS structure to store the results
+ * @param arg [in] null terminated ASCII string to parse
+ * @return true if the address was parsed
+ */
+bool bacnet_address_from_ascii(BACNET_ADDRESS *src, const char *arg)
+{
+    bool status = false;
+    int count = 0;
+    unsigned snet = 0, i;
+    char mac_string[80] = { "" }, sadr_string[80] = { "" };
+    BACNET_MAC_ADDRESS mac = { 0 };
+
+    if (!(src && arg)) {
+        return false;
+    }
+    count = sscanf(
+        arg, "{%79[^,],%u,%79[^}]}", &mac_string[0], &snet, &sadr_string[0]);
+    if (count > 0) {
+        if (bacnet_address_mac_from_ascii(&mac, mac_string)) {
+            if (src) {
+                src->mac_len = mac.len;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    src->mac[i] = mac.adr[i];
+                }
+            }
+        }
+        if (src) {
+            src->net = (uint16_t)snet;
+        }
+        if (snet) {
+            if (bacnet_address_mac_from_ascii(&mac, sadr_string)) {
+                if (src) {
+                    src->len = mac.len;
+                    for (i = 0; i < MAX_MAC_LEN; i++) {
+                        src->adr[i] = mac.adr[i];
+                    }
+                }
+            }
+        } else {
+            if (src) {
+                src->len = 0;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    src->adr[i] = 0;
+                }
+            }
+        }
+        status = true;
     }
 
     return status;
@@ -260,19 +384,22 @@ int bacnet_address_decode(
     int len = 0;
     int apdu_len = 0;
     uint8_t i = 0;
-    BACNET_UNSIGNED_INTEGER decoded_unsigned = 0;
+    BACNET_UNSIGNED_INTEGER snet = 0;
     BACNET_OCTET_STRING mac_addr = { 0 };
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     /* network number */
     len = bacnet_unsigned_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &decoded_unsigned);
+        &apdu[apdu_len], apdu_size - apdu_len, &snet);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
-    if (decoded_unsigned <= UINT16_MAX) {
+    if (snet <= UINT16_MAX) {
         /* bounds checking - passed! */
         if (value) {
-            value->net = (uint16_t)decoded_unsigned;
+            value->net = (uint16_t)snet;
         }
     } else {
         return BACNET_STATUS_ERROR;
@@ -284,15 +411,29 @@ int bacnet_address_decode(
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
-    if (value) {
-        if (mac_addr.length > sizeof(value->mac)) {
-            return BACNET_STATUS_ERROR;
+    if (snet) {
+        if (value) {
+            if (mac_addr.length > sizeof(value->adr)) {
+                return BACNET_STATUS_ERROR;
+            }
+            /* bounds checking - passed! */
+            value->len = mac_addr.length;
+            /* copy address */
+            for (i = 0; i < value->len; i++) {
+                value->adr[i] = mac_addr.value[i];
+            }
         }
-        /* bounds checking - passed! */
-        value->mac_len = mac_addr.length;
-        /* copy address */
-        for (i = 0; i < value->mac_len; i++) {
-            value->mac[i] = mac_addr.value[i];
+    } else {
+        if (value) {
+            if (mac_addr.length > sizeof(value->mac)) {
+                return BACNET_STATUS_ERROR;
+            }
+            /* bounds checking - passed! */
+            value->mac_len = mac_addr.length;
+            /* copy address */
+            for (i = 0; i < value->mac_len; i++) {
+                value->mac[i] = mac_addr.value[i];
+            }
         }
     }
     apdu_len += len;
@@ -317,6 +458,9 @@ int bacnet_address_context_decode(
     int len = 0;
     int apdu_len = 0;
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return BACNET_STATUS_ERROR;
@@ -346,23 +490,28 @@ int bacnet_address_context_decode(
  */
 int encode_bacnet_address(uint8_t *apdu, const BACNET_ADDRESS *destination)
 {
-    int apdu_len = 0;
-    BACNET_OCTET_STRING mac_addr;
+    int apdu_len = 0, len, adr_len, mac_len;
 
     if (destination) {
         /* network number */
-        apdu_len += encode_application_unsigned(apdu, destination->net);
-        /* encode mac address as an octet-string */
-        if (destination->len != 0) {
-            octetstring_init(&mac_addr, destination->adr, destination->len);
-        } else {
-            octetstring_init(&mac_addr, destination->mac, destination->mac_len);
-        }
+        len = encode_application_unsigned(apdu, destination->net);
+        apdu_len += len;
         if (apdu) {
-            apdu += apdu_len;
+            apdu += len;
         }
-        apdu_len += encode_application_octet_string(apdu, &mac_addr);
+        /* encode mac address as an octet-string */
+        if (destination->len > 0) {
+            adr_len = min(destination->len, sizeof(destination->adr));
+            len = encode_application_octet_string_buffer(
+                apdu, destination->adr, adr_len);
+        } else {
+            mac_len = min(destination->mac_len, sizeof(destination->mac));
+            len = encode_application_octet_string_buffer(
+                apdu, destination->mac, mac_len);
+        }
+        apdu_len += len;
     }
+
     return apdu_len;
 }
 
@@ -500,6 +649,9 @@ int bacnet_vmac_entry_decode(
     size_t i = 0;
     BACNET_OCTET_STRING mac_addr = { 0 };
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     /* virtual-mac-address [0] OctetString */
     len = bacnet_octet_string_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &mac_addr);
@@ -564,4 +716,275 @@ bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
     }
 
     return status;
+}
+
+/**
+ * @brief Encode a given BACnetAddressBinding
+ * @details
+ *  BACnetAddressBinding ::= SEQUENCE {
+ *      device-identifier   BACnetObjectIdentifier,
+ *      device-address      BACnetAddress
+ * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
+ * @param  value - BACnetAddressBinding value
+ * @return  number of bytes in the APDU
+ */
+int bacnet_address_binding_type_encode(
+    uint8_t *apdu, const BACNET_ADDRESS_BINDING *value)
+{
+    int apdu_len = 0, len = 0;
+
+    if (!value) {
+        return 0;
+    }
+    len = encode_application_object_id(
+        apdu, OBJECT_DEVICE, value->device_identifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_bacnet_address(apdu, &value->device_address);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a given BACnetAddressBinding
+ * @details
+ *  BACnetAddressBinding ::= SEQUENCE {
+ *      device-identifier   BACnetObjectIdentifier,
+ *      device-address      BACnetAddress
+ * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
+ * @param apdu_size - size of the APDU buffer
+ * @param  value - BACnetAddressBinding value
+ * @return  number of bytes in the APDU, or 0 if unable to fit.
+ */
+int bacnet_address_binding_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_ADDRESS_BINDING *value)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = bacnet_address_binding_type_encode(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = bacnet_address_binding_type_encode(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a given BACnetAddressBinding
+ * @details
+ *  BACnetAddressBinding ::= SEQUENCE {
+ *      device-identifier   BACnetObjectIdentifier,
+ *      device-address      BACnetAddress
+ * @param  apdu - APDU buffer for decoding
+ * @param  apdu_size - Count of valid bytes in the buffer
+ * @param  value - BACnetAddressBinding value to store the decoded data
+ * @return  number of bytes decoded or BACNET_STATUS_ERROR on error
+ */
+int bacnet_address_binding_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_ADDRESS_BINDING *value)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_ADDRESS *address = NULL;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_object_id_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &object_type, &object_instance);
+    if (len > 0) {
+        apdu_len += len;
+        if (object_type != OBJECT_DEVICE) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (value) {
+            value->device_identifier = object_instance;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        address = &value->device_address;
+    }
+    len = bacnet_address_decode(&apdu[apdu_len], apdu_size - apdu_len, address);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare two BACnetAddressBinding values
+ * @param value1 [in] The first BACnetAddressBinding value
+ * @param value2 [in] The second BACnetAddressBinding value
+ * @return True if the values are the same, else False
+ */
+bool bacnet_address_binding_same(
+    const BACNET_ADDRESS_BINDING *value1, const BACNET_ADDRESS_BINDING *value2)
+{
+    if (!value1) {
+        return false;
+    }
+    if (!value2) {
+        return false;
+    }
+    if (value1->device_identifier != value2->device_identifier) {
+        return false;
+    }
+    return bacnet_address_same(
+        &value1->device_address, &value2->device_address);
+}
+
+/**
+ * @brief Copy a BACnetAddressBinding to another
+ * @param value1 [in] The first BACnetAddressBinding value
+ * @param value2 [in] The second BACnetAddressBinding value
+ * @return true if the value was copied, else false
+ */
+bool bacnet_address_binding_copy(
+    BACNET_ADDRESS_BINDING *dest, const BACNET_ADDRESS_BINDING *src)
+{
+    if (!(dest && src)) {
+        return false;
+    }
+    dest->device_identifier = src->device_identifier;
+    bacnet_address_copy(&dest->device_address, &src->device_address);
+
+    return true;
+}
+
+/**
+ * @brief Initialize a BACnetAddressBinding from device-id and address
+ * @param dest [out] The BACnetAddressBinding value
+ * @param device_identifier [in] The device-identifier value
+ * @param address [in] #BACNET_ADDRESS value
+ * @return true if the values were copied, else false
+ */
+bool bacnet_address_binding_init(
+    BACNET_ADDRESS_BINDING *dest,
+    uint32_t device_id,
+    const BACNET_ADDRESS *address)
+{
+    if (!dest) {
+        return false;
+    }
+    dest->device_identifier = device_id;
+    bacnet_address_copy(&dest->device_address, address);
+
+    return true;
+}
+
+/**
+ * @brief Produce a string from a BACnetAddressBinding structure
+ * @param value [in] The BACnetAddressBinding value
+ * @param str [out] The string to produce, NULL to get length only
+ * @param str_size [in] The size of the string buffer
+ * @return length of the produced string
+ * @details Output format:
+ *      {(device, 1234),1234,X'c0:a8:00:0f'}
+ */
+int bacnet_address_binding_to_ascii(
+    const BACNET_ADDRESS_BINDING *value, char *str, size_t str_len)
+{
+    int offset = 0;
+    int i;
+
+    if (!value) {
+        return 0;
+    }
+    offset = bacnet_snprintf(str, str_len, offset, "{");
+    /* device-identifier */
+    offset = bacnet_snprintf(str, str_len, offset, "(");
+    offset = bacnet_snprintf(
+        str, str_len, offset, "%s, ", bactext_object_type_name(OBJECT_DEVICE));
+    offset = bacnet_snprintf(
+        str, str_len, offset, "%lu),", (unsigned long)value->device_identifier);
+    /* snet */
+    offset = bacnet_snprintf(
+        str, str_len, offset, "%lu,", (unsigned long)value->device_address.net);
+    /* octetstring */
+    offset = bacnet_snprintf(str, str_len, offset, "X'");
+    if (value->device_address.net) {
+        /* adr */
+        for (i = 0; i < value->device_address.len; i++) {
+            offset = bacnet_snprintf(
+                str, str_len, offset, "%02X",
+                (unsigned)value->device_address.adr[i]);
+        }
+    } else {
+        /* mac */
+        for (i = 0; i < value->device_address.mac_len; i++) {
+            offset = bacnet_snprintf(
+                str, str_len, offset, "%02X",
+                (unsigned)value->device_address.mac[i]);
+        }
+    }
+    offset = bacnet_snprintf(str, str_len, offset, "'");
+    offset = bacnet_snprintf(str, str_len, offset, "}");
+
+    return offset;
+}
+
+/**
+ * @brief Parse a string into a BACnetAddressBinding structure
+ * @param value [out] The BACnetAddressBinding value
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ * @details format:
+ *      {(device, 1234),1234,X'c0:a8:00:0f'}
+ */
+bool bacnet_address_binding_from_ascii(
+    BACNET_ADDRESS_BINDING *value, const char *arg)
+{
+    int count = 0, i = 0;
+    unsigned snet = 0;
+    char mac_string[80] = { "" }, obj_string[80] = { "" };
+    BACNET_MAC_ADDRESS mac = { 0 };
+    uint32_t object_type = 0;
+    unsigned long object_instance = 0;
+
+    if (!(value && arg)) {
+        return false;
+    }
+    count = sscanf(
+        arg, "{(%79[^,], %lu),%u,X'%79[^']'}", obj_string, &object_instance,
+        &snet, mac_string);
+    if (count == 4) {
+        if (!bactext_object_type_strtol(obj_string, &object_type)) {
+            return false;
+        }
+        if (object_type != OBJECT_DEVICE) {
+            return false;
+        }
+        if (!bacnet_address_mac_from_ascii(&mac, mac_string)) {
+            return false;
+        }
+        if (value) {
+            value->device_identifier = object_instance;
+            value->device_address.net = snet;
+            if (snet) {
+                value->device_address.len = mac.len;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    value->device_address.adr[i] = mac.adr[i];
+                }
+            } else {
+                value->device_address.mac_len = mac.len;
+                for (i = 0; i < MAX_MAC_LEN; i++) {
+                    value->device_address.mac[i] = mac.adr[i];
+                }
+            }
+        }
+        return true;
+    }
+
+    return false;
 }
