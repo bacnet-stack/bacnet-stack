@@ -448,13 +448,13 @@ static void PrintReadPropertyData(
     uint32_t array_index;
 
     if (rpm_property == NULL) {
-        printf("? \n");
+        printf("? --no-property\n");
         return;
     }
     value = rpm_property->value;
     if (value == NULL) {
         /* no value so print '?' */
-        printf("? \n");
+        printf("? --no-value\n");
         return;
     }
 
@@ -592,19 +592,6 @@ static void PrintReadPropertyData(
         value = value->next; /* next or NULL */
         free(old_value);
     } /* End while loop */
-}
-
-/** Print the property identifier name
- *  handling the proprietary property numbers.
- * @param propertyIdentifier [in] The property identifier number.
- */
-static void Print_Property_Identifier(unsigned propertyIdentifier)
-{
-    if (bactext_property_name_proprietary(propertyIdentifier)) {
-        printf("-- proprietary-%u", propertyIdentifier);
-    } else {
-        printf("%s", bactext_property_name(propertyIdentifier));
-    }
 }
 
 static void print_usage(const char *filename)
@@ -832,8 +819,8 @@ static void get_print_value(
             /* received a response this tool could not decode
                add '?' and move on */
             printf("    ");
-            printf("%s", bactext_property_name(property));
-            printf("? \n");
+            printf("%s: ", bactext_property_name(property));
+            printf("? --failed to decode\n");
             return;
         case RESP_TIMEOUT:
         case RESP_TSM_FAILED:
@@ -1282,9 +1269,7 @@ static void get_print_object_list(BACNET_OBJECT_ID object, uint32_t num_objects)
     RESPONSE_STATUS status;
 
     /* Print property ID */
-    printf("    ");
-    Print_Property_Identifier(PROP_OBJECT_LIST);
-    printf(": {\n");
+    printf("    %s: {\n", bactext_property_name(PROP_OBJECT_LIST));
 
     for (i = 1; i <= num_objects; i++) {
         status = get_primitive_value(
@@ -1331,8 +1316,7 @@ static void print_property_list(
          * wants them remmed out */
         printf("-- ");
     }
-    Print_Property_Identifier(PROP_PROPERTY_LIST);
-    printf(": (");
+    printf("%s: (\n", bactext_property_name(PROP_PROPERTY_LIST));
     for (i = 0; i < num_properties; i++) {
         if (i == num_properties - 1) {
             printf("%i)\n", prop_list[i].property);
