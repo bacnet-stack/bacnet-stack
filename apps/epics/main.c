@@ -616,7 +616,7 @@ static void PrintReadPropertyData(
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [-v] [-d] [-h] device-instance\n", filename);
+    printf("Usage: %s [-d] [-h] [-v] device-instance\n", filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--debug]\n");
 }
