@@ -24,7 +24,7 @@ The git repositories are hosted at the following sites:
   Integrated the new types into the application data framework with
   application tag assignments. (#1163)
 * Added library specific string manipulation utilities including strcmp,
-  strncmp, and snprintf with offset functions. (#1163)
+  strncmp, and snprintf with offset functions. (#1163)(#1164)
 * Added default option to bactext name functions so that NULL can be
   returned when a name does not exist. (#1160)
 * Added library specific ltrim, rtrim, and trim string functions. (#1159)

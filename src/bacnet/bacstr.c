@@ -2019,7 +2019,7 @@ char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
 /**
  * @brief General purpose print formatter snprintf() function with offset
  * @param buffer - destination string
- * @param size - length of the destination string
+ * @param size - length of the destination string, or zero for length
  * @param offset - offset into the buffer to start the string
  * @param format - format string
  * @return total number of characters written from the beginning of buffer
@@ -2027,19 +2027,35 @@ char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
 int bacnet_snprintf(
     char *buffer, size_t size, int offset, const char *format, ...)
 {
-    int length = 0;
+    int length = 0, write_length = 0;
     va_list args;
+    char *write_buffer = NULL;
+    size_t write_size = 0;
 
+    if (offset < 0) {
+        return offset;
+    }
     if (offset < size) {
-        size -= offset;
+        write_size = size - offset;
         if (buffer) {
-            buffer += offset;
+            write_buffer = buffer + offset;
         }
-        va_start(args, format);
-        length = vsnprintf(buffer, size, format, args);
-        va_end(args);
-        return offset + length;
+    } else if (size == 0) {
+        write_size = 0;
+        /* when size is zero, nothing is written to the buffer */
+    } else {
+        return size;
+    }
+    va_start(args, format);
+    length = vsnprintf(write_buffer, write_size, format, args);
+    va_end(args);
+    write_length = offset + length;
+    if (size != 0) {
+        /* limit the return value to the size of the buffer */
+        if (write_length > size) {
+            write_length = size;
+        }
     }
 
-    return size;
+    return write_length;
 }
