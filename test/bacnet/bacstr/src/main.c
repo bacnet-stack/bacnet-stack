@@ -790,10 +790,27 @@ ZTEST(bacstr_tests, test_bacnet_snprintf)
 static void test_bacnet_snprintf(void)
 #endif
 {
-    int buf_len = 0, str_len;
+    int buf_len = 0, str_len, null_len = 0, test_null_len = 0;
     int i;
     char str[30] = "";
+    const char *null_string = "REALLY BIG NULL STRING";
+    const char *one_char_string = "1";
+    const char *two_char_string = "12";
 
+    /* one char */
+    buf_len = 0;
+    str_len = 1;
+    buf_len = bacnet_snprintf(str, str_len, buf_len, "%s", one_char_string);
+    zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
+    /* two char */
+    buf_len = 0;
+    str_len = 2;
+    buf_len = bacnet_snprintf(str, str_len, buf_len, "%s", two_char_string);
+    zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
+    buf_len = bacnet_snprintf(str, str_len, buf_len, "%s", two_char_string);
+    zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
+    /* large chars */
+    buf_len = 0;
     str_len = sizeof(str);
     for (i = 0; i < 5; i++) {
         /* appending formatted strings */
@@ -801,10 +818,14 @@ static void test_bacnet_snprintf(void)
         buf_len =
             bacnet_snprintf(str, str_len, buf_len, "REALLY BIG STRING BASS");
         buf_len = bacnet_snprintf(str, str_len, buf_len, "}");
+        /* appending to a NULL string for length */
+        null_len = bacnet_snprintf(NULL, 0, null_len, null_string);
+        test_null_len += strlen(null_string);
     }
     zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
     zassert_equal(
         str[buf_len - 1], 0, "str[%d]=%c", buf_len - 1, str[buf_len - 1]);
+    zassert_equal(null_len, test_null_len, "null_len=%d", null_len);
 }
 
 /**

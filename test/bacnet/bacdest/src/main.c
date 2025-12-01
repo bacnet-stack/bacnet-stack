@@ -121,7 +121,7 @@ static void test_BACnetDestination_ASCII(void)
     zassert_true(len > 0, NULL);
     status = bacnet_destination_same(&destination, &test_destination);
     zassert_true(status, NULL);
-    /* get the length */
+    /* get the length without NULL termination */
     null_len = bacnet_destination_to_ascii(&test_destination, NULL, 0);
     if (null_len > 0) {
         test_ascii = calloc(null_len, sizeof(char));
@@ -132,7 +132,15 @@ static void test_BACnetDestination_ASCII(void)
             while (--test_len) {
                 len = bacnet_destination_to_ascii(
                     &test_destination, test_ascii, test_len);
-                zassert_equal(len, null_len, NULL);
+                if (test_len > 0) {
+                    zassert_equal(
+                        len, test_len, "%s len=%d test_len=%d", test_ascii, len,
+                        test_len);
+                } else {
+                    zassert_equal(
+                        len, null_len, "%s len=%d null_len=%d", test_ascii, len,
+                        null_len);
+                }
             }
             free(test_ascii);
         }
