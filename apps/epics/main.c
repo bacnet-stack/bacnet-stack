@@ -79,8 +79,10 @@ static uint16_t Last_Error_Code = 0;
 static uint16_t Error_Count = 0;
 static EPICS_STATES myState = INITIAL_BINDING;
 static struct mstimer APDU_Timer;
-/* Show value instead of '?' */
+/* Show value instead of '?' for values that likely change in a device */
 static bool ShowValues = false;
+/* header of BIBBs */
+static bool ShowHeader = true;
 /* Show errors, abort, rejects */
 static bool ShowErrors = false;
 /* debugging info */
@@ -614,7 +616,7 @@ static void PrintReadPropertyData(
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [-v] [-d] device-instance\n", filename);
+    printf("Usage: %s [-v] [-d] [-h] device-instance\n", filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--debug]\n");
 }
@@ -648,9 +650,9 @@ static void print_help(const char *filename)
            "I-Am services.  For example, if you were reading\n"
            "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
-    printf("-v: show values instead of '?' \n");
-    printf("-c: columns break for BACnetARRAY. Default is 0=always\n");
     printf("-d: show only device object properties\n");
+    printf("-h: omit the BIBBs header\n");
+    printf("-v: show values instead of '?' for changing values\n");
     printf("\n");
     printf("To generate output directly to a .tpi file for VTS or BTF:\n");
     printf("$ bacepics 4194302 > epics-4194302.tpi \n");
@@ -658,19 +660,21 @@ static void print_help(const char *filename)
 
 static int CheckCommandLineArgs(int argc, char *argv[])
 {
-    int i;
     bool bFoundTarget = false;
     int argi = 0;
     const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
+    if (argc < 2) {
+        print_usage(filename);
+        exit(0);
+    }
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
             print_usage(filename);
             print_help(filename);
             exit(0);
-        }
-        if (strcmp(argv[argi], "--version") == 0) {
+        } else if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
             printf("Copyright (C) 2014 by Steve Karg and others.\n"
                    "This is free software; see the source for copying "
@@ -678,14 +682,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                    "There is NO warranty; not even for MERCHANTABILITY or\n"
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
-        }
-    }
-    if (argc < 2) {
-        print_usage(filename);
-        exit(0);
-    }
-    for (argi = 1; argi < argc; argi++) {
-        if (strcmp(argv[argi], "--debug") == 0) {
+        } else if (strcmp(argv[argi], "--debug") == 0) {
             Debug_Enabled = true;
         } else if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
@@ -716,6 +713,9 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                     break;
                 case 'v':
                     ShowValues = true;
+                    break;
+                case 'h':
+                    ShowHeader = false;
                     break;
                 case 'e':
                     ShowErrors = true;
@@ -1330,7 +1330,7 @@ static void print_property_list(
          * wants them remmed out */
         printf("-- ");
     }
-    printf("%s: (\n", bactext_property_name(PROP_PROPERTY_LIST));
+    printf("%s: (", bactext_property_name(PROP_PROPERTY_LIST));
     for (i = 0; i < num_properties; i++) {
         if (i == num_properties - 1) {
             printf("%i)\n", prop_list[i].property);
@@ -1769,7 +1769,7 @@ int main(int argc, char *argv[])
                 break;
 
             case BUILD_EPICS:
-                if (!ShowDeviceObjectOnly) {
+                if (ShowHeader) {
                     Error_Count +=
                         Print_EPICS_Header(Target_Device_Object_Instance);
                 }
