@@ -181,13 +181,18 @@ int rp_ack_fully_decode_service_request(
         vlen = rp1data.application_data_len;
         value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
         rp1_property->value = value;
+        /* check for empty list */
+        if (rp1data.application_data_len == 0) {
+            bacapp_value_list_init(value, 1);
+            value->tag = BACNET_APPLICATION_TAG_NULL;
+            rp1data.error_class = ERROR_CLASS_SERVICES;
+            rp1data.error_code = ERROR_CODE_SUCCESS;
+            return 0;
+        }
         while (value && vdata && (vlen > 0)) {
-            if (IS_CONTEXT_SPECIFIC(*vdata)) {
-                len = bacapp_decode_context_data(
-                    vdata, vlen, value, rp1_property->propertyIdentifier);
-            } else {
-                len = bacapp_decode_application_data(vdata, vlen, value);
-            }
+            len = bacapp_decode_known_array_property(
+                vdata, (unsigned)vlen, value, rp1data.object_type,
+                rp1data.object_property, rp1data.array_index);
             if (len < 0) {
                 /* unable to decode the data */
                 while (value) {
