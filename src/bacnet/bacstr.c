@@ -2027,11 +2027,14 @@ char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
 int bacnet_snprintf(
     char *buffer, size_t size, int offset, const char *format, ...)
 {
-    int length = 0;
+    int length = 0, write_length = 0;
     va_list args;
     char *write_buffer = NULL;
     size_t write_size = 0;
 
+    if (offset < 0) {
+        return offset;
+    }
     if (offset < size) {
         write_size = size - offset;
         if (buffer) {
@@ -2039,15 +2042,20 @@ int bacnet_snprintf(
         }
     } else if (size == 0) {
         write_size = 0;
-        if (buffer) {
-            write_buffer = buffer + offset;
-        }
+        /* when size is zero, nothing is written to the buffer */
     } else {
         return size;
     }
     va_start(args, format);
     length = vsnprintf(write_buffer, write_size, format, args);
     va_end(args);
+    write_length = offset + length;
+    if (size != 0) {
+        /* limit the return value to the size of the buffer */
+        if (write_length > size) {
+            write_length = size;
+        }
+    }
 
-    return offset + length;
+    return write_length;
 }

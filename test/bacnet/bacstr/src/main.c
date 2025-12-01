@@ -794,7 +794,23 @@ static void test_bacnet_snprintf(void)
     int i;
     char str[30] = "";
     const char *null_string = "REALLY BIG NULL STRING";
+    const char *one_char_string = "1";
+    const char *two_char_string = "12";
 
+    /* one char */
+    buf_len = 0;
+    str_len = 1;
+    buf_len = bacnet_snprintf(str, str_len, buf_len, "%s", one_char_string);
+    zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
+    /* two char */
+    buf_len = 0;
+    str_len = 2;
+    buf_len = bacnet_snprintf(str, str_len, buf_len, "%s", two_char_string);
+    zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
+    buf_len = bacnet_snprintf(str, str_len, buf_len, "%s", two_char_string);
+    zassert_equal(buf_len, str_len, "buf_len=%d str_len=%d", buf_len, str_len);
+    /* large chars */
+    buf_len = 0;
     str_len = sizeof(str);
     for (i = 0; i < 5; i++) {
         /* appending formatted strings */
