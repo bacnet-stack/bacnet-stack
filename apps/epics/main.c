@@ -194,7 +194,7 @@ static void MyReadPropertyAckHandler(
             memmove(
                 &Read_Property_Multiple_Data.service_data, service_data,
                 sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
-            if (len > 0) {
+            if (len >= 0) {
                 Read_Property_Multiple_Data.rpm_data = rp_data;
                 Response_Status = RESP_SUCCESS;
             } else { /* failed decode for some reason */
@@ -310,18 +310,22 @@ static const char *protocol_services_supported_text(size_t bit_index)
  * @return True if success.  Or otherwise.
  */
 
-static void PrettyPrintPropertyValue(BACNET_OBJECT_PROPERTY_VALUE *object_value)
+static void PrintProtocolBitValues(BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     BACNET_APPLICATION_DATA_VALUE *value = NULL;
     size_t len = 0, i = 0, j = 0;
     BACNET_PROPERTY_ID property = PROP_ALL;
-    char short_month[4];
 
     value = object_value->value;
     property = object_value->object_property;
-    if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) &&
-        ((property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) ||
-         (property == PROP_PROTOCOL_SERVICES_SUPPORTED))) {
+    if (value == NULL) {
+        return;
+    }
+    if (value->tag != BACNET_APPLICATION_TAG_BIT_STRING) {
+        return;
+    }
+    if ((property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) ||
+        (property == PROP_PROTOCOL_SERVICES_SUPPORTED)) {
         len = bitstring_bits_used(&value->type.Bit_String);
         printf("( \n        ");
         for (i = 0; i < len; i++) {
@@ -363,21 +367,6 @@ static void PrettyPrintPropertyValue(BACNET_OBJECT_PROPERTY_VALUE *object_value)
             }
         }
         printf(") \n");
-    } else if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_DATE)) {
-        /* eg, property == PROP_LOCAL_DATE
-         * VTS needs (3-Aug-2011,4) or (8/3/11,4), so we'll use the
-         * clearer, international form. */
-        snprintf(
-            short_month, sizeof(short_month), "%s",
-            bactext_month_name(value->type.Date.month));
-        printf(
-            "(%u-%3s-%u, %u)", (unsigned)value->type.Date.day, short_month,
-            (unsigned)value->type.Date.year, (unsigned)value->type.Date.wday);
-    } else if (value != NULL) {
-        /* Meanwhile, a fallback plan */
-        bacapp_print_value(stdout, object_value);
-    } else {
-        printf("???\n");
     }
 }
 
@@ -535,7 +524,7 @@ static void PrintReadPropertyData(
                 break;
             case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
             case PROP_PROTOCOL_SERVICES_SUPPORTED:
-                PrettyPrintPropertyValue(&object_value);
+                PrintProtocolBitValues(&object_value);
                 print_finished = true;
                 break;
             default:
@@ -553,7 +542,8 @@ static void PrintReadPropertyData(
                     /* first entry in array */
                     printf(" { ");
                 }
-                if (value->tag == BACNET_APPLICATION_TAG_NULL) {
+                if ((value->tag == BACNET_APPLICATION_TAG_EMPTYLIST) ||
+                    (value->tag == BACNET_APPLICATION_TAG_NULL)) {
                     /* the array or list is empty */
                     if (ShowValues) {
                         printf("EMPTY");
