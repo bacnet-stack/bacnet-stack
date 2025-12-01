@@ -598,9 +598,6 @@ int bacnet_recipient_decode(
         &apdu[apdu_len], apdu_size - apdu_len, BACNET_RECIPIENT_TAG_DEVICE,
         &object_type, &instance);
     if (len > 0) {
-        if (object_type != OBJECT_DEVICE) {
-            return BACNET_STATUS_REJECT;
-        }
         if (recipient) {
             recipient->tag = BACNET_RECIPIENT_TAG_DEVICE;
             recipient->type.device.type = object_type;
