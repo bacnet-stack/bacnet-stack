@@ -22,17 +22,19 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bactext.h"
-#include "bacnet/iam.h"
-#include "bacnet/arf.h"
-#include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/apdu.h"
-#include "bacnet/whois.h"
+#include "bacnet/arf.h"
+#include "bacnet/bactext.h"
+#include "bacnet/bacerror.h"
+#include "bacnet/iam.h"
+#include "bacnet/npdu.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
 #include "bacnet/property.h"
+#include "bacnet/reject.h"
 #include "bacnet/version.h"
+#include "bacnet/whois.h"
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
@@ -56,6 +58,10 @@ static uint8_t Rx_RP_Data[sizeof(BACNET_READ_ACCESS_DATA)] = { 0 };
 /* target information converted from command line */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
+static long Target_Specific_Network = -1;
+static BACNET_MAC_ADDRESS Target_Specific_MAC;
+static BACNET_MAC_ADDRESS Target_Specific_Network_MAC;
+bool Target_Specific_Address = false;
 /* the invoke id is needed to filter incoming messages */
 static uint8_t Request_Invoke_ID = 0;
 /* loopback address to talk to myself */
@@ -75,6 +81,8 @@ static EPICS_STATES myState = INITIAL_BINDING;
 static struct mstimer APDU_Timer;
 /* Show value instead of '?' */
 static bool ShowValues = false;
+/* Show errors, abort, rejects */
+static bool ShowErrors = false;
 /* debugging info */
 static bool Debug_Enabled = false;
 /* show only device object properties */
@@ -123,6 +131,12 @@ static void MyErrorHandler(
             Error_Detected = true;
             Last_Error_Class = error_class;
             Last_Error_Code = error_code;
+            if (Debug_Enabled) {
+                fprintf(
+                    stderr, "BACnet Error: %s: %s\n",
+                    bactext_error_class_name(error_class),
+                    bactext_error_code_name(error_code));
+            }
         }
     }
 }
@@ -134,6 +148,8 @@ static void MyAbortHandler(
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         Response_Status = RESP_ABORT_CODE;
+        Last_Error_Code = abort_convert_error_code(abort_reason);
+        Last_Error_Class = bacerror_code_class(Last_Error_Code);
         if (Debug_Enabled) {
             fprintf(
                 stderr, "BACnet Abort: %s\n",
@@ -148,6 +164,8 @@ MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         Response_Status = RESP_REJECT_CODE;
+        Last_Error_Code = reject_convert_error_code(reject_reason);
+        Last_Error_Class = bacerror_code_class(Last_Error_Code);
         if (Debug_Enabled) {
             fprintf(
                 stderr, "BACnet Reject: %s\n",
@@ -596,10 +614,8 @@ static void PrintReadPropertyData(
 
 static void print_usage(const char *filename)
 {
-    printf(
-        "Usage: %s [-v] [-d] [-p sport] [-t target_mac [-n dnet]]"
-        " device-instance\n",
-        filename);
+    printf("Usage: %s [-v] [-d] device-instance\n", filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--debug]\n");
 }
 
@@ -607,22 +623,34 @@ static void print_help(const char *filename)
 {
     (void)filename;
     printf("Generates Full EPICS file, including Object and Property List\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
            "to try and bind with the device using Who-Is and\n"
-           "I-Am services.\n");
+           "I-Am services.  For example, if you were reading\n"
+           "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("-v: show values instead of '?' \n");
     printf("-c: columns break for BACnetARRAY. Default is 0=always\n");
     printf("-d: show only device object properties\n");
-    printf("-p: Use sport for \"my\" port.  0xBAC0 is default.\n");
-    printf("    Allows you to communicate with a localhost target.\n");
-    printf("-t: declare target's MAC instead of using Who-Is to bind to \n");
-    printf("    device-instance. Format is \"C0:A8:00:18:BA:C0\"\n");
-    printf("    Use \"7F:00:00:01:BA:C0\" for loopback testing \n");
-    printf("-n: specify target's DNET if not local BACnet network  \n");
-    printf("    or on routed Virtual Network \n");
     printf("\n");
     printf("To generate output directly to a .tpi file for VTS or BTF:\n");
     printf("$ bacepics 4194302 > epics-4194302.tpi \n");
@@ -644,11 +672,12 @@ static int CheckCommandLineArgs(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
-                   "This is free software; see the source for copying "
-                   "conditions.\n"
-                   "There is NO warranty; not even for MERCHANTABILITY or\n"
-                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf(
+                "Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         }
     }
@@ -656,69 +685,48 @@ static int CheckCommandLineArgs(int argc, char *argv[])
         print_usage(filename);
         exit(0);
     }
-    for (i = 1; i < argc; i++) {
-        char *anArg = argv[i];
-        if (strcmp(anArg, "--debug") == 0) {
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--debug") == 0) {
             Debug_Enabled = true;
-        } else if (anArg[0] == '-') {
-            switch (anArg[1]) {
+        } else if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(
+                        &Target_Specific_MAC, argv[argi])) {
+                    Target_Specific_Address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dnet") == 0) {
+            if (++argi < argc) {
+                Target_Specific_Network = strtol(argv[argi], NULL, 0);
+                if ((Target_Specific_Network >= 0) &&
+                    (Target_Specific_Network <= BACNET_BROADCAST_NETWORK)) {
+                    Target_Specific_Address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(
+                        &Target_Specific_Network_MAC, argv[argi])) {
+                    Target_Specific_Address = true;
+                }
+            }
+        } else if (argv[argi][0] == '-') {
+            switch (argv[argi][1]) {
                 case 'o':
                     Optional_Properties = true;
                     break;
                 case 'v':
                     ShowValues = true;
                     break;
+                case 'e':
+                    ShowErrors = true;
+                    break;
                 case 'd':
                     ShowDeviceObjectOnly = true;
-                    break;
-                case 'p':
-                    if (++i < argc) {
-#if defined(BACDL_BIP)
-                        My_BIP_Port = (uint16_t)strtol(argv[i], NULL, 0);
-                        /* Used strtol so sport can be either 0xBAC0 or 47808 */
-#endif
-                    }
-                    break;
-                case 'n':
-                    /* Destination Network Number */
-                    if (Target_Address.mac_len == 0) {
-                        fprintf(
-                            stderr, "Must provide a Target MAC before DNET \n");
-                    }
-                    if (++i < argc) {
-                        Target_Address.net = (uint16_t)strtol(argv[i], NULL, 0);
-                    }
-                    /* Used strtol so dest.net can be either 0x1234 or 4660 */
                     break;
                 case 'w':
                     WritePropertyEnabled = true;
                     break;
-                case 't':
-                    if (++i < argc) {
-                        /* decoded MAC addresses */
-                        unsigned mac[6];
-                        /* number of successful decodes */
-                        int count;
-                        /* loop counter */
-                        unsigned j;
-                        count = sscanf(
-                            argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
-                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                        if (count == 6) { /* success */
-                            Target_Address.mac_len = count;
-                            for (j = 0; j < 6; j++) {
-                                Target_Address.mac[j] = (uint8_t)mac[j];
-                            }
-                            Target_Address.net = 0;
-                            Target_Address.len = 0; /* No src address */
-                            Provided_Targ_MAC = true;
-                            break;
-                        } else {
-                            printf("ERROR: invalid Target MAC %s \n", argv[i]);
-                        }
-                        /* fall through to print_usage */
-                    }
-                    BACNET_STACK_FALLTHROUGH();
                 default:
                     print_usage(filename);
                     exit(0);
@@ -726,7 +734,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             }
         } else {
             /* decode the Target Device Instance parameter */
-            Target_Device_Object_Instance = strtol(anArg, NULL, 0);
+            Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
             if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                 printf(
                     "Error: device-instance=%u - not greater than %u\n",
@@ -814,6 +822,13 @@ static void get_print_value(
         case RESP_ABORT_CODE:
         case RESP_REJECT_CODE:
         case RESP_ERROR_CODE:
+            if (ShowErrors) {
+                printf("    ");
+                printf("%s: ", bactext_property_name(property));
+                printf(
+                    "? --%s:%s\n", bactext_error_class_name(Last_Error_Class),
+                    bactext_error_code_name(Last_Error_Code));
+            }
             return;
         case RESP_FAILED_TO_DECODE:
             /* received a response this tool could not decode
@@ -899,8 +914,9 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
             "Product Description: \"%s\"\n\n",
             (char *)&data_value.type.Character_String.value);
     } else {
-        printf("Product Description: "
-               "\"your product description here\"\n\n");
+        printf(
+            "Product Description: "
+            "\"your product description here\"\n\n");
     }
     printf("--Use '--' to indicate unsupported Functionality.\n\n");
 
@@ -1234,8 +1250,9 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
     printf(
         "  real: <minimum: -3.40282347E38; maximum: 3.40282347E38; resolution: "
         "1.0>\n");
-    printf("  double: <minimum: 2.2250738585072016E-38; maximum: "
-           "1.7976931348623157E38; resolution: 0.0001>\n");
+    printf(
+        "  double: <minimum: 2.2250738585072016E-38; maximum: "
+        "1.7976931348623157E38; resolution: 0.0001>\n");
     printf("  date: <minimum: 01-January-1970; maximum: 31-December-2038>\n");
     printf("  octet-string: <maximum length string: 122>\n");
     printf("  character-string: <maximum length string: 122>\n");
@@ -1650,6 +1667,16 @@ int main(int argc, char *argv[])
     }
 #endif
     address_init();
+    if (Target_Specific_Address) {
+        if ((Target_Specific_Network < 0) ||
+            (Target_Specific_Network > BACNET_BROADCAST_NETWORK)) {
+            Target_Specific_Network = BACNET_BROADCAST_NETWORK;
+        }
+        bacnet_address_init(
+            &Target_Address, &Target_Specific_MAC, Target_Specific_Network,
+            &Target_Specific_Network_MAC);
+        address_add(Target_Device_Object_Instance, MAX_APDU, &Target_Address);
+    }
     Init_Service_Handlers();
     dlenv_init();
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
