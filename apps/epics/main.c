@@ -672,12 +672,11 @@ static int CheckCommandLineArgs(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         }
     }
@@ -914,9 +913,8 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
             "Product Description: \"%s\"\n\n",
             (char *)&data_value.type.Character_String.value);
     } else {
-        printf(
-            "Product Description: "
-            "\"your product description here\"\n\n");
+        printf("Product Description: "
+               "\"your product description here\"\n\n");
     }
     printf("--Use '--' to indicate unsupported Functionality.\n\n");
 
@@ -1250,9 +1248,8 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
     printf(
         "  real: <minimum: -3.40282347E38; maximum: 3.40282347E38; resolution: "
         "1.0>\n");
-    printf(
-        "  double: <minimum: 2.2250738585072016E-38; maximum: "
-        "1.7976931348623157E38; resolution: 0.0001>\n");
+    printf("  double: <minimum: 2.2250738585072016E-38; maximum: "
+           "1.7976931348623157E38; resolution: 0.0001>\n");
     printf("  date: <minimum: 01-January-1970; maximum: 31-December-2038>\n");
     printf("  octet-string: <maximum length string: 122>\n");
     printf("  character-string: <maximum length string: 122>\n");
