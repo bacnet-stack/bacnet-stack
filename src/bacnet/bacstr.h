@@ -184,7 +184,6 @@ int bacnet_strncmp(const char *a, const char *b, size_t length);
 BACNET_STACK_EXPORT
 int bacnet_strnicmp(const char *a, const char *b, size_t length);
 
-
 BACNET_STACK_EXPORT
 size_t bacnet_strnlen(const char *str, size_t maxlen);
 
