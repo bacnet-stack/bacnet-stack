@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 4) {
                 if (!bacnet_strtol(argv[argi], &property_array_index)) {
-                    fprintf(stderr, "property=%s invalid\n", argv[argi]);
+                    fprintf(stderr, "array-index=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 if (property_array_index < 0) {
