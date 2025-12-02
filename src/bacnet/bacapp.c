@@ -4415,7 +4415,7 @@ static bool device_object_property_reference_from_ascii(
         value->objectIdentifier.type = object_type;
         value->objectIdentifier.instance = object_instance;
         value->propertyIdentifier = property_id;
-        if (array_index < 0) {
+        if (array_index < 0L) {
             value->arrayIndex = BACNET_ARRAY_ALL;
         } else {
             value->arrayIndex = array_index;
@@ -4490,6 +4490,9 @@ static bool object_property_reference_from_ascii(
         value->object_identifier.type = object_type;
         value->object_identifier.instance = object_instance;
         value->property_identifier = property_id;
+        if ((array_index >= BACNET_ARRAY_ALL) || (array_index < 0L)) {
+            array_index = BACNET_ARRAY_ALL;
+        }
         value->property_array_index = array_index;
         status = true;
     }
