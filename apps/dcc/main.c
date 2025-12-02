@@ -194,6 +194,7 @@ int main(int argc, char *argv[])
     BACNET_ADDRESS dest = { 0 };
     bool specific_address = false;
     unsigned int target_args = 0;
+    uint32_t target_value = 0;
     int argi = 0;
     const char *filename = NULL;
 
@@ -251,11 +252,12 @@ int main(int argc, char *argv[])
                 }
                 target_args++;
             } else if (target_args == 1) {
-                if (!bacnet_string_to_uint32(
-                        argv[argi], &Communication_State)) {
+                if (!bacnet_string_to_uint32(argv[argi], &target_value)) {
                     fprintf(stderr, "state=%s invalid\n", argv[argi]);
                     return 1;
                 }
+                Communication_State =
+                    (BACNET_COMMUNICATION_ENABLE_DISABLE)target_value;
                 target_args++;
             } else if (target_args == 2) {
                 if (!bacnet_string_to_uint16(
