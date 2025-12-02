@@ -725,29 +725,29 @@ void datetime_add_seconds(BACNET_DATE_TIME *bdatetime, int32_t seconds)
         bdatetime->time.hour, bdatetime->time.min, bdatetime->time.sec);
     bdatetime_days = datetime_days_since_epoch(&bdatetime->date);
     /* more minutes than in a day? */
-    days = seconds / (24 * 60 * 60);
+    days = seconds / (24L * 60L * 60L);
     bdatetime_days += days;
-    seconds -= (days * 24 * 60 * 60);
+    seconds -= (days * 24L * 60L * 60L);
     /* less seconds - previous day? */
     if (seconds < 0) {
         /* convert to positive for easier math */
-        seconds *= -1;
+        seconds *= -1L;
         if ((uint32_t)seconds > bdatetime_seconds) {
             /* previous day */
-            bdatetime_days -= 1;
-            bdatetime_seconds += ((24 * 60 * 60) - seconds);
+            bdatetime_days -= 1L;
+            bdatetime_seconds += ((24L * 60L * 60L) - seconds);
         } else {
             bdatetime_seconds -= seconds;
-            days = bdatetime_seconds / (24 * 60 * 60);
+            days = bdatetime_seconds / (24L * 60L * 60L);
             bdatetime_days += days;
-            bdatetime_seconds -= (days * 24 * 60 * 60);
+            bdatetime_seconds -= (days * 24L * 60L * 60L);
         }
     } else {
         /* more days than current datetime? */
         bdatetime_seconds += seconds;
-        days = bdatetime_seconds / (24 * 60 * 60);
+        days = bdatetime_seconds / (24L * 60L * 60L);
         bdatetime_days += days;
-        bdatetime_seconds -= (days * 24 * 60 * 60);
+        bdatetime_seconds -= (days * 24L * 60L * 60L);
     }
     /* convert bdatetime from seconds and days */
     datetime_hms_from_seconds_since_midnight(

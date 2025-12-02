@@ -17,6 +17,19 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 
+* Added BACnetRecipient and BACnetAddressBinding codecs for EPICS application.
+  The implementation includes full encode/decode, ASCII conversion,
+  comparison, and copy functions for both data types, along with
+  comprehensive test coverage and supporting string utility functions.
+  Integrated the new types into the application data framework with
+  application tag assignments. (#1163)
+* Added library specific string manipulation utilities including strcmp,
+  strncmp, and snprintf with offset functions. (#1163)(#1164)
+* Added default option to bactext name functions so that NULL can be
+  returned when a name does not exist. (#1160)
+* Added library specific ltrim, rtrim, and trim string functions. (#1159)
+* Added library specific itoa, ltoa, ultoa, dtoa, utoa, and general
+  print format with ASCII return functions. (#1157)
 * Added library specific string-to functions similar to stdlib.
   Added library specific string-to functions for BACnet primitives. (#1151)
 
@@ -30,6 +43,17 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed datetime integer overflow on 8-bit AVR compiler (#1162)
+* Fixed the ports/linux BACnet/IP cache netmask for accurate subnet
+  prefix calculation implementation which had always returned 0. (#1155)
+* Fixed the loop object empty reference property by initializing to self.
+  When configured for self, the manipulated property value will update
+  the controlled variable value for simulation.(#1158)
+* Fixed unit test stack corruption from using stack based message text
+  characterstring pointer in multiple functions and setting the value
+  in the global event and test event data structures. (#1154)
+* Fix timesync recipient encoding to check for OBJECT_DEVICE type before
+  encoding. (#1153)
 * Fixed segmented ComplexACK in MS/TP by adding postpone reply because
   transmission of the segmented ComplexACK cannot begin until the node
   holds the token. (#1116)

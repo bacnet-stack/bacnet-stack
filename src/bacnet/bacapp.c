@@ -535,6 +535,18 @@ int bacapp_encode_application_data(
                     apdu, &value->type.Timer_Value);
                 break;
 #endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                apdu_len =
+                    bacnet_recipient_encode(apdu, &value->type.Recipient);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                apdu_len = bacnet_address_binding_type_encode(
+                    apdu, &value->type.Address_Binding);
+                break;
+#endif
 #if defined(BACAPP_NO_VALUE)
             case BACNET_APPLICATION_TAG_NO_VALUE:
                 apdu_len = bacnet_timer_value_no_value_encode(apdu);
@@ -1308,14 +1320,14 @@ int bacapp_known_property_tag(
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
         case PROP_RESTART_NOTIFICATION_RECIPIENTS:
         case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
-            /* FIXME: Properties using BACnetRecipient */
-            return -1;
+            /* Properties using BACnetRecipient */
+            return BACNET_APPLICATION_TAG_RECIPIENT;
 
         case PROP_DEVICE_ADDRESS_BINDING:
         case PROP_MANUAL_SLAVE_ADDRESS_BINDING:
         case PROP_SLAVE_ADDRESS_BINDING:
-            /* FIXME: BACnetAddressBinding */
-            return -1;
+            /* BACnetAddressBinding */
+            return BACNET_APPLICATION_TAG_ADDRESS_BINDING;
 
         case PROP_LOG_BUFFER:
             /* BACnetLogRecord */
@@ -1682,6 +1694,18 @@ int bacapp_decode_application_tag_value(
             /* BACnetTimerStateChangeValue */
             apdu_len = bacnet_timer_value_decode(
                 apdu, apdu_size, &value->type.Timer_Value);
+            break;
+#endif
+#if defined(BACAPP_RECIPIENT)
+        case BACNET_APPLICATION_TAG_RECIPIENT:
+            apdu_len = bacnet_recipient_decode(
+                apdu, apdu_size, &value->type.Recipient);
+            break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+        case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+            apdu_len = bacnet_address_binding_decode(
+                apdu, apdu_size, &value->type.Address_Binding);
             break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
@@ -2196,10 +2220,12 @@ int bacapp_snprintf_octet_string(
     int len = 0;
     int slen = 0;
     int i = 0;
+    const uint8_t *octet_str;
 
+    slen = bacapp_snprintf(str, str_len, "X'");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     len = octetstring_length(value);
     if (len > 0) {
-        const uint8_t *octet_str;
         octet_str = octetstring_value((BACNET_OCTET_STRING *)value);
         for (i = 0; i < len; i++) {
             slen = bacapp_snprintf(str, str_len, "%02X", *octet_str);
@@ -2207,6 +2233,8 @@ int bacapp_snprintf_octet_string(
             octet_str++;
         }
     }
+    slen = bacapp_snprintf(str, str_len, "'");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
@@ -4027,6 +4055,18 @@ int bacapp_snprintf_value(
                     &value->type.Timer_Value, str, str_len);
                 break;
 #endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                ret_val = bacnet_recipient_to_ascii(
+                    &value->type.Recipient, str, str_len);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                ret_val = bacnet_address_binding_to_ascii(
+                    &value->type.Address_Binding, str, str_len);
+                break;
+#endif
 #if defined(BACAPP_NO_VALUE)
             case BACNET_APPLICATION_TAG_NO_VALUE:
                 ret_val = bacnet_timer_value_no_value_to_ascii(str, str_len);
@@ -4120,40 +4160,6 @@ bool bacapp_print_value(
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
-static char *ltrim(char *str, const char *trimmedchars)
-{
-    if (str[0] == 0) {
-        return str;
-    }
-    while (strchr(trimmedchars, *str)) {
-        str++;
-    }
-    return str;
-}
-
-static char *rtrim(char *str, const char *trimmedchars)
-{
-    char *end;
-
-    if (str[0] == 0) {
-        return str;
-    }
-    end = str + strlen(str) - 1;
-    while (strchr(trimmedchars, *end)) {
-        *end = 0;
-        if (end == str) {
-            break;
-        }
-        end--;
-    }
-    return str;
-}
-
-static char *trim(char *str, const char *trimmedchars)
-{
-    return ltrim(rtrim(str, trimmedchars), trimmedchars);
-}
-
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 static bool
 parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
@@ -4183,7 +4189,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 
     /* Parse the inner tag */
     chunk = strtok(str, ";");
-    chunk = ltrim(chunk, "(");
+    chunk = bacnet_ltrim(chunk, "(");
     if (false ==
         bacapp_parse_application_data(
             BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
@@ -4208,7 +4214,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
         }
 
         /* Extract the inner list of time-values */
-        chunk = rtrim(ltrim(chunk, "([ "), " ])");
+        chunk = bacnet_rtrim(bacnet_ltrim(chunk, "([ "), " ])");
 
         /* The list can be empty */
         if (chunk[0] != 0) {
@@ -4221,7 +4227,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                     *comma = 0;
                 }
                 /* trim the time-value pair and find the delimiter space */
-                chunk = trim(chunk, " ");
+                chunk = bacnet_trim(chunk, " ");
                 space = strchr(chunk, ' ');
                 if (!space) {
                     /* malformed time-value pair */
@@ -4233,7 +4239,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                 t = chunk;
                 /* value starts one byte after the space, and there can be */
                 /* multiple spaces */
-                chunk = ltrim(space + 1, " ");
+                chunk = bacnet_ltrim(space + 1, " ");
                 v = chunk;
 
                 /* Parse time */
@@ -4576,8 +4582,11 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
-                status =
-                    octetstring_init_ascii_hex(&value->type.Octet_String, argv);
+                if (!octetstring_init_ascii_epics(
+                        &value->type.Octet_String, argv)) {
+                    status = octetstring_init_ascii_hex(
+                        &value->type.Octet_String, argv);
+                }
                 break;
 #endif
 #if defined(BACAPP_CHARACTER_STRING)
@@ -4773,6 +4782,18 @@ bool bacapp_parse_application_data(
             case BACNET_APPLICATION_TAG_TIMER_VALUE:
                 status = bacnet_timer_value_from_ascii(
                     &value->type.Timer_Value, argv);
+                break;
+#endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                status =
+                    bacnet_recipient_from_ascii(&value->type.Recipient, argv);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                status = bacnet_address_binding_from_ascii(
+                    &value->type.Address_Binding, argv);
                 break;
 #endif
 #if defined(BACAPP_NO_VALUE)
@@ -5527,6 +5548,19 @@ bool bacapp_same_value(
             case BACNET_APPLICATION_TAG_TIMER_VALUE:
                 status = bacnet_timer_value_same(
                     &value->type.Timer_Value, &test_value->type.Timer_Value);
+                break;
+#endif
+#if defined(BACAPP_RECIPIENT)
+            case BACNET_APPLICATION_TAG_RECIPIENT:
+                status = bacnet_recipient_same(
+                    &value->type.Recipient, &test_value->type.Recipient);
+                break;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+            case BACNET_APPLICATION_TAG_ADDRESS_BINDING:
+                status = bacnet_address_binding_same(
+                    &value->type.Address_Binding,
+                    &test_value->type.Address_Binding);
                 break;
 #endif
 #if defined(BACAPP_NO_VALUE)

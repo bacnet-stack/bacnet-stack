@@ -50,7 +50,7 @@ struct object_data {
     uint32_t Update_Interval;
     float Present_Value;
     BACNET_ENGINEERING_UNITS Output_Units;
-    BACNET_OBJECT_PROPERTY_REFERENCE Manipulated_Property_Reference;
+    BACNET_OBJECT_PROPERTY_REFERENCE Manipulated_Variable_Reference;
     BACNET_ENGINEERING_UNITS Controlled_Variable_Units;
     float Controlled_Variable_Value;
     BACNET_OBJECT_PROPERTY_REFERENCE Controlled_Variable_Reference;
@@ -652,11 +652,18 @@ Object_Property_Reference_Empty(const BACNET_OBJECT_PROPERTY_REFERENCE *value)
  * @param  value - object property reference
  * @return true if the reference is empty
  */
-static void
-Object_Property_Reference_Set_Empty(BACNET_OBJECT_PROPERTY_REFERENCE *value)
+static void Object_Property_Reference_Set(
+    BACNET_OBJECT_PROPERTY_REFERENCE *value,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID property_id,
+    BACNET_ARRAY_INDEX array_index)
 {
     if (value) {
-        value->object_identifier.instance = BACNET_MAX_INSTANCE;
+        value->object_identifier.type = object_type;
+        value->object_identifier.instance = object_instance;
+        value->property_identifier = property_id;
+        value->property_array_index = array_index;
     }
 }
 
@@ -679,7 +686,7 @@ bool Loop_Manipulated_Variable_Reference(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_object_property_reference_copy(
-            value, &pObject->Manipulated_Property_Reference);
+            value, &pObject->Manipulated_Variable_Reference);
     }
 
     return status;
@@ -705,7 +712,7 @@ bool Loop_Manipulated_Variable_Reference_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_object_property_reference_copy(
-            &pObject->Manipulated_Property_Reference, value);
+            &pObject->Manipulated_Variable_Reference, value);
     }
 
     return status;
@@ -2013,20 +2020,28 @@ void Loop_Write_Property_Internal_Callback_Set(write_property_function cb)
 /**
  * @brief For a given object, writes to the manipulated-variable-reference
  * @param pObject - object instance data
+ * @param object_instance - object-instance number of the object
  * @param value - application value
  * @param priority - BACnet priority 0=none,1..16
  * @return  true if values are within range and value is written.
  */
 static bool Loop_Write_Manipulated_Variable(
-    struct object_data *pObject, float value, uint8_t priority)
+    struct object_data *pObject,
+    uint32_t object_instance,
+    float value,
+    uint8_t priority)
 {
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_OBJECT_PROPERTY_REFERENCE *member;
     bool status = false;
 
     if (pObject) {
-        member = &pObject->Manipulated_Property_Reference;
-        if (!Object_Property_Reference_Empty(member)) {
+        member = &pObject->Manipulated_Variable_Reference;
+        if ((member->object_identifier.type == OBJECT_LOOP) &&
+            (member->object_identifier.instance == object_instance)) {
+            /* self - perform simulation by setting the controlled variable */
+            pObject->Controlled_Variable_Value = value;
+        } else if (!Object_Property_Reference_Empty(member)) {
             wp_data.object_type = member->object_identifier.type;
             wp_data.object_instance = member->object_identifier.instance;
             wp_data.object_property = member->property_identifier;
@@ -2146,7 +2161,7 @@ void Loop_Timer(uint32_t object_instance, uint16_t elapsed_milliseconds)
                     respond to changes made to these properties,
                     as if those changes had been made by the algorithm.*/
                 Loop_Write_Manipulated_Variable(
-                    pObject, pObject->Present_Value,
+                    pObject, object_instance, pObject->Present_Value,
                     pObject->Priority_For_Writing);
             }
         }
@@ -2193,19 +2208,28 @@ uint32_t Loop_Create(uint32_t object_instance)
         return BACNET_MAX_INSTANCE;
     }
     /* only need to set property values that are non-zero */
+    pObject->Maximum_Output = 10.0f;
+    pObject->Minimum_Output = 0.0f;
     pObject->Output_Units = UNITS_NO_UNITS;
     pObject->Controlled_Variable_Units = UNITS_NO_UNITS;
+    pObject->Proportional_Constant = 1.0f;
     pObject->Proportional_Constant_Units = UNITS_NO_UNITS;
+    pObject->Integral_Constant = 0.2f;
     pObject->Integral_Constant_Units = UNITS_NO_UNITS;
+    pObject->Derivative_Constant = 0.05f;
     pObject->Derivative_Constant_Units = UNITS_NO_UNITS;
     pObject->Action = ACTION_DIRECT;
-    pObject->Maximum_Output = FLT_MAX;
-    pObject->Minimum_Output = FLT_MIN;
-    Object_Property_Reference_Set_Empty(
-        &pObject->Manipulated_Property_Reference);
-    Object_Property_Reference_Set_Empty(
-        &pObject->Controlled_Variable_Reference);
-    Object_Property_Reference_Set_Empty(&pObject->Setpoint_Reference);
+    pObject->Update_Interval = 1000;
+    /* set the references to self */
+    Object_Property_Reference_Set(
+        &pObject->Manipulated_Variable_Reference, OBJECT_LOOP, object_instance,
+        PROP_CONTROLLED_VARIABLE_VALUE, BACNET_ARRAY_ALL);
+    Object_Property_Reference_Set(
+        &pObject->Controlled_Variable_Reference, OBJECT_LOOP, object_instance,
+        PROP_CONTROLLED_VARIABLE_VALUE, BACNET_ARRAY_ALL);
+    Object_Property_Reference_Set(
+        &pObject->Setpoint_Reference, OBJECT_LOOP, object_instance,
+        PROP_SETPOINT, BACNET_ARRAY_ALL);
     pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
     pObject->COV_Increment = 1.0f;
     pObject->Description = NULL;
