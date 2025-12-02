@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 2) {
                 if (!bacnet_strtoul(argv[argi], &object_instance)) {
-                    fprintf(stderr, "object-type=%s invalid\n", argv[argi]);
+                    fprintf(stderr, "object-instance=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 if (object_instance > BACNET_MAX_INSTANCE) {
