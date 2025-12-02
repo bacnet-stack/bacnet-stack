@@ -13,6 +13,7 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/authentication_factor.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bactext.h"
 
 /** @file event.c  Encode/Decode Event Notifications */
 
@@ -3113,4 +3114,265 @@ int event_notify_decode_service_request(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief parse a list of strings for the event notification:
+ * @details event-notification string:
+ *  process-id initiating-device-id event-object-type event-object-instance
+ *  sequence-number notification-class priority message-text notify-type
+ *  ack-required from-state to-state event-type
+ *  [change-of-bitstring reference-bit-string status-flags]
+ *  [change-of-state new-state-tag new-state-value status-flags]
+ * @param data [out] BACnetEventNotification data to store parsed data
+ * @param argc [in] number of arguments in argv
+ * @param argv [in] array of strings to parse
+ * @return true if successful, false if error
+ */
+bool event_notify_parse(
+    BACNET_EVENT_NOTIFICATION_DATA *data, int argc, char *argv[])
+{
+    int argi = 0;
+    unsigned int target_args = 1;
+    uint32_t found_index = 0;
+    unsigned long long_value = 0;
+    BACNET_PROPERTY_STATES tag = PROP_STATE_BOOLEAN_VALUE;
+    BACNET_BIT_STRING *pBitString = NULL;
+
+    for (argi = 1; argi < argc; argi++) {
+        if (target_args == 1) {
+            /* process-id */
+            if (!bacnet_string_to_uint32(
+                    argv[argi], &data->processIdentifier)) {
+                return false;
+            }
+            target_args++;
+        } else if (target_args == 2) {
+            /* initiating-device-id */
+            data->initiatingObjectIdentifier.type = OBJECT_DEVICE;
+            if (!bacnet_strtoul(argv[argi], &long_value)) {
+                return false;
+            }
+            if (long_value > BACNET_MAX_INSTANCE) {
+                return false;
+            }
+            data->initiatingObjectIdentifier.instance = (uint32_t)long_value;
+            target_args++;
+        } else if (target_args == 3) {
+            /* event-object-type */
+            if (!bactext_object_type_strtol(argv[argi], &found_index)) {
+                return false;
+            }
+            data->eventObjectIdentifier.type = (BACNET_OBJECT_TYPE)found_index;
+            target_args++;
+        } else if (target_args == 4) {
+            /* event-object-instance */
+            if (!bacnet_strtoul(argv[argi], &long_value)) {
+                return false;
+            }
+            if (long_value > BACNET_MAX_INSTANCE) {
+                return false;
+            }
+            data->eventObjectIdentifier.instance = (uint32_t)long_value;
+            target_args++;
+        } else if (target_args == 5) {
+            /* sequence-number */
+            if (!bacnet_string_to_uint16(
+                    argv[argi], &data->timeStamp.value.sequenceNum)) {
+                return false;
+            }
+            data->timeStamp.tag = TIME_STAMP_SEQUENCE;
+            target_args++;
+        } else if (target_args == 6) {
+            /* notification-class */
+            if (!bacnet_string_to_uint32(
+                    argv[argi], &data->notificationClass)) {
+                return false;
+            }
+            target_args++;
+        } else if (target_args == 7) {
+            /* priority */
+            if (!bacnet_string_to_uint8(argv[argi], &data->priority)) {
+                return false;
+            }
+            target_args++;
+        } else if (target_args == 8) {
+            /* message-text */
+            if (!characterstring_init_ansi(data->messageText, argv[argi])) {
+                return false;
+            }
+            target_args++;
+        } else if (target_args == 9) {
+            /* notify-type */
+            if (!bactext_notify_type_strtol(argv[argi], &found_index)) {
+                return false;
+            }
+            data->notifyType = (BACNET_NOTIFY_TYPE)found_index;
+            target_args++;
+        } else if (target_args == 10) {
+            /* ack-required */
+            if (!bacnet_string_to_bool(argv[argi], &data->ackRequired)) {
+                return false;
+            }
+            target_args++;
+        } else if (target_args == 11) {
+            /* from-state */
+            if (!bactext_event_state_strtol(argv[argi], &found_index)) {
+                return false;
+            }
+            data->fromState = (BACNET_EVENT_STATE)found_index;
+            target_args++;
+        } else if (target_args == 12) {
+            /* to-state */
+            if (!bactext_event_state_strtol(argv[argi], &found_index)) {
+                return false;
+            }
+            data->toState = (BACNET_EVENT_STATE)found_index;
+            target_args++;
+        } else if (target_args == 13) {
+            /* event-type */
+            if (!bactext_event_type_strtol(argv[argi], &found_index)) {
+                return false;
+            }
+            data->eventType = (BACNET_EVENT_TYPE)found_index;
+            target_args++;
+        } else {
+            if (data->eventType == EVENT_CHANGE_OF_BITSTRING) {
+                if (target_args == 14) {
+                    pBitString = &data->notificationParams.changeOfBitstring
+                                      .referencedBitString;
+                    bitstring_init_ascii(pBitString, argv[argi]);
+                    target_args++;
+                } else if (target_args == 15) {
+                    pBitString =
+                        &data->notificationParams.changeOfBitstring.statusFlags;
+                    bitstring_init_ascii(pBitString, argv[argi]);
+                    target_args++;
+                } else {
+                    return false;
+                }
+            } else if (data->eventType == EVENT_CHANGE_OF_STATE) {
+                if (target_args == 14) {
+                    if (!bacnet_strtoul(argv[argi], &long_value)) {
+                        return false;
+                    }
+                    tag = (BACNET_PROPERTY_STATES)long_value;
+                    data->notificationParams.changeOfState.newState.tag = tag;
+                    target_args++;
+                } else if (target_args == 15) {
+                    if (!bactext_property_states_strtoul(
+                            tag, argv[argi], &found_index)) {
+                        return false;
+                    }
+                    if (tag == PROP_STATE_BOOLEAN_VALUE) {
+                        if (found_index) {
+                            data->notificationParams.changeOfState.newState
+                                .state.booleanValue = true;
+                        } else {
+                            data->notificationParams.changeOfState.newState
+                                .state.booleanValue = false;
+                        }
+                    } else if (tag == PROP_STATE_BINARY_VALUE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .binaryValue = (BACNET_BINARY_PV)found_index;
+                    } else if (tag == PROP_STATE_EVENT_TYPE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .eventType = (BACNET_EVENT_TYPE)found_index;
+                    } else if (tag == PROP_STATE_POLARITY) {
+                        data->notificationParams.changeOfState.newState.state
+                            .polarity = (BACNET_POLARITY)found_index;
+                    } else if (tag == PROP_STATE_PROGRAM_CHANGE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .programChange =
+                            (BACNET_PROGRAM_REQUEST)found_index;
+                    } else if (tag == PROP_STATE_PROGRAM_STATE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .programState = (BACNET_PROGRAM_STATE)found_index;
+                    } else if (tag == PROP_STATE_REASON_FOR_HALT) {
+                        data->notificationParams.changeOfState.newState.state
+                            .programError = (BACNET_PROGRAM_ERROR)found_index;
+                    } else if (tag == PROP_STATE_RELIABILITY) {
+                        data->notificationParams.changeOfState.newState.state
+                            .reliability = (BACNET_RELIABILITY)found_index;
+                    } else if (tag == PROP_STATE_EVENT_STATE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .state = (BACNET_EVENT_STATE)found_index;
+                    } else if (tag == PROP_STATE_SYSTEM_STATUS) {
+                        data->notificationParams.changeOfState.newState.state
+                            .systemStatus = (BACNET_DEVICE_STATUS)found_index;
+                    } else if (tag == PROP_STATE_UNITS) {
+                        data->notificationParams.changeOfState.newState.state
+                            .units = (BACNET_ENGINEERING_UNITS)found_index;
+                    } else if (tag == PROP_STATE_UNSIGNED_VALUE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .unsignedValue =
+                            (BACNET_UNSIGNED_INTEGER)found_index;
+                    } else if (tag == PROP_STATE_LIFE_SAFETY_MODE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .lifeSafetyMode =
+                            (BACNET_LIFE_SAFETY_MODE)found_index;
+                    } else if (tag == PROP_STATE_LIFE_SAFETY_STATE) {
+                        data->notificationParams.changeOfState.newState.state
+                            .lifeSafetyState =
+                            (BACNET_LIFE_SAFETY_STATE)found_index;
+                    } else {
+                        return false;
+                    }
+                    target_args++;
+                } else if (target_args == 16) {
+                    pBitString =
+                        &data->notificationParams.changeOfState.statusFlags;
+                    bitstring_init_ascii(pBitString, argv[argi]);
+                    target_args++;
+                } else {
+                    return false;
+                }
+            } else if (data->eventType == EVENT_CHANGE_OF_VALUE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_COMMAND_FAILURE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_FLOATING_LIMIT) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_OUT_OF_RANGE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_EXTENDED) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_BUFFER_READY) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_UNSIGNED_RANGE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_ACCESS_EVENT) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_DOUBLE_OUT_OF_RANGE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_SIGNED_OUT_OF_RANGE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_UNSIGNED_OUT_OF_RANGE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_CHANGE_OF_CHARACTERSTRING) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_CHANGE_OF_STATUS_FLAGS) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_CHANGE_OF_RELIABILITY) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_NONE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_CHANGE_OF_DISCRETE_VALUE) {
+                /* FIXME: add event type parameters */
+            } else if (data->eventType == EVENT_CHANGE_OF_TIMER) {
+                /* FIXME: add event type parameters */
+            } else if (
+                (data->eventType >= EVENT_PROPRIETARY_MIN) &&
+                (data->eventType <= EVENT_PROPRIETARY_MAX)) {
+                /* Enumerated values 64-65535 may
+                    be used by others subject to
+                    the procedures and constraints
+                    described in Clause 23.  */
+            }
+        }
+    }
+
+    return true;
 }
