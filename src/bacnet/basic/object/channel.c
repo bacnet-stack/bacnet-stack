@@ -47,6 +47,7 @@ struct object_data {
     uint32_t Control_Groups[CONTROL_GROUPS_MAX];
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 
 /* Key List for storing the object data sorted by instance number  */
@@ -56,7 +57,7 @@ static write_property_function Write_Property_Internal_Callback;
 
 /* These arrays are used by the ReadPropertyMultiple handler
    property-list property (as of protocol-revision 14) */
-static const int Channel_Properties_Required[] = {
+static const int32_t Channel_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -71,9 +72,9 @@ static const int Channel_Properties_Required[] = {
     -1
 };
 
-static const int Channel_Properties_Optional[] = { -1 };
+static const int32_t Channel_Properties_Optional[] = { -1 };
 
-static const int Channel_Properties_Proprietary[] = { -1 };
+static const int32_t Channel_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -87,7 +88,9 @@ static const int Channel_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Channel_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Channel_Properties_Required;
@@ -1380,6 +1383,38 @@ void Channel_Write_Property_Internal_Callback_Set(write_property_function cb)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Channel_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Channel_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a new object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1390,6 +1425,9 @@ uint32_t Channel_Create(uint32_t object_instance)
     int index = 0;
     unsigned m, g;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

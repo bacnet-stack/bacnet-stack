@@ -23,6 +23,16 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
+    BACNET_EVENT_EXTENDED_ENABLED=1
+    BACNET_EVENT_DOUBLE_OUT_OF_RANGE_ENABLED=1
+    BACNET_EVENT_SIGNED_OUT_OF_RANGE_ENABLED=1
+    BACNET_EVENT_UNSIGNED_OUT_OF_RANGE_ENABLED=1
+    BACNET_EVENT_CHANGE_OF_CHARACTERSTRING_ENABLED=1
+    BACNET_EVENT_CHANGE_OF_STATUS_FLAGS_ENABLED=1
+    BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED=1
+    BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED=1
+    BACNET_EVENT_CHANGE_OF_TIMER_ENABLED=1
+    BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS=1
     )
 
 include_directories(
@@ -48,7 +58,6 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
-    ${SRC_DIR}/bacnet/timestamp.c
     # Dependencies of bacapp.c
     ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/bacaction.c
@@ -58,6 +67,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bactimevalue.c
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/calendar_entry.c

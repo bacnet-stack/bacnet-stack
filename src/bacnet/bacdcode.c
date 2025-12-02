@@ -1427,13 +1427,49 @@ int bacnet_null_application_decode(const uint8_t *apdu, uint32_t apdu_size)
 }
 
 /**
+ * @brief Decode the Null Value when context encoded
+ * From clause 20.2.2 Encoding of a Null Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param tag_value - context tag number expected
+ *
+ * @return  number of bytes decoded, zero if tag mismatch,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
+ */
+int bacnet_null_context_decode(
+    const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_value)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    int len = 0;
+    BACNET_TAG tag = { 0 };
+
+    if (apdu_size == 0) {
+        return 0;
+    }
+    len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
+            if (tag.len_value_type == 0) {
+                apdu_len = len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = 0;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Reverse the bits of the given byte.
- *
  * @param in_byte  Byte to reverse.
- *
  * @return Byte with reversed bit order.
  */
-static uint8_t byte_reverse_bits(uint8_t in_byte)
+uint8_t bacnet_byte_reverse_bits(uint8_t in_byte)
 {
     uint8_t out_byte = 0;
 
@@ -1496,7 +1532,8 @@ int decode_bitstring(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        bit_string, (uint8_t)i, byte_reverse_bits(apdu[len++]));
+                        bit_string, (uint8_t)i,
+                        bacnet_byte_reverse_bits(apdu[len++]));
                 }
                 /* Erase the remaining unused bits. */
                 unused_bits = (uint8_t)(apdu[0] & 0x07);
@@ -1543,7 +1580,7 @@ int bacnet_bitstring_decode(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        value, (uint8_t)i, byte_reverse_bits(apdu[len]));
+                        value, (uint8_t)i, bacnet_byte_reverse_bits(apdu[len]));
                     len++;
                 }
                 /* Erase the remaining unused bits. */
@@ -1737,7 +1774,8 @@ int encode_bitstring(uint8_t *apdu, const BACNET_BIT_STRING *bit_string)
         len++;
         for (i = 0; i < used_bytes; i++) {
             if (apdu) {
-                apdu[len] = byte_reverse_bits(bitstring_octet(bit_string, i));
+                apdu[len] =
+                    bacnet_byte_reverse_bits(bitstring_octet(bit_string, i));
             }
             len++;
         }
@@ -2216,6 +2254,36 @@ int encode_application_octet_string(
     }
 
     return len;
+}
+
+/**
+ * @brief Encode the BACnet Octet String value as application tagged
+ *  from clause 20.2.8 Encoding of an Octet String Value
+ *  and 20.2.1 General Rules for Encoding BACnet Tags
+ * @param apdu - buffer to hold the bytes
+ * @param buffer - the octet string to be encoded
+ * @param buffer_size - the size of the octet string to be encoded
+ * @return returns the number of apdu bytes encoded
+ */
+int encode_application_octet_string_buffer(
+    uint8_t *apdu, const uint8_t *buffer, size_t buffer_size)
+{
+    int apdu_len = 0, len = 0, i = 0;
+
+    len = encode_tag(
+        apdu, BACNET_APPLICATION_TAG_OCTET_STRING, false, buffer_size);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    for (i = 0; i < buffer_size; i++) {
+        if (apdu && buffer) {
+            apdu[i] = buffer[i];
+        }
+    }
+    apdu_len += buffer_size;
+
+    return apdu_len;
 }
 
 /**
@@ -4820,6 +4888,157 @@ int decode_context_date(
 }
 
 /**
+ * @brief Encode a context tagged BACnetTimerStateChangeValue
+ *  with a constructed value type
+ * @param apdu  buffer to be encoded, or NULL for length
+ * @param tag_value - context tag number to encapsulate the value
+ * @param value The value to be encoded.
+ * @return the number of apdu bytes encoded
+ */
+int bacnet_constructed_value_context_encode(
+    uint8_t *apdu,
+    uint8_t tag_value,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (value) {
+        len = encode_opening_tag(apdu, tag_value);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = value->data_len;
+        if (apdu) {
+            memcpy(apdu, value->data, len);
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_value);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a constructed value type of a given length
+ * @param apdu - the APDU buffer to decode
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param len_value - number of bytes in the constructed value data
+ * @param value - the value where the decoded data is copied into,
+ *  or NULL for getting the length
+ * @return number of bytes decoded (0..N), or BACNET_STATUS_ERROR on error
+ */
+int bacnet_constructed_value_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value)
+{
+    if (len_value <= apdu_size) {
+        if (value) {
+            value->data_len = len_value;
+            memcpy(value->data, apdu, len_value);
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return (int)len_value;
+}
+
+/**
+ * @brief Decodes a context tagged constructed value type
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_value - context tag number expected
+ * @param value - the value where the decoded data is copied into
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_constructed_value_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value)
+{
+    int apdu_len = 0;
+    int len, len_value;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* find the matching closing tag to learn the length*/
+    len_value =
+        bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
+    /* now update apdu_len with the opening tag length */
+    apdu_len += len;
+    /* constructed value */
+    len = bacnet_constructed_value_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, len_value, NULL);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        if (len <= sizeof(value->data)) {
+            len = bacnet_constructed_value_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, len_value, value);
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare two constructed values
+ * @param value1 - the first value to compare
+ * @param value2 - the second value to compare
+ * @return true if value1 is the same as value2 up to the length of the data
+ */
+bool bacnet_constructed_value_same(
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value1,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value2)
+{
+    if (value1->data_len != value2->data_len) {
+        return false;
+    }
+    if (value1->data_len > sizeof(value1->data)) {
+        return false;
+    }
+    if (memcmp(value1->data, value2->data, value1->data_len) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Copy one constructed value to another
+ * @param dest - the destination value
+ * @param src - the source value to copy to the destination
+ * @return true if the value is copied from src to dst
+ */
+bool bacnet_constructed_value_copy(
+    BACNET_CONSTRUCTED_VALUE_TYPE *dest,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *src)
+{
+    memcpy(dest, src, sizeof(BACNET_CONSTRUCTED_VALUE_TYPE));
+    return true;
+}
+
+/**
  * Encode a simple ACK and returns the number of apdu bytes consumed.
  *
  * @param apdu - buffer to hold encoded data, or NULL for length
@@ -4917,7 +5136,7 @@ int bacnet_array_encode(
  * @param array_index [in] array index to be decoded
  *    0 for the array size
  *    1 to n for individual array members
- *    BACNET_ARRAY_ALL for the full array to be read.
+ *    BACNET_ARRAY_ALL for the full array to be written.
  * @param decode_function [in] function to decode one property array element and
  * determine the length
  * @param write_function [in] function to write one property array element with
@@ -4988,6 +5207,84 @@ BACNET_ERROR_CODE bacnet_array_write(
     } else {
         /* array_index was specified out of range */
         error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetList property value and call a function for each
+ * element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to be decoded
+ *    0 for the list size - not permitted for a list
+ *    1 to n for individual array members - not permitted for a list
+ *    BACNET_ARRAY_ALL for the full list to be written
+ * @param decode_function [in] function to decode one property list element and
+ * determine the length
+ * @param add_function [in] function to add one property list element with
+ * the encoded value
+ * @param max_elements [in] number of elements in the list
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ * @return BACNET_ERROR_CODE value
+ */
+BACNET_ERROR_CODE bacnet_list_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_list_property_element_add_function add_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    int len = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    size_t apdu_len;
+    BACNET_ARRAY_INDEX count = 0;
+
+    if (array_index == BACNET_ARRAY_ALL) {
+        /* verify all elements will fit in the BACnetLIST */
+        apdu_len = 0;
+        while (apdu_len < apdu_size) {
+            len = decode_function(
+                object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+            if (len > 0) {
+                apdu_len += len;
+                count++;
+            } else if (len == 0) {
+                /* end of list - it fits! */
+                break;
+            } else {
+                /* bad decode */
+                error_code = ERROR_CODE_ABORT_OTHER;
+            }
+        }
+        if (error_code == ERROR_CODE_SUCCESS) {
+            if (count > array_size) {
+                /* maybe? what about duplicates? */
+                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        }
+        if (error_code == ERROR_CODE_SUCCESS) {
+            /* empty the list */
+            (void)add_function(object_instance, NULL, 0);
+            /* add each unique element */
+            apdu_len = 0;
+            while (apdu_len < apdu_size) {
+                len = decode_function(
+                    object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+                error_code =
+                    add_function(object_instance, &apdu[apdu_len], len);
+                if (error_code != ERROR_CODE_SUCCESS) {
+                    break;
+                }
+                apdu_len += len;
+            }
+        }
+    } else {
+        /* array-index was specified */
+        error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
     }
 
     return error_code;

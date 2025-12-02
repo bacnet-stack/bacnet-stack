@@ -70,7 +70,7 @@ static void test_network_port(void)
                             PORT_TYPE_ZIGBEE,     PORT_TYPE_VIRTUAL,
                             PORT_TYPE_NON_BACNET, PORT_TYPE_BIP6,
                             PORT_TYPE_BSC,        PORT_TYPE_MAX };
-    const int known_fail_property_list[] = { -1 };
+    const int32_t known_fail_property_list[] = { -1 };
 
     while (port_type[port] != PORT_TYPE_MAX) {
         Network_Port_Init();

@@ -33,7 +33,9 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Multistate_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 BACNET_STACK_EXPORT
 bool Multistate_Output_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -124,6 +126,11 @@ uint32_t Multistate_Output_Relinquish_Default(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Multistate_Output_Relinquish_Default_Set(
     uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+void *Multistate_Output_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Multistate_Output_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Multistate_Output_Create(uint32_t object_instance);

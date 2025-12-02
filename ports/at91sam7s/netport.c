@@ -55,7 +55,7 @@ struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 static uint32_t Link_Speeds[] = {9600, 19200, 38400, 57600, 76800, 115200 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int32_t Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_STATUS_FLAGS, PROP_RELIABILITY,
     PROP_OUT_OF_SERVICE, PROP_NETWORK_TYPE, PROP_PROTOCOL_LEVEL,
     PROP_CHANGES_PENDING,
@@ -67,7 +67,7 @@ static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
 #endif
     -1 };
 
-static const int Network_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
+static const int32_t Network_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_LINK_SPEEDS,
 #if (BACNET_PROTOCOL_REVISION >= 24)
     PROP_APDU_LENGTH,
@@ -77,7 +77,7 @@ static const int Network_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
 #endif
     -1 };
 
-static const int Network_Port_Properties_Proprietary[] = { -1 };
+static const int32_t Network_Port_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -92,9 +92,9 @@ static const int Network_Port_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Network_Port_Property_List(uint32_t object_instance,
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     (void)object_instance;
     if (pRequired) {
@@ -122,7 +122,7 @@ void Network_Port_Property_List(uint32_t object_instance,
  * BACnet proprietary properties for this object.
  */
 void Network_Port_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired, const int32_t **pOptional, const int32_t **pProprietary)
 {
     Network_Port_Property_List(
         BACNET_NETWORK_PORT_INSTANCE, pRequired, pOptional, pProprietary);

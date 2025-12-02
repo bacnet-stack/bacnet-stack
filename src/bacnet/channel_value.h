@@ -13,6 +13,8 @@
 #include <stddef.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/datetime.h"
 #include "bacnet/lighting.h"
 
 /* BACNET_CHANNEL_VALUE decodes WriteProperty service requests
@@ -26,8 +28,16 @@
     defined(CHANNEL_ENUMERATED) || defined(CHANNEL_DATE) ||             \
     defined(CHANNEL_TIME) || defined(CHANNEL_OBJECT_ID) ||              \
     defined(CHANNEL_LIGHTING_COMMAND) || defined(CHANNEL_XY_COLOR) ||   \
-    defined(CHANNEL_COLOR_COMMAND))
+    defined(CHANNEL_COLOR_COMMAND) || defined(CHANNEL_VALUE_ALL))
 #define CHANNEL_NUMERIC
+#elif defined(CHANNEL_VALUE_ALL)
+#define CHANNEL_NUMERIC
+#define CHANNEL_OCTET_STRING
+#define CHANNEL_CHARACTER_STRING
+#define CHANNEL_BIT_STRING
+#define CHANNEL_DATE
+#define CHANNEL_TIME
+#define CHANNEL_OBJECT_ID
 #endif
 
 #if defined(CHANNEL_NUMERIC)

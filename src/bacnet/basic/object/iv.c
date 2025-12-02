@@ -42,26 +42,29 @@ struct integer_object {
     int32_t Present_Value;
     int32_t Prior_Value;
     uint32_t COV_Increment;
-    uint16_t Units;
+    BACNET_ENGINEERING_UNITS Units;
     uint32_t Instance;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 } INTERGER_VALUE_DESCR;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                                         PROP_OBJECT_NAME,
-                                                         PROP_OBJECT_TYPE,
-                                                         PROP_PRESENT_VALUE,
-                                                         PROP_STATUS_FLAGS,
-                                                         PROP_UNITS,
-                                                         -1 };
+static const int32_t Integer_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_UNITS,
+    -1
+};
 
-static const int Integer_Value_Properties_Optional[] = {
+static const int32_t Integer_Value_Properties_Optional[] = {
     PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, PROP_COV_INCREMENT, -1
 };
 
-static const int Integer_Value_Properties_Proprietary[] = { -1 };
+static const int32_t Integer_Value_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -75,7 +78,9 @@ static const int Integer_Value_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Integer_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Integer_Value_Properties_Required;
@@ -374,9 +379,9 @@ const char *Integer_Value_Description_ANSI(uint32_t object_instance)
  *
  * @return  units property value
  */
-uint16_t Integer_Value_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Integer_Value_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct integer_object *pObject = Integer_Value_Object(object_instance);
 
     if (pObject) {
@@ -394,7 +399,8 @@ uint16_t Integer_Value_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Integer_Value_Units_Set(uint32_t object_instance, uint16_t units)
+bool Integer_Value_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct integer_object *pObject = Integer_Value_Object(object_instance);
@@ -460,7 +466,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
-    uint32_t units = 0;
+    BACNET_ENGINEERING_UNITS units;
     int32_t integer_value = 0;
     bool state = false;
 
@@ -511,7 +517,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_UNITS:
             units = Integer_Value_Units(rpdata->object_instance);
-            apdu_len = encode_application_enumerated(&apdu[0], units);
+            apdu_len = encode_application_enumerated(&apdu[0], (uint32_t)units);
             break;
         case PROP_COV_INCREMENT:
             apdu_len = encode_application_unsigned(
@@ -720,6 +726,38 @@ void Integer_Value_COV_Increment_Set(uint32_t object_instance, uint32_t value)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Integer_Value_Context_Get(uint32_t object_instance)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Integer_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct integer_object *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Integer Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -728,6 +766,9 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
 {
     struct integer_object *pObject = NULL;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

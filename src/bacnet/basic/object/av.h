@@ -28,7 +28,7 @@
 typedef struct analog_value_descr {
     unsigned Event_State : 3;
     bool Out_Of_Service;
-    uint16_t Units;
+    BACNET_ENGINEERING_UNITS Units;
     float Present_Value;
     float Prior_Value;
     float COV_Increment;
@@ -36,6 +36,7 @@ typedef struct analog_value_descr {
     const char *Object_Name;
     const char *Description;
     BACNET_RELIABILITY Reliability;
+    void *Context;
 #if defined(INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -69,7 +70,9 @@ extern "C" {
 #endif /* __cplusplus */
 BACNET_STACK_EXPORT
 void Analog_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 BACNET_STACK_EXPORT
 bool Analog_Value_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -132,9 +135,9 @@ bool Analog_Value_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
 
 BACNET_STACK_EXPORT
-uint16_t Analog_Value_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Analog_Value_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Analog_Value_Units_Set(uint32_t instance, uint16_t unit);
+bool Analog_Value_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS unit);
 
 BACNET_STACK_EXPORT
 bool Analog_Value_Out_Of_Service(uint32_t instance);
@@ -218,6 +221,11 @@ BACNET_STACK_EXPORT
 int Analog_Value_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data);
 #endif
+
+BACNET_STACK_EXPORT
+void *Analog_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Analog_Value_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Analog_Value_Create(uint32_t object_instance);

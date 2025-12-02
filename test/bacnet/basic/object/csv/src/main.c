@@ -25,9 +25,9 @@ static void testCharacterString_Value(void)
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
     unsigned count = 0;
     bool status = false;
     uint32_t object_instance = BACNET_MAX_INSTANCE;

@@ -46,6 +46,13 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-write-strings)
     add_compile_options(-Wno-implicit-fallthrough)
 
+    # some consistent defines used for all builds - avoids inconsistent error
+    add_compile_definitions(
+      BIG_ENDIAN=0
+      PRINT_ENABLED=1
+      BACAPP_PRINT_ENABLED=1
+    )
+
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
 
@@ -75,6 +82,7 @@ list(APPEND testdirs
   bacnet/access_rule
   bacnet/alarm_ack
   bacnet/arf
+  bacnet/authentication_factor_format
   bacnet/awf
   bacnet/bacaddr
   bacnet/bacapp
@@ -116,6 +124,7 @@ list(APPEND testdirs
   bacnet/rpm
   bacnet/secure_connect
   bacnet/specialevent
+  bacnet/timer_value
   bacnet/timestamp
   bacnet/timesync
   bacnet/weeklyschedule
@@ -163,6 +172,7 @@ list(APPEND testdirs
   bacnet/basic/object/iv
   bacnet/basic/object/lc
   bacnet/basic/object/lo
+  bacnet/basic/object/loop
   bacnet/basic/object/lsp
   bacnet/basic/object/lsz
   bacnet/basic/object/ms-input
@@ -177,6 +187,7 @@ list(APPEND testdirs
   bacnet/basic/object/schedule
   bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
+  bacnet/basic/object/timer
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic
@@ -227,6 +238,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
   list(APPEND testdirs
   ports/linux/bsc_event
+  ports/linux/bip_subnet
   )
 
 elseif(WIN32)

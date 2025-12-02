@@ -154,6 +154,24 @@ static void print_help(const char *filename)
     printf("Add a BACnetLIST element to a property of an object\n"
            "in a BACnet device.\n");
     printf("\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
@@ -234,12 +252,12 @@ int main(int argc, char *argv[])
     bool found = false;
     char *value_string = NULL;
     bool status = false;
-    unsigned context_tag = 0;
+    unsigned long context_tag = 0;
     BACNET_APPLICATION_DATA_VALUE *application_value = NULL;
-    unsigned object_type = 0;
-    unsigned object_instance = 0;
-    unsigned property_id = 0;
-    unsigned property_array_index = 0;
+    uint32_t object_type = 0;
+    unsigned long object_instance = 0;
+    uint32_t property_id = 0;
+    long property_array_index = 0;
     long property_tag = 0;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
@@ -274,7 +292,10 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
-                dnet = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if ((dnet >= 0) && (dnet <= UINT16_MAX)) {
                     specific_address = true;
                 }
@@ -289,39 +310,43 @@ int main(int argc, char *argv[])
             Verbose = true;
         } else {
             if (target_args == 0) {
-                object_instance = strtoul(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &object_instance)) {
+                    fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device-instance=%u - not greater than %u\n",
+                        stderr, "device-instance=%lu - not greater than %u\n",
                         object_instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
                 Target_Device_Object_Instance = object_instance;
                 target_args++;
             } else if (target_args == 1) {
-                if (bactext_object_type_strtol(argv[argi], &object_type) ==
-                    false) {
+                if (!bactext_object_type_strtol(argv[argi], &object_type)) {
                     fprintf(stderr, "object-type=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 Target_Object_Type = object_type;
                 target_args++;
             } else if (target_args == 2) {
-                object_instance = strtoul(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &object_instance)) {
+                    fprintf(stderr, "object-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device-instance=%u - not greater than %u\n",
+                        stderr, "object-instance=%u - not greater than %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
                 Target_Object_Instance = object_instance;
                 if (Verbose) {
-                    printf("Instance=%u=%s\n", object_instance, argv[argi]);
+                    printf("Instance=%lu=%s\n", object_instance, argv[argi]);
                 }
                 target_args++;
             } else if (target_args == 3) {
-                if (bactext_property_strtol(argv[argi], &property_id) ==
-                    false) {
+                if (!bactext_property_strtol(argv[argi], &property_id)) {
                     fprintf(stderr, "property=%s invalid\n", argv[argi]);
                     return 1;
                 }
@@ -331,11 +356,18 @@ int main(int argc, char *argv[])
                 }
                 target_args++;
             } else if (target_args == 4) {
-                property_array_index = strtol(argv[argi], NULL, 0);
-                Target_Object_Array_Index = property_array_index;
+                if (!bacnet_strtol(argv[argi], &property_array_index)) {
+                    fprintf(stderr, "array-index=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if (property_array_index < 0) {
+                    Target_Object_Array_Index = BACNET_ARRAY_ALL;
+                } else {
+                    Target_Object_Array_Index = property_array_index;
+                }
                 if (Verbose) {
                     printf(
-                        "Array_Index=%i=%s\n", property_array_index,
+                        "Array_Index=%li=%s\n", property_array_index,
                         argv[argi]);
                 }
                 target_args++;
@@ -346,7 +378,11 @@ int main(int argc, char *argv[])
                 if (tag_value_arg == 0) {
                     /* special case for context tagged values */
                     if (toupper(argv[argi][0]) == 'C') {
-                        context_tag = strtoul(&argv[target_args][1], NULL, 0);
+                        if (!bacnet_strtoul(
+                                &argv[target_args][1], &context_tag)) {
+                            fprintf(stderr, "tag=%s invalid\n", argv[argi]);
+                            return 1;
+                        }
                         application_value->context_tag = context_tag;
                         application_value->context_specific = true;
                         argi++;
@@ -354,7 +390,10 @@ int main(int argc, char *argv[])
                         application_value->context_specific = false;
                     }
                     /* application tag */
-                    property_tag = strtol(argv[argi], NULL, 0);
+                    if (!bacnet_strtol(argv[argi], &property_tag)) {
+                        fprintf(stderr, "tag=%s invalid\n", argv[argi]);
+                        return 1;
+                    }
                     if (Verbose) {
                         printf("tag=%ld\n", property_tag);
                     }

@@ -270,7 +270,7 @@ int read_property_ack_encode(
 }
 
 /**
- * @brief Encode the COVNotification service request
+ * @brief Encode the ReadProperty-ACK service
  * @param apdu  Pointer to the buffer for encoding into
  * @param apdu_size number of bytes available in the buffer
  * @param data  Pointer to the service data used for encoding values
@@ -352,13 +352,7 @@ int rp_ack_encode_apdu_init(
  */
 int rp_ack_encode_apdu_object_property_end(uint8_t *apdu)
 {
-    int apdu_len = 0; /* total length of the apdu, return value */
-
-    if (apdu) {
-        apdu_len = encode_closing_tag(&apdu[0], 3);
-    }
-
-    return apdu_len;
+    return encode_closing_tag(apdu, 3);
 }
 
 /**
@@ -415,7 +409,7 @@ int rp_ack_encode_apdu(
         if (apdu) {
             apdu += len;
         }
-        len = encode_closing_tag(apdu, 3);
+        len = rp_ack_encode_apdu_object_property_end(apdu);
         apdu_len += len;
     }
 

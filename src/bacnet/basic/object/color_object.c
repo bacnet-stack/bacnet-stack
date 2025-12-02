@@ -55,6 +55,7 @@ struct object_data {
     BACNET_COLOR_TRANSITION Transition;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -62,7 +63,7 @@ static OS_Keylist Object_List;
 static color_write_present_value_callback Color_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Color_Properties_Required[] = {
+static const int32_t Color_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
     PROP_TRACKING_VALUE,    PROP_COLOR_COMMAND,
@@ -70,10 +71,10 @@ static const int Color_Properties_Required[] = {
     PROP_DEFAULT_FADE_TIME, -1
 };
 
-static const int Color_Properties_Optional[] = { PROP_DESCRIPTION,
-                                                 PROP_TRANSITION, -1 };
+static const int32_t Color_Properties_Optional[] = { PROP_DESCRIPTION,
+                                                     PROP_TRANSITION, -1 };
 
-static const int Color_Properties_Proprietary[] = { -1 };
+static const int32_t Color_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -87,7 +88,9 @@ static const int Color_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Color_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Color_Properties_Required;
@@ -1133,6 +1136,38 @@ void Color_Write_Disable(uint32_t object_instance)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Color_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Color_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Color object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1142,6 +1177,9 @@ uint32_t Color_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

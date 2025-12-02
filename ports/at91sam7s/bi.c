@@ -27,16 +27,16 @@
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int32_t Binary_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_POLARITY, -1 };
 
-static const int Binary_Input_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int32_t Binary_Input_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Binary_Input_Properties_Proprietary[] = { -1 };
+static const int32_t Binary_Input_Properties_Proprietary[] = { -1 };
 
 void Binary_Input_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired, const int32_t **pOptional, const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Binary_Input_Properties_Required;

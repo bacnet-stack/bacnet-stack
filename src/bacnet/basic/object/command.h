@@ -37,7 +37,9 @@ typedef struct command_descr {
 
 BACNET_STACK_EXPORT
 void Command_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 
 BACNET_STACK_EXPORT
 bool Command_Valid_Instance(uint32_t object_instance);

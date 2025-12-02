@@ -26,9 +26,9 @@ static void test_Device_Data_Sharing(void)
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     /* for decode value data */
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
     unsigned count = 0;
     bool status = false;
 

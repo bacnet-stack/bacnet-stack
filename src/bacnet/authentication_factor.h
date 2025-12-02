@@ -31,9 +31,23 @@ int bacapp_encode_authentication_factor(
 BACNET_STACK_EXPORT
 int bacapp_encode_context_authentication_factor(
     uint8_t *apdu, uint8_t tag, const BACNET_AUTHENTICATION_FACTOR *af);
+
+BACNET_STACK_EXPORT
+int bacnet_authentication_factor_decode(
+    const uint8_t *apdu, unsigned apdu_size, BACNET_AUTHENTICATION_FACTOR *af);
+BACNET_STACK_DEPRECATED("Use bacnet_authentication_factor_decode() instead")
 BACNET_STACK_EXPORT
 int bacapp_decode_authentication_factor(
     const uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af);
+
+BACNET_STACK_EXPORT
+int bacnet_authentication_factor_context_decode(
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    uint8_t tag,
+    BACNET_AUTHENTICATION_FACTOR *af);
+BACNET_STACK_DEPRECATED(
+    "Use bacnet_authentication_factor_context_decode() instead")
 BACNET_STACK_EXPORT
 int bacapp_decode_context_authentication_factor(
     const uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af);

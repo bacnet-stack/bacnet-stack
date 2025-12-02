@@ -35,7 +35,9 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Structured_View_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 BACNET_STACK_EXPORT
 bool Structured_View_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -112,6 +114,11 @@ Structured_View_Represents(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Structured_View_Represents_Set(
     uint32_t object_instance, const BACNET_DEVICE_OBJECT_REFERENCE *represents);
+
+BACNET_STACK_EXPORT
+void *Structured_View_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Structured_View_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Structured_View_Create(uint32_t object_instance);

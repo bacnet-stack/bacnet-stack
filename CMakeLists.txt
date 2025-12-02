@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.1
+  VERSION 1.5.0
   LANGUAGES C)
 
 #
@@ -259,6 +259,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bacaction.h
   src/bacnet/bacapp.c
   src/bacnet/bacapp.h
+  src/bacnet/bacaudit.c
+  src/bacnet/bacaudit.h
   src/bacnet/bacdcode.c
   src/bacnet/bacdcode.h
   src/bacnet/bacdef.h
@@ -340,6 +342,9 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/access_zone.c
   src/bacnet/basic/object/access_zone.h
   src/bacnet/basic/object/acc.c
+  src/bacnet/basic/object/acc.h
+  src/bacnet/basic/object/auditlog.c
+  src/bacnet/basic/object/auditlog.h
   src/bacnet/basic/object/ai.c
   src/bacnet/basic/object/ai.h
   src/bacnet/basic/object/ao.c
@@ -382,6 +387,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/lc.h
   src/bacnet/basic/object/lo.c
   src/bacnet/basic/object/lo.h
+  src/bacnet/basic/object/loop.c
+  src/bacnet/basic/object/loop.h
   src/bacnet/basic/object/lsp.c
   src/bacnet/basic/object/lsp.h
   src/bacnet/basic/object/lsz.c
@@ -412,6 +419,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/structured_view.h
   src/bacnet/basic/object/time_value.c
   src/bacnet/basic/object/time_value.h
+  src/bacnet/basic/object/timer.c
+  src/bacnet/basic/object/timer.h
   src/bacnet/basic/object/trendlog.c
   src/bacnet/basic/object/trendlog.h
   src/bacnet/basic/service/h_alarm_ack.c
@@ -663,6 +672,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/rp.h
   src/bacnet/rpm.c
   src/bacnet/rpm.h
+  src/bacnet/timer_value.c
+  src/bacnet/timer_value.h
   src/bacnet/timestamp.c
   src/bacnet/timestamp.h
   src/bacnet/timesync.c

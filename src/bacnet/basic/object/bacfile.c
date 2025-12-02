@@ -36,6 +36,7 @@ struct object_data {
     char *Object_Name;
     char *Pathname;
     char *File_Type;
+    void *Context;
     BACNET_DATE_TIME Modification_Date;
     bool File_Access_Stream : 1;
     bool Read_Only : 1;
@@ -46,7 +47,7 @@ static OS_Keylist Object_List;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_FILE;
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -60,12 +61,12 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION, -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 /**
  * @brief Returns the list of required, optional, and proprietary properties.
@@ -78,7 +79,9 @@ static const int Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void BACfile_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -557,15 +560,12 @@ uint32_t bacfile_write(
 BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 {
     const char *pathname = NULL;
-    long file_position = 0;
     BACNET_UNSIGNED_INTEGER file_size = 0;
 
     pathname = bacfile_pathname(object_instance);
     if (pathname) {
-        file_position = bacfile_file_size_callback(pathname);
-        if (file_position >= 0) {
-            file_size = (BACNET_UNSIGNED_INTEGER)file_position;
-        }
+        file_size =
+            (BACNET_UNSIGNED_INTEGER)bacfile_file_size_callback(pathname);
     }
 
     return file_size;
@@ -1149,6 +1149,38 @@ bool bacfile_read_ack_record_data(
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *bacfile_create_context_get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void bacfile_create_context_set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a File object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1158,6 +1190,9 @@ uint32_t bacfile_create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

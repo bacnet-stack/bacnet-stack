@@ -178,7 +178,7 @@ int dcc_apdu_encode(
 }
 
 /**
- * @brief Encode the COVNotification service request
+ * @brief Encode the DeviceCommunicationControl service request
  * @param apdu  Pointer to the buffer for encoding into
  * @param apdu_size number of bytes available in the buffer
  * @param timeDuration  Optional time duration in minutes.

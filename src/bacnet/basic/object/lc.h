@@ -73,7 +73,9 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Load_Control_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 
 BACNET_STACK_DEPRECATED("Use Load_Control_Timer() instead")
 BACNET_STACK_EXPORT
@@ -109,6 +111,11 @@ bool Load_Control_Shed_Level_Array(
     uint32_t object_instance,
     uint32_t array_entry,
     struct shed_level_data *value);
+
+BACNET_STACK_EXPORT
+void *Load_Control_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Load_Control_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Load_Control_Create(uint32_t object_instance);

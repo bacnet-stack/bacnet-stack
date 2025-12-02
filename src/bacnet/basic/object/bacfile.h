@@ -26,7 +26,9 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void BACfile_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 
 BACNET_STACK_EXPORT
 bool bacfile_object_name(
@@ -133,6 +135,11 @@ BACNET_STACK_EXPORT
 void bacfile_file_size_callback_set(size_t (*callback)(const char *));
 BACNET_STACK_EXPORT
 void bacfile_file_size_set_callback_set(bool (*callback)(const char *, size_t));
+
+BACNET_STACK_EXPORT
+void *bacfile_context_get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void bacfile_context_set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t bacfile_create(uint32_t object_instance);
