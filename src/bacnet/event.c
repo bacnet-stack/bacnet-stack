@@ -3321,7 +3321,7 @@ bool event_notify_parse(
                     target_args++;
                 } else if (target_args == 16) {
                     pBitString =
-                        &data->notificationParams.changeOfBitstring.statusFlags;
+                        &data->notificationParams.changeOfState.statusFlags;
                     bitstring_init_ascii(pBitString, argv[argi]);
                     target_args++;
                 } else {
