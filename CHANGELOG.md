@@ -43,6 +43,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed array-bounds on BACnetObjectPropertyReference parsing. (#1167)
 * Fixed the missing BACnetObjectPropertyReference,
   BACnetSCFailedConnectionRequest, BACnetSCHubFunctionConnection,
   BACnetSCDirectConnection,BACnetSCHubConnection, BACnetTimerStateChangeValue,
