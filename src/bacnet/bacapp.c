@@ -2386,6 +2386,12 @@ static int bacapp_snprintf_enumerated(
                 str, str_len, "%s", bactext_event_state_name(value));
             break;
         case PROP_UNITS:
+        case PROP_CONTROLLED_VARIABLE_UNITS:
+        case PROP_DERIVATIVE_CONSTANT_UNITS:
+        case PROP_INTEGRAL_CONSTANT_UNITS:
+        case PROP_PROPORTIONAL_CONSTANT_UNITS:
+        case PROP_OUTPUT_UNITS:
+        case PROP_CAR_LOAD_UNITS:
             if (bactext_engineering_unit_name_proprietary((unsigned)value)) {
                 ret_val = bacapp_snprintf(
                     str, str_len, "proprietary-%lu", (unsigned long)value);
