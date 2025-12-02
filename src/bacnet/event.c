@@ -3138,7 +3138,6 @@ bool event_notify_parse(
     unsigned long long_value = 0;
     BACNET_PROPERTY_STATES tag = PROP_STATE_BOOLEAN_VALUE;
     BACNET_BIT_STRING *pBitString = NULL;
-    BACNET_CHARACTER_STRING bcstring = { 0 };
 
     for (argi = 1; argi < argc; argi++) {
         if (target_args == 1) {
@@ -3199,10 +3198,9 @@ bool event_notify_parse(
             target_args++;
         } else if (target_args == 8) {
             /* message-text */
-            if (!characterstring_init_ansi(&bcstring, argv[argi])) {
+            if (!characterstring_init_ansi(data->messageText, argv[argi])) {
                 return false;
             }
-            data->messageText = &bcstring;
             target_args++;
         } else if (target_args == 9) {
             /* notify-type */
@@ -3272,7 +3270,7 @@ bool event_notify_parse(
                                 .state.booleanValue = true;
                         } else {
                             data->notificationParams.changeOfState.newState
-                                .state.booleanValue = true;
+                                .state.booleanValue = false;
                         }
                     } else if (tag == PROP_STATE_BINARY_VALUE) {
                         data->notificationParams.changeOfState.newState.state
