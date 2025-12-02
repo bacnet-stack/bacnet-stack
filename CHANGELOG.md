@@ -43,6 +43,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the missing BACnetObjectPropertyReference,
+  BACnetSCFailedConnectionRequest, BACnetSCHubFunctionConnection,
+  BACnetSCDirectConnection,BACnetSCHubConnection, BACnetTimerStateChangeValue,
+  and BACnetAddressBinding text used in debugging.(#1166)
 * Fixed the units to/from ASCII to function for other units properties. (#1165)
 * Fixed datetime integer overflow on 8-bit AVR compiler (#1162)
 * Fixed the ports/linux BACnet/IP cache netmask for accurate subnet
