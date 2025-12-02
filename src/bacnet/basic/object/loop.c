@@ -1432,13 +1432,12 @@ bool Loop_COV_Increment_Set(uint32_t object_instance, float value)
 int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
-    BACNET_UNSIGNED_INTEGER unsigned_value;
-    BACNET_OBJECT_PROPERTY_REFERENCE reference_value;
-    float real_value;
+    BACNET_BIT_STRING bit_string = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_OBJECT_PROPERTY_REFERENCE reference_value = { 0 };
+    float real_value = 0.0f;
     uint8_t *apdu = NULL;
-
     uint32_t enum_value = 0;
     bool state = false;
 
