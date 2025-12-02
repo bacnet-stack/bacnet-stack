@@ -3032,6 +3032,12 @@ bool bactext_object_property_strtoul(
                 bacnet_event_state_names, search_name, found_index);
             break;
         case PROP_UNITS:
+        case PROP_CONTROLLED_VARIABLE_UNITS:
+        case PROP_DERIVATIVE_CONSTANT_UNITS:
+        case PROP_INTEGRAL_CONSTANT_UNITS:
+        case PROP_PROPORTIONAL_CONSTANT_UNITS:
+        case PROP_OUTPUT_UNITS:
+        case PROP_CAR_LOAD_UNITS:
             status = bactext_string_to_uint32_index(
                 bacnet_engineering_unit_names, search_name, found_index);
             break;
