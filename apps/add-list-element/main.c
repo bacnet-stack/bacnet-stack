@@ -155,7 +155,7 @@ static void print_help(const char *filename)
            "in a BACnet device.\n");
     printf("\n");
     printf("--mac A\n"
-           "Optional BACnet mac address."
+           "Optional BACnet mac address.\n"
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
