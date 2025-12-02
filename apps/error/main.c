@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
                 }
                 target_args++;
             } else if (target_args == 3) {
-                if (bacnet_string_to_uint8(argv[argi], &Target_Invoke_ID)) {
+                if (!bacnet_string_to_uint8(argv[argi], &Target_Invoke_ID)) {
                     fprintf(stderr, "invoke-id=%s invalid\n", argv[argi]);
                     return 1;
                 }
