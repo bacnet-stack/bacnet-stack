@@ -252,11 +252,11 @@ int main(int argc, char *argv[])
     bool found = false;
     char *value_string = NULL;
     bool status = false;
-    unsigned context_tag = 0;
+    unsigned long context_tag = 0;
     BACNET_APPLICATION_DATA_VALUE *application_value = NULL;
-    unsigned long object_type = 0;
+    uint32_t object_type = 0;
     unsigned long object_instance = 0;
-    unsigned long property_id = 0;
+    uint32_t property_id = 0;
     long property_array_index = 0;
     long property_tag = 0;
     long dnet = -1;
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
                 }
                 if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device-instance=%u - not greater than %u\n",
+                        stderr, "device-instance=%lu - not greater than %u\n",
                         object_instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
                 }
                 Target_Object_Instance = object_instance;
                 if (Verbose) {
-                    printf("Instance=%u=%s\n", object_instance, argv[argi]);
+                    printf("Instance=%lu=%s\n", object_instance, argv[argi]);
                 }
                 target_args++;
             } else if (target_args == 3) {
@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
                 }
                 if (Verbose) {
                     printf(
-                        "Array_Index=%i=%s\n", property_array_index,
+                        "Array_Index=%li=%s\n", property_array_index,
                         argv[argi]);
                 }
                 target_args++;

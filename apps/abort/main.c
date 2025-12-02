@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
                 }
                 if (long_value > UINT16_MAX) {
                     fprintf(
-                        stderr, "abort-reason=%lu exceeds %lu\n", long_value,
+                        stderr, "abort-reason=%lu exceeds %u\n", long_value,
                         UINT16_MAX);
                     return 1;
                 }
@@ -187,14 +187,14 @@ int main(int argc, char *argv[])
                 }
                 if (long_value > UINT8_MAX) {
                     fprintf(
-                        stderr, "invoke-id=%lu exceeds %lu\n", long_value,
+                        stderr, "invoke-id=%lu exceeds %u\n", long_value,
                         UINT8_MAX);
                     return 1;
                 }
                 Target_Invoke_ID = (uint8_t)long_value;
                 target_args++;
             } else if (target_args == 2) {
-                if (!bacnet_strtobool(argv[argi], &server)) {
+                if (!bacnet_string_to_bool(argv[argi], &server)) {
                     fprintf(stderr, "server=%s invalid\n", argv[argi]);
                     return 1;
                 }

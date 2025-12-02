@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
         } else {
             /* unnamed arguments */
             if (target_args == 0) {
-                if (!bacnet_strtouint32(
+                if (!bacnet_string_to_uint32(
                         argv[argi], &Target_Device_Object_Instance)) {
                     fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
                     return 1;
@@ -251,13 +251,14 @@ int main(int argc, char *argv[])
                 }
                 target_args++;
             } else if (target_args == 1) {
-                if (!bacnet_strtouint16(argv[argi], &Communication_State)) {
+                if (!bacnet_string_to_uint32(
+                        argv[argi], &Communication_State)) {
                     fprintf(stderr, "state=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 target_args++;
             } else if (target_args == 2) {
-                if (!bacnet_strtouint16(
+                if (!bacnet_string_to_uint16(
                         argv[argi], &Communication_Timeout_Minutes)) {
                     fprintf(stderr, "timeout=%s invalid\n", argv[argi]);
                     return 1;

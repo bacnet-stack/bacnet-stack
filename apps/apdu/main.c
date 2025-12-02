@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                if (!bacnet_strtouint32(
+                if (!bacnet_string_to_uint32(
                         argv[argi], &Target_Device_Object_Instance)) {
                     fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
                     return 1;

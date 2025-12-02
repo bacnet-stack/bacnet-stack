@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
                 }
                 if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device-instance=%u - not greater than %u\n",
+                        stderr, "device-instance=%lu - not greater than %u\n",
                         object_instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
                 }
                 Target_Object_Instance = object_instance;
                 if (Verbose) {
-                    printf("Instance=%u=%s\n", object_instance, argv[argi]);
+                    printf("Instance=%lu=%s\n", object_instance, argv[argi]);
                 }
                 target_args++;
             }

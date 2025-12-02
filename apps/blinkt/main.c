@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--device") == 0) {
             if (++argi < argc) {
-                if (!bacnet_strtouint32(argv[argi], &device_id)) {
+                if (!bacnet_string_to_uint32(argv[argi], &device_id)) {
                     fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
                     return 1;
                 }
@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
             blinkt_test = true;
         } else {
             if (target_args == 0) {
-                if (!bacnet_strtouint32(argv[argi], &device_id)) {
+                if (!bacnet_string_to_uint32(argv[argi], &device_id)) {
                     fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
                     return 1;
                 }

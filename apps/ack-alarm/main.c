@@ -277,8 +277,8 @@ int main(int argc, char *argv[])
                 }
                 if (long_value > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device-instance=%u - exceeds %u\n", long_value,
-                        BACNET_MAX_INSTANCE);
+                        stderr, "device-instance=%lu - exceeds %d\n",
+                        long_value, BACNET_MAX_INSTANCE);
                     return 1;
                 }
                 Target_Device_Object_Instance = (uint32_t)long_value;
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
                 }
                 if (long_value > UINT32_MAX) {
                     fprintf(
-                        stderr, "process-id=%u - exceeds %u\n", long_value,
+                        stderr, "process-id=%lu - exceeds %u\n", long_value,
                         UINT32_MAX);
                     return 1;
                 }
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
                 }
                 if (long_value > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "event-object-instance=%u - exceeds %u\n",
+                        stderr, "event-object-instance=%lu - exceeds %u\n",
                         long_value, BACNET_MAX_INSTANCE);
                     return 1;
                 }

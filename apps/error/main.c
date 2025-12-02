@@ -169,25 +169,25 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                if (!bacnet_strtouint16(argv[argi], &Target_Error_Class)) {
+                if (!bacnet_string_to_uint16(argv[argi], &Target_Error_Class)) {
                     fprintf(stderr, "error-class=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 target_args++;
             } else if (target_args == 1) {
-                if (!bacnet_strtouint16(argv[argi], &Target_Error_Code)) {
+                if (!bacnet_string_to_uint16(argv[argi], &Target_Error_Code)) {
                     fprintf(stderr, "error-code=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 target_args++;
             } else if (target_args == 2) {
-                if (!bacnet_strtouint16(argv[argi], &Target_Service)) {
+                if (!bacnet_string_to_uint16(argv[argi], &Target_Service)) {
                     fprintf(stderr, "service=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 target_args++;
             } else if (target_args == 3) {
-                if (!bacnet_strtouint8(argv[argi], &Target_Invoke_ID)) {
+                if (bacnet_string_to_uint8(argv[argi], &Target_Invoke_ID)) {
                     fprintf(stderr, "invoke-id=%s invalid\n", argv[argi]);
                     return 1;
                 }
