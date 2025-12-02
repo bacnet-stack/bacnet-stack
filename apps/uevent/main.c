@@ -141,6 +141,8 @@ int main(int argc, char *argv[])
                 if (!event_notify_parse(
                         &event_data, argc - argi, &argv[argi])) {
                     fprintf(stderr, "event=%s invalid\n", argv[argi]);
+                } else {
+                    target_args++;
                 }
             } else {
                 print_usage(filename);
