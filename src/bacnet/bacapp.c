@@ -4390,7 +4390,7 @@ bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
 #if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
 /**
  * @brief Parse a string into a BACnetDeviceObjectPropertyReference value
- * @param value [out] The BACnetObjectPropertyReference value
+ * @param value [out] The BACnetDeviceObjectPropertyReference value
  * @param argv [in] The string to parse
  * @return true on success, else false
  */
@@ -4432,7 +4432,7 @@ static bool device_object_property_reference_from_ascii(
 #if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
 /**
  * @brief Parse a string into a BACnetDeviceObjectReference value
- * @param value [out] The BACnetObjectPropertyReference value
+ * @param value [out] The BACnetDeviceObjectReference value
  * @param argv [in] The string to parse
  * @return true on success, else false
  */
@@ -4482,7 +4482,7 @@ static bool object_property_reference_from_ascii(
     if (!value || !argv) {
         return false;
     }
-    /* analog-output:4194303,present-value,-1,device:4194303 */
+    /* analog-output:4194303,present-value,-1 */
     count = sscanf(
         argv, "%4lu:%7lu,%lu,%ld", &object_type, &object_instance, &property_id,
         &array_index);
