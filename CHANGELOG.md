@@ -45,7 +45,7 @@ The git repositories are hosted at the following sites:
 
 * Fixed the Loop object read/write references and manipulated variables
   update during timer loop by adding callbacks to device read/write property
-  in basic example device object. (#1173)
+  in basic example device object. (##1175)
 * Fixed compiler macro redefined warning when optional datatypes are defined
   globally. (#1172)
 * Fixed copy and compare API of BACnetObjectPropertyReference structure. (#1171)
