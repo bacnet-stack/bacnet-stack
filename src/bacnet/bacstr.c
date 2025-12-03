@@ -1359,8 +1359,8 @@ static int bacnet_strnicmp_internal(
  *  (both interpreted as unsigned char) that differ in the objects
  *  being compared.
  */
-static int bacnet_stricmp_internal(
-    const char *a, const char *b, bool case_insensitive)
+static int
+bacnet_stricmp_internal(const char *a, const char *b, bool case_insensitive)
 {
     int twin_a, twin_b;
 

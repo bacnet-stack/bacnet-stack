@@ -16,11 +16,12 @@
 /**
  * @brief Test
  */
-static INDTEXT_DATA data_list[] = { { 1, "Joshua" },   { 2, "Mary" },
-                                    { 3, "Anna" },     { 4, "Christopher" },
-                                    { 5, "Patricia" },
-                                    { 6, "JoshuaMaryAnnaChristopherPatricia" },
-                                    { 0, NULL } };
+static INDTEXT_DATA data_list[] = {
+    { 1, "Joshua" },   { 2, "Mary" },
+    { 3, "Anna" },     { 4, "Christopher" },
+    { 5, "Patricia" }, { 6, "JoshuaMaryAnnaChristopherPatricia" },
+    { 0, NULL }
+};
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(indtext_tests, testIndexText)
