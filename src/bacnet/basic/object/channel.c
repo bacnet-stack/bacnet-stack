@@ -581,10 +581,10 @@ bool Channel_Write_Member_Value(
     int apdu_len = 0;
 
     if (wp_data && value) {
-        if (((wp_data->object_type == OBJECT_ANALOG_INPUT) ||
-             (wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
+        if (((wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
              (wp_data->object_type == OBJECT_ANALOG_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -594,10 +594,10 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (
-            ((wp_data->object_type == OBJECT_BINARY_INPUT) ||
-             (wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
+            ((wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
              (wp_data->object_type == OBJECT_BINARY_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -607,10 +607,10 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (
-            ((wp_data->object_type == OBJECT_MULTI_STATE_INPUT) ||
-             (wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
+            ((wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
              (wp_data->object_type == OBJECT_MULTI_STATE_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -620,7 +620,10 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (wp_data->object_type == OBJECT_LIGHTING_OUTPUT) {
-            if ((wp_data->object_property == PROP_PRESENT_VALUE) &&
+            if (((wp_data->object_property == PROP_PRESENT_VALUE) ||
+                 (wp_data->object_property == PROP_RELINQUISH_DEFAULT) ||
+                 (wp_data->object_property == PROP_HIGH_END_TRIM) ||
+                 (wp_data->object_property == PROP_LOW_END_TRIM)) &&
                 (wp_data->array_index == BACNET_ARRAY_ALL)) {
                 apdu_len = bacnet_channel_value_coerce_data_encode(
                     wp_data->application_data, wp_data->application_data_len,
