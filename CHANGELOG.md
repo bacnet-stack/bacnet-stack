@@ -17,6 +17,10 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 
+* Added Send_x_Address() API to ReadPropertyMultiple, WritePropertyMultiple,
+  and SubscribeSOV services primarily for interacting with MS/TP slaves (#1174)
+* Added npdu_set_i_am_router_to_network_handler() API. Fixed sending to
+  broadcast address in npdu_send_what_is_network_number() API.  (#1169)
 * Added BACnetRecipient and BACnetAddressBinding codecs for EPICS application.
   The implementation includes full encode/decode, ASCII conversion,
   comparison, and copy functions for both data types, along with
@@ -35,6 +39,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the size of MAX_HEADER in BACDL_MULTIPLE because 8 is not
+  big enough for some datalinks (e.g. mstp). (#1170)
+* Changed printf() in many apps to use debug_printf() and friends. (#1168)
 * Changed apps to use common BACnet value string parsing functions. (#1152)
 * Changed basic object API for units properties to use BACNET_ENGINEERING_UNITS
   datatype. (#1104)
