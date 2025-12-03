@@ -17,7 +17,7 @@
 
 #undef DEBUG_PRINTF
 #if DEBUG_BSC_EVENT
-#define DEBUG_PRINTF printf
+#define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED
 #define DEBUG_PRINTF debug_printf_disabled

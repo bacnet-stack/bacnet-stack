@@ -982,26 +982,26 @@ bool dlmstp_init(char *ifname)
     MSTP_Port.BaudRateSet = dlmstp_set_baud_rate;
     MSTP_Init(&MSTP_Port);
 #if PRINT_ENABLED
-    fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
-    fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
-    fprintf(
+    debug_fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
+    debug_fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
+    debug_fprintf(
         stderr, "MS/TP Max_Info_Frames: %u\n",
         (unsigned)MSTP_Port.Nmax_info_frames);
-    fprintf(
+    debug_fprintf(
         stderr, "MS/TP RxBuf[%u] TxBuf[%u]\n",
         (unsigned)MSTP_Port.InputBufferSize,
         (unsigned)MSTP_Port.OutputBufferSize);
-    fprintf(
+    debug_fprintf(
         stderr,
         "MS/TP SlaveModeEnabled"
         ": %s\n",
         (MSTP_Port.SlaveNodeEnabled ? "true" : "false"));
-    fprintf(
+    debug_fprintf(
         stderr,
         "MS/TP ZeroConfigEnabled"
         ": %s\n",
         (MSTP_Port.ZeroConfigEnabled ? "true" : "false"));
-    fprintf(
+    debug_fprintf(
         stderr,
         "MS/TP CheckAutoBaud"
         ": %s\n",

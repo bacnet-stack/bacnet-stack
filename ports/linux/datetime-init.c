@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include "bacnet/basic/sys/debug.h"
 #include "bacport.h"
 #include "bacnet/datetime.h"
 
@@ -61,7 +62,7 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
             Time_Offset = time_difference(tv_inp, tv_sys);
         }
 #if PRINT_ENABLED
-        printf("Time offset = %d\n", Time_Offset);
+        debug_printf("Time offset = %d\n", Time_Offset);
 #endif
     }
     return;
