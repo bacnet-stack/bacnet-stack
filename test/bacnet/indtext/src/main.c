@@ -18,7 +18,9 @@
  */
 static INDTEXT_DATA data_list[] = { { 1, "Joshua" },   { 2, "Mary" },
                                     { 3, "Anna" },     { 4, "Christopher" },
-                                    { 5, "Patricia" }, { 0, NULL } };
+                                    { 5, "Patricia" },
+                                    { 6, "JoshuaMaryAnnaChristopherPatricia" },
+                                    { 0, NULL } };
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(indtext_tests, testIndexText)
@@ -26,11 +28,11 @@ ZTEST(indtext_tests, testIndexText)
 static void testIndexText(void)
 #endif
 {
-    unsigned i; /*counter */
+    uint32_t i; /*counter */
     const char *pString;
-    unsigned index;
+    uint32_t index;
     bool valid;
-    unsigned count = 0;
+    uint32_t count = 0;
 
     for (i = 0; i < 10; i++) {
         pString = indtext_by_index(data_list, i);
@@ -38,7 +40,7 @@ static void testIndexText(void)
             count++;
             valid = indtext_by_string(data_list, pString, &index);
             zassert_true(valid, NULL);
-            zassert_equal(index, i, NULL);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
             zassert_equal(
                 index, indtext_by_string_default(data_list, pString, index),
                 NULL);
