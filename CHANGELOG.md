@@ -43,6 +43,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed compiler macro redefined warning when optional datatypes are defined
+  globally. (#1172)
 * Fixed copy and compare API of BACnetObjectPropertyReference structure. (#1171)
 * Fixed array-bounds on BACnetObjectPropertyReference parsing. (#1167)
 * Fixed the missing BACnetObjectPropertyReference,
