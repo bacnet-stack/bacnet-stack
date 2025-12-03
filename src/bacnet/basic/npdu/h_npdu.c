@@ -282,13 +282,14 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
                 }
             } else {
 #if PRINT_ENABLED
-                printf("NPDU: DNET=%u.  Discarded!\n", (unsigned)dest.net);
+                debug_printf(
+                    "NPDU: DNET=%u.  Discarded!\n", (unsigned)dest.net);
 #endif
             }
         }
     } else {
 #if PRINT_ENABLED
-        printf(
+        debug_printf(
             "NPDU: BACnet Protocol Version=%u.  Discarded!\n",
             (unsigned)pdu[0]);
 #endif
