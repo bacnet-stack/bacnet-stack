@@ -1299,6 +1299,25 @@ bool octetstring_value_same(
 }
 #endif
 
+/**
+ * @brief Compare two strings, case sensitive or insensitive, with length limit
+ * @details The strncmp() function compares, at most, the first n characters
+ *  of string1 and string2.
+ *  The function operates on null terminated strings.
+ *  The string arguments to the function are expected to contain
+ *  a null character (\0) marking the end of the string.
+ * @param a - first string
+ * @param b - second string
+ * @param length - maximum length to compare, or zero for full length of the
+ *  first string argument.
+ * @param case_insensitive - true for case insensitive comparison
+ * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
+ */
 static int bacnet_strnicmp_internal(
     const char *a, const char *b, size_t length, bool case_insensitive)
 {
@@ -1329,14 +1348,56 @@ static int bacnet_strnicmp_internal(
 }
 
 /**
+ * @brief Compare two strings, case sensitive or insensitive
+ * @param a - first string
+ * @param b - second string
+ * @param case_insensitive - true for case insensitive comparison
+ * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
+ */
+static int
+bacnet_stricmp_internal(const char *a, const char *b, bool case_insensitive)
+{
+    int twin_a, twin_b;
+
+    if (a == NULL) {
+        return -1;
+    }
+    if (b == NULL) {
+        return 1;
+    }
+    do {
+        twin_a = *(const unsigned char *)a;
+        twin_b = *(const unsigned char *)b;
+        if (case_insensitive) {
+            twin_a = tolower(toupper(twin_a));
+            twin_b = tolower(toupper(twin_b));
+        }
+        a++;
+        b++;
+    } while ((twin_a == twin_b) && (twin_a != '\0'));
+
+    return twin_a - twin_b;
+}
+
+/**
  * @brief Compare two strings, case sensitive
  * @param a - first string
  * @param b - second string
  * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
  */
 int bacnet_strcmp(const char *a, const char *b)
 {
-    return bacnet_strnicmp_internal(a, b, 0, false);
+    return bacnet_stricmp_internal(a, b, false);
 }
 
 /**
@@ -1344,11 +1405,16 @@ int bacnet_strcmp(const char *a, const char *b)
  * @param a - first string
  * @param b - second string
  * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
  * @note The stricmp() function is not included in the C standard.
  */
 int bacnet_stricmp(const char *a, const char *b)
 {
-    return bacnet_strnicmp_internal(a, b, 0, true);
+    return bacnet_stricmp_internal(a, b, true);
 }
 
 /**
@@ -1364,6 +1430,11 @@ int bacnet_stricmp(const char *a, const char *b)
  * @param b - second string
  * @param length - maximum length to compare
  * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
  */
 int bacnet_strncmp(const char *a, const char *b, size_t length)
 {
@@ -1383,6 +1454,11 @@ int bacnet_strncmp(const char *a, const char *b, size_t length)
  * @param b - second string
  * @param length - maximum length to compare
  * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
  * @note The strnicmp() function is not included in the C standard.
  */
 int bacnet_strnicmp(const char *a, const char *b, size_t length)

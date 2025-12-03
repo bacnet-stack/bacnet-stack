@@ -43,6 +43,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed library specific strcmp/stricmp functions match standard strcmp. (#1173)
 * Fixed compiler macro redefined warning when optional datatypes are defined
   globally. (#1172)
 * Fixed copy and compare API of BACnetObjectPropertyReference structure. (#1171)
