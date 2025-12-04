@@ -2386,6 +2386,12 @@ static int bacapp_snprintf_enumerated(
                 str, str_len, "%s", bactext_event_state_name(value));
             break;
         case PROP_UNITS:
+        case PROP_CONTROLLED_VARIABLE_UNITS:
+        case PROP_DERIVATIVE_CONSTANT_UNITS:
+        case PROP_INTEGRAL_CONSTANT_UNITS:
+        case PROP_PROPORTIONAL_CONSTANT_UNITS:
+        case PROP_OUTPUT_UNITS:
+        case PROP_CAR_LOAD_UNITS:
             if (bactext_engineering_unit_name_proprietary((unsigned)value)) {
                 ret_val = bacapp_snprintf(
                     str, str_len, "proprietary-%lu", (unsigned long)value);
@@ -4384,7 +4390,7 @@ bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
 #if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
 /**
  * @brief Parse a string into a BACnetDeviceObjectPropertyReference value
- * @param value [out] The BACnetObjectPropertyReference value
+ * @param value [out] The BACnetDeviceObjectPropertyReference value
  * @param argv [in] The string to parse
  * @return true on success, else false
  */
@@ -4409,7 +4415,7 @@ static bool device_object_property_reference_from_ascii(
         value->objectIdentifier.type = object_type;
         value->objectIdentifier.instance = object_instance;
         value->propertyIdentifier = property_id;
-        if (array_index < 0) {
+        if (array_index < 0L) {
             value->arrayIndex = BACNET_ARRAY_ALL;
         } else {
             value->arrayIndex = array_index;
@@ -4426,7 +4432,7 @@ static bool device_object_property_reference_from_ascii(
 #if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
 /**
  * @brief Parse a string into a BACnetDeviceObjectReference value
- * @param value [out] The BACnetObjectPropertyReference value
+ * @param value [out] The BACnetDeviceObjectReference value
  * @param argv [in] The string to parse
  * @return true on success, else false
  */
@@ -4476,7 +4482,7 @@ static bool object_property_reference_from_ascii(
     if (!value || !argv) {
         return false;
     }
-    /* analog-output:4194303,present-value,-1,device:4194303 */
+    /* analog-output:4194303,present-value,-1 */
     count = sscanf(
         argv, "%4lu:%7lu,%lu,%ld", &object_type, &object_instance, &property_id,
         &array_index);
@@ -4484,6 +4490,9 @@ static bool object_property_reference_from_ascii(
         value->object_identifier.type = object_type;
         value->object_identifier.instance = object_instance;
         value->property_identifier = property_id;
+        if ((array_index >= BACNET_ARRAY_ALL) || (array_index < 0L)) {
+            array_index = BACNET_ARRAY_ALL;
+        }
         value->property_array_index = array_index;
         status = true;
     }

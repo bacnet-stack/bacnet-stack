@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
 
     /* Handle command-line arguments */
     if (argc > 1) {
-        device_instance = strtoul(argv[1], NULL, 10);
+        bacnet_string_to_uint32(argv[1], &device_instance);
     }
     Device_Set_Object_Instance_Number(device_instance);
     printf("BACnet Device ID: %u\n", device_instance);

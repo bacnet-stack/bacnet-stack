@@ -862,7 +862,8 @@ bool bacnet_object_property_reference_same(
             (value1->object_identifier.instance ==
              value2->object_identifier.instance) &&
             (value1->object_identifier.type ==
-             value2->object_identifier.type)) {
+             value2->object_identifier.type) &&
+            (value1->property_array_index == value2->property_array_index)) {
             status = true;
         }
     }
@@ -886,6 +887,7 @@ bool bacnet_object_property_reference_copy(
         dest->property_identifier = src->property_identifier;
         dest->object_identifier.instance = src->object_identifier.instance;
         dest->object_identifier.type = src->object_identifier.type;
+        dest->property_array_index = src->property_array_index;
         status = true;
     }
 

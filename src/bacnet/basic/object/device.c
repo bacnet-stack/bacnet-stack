@@ -2517,8 +2517,12 @@ void Device_Init(object_functions_t *object_table)
         pObject++;
     }
 #if (BACNET_PROTOCOL_REVISION >= 14)
+    /* link WriteProperty to Channel object for members */
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
+    /* link ReadProperty and WriteProperty to Loop object for references */
+    Loop_Read_Property_Internal_Callback_Set(Device_Read_Property);
+    Loop_Write_Property_Internal_Callback_Set(Device_Write_Property);
 }
 
 bool DeviceGetRRInfo(

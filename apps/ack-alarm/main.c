@@ -220,7 +220,8 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
-    unsigned object_type = 0;
+    unsigned long long_value = 0;
+    uint32_t object_type = 0;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -253,7 +254,10 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
-                dnet = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
                     specific_address = true;
                 }
@@ -267,26 +271,56 @@ int main(int argc, char *argv[])
         } else {
             if (target_args == 0) {
                 /* device-id */
-                Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &long_value)) {
+                    fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if (long_value > BACNET_MAX_INSTANCE) {
+                    fprintf(
+                        stderr, "device-instance=%lu - exceeds %d\n",
+                        long_value, BACNET_MAX_INSTANCE);
+                    return 1;
+                }
+                Target_Device_Object_Instance = (uint32_t)long_value;
                 target_args++;
             } else if (target_args == 1) {
                 /* process-id */
-                data.ackProcessIdentifier = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &long_value)) {
+                    fprintf(stderr, "process-id=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if (long_value > UINT32_MAX) {
+                    fprintf(
+                        stderr, "process-id=%lu - exceeds %u\n", long_value,
+                        UINT32_MAX);
+                    return 1;
+                }
+                data.ackProcessIdentifier = (uint32_t)long_value;
                 target_args++;
             } else if (target_args == 2) {
                 /* event-object-type */
-                if (bactext_object_type_strtol(argv[argi], &object_type)) {
-                    data.eventObjectIdentifier.type = object_type;
-                    target_args++;
-                } else {
+                if (!bactext_object_type_strtol(argv[argi], &object_type)) {
                     fprintf(
                         stderr, "event-object-type=%s invalid\n", argv[argi]);
                     return 1;
                 }
+                data.eventObjectIdentifier.type = object_type;
+                target_args++;
             } else if (target_args == 3) {
                 /* event-object-instance */
-                data.eventObjectIdentifier.instance =
-                    strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &long_value)) {
+                    fprintf(
+                        stderr, "event-object-instance=%s invalid\n",
+                        argv[argi]);
+                    return 1;
+                }
+                if (long_value > BACNET_MAX_INSTANCE) {
+                    fprintf(
+                        stderr, "event-object-instance=%lu - exceeds %u\n",
+                        long_value, BACNET_MAX_INSTANCE);
+                    return 1;
+                }
+                data.eventObjectIdentifier.instance = (uint32_t)long_value;
                 target_args++;
             } else if (target_args == 4) {
                 /* event-state-acked */
@@ -299,15 +333,27 @@ int main(int argc, char *argv[])
                 }
             } else if (target_args == 5) {
                 /* event-time-stamp */
-                bacapp_timestamp_init_ascii(&data.eventTimeStamp, argv[argi]);
+                if (!bacapp_timestamp_init_ascii(
+                        &data.eventTimeStamp, argv[argi])) {
+                    fprintf(
+                        stderr, "event-time-stamp=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else if (target_args == 6) {
                 /* ack-source */
-                characterstring_init_ansi(&data.ackSource, argv[argi]);
+                if (!characterstring_init_ansi(&data.ackSource, argv[argi])) {
+                    fprintf(stderr, "ack-source=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else if (target_args == 7) {
                 /* ack-time-stamp */
-                bacapp_timestamp_init_ascii(&data.ackTimeStamp, argv[argi]);
+                if (!bacapp_timestamp_init_ascii(
+                        &data.ackTimeStamp, argv[argi])) {
+                    fprintf(stderr, "ack-time-stamp=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else {
                 print_usage(filename);
@@ -319,36 +365,10 @@ int main(int argc, char *argv[])
         print_usage(filename);
         return 0;
     }
+    /* setup my info */
     address_init();
     if (specific_address) {
-        if (adr.len && mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            memcpy(&dest.adr[0], &adr.adr[0], adr.len);
-            dest.len = adr.len;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-        } else if (mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            dest.len = 0;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = 0;
-            }
-        } else {
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-            dest.mac_len = 0;
-            dest.len = 0;
-        }
+        bacnet_address_init(&dest, &mac, dnet, &adr);
         address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
         printf(
             "Added Device %u to address cache\n",
