@@ -12,9 +12,13 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2025-11-15
+## [Unreleased] - 2025-12-04
 
 ### Security
+
+* Secured npdu_is_expected_reply() function where the MS/TP reply matcher
+  could have an out-of-bounds read. (#1178)
+
 ### Added
 
 * Added Send_x_Address() API to ReadPropertyMultiple, WritePropertyMultiple,
