@@ -17,7 +17,7 @@ The git repositories are hosted at the following sites:
 ### Security
 
 * Secured npdu_is_expected_reply() function where the MS/TP reply matcher
-  could have an out-of-bounds read. (#1176)
+  could have an out-of-bounds read. (#1178)
 
 ### Added
 
