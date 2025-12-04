@@ -330,6 +330,20 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
 }
 
 #if defined(INTRINSIC_REPORTING)
+static void
+Analog_Input_Reset_Event_Properties(struct analog_input_descr *pObject)
+{
+    unsigned j;
+    /* initialize Event time stamps using wildcards
+            and set Acked_transitions */
+    for (j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
+        datetime_wildcard_set(&pObject->Event_Time_Stamps[j]);
+        pObject->Acked_Transitions[j].bIsAcked = true;
+        pObject->Event_Message_Texts[j] = NULL;
+    }
+    pObject->Event_State = EVENT_STATE_NORMAL;
+}
+#endif
 /**
  * For a given object instance-number, gets the event-detection-enable property
  * value
@@ -368,12 +382,14 @@ bool Analog_Input_Event_Detection_Enable_Set(
 
     if (pObject) {
         pObject->Event_Detection_Enable = value;
+        if (!pObject->Event_Detection_Enable) {
+            Analog_Input_Reset_Event_Properties(pObject);
+        }
         retval = true;
     }
 
     return retval;
 }
-#endif
 
 /**
  * @brief For a given object instance-number, returns the description
@@ -721,7 +737,8 @@ bool Analog_Input_Event_Message_Text_Set(
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
-    if (pObject && transition < MAX_BACNET_EVENT_TRANSITION) {
+    if (pObject && transition < MAX_BACNET_EVENT_TRANSITION &&
+        pObject->Event_Detection_Enable) {
         pObject->Event_Message_Texts[transition] = new_text;
         status = true;
     }
@@ -1792,9 +1809,6 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
 {
     struct analog_input_descr *pObject = NULL;
     int index = 0;
-#if defined(INTRINSIC_REPORTING)
-    unsigned j;
-#endif
 
     if (!Object_List) {
         Object_List = Keylist_Create();
@@ -1828,12 +1842,7 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
             pObject->Time_Delay = 0;
             /* notification class not connected */
             pObject->Notification_Class = BACNET_MAX_INSTANCE;
-            /* initialize Event time stamps using wildcards
-            and set Acked_transitions */
-            for (j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
-                datetime_wildcard_set(&pObject->Event_Time_Stamps[j]);
-                pObject->Acked_Transitions[j].bIsAcked = true;
-            }
+            Analog_Input_Reset_Event_Properties(pObject);
 #endif
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
