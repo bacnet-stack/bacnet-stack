@@ -24,7 +24,7 @@
  * @brief Encode a given BACnetChanneValue
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param  value - BACNET_CHANNEL_VALUE value
- * @return  number of bytes in the APDU
+ * @return  number of bytes in the APDU, or zero if unable to encode
  */
 int bacnet_channel_value_type_encode(
     uint8_t *apdu, const BACNET_CHANNEL_VALUE *value)
@@ -245,7 +245,7 @@ int bacnet_channel_value_type_decode(
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param apdu_size - size of the APDU buffer
  * @param  value - BACNET_CHANNEL_VALUE value
- * @return  number of bytes in the APDU, or BACNET_STATUS_ERROR
+ * @return  number of bytes in the APDU, or zero if unable to encode
  */
 int bacnet_channel_value_encode(
     uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value)

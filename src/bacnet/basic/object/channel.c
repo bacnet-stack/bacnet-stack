@@ -619,56 +619,48 @@ bool Channel_Write_Member_Value(
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
-        } else if (wp_data->object_type == OBJECT_LIGHTING_OUTPUT) {
-            if (((wp_data->object_property == PROP_PRESENT_VALUE) ||
-                 (wp_data->object_property == PROP_RELINQUISH_DEFAULT) ||
-                 (wp_data->object_property == PROP_HIGH_END_TRIM) ||
-                 (wp_data->object_property == PROP_LOW_END_TRIM)) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_REAL);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
-            } else if (
-                (wp_data->object_property == PROP_LIGHTING_COMMAND) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_LIGHTING_COMMAND);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
+        } else if (
+            (wp_data->object_type == OBJECT_LIGHTING_OUTPUT) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
+            apdu_len = bacnet_channel_value_coerce_data_encode(
+                wp_data->application_data, wp_data->application_data_len, value,
+                BACNET_APPLICATION_TAG_REAL);
+            if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
             }
-        } else if (wp_data->object_type == OBJECT_COLOR) {
-            if ((wp_data->object_property == PROP_PRESENT_VALUE) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_XY_COLOR);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
-            } else if (
-                (wp_data->object_property == PROP_COLOR_COMMAND) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_COLOR_COMMAND);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
+        } else if (
+            (wp_data->object_type == OBJECT_COLOR) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_DEFAULT_COLOR)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
+            apdu_len = bacnet_channel_value_coerce_data_encode(
+                wp_data->application_data, wp_data->application_data_len, value,
+                BACNET_APPLICATION_TAG_XY_COLOR);
+            if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
             }
-        } else if (wp_data->object_type == OBJECT_COLOR_TEMPERATURE) {
+        } else if (
+            (wp_data->object_type == OBJECT_COLOR_TEMPERATURE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_DEFAULT_COLOR_TEMPERATURE)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
                 BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
+            }
+        } else {
+            /* no coercion */
+            apdu_len = bacnet_channel_value_encode(
+                wp_data->application_data, wp_data->application_data_len,
+                value);
+            if (apdu_len > 0) {
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
@@ -994,7 +986,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_PRESENT_VALUE:
             cvalue = Channel_Present_Value(rpdata->object_instance);
             apdu_len = bacnet_channel_value_encode(apdu, apdu_size, cvalue);
-            if (apdu_len == BACNET_STATUS_ERROR) {
+            if (apdu_len == 0) {
                 apdu_len = encode_application_null(apdu);
             }
             break;
