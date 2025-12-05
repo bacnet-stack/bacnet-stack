@@ -21,6 +21,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added properties to the Channel object write member value coercion
+  minimal properties supported. (#1176)
 * Added Send_x_Address() API to ReadPropertyMultiple, WritePropertyMultiple,
   and SubscribeSOV services primarily for interacting with MS/TP slaves (#1174)
 * Added npdu_set_i_am_router_to_network_handler() API. Fixed sending to
@@ -54,9 +56,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Channel object to handle all data types that do not need
+  coercion when written. Fixed present-value when no value is able to
+  be encoded. (#1176)
 * Fixed the Loop object read/write references and manipulated variables
   update during timer loop by adding callbacks to device read/write property
-  in basic example device object. (##1175)
+  in basic example device object. (#1175)
 * Fixed library specific strcmp/stricmp functions match standard strcmp. (#1173)
 * Fixed compiler macro redefined warning when optional datatypes are defined
   globally. (#1172)
