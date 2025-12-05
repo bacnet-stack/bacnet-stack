@@ -52,6 +52,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Channel object to handle all data types that do not need
+  coercion when written. Fixed present-value when no value is able to
+  be encoded. (#1176)
 * Fixed the Loop object read/write references and manipulated variables
   update during timer loop by adding callbacks to device read/write property
   in basic example device object. (#1175)
