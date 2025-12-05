@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Fixed
 
+* Fixed the Channel object to handle all data types that do not need
+  coercion when written. Fixed present-value when no value is able to
+  be encoded. (#1176)
 * Fixed datetime integer overflow on 8-bit AVR compiler (#1162)
 
 ## [1.4.2] - 2025-11-15
