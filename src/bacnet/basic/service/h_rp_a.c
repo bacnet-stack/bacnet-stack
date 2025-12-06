@@ -184,7 +184,7 @@ int rp_ack_fully_decode_service_request(
         /* check for empty list */
         if (rp1data.application_data_len == 0) {
             bacapp_value_list_init(value, 1);
-            value->tag = BACNET_APPLICATION_TAG_NULL;
+            value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
             rp1data.error_class = ERROR_CLASS_SERVICES;
             rp1data.error_code = ERROR_CODE_SUCCESS;
             return 0;

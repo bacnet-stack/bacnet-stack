@@ -92,7 +92,7 @@ static bool ShowDeviceObjectOnly = false;
 /* read required and optional properties when RPM ALL does not work */
 static bool Optional_Properties = false;
 /* write to properties to determine their writability */
-static bool WritePropertyEnabled = false;
+static bool WritePropertyEnabled = true;
 
 /* Track the response from the target */
 typedef enum {
@@ -542,8 +542,11 @@ static void PrintReadPropertyData(
                     /* first entry in array */
                     printf(" { ");
                 }
-                if ((value->tag == BACNET_APPLICATION_TAG_EMPTYLIST) ||
-                    (value->tag == BACNET_APPLICATION_TAG_NULL)) {
+                if (value->next && (array_index == 0)) {
+                    /* first entry in multi-element array */
+                    printf("\n        ");
+                }
+                if (value->tag == BACNET_APPLICATION_TAG_EMPTYLIST) {
                     /* the array or list is empty */
                     if (ShowValues) {
                         printf("EMPTY");
@@ -552,15 +555,11 @@ static void PrintReadPropertyData(
                     }
                     rpm_property->value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
                 } else {
-                    if (value->next && (array_index == 0)) {
-                        /* first entry in multi-element array */
-                        printf("\n        ");
-                    }
                     bacapp_print_value(stdout, &object_value);
-                    if (value->next) {
-                        /* next entry in array */
-                        printf(",\n        ");
-                    }
+                }
+                if (value->next) {
+                    /* next entry in array */
+                    printf(",\n        ");
                 }
                 if (value->next == NULL) {
                     /* last entry in array */
@@ -606,7 +605,7 @@ static void PrintReadPropertyData(
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [-d] [-h] [-v] device-instance\n", filename);
+    printf("Usage: %s [-d] [-h] [-v] [-w] device-instance\n", filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--debug]\n");
 }
@@ -641,8 +640,15 @@ static void print_help(const char *filename)
            "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("-d: show only device object properties\n");
+    printf("\n");
     printf("-h: omit the BIBBs header\n");
+    printf("\n");
+    printf("-r: disable the write to property during discovery which\n"
+           "is enabled by default.\n");
     printf("-v: show values instead of '?' for changing values\n");
+    printf("\n");
+    printf("-w: enable the write to property during discovery to\n"
+           "determine writable property status.\n");
     printf("\n");
     printf("To generate output directly to a .tpi file for VTS or BTF:\n");
     printf("$ bacepics 4194302 > epics-4194302.tpi \n");
@@ -712,6 +718,9 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                     break;
                 case 'd':
                     ShowDeviceObjectOnly = true;
+                    break;
+                case 'r':
+                    WritePropertyEnabled = false;
                     break;
                 case 'w':
                     WritePropertyEnabled = true;
