@@ -691,16 +691,10 @@ void rpm_ack_object_property_process(
         while (apdu_len) {
             if (bacnet_is_closing_tag_number(apdu, apdu_len, 1, &len)) {
                 /*  end of list-of-results [1] SEQUENCE OF SEQUENCE */
+                /* FIX: Advance past closing tag and continue to next object */
+                /* See: docs/bacnet-stack-local-patches.md */
                 apdu_len -= len;
-                if (apdu_len > 0) {
-                    /* malformed */
-                    rp_data->error_class = ERROR_CLASS_SERVICES;
-                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
-                    if (callback) {
-                        callback(device_id, rp_data);
-                    }
-                    return;
-                }
+                apdu += len;
                 break;
             }
             len = rpm_ack_decode_object_property(
