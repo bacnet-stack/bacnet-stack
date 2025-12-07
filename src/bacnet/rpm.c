@@ -692,7 +692,6 @@ void rpm_ack_object_property_process(
             if (bacnet_is_closing_tag_number(apdu, apdu_len, 1, &len)) {
                 /*  end of list-of-results [1] SEQUENCE OF SEQUENCE */
                 /* FIX: Advance past closing tag and continue to next object */
-                /* See: docs/bacnet-stack-local-patches.md */
                 apdu_len -= len;
                 apdu += len;
                 break;
