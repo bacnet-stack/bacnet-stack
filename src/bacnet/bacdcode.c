@@ -1850,7 +1850,7 @@ int encode_context_bitstring(
  * @brief Encode the BACnet Object Identifier Value
  * as defined in clause 20.2.14 Encoding of an Object Identifier Value
  * @param object_type - object type to be encoded
- * @param object_instance - object instance to be encoded
+ * @param instance - object instance to be encoded
  * @return the 32-bit object identifier value
  */
 uint32_t
@@ -1865,9 +1865,8 @@ bacnet_object_id_to_value(BACNET_OBJECT_TYPE object_type, uint32_t instance)
  * @brief Decode the BACnet Object Identifier Value
  * as defined in clause 20.2.14 Encoding of an Object Identifier Value
  * @param value - the 32-bit object identifier value to be decoded
- * @param object_type - object type to be decoded
- * @param object_instance - object instance to be decoded
- * @return the 32-bit object identifier value
+ * @param object_type - pointer to store decoded object type
+ * @param instance - object instance to be decoded
  */
 void bacnet_object_id_from_value(
     uint32_t value, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
