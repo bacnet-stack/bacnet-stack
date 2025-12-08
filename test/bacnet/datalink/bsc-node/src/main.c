@@ -11387,8 +11387,8 @@ static void test_node_duplicated_vmac(void)
         node_secondary_url, sizeof(node_secondary_url), "wss://%s:%d",
         BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT2);
     snprintf(
-        node_primary_url2, sizeof(node_primary_url2), BACNET_LOCALHOST,
-        BACNET_NODE_LOCAL_HUB_PORT);
+        node_primary_url2, sizeof(node_primary_url2), "wss://%s:%d",
+        BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
     snprintf(
         node_secondary_url2, sizeof(node_secondary_url2), "wss://%s:%d",
         BACNET_LOCALHOST, BACNET_NODE_LOCAL_HUB_PORT);
