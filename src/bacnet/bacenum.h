@@ -1619,6 +1619,7 @@ typedef enum {
     BACNET_APPLICATION_TAG_RESERVE1 = 13,
     BACNET_APPLICATION_TAG_RESERVE2 = 14,
     BACNET_APPLICATION_TAG_RESERVE3 = 15,
+    BACNET_APPLICATION_TAG_RESERVE_MAX = 16,
     MAX_BACNET_APPLICATION_TAG = 16,
 
     /* Complex tagged constructed data types - not specifically enumerated */
@@ -1696,7 +1697,9 @@ typedef enum {
     /* no-value - context tagged null */
     BACNET_APPLICATION_TAG_NO_VALUE,
     /* ABSTRACT-SYNTAX - constructed value */
-    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX
+    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX,
+    /* end-of-list marker */
+    BACNET_APPLICATION_TAG_MAX
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
