@@ -1847,6 +1847,41 @@ int encode_context_bitstring(
 }
 
 /**
+ * @brief Encode the BACnet Object Identifier Value
+ * as defined in clause 20.2.14 Encoding of an Object Identifier Value
+ * @param object_type - object type to be encoded
+ * @param object_instance - object instance to be encoded
+ * @return the 32-bit object identifier value
+ */
+uint32_t
+bacnet_object_id_to_value(BACNET_OBJECT_TYPE object_type, uint32_t instance)
+{
+    return (((uint32_t)object_type & BACNET_MAX_OBJECT)
+            << BACNET_INSTANCE_BITS) |
+        (instance & BACNET_MAX_INSTANCE);
+}
+
+/**
+ * @brief Decode the BACnet Object Identifier Value
+ * as defined in clause 20.2.14 Encoding of an Object Identifier Value
+ * @param value - the 32-bit object identifier value to be decoded
+ * @param object_type - object type to be decoded
+ * @param object_instance - object instance to be decoded
+ * @return the 32-bit object identifier value
+ */
+void bacnet_object_id_from_value(
+    uint32_t value, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
+{
+    if (object_type) {
+        *object_type = (BACNET_OBJECT_TYPE)((
+            (value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
+    }
+    if (instance) {
+        *instance = (value & BACNET_MAX_INSTANCE);
+    }
+}
+
+/**
  * @brief Decode the BACnet Object Identifier Value
  * as defined in clause 20.2.14 Encoding of an Object Identifier Value
  *
@@ -1870,13 +1905,7 @@ int decode_object_id_safe(
     if (len_value_type == len) {
         if (apdu) {
             /* value is meaningless if apdu was NULL */
-            if (object_type) {
-                *object_type = (BACNET_OBJECT_TYPE)((
-                    (value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
-            }
-            if (instance) {
-                *instance = (value & BACNET_MAX_INSTANCE);
-            }
+            bacnet_object_id_from_value(value, object_type, instance);
         }
     }
 
@@ -2123,12 +2152,10 @@ int decode_context_object_id(
 int encode_bacnet_object_id(
     uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t instance)
 {
-    uint32_t value = 0;
+    uint32_t value;
     int len;
 
-    value =
-        (((uint32_t)object_type & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) |
-        (instance & BACNET_MAX_INSTANCE);
+    value = bacnet_object_id_to_value(object_type, instance);
     len = encode_unsigned32(apdu, value);
 
     return len;
