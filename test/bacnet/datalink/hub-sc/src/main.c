@@ -2312,6 +2312,7 @@ static void test_hub_function_duplicated_uuid(void)
 static void *suite_setup(void)
 {
     setbuf(stdout, NULL);
+    lws_set_log_level(0, NULL);
     return NULL;
 }
 
@@ -2327,6 +2328,7 @@ ZTEST_SUITE(hub_test_8, NULL, suite_setup, NULL, NULL, NULL);
 void test_main(void)
 {
     // setbuf(stdout, NULL);
+    lws_set_log_level(0, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(
