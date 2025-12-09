@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Fixed
 
+* Fixed the BACnetChannelValue coercion function to include all the coercions,
+  no coercions, and invalid datatypes described in Table 12-63 of the Channel
+  object.  Expanded unit testing code coverage for BACnetChannelValue. (#1181)
 * Fixed the Channel object to handle all data types that do not need
   coercion when written. Fixed present-value when no value is able to
   be encoded. (#1176)
