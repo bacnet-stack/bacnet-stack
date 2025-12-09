@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet secure connect node switch function API.
+ * @brief BACnet secure connect node switch function API.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date October 2022
  * @copyright SPDX-License-Identifier: GPL-2\.0-or-later WITH GCC-exception-2.0

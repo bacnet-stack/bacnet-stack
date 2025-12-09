@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Configuration file of BACNet/SC datalink.
+ * @brief Configuration file of BACnet/SC datalink.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date August 2022
  * @copyright SPDX-License-Identifier: MIT
@@ -58,7 +58,7 @@
 #define BSC_CONF_WEBSOCKET_RX_BUFFER_LEN BVLC_SC_NPDU_SIZE_CONF
 #endif
 
-/* THIS should not be changed, most of BACNet/SC devices must have */
+/* THIS should not be changed, most of BACnet/SC devices must have */
 /* hub connector, it uses 2 connections */
 #ifndef BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM
 #define BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM (BSC_CONF_HUB_CONNECTORS_NUM * 2)

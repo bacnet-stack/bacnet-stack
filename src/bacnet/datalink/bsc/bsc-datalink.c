@@ -191,7 +191,7 @@ bool bsc_init(char *ifname)
 
 /**
  * @brief Blocking thread-safe bsc_cleanup() function
- *  de-initializes BACNet/SC datalink.
+ *  de-initializes BACnet/SC datalink.
  */
 void bsc_cleanup(void)
 {
@@ -293,7 +293,7 @@ static void bsc_remove_packet(size_t packet_size)
 
 /**
  * @brief Blocking thread-safe bsc_receive() function
- * receives NPDUs transferred over BACNet/SC
+ * receives NPDUs transferred over BACnet/SC
  * from a node specified by it's virtual MAC address as
  * defined in Clause AB.1.5.2.
  * @param src - source VMAC address
@@ -375,7 +375,7 @@ uint16_t bsc_receive(
 
 /**
  * @brief Function can be used to retrieve broadcast
- * VMAC address for BACNet/SC node.
+ * VMAC address for BACnet/SC node.
  * @param dest - value of broadcast VMAC address
  */
 void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
@@ -392,7 +392,7 @@ void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
 
 /**
  * @brief Function can be used to retrieve local
- * VMAC address of initialized BACNet/SC datalink.
+ * VMAC address of initialized BACnet/SC datalink.
  * @param my_address - value of local VMAC address
  */
 void bsc_get_my_address(BACNET_ADDRESS *my_address)
