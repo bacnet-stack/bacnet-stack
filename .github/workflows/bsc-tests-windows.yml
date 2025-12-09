@@ -1,4 +1,4 @@
-name: BACNet/SC windows tests
+name: BACnet/SC windows tests
 
 on:
   workflow_dispatch:

@@ -1,8 +1,8 @@
 /**
  * @file
- * @brief BACNet secure connect hub function API.
+ * @brief BACnet secure connect hub function API.
  *        In general, user should not use that API directly,
- *        BACNet/SC datalink API should be used.
+ *        BACnet/SC datalink API should be used.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date July 2022
  * @copyright SPDX-License-Identifier: MIT
