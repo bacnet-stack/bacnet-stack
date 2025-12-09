@@ -1,4 +1,4 @@
-name: BACnet/SC macos/bsd tests
+name: BACnet/SC macOS/BSD tests
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   job_bsc_tests_macos:
-    runs-on: macOS-latest
+    runs-on: macos-15-intel
     steps:
     - uses: actions/checkout@v6
     - name: Create Build Environment
