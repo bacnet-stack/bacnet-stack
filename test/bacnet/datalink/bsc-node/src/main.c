@@ -3392,7 +3392,6 @@ static void test_node_bad_cases(void)
 static void *suite_setup(void)
 {
     setbuf(stdout, NULL);
-    lws_set_log_level(0, NULL);
     return NULL;
 }
 
@@ -3407,7 +3406,6 @@ ZTEST_SUITE(node_test_7, NULL, suite_setup, NULL, NULL, NULL);
 void test_main(void)
 {
     // setbuf(stdout, NULL);
-    lws_set_log_level(0, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(node_test_1, ztest_unit_test(test_node_start_stop));
