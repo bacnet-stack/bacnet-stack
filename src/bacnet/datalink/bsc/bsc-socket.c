@@ -1,7 +1,7 @@
 
 /**
  * @file
- * @brief BACNet secure connect API.
+ * @brief BACnet secure connect API.
  * @author Kirill Neznamov <kirill\.neznamov@dsr-corporation\.com>
  * @date May 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0

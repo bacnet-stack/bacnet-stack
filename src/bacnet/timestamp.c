@@ -30,7 +30,7 @@ void bacapp_timestamp_sequence_set(BACNET_TIMESTAMP *dest, uint16_t sequenceNum)
  * from a time structure.
  *
  * @param dest  Pointer to the destination time stamp structure.
- * @param btime  Pointer to the BACNet time structure.
+ * @param btime  Pointer to the BACnet time structure.
  */
 void bacapp_timestamp_time_set(BACNET_TIMESTAMP *dest, const BACNET_TIME *btime)
 {
@@ -44,7 +44,7 @@ void bacapp_timestamp_time_set(BACNET_TIMESTAMP *dest, const BACNET_TIME *btime)
  * from a date/time structure.
  *
  * @param dest  Pointer to the destination time stamp structure.
- * @param bdateTime  Pointer to the BACNet date/time structure.
+ * @param bdateTime  Pointer to the BACnet date/time structure.
  */
 void bacapp_timestamp_datetime_set(
     BACNET_TIMESTAMP *dest, const BACNET_DATE_TIME *bdateTime)

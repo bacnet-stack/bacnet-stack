@@ -1,4 +1,4 @@
-name: BACNet/SC linux tests
+name: BACnet/SC linux tests
 
 on:
   push:
