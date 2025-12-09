@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet secure connect node API.
+ * @brief BACnet secure connect node API.
  * @author Kirill Neznamov <kirill\.neznamov@dsr-corporation\.com>
  * @date October 2022
  * @copyright SPDX-License-Identifier: MIT

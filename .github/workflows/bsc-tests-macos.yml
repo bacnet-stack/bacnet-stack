@@ -1,4 +1,4 @@
-name: BACNet/SC macos/bsd tests
+name: BACnet/SC macos/bsd tests
 
 on:
   push:

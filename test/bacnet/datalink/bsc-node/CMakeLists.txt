@@ -49,7 +49,7 @@ include_directories(
 if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  message(STATUS "BACNet/SC node test: building for linux")
+  message(STATUS "BACnet/SC node test: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   find_package(libwebsockets CONFIG REQUIRED)
   include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
@@ -70,7 +70,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     )
 
 elseif(WIN32)
-  message(STATUS "BACNet/SC node test: building for win32")
+  message(STATUS "BACnet/SC node test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
   add_compile_definitions(BACNET_STACK_STATIC_DEFINE)
@@ -114,7 +114,7 @@ elseif(WIN32)
   )
 
 elseif(APPLE)
-  message(STATUS "BACNet/SC node test: building for APPLE")
+  message(STATUS "BACnet/SC node test: building for APPLE")
   execute_process (
          COMMAND bash -c "brew --prefix openssl"
          OUTPUT_VARIABLE OPEN_SSL_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
