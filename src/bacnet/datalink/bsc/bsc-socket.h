@@ -1,8 +1,8 @@
 /**
  * @file
- * @brief BACNet secure connect socket API.
+ * @brief BACnet secure connect socket API.
  *        In general, user should not use that API directly,
- *        BACNet/SC datalink API should be used.
+ *        BACnet/SC datalink API should be used.
  * @author Kirill Neznamov <kirill\.neznamov@dsr-corporation\.com>
  * @date December 2022
  * @copyright SPDX-License-Identifier: MIT
@@ -217,7 +217,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
 
 /**
  * @brief  bsc_connect() function starts connect operation for a
- *         specified BACNet socket. The function call be called only
+ *         specified BACnet socket. The function call be called only
  *         for initiator context otherwise BSC_SC_INVALID_OPERATION
  *         error is returned. As a result if bsc_connect() was
  *         succeeded for given param c, that leads to emitting of
@@ -231,7 +231,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
  *         event is emitted.
  *
  * @param ctx - socket context.
- * @param c - BACNet socket descriptor .
+ * @param c - BACnet socket descriptor .
  * @param url - url to connect to. For example: wss://example.com:8080.
  *
  * @return error code from BSC_SC_RET enum.
@@ -254,11 +254,11 @@ void bsc_disconnect(BSC_SOCKET *c);
 
 /**
  * @brief  bsc_send() function schedules transmitting of pdu to
- *         another BACNet socket. The function may be used only
+ *         another BACnet socket. The function may be used only
  *         when the socket is in a connected state
  *         otherwise BSC_SC_INVALID_OPERATION error is returned.
  *
- * @param c - BACNet socket descriptor initialized by bsc_accept() or
+ * @param c - BACnet socket descriptor initialized by bsc_accept() or
  *            bsc_connect() calls.
  * @param pdu - pointer to a data to send.
  * @param pdu_len - size in bytes of data to send.
@@ -288,7 +288,7 @@ void bsc_socket_maintenance_timer(uint16_t seconds);
  * @brief  bsc_socket_get_peer_addr() function gets information
  *         about remote peer address only for socket with acceptor cotext.
  *
- * @param c - BACNet socket descriptor initialized by bsc_accept() call.
+ * @param c - BACnet socket descriptor initialized by bsc_accept() call.
  * @param data - pointer to a struct holding address information.
  * @param pdu_len - size in bytes of data to send.
  *

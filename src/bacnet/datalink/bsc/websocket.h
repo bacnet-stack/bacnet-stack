@@ -144,10 +144,10 @@ typedef void (*BSC_WEBSOCKET_SRV_DISPATCH)(
  * BSC_WEBSOCKET_CONNECTED in a case if connection established successfully or
  * BSC_WEBSOCKET_DISCONNECTED if connection attempt failed.
  *
- * @param type - type of BACNet/SC connection, check
- *    BSC_WEBSOCKET_CONNECTION_TYPE enum. According BACNet standard
+ * @param type - type of BACnet/SC connection, check
+ *    BSC_WEBSOCKET_CONNECTION_TYPE enum. According BACnet standard
  *    different type of connections require different websocket protocols.
- * @param url - BACNet/SC server URL. For example: wss://example.com:8080.
+ * @param url - BACnet/SC server URL. For example: wss://example.com:8080.
  * @param ca_cert - pointer to certificate authority (CA) cert in PEM or DER
  *                  format.
  * @param ca_cert_size - size in bytes of CA cert.
@@ -253,13 +253,13 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
 /**
  * @brief Asynchronous bws_srv_start() function triggers process of
  * starting of a websocket server on a specified port for specified
- * BACNet websocket protocol. At present time peer can have only 2
+ * BACnet websocket protocol. At present time peer can have only 2
  * instances of server: onerelates to BSC_WEBSOCKET_HUB_PROTOCOL and
  * the other to BSC_WEBSOCKET_HUB_PROTOCOL. When process completes,
  * dispatch_func() is called with BSC_WEBSOCKET_SERVER_STARTED
  * event.
  *
- * @param proto - type of BACNet websocket protocol defined in
+ * @param proto - type of BACnet websocket protocol defined in
  *                BSC_WEBSOCKET_PROTOCOL enum.
  * @param port - port number.
  * @param iface - name of interface to bind to. If the parameter is NULL

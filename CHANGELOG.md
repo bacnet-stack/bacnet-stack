@@ -56,6 +56,17 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed a regression in the rpm_ack_object_property_process() function
+  that prevented proper parsing of multi-object ReadPropertyMultiple ACK
+  responses. The bug was introduced in PR [#765] and caused the function
+  to incorrectly return ERROR_CODE_INVALID_TAG after processing the
+  first object, even when additional valid objects were present in
+  the response. Added tests that use rpm_ack_object_property_process()
+  with a multi-object RPM ACK to verify the fix and prevent regression. (#1183)
+* Fix warnings during unit testing of BACnet secure connect node. (#1182)
+* Fixed the BACnetChannelValue coercion function to include all the coercions,
+  no coercions, and invalid datatypes described in Table 12-63 of the Channel
+  object.  Expanded unit testing code coverage for BACnetChannelValue. (#1181)
 * Fixed the Channel object to handle all data types that do not need
   coercion when written. Fixed present-value when no value is able to
   be encoded. (#1176)
