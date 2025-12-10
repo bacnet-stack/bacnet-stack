@@ -24,7 +24,7 @@
  * @brief Encode a given BACnetChanneValue
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param  value - BACNET_CHANNEL_VALUE value
- * @return  number of bytes in the APDU
+ * @return  number of bytes in the APDU, or zero if unable to encode
  */
 int bacnet_channel_value_type_encode(
     uint8_t *apdu, const BACNET_CHANNEL_VALUE *value)
@@ -245,7 +245,7 @@ int bacnet_channel_value_type_decode(
  * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
  * @param apdu_size - size of the APDU buffer
  * @param  value - BACNET_CHANNEL_VALUE value
- * @return  number of bytes in the APDU, or BACNET_STATUS_ERROR
+ * @return  number of bytes in the APDU, or zero if unable to encode
  */
 int bacnet_channel_value_encode(
     uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value)
@@ -740,73 +740,97 @@ static int channel_value_coerce_data_encode(
     uint32_t unsigned_value = 0;
     int32_t signed_value = 0;
     bool boolean_value = false;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t instance = 0;
 
     if (!value) {
         return BACNET_STATUS_ERROR;
     }
+    if (value->tag == tag) {
+        /* no coercion */
+        return bacnet_channel_value_type_encode(apdu, value);
+    }
     switch (value->tag) {
         case BACNET_APPLICATION_TAG_NULL:
             if ((tag == BACNET_APPLICATION_TAG_LIGHTING_COMMAND) ||
-                (tag == BACNET_APPLICATION_TAG_COLOR_COMMAND)) {
+                (tag == BACNET_APPLICATION_TAG_COLOR_COMMAND) ||
+                (tag == BACNET_APPLICATION_TAG_XY_COLOR)) {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             } else {
                 /* no coercion */
-                if (apdu) {
-                    *apdu = value->tag;
-                }
-                apdu_len++;
+                apdu_len = encode_application_null(apdu);
             }
             break;
 #if defined(CHANNEL_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
-            if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                apdu_len =
-                    encode_application_boolean(apdu, value->type.Boolean);
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
             } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                /* The Boolean value FALSE is mapped to 0
+                   and TRUE is mapped to 1.*/
                 if (value->type.Boolean) {
                     unsigned_value = 1;
                 }
                 apdu_len = encode_application_unsigned(apdu, unsigned_value);
             } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
+                /* The Boolean value FALSE is mapped to 0
+                   and TRUE is mapped to 1.*/
                 if (value->type.Boolean) {
                     signed_value = 1;
                 }
                 apdu_len = encode_application_signed(apdu, signed_value);
             } else if (tag == BACNET_APPLICATION_TAG_REAL) {
+                /* The Boolean value FALSE is mapped to 0
+                   and TRUE is mapped to 1.*/
                 if (value->type.Boolean) {
-                    float_value = 1;
+                    float_value = 1.0f;
                 }
                 apdu_len = encode_application_real(apdu, float_value);
             } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
+                /* The Boolean value FALSE is mapped to 0
+                   and TRUE is mapped to 1.*/
                 if (value->type.Boolean) {
-                    double_value = 1;
+                    double_value = 1.0;
                 }
                 apdu_len = encode_application_double(apdu, double_value);
             } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+                /* The Boolean value FALSE is mapped to 0
+                   and TRUE is mapped to 1.*/
                 if (value->type.Boolean) {
                     unsigned_value = 1;
                 }
                 apdu_len = encode_application_enumerated(apdu, unsigned_value);
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
 #if defined(CHANNEL_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
+            } else if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                /* The numeric value 0 maps to FALSE
+                   and anything else is TRUE.*/
                 if (value->type.Unsigned_Int) {
                     boolean_value = true;
                 }
                 apdu_len = encode_application_boolean(apdu, boolean_value);
-            } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                unsigned_value = value->type.Unsigned_Int;
-                apdu_len = encode_application_unsigned(apdu, unsigned_value);
             } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
                 if (value->type.Unsigned_Int <= 2147483647) {
                     signed_value = value->type.Unsigned_Int;
                     apdu_len = encode_application_signed(apdu, signed_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_REAL) {
@@ -814,6 +838,10 @@ static int channel_value_coerce_data_encode(
                     float_value = (float)value->type.Unsigned_Int;
                     apdu_len = encode_application_real(apdu, float_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
@@ -822,14 +850,26 @@ static int channel_value_coerce_data_encode(
             } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                 unsigned_value = value->type.Unsigned_Int;
                 apdu_len = encode_application_enumerated(apdu, unsigned_value);
+            } else if (tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
+                bacnet_object_id_from_value(
+                    value->type.Unsigned_Int, &object_type, &instance);
+                apdu_len =
+                    encode_application_object_id(apdu, object_type, instance);
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
 #if defined(CHANNEL_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
-            if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
+            } else if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                /* The numeric value 0 maps to FALSE
+                   and anything else is TRUE.*/
                 if (value->type.Signed_Int) {
                     boolean_value = true;
                 }
@@ -841,16 +881,21 @@ static int channel_value_coerce_data_encode(
                     apdu_len =
                         encode_application_unsigned(apdu, unsigned_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
-            } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
-                signed_value = value->type.Signed_Int;
-                apdu_len = encode_application_signed(apdu, signed_value);
             } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                 if (value->type.Signed_Int <= 9999999) {
                     float_value = (float)value->type.Signed_Int;
                     apdu_len = encode_application_real(apdu, float_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
@@ -860,13 +905,20 @@ static int channel_value_coerce_data_encode(
                 unsigned_value = value->type.Signed_Int;
                 apdu_len = encode_application_enumerated(apdu, unsigned_value);
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
 #if defined(CHANNEL_REAL)
         case BACNET_APPLICATION_TAG_REAL:
-            if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
+            } else if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                /* The numeric value 0 maps to FALSE
+                   and anything else is TRUE.*/
                 if (islessgreater(value->type.Real, 0.0F)) {
                     boolean_value = true;
                 }
@@ -878,6 +930,10 @@ static int channel_value_coerce_data_encode(
                     apdu_len =
                         encode_application_unsigned(apdu, unsigned_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
@@ -886,11 +942,12 @@ static int channel_value_coerce_data_encode(
                     signed_value = (int32_t)value->type.Real;
                     apdu_len = encode_application_signed(apdu, signed_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
-            } else if (tag == BACNET_APPLICATION_TAG_REAL) {
-                float_value = value->type.Real;
-                apdu_len = encode_application_real(apdu, float_value);
             } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
                 double_value = value->type.Real;
                 apdu_len = encode_application_double(apdu, double_value);
@@ -901,16 +958,27 @@ static int channel_value_coerce_data_encode(
                     apdu_len =
                         encode_application_enumerated(apdu, unsigned_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
 #if defined(CHANNEL_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
-            if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
+            } else if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                /* The numeric value 0 maps to FALSE
+                   and anything else is TRUE.*/
                 if (islessgreater(value->type.Double, 0.0)) {
                     boolean_value = true;
                 }
@@ -922,6 +990,10 @@ static int channel_value_coerce_data_encode(
                     apdu_len =
                         encode_application_unsigned(apdu, unsigned_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
@@ -930,6 +1002,10 @@ static int channel_value_coerce_data_encode(
                     signed_value = (int32_t)value->type.Double;
                     apdu_len = encode_application_signed(apdu, signed_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_REAL) {
@@ -938,11 +1014,12 @@ static int channel_value_coerce_data_encode(
                     float_value = (float)value->type.Double;
                     apdu_len = encode_application_real(apdu, float_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
-            } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
-                double_value = value->type.Double;
-                apdu_len = encode_application_double(apdu, double_value);
             } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                 if ((value->type.Double >= 0.0) &&
                     (value->type.Double <= 2147483000.0)) {
@@ -950,16 +1027,27 @@ static int channel_value_coerce_data_encode(
                     apdu_len =
                         encode_application_enumerated(apdu, unsigned_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
 #if defined(CHANNEL_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
-            if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
+            } else if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                /* The numeric value 0 maps to FALSE
+                   and anything else is TRUE.*/
                 if (value->type.Enumerated) {
                     boolean_value = true;
                 }
@@ -972,6 +1060,10 @@ static int channel_value_coerce_data_encode(
                     signed_value = value->type.Enumerated;
                     apdu_len = encode_application_signed(apdu, signed_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_REAL) {
@@ -979,49 +1071,66 @@ static int channel_value_coerce_data_encode(
                     float_value = (float)value->type.Enumerated;
                     apdu_len = encode_application_real(apdu, float_value);
                 } else {
+                    /* Those cases where coercion of values exceeds
+                       a range specified by an indicated coercion rule
+                       shall be considered as coercion failures and
+                       the write shall not occur. */
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
                 double_value = (double)value->type.Enumerated;
                 apdu_len = encode_application_double(apdu, double_value);
-            } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-                unsigned_value = value->type.Enumerated;
-                apdu_len = encode_application_enumerated(apdu, unsigned_value);
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
-#if defined(CHANNEL_LIGHTING_COMMAND)
-        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-            if (tag == BACNET_APPLICATION_TAG_LIGHTING_COMMAND) {
-                apdu_len = lighting_command_encode(
-                    apdu, &value->type.Lighting_Command);
+#if defined(CHANNEL_DATE)
+        case BACNET_APPLICATION_TAG_DATE:
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
-#if defined(CHANNEL_COLOR_COMMAND)
-        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-            if (tag == BACNET_APPLICATION_TAG_COLOR_COMMAND) {
-                apdu_len =
-                    color_command_encode(apdu, &value->type.Color_Command);
+#if defined(CHANNEL_TIME)
+        case BACNET_APPLICATION_TAG_TIME:
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
-#if defined(CHANNEL_XY_COLOR)
-        case BACNET_APPLICATION_TAG_XY_COLOR:
-            if (tag == BACNET_APPLICATION_TAG_XY_COLOR) {
-                apdu_len = xy_color_encode(apdu, &value->type.XY_Color);
+#if defined(CHANNEL_OBJECT_ID)
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            if (tag == BACNET_APPLICATION_TAG_NULL) {
+                apdu_len = encode_application_null(apdu);
+            } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                unsigned_value = bacnet_object_id_to_value(
+                    value->type.Object_Id.type, value->type.Object_Id.instance);
+                apdu_len = encode_application_unsigned(apdu, unsigned_value);
             } else {
+                /* Those cases where Invalid Datatype (ID) is indicated
+                   in Table 12-63 shall be considered as coercion failures
+                   and the write shall not occur. */
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
 #endif
         default:
+            /* Not defined in Table 12-63 shall be considered as coercion
+               failures and the write shall not occur. */
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }

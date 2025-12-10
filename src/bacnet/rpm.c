@@ -108,6 +108,30 @@ int rpm_encode_apdu_object_end(uint8_t *apdu)
 }
 
 /**
+ * @brief Initialize an array (or single) #BACNET_READ_ACCESS_DATA linked list.
+ * @param data - one or more #BACNET_READ_ACCESS_DATA elements
+ * @param count - number of #BACNET_READ_ACCESS_DATA elements
+ */
+void bacnet_read_access_data_init(BACNET_READ_ACCESS_DATA *data, size_t count)
+{
+    size_t i = 0;
+
+    if (data && count) {
+        for (i = 0; i < count; i++) {
+            data->object_type = OBJECT_NONE;
+            data->object_instance = 0;
+            data->listOfProperties = NULL;
+            if ((i + 1) < count) {
+                data->next = data + 1;
+            } else {
+                data->next = NULL;
+            }
+            data++;
+        }
+    }
+}
+
+/**
  * @brief Encode the ReadPropertyMultiple-Request
  * @param apdu application data unit buffer for encoding, or NULL for length
  * @param read_access_data [in] The RPM data to be requested.
@@ -692,15 +716,7 @@ void rpm_ack_object_property_process(
             if (bacnet_is_closing_tag_number(apdu, apdu_len, 1, &len)) {
                 /*  end of list-of-results [1] SEQUENCE OF SEQUENCE */
                 apdu_len -= len;
-                if (apdu_len > 0) {
-                    /* malformed */
-                    rp_data->error_class = ERROR_CLASS_SERVICES;
-                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
-                    if (callback) {
-                        callback(device_id, rp_data);
-                    }
-                    return;
-                }
+                apdu += len;
                 break;
             }
             len = rpm_ack_decode_object_property(
