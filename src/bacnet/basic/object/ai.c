@@ -1382,6 +1382,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     } else {
         FromState = CurrentAI->Event_State;
         Reliability = CurrentAI->Reliability;
+        PresentVal = CurrentAI->Present_Value;
         if (Reliability != RELIABILITY_NO_FAULT_DETECTED) {
             /*Fault detection takes precedence over the detection of normal and
             offnormal states. As such, when Reliability has a value other than
@@ -1391,7 +1392,6 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         } else if (FromState == EVENT_STATE_FAULT) {
             CurrentAI->Event_State = EVENT_STATE_NORMAL;
         } else {
-            PresentVal = CurrentAI->Present_Value;
             switch (CurrentAI->Event_State) {
                 case EVENT_STATE_NORMAL:
                     /* A TO-OFFNORMAL event is generated under these conditions:
