@@ -3426,7 +3426,7 @@ static int bacapp_snprintf_weeklyschedule(
 static int bacapp_snprintf_host_n_port(
     char *str, size_t str_len, const BACNET_HOST_N_PORT *value)
 {
-    int slen, len, i;
+    int len, i;
     const char *char_str;
     int ret_val = 0;
 

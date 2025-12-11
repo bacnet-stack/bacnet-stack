@@ -1329,12 +1329,12 @@ static void print_property_list(
          * wants them remmed out */
         printf("-- ");
     }
-    printf("%s: (", bactext_property_name(PROP_PROPERTY_LIST));
+    printf("%s: {\n", bactext_property_name(PROP_PROPERTY_LIST));
     for (i = 0; i < num_properties; i++) {
         if (i == num_properties - 1) {
-            printf("%i)\n", prop_list[i].property);
+            printf("        %i}\n", prop_list[i].property);
         } else {
-            printf("%i,", prop_list[i].property);
+            printf("        %i,\n", prop_list[i].property);
         }
     }
 }
