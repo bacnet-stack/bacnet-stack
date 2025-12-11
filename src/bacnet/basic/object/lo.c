@@ -91,7 +91,7 @@ static const int32_t Properties_Required[] = {
     PROP_LAST_ON_VALUE,
     PROP_DEFAULT_ON_VALUE,
 #endif
-    -1
+    -1,
 };
 static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
@@ -110,7 +110,7 @@ static const int32_t Properties_Optional[] = {
     PROP_FEEDBACK_VALUE,
     PROP_POWER,
     PROP_INSTANTANEOUS_POWER,
-    -1
+    -1,
 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
