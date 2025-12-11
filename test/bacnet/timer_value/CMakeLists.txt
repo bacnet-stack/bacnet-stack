@@ -47,6 +47,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/shed_level.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

@@ -53,16 +53,6 @@ typedef struct BACnetScale {
     } type;
 } BACNET_SCALE;
 
-/* The shed levels for the LEVEL choice of BACnetShedLevel. */
-typedef struct {
-    BACNET_SHED_LEVEL_TYPE type;
-    union {
-        BACNET_UNSIGNED_INTEGER level;
-        BACNET_UNSIGNED_INTEGER percent;
-        float amount;
-    } value;
-} BACNET_SHED_LEVEL;
-
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
     bool context_specific; /* true if context specific data */

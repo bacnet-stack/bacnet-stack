@@ -124,6 +124,7 @@ list(APPEND testdirs
   bacnet/rpm
   bacnet/secure_connect
   bacnet/specialevent
+  bacnet/shed_level
   bacnet/timer_value
   bacnet/timestamp
   bacnet/timesync

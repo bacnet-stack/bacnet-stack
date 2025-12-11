@@ -151,149 +151,6 @@ bacnet_scale_same(const BACNET_SCALE *value1, const BACNET_SCALE *value2)
 }
 #endif
 
-#if defined(BACAPP_SHED_LEVEL)
-/**
- * @brief Encode a BACnetScale value.
- *
- *  BACnetScale ::= CHOICE {
- *      float-scale [0] REAL,
- *      integer-scale [1] INTEGER
- *  }
- *
- * @param apdu - buffer to encode to
- * @param value - value to encode
- * @return number of bytes encoded
- */
-static int
-bacnet_shed_level_encode(uint8_t *apdu, const BACNET_SHED_LEVEL *value)
-{
-    int apdu_len = 0;
-
-    if (!value) {
-        return 0;
-    }
-    switch (value->type) {
-        case BACNET_SHED_TYPE_PERCENT:
-            apdu_len = encode_context_unsigned(apdu, 0, value->value.percent);
-            break;
-        case BACNET_SHED_TYPE_AMOUNT:
-            apdu_len = encode_context_real(apdu, 2, value->value.amount);
-            break;
-        case BACNET_SHED_TYPE_LEVEL:
-            apdu_len = encode_context_unsigned(apdu, 1, value->value.level);
-            break;
-        default:
-            break;
-    }
-
-    return apdu_len;
-}
-#endif
-
-#if defined(BACAPP_SHED_LEVEL)
-/**
- * @brief Decode a BACnetShedLevel value.
- *
- *  BACnetShedLevel ::= CHOICE {
- *      percent [0] Unsigned,
- *      level [1] Unsigned,
- *      amount [2] REAL
- *  }
- *
- * @param apdu - buffer to decode to
- * @param apdu_size - size of the buffer
- * @param value - value to encode
- * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
- */
-static int bacnet_shed_level_decode(
-    const uint8_t *apdu, size_t apdu_size, BACNET_SHED_LEVEL *value)
-{
-    int apdu_len = 0;
-    BACNET_TAG tag = { 0 };
-    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-    float real_value = 0.0f;
-
-    if (!apdu) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if (apdu_len <= 0) {
-        return BACNET_STATUS_ERROR;
-    }
-    switch (tag.number) {
-        case 0:
-            /* percent - Unsigned */
-            apdu_len = bacnet_unsigned_context_decode(
-                apdu, apdu_size, tag.number, &unsigned_value);
-            if (apdu_len > 0) {
-                value->value.percent = unsigned_value;
-                value->type = BACNET_SHED_TYPE_PERCENT;
-            }
-            break;
-        case 1:
-            /* level - Unsigned */
-            apdu_len = bacnet_unsigned_context_decode(
-                apdu, apdu_size, tag.number, &unsigned_value);
-            if (apdu_len > 0) {
-                value->value.level = unsigned_value;
-                value->type = BACNET_SHED_TYPE_LEVEL;
-            }
-            break;
-
-        case 2:
-            apdu_len = bacnet_real_context_decode(
-                apdu, apdu_size, tag.number, &real_value);
-            if (apdu_len > 0) {
-                value->type = BACNET_SHED_TYPE_AMOUNT;
-                value->value.amount = real_value;
-            }
-            break;
-        default:
-            return BACNET_STATUS_ERROR;
-    }
-
-    return apdu_len;
-}
-#endif
-
-#if defined(BACAPP_SHED_LEVEL)
-static bool bacnet_shed_level_same(
-    const BACNET_SHED_LEVEL *value1, const BACNET_SHED_LEVEL *value2)
-{
-    bool status = false;
-
-    if (value1 && value2) {
-        status = true;
-        if (value1->type != value2->type) {
-            status = false;
-        } else {
-            switch (value1->type) {
-                case BACNET_SHED_TYPE_PERCENT:
-                    if (value1->value.percent != value2->value.percent) {
-                        status = false;
-                    }
-                    break;
-                case BACNET_SHED_TYPE_AMOUNT:
-                    if (islessgreater(
-                            value1->value.amount, value2->value.amount)) {
-                        status = false;
-                    }
-                    break;
-                case BACNET_SHED_TYPE_LEVEL:
-                    if (value1->value.level != value2->value.level) {
-                        status = false;
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    return status;
-}
-#endif
-
 /**
  * @brief Encode application data given by a pointer into the APDU.
  * @param apdu - Pointer to the buffer to encode to, or NULL for length
@@ -2061,40 +1918,6 @@ int bacapp_snprintf_shift(int len, char **buf, size_t *buf_size)
 
     return len;
 }
-
-#if defined(BACAPP_SHED_LEVEL)
-/**
- * @brief Print a value to a string for EPICS
- * @param str - destination string, or NULL for length only
- * @param str_len - length of the destination string, or 0 for length only
- * @param value - value to be printed
- * @return number of characters written to the string
- */
-static int bacapp_snprintf_shed_level(
-    char *str, size_t str_len, const BACNET_SHED_LEVEL *value)
-{
-    int length = 0;
-
-    switch (value->type) {
-        case BACNET_SHED_TYPE_PERCENT:
-            length = bacapp_snprintf(
-                str, str_len, "%u%%", (unsigned)value->value.percent);
-            break;
-        case BACNET_SHED_TYPE_LEVEL:
-            length = bacapp_snprintf(
-                str, str_len, "%u", (unsigned)value->value.level);
-            break;
-        case BACNET_SHED_TYPE_AMOUNT:
-            length = bacapp_snprintf(
-                str, str_len, "%f", (double)value->value.amount);
-            break;
-        default:
-            break;
-    }
-
-    return length;
-}
-#endif
 
 /**
  * @brief Print a value to a string for EPICS
@@ -4039,8 +3862,13 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_SHED_LEVEL)
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
+                slen = bacapp_snprintf(str, str_len, "{");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 ret_val = bacapp_snprintf_shed_level(
                     str, str_len, &value->type.Shed_Level);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "}");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 break;
 #endif
 #if defined(BACAPP_ACCESS_RULE)
