@@ -21,6 +21,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added API for Analog_Input_Notification_Class, Analog_Input_Event_Enable,
+  and Analog_Input_Notify_Type. (#1184)
 * Added API and optional properties to basic lighting output object example
   for power and feedback value. (#1185)
 * Added properties to the Channel object write member value coercion
