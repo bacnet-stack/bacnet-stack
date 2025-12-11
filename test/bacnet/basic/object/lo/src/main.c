@@ -356,6 +356,8 @@ static void testLightingOutput(void)
     zassert_true(
         is_float_equal(test_real, real_value), "value=%f test_value=%f",
         real_value, test_real);
+    /* refresh */
+    Lighting_Output_Lighting_Command_Refresh(instance);
     /* color-override */
     status = Lighting_Output_Color_Override_Set(instance, true);
     zassert_true(status, NULL);
@@ -394,7 +396,24 @@ static void testLightingOutput(void)
     test_real = Lighting_Output_Tracking_Value(instance);
     zassert_true(is_float_equal(test_real, real_value), NULL);
     zassert_true(is_float_equal(Test_Tracking_Value, real_value), NULL);
-
+    /* feedback value */
+    status = Lighting_Output_Feedback_Value_Set(instance, 55.5f);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Feedback_Value(instance);
+    zassert_true(is_float_equal(test_real, 55.5f), NULL);
+    /* power*/
+    status = Lighting_Output_Power_Set(instance, 12345.67f);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Power(instance);
+    zassert_true(is_float_equal(test_real, 12345.67f), NULL);
+    /* instantenous power*/
+    status = Lighting_Output_Instantaneous_Power_Set(instance, 76543.21f);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Instantaneous_Power(instance);
+    zassert_true(is_float_equal(test_real, 76543.21f), NULL);
+    /* context get/set */
+    Lighting_Output_Context_Set(
+        instance, Lighting_Output_Context_Get(instance));
     /* out-of-bounds */
     test_instance = Lighting_Output_Create(BACNET_MAX_INSTANCE + 1);
     zassert_equal(test_instance, BACNET_MAX_INSTANCE, NULL);
