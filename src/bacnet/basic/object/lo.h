@@ -217,6 +217,21 @@ bool Lighting_Output_Override_Color_Reference_Set(
     uint32_t object_instance, const BACNET_OBJECT_ID *value);
 
 BACNET_STACK_EXPORT
+float Lighting_Feedback_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Feedback_Value_Set(uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
+float Lighting_Power(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Power_Set(uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
+float Lighting_Instantaneous_Power(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Instantaneous_Power_Set(uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
 void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT

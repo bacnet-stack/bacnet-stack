@@ -33,7 +33,6 @@ struct object_data {
     float Present_Value;
     BACNET_LIGHTING_COMMAND_DATA Lighting_Command;
     BACNET_LIGHTING_COMMAND Last_Lighting_Command;
-    float Physical_Value;
     uint32_t Egress_Time_Seconds;
     uint32_t Default_Fade_Time;
     uint32_t Trim_Fade_Time;
@@ -108,6 +107,9 @@ static const int32_t Properties_Optional[] = {
     PROP_LOW_END_TRIM,
     PROP_TRIM_FADE_TIME,
 #endif
+    PROP_FEEDBACK_VALUE,
+    PROP_POWER,
+    PROP_INSTANTANEOUS_POWER,
     -1
 };
 
@@ -2938,6 +2940,123 @@ bool Lighting_Output_Override_Color_Reference_Set(
 }
 
 /**
+ * @brief For a given object instance-number, gets the feedback value property
+ * @param object_instance - object-instance number of the object
+ * @return the feedback value of this object instance.
+ */
+float Lighting_Feedback_Value(uint32_t object_instance)
+{
+    float value = 0.0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Feedback_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the feedback value
+ *  of the object.
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if feedback value was set
+ */
+bool Lighting_Feedback_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Feedback_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the power value property
+ * @param object_instance - object-instance number of the object
+ * @return the power value of this object instance.
+ */
+float Lighting_Power(uint32_t object_instance)
+{
+    float value = 0.0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Power;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the power value
+ *  of the object.
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if power value was set
+ */
+bool Lighting_Power_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Power = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the power value property
+ * @param object_instance - object-instance number of the object
+ * @return the power value of this object instance.
+ */
+float Lighting_Instantaneous_Power(uint32_t object_instance)
+{
+    float value = 0.0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Instantaneous_Power;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the power value
+ *  of the object.
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if power value was set
+ */
+bool Lighting_Instantaneous_Power_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Instantaneous_Power = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -3129,6 +3248,18 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Lighting_Output_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_FEEDBACK_VALUE:
+            real_value = Lighting_Feedback_Value(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
+            break;
+        case PROP_POWER:
+            real_value = Lighting_Power(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
+            break;
+        case PROP_INSTANTANEOUS_POWER:
+            real_value = Lighting_Instantaneous_Power(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -3333,6 +3464,30 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
+        case PROP_FEEDBACK_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Lighting_Feedback_Value_Set(
+                    wp_data->object_instance, value.type.Real);
+            }
+            break;
+        case PROP_POWER:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Lighting_Power_Set(
+                    wp_data->object_instance, value.type.Real);
+            }
+            break;
+        case PROP_INSTANTANEOUS_POWER:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Lighting_Instantaneous_Power_Set(
+                    wp_data->object_instance, value.type.Real);
+            }
+            break;
         default:
             if (property_lists_member(
                     Properties_Required, Properties_Optional,
@@ -3454,7 +3609,6 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
         pObject->Present_Value = 0.0f;
-        pObject->Physical_Value = 0.0f;
         lighting_command_init(&pObject->Lighting_Command);
         pObject->Lighting_Command.Key = object_instance;
         pObject->Lighting_Command.Notification_Head.callback =
@@ -3471,7 +3625,7 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Default_Ramp_Rate = 100.0;
         pObject->Default_Step_Increment = 1.0f;
         pObject->Transition = BACNET_LIGHTING_TRANSITION_FADE;
-        pObject->Feedback_Value = 0.0;
+        pObject->Feedback_Value = 0.0f;
         for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
             pObject->Priority_Array[p] = 0.0f;
             BIT_CLEAR(pObject->Priority_Active_Bits, p);
