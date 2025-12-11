@@ -3430,38 +3430,35 @@ static int bacapp_snprintf_host_n_port(
     const char *char_str;
     int ret_val = 0;
 
-    slen = bacapp_snprintf(str, str_len, "{");
-    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val = bacnet_snprintf(str, str_len, ret_val, "{");
     if (value->host_ip_address) {
         const uint8_t *octet_str;
         octet_str =
             octetstring_value((BACNET_OCTET_STRING *)&value->host.ip_address);
-        slen = bacapp_snprintf(
-            str, str_len, "%u.%u.%u.%u:%u", (unsigned)octet_str[0],
+        ret_val = bacnet_snprintf(
+            str, str_len, ret_val, "%u.%u.%u.%u:%u", (unsigned)octet_str[0],
             (unsigned)octet_str[1], (unsigned)octet_str[2],
             (unsigned)octet_str[3], (unsigned)value->port);
-        ret_val += slen;
     } else if (value->host_name) {
         const BACNET_CHARACTER_STRING *name;
         name = &value->host.name;
         len = characterstring_length(name);
         char_str = characterstring_value(name);
-        slen = bacapp_snprintf(str, str_len, "\"");
-        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        ret_val = bacnet_snprintf(str, str_len, ret_val, "\"");
         for (i = 0; i < len; i++) {
             if (isprint(*((const unsigned char *)char_str))) {
-                slen = bacapp_snprintf(str, str_len, "%c", *char_str);
+                ret_val =
+                    bacnet_snprintf(str, str_len, ret_val, "%c", *char_str);
             } else {
-                slen = bacapp_snprintf(str, str_len, "%c", '.');
+                ret_val = bacnet_snprintf(str, str_len, ret_val, "%c", '.');
             }
-            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             char_str++;
         }
-        slen = bacapp_snprintf(str, str_len, "\"");
-        ret_val += slen;
+        ret_val = bacnet_snprintf(str, str_len, ret_val, "\"");
+    } else {
+        ret_val = bacnet_snprintf(str, str_len, ret_val, "\"\"");
     }
-    slen = bacapp_snprintf(str, str_len, "}");
-    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val = bacnet_snprintf(str, str_len, ret_val, "}");
 
     return ret_val;
 }
