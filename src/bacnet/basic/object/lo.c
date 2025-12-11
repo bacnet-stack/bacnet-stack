@@ -2944,7 +2944,7 @@ bool Lighting_Output_Override_Color_Reference_Set(
  * @param object_instance - object-instance number of the object
  * @return the feedback value of this object instance.
  */
-float Lighting_Feedback_Value(uint32_t object_instance)
+float Lighting_Output_Feedback_Value(uint32_t object_instance)
 {
     float value = 0.0;
     struct object_data *pObject;
@@ -2964,7 +2964,7 @@ float Lighting_Feedback_Value(uint32_t object_instance)
  * @param value - holds the value to be set
  * @return true if feedback value was set
  */
-bool Lighting_Feedback_Value_Set(uint32_t object_instance, float value)
+bool Lighting_Output_Feedback_Value_Set(uint32_t object_instance, float value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -2983,7 +2983,7 @@ bool Lighting_Feedback_Value_Set(uint32_t object_instance, float value)
  * @param object_instance - object-instance number of the object
  * @return the power value of this object instance.
  */
-float Lighting_Power(uint32_t object_instance)
+float Lighting_Output_Power(uint32_t object_instance)
 {
     float value = 0.0;
     struct object_data *pObject;
@@ -3003,7 +3003,7 @@ float Lighting_Power(uint32_t object_instance)
  * @param value - holds the value to be set
  * @return true if power value was set
  */
-bool Lighting_Power_Set(uint32_t object_instance, float value)
+bool Lighting_Output_Power_Set(uint32_t object_instance, float value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -3023,7 +3023,7 @@ bool Lighting_Power_Set(uint32_t object_instance, float value)
  * @param object_instance - object-instance number of the object
  * @return the instantaneous power value of this object instance.
  */
-float Lighting_Instantaneous_Power(uint32_t object_instance)
+float Lighting_Output_Instantaneous_Power(uint32_t object_instance)
 {
     float value = 0.0;
     struct object_data *pObject;
@@ -3043,7 +3043,8 @@ float Lighting_Instantaneous_Power(uint32_t object_instance)
  * @param value - holds the instantaneous power value to be set
  * @return true if instantaneous power value was set
  */
-bool Lighting_Instantaneous_Power_Set(uint32_t object_instance, float value)
+bool Lighting_Output_Instantaneous_Power_Set(
+    uint32_t object_instance, float value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -3251,15 +3252,17 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FEEDBACK_VALUE:
-            real_value = Lighting_Feedback_Value(rpdata->object_instance);
+            real_value =
+                Lighting_Output_Feedback_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_POWER:
-            real_value = Lighting_Power(rpdata->object_instance);
+            real_value = Lighting_Output_Power(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_INSTANTANEOUS_POWER:
-            real_value = Lighting_Instantaneous_Power(rpdata->object_instance);
+            real_value =
+                Lighting_Output_Instantaneous_Power(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         default:
@@ -3469,7 +3472,7 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                status = Lighting_Feedback_Value_Set(
+                status = Lighting_Output_Feedback_Value_Set(
                     wp_data->object_instance, value.type.Real);
             }
             break;
@@ -3477,7 +3480,7 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                status = Lighting_Power_Set(
+                status = Lighting_Output_Power_Set(
                     wp_data->object_instance, value.type.Real);
             }
             break;
@@ -3485,7 +3488,7 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                status = Lighting_Instantaneous_Power_Set(
+                status = Lighting_Output_Instantaneous_Power_Set(
                     wp_data->object_instance, value.type.Real);
             }
             break;
