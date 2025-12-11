@@ -3018,9 +3018,10 @@ bool Lighting_Power_Set(uint32_t object_instance, float value)
 }
 
 /**
- * @brief For a given object instance-number, gets the power value property
+ * @brief For a given object instance-number, gets the instantaneous power value
+ * property
  * @param object_instance - object-instance number of the object
- * @return the power value of this object instance.
+ * @return the instantaneous power value of this object instance.
  */
 float Lighting_Instantaneous_Power(uint32_t object_instance)
 {
@@ -3036,11 +3037,11 @@ float Lighting_Instantaneous_Power(uint32_t object_instance)
 }
 
 /**
- * @brief For a given object instance-number, sets the power value
+ * @brief For a given object instance-number, sets the instantaneous power value
  *  of the object.
  * @param object_instance - object-instance number of the object
- * @param value - holds the value to be set
- * @return true if power value was set
+ * @param value - holds the instantaneous power value to be set
+ * @return true if instantaneous power value was set
  */
 bool Lighting_Instantaneous_Power_Set(uint32_t object_instance, float value)
 {
