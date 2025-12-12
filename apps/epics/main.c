@@ -1374,8 +1374,7 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
             property_list_supported = true;
         } else {
             /* failed to read the PROPERTY_LIST - use synthetic */
-            num_properties =
-                property_list_special_count(OBJECT_DEVICE, PROP_ALL);
+            num_properties = property_list_special_count(object.type, PROP_ALL);
             property_list_supported = false;
         }
         if (num_properties > sizeof(prop_list)) {
@@ -1405,6 +1404,7 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                     prop_list[j].printed = true;
                 }
             } else {
+                /* failed to read the PROPERTY_LIST - use synthetic */
                 prop_list[j].property =
                     property_list_special_property(OBJECT_DEVICE, PROP_ALL, j);
                 if ((prop_list[j].property == PROP_OBJECT_IDENTIFIER) ||
@@ -1424,10 +1424,15 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
             for (k = 0; k < num_properties; k++) {
                 if (special_property_list.Required.pList[j] ==
                     prop_list[k].property) {
-                    if ((prop_list[k].property == PROP_PROPERTY_LIST) ||
-                        (prop_list[k].property == PROP_OBJECT_LIST)) {
-                        /* property and object lists are read later one
-                         * element at a time */
+                    if ((prop_list[k].property == PROP_OBJECT_IDENTIFIER) ||
+                        (prop_list[k].property == PROP_OBJECT_NAME) ||
+                        (prop_list[k].property == PROP_OBJECT_TYPE) ||
+                        (prop_list[k].property == PROP_OBJECT_LIST) ||
+                        (prop_list[k].property == PROP_PROPERTY_LIST)) {
+                        /* object-id, object-name, and object-type
+                           are already printed.
+                           property and object lists are read later
+                           one element at a time */
                         prop_list[k].printed = true;
                     } else {
                         /* read and print required property */
@@ -1488,107 +1493,91 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
             /* have an object id */
             object.type = data_value.type.Object_Id.type;
             object.instance = data_value.type.Object_Id.instance;
-            if (object.type != OBJECT_DEVICE) {
-                /* get number of properties in object */
-                status = get_primitive_value(
-                    device_instance, object, PROP_PROPERTY_LIST, 0,
-                    &data_value);
-                if (status == RESP_SUCCESS) {
-                    /* got number of properties */
-                    num_properties = data_value.type.Unsigned_Int;
-                    property_list_supported = true;
+            if (object.type == OBJECT_DEVICE) {
+                /* skip device object - already done */
+                continue;
+            }
+            /* get number of properties in object */
+            status = get_primitive_value(
+                device_instance, object, PROP_PROPERTY_LIST, 0, &data_value);
+            if (status == RESP_SUCCESS) {
+                /* got number of properties */
+                num_properties = data_value.type.Unsigned_Int;
+                property_list_supported = true;
+            } else {
+                /* failed to read the PROPERTY_LIST - use synthetic */
+                num_properties =
+                    property_list_special_count(object.type, PROP_ALL);
+                property_list_supported = false;
+            }
+            if (num_properties > sizeof(prop_list)) {
+                num_properties = sizeof(prop_list);
+            }
+            /* got number of properties */
+            /* Add opening brace for the first object */
+            printf("  {\n");
+            /* Since object-id, object-type, object-name are not
+             * part of the property-list, print manually.*/
+            get_print_value(
+                device_instance, object, PROP_OBJECT_IDENTIFIER,
+                BACNET_ARRAY_ALL);
+            get_print_value(
+                device_instance, object, PROP_OBJECT_NAME, BACNET_ARRAY_ALL);
+            get_print_value(
+                device_instance, object, PROP_OBJECT_TYPE, BACNET_ARRAY_ALL);
+            /* get and save list of property ids in this object in
+             * the IUT */
+            for (j = 0; j < num_properties; j++) {
+                if (property_list_supported) {
+                    status = get_primitive_value(
+                        device_instance, object, PROP_PROPERTY_LIST, j + 1,
+                        &data_value);
+                    if (status == RESP_SUCCESS) {
+                        prop_list[j].property = data_value.type.Unsigned_Int;
+                        prop_list[j].printed = false;
+                    } else {
+                        /* failed to read the property identifier - this
+                         * entry will be ignored */
+                        if (Debug_Enabled) {
+                            fprintf(
+                                stderr,
+                                "\n-- ERROR - failed to read PROPERTY_LIST "
+                                "entry = %i for object %s %u\n",
+                                j, bactext_object_type_name(object.type),
+                                object.instance);
+                        }
+                        prop_list[j].property = MAX_BACNET_PROPERTY_ID;
+                        prop_list[j].printed = true;
+                    }
                 } else {
                     /* failed to read the PROPERTY_LIST - use synthetic */
-                    num_properties =
-                        property_list_special_count(object.type, PROP_ALL);
-                    property_list_supported = false;
-                }
-                if (num_properties > sizeof(prop_list)) {
-                    num_properties = sizeof(prop_list);
-                }
-                /* got number of properties */
-                printf("  {\n"); /* And opening brace for the first
-                                    object */
-                /* Since object-id, object-type, object-name are not
-                 * part of the property-list, print manually.*/
-                get_print_value(
-                    device_instance, object, PROP_OBJECT_IDENTIFIER,
-                    BACNET_ARRAY_ALL);
-                get_print_value(
-                    device_instance, object, PROP_OBJECT_NAME,
-                    BACNET_ARRAY_ALL);
-                get_print_value(
-                    device_instance, object, PROP_OBJECT_TYPE,
-                    BACNET_ARRAY_ALL);
-                /* get and save list of property ids in this object in
-                 * the IUT */
-                for (j = 0; j < num_properties; j++) {
-                    if (property_list_supported) {
-                        status = get_primitive_value(
-                            device_instance, object, PROP_PROPERTY_LIST, j + 1,
-                            &data_value);
-                        if (status == RESP_SUCCESS) {
-                            prop_list[j].property =
-                                data_value.type.Unsigned_Int;
-                            prop_list[j].printed = false;
-                        } else {
-                            /* failed to read the property identifier - this
-                             * entry will be ignored */
-                            if (Debug_Enabled) {
-                                fprintf(
-                                    stderr,
-                                    "\n-- ERROR - failed to read PROPERTY_LIST "
-                                    "entry = %i for object %s %u\n",
-                                    j, bactext_object_type_name(object.type),
-                                    object.instance);
-                            }
-                            prop_list[j].property = MAX_BACNET_PROPERTY_ID;
-                            prop_list[j].printed = true;
-                        }
+                    prop_list[j].property = property_list_special_property(
+                        object.type, PROP_ALL, j);
+                    if ((prop_list[j].property == PROP_OBJECT_IDENTIFIER) ||
+                        (prop_list[j].property == PROP_OBJECT_NAME) ||
+                        (prop_list[j].property == PROP_OBJECT_TYPE) ||
+                        (prop_list[j].property == PROP_PROPERTY_LIST)) {
+                        prop_list[j].printed = true;
                     } else {
-                        prop_list[j].property = property_list_special_property(
-                            OBJECT_DEVICE, PROP_ALL, j);
-                        if ((prop_list[j].property == PROP_OBJECT_IDENTIFIER) ||
-                            (prop_list[j].property == PROP_OBJECT_NAME) ||
-                            (prop_list[j].property == PROP_OBJECT_TYPE) ||
-                            (prop_list[j].property == PROP_PROPERTY_LIST)) {
-                            prop_list[j].printed = true;
+                        prop_list[j].printed = false;
+                    }
+                }
+            }
+            /* print out the required properties */
+            property_list_special(object.type, &special_property_list);
+            for (j = 0; j < special_property_list.Required.count; j++) {
+                for (k = 0; k < num_properties; k++) {
+                    if (special_property_list.Required.pList[j] ==
+                        prop_list[k].property) {
+                        if ((prop_list[k].property == PROP_OBJECT_IDENTIFIER) ||
+                            (prop_list[k].property == PROP_OBJECT_NAME) ||
+                            (prop_list[k].property == PROP_OBJECT_TYPE) ||
+                            (prop_list[k].property == PROP_PROPERTY_LIST)) {
+                            /* property list is read later one
+                             * element at a time */
+                            prop_list[k].printed = true;
                         } else {
-                            prop_list[j].printed = false;
-                        }
-                    }
-                }
-                /* print out the required properties */
-                property_list_special(object.type, &special_property_list);
-                for (j = 0; j < special_property_list.Required.count; j++) {
-                    for (k = 0; k < num_properties; k++) {
-                        if (special_property_list.Required.pList[j] ==
-                            prop_list[k].property) {
-                            if (prop_list[k].property == PROP_PROPERTY_LIST) {
-                                /* property list is read later one
-                                 * element at a time */
-                                prop_list[k].printed = true;
-                            } else {
-                                /* read and print required property */
-                                get_print_value(
-                                    device_instance, object,
-                                    prop_list[k].property, BACNET_ARRAY_ALL);
-                                prop_list[k].printed = true;
-                            }
-                        }
-                    }
-                }
-                if (property_list_supported) {
-                    /* print out the property list */
-                    print_property_list(
-                        &prop_list[0], num_properties, object.type);
-                }
-                /* print out the optional properties */
-                for (j = 0; j < special_property_list.Optional.count; j++) {
-                    for (k = 0; k < num_properties; k++) {
-                        if (special_property_list.Optional.pList[j] ==
-                            prop_list[k].property) {
-                            /* read and print optional property */
+                            /* read and print required property */
                             get_print_value(
                                 device_instance, object, prop_list[k].property,
                                 BACNET_ARRAY_ALL);
@@ -1596,18 +1585,35 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                         }
                     }
                 }
-                /* print out the other properties */
-                for (j = 0; j < num_properties; j++) {
-                    if (!prop_list[j].printed) {
+            }
+            if (property_list_supported) {
+                /* print out the property list */
+                print_property_list(&prop_list[0], num_properties, object.type);
+            }
+            /* print out the optional properties */
+            for (j = 0; j < special_property_list.Optional.count; j++) {
+                for (k = 0; k < num_properties; k++) {
+                    if (special_property_list.Optional.pList[j] ==
+                        prop_list[k].property) {
+                        /* read and print optional property */
                         get_print_value(
-                            device_instance, object, prop_list[j].property,
+                            device_instance, object, prop_list[k].property,
                             BACNET_ARRAY_ALL);
-                        prop_list[j].printed = true;
+                        prop_list[k].printed = true;
                     }
                 }
-                printf("  },\n"); /* And opening brace for the first
-                                        object */
             }
+            /* print out the other properties */
+            for (j = 0; j < num_properties; j++) {
+                if (!prop_list[j].printed) {
+                    get_print_value(
+                        device_instance, object, prop_list[j].property,
+                        BACNET_ARRAY_ALL);
+                    prop_list[j].printed = true;
+                }
+            }
+            printf("  },\n"); /* And opening brace for the first
+                                    object */
         }
     } else {
         /* failed to get size of object list */
