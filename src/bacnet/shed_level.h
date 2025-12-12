@@ -15,7 +15,7 @@
 #include "bacnet/bacint.h"
 
 /* The shed levels for the LEVEL choice of BACnetShedLevel. */
-typedef struct {
+typedef struct BACnetShedLevel {
     BACNET_SHED_LEVEL_TYPE type;
     union {
         BACNET_UNSIGNED_INTEGER level;
@@ -48,6 +48,9 @@ bool bacnet_shed_level_copy(
 BACNET_STACK_EXPORT
 int bacapp_snprintf_shed_level(
     char *str, size_t str_len, const BACNET_SHED_LEVEL *value);
+
+BACNET_STACK_EXPORT
+bool bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv);
 
 #ifdef __cplusplus
 }

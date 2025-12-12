@@ -3624,7 +3624,8 @@ int bacapp_snprintf_value(
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
-#if defined(BACAPP_BDT_ENTRY) || defined(BACAPP_FDT_ENTRY)
+#if defined(BACAPP_BDT_ENTRY) || defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_SHED_LEVEL)
     int slen = 0;
 #endif
 
@@ -4155,58 +4156,6 @@ static bool bacnet_scale_from_ascii(BACNET_SCALE *value, const char *argv)
         if (count == 1) {
             value->float_scale = false;
             value->type.integer_scale = integer_scale;
-            status = true;
-        }
-    }
-
-    return status;
-}
-#endif
-
-#if defined(BACAPP_SHED_LEVEL)
-/**
- * @brief Parse a string into a BACnet Shed Level value
- * @param value [out] The BACnet Shed Level value
- * @param argv [in] The string to parse
- * @return True on success, else False
- */
-static bool
-bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
-{
-    bool status = false;
-    int count;
-    unsigned percent, level;
-    float amount;
-    const char *percentage;
-    const char *decimal_point;
-
-    if (!status) {
-        percentage = strchr(argv, '%');
-        if (percentage) {
-            count = sscanf(argv, "%u", &percent);
-            if (count == 1) {
-                value->type = BACNET_SHED_TYPE_PERCENT;
-                value->value.percent = percent;
-                status = true;
-            }
-        }
-    }
-    if (!status) {
-        decimal_point = strchr(argv, '.');
-        if (decimal_point) {
-            count = sscanf(argv, "%f", &amount);
-            if (count == 1) {
-                value->type = BACNET_SHED_TYPE_AMOUNT;
-                value->value.amount = amount;
-                status = true;
-            }
-        }
-    }
-    if (!status) {
-        count = sscanf(argv, "%u", &level);
-        if (count == 1) {
-            value->type = BACNET_SHED_TYPE_LEVEL;
-            value->value.level = level;
             status = true;
         }
     }

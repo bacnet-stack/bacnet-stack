@@ -6,6 +6,7 @@
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
+#include <stdio.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/shed_level.h"
 
@@ -206,4 +207,53 @@ int bacapp_snprintf_shed_level(
     }
 
     return length;
+}
+
+/**
+ * @brief Parse a string into a BACnet Shed Level value
+ * @param value [out] The BACnet Shed Level value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
+ */
+bool bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
+{
+    bool status = false;
+    int count;
+    unsigned percent, level;
+    float amount;
+    const char *percentage;
+    const char *decimal_point;
+
+    if (!status) {
+        percentage = strchr(argv, '%');
+        if (percentage) {
+            count = sscanf(argv, "%u", &percent);
+            if (count == 1) {
+                value->type = BACNET_SHED_TYPE_PERCENT;
+                value->value.percent = percent;
+                status = true;
+            }
+        }
+    }
+    if (!status) {
+        decimal_point = strchr(argv, '.');
+        if (decimal_point) {
+            count = sscanf(argv, "%f", &amount);
+            if (count == 1) {
+                value->type = BACNET_SHED_TYPE_AMOUNT;
+                value->value.amount = amount;
+                status = true;
+            }
+        }
+    }
+    if (!status) {
+        count = sscanf(argv, "%u", &level);
+        if (count == 1) {
+            value->type = BACNET_SHED_TYPE_LEVEL;
+            value->value.level = level;
+            status = true;
+        }
+    }
+
+    return status;
 }

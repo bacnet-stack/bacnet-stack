@@ -31,6 +31,7 @@
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
+#include "bacnet/shed_level.h"
 #include "bacnet/timer_value.h"
 #include "bacnet/secure_connect.h"
 
