@@ -31,6 +31,7 @@
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
+#include "bacnet/shed_level.h"
 #include "bacnet/timer_value.h"
 #include "bacnet/secure_connect.h"
 
@@ -52,16 +53,6 @@ typedef struct BACnetScale {
         int32_t integer_scale;
     } type;
 } BACNET_SCALE;
-
-/* The shed levels for the LEVEL choice of BACnetShedLevel. */
-typedef struct {
-    BACNET_SHED_LEVEL_TYPE type;
-    union {
-        BACNET_UNSIGNED_INTEGER level;
-        BACNET_UNSIGNED_INTEGER percent;
-        float amount;
-    } value;
-} BACNET_SHED_LEVEL;
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {

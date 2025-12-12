@@ -672,6 +672,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/rp.h
   src/bacnet/rpm.c
   src/bacnet/rpm.h
+  src/bacnet/shed_level.c
+  src/bacnet/shed_level.h
   src/bacnet/timer_value.c
   src/bacnet/timer_value.h
   src/bacnet/timestamp.c
