@@ -53,6 +53,7 @@ typedef struct analog_input_descr {
     uint32_t Remaining_Time_Delay;
     /* AckNotification information */
     ACK_NOTIFICATION Ack_notify_data;
+    BACNET_RELIABILITY Last_ToFault_Event_Reliability;
 #endif
 } ANALOG_INPUT_DESCR;
 

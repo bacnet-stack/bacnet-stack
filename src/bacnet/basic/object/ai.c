@@ -330,7 +330,6 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
 }
 
 #if defined(INTRINSIC_REPORTING)
-
 /**
  * For a given object instance-number, returns the notification_class property
  * value
@@ -476,8 +475,8 @@ Analog_Input_Reset_Event_Properties(struct analog_input_descr *pObject)
         pObject->Event_Message_Texts[j] = NULL;
     }
     pObject->Event_State = EVENT_STATE_NORMAL;
+    pObject->Last_ToFault_Event_Reliability = RELIABILITY_NO_FAULT_DETECTED;
 }
-#endif
 
 /**
  * For a given object instance-number, gets the event-detection-enable property
@@ -518,6 +517,10 @@ bool Analog_Input_Event_Detection_Enable_Set(
     if (pObject) {
         pObject->Event_Detection_Enable = value;
         if (!pObject->Event_Detection_Enable) {
+            /*When this property is FALSE, Event_State shall be NORMAL, and the
+            properties Acked_Transitions, Event_Time_Stamps, and
+            Event_Message_Texts shall be equal to their respective initial
+            conditions.*/
             Analog_Input_Reset_Event_Properties(pObject);
         }
         retval = true;
@@ -525,6 +528,7 @@ bool Analog_Input_Event_Detection_Enable_Set(
 
     return retval;
 }
+#endif
 
 /**
  * @brief For a given object instance-number, returns the description
@@ -1327,6 +1331,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return status;
 }
 
+#if defined(INTRINSIC_REPORTING)
 static const char *Analog_Input_Event_Message(
     struct analog_input_descr *pObject,
     enum BACnetEventTransitionBits transition,
@@ -1338,6 +1343,7 @@ static const char *Analog_Input_Event_Message(
     }
     return default_text;
 }
+#endif
 
 /**
  * @brief Handles the Intrinsic Reporting Service for the Analog Input Object
@@ -1381,9 +1387,9 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         /* Send EventNotification. */
         SendNotify = true;
     } else {
+        PresentVal = CurrentAI->Present_Value;
         FromState = CurrentAI->Event_State;
         Reliability = CurrentAI->Reliability;
-        PresentVal = CurrentAI->Present_Value;
         if (Reliability != RELIABILITY_NO_FAULT_DETECTED) {
             /*Fault detection takes precedence over the detection of normal and
             offnormal states. As such, when Reliability has a value other than
@@ -1505,7 +1511,9 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
             } /* switch (FromState) */
         }
         ToState = CurrentAI->Event_State;
-        if (FromState != ToState) {
+        if (FromState != ToState ||
+            (ToState == EVENT_STATE_FAULT &&
+             Reliability != CurrentAI->Last_ToFault_Event_Reliability)) {
             /* Event_State has changed.
                Need to fill only the basic parameters of this type of event.
                Other parameters will be filled in common function. */
@@ -1548,6 +1556,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                     msgText = Analog_Input_Event_Message(
                         CurrentAI, TRANSITION_TO_FAULT,
                         bactext_reliability_name(Reliability));
+                    CurrentAI->Last_ToFault_Event_Reliability = Reliability;
                     break;
 
                 default:
