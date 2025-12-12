@@ -16,6 +16,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactext.h"
 #include "bacnet/datetime.h"
+#include "bacnet/shed_level.h"
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/wp.h"
@@ -33,9 +34,6 @@
 #define LOAD_CONTROL_TASK_INTERVAL_MS 1000UL
 
 struct object_data {
-    void *Context;
-    const char *Object_Name;
-    const char *Description;
     /* indicates the current load shedding state of the object */
     BACNET_SHED_STATE Present_Value;
     /* tracking for the Load Control finite state machine */
@@ -91,6 +89,9 @@ struct object_data {
     load_control_manipulated_object_read_callback Manipulated_Object_Read;
     /* state machine task time tracking per object */
     uint32_t Task_Milliseconds;
+    void *Context;
+    const char *Object_Name;
+    const char *Description;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -1665,6 +1666,329 @@ bool Load_Control_Shed_Level_Array(
     }
 
     return true;
+}
+
+/**
+ * @brief For a given object instance-number, gets the requested shed level
+ *  property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be retrieved
+ * @return the requested shed level of this object instance.
+ */
+bool Load_Control_Requested_Shed_Level(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_shed_level_copy(value, &pObject->Requested_Shed_Level);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the requested shed level
+ *  property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if requested shed level was set
+ */
+bool Load_Control_Requested_Shed_Level_Set(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_shed_level_copy(&pObject->Requested_Shed_Level, value);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the expected shed level
+ *  property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be retrieved
+ * @return the expected shed level of this object instance.
+ */
+bool Load_Control_Expected_Shed_Level(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_shed_level_copy(value, &pObject->Expected_Shed_Level);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the expected shed level
+ *  property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if expected shed level was set
+ */
+bool Load_Control_Expected_Shed_Level_Set(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_shed_level_copy(&pObject->Expected_Shed_Level, value);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the expected shed level
+ *  property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be retrieved
+ * @return the expected shed level of this object instance.
+ */
+bool Load_Control_Actual_Shed_Level(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_shed_level_copy(value, &pObject->Expected_Shed_Level);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the expected shed level
+ *  property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if expected shed level was set
+ */
+bool Load_Control_Actual_Shed_Level_Set(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_shed_level_copy(&pObject->Expected_Shed_Level, value);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the start-time property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be retrieved
+ * @return the start-time property value of this object instance.
+ */
+bool Load_Control_Start_Time(uint32_t object_instance, BACNET_DATE_TIME *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        datetime_copy_date(&value->date, &pObject->Start_Time.date);
+        datetime_copy_time(&value->time, &pObject->Start_Time.time);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the start-time property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if property value was set
+ */
+bool Load_Control_Start_Time_Set(
+    uint32_t object_instance, BACNET_DATE_TIME *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        datetime_copy_date(&pObject->Start_Time.date, &value->date);
+        datetime_copy_time(&pObject->Start_Time.time, &value->time);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the shed-duration property
+ * @param object_instance - object-instance number of the object
+ * @return the shed-duration property value of this object instance.
+ */
+uint32_t Load_Control_Shed_Duration(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    uint32_t value = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Shed_Duration;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the shed-duration property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if property value was set
+ */
+bool Load_Control_Shed_Duration_Set(uint32_t object_instance, uint32_t value)
+{
+    struct object_data *pObject;
+    bool status = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Shed_Duration = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the duty-window property
+ * @param object_instance - object-instance number of the object
+ * @return the duty-window property value of this object instance.
+ */
+uint32_t Load_Control_Duty_Window(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    uint32_t value = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Duty_Window;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the duty-window property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if property value was set
+ */
+bool Load_Control_Duty_Window_Set(uint32_t object_instance, uint32_t value)
+{
+    struct object_data *pObject;
+    bool status = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Duty_Window = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the full-duty-baseline
+ *  property value
+ * @param object_instance - object-instance number of the object
+ * @return the full-duty-baseline property value of this object instance.
+ */
+float Load_Control_Full_Duty_Baseline(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    float value = 0.0f;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Full_Duty_Baseline;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the full-duty-baseline
+ *  property value
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if property value was set
+ */
+bool Load_Control_Full_Duty_Baseline_Set(uint32_t object_instance, float value)
+{
+    struct object_data *pObject;
+    bool status = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Full_Duty_Baseline = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the enable property value
+ * @param object_instance - object-instance number of the object
+ * @return the enable property value of this object instance.
+ */
+bool Load_Control_Enable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    bool value = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Load_Control_Enable;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the enable property
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if property value was set
+ */
+bool Load_Control_Enable_Set(uint32_t object_instance, bool value)
+{
+    struct object_data *pObject;
+    bool status = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Load_Control_Enable = value;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
