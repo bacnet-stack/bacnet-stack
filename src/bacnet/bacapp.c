@@ -3263,7 +3263,7 @@ static int bacapp_snprintf_host_n_port(
             str, str_len, "%u.%u.%u.%u:%u", (unsigned)octet_str[0],
             (unsigned)octet_str[1], (unsigned)octet_str[2],
             (unsigned)octet_str[3], (unsigned)value->port);
-        ret_val += slen;
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     } else if (value->host_name) {
         const BACNET_CHARACTER_STRING *name;
         name = &value->host.name;
@@ -3281,7 +3281,7 @@ static int bacapp_snprintf_host_n_port(
             char_str++;
         }
         slen = bacapp_snprintf(str, str_len, "\"");
-        ret_val += slen;
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     }
     slen = bacapp_snprintf(str, str_len, "}");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -3865,7 +3865,7 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
                 slen = bacapp_snprintf(str, str_len, "{");
                 ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                ret_val = bacapp_snprintf_shed_level(
+                slen = bacapp_snprintf_shed_level(
                     str, str_len, &value->type.Shed_Level);
                 ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 slen = bacapp_snprintf(str, str_len, "}");
