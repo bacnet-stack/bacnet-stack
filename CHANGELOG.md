@@ -21,6 +21,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added API and optional properties to basic load control object example
+  Refactored BACnetShedLevel encoding, decoding, and printing into separate
+  file. Added BACnetShedLevel validation testing. (#1187)
 * Added API for Analog_Input_Notification_Class, Analog_Input_Event_Enable,
   and Analog_Input_Notify_Type. (#1184)
 * Added API and optional properties to basic lighting output object example

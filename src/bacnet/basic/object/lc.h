@@ -13,6 +13,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacerror.h"
+#include "bacnet/shed_level.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
@@ -111,6 +112,53 @@ bool Load_Control_Shed_Level_Array(
     uint32_t object_instance,
     uint32_t array_entry,
     struct shed_level_data *value);
+
+BACNET_STACK_EXPORT
+bool Load_Control_Requested_Shed_Level(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value);
+BACNET_STACK_EXPORT
+bool Load_Control_Requested_Shed_Level_Set(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value);
+
+BACNET_STACK_EXPORT
+bool Load_Control_Expected_Shed_Level(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value);
+BACNET_STACK_EXPORT
+bool Load_Control_Expected_Shed_Level_Set(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value);
+
+BACNET_STACK_EXPORT
+bool Load_Control_Actual_Shed_Level(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value);
+BACNET_STACK_EXPORT
+bool Load_Control_Actual_Shed_Level_Set(
+    uint32_t object_instance, BACNET_SHED_LEVEL *value);
+
+BACNET_STACK_EXPORT
+bool Load_Control_Start_Time(uint32_t object_instance, BACNET_DATE_TIME *value);
+BACNET_STACK_EXPORT
+bool Load_Control_Start_Time_Set(
+    uint32_t object_instance, BACNET_DATE_TIME *value);
+
+BACNET_STACK_EXPORT
+uint32_t Load_Control_Shed_Duration(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Load_Control_Shed_Duration_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+uint32_t Load_Control_Duty_Window(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Load_Control_Duty_Window_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+float Load_Control_Full_Duty_Baseline(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Load_Control_Full_Duty_Baseline_Set(uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
+bool Load_Control_Enable(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Load_Control_Enable_Set(uint32_t object_instance, bool value);
 
 BACNET_STACK_EXPORT
 void *Load_Control_Context_Get(uint32_t object_instance);

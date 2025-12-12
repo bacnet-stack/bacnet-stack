@@ -130,6 +130,7 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/shed_level.c \
 	$(BACNET_CORE)/timer_value.c \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/weeklyschedule.c \
