@@ -2249,6 +2249,10 @@ int bacapp_snprintf_character_string(
                     retry with the next one. */
                 wclen = 1;
                 wc = L'?';
+            } else if (wclen == 0) {
+                /* Null wide character */
+                wc = L'.';
+                wclen = 1;
             } else {
                 if (!iswprint(wc)) {
                     wc = L'.';
