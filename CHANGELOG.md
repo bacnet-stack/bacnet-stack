@@ -243,6 +243,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed NULL handling in CharacterString sprintf which caused endless loop.
 * Fixed the apps/blinkt example project to control 8 lighting outputs.(#1143)
 * Fixed the sequence of BACnet/SC datalink initialization that was
   broken during datalink environment changes and POSIX file refactoring.
