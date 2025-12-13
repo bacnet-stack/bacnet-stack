@@ -63,6 +63,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed NULL handling in CharacterString sprintf which caused an endless
+  loop. (#1189)
 * Fixed a regression in the rpm_ack_object_property_process() function
   that prevented proper parsing of multi-object ReadPropertyMultiple ACK
   responses. The bug was introduced in PR [#765] and caused the function
