@@ -63,6 +63,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed NULL handling in CharacterString sprintf which caused an endless
+  loop. (#1189)
 * Fixed a regression in the rpm_ack_object_property_process() function
   that prevented proper parsing of multi-object ReadPropertyMultiple ACK
   responses. The bug was introduced in PR [#765] and caused the function
@@ -243,7 +245,6 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed NULL handling in CharacterString sprintf which caused endless loop.
 * Fixed the apps/blinkt example project to control 8 lighting outputs.(#1143)
 * Fixed the sequence of BACnet/SC datalink initialization that was
   broken during datalink environment changes and POSIX file refactoring.
