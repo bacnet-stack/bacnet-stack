@@ -196,6 +196,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   ${SRC_DIR}/bacnet/special_event.c
   ${SRC_DIR}/bacnet/channel_value.c
   ${SRC_DIR}/bacnet/secure_connect.c
+  ${SRC_DIR}/bacnet/shed_level.c
   ${SRC_DIR}/bacnet/timer_value.c
   ${SRC_DIR}/bacnet/timestamp.c
   ${SRC_DIR}/bacnet/weeklyschedule.c

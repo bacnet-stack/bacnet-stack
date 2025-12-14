@@ -21,6 +21,13 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added API and optional properties to basic load control object example
+  Refactored BACnetShedLevel encoding, decoding, and printing into separate
+  file. Added BACnetShedLevel validation testing. (#1187)
+* Added API for Analog_Input_Notification_Class, Analog_Input_Event_Enable,
+  and Analog_Input_Notify_Type. (#1184)
+* Added API and optional properties to basic lighting output object example
+  for power and feedback value. (#1185)
 * Added properties to the Channel object write member value coercion
   minimal properties supported. (#1176)
 * Added Send_x_Address() API to ReadPropertyMultiple, WritePropertyMultiple,
@@ -56,6 +63,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed NULL handling in CharacterString sprintf which caused an endless
+  loop. (#1189)
 * Fixed a regression in the rpm_ack_object_property_process() function
   that prevented proper parsing of multi-object ReadPropertyMultiple ACK
   responses. The bug was introduced in PR [#765] and caused the function
