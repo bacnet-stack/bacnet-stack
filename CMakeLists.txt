@@ -837,6 +837,7 @@ elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
+  add_compile_definitions(USE_MACH_TIME)
   include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
@@ -1089,6 +1090,7 @@ if(BACNET_STACK_BUILD_APPS)
     if(NOT LIBCONFIG_LIBRARIES)
       message(WARNING "BACNET: Will not build apps/router as libconfig not found")
     else()
+      message(STATUS "BACNET: Will build apps/router with libconfig")
       add_executable(
         router
         ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c
