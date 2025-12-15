@@ -1748,6 +1748,7 @@ bool Load_Control_Requested_Shed_Level_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_shed_level_copy(&pObject->Requested_Shed_Level, value);
+        pObject->Load_Control_Request_Written = true;
     }
 
     return status;
