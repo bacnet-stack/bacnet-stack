@@ -31,7 +31,9 @@
 /* note: load control objects are required to support LEVEL */
 
 /* minimum interval the load control state machine should process */
+#ifndef LOAD_CONTROL_TASK_INTERVAL_MS
 #define LOAD_CONTROL_TASK_INTERVAL_MS 1000UL
+#endif
 
 struct object_data {
     /* indicates the current load shedding state of the object */
@@ -88,6 +90,7 @@ struct object_data {
         Manipulated_Object_Relinquish;
     load_control_manipulated_object_read_callback Manipulated_Object_Read;
     /* state machine task time tracking per object */
+    uint32_t Update_Interval;
     uint32_t Task_Milliseconds;
     void *Context;
     const char *Object_Name;
@@ -683,6 +686,46 @@ void Load_Control_State_Machine(
 }
 
 /**
+ * @brief This property, of type Unsigned, indicates the interval
+ *  in milliseconds at which the state machine updates the output.
+ * @param object_instance [in] BACnet object instance number
+ * @return the update-interval for a specific object instance
+ */
+uint32_t Load_Control_Update_Interval(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Update_Interval;
+    }
+
+    return value;
+}
+
+/**
+ * @brief This property, of type Unsigned, sets the interval
+ *  in milliseconds at which the state machine updates the output.
+ * @param object_instance [in] BACnet object instance number
+ * @param value [in] the update-interval for a specific object instance
+ * @return true if the update-interval for a specific object instance was set
+ */
+bool Load_Control_Update_Interval_Set(uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Update_Interval = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Load Control State Machine Handler
  * @param object_instance - object-instance number of the object
  * @param milliseconds - elapsed time in milliseconds from last call
@@ -696,7 +739,7 @@ void Load_Control_Timer(uint32_t object_instance, uint16_t milliseconds)
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
         pObject->Task_Milliseconds += milliseconds;
-        if (pObject->Task_Milliseconds >= LOAD_CONTROL_TASK_INTERVAL_MS) {
+        if (pObject->Task_Milliseconds >= pObject->Update_Interval) {
             pObject->Task_Milliseconds = 0;
             datetime_local(&bdatetime.date, &bdatetime.time, NULL, NULL);
             index = Keylist_Index(Object_List, object_instance);
@@ -1753,11 +1796,11 @@ bool Load_Control_Expected_Shed_Level_Set(
 }
 
 /**
- * @brief For a given object instance-number, gets the expected shed level
+ * @brief For a given object instance-number, gets the actual shed level
  *  property
  * @param object_instance - object-instance number of the object
  * @param value - holds the value to be retrieved
- * @return the expected shed level of this object instance.
+ * @return the actual shed level of this object instance.
  */
 bool Load_Control_Actual_Shed_Level(
     uint32_t object_instance, BACNET_SHED_LEVEL *value)
@@ -1774,11 +1817,11 @@ bool Load_Control_Actual_Shed_Level(
 }
 
 /**
- * @brief For a given object instance-number, sets the expected shed level
+ * @brief For a given object instance-number, sets the actual shed level
  *  property
  * @param object_instance - object-instance number of the object
  * @param value - holds the value to be set
- * @return true if expected shed level was set
+ * @return true if actual shed level was set
  */
 bool Load_Control_Actual_Shed_Level_Set(
     uint32_t object_instance, BACNET_SHED_LEVEL *value)
@@ -2095,6 +2138,8 @@ uint32_t Load_Control_Create(uint32_t object_instance)
             pObject->Manipulated_Object_Property = PROP_PRESENT_VALUE;
             /* some state machine variables */
             pObject->Previous_Value = BACNET_SHED_INACTIVE;
+            pObject->Update_Interval = LOAD_CONTROL_TASK_INTERVAL_MS;
+            pObject->Task_Milliseconds = 0;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {

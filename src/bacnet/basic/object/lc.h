@@ -203,13 +203,18 @@ void Load_Control_Manipulated_Object_Read_Callback_Set(
     uint32_t object_instance, load_control_manipulated_object_read_callback cb);
 
 BACNET_STACK_EXPORT
-void Load_Control_Timer(uint32_t object_instance, uint16_t milliseconds);
-
-BACNET_STACK_EXPORT
 int Load_Control_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
 bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+uint32_t Load_Control_Update_Interval(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Load_Control_Update_Interval_Set(uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+void Load_Control_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 /* functions used for unit testing */
 BACNET_STACK_EXPORT
