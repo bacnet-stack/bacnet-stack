@@ -412,7 +412,7 @@ Shed_Level_Default_Set(BACNET_SHED_LEVEL *dest, BACNET_SHED_LEVEL_TYPE type)
 }
 
 /**
- * @brief Determine if the object can meet the shed request
+ * @brief Determine if the object can immediately meet the shed request
  * @param pObject - object instance to get
  * @return true if the object can meet the shed request
  */
@@ -429,19 +429,46 @@ static bool Able_To_Meet_Shed_Request(struct object_data *pObject)
             pObject->Manipulated_Object_Instance,
             pObject->Manipulated_Object_Property, &priority, &level);
         requested_level = Requested_Shed_Level_Value(pObject);
-        if (level >= requested_level) {
+        if (level < requested_level) {
             status = true;
         }
     }
-    if (status) {
-        status = false;
-        /* can we control the output? */
-        if (priority >= pObject->Priority_For_Writing) {
-            /* is the level able to be lowered? */
-            requested_level = Requested_Shed_Level_Value(pObject);
-            if (level >= requested_level) {
-                status = true;
-            }
+
+    return status;
+}
+
+/**
+ * @brief Determine if the object can now comply with the shed request
+ * @param pObject - object instance to get
+ * @return true if the object can comply with the shed request
+ */
+static bool Can_Now_Comply_With_Shed(struct object_data *pObject)
+{
+    float level = 0.0f;
+    float requested_level = 0.0f;
+    uint8_t priority = 0;
+    bool status = false;
+
+    if (pObject->Manipulated_Object_Read) {
+        pObject->Manipulated_Object_Read(
+            pObject->Manipulated_Object_Type,
+            pObject->Manipulated_Object_Instance,
+            pObject->Manipulated_Object_Property, &priority, &level);
+        requested_level = Requested_Shed_Level_Value(pObject);
+        if (level <= requested_level) {
+            status = true;
+        }
+    }
+    if (!status) {
+        /* the object attempts to meet the shed request
+           until the shed is achieved. */
+        if (pObject->Manipulated_Object_Write) {
+            pObject->Manipulated_Object_Write(
+                pObject->Manipulated_Object_Type,
+                pObject->Manipulated_Object_Instance,
+                pObject->Manipulated_Object_Property,
+                pObject->Priority_For_Writing,
+                Requested_Shed_Level_Value(pObject));
         }
     }
 
@@ -547,24 +574,26 @@ void Load_Control_State_Machine(
                     " is after Start Time\n",
                     object_index);
                 /* AbleToMeetShed */
+                /* If the current time is after Start_Time and the object
+                   is able to achieve the shed request immediately,
+                   it shall shed its loads, calculate Expected_Shed_Level
+                   and Actual_Shed_Level, and enter the SHED_COMPLIANT state. */
                 if (Able_To_Meet_Shed_Request(pObject)) {
                     Shed_Level_Copy(
                         &pObject->Expected_Shed_Level,
                         &pObject->Requested_Shed_Level);
-                    if (pObject->Manipulated_Object_Write) {
-                        pObject->Manipulated_Object_Write(
-                            pObject->Manipulated_Object_Type,
-                            pObject->Manipulated_Object_Instance,
-                            pObject->Manipulated_Object_Property,
-                            pObject->Priority_For_Writing,
-                            Requested_Shed_Level_Value(pObject));
-                    }
                     Shed_Level_Copy(
                         &pObject->Actual_Shed_Level,
                         &pObject->Requested_Shed_Level);
                     pObject->Present_Value = BACNET_SHED_COMPLIANT;
                 } else {
                     /* CannotMeetShed */
+                    /* If the current time is after Start_Time,
+                       and the object is unable to meet the shed
+                       request immediately, it shall begin shedding
+                       its loads, calculate Expected_Shed_Level and
+                       Actual_Shed_Level, and enter the SHED_NON_COMPLIANT
+                       state. */
                     Shed_Level_Default_Set(
                         &pObject->Expected_Shed_Level,
                         pObject->Requested_Shed_Level.type);
@@ -576,6 +605,10 @@ void Load_Control_State_Machine(
             }
             break;
         case BACNET_SHED_NON_COMPLIANT:
+            /* In the SHED_NON_COMPLIANT state, the object attempts
+               to meet the shed request until the shed is achieved,
+               the object is reconfigured, or the request has completed
+               unsuccessfully. */
             datetime_copy(&pObject->End_Time, &pObject->Start_Time);
             datetime_add_minutes(&pObject->End_Time, pObject->Shed_Duration);
             diff = datetime_compare(&pObject->End_Time, bdatetime);
@@ -598,7 +631,7 @@ void Load_Control_State_Machine(
                 pObject->Present_Value = BACNET_SHED_REQUEST_PENDING;
                 break;
             }
-            if (Able_To_Meet_Shed_Request(pObject)) {
+            if (Can_Now_Comply_With_Shed(pObject)) {
                 /* CanNowComplyWithShed */
                 debug_printf(
                     "Load Control[%d]:Able to meet Shed Request\n",
@@ -606,14 +639,6 @@ void Load_Control_State_Machine(
                 Shed_Level_Copy(
                     &pObject->Expected_Shed_Level,
                     &pObject->Requested_Shed_Level);
-                if (pObject->Manipulated_Object_Write) {
-                    pObject->Manipulated_Object_Write(
-                        pObject->Manipulated_Object_Type,
-                        pObject->Manipulated_Object_Instance,
-                        pObject->Manipulated_Object_Property,
-                        pObject->Priority_For_Writing,
-                        Requested_Shed_Level_Value(pObject));
-                }
                 Shed_Level_Copy(
                     &pObject->Actual_Shed_Level,
                     &pObject->Requested_Shed_Level);
