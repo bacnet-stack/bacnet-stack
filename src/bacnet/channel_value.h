@@ -165,6 +165,12 @@ int bacnet_channel_value_coerce_data_encode(
     size_t apdu_size,
     const BACNET_CHANNEL_VALUE *value,
     BACNET_APPLICATION_TAG tag);
+BACNET_STACK_EXPORT
+int bacnet_channel_value_data_type_encode(
+    uint8_t *apdu, const BACNET_CHANNEL_VALUE *value);
+BACNET_STACK_EXPORT
+int bacnet_channel_value_data_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value);
 
 #ifdef __cplusplus
 }

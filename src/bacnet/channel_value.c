@@ -263,6 +263,71 @@ int bacnet_channel_value_encode(
 }
 
 /**
+ * @brief Encode a given BACnetChanneValue to use for internal writes
+ *  This function encodes the complex data types without context tags
+ *  normally used for BACnetChannelValue.
+ * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
+ * @param  value - BACNET_CHANNEL_VALUE value
+ * @return  number of bytes in the APDU, or zero if unable to encode
+ */
+int bacnet_channel_value_data_type_encode(
+    uint8_t *apdu, const BACNET_CHANNEL_VALUE *value)
+{
+    int apdu_len = 0;
+
+    if (!value) {
+        return 0;
+    }
+    switch (value->tag) {
+#if defined(CHANNEL_LIGHTING_COMMAND)
+        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+            apdu_len =
+                lighting_command_encode(apdu, &value->type.Lighting_Command);
+            break;
+#endif
+#if defined(CHANNEL_COLOR_COMMAND)
+        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+            apdu_len = color_command_encode(apdu, &value->type.Color_Command);
+            break;
+#endif
+#if defined(CHANNEL_XY_COLOR)
+        case BACNET_APPLICATION_TAG_XY_COLOR:
+            apdu_len = xy_color_encode(apdu, &value->type.XY_Color);
+            break;
+#endif
+        default:
+            apdu_len = bacnet_channel_value_type_encode(apdu, value);
+            break;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a given BACnetChanneValue to use for internal writes
+ *  This function encodes the complex data types without context tags
+ *  normally used for BACnetChannelValue.
+ * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
+ * @param apdu_size - size of the APDU buffer
+ * @param  value - BACNET_CHANNEL_VALUE value
+ * @return  number of bytes in the APDU, or zero if unable to encode
+ */
+int bacnet_channel_value_data_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = bacnet_channel_value_data_type_encode(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = bacnet_channel_value_data_type_encode(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode a given channel value
  * @param  apdu - APDU buffer for decoding
  * @param  apdu_size - Count of valid bytes in the buffer
