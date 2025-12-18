@@ -402,7 +402,7 @@ static void test_BACnetChannelValue(void)
     bacnet_channel_value_link_array(case_value, ARRAY_SIZE(case_value));
     value = &case_value[0];
     while (value) {
-        /* no coercion path */
+        /* write-group encode/decode path */
         null_len = bacnet_channel_value_encode(NULL, sizeof(apdu), value);
         if (value->tag != BACNET_APPLICATION_TAG_NULL) {
             zassert_not_equal(null_len, 0, NULL);
@@ -464,6 +464,31 @@ static void test_BACnetChannelValue(void)
         zassert_true(
             status, "decode: different: %s",
             bactext_application_tag_name(value->tag));
+        /* no-coercion path */
+        null_len = bacnet_channel_value_data_encode(NULL, sizeof(apdu), value);
+        if (value->tag != BACNET_APPLICATION_TAG_NULL) {
+            zassert_not_equal(null_len, 0, NULL);
+        }
+        apdu_len = bacnet_channel_value_data_encode(apdu, sizeof(apdu), value);
+        zassert_equal(
+            apdu_len, null_len, "value->tag: %s len=%d null_len=%d",
+            bactext_application_tag_name(value->tag), apdu_len, null_len);
+        test_len = bacnet_channel_value_data_decode(
+            apdu, apdu_len, test_value.tag, NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+        test_len = bacnet_channel_value_data_decode(
+            NULL, apdu_len, test_value.tag, &test_value);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+        test_len = bacnet_channel_value_data_decode(
+            apdu, apdu_len, test_value.tag, &test_value);
+        zassert_not_equal(
+            test_len, BACNET_STATUS_ERROR, "value->tag: %s test_len=%d",
+            bactext_application_tag_name(value->tag), test_len);
+        if (value->tag != BACNET_APPLICATION_TAG_NULL) {
+            zassert_equal(
+                test_len, apdu_len, "value->tag: %s test_len=%d",
+                bactext_application_tag_name(value->tag), test_len);
+        }
         /* next test case */
         value = value->next;
     }

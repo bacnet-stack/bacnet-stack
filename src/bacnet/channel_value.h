@@ -171,6 +171,12 @@ int bacnet_channel_value_data_type_encode(
 BACNET_STACK_EXPORT
 int bacnet_channel_value_data_encode(
     uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value);
+BACNET_STACK_EXPORT
+int bacnet_channel_value_data_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    uint8_t tag,
+    BACNET_CHANNEL_VALUE *value);
 
 #ifdef __cplusplus
 }
