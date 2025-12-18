@@ -180,6 +180,8 @@ static void testLightingOutput(void)
     /* WARN - start with lights on  */
     real_value = -1.0;
     priority = 8;
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
     status = Lighting_Output_Present_Value_Set(instance, 100.0f, priority);
     zassert_true(status, NULL);
     Lighting_Output_Timer(instance, 10);
@@ -201,6 +203,8 @@ static void testLightingOutput(void)
     /* WARN RELINQUISH */
     real_value = -2.0;
     priority = 8;
+    status = Lighting_Output_Blink_Warn_Enable(instance);
+    zassert_true(status, NULL);
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
     Lighting_Output_Timer(instance, 10);
     in_progress = Lighting_Output_In_Progress(instance);
@@ -210,6 +214,8 @@ static void testLightingOutput(void)
     /* WARN_OFF */
     real_value = -3.0;
     priority = 8;
+    status = Lighting_Output_Blink_Warn_Enable(instance);
+    zassert_true(status, NULL);
     Lighting_Output_Present_Value_Set(instance, real_value, priority);
     Lighting_Output_Timer(instance, 10);
     in_progress = Lighting_Output_In_Progress(instance);
