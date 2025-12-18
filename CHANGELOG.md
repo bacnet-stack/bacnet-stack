@@ -63,6 +63,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed channel-value encoding in the channel object when no-coercian
+  is required for lighting-command, color-command, and xy-color. (#1190)
 * Fixed NULL handling in CharacterString sprintf which caused an endless
   loop. (#1189)
 * Fixed a regression in the rpm_ack_object_property_process() function
