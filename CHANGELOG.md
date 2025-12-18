@@ -52,6 +52,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the load control object AbleToMeetShed to only check for immediate
+  shed ability and added CanNowComplyWithShed function to attempt to meet the
+  shed request while in the non-compliant state. (#1191)
 * Changed the size of MAX_HEADER in BACDL_MULTIPLE because 8 is not
   big enough for some datalinks (e.g. mstp). (#1170)
 * Changed printf() in many apps to use debug_printf() and friends. (#1168)
@@ -63,6 +66,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed channel-value encoding in the channel object when no-coercian
+  is required for lighting-command, color-command, and xy-color. (#1190)
 * Fixed NULL handling in CharacterString sprintf which caused an endless
   loop. (#1189)
 * Fixed a regression in the rpm_ack_object_property_process() function
