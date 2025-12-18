@@ -52,6 +52,10 @@ int bacapp_snprintf_shed_level(
 BACNET_STACK_EXPORT
 bool bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv);
 
+BACNET_STACK_EXPORT
+bool bacnet_shed_level_init(
+    BACNET_SHED_LEVEL *value, BACNET_SHED_LEVEL_TYPE type, float level);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
