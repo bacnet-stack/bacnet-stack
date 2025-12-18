@@ -166,13 +166,13 @@ int bacnet_channel_value_coerce_data_encode(
     const BACNET_CHANNEL_VALUE *value,
     BACNET_APPLICATION_TAG tag);
 BACNET_STACK_EXPORT
-int bacnet_channel_value_data_type_encode(
+int bacnet_channel_value_no_coerce_type_encode(
     uint8_t *apdu, const BACNET_CHANNEL_VALUE *value);
 BACNET_STACK_EXPORT
-int bacnet_channel_value_data_encode(
+int bacnet_channel_value_no_coerce_encode(
     uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value);
 BACNET_STACK_EXPORT
-int bacnet_channel_value_data_decode(
+int bacnet_channel_value_no_coerce_decode(
     const uint8_t *apdu,
     size_t apdu_size,
     uint8_t tag,

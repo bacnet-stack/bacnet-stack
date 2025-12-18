@@ -1173,7 +1173,7 @@ int bacnet_channel_value_coerce_data_encode(
  * @param  value - BACNET_CHANNEL_VALUE value
  * @return  number of bytes in the APDU, or zero if unable to encode
  */
-int bacnet_channel_value_data_type_encode(
+int bacnet_channel_value_no_coerce_type_encode(
     uint8_t *apdu, const BACNET_CHANNEL_VALUE *value)
 {
     int apdu_len = 0;
@@ -1215,16 +1215,16 @@ int bacnet_channel_value_data_type_encode(
  * @param  value - BACNET_CHANNEL_VALUE value
  * @return  number of bytes in the APDU, or zero if unable to encode
  */
-int bacnet_channel_value_data_encode(
+int bacnet_channel_value_no_coerce_encode(
     uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
-    apdu_len = bacnet_channel_value_data_type_encode(NULL, value);
+    apdu_len = bacnet_channel_value_no_coerce_type_encode(NULL, value);
     if (apdu_len > apdu_size) {
         apdu_len = 0;
     } else {
-        apdu_len = bacnet_channel_value_data_type_encode(apdu, value);
+        apdu_len = bacnet_channel_value_no_coerce_type_encode(apdu, value);
     }
 
     return apdu_len;
@@ -1240,7 +1240,7 @@ int bacnet_channel_value_data_encode(
  * @param  value - BACNET_CHANNEL_VALUE value to store the decoded data
  * @return  number of bytes decoded or BACNET_STATUS_ERROR on error
  */
-int bacnet_channel_value_data_decode(
+int bacnet_channel_value_no_coerce_decode(
     const uint8_t *apdu,
     size_t apdu_size,
     uint8_t tag,
