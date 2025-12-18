@@ -66,6 +66,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting-output object blink warn to honor blink-warn-enable.
+  Fixed the blink warn logic for a non-zero percent value blink inhibit.
+  Fixed the warn relinquish to actually relinquish. (#1192)
 * Fixed channel-value encoding in the channel object when no-coercian
   is required for lighting-command, color-command, and xy-color. (#1190)
 * Fixed NULL handling in CharacterString sprintf which caused an endless
