@@ -657,7 +657,7 @@ bool Channel_Write_Member_Value(
             }
         } else {
             /* no coercion */
-            apdu_len = bacnet_channel_value_encode(
+            apdu_len = bacnet_channel_value_no_coerce_encode(
                 wp_data->application_data, wp_data->application_data_len,
                 value);
             if (apdu_len > 0) {
