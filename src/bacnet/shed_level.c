@@ -257,3 +257,42 @@ bool bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
 
     return status;
 }
+
+/**
+ * @brief Initialize a BACnetShedLevel structure
+ * @param value - pointer to the BACNET_SHED_LEVEL structure
+ * @param type - type of shed level
+ * @param level - level value as float
+ * @return true on success, else false
+ */
+bool bacnet_shed_level_init(
+    BACNET_SHED_LEVEL *value, BACNET_SHED_LEVEL_TYPE type, float level)
+{
+    if (!value) {
+        return false;
+    }
+    value->type = type;
+    switch (type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            if (level < 0.0f || level > 100.0f) {
+                return false;
+            }
+            value->value.percent = (BACNET_UNSIGNED_INTEGER)level;
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+            if (level < 0.0f) {
+                return false;
+            }
+            value->value.level = (BACNET_UNSIGNED_INTEGER)level;
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            if (level < 0.0f) {
+                return false;
+            }
+            value->value.amount = level;
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
