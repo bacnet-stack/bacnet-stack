@@ -222,7 +222,7 @@ static void timespec_add_ns(struct timespec *ts, long ns)
     const long NS_PER_S = 1000000000L;
 
     ts->tv_nsec += ns;
-    if (ts->tv_nsec > NS_PER_S) {
+    if (ts->tv_nsec >= NS_PER_S) {
         ts->tv_nsec -= NS_PER_S;
         ts->tv_sec += 1;
     } else if (ts->tv_nsec < 0) {
