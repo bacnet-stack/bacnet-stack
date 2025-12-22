@@ -885,6 +885,11 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   include_directories(ports/posix)
+  include_directories(/usr/local/include)
+  link_directories(/usr/local/lib)
+  link_libraries(dispatch)
+  link_libraries(c)
+  link_libraries(m)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
