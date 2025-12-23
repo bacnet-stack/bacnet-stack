@@ -176,8 +176,9 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 #define TIMING_GIGA (1000000000)
 
 /* timespec difference (monotonic) right - left */
-void timespec_monodiff_rml(struct timespec *ts_out,
-                                    const struct timespec *ts_in) {
+void timespec_monodiff_rml(
+    struct timespec *ts_out, const struct timespec *ts_in)
+{
     /* out = in - out,
        where in > out
      */
@@ -194,17 +195,17 @@ void timespec_monodiff_rml(struct timespec *ts_out,
             ts_out->tv_sec = ts_out->tv_sec - 1;
             ts_out->tv_nsec = ts_out->tv_nsec + TIMING_GIGA;
         }
-    } else {}
+    }
 }
 
 /* emulate clock_nanosleep for CLOCK_MONOTONIC and TIMER_ABSTIME */
-int clock_nanosleep_abstime ( const struct timespec *req )
+int clock_nanosleep_abstime(const struct timespec *req)
 {
     struct timespec ts_delta;
-    int retval = clock_gettime ( CLOCK_MONOTONIC, &ts_delta );
+    int retval = clock_gettime(CLOCK_MONOTONIC, &ts_delta);
     if (retval == 0) {
-        timespec_monodiff_rml ( &ts_delta, req );
-        retval = nanosleep ( &ts_delta, NULL );
+        timespec_monodiff_rml(&ts_delta, req);
+        retval = nanosleep(&ts_delta, NULL);
     }
     return retval;
 }
@@ -252,8 +253,7 @@ static void millisleep(const unsigned long milliseconds)
 {
     struct timespec abstime;
     get_abstime(&abstime, milliseconds);
-    while (EINTR ==
-           clock_nanosleep_abstime(&abstime)) { }
+    while (EINTR == clock_nanosleep_abstime(&abstime)) { }
 }
 
 /**
