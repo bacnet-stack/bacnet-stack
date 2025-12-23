@@ -159,6 +159,17 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
     add_compile_options(-Wno-long-long)
   endif()
 
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    # These warnings orginate from libdispatch
+    # ISO C restricts enumerator values to range of 'int'
+    # DISPATCH_ENUM_API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0))    = ~1ull
+    add_compile_options(-Wno-pedantic)
+    # These warnings originate from libdispatch headers,
+    # which rely on Clang extensions that Apple Clang supports,
+    # but FreeBSD LLVM Clang does not.
+    add_compile_options(-Wno-nullability-extension)
+  endif()
+
   # Should be fixed in a future.
   add_compile_options(-Wno-cast-qual)
   add_compile_options(-Wno-double-promotion)
@@ -885,11 +896,18 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   include_directories(ports/posix)
-  include_directories(/usr/local/include)
-  link_directories(/usr/local/lib)
-  link_libraries(dispatch)
+  link_directories(/usr/lib)
   link_libraries(c)
   link_libraries(m)
+  FIND_PATH(DISPATCH_INCLUDE dispatch/dispatch.h)
+  FIND_LIBRARY(DISPATCH_LIBRARIES NAMES dispatch)
+  if(NOT DISPATCH_INCLUDE OR NOT DISPATCH_LIBRARIES)
+      message(FATAL_ERROR "BACNET: dispatch.h header file not found
+      install libdispatch with 'pkg install libdispatch'")
+  else()
+      include_directories(${DISPATCH_INCLUDE})
+      link_libraries(${DISPATCH_LIBRARIES})
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
