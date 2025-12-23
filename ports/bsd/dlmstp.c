@@ -1069,6 +1069,17 @@ bool dlmstp_init(char *ifname)
         exit(1);
     }
     sch_param.sched_priority = 99;
+    if (sched_get_priority_max(SCHED_FIFO) < sch_param.sched_priority) {
+        sch_param.sched_priority = sched_get_priority_max(SCHED_FIFO);
+        fprintf(
+            stderr, "MS/TP Interface: setup thread max priority %i\n",
+            sch_param.sched_priority);
+    } else if (sched_get_priority_min(SCHED_FIFO) > sch_param.sched_priority) {
+        sch_param.sched_priority = sched_get_priority_min(SCHED_FIFO);
+        fprintf(
+            stderr, "MS/TP Interface: setup thread min priority %i\n",
+            sch_param.sched_priority);
+    }
     rv = pthread_attr_setschedparam(&thread_attr, &sch_param);
     if (rv != 0) {
         fprintf(
