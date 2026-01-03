@@ -387,6 +387,58 @@ static void test_ubasic_math(void)
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ubasic_tests, test_ubasic_strings)
+#else
+static void test_ubasic_strings(void)
+#endif
+{
+    struct ubasic_data data = { 0 };
+    const char *program1 =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+        "println 'Demo - Strings'\n"
+        "let a$ = \"1234567890123456789012345678901234567890X\"\n"
+        "print a$\n";
+    const char *program2 =
+        /* program listing with either \0, \n, or ';' at the end of each line.
+           note: indentation is not required */
+        "println 'Demo - Strings'\n"
+        "let z$ = \"1\"\n"
+        "print z$\n";
+    const char *tmpstring;
+
+    ubasic_load_program(&data, program1);
+    zassert_equal(data.status.bit.isRunning, 1, NULL);
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    while (!ubasic_finished(&data)) {
+        ubasic_run_program(&data);
+    }
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    tmpstring = ubasic_ptr_stringvariable(&data, 'a');
+    zassert_equal(
+        strlen(tmpstring), UBASIC_STRINGLEN_MAX - 1, "string length=%d",
+        (int)strlen(tmpstring));
+    zassert_equal(
+        strcmp(tmpstring, "123456789012345678901234567890123456789"), 0,
+        "string value=%s", tmpstring);
+
+    ubasic_load_program(&data, program2);
+    zassert_equal(data.status.bit.isRunning, 1, NULL);
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    while (!ubasic_finished(&data)) {
+        ubasic_run_program(&data);
+    }
+    zassert_equal(data.status.bit.Error, 0, NULL);
+    tmpstring = ubasic_ptr_stringvariable(&data, 'z');
+    zassert_equal(
+        strlen(tmpstring), 1, "string length=%d", (int)strlen(tmpstring));
+    zassert_equal(strcmp(tmpstring, "1"), 0, "string value=%s", tmpstring);
+}
+
+/**
+ * @brief Test
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(ubasic_tests, test_ubasic)
 #else
 static void test_ubasic(void)
@@ -439,8 +491,8 @@ void test_main(void)
 {
     ztest_test_suite(
         ubasic_tests, ztest_unit_test(test_ubasic),
-        ztest_unit_test(test_ubasic_math), ztest_unit_test(test_ubasic_bacnet),
-        ztest_unit_test(test_ubasic_gpio));
+        ztest_unit_test(test_ubasic_strings), ztest_unit_test(test_ubasic_math),
+        ztest_unit_test(test_ubasic_bacnet), ztest_unit_test(test_ubasic_gpio));
 
     ztest_run_test_suite(ubasic_tests);
 }
