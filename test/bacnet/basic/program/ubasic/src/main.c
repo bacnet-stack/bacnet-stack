@@ -384,7 +384,9 @@ static void test_ubasic_math(void)
 }
 
 /**
- * @brief Test
+ * @brief Verify uBASIC string variable handling.
+ * @details Ensures that string variables are truncated at UBASIC_STRINGLEN_MAX
+ * and remain correctly null-terminated when assigned and read back.
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(ubasic_tests, test_ubasic_strings)
@@ -415,6 +417,7 @@ static void test_ubasic_strings(void)
     }
     zassert_equal(data.status.bit.Error, 0, NULL);
     tmpstring = ubasic_ptr_stringvariable(&data, 'a');
+    zassert_not_null(tmpstring, "string variable not found");
     zassert_equal(
         strlen(tmpstring), UBASIC_STRINGLEN_MAX - 1, "string length=%d",
         (int)strlen(tmpstring));
@@ -430,6 +433,7 @@ static void test_ubasic_strings(void)
     }
     zassert_equal(data.status.bit.Error, 0, NULL);
     tmpstring = ubasic_ptr_stringvariable(&data, 'z');
+    zassert_not_null(tmpstring, "string variable not found");
     zassert_equal(
         strlen(tmpstring), 1, "string length=%d", (int)strlen(tmpstring));
     zassert_equal(strcmp(tmpstring, "1"), 0, "string value=%s", tmpstring);

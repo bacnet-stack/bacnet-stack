@@ -3128,8 +3128,12 @@ int16_t ubasic_get_stringvariable(struct ubasic_data *data, uint8_t varnum)
     return (-1);
 }
 
-/*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Get pointer to string variable value.
+ * @param data ubasic data structure.
+ * @param variable string variable 'a' through 'z' or 'A' through 'Z'.
+ * @return Pointer to the string value, or NULL if variable is invalid.
+ */
 const char *ubasic_ptr_stringvariable(struct ubasic_data *data, char variable)
 {
     uint8_t varnum;
