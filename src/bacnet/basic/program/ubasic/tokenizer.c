@@ -531,8 +531,7 @@ UBASIC_VARIABLE_TYPE tokenizer_float(struct ubasic_tokenizer *tree)
 
 #if defined(UBASIC_VARIABLE_TYPE_STRING)
 /*---------------------------------------------------------------------------*/
-void tokenizer_string(
-    struct ubasic_tokenizer *tree, char *dest, uint8_t dest_size)
+void tokenizer_string(struct ubasic_tokenizer *tree, char *dest, uint8_t len)
 {
     const char *string_end;
     char quote_char;
@@ -557,9 +556,9 @@ void tokenizer_string(
     } while (*(string_end - 1) == '\\');
 
     string_len = string_end - tree->ptr - 1;
-    if (string_len > dest_size - 1) {
+    if (string_len > len - 1) {
         /* space for null terminator */
-        string_len = dest_size - 1;
+        string_len = len - 1;
     }
     memcpy(dest, tree->ptr + 1, string_len);
     dest[string_len] = 0;
@@ -588,8 +587,9 @@ void tokenizer_label(struct ubasic_tokenizer *tree, char *dest, uint8_t len)
         }
         break;
     }
-    if (string_len > len) {
-        string_len = len;
+    if (string_len > len - 1) {
+        /* space for null terminator */
+        string_len = len - 1;
     }
     memcpy(dest, tree->ptr, string_len);
     dest[string_len] = 0;
