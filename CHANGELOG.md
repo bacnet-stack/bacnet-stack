@@ -12,9 +12,19 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2025-11-25
+## [Unreleased] - 2026-01-03
 
 ### Security
+
+* Secured ubasic interpreter tokenizer_string() and tokenizer_label()
+  off-by-one buffer overflow when processing string literals longer
+  than the buffer limit.
+  Fixed ubasic potential string buffer overflows by using snprintf.
+  Fixed ubasic label strings to use UBASIC_LABEL_LEN_MAX as buffer limit.
+  Fixed ubasic string variables to initialize with zeros.
+  Fixed compile errors when UBASIC_DEBUG_STRINGVARIABLES is defined.
+  Added ubasic string variables user accessor API and unit testing. (#1196)
+
 ### Fixed
 
 * Fixed NULL handling in CharacterString sprintf which caused an endless

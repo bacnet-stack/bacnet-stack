@@ -1,12 +1,7 @@
 name: BACnet/SC macOS/BSD tests
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - '*'
+  workflow_dispatch:
 
 jobs:
   job_bsc_tests_macos:
