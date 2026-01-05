@@ -13,72 +13,15 @@
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/bacfile.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/filename.h"
 /* me! */
 #include "bacfile-posix.h"
 
 #ifndef BACNET_FILE_POSIX_RECORD_SIZE
 #define BACNET_FILE_POSIX_RECORD_SIZE MAX_OCTET_STRING_BYTES
 #endif
-/* restrict file paths */
-#ifndef BACNET_FILE_POSIX_PATH_RESTRICTED
-#define BACNET_FILE_POSIX_PATH_RESTRICTED 1
-#endif
-
-/**
- * @brief Validate if pathname is valid by checking for patterns
- *  such as relative paths and absolute paths which are prohibited.
- * @param pathname Path to validate
- * @return true if valid, false if not
- */
-bool bacfile_posix_file_path_valid(const char *pathname)
-{
-    int path_len;
-
-    if (!pathname) {
-        return false;
-    }
-    if (pathname[0] == 0) {
-        return false;
-    }
-#if BACNET_FILE_POSIX_PATH_RESTRICTED
-    /* check for relative directory patterns */
-    if (strstr(pathname, "..") != NULL) {
-        debug_printf_stderr("Relative paths are prohibited: %s\n", pathname);
-        return false;
-    }
-    /* check for absolute paths */
-    if (pathname[0] == '/') {
-        debug_printf_stderr("Absolute paths are prohibited: %s\n", pathname);
-        return false;
-    }
-    /* check for Windows drive letters (should be relative paths only) */
-    path_len = strlen(pathname);
-    if (path_len >= 2 && pathname[1] == ':') {
-        debug_printf_stderr(
-            "Windows drive letters are prohibited: %s\n", pathname);
-        return false;
-    }
-
-    /* check for consecutive path separators */
-    if (strstr(pathname, "//") != NULL || strstr(pathname, "\\\\") != NULL) {
-        debug_printf_stderr(
-            "Consecutive path separators are prohibited: %s\n", pathname);
-        return false;
-    }
-
-    /* check for path components that are just dots */
-    if (strstr(pathname, "/./") != NULL || strstr(pathname, "\\./") != NULL ||
-        strstr(pathname, "/.\\") != NULL || strstr(pathname, "\\.\\") != NULL) {
-        debug_printf_stderr(
-            "Current directory references are prohibited: %s\n", pathname);
-        return false;
-    }
-#endif
-
-    return true;
-}
 
 /**
  * @brief Determines the file size for a given file
@@ -110,7 +53,7 @@ size_t bacfile_posix_file_size(const char *pathname)
     long file_position = 0;
     size_t file_size = 0;
 
-    if (bacfile_posix_file_path_valid(pathname)) {
+    if (filename_path_valid(pathname)) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
             file_position = fsize(pFile);
@@ -160,7 +103,7 @@ size_t bacfile_posix_read_stream_data(
     FILE *pFile = NULL;
     size_t len = 0;
 
-    if (bacfile_posix_file_path_valid(pathname)) {
+    if (filename_path_valid(pathname)) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
             (void)fseek(pFile, fileStartPosition, SEEK_SET);
@@ -191,7 +134,7 @@ size_t bacfile_posix_write_stream_data(
     size_t bytes_written = 0;
     FILE *pFile = NULL;
 
-    if (bacfile_posix_file_path_valid(pathname)) {
+    if (filename_path_valid(pathname)) {
         if (fileStartPosition == 0) {
             /* open the file as a clean slate when starting at 0 */
             pFile = fopen(pathname, "wb");
@@ -241,7 +184,7 @@ bool bacfile_posix_write_record_data(
     const char *pData = NULL;
     size_t fileSeekRecord = 0;
 
-    if (bacfile_posix_file_path_valid(pathname)) {
+    if (filename_path_valid(pathname)) {
         if (fileStartRecord == 0) {
             /* open the file as a clean slate when starting at 0 */
             pFile = fopen(pathname, "wb");
@@ -302,7 +245,7 @@ bool bacfile_posix_read_record_data(
     const char *pData = NULL;
     size_t fileSeekRecord = 0;
 
-    if (bacfile_posix_file_path_valid(pathname)) {
+    if (filename_path_valid(pathname)) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
             fileSeekRecord = fileStartRecord + fileIndexRecord;

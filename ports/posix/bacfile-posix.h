@@ -9,17 +9,11 @@
 #define BACNET_FILE_POSIX_H
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-/* standard includes */
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-BACNET_STACK_EXPORT
-bool bacfile_posix_file_path_valid(const char *pathname);
 BACNET_STACK_EXPORT
 size_t bacfile_posix_file_size(const char *pathname);
 BACNET_STACK_EXPORT

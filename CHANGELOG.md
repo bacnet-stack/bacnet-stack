@@ -28,13 +28,13 @@ The git repositories are hosted at the following sites:
   Added ubasic string variables user accessor API and unit testing. (#1196)
 * Secured BACnet file object pathname received from BACnet AtomicWriteFile
   or ReadFile service used without validation which was vulnerable to
-  directory traversal attacks.
+  directory traversal attacks. (#1197)
 
 ### Added
 
-* Added POSIX file path name checking for AtomicReadFile and AtomicWriteFile
+* Added file path name checking for AtomicReadFile and AtomicWriteFile
   example applications. Prohibits use of relative and absolute file paths
-  when BACNET_FILE_POSIX_PATH_RESTRICTED is non-zero.
+  when BACNET_FILE_PATH_RESTRICTED is defined non-zero. (#1197)
 * Added API and optional properties to basic load control object example
   Refactored BACnetShedLevel encoding, decoding, and printing into separate
   file. Added BACnetShedLevel validation testing. (#1187)

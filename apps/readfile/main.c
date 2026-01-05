@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
-    if (!bacfile_posix_file_path_valid(argv[3])) {
+    if (!filename_path_valid(argv[3])) {
         fprintf(stderr, "Invalid file path: %s\n", argv[3]);
         return 1;
     }
