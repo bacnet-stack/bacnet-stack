@@ -29,9 +29,6 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/tsm/tsm.h"
 
-#ifndef FILE_RECORD_SIZE
-#define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
-#endif
 struct object_data {
     char *Object_Name;
     char *Pathname;

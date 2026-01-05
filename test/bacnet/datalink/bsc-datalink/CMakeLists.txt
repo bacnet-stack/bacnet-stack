@@ -167,6 +167,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   ${SRC_DIR}/bacnet/basic/sys/days.c
   ${SRC_DIR}/bacnet/basic/sys/debug.c
   ${SRC_DIR}/bacnet/basic/sys/fifo.c
+  ${SRC_DIR}/bacnet/basic/sys/filename.c
   ${SRC_DIR}/bacnet/basic/sys/keylist.c
   ${SRC_DIR}/bacnet/basic/sys/mstimer.c
   ${SRC_DIR}/bacnet/access_rule.c
