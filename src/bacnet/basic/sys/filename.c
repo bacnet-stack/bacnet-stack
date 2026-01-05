@@ -95,4 +95,3 @@ bool filename_path_valid(const char *pathname)
 
     return true;
 }
-
