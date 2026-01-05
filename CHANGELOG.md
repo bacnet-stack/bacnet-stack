@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-01-03
+## [Unreleased] - 2026-01-05
 
 ### Security
 
@@ -26,9 +26,15 @@ The git repositories are hosted at the following sites:
   Fixed ubasic string variables to initialize with zeros.
   Fixed compile errors when UBASIC_DEBUG_STRINGVARIABLES is defined.
   Added ubasic string variables user accessor API and unit testing. (#1196)
+* Secured BACnet file object pathname received from BACnet AtomicWriteFile
+  or ReadFile service used without validation which was vulnerable to
+  directory traversal attacks.
 
 ### Added
 
+* Added POSIX file path name checking for AtomicReadFile and AtomicWriteFile
+  example applications. Prohibits use of relative and absolute file paths
+  when BACNET_FILE_POSIX_PATH_RESTRICTED is non-zero.
 * Added API and optional properties to basic load control object example
   Refactored BACnetShedLevel encoding, decoding, and printing into separate
   file. Added BACnetShedLevel validation testing. (#1187)
