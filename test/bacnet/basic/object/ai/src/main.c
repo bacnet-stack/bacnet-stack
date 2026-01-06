@@ -5,7 +5,7 @@
  * @date April 2024
  * @section LICENSE
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/ai.h>
@@ -28,7 +28,7 @@ static void testAnalogInput(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
 
     Analog_Input_Init();
     object_instance = Analog_Input_Create(object_instance);

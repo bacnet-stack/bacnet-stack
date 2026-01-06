@@ -31,6 +31,9 @@
 #include "bacnet/basic/object/mso.h"
 #include "bacnet/basic/object/msv.h"
 #include "bacnet/basic/object/program.h"
+#if defined(BACFILE)
+#include "bacnet/basic/object/bacfile.h"
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
@@ -94,6 +97,11 @@ static struct my_object_functions {
         Program_Index_To_Instance, Program_Valid_Instance,
         Program_Object_Name, Program_Read_Property,
         Program_Write_Property, Program_Property_Lists},
+#if defined(BACFILE)
+    { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
+        bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
+        bacfile_write_property, BACfile_Property_Lists },
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
@@ -119,7 +127,7 @@ static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static uint8_t Device_UUID[16];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Device_Properties_Required[] = {
+static const int32_t Device_Properties_Required[] = {
     /* required properties for this object */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -144,7 +152,7 @@ static const int Device_Properties_Required[] = {
     -1
 };
 
-static const int Device_Properties_Optional[] = {
+static const int32_t Device_Properties_Optional[] = {
     /* optional properties for this object */
     PROP_DESCRIPTION,
     PROP_LOCATION,
@@ -158,7 +166,7 @@ static const int Device_Properties_Optional[] = {
     -1
 };
 
-static const int Device_Properties_Proprietary[] = { -1 };
+static const int32_t Device_Properties_Proprietary[] = { -1 };
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
@@ -278,7 +286,9 @@ bool Device_Objects_Property_List_Member(
  * @ingroup ObjIntf
  */
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Device_Properties_Required;

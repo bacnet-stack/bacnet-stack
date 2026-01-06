@@ -71,6 +71,12 @@ BACNET_STACK_EXPORT
 int bacnet_destination_decode(
     const uint8_t *apdu, int apdu_len, BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
+int bacnet_destination_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DESTINATION *value);
+BACNET_STACK_EXPORT
 void bacnet_destination_default_init(BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
 bool bacnet_destination_default(const BACNET_DESTINATION *destination);
@@ -82,10 +88,19 @@ void bacnet_destination_copy(
     BACNET_DESTINATION *dest, const BACNET_DESTINATION *src);
 
 BACNET_STACK_EXPORT
+void bacnet_recipient_device_set(
+    BACNET_RECIPIENT *dest, BACNET_OBJECT_TYPE object_type, uint32_t instance);
+BACNET_STACK_EXPORT
+void bacnet_recipient_address_set(
+    BACNET_RECIPIENT *dest, const BACNET_ADDRESS *address);
+BACNET_STACK_EXPORT
 void bacnet_recipient_copy(BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src);
 BACNET_STACK_EXPORT
 bool bacnet_recipient_same(
     const BACNET_RECIPIENT *r1, const BACNET_RECIPIENT *r2);
+
+BACNET_STACK_EXPORT
+void bacnet_recipient_device_wildcard_set(BACNET_RECIPIENT *recipient);
 BACNET_STACK_EXPORT
 bool bacnet_recipient_device_wildcard(const BACNET_RECIPIENT *recipient);
 BACNET_STACK_EXPORT
@@ -105,6 +120,14 @@ int bacnet_recipient_context_decode(
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_RECIPIENT *value);
+
+BACNET_STACK_EXPORT
+bool bacnet_recipient_address_from_ascii(BACNET_ADDRESS *src, const char *arg);
+BACNET_STACK_EXPORT
+bool bacnet_recipient_from_ascii(BACNET_RECIPIENT *value_out, const char *str);
+BACNET_STACK_EXPORT
+int bacnet_recipient_to_ascii(
+    const BACNET_RECIPIENT *value, char *buf, size_t buf_size);
 
 BACNET_STACK_EXPORT
 int bacnet_destination_to_ascii(

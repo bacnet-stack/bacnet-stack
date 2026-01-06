@@ -26,6 +26,7 @@
 
 /* object property values */
 struct object_data {
+    void *Context;
     const char *Object_Name;
     const char *Description;
     BACNET_RELIABILITY Reliability;
@@ -59,7 +60,7 @@ static binary_lighting_output_blink_warn_callback
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -77,12 +78,12 @@ static const int Properties_Required[] = {
 #endif
     -1
 };
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION, PROP_RELIABILITY, PROP_FEEDBACK_VALUE, -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -96,7 +97,9 @@ static const int Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Binary_Lighting_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -296,12 +299,12 @@ static int Binary_Lighting_Output_Priority_Array_Encode(
  *
  * @param  object_instance - object-instance number of the object
  *
- * @return  active priority 1..16, or 0 if no priority is active
+ * @return  active priority 1..16, or 17 if no priority is active
  */
 static unsigned Present_Value_Priority(const struct object_data *pObject)
 {
-    unsigned p = 0; /* loop counter */
-    unsigned priority = 0; /* return value */
+    unsigned p; /* loop counter */
+    unsigned priority = BACNET_MAX_PRIORITY + 1; /* return value */
 
     for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
         if (BIT_CHECK(pObject->Priority_Active_Bits, p)) {
@@ -385,6 +388,9 @@ unsigned Binary_Lighting_Output_Present_Value_Priority(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         priority = Present_Value_Priority(pObject);
+        if (priority > BACNET_MAX_PRIORITY) {
+            priority = 0;
+        }
     }
 
     return priority;
@@ -689,6 +695,53 @@ static bool Binary_Lighting_Output_Present_Value_Write(
 }
 
 /**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Binary_Lighting_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            if (!Priority_Array_Active(pObject, priority - 1)) {
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, determines the
+ *  priority-array value
+ * @param object_instance - object-instance number
+ * @param priority - priority-array index value 1..16
+ * @return priority-array value of the object
+ */
+BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority)
+{
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_STOP;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+            value = pObject->Priority_Array[priority - 1];
+        }
+    }
+
+    return value;
+}
+
+/**
  * For a given object instance-number, relinquishes the present-value
  * at a given priority 1..16.
  *
@@ -773,7 +826,7 @@ bool Binary_Lighting_Output_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[32] = "BINARY-LIGHTING-OUTPUT-4194303";
+    char name_text[48] = "BINARY-LIGHTING-OUTPUT-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -782,8 +835,8 @@ bool Binary_Lighting_Output_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "BINARY-LIGHTING-OUTPUT-%u",
-                object_instance);
+                name_text, sizeof(name_text), "BINARY-LIGHTING-OUTPUT-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -1468,6 +1521,38 @@ void Binary_Lighting_Output_Blink_Warn_Callback_Set(
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Binary_Lighting_Output_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Binary_Lighting_Output_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Color object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1478,6 +1563,9 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
     int index = 0;
     unsigned p = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

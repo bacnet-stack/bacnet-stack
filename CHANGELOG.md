@@ -1,7 +1,7 @@
 # BACnet Stack ChangeLog
 
 BACnet open source protocol stack C library for embedded systems,
-microcontrollers, Linux, MacOS, BSD, and Windows
+microcontrollers, Linux, macOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
 
@@ -12,14 +12,186 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased]
+## [Unreleased] - 2026-01-05
 
 ### Security
 
+* Secured npdu_is_expected_reply() function where the MS/TP reply matcher
+  could have an out-of-bounds read. (#1178)
+* Secured ubasic interpreter tokenizer_string() and tokenizer_label()
+  off-by-one buffer overflow when processing string literals longer
+  than the buffer limit.
+  Fixed ubasic potential string buffer overflows by using snprintf.
+  Fixed ubasic label strings to use UBASIC_LABEL_LEN_MAX as buffer limit.
+  Fixed ubasic string variables to initialize with zeros.
+  Fixed compile errors when UBASIC_DEBUG_STRINGVARIABLES is defined.
+  Added ubasic string variables user accessor API and unit testing. (#1196)
+* Secured BACnet file object pathname received from BACnet AtomicWriteFile
+  or ReadFile service used without validation which was vulnerable to
+  directory traversal attacks. (#1197)
+
+### Added
+
+* Added file path name checking for AtomicReadFile and AtomicWriteFile
+  example applications. Prohibits use of relative and absolute file paths
+  when BACNET_FILE_PATH_RESTRICTED is defined non-zero. (#1197)
+* Added API and optional properties to basic load control object example
+  Refactored BACnetShedLevel encoding, decoding, and printing into separate
+  file. Added BACnetShedLevel validation testing. (#1187)
+* Added API for Analog_Input_Notification_Class, Analog_Input_Event_Enable,
+  and Analog_Input_Notify_Type. (#1184)
+* Added API and optional properties to basic lighting output object example
+  for power and feedback value. (#1185)
+* Added properties to the Channel object write member value coercion
+  minimal properties supported. (#1176)
+* Added Send_x_Address() API to ReadPropertyMultiple, WritePropertyMultiple,
+  and SubscribeSOV services primarily for interacting with MS/TP slaves (#1174)
+* Added npdu_set_i_am_router_to_network_handler() API. Fixed sending to
+  broadcast address in npdu_send_what_is_network_number() API.  (#1169)
+* Added BACnetRecipient and BACnetAddressBinding codecs for EPICS application.
+  The implementation includes full encode/decode, ASCII conversion,
+  comparison, and copy functions for both data types, along with
+  comprehensive test coverage and supporting string utility functions.
+  Integrated the new types into the application data framework with
+  application tag assignments. (#1163)
+* Added library specific string manipulation utilities including strcmp,
+  strncmp, and snprintf with offset functions. (#1163)(#1164)
+* Added default option to bactext name functions so that NULL can be
+  returned when a name does not exist. (#1160)
+* Added library specific ltrim, rtrim, and trim string functions. (#1159)
+* Added library specific itoa, ltoa, ultoa, dtoa, utoa, and general
+  print format with ASCII return functions. (#1157)
+* Added library specific string-to functions similar to stdlib.
+  Added library specific string-to functions for BACnet primitives. (#1151)
+
+### Changed
+
+* Changed the load control object AbleToMeetShed to only check for immediate
+  shed ability and added CanNowComplyWithShed function to attempt to meet the
+  shed request while in the non-compliant state. (#1191)
+* Changed the size of MAX_HEADER in BACDL_MULTIPLE because 8 is not
+  big enough for some datalinks (e.g. mstp). (#1170)
+* Changed printf() in many apps to use debug_printf() and friends. (#1168)
+* Changed apps to use common BACnet value string parsing functions. (#1152)
+* Changed basic object API for units properties to use BACNET_ENGINEERING_UNITS
+  datatype. (#1104)
+* Changed all the property list values into int32_t to support the larger
+  BACnet property enumerations when an int is 8-bit or 16-bit in size. (#1145)
+
+### Fixed
+
+* Fixed lighting-output object blink warn to honor blink-warn-enable.
+  Fixed the blink warn logic for a non-zero percent value blink inhibit.
+  Fixed the warn relinquish to actually relinquish. (#1192)
+* Fixed channel-value encoding in the channel object when no-coercian
+  is required for lighting-command, color-command, and xy-color. (#1190)
+* Fixed NULL handling in CharacterString sprintf which caused an endless
+  loop. (#1189)
+* Fixed a regression in the rpm_ack_object_property_process() function
+  that prevented proper parsing of multi-object ReadPropertyMultiple ACK
+  responses. The bug was introduced in PR [#765] and caused the function
+  to incorrectly return ERROR_CODE_INVALID_TAG after processing the
+  first object, even when additional valid objects were present in
+  the response. Added tests that use rpm_ack_object_property_process()
+  with a multi-object RPM ACK to verify the fix and prevent regression. (#1183)
+* Fix warnings during unit testing of BACnet secure connect node. (#1182)
+* Fixed the BACnetChannelValue coercion function to include all the coercions,
+  no coercions, and invalid datatypes described in Table 12-63 of the Channel
+  object.  Expanded unit testing code coverage for BACnetChannelValue. (#1181)
+* Fixed the Channel object to handle all data types that do not need
+  coercion when written. Fixed present-value when no value is able to
+  be encoded. (#1176)
+* Fixed the Loop object read/write references and manipulated variables
+  update during timer loop by adding callbacks to device read/write property
+  in basic example device object. (#1175)
+* Fixed library specific strcmp/stricmp functions match standard strcmp. (#1173)
+* Fixed compiler macro redefined warning when optional datatypes are defined
+  globally. (#1172)
+* Fixed copy and compare API of BACnetObjectPropertyReference structure. (#1171)
+* Fixed array-bounds on BACnetObjectPropertyReference parsing. (#1167)
+* Fixed the missing BACnetObjectPropertyReference,
+  BACnetSCFailedConnectionRequest, BACnetSCHubFunctionConnection,
+  BACnetSCDirectConnection,BACnetSCHubConnection, BACnetTimerStateChangeValue,
+  and BACnetAddressBinding text used in debugging.(#1166)
+* Fixed the units to/from ASCII to function for other units properties. (#1165)
+* Fixed datetime integer overflow on 8-bit AVR compiler (#1162)
+* Fixed the ports/linux BACnet/IP cache netmask for accurate subnet
+  prefix calculation implementation which had always returned 0. (#1155)
+* Fixed the loop object empty reference property by initializing to self.
+  When configured for self, the manipulated property value will update
+  the controlled variable value for simulation.(#1158)
+* Fixed unit test stack corruption from using stack based message text
+  characterstring pointer in multiple functions and setting the value
+  in the global event and test event data structures. (#1154)
+* Fix timesync recipient encoding to check for OBJECT_DEVICE type before
+  encoding. (#1153)
+* Fixed segmented ComplexACK in MS/TP by adding postpone reply because
+  transmission of the segmented ComplexACK cannot begin until the node
+  holds the token. (#1116)
+
+### Removed
+
+## [1.4.2] - 2025-11-15
+
+### Security
+
+* Secured BACnetAuthenticationFactorFormat decoding by refactoring deprecated
+  functions and validating with unit testing. (#1127)
+* Secured UnconfirmedEventNotification-Request and
+  ConfirmedEventNotification-Request, BACnetNotificationParameters,
+  and BACnetAuthenticationFactor decoding by refactoring deprecated
+  functions and validating with unit testing. (#1126)
+* Secured I-Am request encoding and decoding, and updated the example apps
+  and handlers to use secure version of I-Am decoder. (#1080)
 * Secured GetEventInformation-Request and -ACK decoder and encoder. (#1026)
 
 ### Added
 
+* Added a basic creatable Loop object with PID control. Integrated into
+  the basic device object and server examples. (#1141)
+* Added defines for lighting output object present-value special values. (#1137)
+* Added get copy API to timer object for state-change-value (#1134)
+* Added Audit Log and Time Value objects to basic device and builds. (#1128)
+* Added ListElement service callback for storing data. (#1128)
+* Added a basic timer object type example. (#1123)
+* Added BACnetLIST utility for handling WriteProperty to a list. (#1123)
+* Added Device_Object_Functions() API to return basic object API table
+  of functions for all objects. Added Device_Object_Functions_Find() API
+  to enable override of basic object API function. (#1115)
+* Added new enumerations, text, BACnetARRAY and BACnetList from
+  protocol-revision 30 (#1114)
+* Added a context variable in basic object data structure and API
+  to get or set the context pointer. (#1111)
+* Added uBASIC+BACnet README document to describe the programming language,
+  porting, and integration. (#1108)
+* Added API to output objects for priority-array property value
+  inspection. (#1096)
+* Added lighting command refresh from tracking value API. (#1094)
+* Added MS/TP statistics counters for BadCRC and Poll-For-Master. (#1081)
+* Added Lighting Output API to implement override for HOA control.
+  Integrated lighting command overridden behavior into the lighting
+  output object and added Overridden status flags API.
+  Added Lighting Output API to implement a momentary override
+  to the output that is cleared at the next lighting command. (#1086)
+* Added Trim_Fade_Time, High_End_Trim, Low_End_Trim, Last_On_Value
+  and Default_On_Value properties to lighting output object.
+  Added TRIM_ACTIVE flag to lighting command.
+  Added Last_On_Value and Default_On_Value
+  to lighting command for restore and toggle. (#1086)
+* Added bacnet_recipient_device_set() and bacnet_recipient_address_set()
+  API. (#1083)
+* Added MS/TP datalink option to BACnet basic server example. (#1077)
+* Added fixups to Microsoft Visual Studio build: added server-mini, etc. (#1061)
+* Added WriteProperty to GTK Discover app.  For enumerated properties,
+  the property text is converted to an integer.  For commandable object
+  properties (present-value), priority is encoded after the value
+  or null using @ symbol.
+* Added dynamic and static RAM file systems to use with file objects. (#1058)
+* Added check for read-only during AtomicWriteFile service API for
+  BACnet File object. (#1058)
+* Added simple project for GTK BACnet Discovery Application. (#1064) (#1065)  (#1070)
+* Added BACnet Zigbee VMAC table and unit test. (#1054)
+* Added BACnet Zigbee Link Layer (BZLL) with stubs. (#1052)
 * Added a debug print when tsm retries. (#1040)
 * Added bvlc_delete_from_bbmd() API to unregister as a foreign device
   and become normal (not foreign). (#1041)
@@ -73,6 +245,20 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed enumerations for BACnetNetworkPortCommand where there was a conflict
+  with final assigned values in multiple addenda. (#1124)
+* Changed CharacterString_Value_Out_Of_Service_Set() function to remove
+  confusion about an assignment inside an if-statement. (#1113)
+* Changed device object unit test to use common read-write property test.
+  Extended the basic BACnet device object example API.
+  Added BACnet/IP and COV test mocks to enable device object testing
+  with less dependencies. (#1106)
+* Changed Who-Am-I and You-Are JSON handlers to eliminate dynamic
+  memory allocation for model and serial number strings,
+  improving memory management and simplifying code. (#1089)
+* Change stm32f4xx example to use static RAM file system. (#1058)
+* Changed the bacnet file object to be storage agnostic by refactoring
+  and using callbacks. (#1056)
 * Changed ReadRange by-position and by-sequence encoding by refactoring
   into a common module. (#1028)
 * Changed default MS/TP APDU to 480 to avoid extended frames by default. (#1003)
@@ -81,6 +267,81 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the apps/blinkt example project to control 8 lighting outputs.(#1143)
+* Fixed the sequence of BACnet/SC datalink initialization that was
+  broken during datalink environment changes and POSIX file refactoring.
+  Refactored the UUID and VMAC random functions into port specific
+  since stdlib rand() is not random and caused duplicate UUID and VMAC
+  preventing BACnet/SC from forming any stable connections.
+  Enabled debug in BACnet/SC datalink when BUILD=debug used.(#1142)
+* Fixed WPM workaround for BTL Specified Test 9.23.2.X5 by reverting.(#1140)
+* Fixed the API integration for the additional datatypes now supported
+  in the Channel object by adding CHANNEL_VALUE_ALL to enable and test. (#1135)
+* Fixed the error class returned for AlarmAcknowledgment (#1131)
+* Fixed object creation failure when create is called before init. (#1122)
+* Fixed octetstring_copy_value() and added unit tests. (#1121)
+* Fixed the MS/TP compare DER function which can now include the NPDU network
+  priority in the comparison. (#1119)
+* Fixed basic program object internal datatype for reason-for-fault
+  and change properties. (#1110)
+* Fixed compile errors in basic/server/device when BACAPP_TIMESTAMP
+  or Channel object are not enabled. (#1109)
+* Fixed units property declaration in basic Analog Input header file to be
+  uint16_t instead of uint8_t. Added range checking of units property
+  in example objects WriteProperty handler. (#1107)
+* Fixed Lighting Output object STOP lighting command so that it sets
+  the present-value. (#1101)
+* Fixed the lighting command RAMP TO ramp rate to always clamp within
+  0.1 and 100.0 to avoid endless rate of 0.0. (#1100)
+* Fixed Lighting Output step operations mixup. (#1099)
+* Fixed Lighting Output step operations to set the Priority_Array slot. (#1098)
+* Fixed the lighting output objects current priority comparison during
+  lighting commands by using priority 17 for relinquish default
+  instead of 0. (#1097)
+* Fixed CMake Error in libwebsocket: Compatibility with CMake < 3.5 has
+  been removed from CMake (#1095)
+* Fixed Lighting Output Relinquish values. (#1094)
+* Fixed copied code that no longer needs static function scope variables
+  for text names. (#1092)
+* Fixed compiler warning format '%u' expects argument of type 'unsigned int',
+  but argument 4 has type 'uint32_t' {aka 'long unsigned int'}
+  [-Werror=format=] by casting or increasing format specifier size
+  and casting. (#1092)
+* Fixed Lighting_Command to ignore write priority and use its own. (#1086)
+* Fixed BACnetLightingOperation reserved range. (#1086)
+* Fixed missing prototype warning in lighting.c module.
+* Fixed AddListElement and RemoveListElement which were checking
+  the wrong return value from Device object. Fixed decoding of
+  ListElement Tag 0: Object ID instance. (#1083)
+* Fixed Notification_Class_Add_List_Element() and
+  Notification_Class_Remove_List_Element() element counter index
+  and empty slot detection. (#1083)
+* Fixed win32 builds where UNICODE is defined. The code now uses CreateFileA
+  instead of CreateFile due to ANSI-C filenames. (#1076)
+* Fixed the usage of index vs instance in the basic trend log object
+  example. (#1074)
+* Fixed bacapp_encode_context_data_value() to enable all non-primative
+  value context encoding by removing the filter. (#1075)
+* Fixed point-to-point VPN tunnel sockets for BACnet/IP by using
+  IFF_POINTTOPOINT flag when getting the broadcast address. (#1066)
+* Fixed missing text sprintf for Network Port object BACnetNetworkType,
+  BACnetNetworkNumberQuality, and BACnetProtocolLevel enumerations. (#1069)
+* Fixed missing enumeration text for Program object: BACnetProgramError,
+  BACnetProgramState, and BACnetProgramRequest (#1068)
+* Fixed missing enumeration text for BACnetNodeType, BACnetSilencedState,
+  BACnetLoggingType (#1067)
+* Fixed bacfile_count() function return type (#1058)
+* Fixed the signed value for start position and start record in BACnet
+  file object abstraction. (#1057)
+* Fixed the Linux DLMSTP standalone test application Makefile. (#1055)
+* Fixed ISO C90 forbids mixed declarations and code warning.(#1053)
+* Fixed the MS/TP invalid frame counter that was incremented for valid
+  frames not for us.(#1053)
+* Fixed the ports/linux MS/TP by adding receive buffers, maximizing
+  the thread priority, locking the mutex, iterating over queued replies
+  to find a match, and sleeping before replying to enable the application
+  to provide a reply. (#1051)
+* Fixed the Microsoft Visual Studio compile environment. (#1050)
 * Fixed the use of uninitialized local variables in COV handlers. (#1049)
 * Fixed MS/TP zero-config FSM getting stuck when duplicate address is
   detected. (#1048)
@@ -115,8 +376,6 @@ The git repositories are hosted at the following sites:
   which was deemed errata by BACnet standard committee. (#980)
 * Fixed some INTRINSIC_REPORTING #ifs in AV and BV basic objects. (#977)
 * Fixed network specific original broadcast for IP in apps/router. (#976)(#989)
-
-### Removed
 
 ## [1.4.1] - 2025-04-11
 

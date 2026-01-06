@@ -533,7 +533,7 @@ typedef enum BACnetPropertyIdentifier {
     PROP_PROPRIETARY_RANGE_MIN = 512,
     PROP_PROPRIETARY_RANGE_MAX = 4194303,
     PROP_RESERVED_RANGE_MIN2 = 4194304,
-    /* enumerations 4194304-4194327 are defined in Addendum 2020cc */
+    /* enumerations 4194304-4194327 are defined in Addendum 2020cc (PR 24) */
     PROP_MAX_BVLC_LENGTH_ACCEPTED = 4194304,
     PROP_MAX_NPDU_LENGTH_ACCEPTED = 4194305,
     PROP_OPERATIONAL_CERTIFICATE_FILE = 4194306,
@@ -558,7 +558,7 @@ typedef enum BACnetPropertyIdentifier {
     PROP_SC_PRIMARY_HUB_URI = 4194325,
     PROP_SC_MAXIMUM_RECONNECT_TIME = 4194326,
     PROP_SC_MINIMUM_RECONNECT_TIME = 4194327,
-    /* enumerations 4194328-4194332 are defined in Addendum 2020ca */
+    /* enumerations 4194328-4194337 are defined in Addendum 2020ca (PR 24) */
     PROP_COLOR_OVERRIDE = 4194328,
     PROP_COLOR_REFERENCE = 4194329,
     PROP_DEFAULT_COLOR = 4194330,
@@ -568,15 +568,13 @@ typedef enum BACnetPropertyIdentifier {
     PROP_HIGH_END_TRIM = 4194335,
     PROP_LOW_END_TRIM = 4194336,
     PROP_TRIM_FADE_TIME = 4194337,
-    /*  Addendum 135-2020bx */
-    /* enumerations 4194338-4194340 are defined in Addendum 2020bx */
+    /* enumerations 4194338-4194340 are defined in Addendum 2020bx (PR 27) */
     PROP_DEVICE_ADDRESS_PROXY_ENABLE = 4194338,
     PROP_DEVICE_ADDRESS_PROXY_TABLE = 4194339,
     PROP_DEVICE_ADDRESS_PROXY_TIMEOUT = 4194340,
-    /* enumerations 4194341-4194342 are defined in Addendum 2020cj */
+    /* enumerations 4194341-4194349 are defined in Addendum 2020cp (PR 30) */
     PROP_DEFAULT_ON_VALUE = 4194341,
     PROP_LAST_ON_VALUE = 4194342,
-    /* enumerations 4194343-4194349 are defined in Addendum 2020cp */
     PROP_AUTHORIZATION_CACHE = 4194343,
     PROP_AUTHORIZATION_GROUPS = 4194344,
     PROP_AUTHORIZATION_POLICY = 4194345,
@@ -601,7 +599,8 @@ typedef enum {
 
 typedef enum BACnetAction {
     ACTION_DIRECT = 0,
-    ACTION_REVERSE = 1
+    ACTION_REVERSE = 1,
+    BACNET_ACTION_MAX = 2
 } BACNET_ACTION;
 
 typedef enum BACnetBinaryPV {
@@ -1311,12 +1310,14 @@ typedef enum BACnetEventType {
     EVENT_COMMAND_FAILURE = 3,
     EVENT_FLOATING_LIMIT = 4,
     EVENT_OUT_OF_RANGE = 5,
-    /*  complex-event-type        (6), -- see comment below */
+    EVENT_COMPLEX_EVENT_TYPE = 6, /* -- see comment below */
     /*  event-buffer-ready   (7), -- context tag 7 is deprecated */
     EVENT_CHANGE_OF_LIFE_SAFETY = 8,
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11,
+    /* -- context tag 12 is reserved for future addenda
+       since it conflicts with event-values[12] OPTIONAL */
     EVENT_ACCESS_EVENT = 13,
     EVENT_DOUBLE_OUT_OF_RANGE = 14,
     EVENT_SIGNED_OUT_OF_RANGE = 15,
@@ -1662,13 +1663,13 @@ typedef enum {
     BACNET_APPLICATION_TAG_XY_COLOR,
     /* BACnetColorCommand */
     BACNET_APPLICATION_TAG_COLOR_COMMAND,
-    /* BACNET_SC_FAILED_CONNECTION_REQUEST */
+    /* BACnetSCFailedConnectionRequest */
     BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST,
-    /* BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS */
+    /* BACnetSCHubFunctionConnection */
     BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS,
-    /* BACNET_SC_DIRECT_CONNECTION_STATUS */
+    /* BACnetSCDirectConnection */
     BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS,
-    /* BACNET_SC_HUB_CONNECTION_STATUS */
+    /* BACnetSCHubConnection */
     BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS,
     /* BACnetBDTEntry */
     BACNET_APPLICATION_TAG_BDT_ENTRY,
@@ -1685,7 +1686,17 @@ typedef enum {
     /* BACnetChannelValue */
     BACNET_APPLICATION_TAG_CHANNEL_VALUE,
     /* BACnetLogRecord */
-    BACNET_APPLICATION_TAG_LOG_RECORD
+    BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* BACnetPropertyValue */
+    BACNET_APPLICATION_TAG_PROPERTY_VALUE,
+    /* BACnetTimerStateChangeValue */
+    BACNET_APPLICATION_TAG_TIMER_VALUE,
+    /* BACnetAddressBinding */
+    BACNET_APPLICATION_TAG_ADDRESS_BINDING,
+    /* no-value - context tagged null */
+    BACNET_APPLICATION_TAG_NO_VALUE,
+    /* ABSTRACT-SYNTAX - constructed value */
+    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -1743,6 +1754,7 @@ typedef enum BACnet_Confirmed_Service_Choice {
     /* Security Services */
     SERVICE_CONFIRMED_AUTHENTICATE = 24,
     SERVICE_CONFIRMED_REQUEST_KEY = 25,
+    SERVICE_CONFIRMED_AUTH_REQUEST = 34,
     /* Services added after 1995 */
     /* readRange [26] see Object Access Services */
     /* lifeSafetyOperation [27] see Alarm and Event Services */
@@ -2400,17 +2412,13 @@ typedef enum BACnetLightingOperation {
     BACNET_LIGHTS_WARN_OFF = 8,
     BACNET_LIGHTS_WARN_RELINQUISH = 9,
     BACNET_LIGHTS_STOP = 10,
-#if (BACNET_PROTOCOL_REVISION >= 28)
     /* Addendum cj to ANSI/ASHRAE Standard 135-2020 */
     BACNET_LIGHTS_RESTORE_ON = 11,
     BACNET_LIGHTS_DEFAULT_ON = 12,
     BACNET_LIGHTS_TOGGLE_RESTORE = 13,
     BACNET_LIGHTS_TOGGLE_DEFAULT = 14,
     BACNET_LIGHTS_RESERVED_MIN = 15,
-#else
-    BACNET_LIGHTS_RESERVED_MIN = 11,
-#endif
-    BACNET_LIGHTS_RESERVED_MAX = 63,
+    BACNET_LIGHTS_RESERVED_MAX = 255,
     /* Enumerated values 0-255 are reserved for definition by ASHRAE.
        Enumerated values 256-65535 may be used by others subject to
        the procedures and constraints described in Clause 23 */
@@ -2624,10 +2632,13 @@ typedef enum BACnetAccessEvent {
     ACCESS_EVENT_DENIED_LOCKOUT = 161,
     ACCESS_EVENT_DENIED_VERIFICATION_FAILED = 162,
     ACCESS_EVENT_DENIED_VERIFICATION_TIMEOUT = 163,
-    ACCESS_EVENT_DENIED_OTHER = 164
+    ACCESS_EVENT_DENIED_OTHER = 164,
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    ACCESS_EVENT_PROPRIETARY_MIN = 512,
+    ACCESS_EVENT_PROPRIETARY_MAX = 65535
+
 } BACNET_ACCESS_EVENT;
 
 /* Authentication Status */
@@ -2786,9 +2797,9 @@ typedef enum BACnetNetworkPortCommand {
     PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
     PORT_COMMAND_DISCONNECT = 6,
     PORT_COMMAND_RESTART_PORT = 7,
-    PORT_COMMAND_RESTART_DISCOVERY = 8,
-    PORT_COMMAND_GENERATE_CSR_FILE = 9,
-    PORT_COMMAND_VALIDATE_CHANGES = 10,
+    PORT_COMMAND_GENERATE_CSR_FILE = 8,
+    PORT_COMMAND_VALIDATE_CHANGES = 9,
+    PORT_COMMAND_RESTART_DISCOVERY = 10,
     PORT_COMMAND_RESERVED_MIN = 11,
     PORT_COMMAND_RESERVED_MAX = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
@@ -2960,7 +2971,8 @@ typedef enum BACnetBackupState {
 typedef enum BACnetTimerState {
     TIMER_STATE_IDLE = 0,
     TIMER_STATE_RUNNING = 1,
-    TIMER_STATE_EXPIRED = 2
+    TIMER_STATE_EXPIRED = 2,
+    TIMER_STATE_MAX = 3
 } BACNET_TIMER_STATE;
 
 typedef enum BACnetTimerTransition {
@@ -2971,7 +2983,8 @@ typedef enum BACnetTimerTransition {
     TIMER_TRANSITION_RUNNING_TO_EXPIRED = 4,
     TIMER_TRANSITION_FORCED_TO_EXPIRED = 5,
     TIMER_TRANSITION_EXPIRED_TO_IDLE = 6,
-    TIMER_TRANSITION_EXPIRED_TO_RUNNING = 7
+    TIMER_TRANSITION_EXPIRED_TO_RUNNING = 7,
+    TIMER_TRANSITION_MAX = 8
 } BACNET_TIMER_TRANSITION;
 
 typedef enum BACnetEscalatorFault {

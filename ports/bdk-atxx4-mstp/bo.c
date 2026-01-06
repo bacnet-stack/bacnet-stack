@@ -38,18 +38,18 @@ static uint8_t Out_Of_Service[MAX_BINARY_OUTPUTS];
 static uint8_t Polarity[MAX_BINARY_OUTPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Output_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int32_t Binary_Output_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_POLARITY, PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT, -1 };
 
-static const int Binary_Output_Properties_Optional[] = { PROP_ACTIVE_TEXT,
+static const int32_t Binary_Output_Properties_Optional[] = { PROP_ACTIVE_TEXT,
     PROP_INACTIVE_TEXT, -1 };
 
-static const int Binary_Output_Properties_Proprietary[] = { -1 };
+static const int32_t Binary_Output_Properties_Proprietary[] = { -1 };
 
 void Binary_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired, const int32_t **pOptional, const int32_t **pProprietary)
 {
     if (pRequired)
         *pRequired = Binary_Output_Properties_Required;
@@ -192,7 +192,7 @@ bool Binary_Output_Out_Of_Service(uint32_t instance)
 bool Binary_Output_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32]; /* okay for single thread */
+    char text[32];
     bool status = false;
 
     if (object_instance < MAX_BINARY_OUTPUTS) {

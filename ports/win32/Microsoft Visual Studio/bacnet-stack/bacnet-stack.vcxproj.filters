@@ -49,6 +49,9 @@
     <Filter Include="Source Files\ports\win32">
       <UniqueIdentifier>{dafdfbc0-5a48-441c-8682-4d5423832141}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\npdu">
+      <UniqueIdentifier>{6c7abd41-d9bc-4212-b651-29a3e656b76f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\bacnet\abort.c">
@@ -196,6 +199,12 @@
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\rpm.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\shed_level.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\timer_value.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c">
@@ -355,6 +364,9 @@
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lo.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\loop.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsp.c">
@@ -624,6 +636,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\timer.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whoami.c">
       <Filter>Source Files\src\bacnet\basic\service</Filter>
     </ClCompile>
@@ -662,6 +677,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\youare.c">
       <Filter>Source Files\src\bacnet\basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\ports\posix\bacfile-posix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.c">
+      <Filter>Source Files\src\bacnet\basic\npdu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1262,6 +1283,9 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\time_value.h">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\timer.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whoami.h">
       <Filter>Source Files\src\bacnet\basic\service</Filter>
     </ClInclude>
@@ -1312,6 +1336,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\youare.h">
       <Filter>Source Files\src\bacnet\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\ports\posix\bacfile-posix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.h">
+      <Filter>Source Files\src\bacnet\basic\npdu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

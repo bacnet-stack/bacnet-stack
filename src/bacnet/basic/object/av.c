@@ -38,13 +38,13 @@ static analog_value_write_present_value_callback
 
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Analog_Value_Properties_Required[] = {
+static const int32_t Analog_Value_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE, PROP_UNITS, -1
 };
 
-static const int Analog_Value_Properties_Optional[] = {
+static const int32_t Analog_Value_Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_RELIABILITY, PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
@@ -55,7 +55,7 @@ static const int Analog_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Analog_Value_Properties_Proprietary[] = {
+static const int32_t Analog_Value_Properties_Proprietary[] = {
     -1
 };
 /* clang-format on */
@@ -69,7 +69,9 @@ static const int Analog_Value_Properties_Proprietary[] = {
  * @param pProprietary - Pointer to the pointer of properitary values.
  */
 void Analog_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Analog_Value_Properties_Required;
@@ -605,9 +607,9 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
  *
  * @return  units property value
  */
-uint16_t Analog_Value_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Analog_Value_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct analog_value_descr *pObject;
 
     pObject = Analog_Value_Object(object_instance);
@@ -626,7 +628,8 @@ uint16_t Analog_Value_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Analog_Value_Units_Set(uint32_t object_instance, uint16_t units)
+bool Analog_Value_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct analog_value_descr *pObject;
@@ -997,7 +1000,13 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                CurrentAV->Units = value.type.Enumerated;
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    CurrentAV->Units = value.type.Enumerated;
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_COV_INCREMENT:
@@ -1720,6 +1729,38 @@ int Analog_Value_Alarm_Summary(
 #endif /* defined(INTRINSIC_REPORTING) */
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Analog_Value_Context_Get(uint32_t object_instance)
+{
+    struct analog_value_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Analog_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct analog_value_descr *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Analog Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1732,6 +1773,9 @@ uint32_t Analog_Value_Create(uint32_t object_instance)
     unsigned j;
 #endif
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

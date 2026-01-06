@@ -159,9 +159,16 @@ uint16_t datetime_minutes_since_midnight(const BACNET_TIME *btime);
 BACNET_STACK_EXPORT
 int datetime_compare_date(const BACNET_DATE *date1, const BACNET_DATE *date2);
 BACNET_STACK_EXPORT
+bool datetime_date_same(const BACNET_DATE *date1, const BACNET_DATE *date2);
+BACNET_STACK_EXPORT
 int datetime_compare_time(const BACNET_TIME *time1, const BACNET_TIME *time2);
 BACNET_STACK_EXPORT
+bool datetime_time_same(const BACNET_TIME *time1, const BACNET_TIME *time2);
+BACNET_STACK_EXPORT
 int datetime_compare(
+    const BACNET_DATE_TIME *datetime1, const BACNET_DATE_TIME *datetime2);
+BACNET_STACK_EXPORT
+bool datetime_same(
     const BACNET_DATE_TIME *datetime1, const BACNET_DATE_TIME *datetime2);
 
 /* full comparison functions:
@@ -185,9 +192,14 @@ void datetime_copy_time(BACNET_TIME *dest, const BACNET_TIME *src);
 BACNET_STACK_EXPORT
 void datetime_copy(BACNET_DATE_TIME *dest, const BACNET_DATE_TIME *src);
 
-/* utility add or subtract minutes function */
+/* utility add or subtract time function */
 BACNET_STACK_EXPORT
 void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes);
+BACNET_STACK_EXPORT
+void datetime_add_seconds(BACNET_DATE_TIME *bdatetime, int32_t seconds);
+BACNET_STACK_EXPORT
+void datetime_add_milliseconds(
+    BACNET_DATE_TIME *bdatetime, int32_t milliseconds);
 
 BACNET_STACK_EXPORT
 bacnet_time_t datetime_seconds_since_epoch(const BACNET_DATE_TIME *bdatetime);

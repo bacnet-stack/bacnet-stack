@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet secure connect node switch function API.
+ * @brief BACnet secure connect node switch function API.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date October 2022
  * @copyright SPDX-License-Identifier: GPL-2\.0-or-later WITH GCC-exception-2.0
@@ -16,10 +16,8 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
-#define DEBUG_BSC_NODE_SWITCH 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_NODE_SWITCH == 1
+#if DEBUG_BSC_NODE_SWITCH
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED

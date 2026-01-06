@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet hub function API.
+ * @brief BACnet hub function API.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date July 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -14,15 +14,19 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
-
-#define DEBUG_BSC_HUB_FUNCTION 0
-
+#include "bacnet/bactext.h"
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_HUB_FUNCTION == 1
+#if DEBUG_BSC_HUB_FUNCTION
 #define DEBUG_PRINTF debug_printf
+#if (DEBUG_BSC_HUB_FUNCTION == 2)
+#define DEBUG_PRINTF_VERBOSE debug_printf
+#else
+#define DEBUG_PRINTF_VERBOSE debug_printf_disabled
+#endif
 #else
 #undef DEBUG_ENABLED
 #define DEBUG_PRINTF debug_printf_disabled
+#define DEBUG_PRINTF_VERBOSE debug_printf_disabled
 #endif
 
 static BSC_SOCKET *hub_function_find_connection_for_vmac(
@@ -152,14 +156,14 @@ hub_function_find_connection_for_uuid(BACNET_SC_UUID *uuid, void *user_arg)
     bws_dispatch_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
-        DEBUG_PRINTF(
+        DEBUG_PRINTF_VERBOSE(
             "hubf = %p, sock %p, state = %d, uuid = %s\n", f, &f->sock[i],
             f->sock[i].state, bsc_uuid_to_string(&f->sock[i].uuid));
         if (f->sock[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(
                 &uuid->uuid[0], &f->sock[i].uuid.uuid[0], sizeof(uuid->uuid))) {
             bws_dispatch_unlock();
-            DEBUG_PRINTF("found socket\n");
+            DEBUG_PRINTF_VERBOSE("found socket\n");
             return &f->sock[i];
         }
     }
@@ -282,14 +286,17 @@ static void hub_function_socket_event(
     BSC_HUB_FUNCTION *f;
     size_t len;
 
-    DEBUG_PRINTF(
+    DEBUG_PRINTF_VERBOSE(
         "hub_function_socket_event() >>> c = %p, ev = %d, reason = "
-        "%d, desc = %p, pdu = %p, pdu_len = %d, decoded_pdu = %p\n",
-        c, ev, reason, reason_desc, pdu, pdu_len, decoded_pdu);
+        "%s, desc = %p, pdu = %p, pdu_len = %d, decoded_pdu = %p\n",
+        c, ev, bactext_error_code_name(reason), reason_desc, pdu, pdu_len,
+        decoded_pdu);
 
     bws_dispatch_lock();
     f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
+        DEBUG_PRINTF(
+            "BSC-HUB: socket event %s\n", bsc_socket_event_to_string(ev));
         /* double check that received message does not contain */
         /* originating virtual address and contains dest vaddr */
         /* although such kind of check is already in bsc-socket.c */
@@ -299,52 +306,56 @@ static void hub_function_socket_event(
                     p_pdu = bsc_socket_get_global_buf();
                     len = pdu_len;
                     memcpy(p_pdu, pdu, len);
-
                     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
-                        if (&f->sock[i] != c &&
-                            f->sock[i].state == BSC_SOCK_STATE_CONNECTED) {
+                        if ((&f->sock[i] != c) &&
+                            (f->sock[i].state == BSC_SOCK_STATE_CONNECTED)) {
                             /* change origin address if presented or add origin
                              */
                             /* address into pdu by extending of it's header */
                             len = (uint16_t)bvlc_sc_set_orig(
                                 &p_pdu, len, &c->vmac);
                             ret = bsc_send(&f->sock[i], p_pdu, len);
-                            (void)ret;
-#if DEBUG_ENABLED == 1
-                            if (ret != BSC_SC_SUCCESS) {
+                            if (ret == BSC_SC_SUCCESS) {
                                 DEBUG_PRINTF(
+                                    "BSC-HUB: "
+                                    "sent pdu of %d bytes\n",
+                                    len);
+                            } else {
+                                DEBUG_PRINTF(
+                                    "BSC-HUB: "
                                     "sending of reconstructed pdu failed, "
-                                    "err = %d\n",
-                                    ret);
+                                    "err = %s\n",
+                                    bsc_return_code_to_string(ret));
                             }
-#endif
                         }
                     }
+                } else {
+                    DEBUG_PRINTF(
+                        "BSC-HUB: received pdu with len = %d is dropped\n",
+                        pdu_len);
                 }
-#if DEBUG_ENABLED == 1
-                else {
-                    DEBUG_PRINTF("pdu with len = %d is dropped\n", pdu_len);
-                }
-#endif
             } else {
                 dst = hub_function_find_connection_for_vmac(
                     decoded_pdu->hdr.dest, (void *)f);
                 if (!dst) {
                     DEBUG_PRINTF(
-                        "can not find socket, hub dropped pdu of size "
+                        "BSC-HUB: cannot find socket. Hub dropped pdu of size "
                         "%d for dest vmac %s\n",
                         pdu_len, bsc_vmac_to_string(decoded_pdu->hdr.dest));
                 } else {
                     bvlc_sc_remove_dest_set_orig(pdu, pdu_len, &c->vmac);
                     ret = bsc_send(dst, pdu, pdu_len);
-                    (void)ret;
-#if DEBUG_ENABLED == 1
-                    if (ret != BSC_SC_SUCCESS) {
+                    if (ret == BSC_SC_SUCCESS) {
                         DEBUG_PRINTF(
-                            "sending of pdu of %d bytes failed, err = %d\n",
-                            pdu_len, ret);
+                            "BSC-HUB: "
+                            "sent pdu of %d bytes\n",
+                            pdu_len);
+                    } else {
+                        DEBUG_PRINTF(
+                            "BSC-HUB: sending of pdu of %d bytes failed."
+                            " err = %s\n",
+                            pdu_len, bsc_return_code_to_string(ret));
                     }
-#endif
                 }
             }
         }
@@ -355,11 +366,17 @@ static void hub_function_socket_event(
                 BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC,
                 (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
         }
+        if (reason != ERROR_CODE_SUCCESS) {
+            DEBUG_PRINTF(
+                "BSC-HUB: event=%s reason=%s \"%s\"\n",
+                bsc_socket_event_to_string(ev), bactext_error_code_name(reason),
+                reason_desc);
+        }
     } else if (ev == BSC_SOCKET_EVENT_CONNECTED) {
         hub_function_update_status(f, c, ev, reason, reason_desc);
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("hub_function_socket_event() <<<\n");
+    DEBUG_PRINTF_VERBOSE("hub_function_socket_event() <<<\n");
 }
 
 /**
@@ -430,31 +447,30 @@ BSC_SC_RET bsc_hub_function_start(
     BSC_SC_RET ret;
     BSC_HUB_FUNCTION *f;
 
-    DEBUG_PRINTF("bsc_hub_function_start() >>>\n");
+    DEBUG_PRINTF_VERBOSE("bsc_hub_function_start() >>>\n");
 
     if (!ca_cert_chain || !ca_cert_chain_size || !cert_chain ||
         !cert_chain_size || !key || !key_size || !local_uuid || !local_vmac ||
         !max_local_npdu_len || !max_local_bvlc_len || !connect_timeout_s ||
         !heartbeat_timeout_s || !disconnect_timeout_s || !event_func || !h) {
-        DEBUG_PRINTF("bsc_hub_function_start() <<< ret = BSC_SC_BAD_PARAM\n");
-        return BSC_SC_BAD_PARAM;
+        ret = BSC_SC_BAD_PARAM;
+        DEBUG_PRINTF(
+            "BSC-HUB: start failed. err=%s\n", bsc_return_code_to_string(ret));
+        return ret;
     }
-
     *h = NULL;
-
     bws_dispatch_lock();
     f = hub_function_alloc();
 
     if (!f) {
         bws_dispatch_unlock();
+        ret = BSC_SC_NO_RESOURCES;
         DEBUG_PRINTF(
-            "bsc_hub_function_start() <<< ret = BSC_SC_NO_RESOURCES\n");
-        return BSC_SC_NO_RESOURCES;
+            "BSC-HUB: alloc failed. err=%s\n", bsc_return_code_to_string(ret));
+        return ret;
     }
-
     f->user_arg = user_arg;
     f->event_func = event_func;
-
     bsc_init_ctx_cfg(
         BSC_SOCKET_CTX_ACCEPTOR, &f->cfg, BSC_WEBSOCKET_HUB_PROTOCOL, port,
         iface, ca_cert_chain, ca_cert_chain_size, cert_chain, cert_chain_size,
@@ -470,10 +486,13 @@ BSC_SC_RET bsc_hub_function_start(
         f->state = BSC_HUB_FUNCTION_STATE_STARTING;
         *h = (BSC_HUB_FUNCTION_HANDLE)f;
     } else {
+        DEBUG_PRINTF(
+            "BSC-HUB: context initialization failed. err=%s\n",
+            bsc_return_code_to_string(ret));
         hub_function_free(f);
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_hub_function_start() << ret = %d\n", ret);
+    DEBUG_PRINTF_VERBOSE("bsc_hub_function_start() << ret = %d\n", ret);
     return ret;
 }
 
@@ -484,7 +503,7 @@ BSC_SC_RET bsc_hub_function_start(
 void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
-    DEBUG_PRINTF("bsc_hub_function_stop() >>> h = %p\n", h);
+    DEBUG_PRINTF_VERBOSE("bsc_hub_function_stop() >>> h = %p\n", h);
     bws_dispatch_lock();
     if (f && f->state != BSC_HUB_FUNCTION_STATE_IDLE &&
         f->state != BSC_HUB_FUNCTION_STATE_STOPPING) {
@@ -492,7 +511,7 @@ void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
         bsc_deinit_ctx(&f->ctx);
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_hub_function_stop() <<<\n");
+    DEBUG_PRINTF_VERBOSE("bsc_hub_function_stop() <<<\n");
 }
 
 /**
@@ -505,13 +524,15 @@ bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h)
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
     bool ret = false;
 
-    DEBUG_PRINTF("bsc_hub_function_stopped() >>> h = %p\n", h);
+    DEBUG_PRINTF_VERBOSE("bsc_hub_function_stopped() >>> h = %p\n", h);
     bws_dispatch_lock();
     if (f && f->state == BSC_HUB_FUNCTION_STATE_IDLE) {
         ret = true;
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_hub_function_stopped() <<< ret = %d\n", ret);
+    DEBUG_PRINTF_VERBOSE(
+        "bsc_hub_function_stopped() <<< ret = %s\n", ret ? "true" : "false");
+
     return ret;
 }
 
@@ -525,12 +546,14 @@ bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
     bool ret = false;
 
-    DEBUG_PRINTF("bsc_hub_function_started() >>> h = %p\n", h);
+    DEBUG_PRINTF_VERBOSE("bsc_hub_function_started() >>> h = %p\n", h);
     bws_dispatch_lock();
     if (f && f->state == BSC_HUB_FUNCTION_STATE_STARTED) {
         ret = true;
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_hub_function_started() <<< ret = %d\n", ret);
+    DEBUG_PRINTF_VERBOSE(
+        "bsc_hub_function_started() <<< ret = %s\n", ret ? "true" : "false");
+
     return ret;
 }

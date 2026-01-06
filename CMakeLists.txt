@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.1
+  VERSION 1.5.0
   LANGUAGES C)
 
 #
@@ -75,6 +75,11 @@ option(
   ON)
 
 option(
+  BACDL_ZIGBEE
+  "compile with zigbee datalink support"
+  ON)
+
+option(
   BACDL_BSC
   "compile with secure-connect support"
   OFF)
@@ -84,6 +89,7 @@ if(NOT (BACDL_ETHERNET OR
         BACDL_ARCNET OR
         BACDL_BIP OR
         BACDL_BIP6 OR
+        BACDL_ZIGBEE OR
         BACDL_BSC OR
         BACDL_CUSTOM))
       add_definitions(-DBACDL_NONE)
@@ -151,6 +157,17 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   if (APPLE)
     # Apple defines UINT64_MAX with ULL suffix. This is not C90 compliant.
     add_compile_options(-Wno-long-long)
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    # These warnings orginate from libdispatch
+    # ISO C restricts enumerator values to range of 'int'
+    # DISPATCH_ENUM_API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0))    = ~1ull
+    add_compile_options(-Wno-pedantic)
+    # These warnings originate from libdispatch headers,
+    # which rely on Clang extensions that Apple Clang supports,
+    # but FreeBSD LLVM Clang does not.
+    add_compile_options(-Wno-nullability-extension)
   endif()
 
   # Should be fixed in a future.
@@ -253,6 +270,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bacaction.h
   src/bacnet/bacapp.c
   src/bacnet/bacapp.h
+  src/bacnet/bacaudit.c
+  src/bacnet/bacaudit.h
   src/bacnet/bacdcode.c
   src/bacnet/bacdcode.h
   src/bacnet/bacdef.h
@@ -295,6 +314,8 @@ add_library(${PROJECT_NAME}
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.c>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.h>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.c>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.h>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-socket.c>
@@ -332,6 +353,9 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/access_zone.c
   src/bacnet/basic/object/access_zone.h
   src/bacnet/basic/object/acc.c
+  src/bacnet/basic/object/acc.h
+  src/bacnet/basic/object/auditlog.c
+  src/bacnet/basic/object/auditlog.h
   src/bacnet/basic/object/ai.c
   src/bacnet/basic/object/ai.h
   src/bacnet/basic/object/ao.c
@@ -374,6 +398,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/lc.h
   src/bacnet/basic/object/lo.c
   src/bacnet/basic/object/lo.h
+  src/bacnet/basic/object/loop.c
+  src/bacnet/basic/object/loop.h
   src/bacnet/basic/object/lsp.c
   src/bacnet/basic/object/lsp.h
   src/bacnet/basic/object/lsz.c
@@ -404,6 +430,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/structured_view.h
   src/bacnet/basic/object/time_value.c
   src/bacnet/basic/object/time_value.h
+  src/bacnet/basic/object/timer.c
+  src/bacnet/basic/object/timer.h
   src/bacnet/basic/object/trendlog.c
   src/bacnet/basic/object/trendlog.h
   src/bacnet/basic/service/h_alarm_ack.c
@@ -543,6 +571,10 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
+  src/bacnet/basic/sys/bramfs.c
+  src/bacnet/basic/sys/bramfs.h
+  src/bacnet/basic/sys/bsramfs.c
+  src/bacnet/basic/sys/bsramfs.h
   src/bacnet/basic/sys/color_rgb.c
   src/bacnet/basic/sys/color_rgb.h
   src/bacnet/basic/sys/days.c
@@ -651,6 +683,10 @@ add_library(${PROJECT_NAME}
   src/bacnet/rp.h
   src/bacnet/rpm.c
   src/bacnet/rpm.h
+  src/bacnet/shed_level.c
+  src/bacnet/shed_level.h
+  src/bacnet/timer_value.c
+  src/bacnet/timer_value.h
   src/bacnet/timestamp.c
   src/bacnet/timestamp.h
   src/bacnet/timesync.c
@@ -693,6 +729,7 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
   $<$<BOOL:${BACDL_BSC}>:BACDL_BSC>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
+  $<$<BOOL:${BACDL_ZIGBEE}>:BACDL_ZIGBEE>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
@@ -727,12 +764,16 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
   add_compile_definitions(BACNET_PORT=linux)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
     ports/linux/datetime-init.c
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/linux/bzll-init.c>
     $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
@@ -757,10 +798,15 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:ws2_32>
     $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:iphlpapi>)
 
+  include_directories(ports/posix)
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/win32/bzll-init.c>
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -804,10 +850,15 @@ elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
+  add_compile_definitions(USE_MACH_TIME)
+  include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
@@ -844,10 +895,26 @@ elseif(APPLE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  include_directories(ports/posix)
+  link_directories(/usr/lib)
+  link_libraries(c)
+  link_libraries(m)
+  FIND_PATH(DISPATCH_INCLUDE dispatch/dispatch.h)
+  FIND_LIBRARY(DISPATCH_LIBRARIES NAMES dispatch)
+  if(NOT DISPATCH_INCLUDE OR NOT DISPATCH_LIBRARIES)
+      message(FATAL_ERROR "BACNET: dispatch.h header file not found
+      install libdispatch with 'pkg install libdispatch'")
+  else()
+      include_directories(${DISPATCH_INCLUDE})
+      link_libraries(${DISPATCH_LIBRARIES})
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
@@ -982,6 +1049,7 @@ if(BACNET_STACK_BUILD_APPS)
       src/bacnet/basic/server/bacnet_port.c
       src/bacnet/basic/server/bacnet_port_ipv4.c
       src/bacnet/basic/server/bacnet_port_ipv6.c
+      src/bacnet/basic/server/bacnet_port_mstp.c
     )
     target_link_libraries(bacbasic PRIVATE ${PROJECT_NAME})
     target_compile_options(bacbasic PRIVATE
@@ -1047,6 +1115,7 @@ if(BACNET_STACK_BUILD_APPS)
     if(NOT LIBCONFIG_LIBRARIES)
       message(WARNING "BACNET: Will not build apps/router as libconfig not found")
     else()
+      message(STATUS "BACNET: Will build apps/router with libconfig")
       add_executable(
         router
         ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c
@@ -1231,4 +1300,5 @@ message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
 message(STATUS "BACNET: BACDL_BSC:......................\"${BACDL_BSC}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
+message(STATUS "BACNET: BACDL_ZIGBEE:...................\"${BACDL_ZIGBEE}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")

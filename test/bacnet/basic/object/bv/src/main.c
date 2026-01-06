@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet Binary Value object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/bv.h>
@@ -30,7 +27,7 @@ static void testBinary_Value(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
 
     Binary_Value_Init();
     object_instance = Binary_Value_Create(object_instance);

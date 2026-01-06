@@ -24,16 +24,16 @@ static bool Out_Of_Service[MAX_ANALOG_INPUTS];
 static BACNET_ENGINEERING_UNITS Units[MAX_ANALOG_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Analog_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int32_t Analog_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1 };
 
-static const int Analog_Input_Properties_Optional[] = { -1 };
+static const int32_t Analog_Input_Properties_Optional[] = { -1 };
 
-static const int Analog_Input_Properties_Proprietary[] = { -1 };
+static const int32_t Analog_Input_Properties_Proprietary[] = { -1 };
 
 void Analog_Input_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired, const int32_t **pOptional, const int32_t **pProprietary)
 {
     if (pRequired)
         *pRequired = Analog_Input_Properties_Required;
@@ -86,7 +86,7 @@ unsigned Analog_Input_Count(void)
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32]; /* okay for single thread */
+    char text[32];
     bool status = false;
     unsigned index = 0;
 
@@ -279,8 +279,14 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                Analog_Input_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Enumerated);
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    Analog_Input_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

@@ -45,10 +45,12 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/object/ms-input.c \
 	$(BACNET_BASIC)/object/mso.c \
 	$(BACNET_BASIC)/object/msv.c \
+	$(BACNET_BASIC)/object/bacfile.c \
 	$(BACNET_BASIC)/object/program.c \
 	$(BACNET_BASIC)/program/ubasic/ubasic.c \
 	$(BACNET_BASIC)/program/ubasic/tokenizer.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_arf.c \
 	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
@@ -60,6 +62,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_noserv.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
+	$(BACNET_BASIC)/sys/bsramfs.c \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/datetime_mstimer.c \
 	$(BACNET_BASIC)/sys/days.c \
@@ -72,6 +75,7 @@ BASIC_SRC = \
 
 BACNET_SRC = \
 	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/arf.c \
 	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
@@ -100,6 +104,8 @@ BACNET_SRC = \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/special_event.c \
+	$(BACNET_CORE)/shed_level.c \
+	$(BACNET_CORE)/timer_value.c \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/timesync.c \
 	$(BACNET_CORE)/weeklyschedule.c \
@@ -177,6 +183,7 @@ BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
 BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
+BACNET_FLAGS += -DBACFILE
 BACNET_FLAGS += -DBACAPP_MINIMAL
 BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
 # if called from root Makefile, PRINT was already defined

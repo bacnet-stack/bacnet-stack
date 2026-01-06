@@ -23,9 +23,8 @@
 #include "bacnet/basic/object/bacfile.h"
 
 #define PRINTF debug_printf_stderr
-#define DEBUG_BSC_DATALINK 0
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_DATALINK == 1
+#if DEBUG_BSC_DATALINK
 #define DEBUG_PRINTF debug_printf
 #else
 #define DEBUG_PRINTF debug_printf_disabled
@@ -94,7 +93,7 @@ static void bsc_node_event(
                 FIFO_Add(&bsc_fifo, pdu, pdu16_len);
                 bsc_event_signal(bsc_data_event);
             }
-#if DEBUG_ENABLED == 1
+#if DEBUG_ENABLED
             else {
                 PRINTF("pdu of size %d\n is dropped\n", pdu_len);
             }
@@ -192,7 +191,7 @@ bool bsc_init(char *ifname)
 
 /**
  * @brief Blocking thread-safe bsc_cleanup() function
- *  de-initializes BACNet/SC datalink.
+ *  de-initializes BACnet/SC datalink.
  */
 void bsc_cleanup(void)
 {
@@ -260,7 +259,6 @@ int bsc_send_pdu(
             PRINTF("bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
             return len;
         }
-
         len = (int)bvlc_sc_encode_encapsulated_npdu(
             buf, sizeof(buf), bsc_get_next_message_id(), NULL, &dest_vmac, pdu,
             pdu_len);
@@ -270,6 +268,9 @@ int bsc_send_pdu(
 
         if (ret != BSC_SC_SUCCESS) {
             len = -1;
+            PRINTF(
+                "bsc_send_pdu(): bsc_node_send() returned %s\n",
+                bsc_return_code_to_string(ret));
         }
     }
 
@@ -292,7 +293,7 @@ static void bsc_remove_packet(size_t packet_size)
 
 /**
  * @brief Blocking thread-safe bsc_receive() function
- * receives NPDUs transferred over BACNet/SC
+ * receives NPDUs transferred over BACnet/SC
  * from a node specified by it's virtual MAC address as
  * defined in Clause AB.1.5.2.
  * @param src - source VMAC address
@@ -312,8 +313,6 @@ uint16_t bsc_receive(
     uint16_t error_class;
     const char *err_desc = NULL;
     static uint8_t buf[BVLC_SC_NPDU_SIZE_CONF];
-
-    DEBUG_PRINTF("bsc_receive() >>>\n");
 
     bws_dispatch_lock();
 
@@ -355,7 +354,7 @@ uint16_t bsc_receive(
                         pdu_len =
                             (uint16_t)dm.payload.encapsulated_npdu.npdu_len;
                     }
-#if DEBUG_ENABLED == 1
+#if DEBUG_ENABLED
                     else {
                         PRINTF(
                             "bsc_receive() pdu of size %d is dropped "
@@ -369,15 +368,14 @@ uint16_t bsc_receive(
             DEBUG_PRINTF("bsc_receive() pdu_len = %d\n", pdu_len);
         }
     }
-
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_receive() <<< ret = %d\n", pdu_len);
+
     return pdu_len;
 }
 
 /**
  * @brief Function can be used to retrieve broadcast
- * VMAC address for BACNet/SC node.
+ * VMAC address for BACnet/SC node.
  * @param dest - value of broadcast VMAC address
  */
 void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
@@ -394,7 +392,7 @@ void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
 
 /**
  * @brief Function can be used to retrieve local
- * VMAC address of initialized BACNet/SC datalink.
+ * VMAC address of initialized BACnet/SC datalink.
  * @param my_address - value of local VMAC address
  */
 void bsc_get_my_address(BACNET_ADDRESS *my_address)
@@ -608,7 +606,7 @@ static void bsc_update_failed_requests(void)
         Network_Port_SC_Failed_Connection_Requests_Delete_All(instance);
         for (i = 0; i < cnt; i++) {
             if (r[i].Peer_Address.host[0] != 0) {
-#if DEBUG_ENABLED == 1
+#if DEBUG_ENABLED
                 DEBUG_PRINTF(
                     "failed request record %d, host %s, vmac %s, uuid "
                     "%s, error %d, details = %s\n",

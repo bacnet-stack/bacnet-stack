@@ -205,6 +205,66 @@ static void testReadPropertyMultiple(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rpm_tests, testReadPropertyMultipleRequest)
+#else
+static void testReadPropertyMultipleRequest(void)
+#endif
+{
+    uint8_t apdu[480] = { 0 };
+    int null_len = 0;
+    int apdu_len = 0;
+    uint8_t invoke_id = 12;
+    BACNET_READ_ACCESS_DATA read_access_data[2] = { 0 };
+    BACNET_PROPERTY_REFERENCE property_list_all = { 0 };
+    BACNET_PROPERTY_REFERENCE property_list_array = { 0 };
+    uint32_t device_id = 123;
+
+    bacnet_read_access_data_init(
+        &read_access_data[0], ARRAY_SIZE(read_access_data));
+    /* configure property list #1 */
+    property_list_all.error.error_class = ERROR_CLASS_DEVICE;
+    property_list_all.error.error_code = ERROR_CODE_OTHER;
+    property_list_all.value = NULL;
+    property_list_all.propertyArrayIndex = BACNET_ARRAY_ALL;
+    property_list_all.propertyIdentifier = PROP_ALL;
+    property_list_all.next = NULL;
+    /* configure the read access data #1 */
+    read_access_data[0].listOfProperties = &property_list_all;
+    read_access_data[0].object_instance = device_id;
+    read_access_data[0].object_type = OBJECT_DEVICE;
+    /* configure property list #2 */
+    property_list_all.error.error_class = ERROR_CLASS_DEVICE;
+    property_list_all.error.error_code = ERROR_CODE_OTHER;
+    property_list_all.value = NULL;
+    property_list_all.propertyArrayIndex = 0;
+    property_list_all.propertyIdentifier = PROP_PRIORITY_ARRAY;
+    property_list_all.next = NULL;
+    /* configure the read access data #2 */
+    read_access_data[1].listOfProperties = &property_list_array;
+    read_access_data[1].object_instance = 42;
+    read_access_data[1].object_type = OBJECT_ANALOG_OUTPUT;
+
+    null_len = read_property_multiple_request_service_encode(
+        NULL, sizeof(apdu), &read_access_data[0]);
+    apdu_len = read_property_multiple_request_service_encode(
+        apdu, sizeof(apdu), &read_access_data[0]);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len > 0, NULL);
+    null_len = read_property_multiple_request_service_encode(
+        NULL, 0, &read_access_data[0]);
+    zassert_equal(null_len, 0, NULL);
+
+    null_len =
+        rpm_encode_apdu(NULL, sizeof(apdu), invoke_id, &read_access_data[0]);
+    apdu_len =
+        rpm_encode_apdu(apdu, sizeof(apdu), invoke_id, &read_access_data[0]);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len > 0, NULL);
+    null_len = rpm_encode_apdu(NULL, 0, invoke_id, &read_access_data[0]);
+    zassert_equal(null_len, 0, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(rpm_tests, testReadPropertyMultipleAck)
 #else
 static void testReadPropertyMultipleAck(void)
@@ -432,6 +492,142 @@ static void testReadPropertyMultipleAck(void)
     zassert_equal(test_len, 0, NULL);
     zassert_equal(len, service_request_len, NULL);
 }
+
+#define TEST_READ_PROPERTY_ACK_DATA_COUNT 5
+static BACNET_READ_PROPERTY_DATA
+    Read_Property_Ack_Data[TEST_READ_PROPERTY_ACK_DATA_COUNT];
+static uint32_t Read_Property_Ack_Device_ID[TEST_READ_PROPERTY_ACK_DATA_COUNT];
+static size_t Read_Property_Ack_Count = 0;
+/**
+ * @brief Process a ReadProperty-ACK message
+ * @param device_id [in] The device ID of the source of the message
+ * @param rp_data [in] The contents of the service request.
+ */
+static void bacnet_read_property_ack_process(
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data)
+{
+    if (Read_Property_Ack_Count < TEST_READ_PROPERTY_ACK_DATA_COUNT) {
+        Read_Property_Ack_Device_ID[Read_Property_Ack_Count] = device_id;
+        memcpy(
+            &Read_Property_Ack_Data[Read_Property_Ack_Count], rp_data,
+            sizeof(BACNET_READ_PROPERTY_DATA));
+    }
+    Read_Property_Ack_Count++;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rpm_tests, testReadPropertyMultipleAck)
+#else
+static void testReadPropertyMultipleAckProcess(void)
+#endif
+{
+    uint8_t apdu[480] = { 0 };
+    int apdu_len = 0;
+    BACNET_APPLICATION_DATA_VALUE application_data[3] = { { 0 } };
+    uint8_t application_data_buffer[MAX_APDU] = { 0 };
+    int application_data_buffer_len = 0;
+    BACNET_RPM_DATA rpmdata;
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    uint32_t device_id = 0;
+
+    /* first object beginning */
+    rpmdata.object_type = OBJECT_DEVICE;
+    rpmdata.object_instance = 123;
+    apdu_len += rpm_ack_encode_apdu_object_begin(&apdu[apdu_len], &rpmdata);
+    /* reply property */
+    apdu_len += rpm_ack_encode_apdu_object_property(
+        &apdu[apdu_len], PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL);
+    /* reply value */
+    application_data[0].tag = BACNET_APPLICATION_TAG_OBJECT_ID;
+    application_data[0].type.Object_Id.type = OBJECT_DEVICE;
+    application_data[0].type.Object_Id.instance = 123;
+    application_data_buffer_len = bacapp_encode_application_data(
+        &application_data_buffer[0], &application_data[0]);
+    apdu_len += rpm_ack_encode_apdu_object_property_value(
+        &apdu[apdu_len], &application_data_buffer[0],
+        application_data_buffer_len);
+    /* reply property */
+    apdu_len += rpm_ack_encode_apdu_object_property(
+        &apdu[apdu_len], PROP_OBJECT_TYPE, BACNET_ARRAY_ALL);
+    /* reply value */
+    application_data[1].tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    application_data[1].type.Enumerated = OBJECT_DEVICE;
+    application_data_buffer_len = bacapp_encode_application_data(
+        &application_data_buffer[0], &application_data[1]);
+    apdu_len += rpm_ack_encode_apdu_object_property_value(
+        &apdu[apdu_len], &application_data_buffer[0],
+        application_data_buffer_len);
+    /* first object end */
+    apdu_len += rpm_ack_encode_apdu_object_end(&apdu[apdu_len]);
+
+    /* second object beginning */
+    rpmdata.object_type = OBJECT_ANALOG_INPUT;
+    rpmdata.object_instance = 33;
+    apdu_len += rpm_ack_encode_apdu_object_begin(&apdu[apdu_len], &rpmdata);
+    /* reply property */
+    apdu_len += rpm_ack_encode_apdu_object_property(
+        &apdu[apdu_len], PROP_PRESENT_VALUE, BACNET_ARRAY_ALL);
+    /* reply value */
+    application_data[2].tag = BACNET_APPLICATION_TAG_REAL;
+    application_data[2].type.Real = 0.0;
+    application_data_buffer_len = bacapp_encode_application_data(
+        &application_data_buffer[0], &application_data[2]);
+    apdu_len += rpm_ack_encode_apdu_object_property_value(
+        &apdu[apdu_len], &application_data_buffer[0],
+        application_data_buffer_len);
+    /* reply property */
+    apdu_len += rpm_ack_encode_apdu_object_property(
+        &apdu[apdu_len], PROP_DEADBAND, BACNET_ARRAY_ALL);
+    /* reply error */
+    apdu_len += rpm_ack_encode_apdu_object_property_error(
+        &apdu[apdu_len], ERROR_CLASS_PROPERTY, ERROR_CODE_UNKNOWN_PROPERTY);
+    /* second object end */
+    apdu_len += rpm_ack_encode_apdu_object_end(&apdu[apdu_len]);
+    zassert_not_equal(apdu_len, 0, NULL);
+
+    rpm_ack_object_property_process(
+        apdu, apdu_len, device_id, &rp_data, bacnet_read_property_ack_process);
+    zassert_equal(
+        Read_Property_Ack_Count, 4, "RPM-ACK count=%zu, expected %d",
+        Read_Property_Ack_Count, 4);
+
+    zassert_equal(
+        Read_Property_Ack_Data[0].object_property, PROP_OBJECT_IDENTIFIER,
+        NULL);
+    zassert_equal(Read_Property_Ack_Data[0].object_type, OBJECT_DEVICE, NULL);
+    zassert_equal(Read_Property_Ack_Data[0].object_instance, 123, NULL);
+
+    zassert_equal(
+        Read_Property_Ack_Data[1].object_property, PROP_OBJECT_TYPE, NULL);
+    zassert_equal(Read_Property_Ack_Data[1].object_type, OBJECT_DEVICE, NULL);
+    zassert_equal(Read_Property_Ack_Data[1].object_instance, 123, NULL);
+
+    zassert_equal(
+        Read_Property_Ack_Data[2].object_property, PROP_PRESENT_VALUE, NULL);
+    zassert_equal(
+        Read_Property_Ack_Data[2].object_type, OBJECT_ANALOG_INPUT, NULL);
+    zassert_equal(Read_Property_Ack_Data[2].object_instance, 33, NULL);
+
+    zassert_equal(
+        Read_Property_Ack_Data[3].object_property, PROP_DEADBAND, NULL);
+    zassert_equal(
+        Read_Property_Ack_Data[3].object_type, OBJECT_ANALOG_INPUT, NULL);
+    zassert_equal(Read_Property_Ack_Data[3].object_instance, 33, NULL);
+
+    /* extra data at the end */
+    Read_Property_Ack_Count = 0;
+    rpm_ack_object_property_process(
+        apdu, apdu_len + 2, device_id, &rp_data,
+        bacnet_read_property_ack_process);
+    zassert_equal(
+        Read_Property_Ack_Count, 5, "RPM-ACK count=%zu, expected %d",
+        Read_Property_Ack_Count, 5);
+    zassert_equal(
+        Read_Property_Ack_Data[4].error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(
+        Read_Property_Ack_Data[4].error_code, ERROR_CODE_INVALID_TAG, NULL);
+}
+
 /**
  * @}
  */
@@ -443,7 +639,9 @@ void test_main(void)
 {
     ztest_test_suite(
         rpm_tests, ztest_unit_test(testReadPropertyMultiple),
-        ztest_unit_test(testReadPropertyMultipleAck));
+        ztest_unit_test(testReadPropertyMultipleRequest),
+        ztest_unit_test(testReadPropertyMultipleAck),
+        ztest_unit_test(testReadPropertyMultipleAckProcess));
 
     ztest_run_test_suite(rpm_tests);
 }

@@ -1,9 +1,11 @@
-/*
- * Copyright (c) 2023 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: Apache-2.0
+/**
+ * @file
+ * @brief unit test for BACnet bits encoding and decoding
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2023
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 
 #undef BIT

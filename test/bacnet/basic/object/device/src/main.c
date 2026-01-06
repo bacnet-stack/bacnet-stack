@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet Device object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/device.h>
 #include <bacnet/bactext.h>
@@ -29,9 +26,9 @@ static void test_Device_Data_Sharing(void)
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     /* for decode value data */
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
     unsigned count = 0;
     bool status = false;
 

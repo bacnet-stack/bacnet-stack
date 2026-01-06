@@ -35,6 +35,7 @@
 #include "bacnet/datalink/mstp.h"
 #include "rs485.h"
 #include "bacnet/basic/sys/fifo.h"
+#include "bacnet/basic/sys/debug.h"
 
 #include <sys/select.h>
 #include <sys/time.h>
@@ -156,7 +157,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         termios2_tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
 
 #if PRINT_ENABLED
-        fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
+        debug_fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
         fflush(stdout);
 #endif
     }
@@ -248,16 +249,16 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     uint8_t buf[2048];
     ssize_t n;
     int handle = RS485_Handle;
+    SHARED_MSTP_DATA *poSharedData;
     FIFO_BUFFER *fifo = &Rx_FIFO;
+
     waiter.tv_sec = 0;
     waiter.tv_usec = 5000;
-
-    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
+    poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
     if (poSharedData) {
         handle = poSharedData->RS485_Handle;
         fifo = &poSharedData->Rx_FIFO;
     }
-
     if (mstp_port->ReceiveError == true) {
         /* do nothing but wait for state machine to clear the error */
     } else if (mstp_port->DataAvailable == false) {
@@ -296,7 +297,7 @@ void RS485_Cleanup(void)
 void RS485_Initialize(void)
 {
 #if PRINT_ENABLED
-    fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
+    debug_printf("RS485 Interface: %s\n", RS485_Port_Name);
 #endif
     /*
        Open device for reading and writing.

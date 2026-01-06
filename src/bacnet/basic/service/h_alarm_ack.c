@@ -71,6 +71,7 @@ void handler_alarm_ack(
     BACNET_NPDU_DATA npdu_data;
     BACNET_ALARM_ACK_DATA data;
     BACNET_ERROR_CODE error_code;
+    BACNET_ERROR_CLASS error_class;
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
@@ -130,9 +131,10 @@ void handler_alarm_ack(
                 break;
 
             case -1:
+                error_class = bacerror_code_class(error_code);
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT,
+                    SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, error_class,
                     error_code);
                 debug_fprintf(
                     stderr, "Alarm Acknowledge: error %s!\n",

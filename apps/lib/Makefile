@@ -6,6 +6,7 @@ BACNET_LIB_DIR ?= $(realpath .)
 BACNET_LIB_TARGET ?= $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 BACNET_SRC_DIR ?= $(realpath ../../src)
 BACNET_PORT_DIR ?= $(realpath ../../ports/linux)
+BACNET_POSIX_DIR ?= $(realpath ../../ports/posix)
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 BACNET_DEFINES ?=
 
@@ -35,6 +36,7 @@ CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += -ffunction-sections -fdata-sections
 
 APPS_ENVIRONMENT_SRC = \
+	$(BACNET_POSIX_DIR)/bacfile-posix.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c
 
 PORT_ARCNET_SRC = \
@@ -46,6 +48,10 @@ PORT_MSTP_SRC = \
 
 PORT_ETHERNET_SRC = \
 	$(BACNET_PORT_DIR)/ethernet.c
+
+PORT_ZIGBEE_SRC = \
+	$(BACNET_PORT_DIR)/bzll-init.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/bzll/bzllvmac.c
 
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
@@ -81,6 +87,7 @@ PORT_ALL_SRC = \
 	$(PORT_ARCNET_SRC) \
 	$(PORT_MSTP_SRC) \
 	$(PORT_ETHERNET_SRC) \
+	$(PORT_ZIGBEE_SRC) \
 	$(PORT_BIP_SRC) \
 	$(PORT_BIP6_SRC) \
 	$(PORT_BSC_SRC)
@@ -88,34 +95,38 @@ PORT_ALL_SRC = \
 PORT_NONE_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c
 
-ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
+$(info $(BACNET_LIB_TARGET) datalink $(BACDL))
+ifeq ($(BACDL),bip)
 BACNET_PORT_SRC = ${PORT_BIP_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
-ifeq (${BACDL_DEFINE},-DBACDL_BIP6=1)
+ifeq ($(BACDL),bip6)
 BACNET_PORT_SRC = ${PORT_BIP6_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
-ifeq (${BACDL_DEFINE},-DBACDL_MSTP=1)
-BACNET_PORT_SRC = ${PORT_MSTP_SRC}  ${APPS_ENVIRONMENT_SRC}
+ifeq ($(BACDL),mstp)
+BACNET_PORT_SRC = ${PORT_MSTP_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
-ifeq (${BACDL_DEFINE},-DBACDL_ARCNET=1)
+ifeq ($(BACDL),arcnet)
 BACNET_PORT_SRC = ${PORT_ARCNET_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
-ifeq (${BACDL_DEFINE},-DBACDL_ETHERNET=1)
+ifeq ($(BACDL),ethernet)
 BACNET_PORT_SRC = ${PORT_ETHERNET_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
-ifeq (${BACDL_DEFINE},-DBACDL_NONE=1)
+ifeq ($(BACDL),zigbee)
+BACNET_PORT_SRC = ${PORT_ZIGBEE_SRC} ${APPS_ENVIRONMENT_SRC}
+endif
+ifeq ($(BACDL),none)
 BACNET_PORT_SRC = ${PORT_NONE_SRC}
 endif
-ifeq (${BACDL_DEFINE},-DBACDL_BSC=1)
+ifeq ($(BACDL),bsc)
 BACNET_PORT_SRC = ${PORT_BSC_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
-ifeq (${BACDL_DEFINE},-DBACDL_ALL=1)
+ifeq ($(BACDL),all)
 BACNET_PORT_SRC = ${PORT_ALL_SRC}
 endif
-ifeq (${BACDL},bip-mstp)
+ifeq ($(BACDL),bip-mstp)
 BACNET_PORT_SRC = ${PORT_BIP_SRC} ${PORT_MSTP_SRC}
 endif
-ifeq (${BACDL},bip-bip6)
+ifeq ($(BACDL),bip-bip6)
 BACNET_PORT_SRC = ${PORT_BIP_SRC} ${PORT_BIP6_SRC}
 endif
 ifneq (${BACDL_DEFINE},)
@@ -160,6 +171,7 @@ all: $(BACNET_LIB_TARGET)
 lib: $(BACNET_LIB_TARGET)
 
 $(BACNET_LIB_TARGET): $(OBJS) Makefile
+	$(info $(BACNET_LIB_TARGET) SRCS: $(notdir $(SRCS)))
 	${AR} rcs $@ $(OBJS)
 
 .c.o:

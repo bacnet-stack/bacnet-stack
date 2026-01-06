@@ -11,22 +11,20 @@ all: apps
 
 .PHONY: bsd
 bsd:
-	$(MAKE) BACNET_PORT=bsd -s -C apps all
+	$(MAKE) LEGACY=true BACNET_PORT=bsd -s -C apps all
+
+.PHONY: linux
+linux:
+	$(MAKE) LEGACY=true BACNET_PORT=linux -s -C apps all
 
 .PHONY: win32
 win32:
-	$(MAKE) BACNET_PORT=win32 -s -C apps all
+	$(MAKE) LEGACY=true BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mingw32
 mingw32:
 	i686-w64-mingw32-gcc --version
-	ORIGINAL_CC=$(CC) ; \
-	ORIGINAL_LD=$(LD) ; \
-	export CC=i686-w64-mingw32-gcc ; \
-	export LD=i686-w64-mingw32-ld ; \
-	$(MAKE) BACNET_PORT=win32 LEGACY=true -s -C apps all ; \
-	export CC=$(ORIGINAL_CC) ; \
-	export LD=$(ORIGINAL_LD)
+	$(MAKE) PREFIX=i686-w64-mingw32- BACNET_PORT=win32 LEGACY=true BACDL=bip6 -s -C apps all
 
 .PHONY: mstpwin32-clean
 mstpwin32-clean:
@@ -40,43 +38,43 @@ mstpwin32:
 mstp:
 	$(MAKE) BACDL=mstp -s -C apps all
 
-.PHONY: bip6-win32
-bip6-win32:
-	$(MAKE) BACDL=bip6 BACNET_PORT=win32 -s -C apps all
+.PHONY: mingw32-bip6
+mingw32-bip6:
+	$(MAKE) PREFIX=i686-w64-mingw32- BACNET_PORT=win32 LEGACY=true BACDL=bip6 -s -C apps all
 
 .PHONY: bip6
 bip6:
-	$(MAKE) BACDL=bip6 -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip6 -s -C apps all
 
 .PHONY: bip
 bip:
-	$(MAKE) BACDL=bip -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip -s -C apps all
 
 .PHONY: bip-client
 bip-client:
-	$(MAKE) BACDL=bip BBMD=client -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bip BBMD=client -s -C apps all
 
 .PHONY: ethernet
 ethernet:
-	$(MAKE) BACDL=ethernet -s -C apps all
+	$(MAKE) LEGACY=true BACDL=ethernet -s -C apps all
 
 # note: requires additional libraries to be installed
 # see .github/workflows/gcc.yml
 .PHONY: bsc
 bsc:
-	$(MAKE) BACDL=bsc -s -C apps all
+	$(MAKE) LEGACY=true BACDL=bsc -s -C apps all
 
 .PHONY: apps
 apps:
-	$(MAKE) -s LEGACY=true -C apps all
+	$(MAKE) -s -C apps all
 
 .PHONY: lib
 lib:
-	$(MAKE) -s LEGACY=true -C apps $@
+	$(MAKE) -s -C apps $@
 
 .PHONY: library
 library:
-	$(MAKE) -s LEGACY=true -C apps lib
+	$(MAKE) -s -C apps lib
 
 CMAKE_BUILD_DIR=build
 .PHONY: cmake
@@ -210,6 +208,10 @@ server:
 server-basic:
 	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
+.PHONY: server-basic-mstp
+server-basic-mstp:
+	$(MAKE) LEGACY=true NOTIFY=false BACDL=mstp -s -C apps server-basic
+
 .PHONY: server-client
 server-client:
 	$(MAKE) LEGACY=true -s -C apps $@
@@ -224,7 +226,11 @@ server-mini:
 
 .PHONY: sc-hub
 sc-hub:
-	$(MAKE) BACDL=bsc -s -C apps $@
+	$(MAKE) LEGACY=true BACDL=bsc -s -C apps $@
+
+.PHONY: sc-hub-debug
+sc-hub-debug:
+	$(MAKE) LEGACY=true BACDL=bsc BUILD=debug -s -C apps sc-hub
 
 .PHONY: mstpcap
 mstpcap:
@@ -368,6 +374,14 @@ xplained-clean: ports/xplained/Makefile
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
+
+.PHONY: gtk-discover
+gtk-discover:
+	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: dlmstp-linux
+dlmstp-linux: ports/linux/dlmstp.mak
+	$(MAKE) -s -C ports/linux -f dlmstp.mak clean all
 
 .PHONY: lwip
 lwip: ports/lwip/Makefile
@@ -520,6 +534,8 @@ clean: ports-clean
 	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
+	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean
+	$(MAKE) -s -C ports/linux -f dlmstp.mak clean
 	rm -rf ./build
 
 .PHONY: test

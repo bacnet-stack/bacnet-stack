@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date July 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 
 #include <zephyr/ztest.h>
@@ -27,7 +27,7 @@ static void testSchedule(void)
 {
     unsigned count = 0;
     uint32_t object_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     BACNET_DAILY_SCHEDULE daily_schedule = { 0 }, *test_daily_schedule;
     BACNET_SPECIAL_EVENT special_event = { 0 }, *test_special_event;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE object_property_reference = { 0 },

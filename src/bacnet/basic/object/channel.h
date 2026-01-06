@@ -24,7 +24,9 @@ extern "C" {
 #endif /* __cplusplus */
 BACNET_STACK_EXPORT
 void Channel_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 BACNET_STACK_EXPORT
 bool Channel_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -102,6 +104,11 @@ bool Channel_Write_Member_Value(
 
 BACNET_STACK_EXPORT
 void Channel_Write_Property_Internal_Callback_Set(write_property_function cb);
+
+BACNET_STACK_EXPORT
+void *Channel_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Channel_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Channel_Create(uint32_t object_instance);

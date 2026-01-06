@@ -32,7 +32,9 @@ void Device_Object_Function_Set(
 void Device_Init(void);
 
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 
 uint32_t Device_Object_Instance_Number(void);
 bool Device_Set_Object_Instance_Number(uint32_t object_id);

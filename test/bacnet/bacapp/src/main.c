@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief BACnet Application encoding and decoding API testing
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <stdint.h>
 #include <string.h>
 #include <zephyr/ztest.h>
@@ -75,7 +72,15 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     /* BACnetShedLevel */
     BACNET_APPLICATION_TAG_SHED_LEVEL,
     /* BACnetAccessRule */
-    BACNET_APPLICATION_TAG_ACCESS_RULE
+    BACNET_APPLICATION_TAG_ACCESS_RULE,
+    /* BACnetChannelValue */
+    BACNET_APPLICATION_TAG_CHANNEL_VALUE,
+    /* BACnetLogRecord */
+    BACNET_APPLICATION_TAG_LOG_RECORD,
+    /* BACnetTimerChangeValue */
+    BACNET_APPLICATION_TAG_TIMER_VALUE,
+    /* no-value - context tagged null */
+    BACNET_APPLICATION_TAG_NO_VALUE
 };
 
 /**
@@ -1300,34 +1305,136 @@ static void test_bacapp_data(void)
 }
 
 /**
- * @brief Test
+ * @brief Helper function to test bacapp_snprintf_value()
+ * @param tag_number [in] The BACnet application tag to test
+ * @param argv [in] The string to parse into a BACNET_APPLICATION_DATA_VALUE
+ * @param expected [in] The expected string output from bacapp_snprintf_value()
  */
-#if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(bacapp_tests, test_bacapp_sprintf_data)
-#else
-static void test_bacapp_sprintf_data(void)
-#endif
+void test_bacapp_snprintf(
+    BACNET_APPLICATION_TAG tag_number, char *argv, const char *expected)
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
     bool status = false;
-    int str_len = 0;
+    int str_len = 0, len, test_len;
 
+    /* object property value is only needed to snprintf ENUMERATED type */
     object_value.object_type = OBJECT_DEVICE;
     object_value.object_instance = 0;
-    object_value.object_property = PROP_DAYLIGHT_SAVINGS_STATUS;
+    object_value.object_property = PROP_SEGMENTATION_SUPPORTED;
     object_value.array_index = BACNET_ARRAY_ALL;
     object_value.value = &value;
 
-    status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_NULL, NULL, &value);
+    status = bacapp_parse_application_data(tag_number, argv, &value);
     zassert_true(status, NULL);
     str_len = bacapp_snprintf_value(NULL, 0, &object_value);
-    if (str_len > 0) {
+    if (str_len >= 0) {
         char str[str_len + 1];
-        bacapp_snprintf_value(str, str_len + 1, &object_value);
-        zassert_mem_equal(str, "Null", str_len, NULL);
+        str[0] = '\0';
+        /* normal case */
+        len = bacapp_snprintf_value(str, str_len + 1, &object_value);
+        zassert_mem_equal(
+            str, expected, str_len, "%s: str='%s' expected='%s'",
+            bactext_application_tag_name(tag_number), str, expected);
+        zassert_equal(len, str_len, NULL);
+        /* test when buffer is too small the behavior matches snprintf(). */
+        test_len = len;
+        while (test_len >= 0) {
+            len = bacapp_snprintf_value(str, test_len, &object_value);
+            zassert_equal(len, str_len, "len=%d str_len=%d", len, str_len);
+            zassert_equal(
+                str[test_len], '\0', "tag=%u '%s':str[%d]=%02X not NULL",
+                tag_number, argv, test_len, str[test_len]);
+            test_len--;
+        }
     }
+}
+
+/**
+ * @brief Test
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_sprintf_epics)
+#else
+static void test_bacapp_sprintf_epics(void)
+#endif
+{
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_NULL, NULL, "Null");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_BOOLEAN, "true", "TRUE");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_BOOLEAN, "false", "FALSE");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_UNSIGNED_INT, "0", "0");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_UNSIGNED_INT, "42", "42");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_UNSIGNED_INT, "4294967295", "4294967295");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_SIGNED_INT, "0", "0");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_SIGNED_INT, "-42", "-42");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_SIGNED_INT, "2147483647", "2147483647");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_SIGNED_INT, "-2147483648", "-2147483648");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_REAL, "0.0", "0.000000");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_REAL, "3.14159", "3.141590");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_REAL, "-3.14159", "-3.141590");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_DOUBLE, "0.0", "0.000000");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_DOUBLE, "3.14159", "3.141590");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_DOUBLE, "-3.14159", "-3.141590");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "1234567890ABCDEF",
+        "X'1234567890ABCDEF'");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "X'1234567890ABCDEF'",
+        "X'1234567890ABCDEF'");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "X'12-34-56-78-90-AB-CD-EF'",
+        "X'1234567890ABCDEF'");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "X'12 34 56 78 90 AB CD EF'",
+        "X'1234567890ABCDEF'");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_OCTET_STRING, "", "X''");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_CHARACTER_STRING, "Karg!", "\"Karg!\"");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_CHARACTER_STRING, "", "\"\"");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_BIT_STRING, "1011010010011111",
+        "{true,false,true,true,false,true,false,false,true,false,false,true,"
+        "true,true,true,true}");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_BIT_STRING, "111100001111",
+        "{true,true,true,true,false,false,false,false,true,true,true,true}");
+    /* note to tester: enumerated test relies on BACNET_OBJECT_PROPERTY_VALUE
+       initialized in test_bacapp_snprintf() as PROP_SEGMENTATION_SUPPORTED */
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_ENUMERATED, "0", "segmented-both");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_ENUMERATED, "1", "segmented-transmit");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_ENUMERATED, "2", "segmented-receive");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_ENUMERATED, "3", "no-segmentation");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_ENUMERATED, "42", "Reserved for Use by ASHRAE");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_DATE, "2005/5/22:1", "Monday, May 22, 2005");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_DATE, "2007/2/14",
+        "Wednesday, February 14, 2007");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_DATE, "2155/255/255:255",
+        "any day of week, Any Month (unspecified), (unspecified)");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_TIME, "23:59:59.12", "23:59:59.12");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_TIME, "23:59:59", "23:59:59.00");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_TIME, "23:59", "23:59:00.00");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_TIME, "255:255:255.255", "**:**:**.**");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OBJECT_ID, "0:100", "(analog-input, 100)");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OBJECT_ID, "8:4194303", "(device, 4194303)");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OBJECT_ID, "0:0", "(analog-input, 0)");
 }
 
 /**
@@ -1350,7 +1457,7 @@ void test_main(void)
         ztest_unit_test(testBACnetApplicationDataLength),
         ztest_unit_test(testBACnetApplicationData_Safe),
         ztest_unit_test(test_bacapp_data),
-        ztest_unit_test(test_bacapp_sprintf_data));
+        ztest_unit_test(test_bacapp_sprintf_epics));
 
     ztest_run_test_suite(bacapp_tests);
 }

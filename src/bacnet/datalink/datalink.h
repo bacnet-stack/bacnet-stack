@@ -31,7 +31,9 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #endif
-
+#if defined(BACDL_ZIGBEE)
+#include "bacnet/datalink/bzll.h"
+#endif
 #if defined(BACDL_BSC)
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bsc-datalink.h"
@@ -91,7 +93,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #else
 #define datalink_get_my_address bip_get_my_address
 #endif
-#define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
+#define datalink_maintenance_timer bvlc_maintenance_timer
 
 #elif defined(BACDL_BIP6) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BIP6_MPDU_MAX
@@ -102,7 +104,19 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_cleanup bip6_cleanup
 #define datalink_get_broadcast_address bip6_get_broadcast_address
 #define datalink_get_my_address bip6_get_my_address
-#define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
+#define datalink_maintenance_timer bvlc6_maintenance_timer
+
+#elif defined(BACDL_ZIGBEE) && !defined(BACDL_MULTIPLE)
+/* A BACnet/ZigBee Data Link Layer (BZLL) */
+#define MAX_MPDU BZLL_MPDU_MAX
+
+#define datalink_init bzll_init
+#define datalink_send_pdu bzll_send_pdu
+#define datalink_receive bzll_receive
+#define datalink_cleanup bzll_cleanup
+#define datalink_get_broadcast_address bzll_get_broadcast_address
+#define datalink_get_my_address bzll_get_my_address
+#define datalink_maintenance_timer bzll_maintenance_timer
 
 #elif defined(BACDL_BSC) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BVLC_SC_NPDU_SIZE_CONF
@@ -118,7 +132,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #elif !defined(BACDL_TEST) /* Multiple, none or custom datalink */
 #include "bacnet/npdu.h"
 
-#define MAX_HEADER (8)
+#define MAX_HEADER (17) /* ETHERNET_HEADER_MAX */
 #define MAX_MPDU (MAX_HEADER + MAX_PDU)
 
 #ifdef __cplusplus

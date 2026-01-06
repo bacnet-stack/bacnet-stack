@@ -6,7 +6,7 @@
  * @section LICENSE
  * Copyright (c) 2010 Steve Karg <skarg@users.sourceforge.net>
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/sys/linear.h>

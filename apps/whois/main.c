@@ -109,9 +109,9 @@ static void my_i_am_handler(
     uint16_t vendor_id = 0;
     unsigned i = 0;
 
-    (void)service_len;
-    len = iam_decode_service_request(
-        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
+    len = bacnet_iam_request_decode(
+        service_request, service_len, &device_id, &max_apdu, &segmentation,
+        &vendor_id);
     if (BACnet_Debug_Enabled) {
         fprintf(stderr, "Received I-Am Request");
     }
@@ -383,7 +383,10 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
-                dnet = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
                     global_broadcast = false;
                 }

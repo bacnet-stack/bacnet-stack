@@ -5,7 +5,7 @@
  * @date July 2023
  * @section LICENSE
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/channel.h>
@@ -16,6 +16,15 @@
  * @addtogroup bacnet_tests
  * @{
  */
+static BACNET_WRITE_PROPERTY_DATA Write_Property_Internal_Data;
+static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    memcpy(
+        &Write_Property_Internal_Data, wp_data,
+        sizeof(BACNET_WRITE_PROPERTY_DATA));
+
+    return true;
+}
 
 /**
  * @brief Test
@@ -29,12 +38,15 @@ static void test_Channel_Property_Read_Write(void)
     const char *test_name = NULL;
     uint32_t test_instance = 0;
     bool status = false;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     BACNET_CHANNEL_VALUE channel_value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_WRITE_GROUP_DATA wg_data = { 0 };
+
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
 
+    Channel_Write_Property_Internal_Callback_Set(Write_Property_Internal);
     Channel_Init();
     Channel_Create(instance);
     status = Channel_Valid_Instance(instance);
@@ -52,8 +64,8 @@ static void test_Channel_Property_Read_Write(void)
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
     member.objectIdentifier.instance = 1;
-    member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
     index = Channel_Reference_List_Member_Element_Add(instance, &member);
     zassert_not_equal(index, 0, NULL);
     status =
@@ -61,12 +73,18 @@ static void test_Channel_Property_Read_Write(void)
     zassert_true(status, NULL);
     status = Channel_Control_Groups_Element_Set(instance, 1, 1);
     zassert_true(status, NULL);
+    member.propertyIdentifier = PROP_RELINQUISH_DEFAULT;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_BINARY_OUTPUT;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.propertyIdentifier = PROP_RELINQUISH_DEFAULT;
     index = Channel_Reference_List_Member_Element_Add(instance, &member);
     zassert_not_equal(index, 0, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
@@ -77,12 +95,21 @@ static void test_Channel_Property_Read_Write(void)
     member.arrayIndex = BACNET_ARRAY_ALL;
     index = Channel_Reference_List_Member_Element_Add(instance, &member);
     zassert_not_equal(index, 0, NULL);
+    member.propertyIdentifier = PROP_RELINQUISH_DEFAULT;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_LIGHTING_OUTPUT;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.propertyIdentifier = PROP_RELINQUISH_DEFAULT;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.propertyIdentifier = PROP_HIGH_END_TRIM;
     index = Channel_Reference_List_Member_Element_Add(instance, &member);
     zassert_not_equal(index, 0, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
@@ -93,12 +120,18 @@ static void test_Channel_Property_Read_Write(void)
     member.arrayIndex = BACNET_ARRAY_ALL;
     index = Channel_Reference_List_Member_Element_Add(instance, &member);
     zassert_not_equal(index, 0, NULL);
+    member.propertyIdentifier = PROP_DEFAULT_COLOR;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = 0;
     member.objectIdentifier.type = OBJECT_COLOR_TEMPERATURE;
     member.objectIdentifier.instance = 1;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.propertyIdentifier = PROP_DEFAULT_COLOR_TEMPERATURE;
     index = Channel_Reference_List_Member_Element_Add(instance, &member);
     zassert_not_equal(index, 0, NULL);
     /* perform a general test for RP/WP */
@@ -125,6 +158,13 @@ static void test_Channel_Property_Read_Write(void)
     value.tag = BACNET_APPLICATION_TAG_CHANNEL_VALUE;
     value.type.Channel_Value.tag = BACNET_APPLICATION_TAG_REAL;
     value.type.Channel_Value.type.Real = 3.14159;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    value.type.Channel_Value.tag = BACNET_APPLICATION_TAG_XY_COLOR;
+    value.type.Channel_Value.type.XY_Color.x_coordinate = 0.4590f;
+    value.type.Channel_Value.type.XY_Color.y_coordinate = 0.4101f;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);
@@ -235,6 +275,16 @@ static void test_Channel_Property_Read_Write(void)
     channel_value.type.Real = 3.14159f;
     status = Channel_Present_Value_Set(instance, 1, &channel_value);
     zassert_true(status, NULL);
+    /* context API */
+    Channel_Context_Set(instance, Channel_Context_Get(instance));
+    /* WriteGroup API */
+    wg_data.change_list.channel = 1;
+    wg_data.change_list.overriding_priority = BACNET_MAX_PRIORITY;
+    wg_data.change_list.value.tag = BACNET_APPLICATION_TAG_REAL;
+    wg_data.change_list.value.type.Real = 2.71828f;
+    wg_data.inhibit_delay = 0;
+    wg_data.write_priority = BACNET_MAX_PRIORITY;
+    Channel_Write_Group(&wg_data, 0, &wg_data.change_list);
     /* cleanup */
     status = Channel_Delete(instance);
     zassert_true(status, NULL);

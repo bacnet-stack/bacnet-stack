@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet Accumulator object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2017
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/acc.h>
 #include <bacnet/bactext.h>
@@ -31,7 +28,7 @@ static void test_Accumulator(void)
     int test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *required_property = NULL;
+    const int32_t *required_property = NULL;
     BACNET_UNSIGNED_INTEGER unsigned_value = 1;
 
     Accumulator_Init();

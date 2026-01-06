@@ -25,7 +25,7 @@
 
 static SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];
 
-static const int Schedule_Properties_Required[] = {
+static const int32_t Schedule_Properties_Required[] = {
     /* list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -41,7 +41,7 @@ static const int Schedule_Properties_Required[] = {
     -1
 };
 
-static const int Schedule_Properties_Optional[] = {
+static const int32_t Schedule_Properties_Optional[] = {
     /* list of optional properties */
     PROP_WEEKLY_SCHEDULE,
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
@@ -50,10 +50,12 @@ static const int Schedule_Properties_Optional[] = {
     -1
 };
 
-static const int Schedule_Properties_Proprietary[] = { -1 };
+static const int32_t Schedule_Properties_Proprietary[] = { -1 };
 
 void Schedule_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Schedule_Properties_Required;

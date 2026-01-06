@@ -5,13 +5,12 @@
  * @date Jule 2022
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
-#include "bacnet/datalink/bsc/bsc-util.h"
+#include <stdlib.h>
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/sc_netport.h"
-#include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/sys/debug.h"
-#include <stdlib.h>
+#include "bacnet/datalink/bsc/bsc-util.h"
 
 #define PRINTF debug_printf_stdout
 #define PRINTF_ERR debug_printf_stderr
@@ -87,43 +86,6 @@ char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
         uuid->uuid[8], uuid->uuid[9], uuid->uuid[10], uuid->uuid[11],
         uuid->uuid[12], uuid->uuid[13], uuid->uuid[14], uuid->uuid[15]);
     return buf;
-}
-
-/**
- * @brief Generate random BACnet Secure Connect VMAC address
- * @param p - pointer to the VMAC address
- */
-void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
-{
-    int i;
-
-    for (i = 0; i < BVLC_SC_VMAC_SIZE; i++) {
-        p->address[i] = rand() % 256;
-        if (i == 0) {
-            /* According H.7.3 EUI-48 and Random-48 VMAC Address:
-               The Random-48 VMAC is a 6-octet VMAC address in which the least
-               significant 4 bits (Bit 3 to Bit 0) in the first octet shall be
-               B'0010' (X'2'), and all other 44 bits are randomly selected to be
-               0 or 1. */
-            p->address[i] = (p->address[i] & 0xF0) | 0x02;
-        }
-    }
-    debug_printf_hex(
-        0, p->address, BVLC_SC_VMAC_SIZE, "bsc_generate_random_vmac");
-}
-
-/**
- * @brief Generate random BACnet Secure Connect UUID
- * @param p - pointer to the UUID
- */
-void bsc_generate_random_uuid(BACNET_SC_UUID *p)
-{
-    int i;
-
-    for (i = 0; i < BVLC_SC_UUID_SIZE; i++) {
-        p->uuid[i] = rand() % 256;
-    }
-    debug_printf_hex(0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid");
 }
 
 /*
@@ -315,30 +277,223 @@ void bsc_set_timestamp(BACNET_DATE_TIME *timestamp)
  * @brief Check if BACnet/SC certificate files exist
  * @return true if all files exist, else false
  */
-bool bsc_cert_files_check(void)
+bool bsc_cert_files_check(uint32_t netport_instance)
 {
-    uint32_t instance;
     uint32_t file_instance;
 
-    instance = Network_Port_Index_To_Instance(0);
-
-    file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
+    file_instance = Network_Port_Issuer_Certificate_File(netport_instance, 0);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR("CA certificate file not exist\n");
+        PRINTF_ERR(
+            "Issuer Certificate file %u size=0. Path=%s\n", file_instance,
+            bacfile_pathname(file_instance));
         return false;
     }
 
-    file_instance = Network_Port_Operational_Certificate_File(instance);
+    file_instance = Network_Port_Operational_Certificate_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR("Certificate file not exist\n");
+        PRINTF_ERR(
+            "Operational Certificate file %u size=0. Path=%s\n", file_instance,
+            bacfile_pathname(file_instance));
+        PRINTF_ERR("Operational Certificate file not exist\n");
         return false;
     }
 
-    file_instance = Network_Port_Certificate_Key_File(instance);
+    file_instance = Network_Port_Certificate_Key_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR("Certificate key file not exist\n");
+        PRINTF_ERR(
+            "Certificate Key file %u size=0. Path=%s\n", file_instance,
+            bacfile_pathname(file_instance));
         return false;
     }
 
     return true;
+}
+
+/**
+ * @brief Return a return code string for human readable log messages
+ * @param ret BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_return_code_to_string(BSC_SC_RET ret)
+{
+    switch (ret) {
+        case BSC_SC_SUCCESS:
+            return "SUCCESS";
+        case BSC_SC_NO_RESOURCES:
+            return "NO_RESOURCES";
+        case BSC_SC_BAD_PARAM:
+            return "BAD_PARAM";
+        case BSC_SC_INVALID_OPERATION:
+            return "INVALID_OPERATION";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
+}
+
+/**
+ * @brief Return a string for human readable log messages
+ * @param ev BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_socket_event_to_string(BSC_SOCKET_EVENT ev)
+{
+    switch (ev) {
+        case BSC_SOCKET_EVENT_CONNECTED:
+            return "CONNECTED";
+        case BSC_SOCKET_EVENT_DISCONNECTED:
+            return "DISCONNECTED";
+        case BSC_SOCKET_EVENT_RECEIVED:
+            return "RECEIVED";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
+}
+
+/**
+ * @brief Return a string for human readable log messages
+ * @param ev BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_socket_state_to_string(BSC_SOCKET_STATE state)
+{
+    switch (state) {
+        case BSC_SOCK_STATE_IDLE:
+            return "IDLE";
+        case BSC_SOCK_STATE_AWAITING_WEBSOCKET:
+            return "AWAITING_WEBSOCKET";
+        case BSC_SOCK_STATE_AWAITING_REQUEST:
+            return "AWAITING_REQUEST";
+        case BSC_SOCK_STATE_AWAITING_ACCEPT:
+            return "AWAITING_ACCEPT";
+        case BSC_SOCK_STATE_CONNECTED:
+            return "CONNECTED";
+        case BSC_SOCK_STATE_DISCONNECTING:
+            return "DISCONNECTING";
+        case BSC_SOCK_STATE_ERROR:
+            return "ERROR";
+        case BSC_SOCK_STATE_ERROR_FLUSH_TX:
+            return "ERROR_FLUSH_TX";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
+}
+
+/**
+ * @brief Return a string for human readable log messages
+ * @param ev BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_websocket_return_to_string(BSC_WEBSOCKET_RET ret)
+{
+    switch (ret) {
+        case BSC_WEBSOCKET_SUCCESS:
+            return "SUCCESS";
+        case BSC_WEBSOCKET_NO_RESOURCES:
+            return "NO_RESOURCES";
+        case BSC_WEBSOCKET_BAD_PARAM:
+            return "BAD_PARAM";
+        case BSC_WEBSOCKET_INVALID_OPERATION:
+            return "INVALID_OPERATION";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
+}
+
+/**
+ * @brief Return a string for human readable log messages
+ * @param ev BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_websocket_event_to_string(BSC_WEBSOCKET_EVENT event)
+{
+    switch (event) {
+        case BSC_WEBSOCKET_CONNECTED:
+            return "CONNECTED";
+        case BSC_WEBSOCKET_DISCONNECTED:
+            return "DISCONNECTED";
+        case BSC_WEBSOCKET_RECEIVED:
+            return "RECEIVED";
+        case BSC_WEBSOCKET_SENDABLE:
+            return "SENDABLE";
+        case BSC_WEBSOCKET_SERVER_STARTED:
+            return "SERVER_STARTED";
+        case BSC_WEBSOCKET_SERVER_STOPPED:
+            return "SERVER_STOPPED";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
+}
+
+/**
+ * @brief Return a string for human readable log messages
+ * @param ev BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_bvlc_message_type_to_string(BVLC_SC_MESSAGE_TYPE message)
+{
+    switch (message) {
+        case BVLC_SC_RESULT:
+            return "RESULT";
+        case BVLC_SC_ENCAPSULATED_NPDU:
+            return "ENCAPSULATED_NPDU";
+        case BVLC_SC_ADDRESS_RESOLUTION:
+            return "ADDRESS_RESOLUTION";
+        case BVLC_SC_ADDRESS_RESOLUTION_ACK:
+            return "ADDRESS_RESOLUTION_ACK";
+        case BVLC_SC_ADVERTISIMENT:
+            return "ADVERTISIMENT";
+        case BVLC_SC_ADVERTISIMENT_SOLICITATION:
+            return "ADVERTISIMENT_SOLICITATION";
+        case BVLC_SC_CONNECT_REQUEST:
+            return "CONNECT_REQUEST";
+        case BVLC_SC_CONNECT_ACCEPT:
+            return "CONNECT_ACCEPT";
+        case BVLC_SC_DISCONNECT_REQUEST:
+            return "DISCONNECT_REQUEST";
+        case BVLC_SC_DISCONNECT_ACK:
+            return "DISCONNECT_ACK";
+        case BVLC_SC_HEARTBEAT_REQUEST:
+            return "HEARTBEAT_REQUEST";
+        case BVLC_SC_HEARTBEAT_ACK:
+            return "HEARTBEAT_ACK";
+        case BVLC_SC_PROPRIETARY_MESSAGE:
+            return "PROPRIETARY_MESSAGE";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
+}
+
+/**
+ * @brief Return a string for human readable log messages
+ * @param ev BACnet/SC return codes
+ * @return return code string for human readable log messages
+ */
+const char *bsc_context_state_to_string(BSC_CTX_STATE state)
+{
+    switch (state) {
+        case BSC_CTX_STATE_IDLE:
+            return "IDLE";
+        case BSC_CTX_STATE_INITIALIZING:
+            return "INITIALIZING";
+        case BSC_CTX_STATE_INITIALIZED:
+            return "INITIALIZED";
+        case BSC_CTX_STATE_DEINITIALIZING:
+            return "DEINITIALIZING";
+        default:
+            break;
+    }
+
+    return "UNKNOWN";
 }

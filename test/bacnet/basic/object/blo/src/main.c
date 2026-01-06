@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date September 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
@@ -29,9 +29,9 @@ static void testBinaryLightingOutput(void)
     BACNET_READ_PROPERTY_DATA rpdata;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
     const uint32_t instance = 123;
     uint32_t test_instance = 0;
     bool status = false;

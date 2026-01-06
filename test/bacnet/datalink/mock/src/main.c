@@ -1,14 +1,12 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief Mock for all the BACnet datalinks
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet datalink return codes
- */
-
-#include <stdlib.h> /* For calloc() */
+#include <stdlib.h>
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/datalink.h>
 #include "bacnet/apdu.h"

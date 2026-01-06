@@ -14,6 +14,7 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -581,31 +582,30 @@ bool characterstring_same(
  * @return true if the character encoding and string contents are the same
  */
 bool characterstring_ansi_same(
-    const BACNET_CHARACTER_STRING *dest, const char *src)
+    const BACNET_CHARACTER_STRING *src1, const char *src2)
 {
     size_t i; /* counter */
     bool same_status = false;
 
-    if (src && dest) {
-        if ((dest->encoding == CHARACTER_ANSI_X34) &&
-            (dest->length == strlen(src)) &&
-            (dest->length <= MAX_CHARACTER_STRING_BYTES)) {
+    if (src1 && src2) {
+        if ((src1->encoding == CHARACTER_ANSI_X34) &&
+            (src1->length == strlen(src2)) &&
+            (src1->length <= MAX_CHARACTER_STRING_BYTES)) {
             same_status = true;
-            for (i = 0; i < dest->length; i++) {
-                if (src[i] != dest->value[i]) {
+            for (i = 0; i < src1->length; i++) {
+                if (src2[i] != src1->value[i]) {
                     same_status = false;
                     break;
                 }
             }
         }
-    }
-    /* NULL matches an empty string in our world */
-    else if (src) {
-        if (strlen(src) == 0) {
+    } else if (src2) {
+        /* NULL matches an empty string in our world */
+        if (strlen(src2) == 0) {
             same_status = true;
         }
-    } else if (dest) {
-        if (dest->length == 0) {
+    } else if (src1) {
+        if (src1->length == 0) {
             same_status = true;
         }
     }
@@ -1088,6 +1088,32 @@ bool octetstring_init_ascii_hex(
 }
 
 /**
+ * @brief Converts an null terminated ASCII Hex EPICS formatted string
+ *  to an octet string.
+ * @details format: X'c0:a8:00:0f'
+ * @param octet_string  Pointer to the octet string.
+ * @param arg  Pointer to the HEX-ASCII EPICS format string
+ * @return true if successfully converted and fits; false if too long
+ */
+bool octetstring_init_ascii_epics(
+    BACNET_OCTET_STRING *octet_string, const char *arg)
+{
+    bool status = false; /* return value */
+
+    if (!octet_string) {
+        return false;
+    }
+    if (!arg) {
+        return false;
+    }
+    if (bacnet_strnicmp(arg, "X'", 2) == 0) {
+        status = octetstring_init_ascii_hex(octet_string, arg + 2);
+    }
+
+    return status;
+}
+
+/**
  * Copy an octet string from source to destination.
  *
  * @param dest  Pointer to the destination octet string.
@@ -1120,7 +1146,7 @@ size_t octetstring_copy_value(
     size_t i; /* counter */
 
     if (src && dest) {
-        if (length <= src->length) {
+        if (src->length <= length) {
             for (i = 0; i < src->length; i++) {
                 dest[i] = src->value[i];
             }
@@ -1274,13 +1300,67 @@ bool octetstring_value_same(
 #endif
 
 /**
- * @brief Compare two strings, case insensitive
+ * @brief Compare two strings, case sensitive or insensitive, with length limit
+ * @details The strncmp() function compares, at most, the first n characters
+ *  of string1 and string2.
+ *  The function operates on null terminated strings.
+ *  The string arguments to the function are expected to contain
+ *  a null character (\0) marking the end of the string.
  * @param a - first string
  * @param b - second string
+ * @param length - maximum length to compare, or zero for full length of the
+ *  first string argument.
+ * @param case_insensitive - true for case insensitive comparison
  * @return 0 if the strings are equal, non-zero if not
- * @note The stricmp() function is not included in the C standard.
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
  */
-int bacnet_stricmp(const char *a, const char *b)
+static int bacnet_strnicmp_internal(
+    const char *a, const char *b, size_t length, bool case_insensitive)
+{
+    int twin_a, twin_b;
+
+    if (a == NULL) {
+        return -1;
+    }
+    if (b == NULL) {
+        return 1;
+    }
+    if (length == 0) {
+        length = strlen(a);
+    }
+    do {
+        twin_a = *(const unsigned char *)a;
+        twin_b = *(const unsigned char *)b;
+        if (case_insensitive) {
+            twin_a = tolower(toupper(twin_a));
+            twin_b = tolower(toupper(twin_b));
+        }
+        a++;
+        b++;
+        length--;
+    } while ((twin_a == twin_b) && (twin_a != '\0') && (length > 0));
+
+    return twin_a - twin_b;
+}
+
+/**
+ * @brief Compare two strings, case sensitive or insensitive
+ * @param a - first string
+ * @param b - second string
+ * @param case_insensitive - true for case insensitive comparison
+ * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
+ */
+static int
+bacnet_stricmp_internal(const char *a, const char *b, bool case_insensitive)
 {
     int twin_a, twin_b;
 
@@ -1293,13 +1373,72 @@ int bacnet_stricmp(const char *a, const char *b)
     do {
         twin_a = *(const unsigned char *)a;
         twin_b = *(const unsigned char *)b;
-        twin_a = tolower(toupper(twin_a));
-        twin_b = tolower(toupper(twin_b));
+        if (case_insensitive) {
+            twin_a = tolower(toupper(twin_a));
+            twin_b = tolower(toupper(twin_b));
+        }
         a++;
         b++;
     } while ((twin_a == twin_b) && (twin_a != '\0'));
 
     return twin_a - twin_b;
+}
+
+/**
+ * @brief Compare two strings, case sensitive
+ * @param a - first string
+ * @param b - second string
+ * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
+ */
+int bacnet_strcmp(const char *a, const char *b)
+{
+    return bacnet_stricmp_internal(a, b, false);
+}
+
+/**
+ * @brief Compare two strings, case insensitive
+ * @param a - first string
+ * @param b - second string
+ * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
+ * @note The stricmp() function is not included in the C standard.
+ */
+int bacnet_stricmp(const char *a, const char *b)
+{
+    return bacnet_stricmp_internal(a, b, true);
+}
+
+/**
+ * @brief Compare two strings, case sensitive, with length limit
+ * @details The strncmp() function compares, at most, the first n characters
+ *  of string1 and string2 with sensitivity to case.
+ *
+ *  The function operates on null terminated strings.
+ *  The string arguments to the function are expected to contain
+ *  a null character (\0) marking the end of the string.
+ *
+ * @param a - first string
+ * @param b - second string
+ * @param length - maximum length to compare
+ * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
+ */
+int bacnet_strncmp(const char *a, const char *b, size_t length)
+{
+    return bacnet_strnicmp_internal(a, b, length, false);
 }
 
 /**
@@ -1315,32 +1454,16 @@ int bacnet_stricmp(const char *a, const char *b)
  * @param b - second string
  * @param length - maximum length to compare
  * @return 0 if the strings are equal, non-zero if not
+ *  The sign of a nonzero value returned by the comparison functions
+ *  memcmp, strcmp, and strncmp is determined by the sign of the
+ *  difference between the values of the first pair of characters
+ *  (both interpreted as unsigned char) that differ in the objects
+ *  being compared.
  * @note The strnicmp() function is not included in the C standard.
  */
 int bacnet_strnicmp(const char *a, const char *b, size_t length)
 {
-    int twin_a, twin_b;
-
-    if (length == 0) {
-        return 0;
-    }
-    if (a == NULL) {
-        return -1;
-    }
-    if (b == NULL) {
-        return 1;
-    }
-    do {
-        twin_a = *(const unsigned char *)a;
-        twin_b = *(const unsigned char *)b;
-        twin_a = tolower(toupper(twin_a));
-        twin_b = tolower(toupper(twin_b));
-        a++;
-        b++;
-        length--;
-    } while ((twin_a == twin_b) && (twin_a != '\0') && (length > 0));
-
-    return twin_a - twin_b;
+    return bacnet_strnicmp_internal(a, b, length, true);
 }
 
 /**
@@ -1366,4 +1489,649 @@ size_t bacnet_strnlen(const char *str, size_t maxlen)
         return maxlen;
     }
     return (p - str);
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a unsigned long value
+ * @param str - string to convert
+ * @param long_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtoul(const char *str, unsigned long *long_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* Conversion was not possible */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_value) {
+        *long_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a signed long integer
+ * @param str - string to convert
+ * @param long_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_strtol(const char *str, long *long_value)
+{
+    char *endptr;
+    long value;
+
+    errno = 0;
+    value = strtol(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_value) {
+        *long_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite floating point value
+ * @param str - string to convert
+ * @param float_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtof(const char *str, float *float_value)
+{
+    char *endptr;
+    float value;
+
+    errno = 0;
+    value = strtof(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (float_value) {
+        *float_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite double precision
+ *  floating point value
+ * @param str - string to convert
+ * @param double_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtod(const char *str, double *double_value)
+{
+    char *endptr;
+    double value;
+
+    errno = 0;
+    value = strtod(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (double_value) {
+        *double_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a finite double precision
+ *  floating point value
+ * @param str - string to convert
+ * @param long_double_value - where to put the converted value
+ * @return true if converted and finite value is set
+ * @return false if not converted and finite value is not set
+ */
+bool bacnet_strtold(const char *str, long double *long_double_value)
+{
+    char *endptr;
+    long double value;
+
+    errno = 0;
+    value = strtold(str, &endptr);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (long_double_value) {
+        *long_double_value = value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint8_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_uint8(const char *str, uint8_t *uint8_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value > UINT8_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint8_value) {
+        *uint8_value = (uint8_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint16_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_uint16(const char *str, uint16_t *uint16_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value > UINT16_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint16_value) {
+        *uint16_value = (uint16_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a uint32_t value
+ * @param str - string to convert
+ * @param uint32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_uint32(const char *str, uint32_t *uint32_value)
+{
+    char *endptr;
+    unsigned long value;
+
+    errno = 0;
+    value = strtoul(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value > UINT32_MAX) {
+        /* If the value is outside the range of this datatype */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (uint32_value) {
+        *uint32_value = (uint32_t)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into an int32_t value
+ * @param str - string to convert
+ * @param int32_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_int32(const char *str, int32_t *int32_value)
+{
+    char *endptr;
+    long value;
+
+    errno = 0;
+    value = strtol(str, &endptr, 0);
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (value < INT32_MIN || value > INT32_MAX) {
+        /* The correct value is outside the range of this data type */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (int32_value) {
+        *int32_value = (int32_t)value;
+    }
+    return true;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into an bool value
+ * @param str - string to convert
+ * @param bool_value - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_bool(const char *str, bool *bool_value)
+{
+    bool status = false;
+    long long_value = 0;
+
+    if (bacnet_stricmp(str, "true") == 0 ||
+        bacnet_stricmp(str, "active") == 0) {
+        status = true;
+        if (bool_value) {
+            *bool_value = true;
+        }
+    } else if (
+        bacnet_stricmp(str, "false") == 0 ||
+        bacnet_stricmp(str, "inactive") == 0) {
+        status = true;
+        if (bool_value) {
+            *bool_value = false;
+        }
+    } else {
+        status = bacnet_strtol(str, &long_value);
+        if (!status) {
+            return false;
+        }
+        if (bool_value) {
+            if (long_value) {
+                *bool_value = true;
+            } else {
+                *bool_value = false;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Attempt to convert a numeric string into a unsigned long value
+ * @param str - string to convert
+ * @param unsigned_int - where to put the converted value
+ * @return true if converted and value is set
+ * @return false if not converted and value is not set
+ */
+bool bacnet_string_to_unsigned(
+    const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int)
+{
+    char *endptr;
+#ifdef UINT64_MAX
+    unsigned long long value;
+#else
+    unsigned long value;
+#endif
+
+    errno = 0;
+#ifdef UINT64_MAX
+    value = strtoull(str, &endptr, 0);
+#else
+    value = strtoul(str, &endptr, 0);
+#endif
+    if (endptr == str) {
+        /* No digits found */
+        return false;
+    }
+    if (errno == ERANGE) {
+        /* Conversion is outside the range of representable values
+           so errno set to [ERANGE] */
+        return false;
+    }
+    if (*endptr != '\0') {
+        /* Extra text found */
+        return false;
+    }
+    if (unsigned_int) {
+        *unsigned_int = (BACNET_UNSIGNED_INTEGER)value;
+    }
+
+    return true;
+}
+
+/**
+ * @brief General purpose print formatter which returns the formatted string
+ * @param buffer - destination string
+ * @param count - length of the destination string
+ * @param format - format string
+ * @return character string buffer
+ */
+char *
+bacnet_snprintf_to_ascii(char *buffer, size_t size, const char *format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    /* The vsnprintf function always writes a null terminator,
+       even if it truncates the output. */
+    (void)vsnprintf(buffer, size, format, args);
+    va_end(args);
+
+    return buffer;
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @param precision Number of decimal places
+ * @return character string buffer
+ */
+char *bacnet_dtoa(double value, char *buffer, size_t size, unsigned precision)
+{
+    return bacnet_snprintf_to_ascii(buffer, size, "%.*f", precision, value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_itoa(int value, char *buffer, size_t size)
+{
+    return bacnet_snprintf_to_ascii(buffer, size, "%d", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_ltoa(long value, char *buffer, size_t size)
+{
+    return bacnet_snprintf_to_ascii(buffer, size, "%ld", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_utoa(unsigned value, char *buffer, size_t size)
+{
+    return bacnet_snprintf_to_ascii(buffer, size, "%u", value);
+}
+
+/**
+ * @brief Convert a value into a string and return the base-10 string
+ * @param value Number to be converted.
+ * @param buffer Buffer that holds the result of the conversion.
+ * @param size Length of the buffer in units of the character type.
+ * @return character string buffer
+ */
+char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
+{
+    return bacnet_snprintf_to_ascii(buffer, size, "%lu", value);
+}
+
+/**
+ * @brief trim characters from the left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_ltrim(char *str, const char *trimmedchars)
+{
+    if (str[0] == 0) {
+        return str;
+    }
+    while (strchr(trimmedchars, *str)) {
+        str++;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_rtrim(char *str, const char *trimmedchars)
+{
+    char *end;
+
+    if (str[0] == 0) {
+        return str;
+    }
+    end = str + strlen(str) - 1;
+    while (strchr(trimmedchars, *end)) {
+        *end = 0;
+        if (end == str) {
+            break;
+        }
+        end--;
+    }
+    return str;
+}
+
+/**
+ * @brief trim characters from the right side and left side of a string
+ * @param str - string to trim
+ * @param trimmedchars - characters to trim from the string
+ * @return the trimmed string
+ */
+char *bacnet_trim(char *str, const char *trimmedchars)
+{
+    return bacnet_ltrim(bacnet_rtrim(str, trimmedchars), trimmedchars);
+}
+
+/**
+ * @brief Parse a token from a string.
+ * @details From a string, a buffer to receive the "token" that gets scanned,
+ *  the length of the buffer, and a string of "break" characters that stop
+ *  the scan. The function will copy the string into the buffer up to any
+ *  of the break characters, or until the buffer is full, and will always
+ *  leave the buffer null-terminated. The function will return a pointer
+ *  to the first non-breaking character after the one that stopped the scan.
+ * @param s string to parse
+ * @param tok buffer that receives the "token" that gets scanned
+ * @param toklen length of the buffer
+ * @param brk string of break characters that will stop the scan
+ * @return a pointer to the first non-breaking character after the one that
+ *  stopped the scan or NULL on error or end of string.
+ * @note public domain by Ray Gardner, modified by Bob Stout and Steve Karg
+ */
+char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
+{
+    char *lim; /* limit of token */
+    const char *b; /* current break character */
+
+    /* check for invalid pointers */
+    if (!s || !tok || !brk) {
+        return NULL;
+    }
+
+    /* check for empty string */
+    if (!*s) {
+        return NULL;
+    }
+
+    lim = tok + toklen - 1;
+    while (*s && tok < lim) {
+        for (b = brk; *b; b++) {
+            if (*s == *b) {
+                *tok = 0;
+                for (++s, b = brk; *s && *b; ++b) {
+                    if (*s == *b) {
+                        ++s;
+                        b = brk;
+                    }
+                }
+                if (!*s) {
+                    return NULL;
+                }
+                return (char *)s;
+            }
+        }
+        *tok++ = *s++;
+    }
+    *tok = 0;
+
+    if (!*s) {
+        return NULL;
+    }
+
+    return (char *)s;
+}
+
+/**
+ * @brief General purpose print formatter snprintf() function with offset
+ * @param buffer - destination string
+ * @param size - length of the destination string, or zero for length
+ * @param offset - offset into the buffer to start the string
+ * @param format - format string
+ * @return total number of characters written from the beginning of buffer
+ */
+int bacnet_snprintf(
+    char *buffer, size_t size, int offset, const char *format, ...)
+{
+    int length = 0, write_length = 0;
+    va_list args;
+    char *write_buffer = NULL;
+    size_t write_size = 0;
+
+    if (offset < 0) {
+        return offset;
+    }
+    if (offset < size) {
+        write_size = size - offset;
+        if (buffer) {
+            write_buffer = buffer + offset;
+        }
+    } else if (size == 0) {
+        write_size = 0;
+        /* when size is zero, nothing is written to the buffer */
+    } else {
+        return size;
+    }
+    va_start(args, format);
+    length = vsnprintf(write_buffer, write_size, format, args);
+    va_end(args);
+    write_length = offset + length;
+    if (size != 0) {
+        /* limit the return value to the size of the buffer */
+        if (write_length > size) {
+            write_length = size;
+        }
+    }
+
+    return write_length;
 }

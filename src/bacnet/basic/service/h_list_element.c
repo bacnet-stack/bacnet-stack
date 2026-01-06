@@ -52,7 +52,7 @@ void handler_add_list_element(
     BACNET_LIST_ELEMENT_DATA list_element = { 0 };
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
-    int len = 0;
+    int len = 0, err = 0;
     bool status = true;
     int pdu_len = 0;
     int bytes_sent = 0;
@@ -102,7 +102,15 @@ void handler_add_list_element(
             status = false;
         }
         if (status) {
-            if (Device_Add_List_Element(&list_element)) {
+            if (!property_list_bacnet_list_member(
+                    list_element.object_type, list_element.object_property)) {
+                list_element.error_class = ERROR_CLASS_SERVICES;
+                list_element.error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+                err = BACNET_STATUS_ERROR;
+            } else {
+                err = Device_Add_List_Element(&list_element);
+            }
+            if (err == BACNET_STATUS_OK) {
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ADD_LIST_ELEMENT);
@@ -153,7 +161,7 @@ void handler_remove_list_element(
     BACNET_LIST_ELEMENT_DATA list_element = { 0 };
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
-    int len = 0;
+    int len = 0, err = BACNET_STATUS_OK;
     bool status = true;
     int pdu_len = 0;
     int bytes_sent = 0;
@@ -192,28 +200,35 @@ void handler_remove_list_element(
                 (long)list_element.array_index);
         } else {
             debug_print("RemoveListElement: Unable to decode request!\n");
+            /* bad decoding or something we didn't understand - send an abort */
+            err = BACNET_STATUS_ABORT;
         }
-        /* bad decoding or something we didn't understand - send an abort */
-        if (len <= 0) {
+        if (len > 0) {
+            if (!property_list_bacnet_list_member(
+                    list_element.object_type, list_element.object_property)) {
+                list_element.error_class = ERROR_CLASS_SERVICES;
+                list_element.error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+                err = BACNET_STATUS_ERROR;
+            } else {
+                err = Device_Remove_List_Element(&list_element);
+            }
+        }
+        if (err == BACNET_STATUS_OK) {
+            len = encode_simple_ack(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT);
+            debug_print("RemoveListElement: Sending Simple Ack!\n");
+        } else if (err == BACNET_STATUS_ABORT) {
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
             debug_print("RemoveListElement: Bad Encoding. Sending Abort!\n");
-            status = false;
-        }
-        if (status) {
-            if (Device_Remove_List_Element(&list_element)) {
-                len = encode_simple_ack(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT);
-                debug_print("RemoveListElement: Sending Simple Ack!\n");
-            } else {
-                len = bacerror_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT,
-                    list_element.error_class, list_element.error_code);
-                debug_print("RemoveListElement: Sending Error!\n");
-            }
+        } else {
+            len = bacerror_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT, list_element.error_class,
+                list_element.error_code);
+            debug_print("RemoveListElement: Sending Error!\n");
         }
     }
     /* Send PDU */

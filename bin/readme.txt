@@ -117,6 +117,27 @@ BACNET_IP_NAT_ADDR - dotted IPv4 address of the public facing router
 
 BACNET_IP_BROADCAST_BIND_ADDR - dotted IPv4 address to bind broadcasts
 
+When the tools are compiled to use MS/TP datalink, the following
+environment variables are used:
+
+BACNET_MAX_INFO_FRAMES - BACnet MS/TP max-info-frames parameter.
+  Defaults to 127.
+
+BACNET_MAX_MASTER -  BACnet MS/TP max-master parameter.
+  Defaults to 127.
+
+BACNET_MSTP_BAUD - BACnet MS/TP baud rate.
+  Defaults to 38400.
+
+BACNET_MSTP_MAC - BACnet MS/TP MAC address.
+  Defaults to 127.
+
+BACNET_IFACE - interface to use for the MS/TP datalink layer
+  For Linux, this is something like /dev/ttyS0 or /dev/ttyUSB0
+  For Windows, this is something like COM4 or COM23
+  Defaults to /dev/ttyUSB0 on Linux and COM4 on Windows
+  and /dev/cu.usbserial-7 on macOS.
+
 Example Usage
 -------------
 You can communicate with the virtual BACnet Device by using the other BACnet

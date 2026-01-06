@@ -47,6 +47,7 @@ struct object_data {
     uint32_t Control_Groups[CONTROL_GROUPS_MAX];
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 
 /* Key List for storing the object data sorted by instance number  */
@@ -56,7 +57,7 @@ static write_property_function Write_Property_Internal_Callback;
 
 /* These arrays are used by the ReadPropertyMultiple handler
    property-list property (as of protocol-revision 14) */
-static const int Channel_Properties_Required[] = {
+static const int32_t Channel_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -71,9 +72,9 @@ static const int Channel_Properties_Required[] = {
     -1
 };
 
-static const int Channel_Properties_Optional[] = { -1 };
+static const int32_t Channel_Properties_Optional[] = { -1 };
 
-static const int Channel_Properties_Proprietary[] = { -1 };
+static const int32_t Channel_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -87,7 +88,9 @@ static const int Channel_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Channel_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Channel_Properties_Required;
@@ -578,10 +581,10 @@ bool Channel_Write_Member_Value(
     int apdu_len = 0;
 
     if (wp_data && value) {
-        if (((wp_data->object_type == OBJECT_ANALOG_INPUT) ||
-             (wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
+        if (((wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
              (wp_data->object_type == OBJECT_ANALOG_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -591,10 +594,10 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (
-            ((wp_data->object_type == OBJECT_BINARY_INPUT) ||
-             (wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
+            ((wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
              (wp_data->object_type == OBJECT_BINARY_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -604,10 +607,10 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (
-            ((wp_data->object_type == OBJECT_MULTI_STATE_INPUT) ||
-             (wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
+            ((wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
              (wp_data->object_type == OBJECT_MULTI_STATE_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -616,53 +619,48 @@ bool Channel_Write_Member_Value(
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
-        } else if (wp_data->object_type == OBJECT_LIGHTING_OUTPUT) {
-            if ((wp_data->object_property == PROP_PRESENT_VALUE) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_REAL);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
-            } else if (
-                (wp_data->object_property == PROP_LIGHTING_COMMAND) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_LIGHTING_COMMAND);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
+        } else if (
+            (wp_data->object_type == OBJECT_LIGHTING_OUTPUT) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
+            apdu_len = bacnet_channel_value_coerce_data_encode(
+                wp_data->application_data, wp_data->application_data_len, value,
+                BACNET_APPLICATION_TAG_REAL);
+            if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
             }
-        } else if (wp_data->object_type == OBJECT_COLOR) {
-            if ((wp_data->object_property == PROP_PRESENT_VALUE) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_XY_COLOR);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
-            } else if (
-                (wp_data->object_property == PROP_COLOR_COMMAND) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_COLOR_COMMAND);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
+        } else if (
+            (wp_data->object_type == OBJECT_COLOR) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_DEFAULT_COLOR)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
+            apdu_len = bacnet_channel_value_coerce_data_encode(
+                wp_data->application_data, wp_data->application_data_len, value,
+                BACNET_APPLICATION_TAG_XY_COLOR);
+            if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
             }
-        } else if (wp_data->object_type == OBJECT_COLOR_TEMPERATURE) {
+        } else if (
+            (wp_data->object_type == OBJECT_COLOR_TEMPERATURE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_DEFAULT_COLOR_TEMPERATURE)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
                 BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
+            }
+        } else {
+            /* no coercion */
+            apdu_len = bacnet_channel_value_no_coerce_encode(
+                wp_data->application_data, wp_data->application_data_len,
+                value);
+            if (apdu_len > 0) {
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
@@ -847,7 +845,7 @@ bool Channel_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    char name_text[24] = "CHANNEL-4194303";
+    char name_text[32] = "CHANNEL-4194303";
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
@@ -988,7 +986,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_PRESENT_VALUE:
             cvalue = Channel_Present_Value(rpdata->object_instance);
             apdu_len = bacnet_channel_value_encode(apdu, apdu_size, cvalue);
-            if (apdu_len == BACNET_STATUS_ERROR) {
+            if (apdu_len == 0) {
                 apdu_len = encode_application_null(apdu);
             }
             break;
@@ -1380,6 +1378,38 @@ void Channel_Write_Property_Internal_Callback_Set(write_property_function cb)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Channel_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Channel_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a new object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1390,6 +1420,9 @@ uint32_t Channel_Create(uint32_t object_instance)
     int index = 0;
     unsigned m, g;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

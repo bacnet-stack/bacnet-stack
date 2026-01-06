@@ -198,6 +198,11 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Device_Init(object_functions_t *object_table);
+BACNET_STACK_EXPORT
+struct object_functions *Device_Object_Functions(void);
+BACNET_STACK_EXPORT
+struct object_functions *
+Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type);
 
 BACNET_STACK_EXPORT
 void Device_Timer(uint16_t milliseconds);
@@ -238,7 +243,9 @@ bool Device_Interval_Offset_Set(uint32_t value);
 
 BACNET_STACK_EXPORT
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 BACNET_STACK_EXPORT
 void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
@@ -391,8 +398,11 @@ BACNET_STACK_EXPORT
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
+void Device_Add_List_Element_Callback_Set(list_element_function cb);
+BACNET_STACK_EXPORT
 int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
-
+BACNET_STACK_EXPORT
+void Device_Remove_List_Element_Callback_Set(list_element_function cb);
 BACNET_STACK_EXPORT
 int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 
@@ -435,9 +445,10 @@ bool Routed_Device_Address_Lookup(
     int idx, uint8_t address_len, const uint8_t *mac_adress);
 BACNET_STACK_EXPORT
 bool Routed_Device_GetNext(
-    const BACNET_ADDRESS *dest, const int *DNET_list, int *cursor);
+    const BACNET_ADDRESS *dest, const int32_t *DNET_list, int *cursor);
 BACNET_STACK_EXPORT
-bool Routed_Device_Is_Valid_Network(uint16_t dest_net, const int *DNET_list);
+bool Routed_Device_Is_Valid_Network(
+    uint16_t dest_net, const int32_t *DNET_list);
 
 BACNET_STACK_EXPORT
 uint32_t Routed_Device_Index_To_Instance(unsigned index);
@@ -489,7 +500,7 @@ int Routed_Device_Service_Approval(
  * situated in the Device Object, which "knows" how to reach its child Objects.
  *
  * Most of these calls have a common operation:
- *  -# Call Device_Objects_Find_Functions( for the desired Object_Type )
+ *  -# Call Device_Object_Functions_Find( for the desired Object_Type )
  *   - Gets a pointer to the object_functions for this Type of Object.
  *  -# Call the Object's Object_Valid_Instance( for the desired object_instance
  * ) to make sure there is such an instance.
