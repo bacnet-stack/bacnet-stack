@@ -44,6 +44,7 @@
 #include "bacnet/basic/object/bv.h"
 
 #include "bacnet/basic/object/calendar.h"
+#include "bacnet/basic/object/schedule.h"
 
 #include "bacnet/basic/object/structured_view.h"
 #include "bacnet/basic/object/trendlog.h"
@@ -278,12 +279,17 @@ static void Init_Service_Handlers(void)
     Binary_Input_Event_Detection_Enable_Set(1,true);
     Binary_Input_Event_Enable_Set(1, 0b111);
 
+    Analog_Input_Delete(1);
     /* Configure Ventil */
     Analog_Input_Create(100);
     Analog_Input_Name_Set(100, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_RW~01");
     Analog_Input_Description_Set(100, "Verteilanlage 1 Statische Heizung 1 Heizwasser Vorlauf Ventil Rückführwert");
+    BACNET_CHARACTER_STRING BCS;
+    characterstring_init_ansi(&BCS,"AMEV AI Object Type");
+    Analog_Input_Device_Type_Set(100, BCS);
     Analog_Input_Units_Set(100, UNITS_PERCENT);
     Analog_Input_Present_Value_Set(100, 22.5);
+    Analog_Input_Resolution_Set(100, 0.1);
 
     Analog_Output_Create(100);
     Analog_Output_Name_Set(100, "ORTS-BAS_420_VTA01_STH01_HZV_VEN01_MOT01_ST~01");

@@ -95,6 +95,7 @@ static const int Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_DETECTION_ENABLE,
+    PROP_TIME_DELAY_NORMAL,
 #endif
     -1
 };

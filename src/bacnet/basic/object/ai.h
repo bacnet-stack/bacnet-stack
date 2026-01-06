@@ -3,7 +3,8 @@
  * @brief API for basic BACnet Analog Input Object implementation.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
- * @date 2005, 2011
+ * @author Jürgen Langstein <juergen@bacnet4iot.de>
+ * @date 2005, 2011, 2025
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_OBJECT_ANALOG_INPUT_H
@@ -16,6 +17,8 @@
 /* BACnet Stack API */
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+
+#include "bacnet/basic/object/device.h" /*MAX_LEN_DESC*/
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #include "bacnet/getevent.h"
@@ -28,12 +31,23 @@ typedef struct analog_input_descr {
     float Present_Value;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service;
+    float Update_Interval;
     uint8_t Units;
+    float Min_Pres_Value;
+    float Max_Pres_Value;
+    float Resolution;
     float Prior_Value;
     float COV_Increment;
     bool Changed;
     const char *Object_Name;
-    const char *Description;
+    //
+    char *Description;
+    //char Description[MAX_DEV_DESC_LEN];
+    //char *Device_Type;
+/*  BACNET_CHARACTER_STRING Object_Name;
+    BACNET_CHARACTER_STRING Description;*/
+    BACNET_CHARACTER_STRING Device_Type;
+
 #if defined(INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -42,12 +56,19 @@ typedef struct analog_input_descr {
     float Deadband;
     unsigned Limit_Enable : 2;
     unsigned Event_Enable : 3;
-    unsigned Event_Detection_Enable : 1;
-    unsigned Notify_Type : 1;
     ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
+    unsigned Notify_Type : 1;
     BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+    char Event_Message_Texts[MAX_BACNET_EVENT_TRANSITION] [255];
+    char Event_Message_Texts_Config[MAX_BACNET_EVENT_TRANSITION] [255];
+    unsigned Event_Detection_Enable : 1;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Event_Algorithm_Inhibit_Ref;
+    bool Event_Algorithm_Inhibit;
+    uint32_t Time_Delay_Normal;
     /* time to generate event notification */
     uint32_t Remaining_Time_Delay;
+    /* time to generate normal notification */
+    uint32_t Remaining_Time_Delay_Normal;
     /* AckNotification information */
     ACK_NOTIFICATION Ack_notify_data;
 #endif
@@ -84,12 +105,26 @@ BACNET_STACK_EXPORT
 const char *Analog_Input_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Analog_Input_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+BACNET_CHARACTER_STRING Analog_Input_Device_Type(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Input_Device_Type_Set(
+    uint32_t object_instance, BACNET_CHARACTER_STRING new_name);
 
 BACNET_STACK_EXPORT
 BACNET_RELIABILITY Analog_Input_Reliability(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Analog_Input_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
+/*BACNET_STACK_EXPORT
+float Analog_Input_Update_Interval(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Input_Update_Interval_Set(uint32_t object_instance, uint32_t deadband);*/
+
+BACNET_STACK_EXPORT
+float Analog_Input_Resolution(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Analog_Input_Resolution_Set(uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
 bool Analog_Input_Units_Set(uint32_t instance, uint16_t units);

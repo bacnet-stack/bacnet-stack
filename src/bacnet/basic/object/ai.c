@@ -24,6 +24,7 @@
 #include "bacnet/basic/sys/debug.h"
 /* me! */
 #include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/device.h" /*MAX_LEN_DESC*/
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -39,12 +40,15 @@ static const int Properties_Required[] = {
 };
 
 static const int Properties_Optional[] = {
-    PROP_DESCRIPTION, PROP_RELIABILITY,  PROP_COV_INCREMENT,
+    PROP_DESCRIPTION, PROP_DEVICE_TYPE, PROP_RELIABILITY,
+    PROP_UPDATE_INTERVAL, PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE,
+    PROP_RESOLUTION, PROP_COV_INCREMENT,    
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
     PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
-    PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_DETECTION_ENABLE,
+    PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS, 
+    PROP_EVENT_MESSAGE_TEXTS, PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_EVENT_DETECTION_ENABLE, PROP_EVENT_ALGORITHM_INHIBIT, PROP_TIME_DELAY_NORMAL,
 #endif
     -1
 };
@@ -394,10 +398,50 @@ bool Analog_Input_Description_Set(
 {
     bool status = false; /* return value */
     struct analog_input_descr *pObject;
+    printf("Analog_Input_Description_Set %s\n", new_name);
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
         pObject->Description = new_name;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the device type
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+BACNET_CHARACTER_STRING Analog_Input_Device_Type(uint32_t object_instance)
+{
+    BACNET_CHARACTER_STRING name; // = NULL;
+    const struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        name = pObject->Device_Type;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the device type
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Analog_Input_Device_Type_Set(
+    uint32_t object_instance, BACNET_CHARACTER_STRING new_name)
+{
+    bool status = false; /* return value */
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Device_Type = new_name;
         status = true;
     }
 
@@ -605,11 +649,11 @@ uint16_t Analog_Input_Units(uint32_t object_instance)
 
 /**
  * For a given object instance-number, sets the units property value
- *
+ * 
  * @param object_instance - object-instance number of the object
  * @param units - units property value
- *
  * @return true if the units property value was set
+ * 
  */
 bool Analog_Input_Units_Set(uint32_t object_instance, uint16_t units)
 {
@@ -623,6 +667,40 @@ bool Analog_Input_Units_Set(uint32_t object_instance, uint16_t units)
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, determines the resolution
+ * @param  object_instance - object-instance number of the object
+ * @return  resolution of the object
+ */
+float Analog_Input_Resolution(uint32_t object_instance)
+{
+    float value = 0.0f;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Resolution;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the resolution
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog value
+ * @return  true if values are within range and resolution is set.
+ */
+void Analog_Input_Resolution_Set(uint32_t object_instance, float value)
+{
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Resolution = value;
+    }
 }
 
 /**
@@ -785,6 +863,10 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_boolean(&apdu[0], pObject->Out_Of_Service);
             break;
+        case PROP_RESOLUTION:
+            real_value = Analog_Input_Resolution(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
+            break;
         case PROP_UNITS:
             apdu_len = encode_application_enumerated(&apdu[0], pObject->Units);
             break;
@@ -795,6 +877,18 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+        /*
+        
+        ********** FIXME
+
+        case PROP_DEVICE_TYPE:
+            characterstring_copy(
+                &char_string,
+                Analog_Input_Device_Type(rpdata->object_instance));
+            apdu_len =
+                //encode_application_character_string(&apdu[0], &char_string);
+                encode_application_character_string(&apdu[0], *Analog_Input_Device_Type(rpdata->object_instance));
+            break;*/
         case PROP_COV_INCREMENT:
             apdu_len =
                 encode_application_real(&apdu[0], pObject->COV_Increment);
@@ -902,6 +996,8 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct analog_input_descr *pObject;
+    static BACNET_CHARACTER_STRING bacnet_str [MAX_DEV_DESC_LEN]; 
+    const char *bacstring;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -939,6 +1035,70 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
+        case PROP_DESCRIPTION:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                char descr[MAX_DEV_LOC_LEN];
+printf("AI WP Description length %d\n", characterstring_length(&value.type.Character_String));
+//printf("AI WP Description sizeof %d\n", sizeof(descr));
+printf("AI WP Description ansi copy %d\n",characterstring_copy_value(&descr, characterstring_length(&value.type.Character_String)+2, &value.type.Character_String));
+                //if (characterstring_ansi_copy(&descr, sizeof(descr), &value.type.Character_String)) {
+                if (characterstring_copy_value(&descr, characterstring_length(&value.type.Character_String)+2, &value.type.Character_String)) {
+                    status = Analog_Input_Description_Set(wp_data->object_instance, descr);
+printf("AI WP Description Status %d\n",status);
+printf("AI WP Description  %s\n",descr);                   
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+   
+        /*case PROP_DESCRIPTION:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_LOC_LEN);
+            printf("AI WP Description Status %d\n",status);
+            printf("AI WP DEscription length %d\n", characterstring_length(&value.type.Character_String));            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                char descr[MAX_DEV_LOC_LEN];
+                if (characterstring_ansi_copy(
+                    descr, 
+                    //characterstring_length(&value.type.Character_String),
+                    sizeof(descr),
+                    &value.type.Character_String)
+                ) {
+                    status = Analog_Input_Description_Set(wp_data->object_instance, descr);
+                    printf("AI WP Description  %s\n",descr);
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+
+        /*case PROP_DESCRIPTION:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_LOC_LEN);
+            printf("AI WP Description Status %d\n",status);
+            printf("AI WP DEscription length %d\n", characterstring_length(&value.type.Character_String));
+
+            characterstring_ansi_copy(
+                        &bacstring,
+                        characterstring_length(&value.type.Character_String),
+                        characterstring_value(&value.type.Character_String)
+                    );
+            printf("AI WP Description  %s\n",&bacstring);
+            if (status) {
+                Analog_Input_Description_Set(
+                    wp_data->object_instance,
+                    &bacstring
+                );
+
+                
+            }
+            break;*/
+
         case PROP_OUT_OF_SERVICE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
