@@ -16,6 +16,22 @@
 #include "bacnet/create_object.h"
 
 /**
+ * @brief Encode one value for CreateObject List-of-Initial-Values
+ * @param apdu Pointer to the buffer for encoded values
+ * @param offset Offset into the buffer to start encoding
+ * @param value Pointer to the property value used for encoding
+ * @return Bytes encoded or zero on error.
+ */
+int create_object_encode_initial_value(
+    uint8_t *apdu, int offset, const BACNET_PROPERTY_VALUE *value)
+{
+    if (apdu) {
+        apdu += offset;
+    }
+    return bacapp_property_value_encode(apdu, value);
+}
+
+/**
  * @brief Encode the CreateObject service request
  *
  *  CreateObject-Request ::= SEQUENCE {
@@ -36,7 +52,6 @@ int create_object_encode_service_request(
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
-    BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
 
     if (data) {
         /* object-specifier [0] */
@@ -66,25 +81,21 @@ int create_object_encode_service_request(
         if (apdu) {
             apdu += len;
         }
-        if (data->list_of_initial_values) {
+        if ((data->application_data_len > 0) &&
+            (data->application_data_len <= sizeof(data->application_data))) {
             /* list-of-initial-values [1] OPTIONAL */
             len = encode_opening_tag(apdu, 1);
             apdu_len += len;
             if (apdu) {
                 apdu += len;
             }
-            /* the first value includes a pointer to the next value, etc */
-            value = data->list_of_initial_values;
-            while (value != NULL) {
-                /* SEQUENCE OF BACnetPropertyValue */
-                len = bacapp_property_value_encode(apdu, value);
-                apdu_len += len;
-                if (apdu) {
-                    apdu += len;
-                }
-                /* is there another one to encode? */
-                /* FIXME: check to see if there is room in the APDU */
-                value = value->next;
+            len = data->application_data_len;
+            if (apdu) {
+                memmove(apdu, data->application_data, len);
+            }
+            apdu_len += len;
+            if (apdu) {
+                apdu += len;
             }
             len = encode_closing_tag(apdu, 1);
             apdu_len += len;
@@ -141,7 +152,7 @@ int create_object_decode_service_request(
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     uint32_t enumerated_value = 0;
-    BACNET_PROPERTY_VALUE *list_of_initial_values = NULL;
+    int imax = 0, i = 0;
 
     /* object-specifier [0] CHOICE */
     if (!bacnet_is_opening_tag_number(
@@ -203,27 +214,41 @@ int create_object_decode_service_request(
     apdu_len += len;
     /* list-of-initial-values [1] SEQUENCE OF BACnetPropertyValue OPTIONAL */
     if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
-        apdu_len += len;
-        if (data) {
-            list_of_initial_values = data->list_of_initial_values;
-        }
-        len = bacapp_property_value_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, list_of_initial_values);
-        if (len <= 0) {
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
+        /* determine the length of the data within the tags */
+        imax =
+            bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
+        if (imax == BACNET_STATUS_ERROR) {
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
             return BACNET_STATUS_REJECT;
         }
+        /* count the opening tag number length after finding enclosed length */
         apdu_len += len;
+        if (imax > MAX_APDU) {
+            /* not enough size in application_data to store the data chunk */
+            if (data) {
+                data->error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+            }
+            return BACNET_STATUS_REJECT;
+        } else if (data) {
+            /* copy the data from the APDU */
+            for (i = 0; i < imax; i++) {
+                data->application_data[i] = apdu[apdu_len + i];
+            }
+            data->application_data_len = imax;
+        }
+        /* add on the data length */
+        apdu_len += imax;
         if (!bacnet_is_closing_tag_number(
-                &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
             return BACNET_STATUS_REJECT;
         }
+        /* count the closing tag number length */
         apdu_len += len;
     }
 

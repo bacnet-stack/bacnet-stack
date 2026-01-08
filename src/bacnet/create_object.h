@@ -29,10 +29,17 @@ typedef struct BACnet_Create_Object_Data {
     /* note: use BACNET_MAX_INSTANCE to choose CHOICE=[0] object_type */
     uint32_t object_instance;
     BACNET_OBJECT_TYPE object_type;
-    /* simple linked list of values */
-    BACNET_PROPERTY_VALUE *list_of_initial_values;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
+    /* list of values similar to WriteProperty - decoded later */
+    uint8_t application_data[MAX_APDU];
+    int application_data_len;
+    /* This parameter, of type Unsigned, shall convey the numerical
+       position, starting at 1, of the offending 'Initial Value' in the
+       'List of Initial Values' parameter received in the request.
+       If the request is considered invalid for reasons other than the 'List of
+       Initial Values' parameter, the 'First Failed Element Number' shall
+       be equal to zero. */
     BACNET_UNSIGNED_INTEGER first_failed_element_number;
 } BACNET_CREATE_OBJECT_DATA;
 
@@ -48,6 +55,10 @@ typedef uint32_t (*create_object_function)(uint32_t object_instance);
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
+int create_object_encode_initial_value(
+    uint8_t *apdu, int offset, const BACNET_PROPERTY_VALUE *value);
 
 BACNET_STACK_EXPORT
 size_t create_object_service_request_encode(

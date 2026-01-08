@@ -376,7 +376,7 @@ static void testDevice(void)
     count = Device_Object_List_Count();
     create_data.object_type = OBJECT_ANALOG_VALUE;
     create_data.object_instance = BACNET_MAX_INSTANCE;
-    create_data.list_of_initial_values = NULL;
+    create_data.application_data_len = 0;
     create_data.error_class = ERROR_CLASS_DEVICE;
     create_data.error_code = ERROR_CODE_SUCCESS;
     create_data.first_failed_element_number = 0;
@@ -410,7 +410,7 @@ static void testDevice(void)
     /* known object without create */
     create_data.object_type = OBJECT_DEVICE;
     create_data.object_instance = BACNET_MAX_INSTANCE;
-    create_data.list_of_initial_values = NULL;
+    create_data.application_data_len = 0;
     create_data.error_class = ERROR_CLASS_DEVICE;
     create_data.error_code = ERROR_CODE_SUCCESS;
     create_data.first_failed_element_number = 0;

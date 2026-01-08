@@ -56,6 +56,7 @@ uint8_t Send_Create_Object_Request_Data(
     BACNET_CREATE_OBJECT_DATA data = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
     uint8_t service = SERVICE_CONFIRMED_CREATE_OBJECT;
+    BACNET_PROPERTY_VALUE *value;
 
     if (!dcc_communication_enabled()) {
         return 0;
@@ -81,7 +82,14 @@ uint8_t Send_Create_Object_Request_Data(
         /* encode the APDU service */
         data.object_type = object_type;
         data.object_instance = object_instance;
-        data.list_of_initial_values = values;
+        data.application_data_len = 0;
+        value = values;
+        while (value) {
+            len = create_object_encode_initial_value(
+                data.application_data, data.application_data_len, value);
+            data.application_data_len += len;
+            value = value->next;
+        }
         /* get the length of the APDU */
         len = create_object_encode_service_request(NULL, &data);
         pdu_len += len;

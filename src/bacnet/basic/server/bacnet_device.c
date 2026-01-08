@@ -2780,7 +2780,7 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
             data->error_class = ERROR_CLASS_OBJECT;
             data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
         } else {
-            if (data->list_of_initial_values) {
+            if (data->application_data_len) {
                 /* FIXME: add support for writing to list of initial values */
                 /*  A property specified by the Property_Identifier in the
                     List of Initial Values does not support initialization
