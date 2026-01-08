@@ -14,6 +14,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/create_object.h"
+#include "bacnet/wp.h"
 
 /**
  * @brief Encode one value for CreateObject List-of-Initial-Values
@@ -29,6 +30,132 @@ int create_object_encode_initial_value(
         apdu += offset;
     }
     return bacapp_property_value_encode(apdu, value);
+}
+
+/**
+ * @brief Decode one BACnetPropertyValue value
+ *
+ *  BACnetPropertyValue ::= SEQUENCE {
+ *      property-identifier [0] BACnetPropertyIdentifier,
+ *      property-array-index [1] Unsigned OPTIONAL,
+ *      -- used only with array datatypes
+ *      -- if omitted with an array the entire array is referenced
+ *      property-value [2] ABSTRACT-SYNTAX.&Type,
+ *      -- any datatype appropriate for the specified property
+ *      priority [3] Unsigned (1..16) OPTIONAL
+ *      -- used only when property is commandable
+ *  }
+ *
+ * @param apdu Pointer to the buffer of encoded value
+ * @param apdu_size Size of the buffer holding the encode value
+ * @param value Pointer to the data used for decoding one value
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on error.
+ */
+int create_object_decode_initial_value(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+    uint32_t enumerated_value = 0;
+    uint32_t len_value_type = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_PROPERTY_ID property_identifier = PROP_ALL;
+    int imax = 0;
+
+    /* property-identifier [0] BACnetPropertyIdentifier */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &enumerated_value);
+    if (len > 0) {
+        property_identifier = enumerated_value;
+        if (value) {
+            value->propertyIdentifier = property_identifier;
+        }
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* property-array-index [1] Unsigned OPTIONAL */
+    if (bacnet_is_context_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &len, &len_value_type)) {
+        apdu_len += len;
+        len = bacnet_unsigned_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, len_value_type,
+            &unsigned_value);
+        if (len > 0) {
+            if (unsigned_value > UINT32_MAX) {
+                return BACNET_STATUS_ERROR;
+            } else {
+                apdu_len += len;
+                if (value) {
+                    value->propertyArrayIndex = unsigned_value;
+                }
+            }
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    } else {
+        if (value) {
+            value->propertyArrayIndex = BACNET_ARRAY_ALL;
+        }
+    }
+    /* property-value [2] ABSTRACT-SYNTAX.&Type */
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+        /* determine the length of the data within the tags */
+        imax =
+            bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
+        if (imax == BACNET_STATUS_ERROR) {
+            return BACNET_STATUS_ERROR;
+        }
+        /* count the opening tag number length after finding enclosed length */
+        apdu_len += len;
+        if (imax > MAX_APDU) {
+            /* not enough size in application_data to store the data chunk */
+            return BACNET_STATUS_ERROR;
+        } else if (value) {
+            /* point to the data from the APDU */
+            value->application_data = &apdu[apdu_len];
+            value->application_data_len = imax;
+        }
+        /* add on the data length */
+        apdu_len += imax;
+        if (!bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+            return BACNET_STATUS_ERROR;
+        }
+        /* count the closing tag number length */
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* priority [3] Unsigned (1..16) OPTIONAL */
+    if (bacnet_is_context_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &len, &len_value_type)) {
+        apdu_len += len;
+        len = bacnet_unsigned_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, len_value_type,
+            &unsigned_value);
+        if (len > 0) {
+            if (unsigned_value > UINT8_MAX) {
+                return BACNET_STATUS_ERROR;
+            } else {
+                apdu_len += len;
+                if (value) {
+                    value->priority = unsigned_value;
+                }
+            }
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    } else {
+        if (value) {
+            value->priority = BACNET_NO_PRIORITY;
+        }
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -81,6 +208,7 @@ int create_object_encode_service_request(
         if (apdu) {
             apdu += len;
         }
+#if BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
         if ((data->application_data_len > 0) &&
             (data->application_data_len <= sizeof(data->application_data))) {
             /* list-of-initial-values [1] OPTIONAL */
@@ -100,6 +228,7 @@ int create_object_encode_service_request(
             len = encode_closing_tag(apdu, 1);
             apdu_len += len;
         }
+#endif
     }
 
     return apdu_len;
@@ -152,7 +281,7 @@ int create_object_decode_service_request(
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     uint32_t enumerated_value = 0;
-    int imax = 0, i = 0;
+    int imax = 0;
 
     /* object-specifier [0] CHOICE */
     if (!bacnet_is_opening_tag_number(
@@ -234,9 +363,9 @@ int create_object_decode_service_request(
             return BACNET_STATUS_REJECT;
         } else if (data) {
             /* copy the data from the APDU */
-            for (i = 0; i < imax; i++) {
-                data->application_data[i] = apdu[apdu_len + i];
-            }
+#if BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
+            memmove(data->application_data, &apdu[apdu_len], (size_t)imax);
+#endif
             data->application_data_len = imax;
         }
         /* add on the data length */
@@ -465,4 +594,54 @@ int create_object_error_ack_service_decode(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Initialize the created object with the provided initializers.
+ * @param data [in] The Create Object data containing the initial values.
+ * @param write_property [in] Function pointer to the Write Property handler.
+ * @return true if successful, false on error.
+ */
+bool create_object_initializer_list_process(
+    BACNET_CREATE_OBJECT_DATA *data, write_property_function write_property)
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE value = { 0 };
+    int len = 0, apdu_len = 0;
+    uint8_t *application_data = NULL;
+
+    if (!data) {
+        return false;
+    }
+    data->first_failed_element_number = 1;
+    while (data->application_data_len > apdu_len) {
+        wp_data.object_type = data->object_type;
+        wp_data.object_instance = data->object_instance;
+#if BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
+        application_data = &data->application_data[apdu_len];
+#else
+        /* not configured to process initial values */
+        return false;
+#endif
+        len = create_object_decode_initial_value(
+            application_data, data->application_data_len - apdu_len, &value);
+        if (len <= 0) {
+            return false;
+        }
+        wp_data.object_property = value.propertyIdentifier;
+        wp_data.array_index = value.propertyArrayIndex;
+        memmove(
+            &wp_data.application_data[0], value.application_data,
+            (size_t)value.application_data_len);
+        wp_data.application_data_len = value.application_data_len;
+        wp_data.priority = value.priority;
+        apdu_len += len;
+        /* write the property - use the provided function */
+        if (!write_property(&wp_data)) {
+            return false;
+        }
+        data->first_failed_element_number++;
+    }
+
+    return true;
 }

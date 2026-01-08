@@ -15,6 +15,11 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/wp.h"
+
+#ifndef BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
+#define BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED 0
+#endif
 
 /**
  *  CreateObject-Request ::= SEQUENCE {
@@ -31,8 +36,10 @@ typedef struct BACnet_Create_Object_Data {
     BACNET_OBJECT_TYPE object_type;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
+#if BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
     /* list of values similar to WriteProperty - decoded later */
     uint8_t application_data[MAX_APDU];
+#endif
     int application_data_len;
     /* This parameter, of type Unsigned, shall convey the numerical
        position, starting at 1, of the offending 'Initial Value' in the
@@ -42,6 +49,14 @@ typedef struct BACnet_Create_Object_Data {
        be equal to zero. */
     BACNET_UNSIGNED_INTEGER first_failed_element_number;
 } BACNET_CREATE_OBJECT_DATA;
+
+typedef struct BACnet_Create_Object_Property_Value {
+    BACNET_PROPERTY_ID propertyIdentifier;
+    BACNET_ARRAY_INDEX propertyArrayIndex;
+    const uint8_t *application_data;
+    int application_data_len;
+    uint8_t priority;
+} BACNET_CREATE_OBJECT_PROPERTY_VALUE;
 
 /**
  * @brief CreateObject service handler for an object
@@ -92,6 +107,10 @@ int create_object_error_ack_service_decode(
 BACNET_STACK_EXPORT
 int create_object_error_ack_encode(
     uint8_t *apdu, uint8_t invoke_id, const BACNET_CREATE_OBJECT_DATA *data);
+
+BACNET_STACK_EXPORT
+bool create_object_initializer_list_process(
+    BACNET_CREATE_OBJECT_DATA *data, write_property_function write_property);
 
 #ifdef __cplusplus
 }

@@ -2357,14 +2357,31 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
             data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
         } else {
             if (data->application_data_len) {
-                /* FIXME: add support for writing to list of initial values */
-                /*  A property specified by the Property_Identifier in the
-                    List of Initial Values does not support initialization
-                    during the CreateObject service. */
-                data->first_failed_element_number = 1;
-                data->error_class = ERROR_CLASS_PROPERTY;
-                data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                /* and the object shall not be created */
+                object_instance = pObject->Object_Create(data->object_instance);
+                if (object_instance == BACNET_MAX_INSTANCE) {
+                    /* The device cannot allocate the space needed
+                    for the new object.*/
+                    data->error_class = ERROR_CLASS_RESOURCES;
+                    data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                } else {
+                    /* required by ACK */
+                    data->object_instance = object_instance;
+                    /* If the optional 'List of Initial Values' parameter
+                       is included, then all properties in the list shall
+                       be initialized as indicated. */
+                    if (!create_object_initializer_list_process(
+                            data, pObject->Object_Write_Property)) {
+                        /* initialization failed - remove the object */
+                        if (pObject->Object_Delete) {
+                            (void)pObject->Object_Delete(object_instance);
+                        }
+                        data->error_class = ERROR_CLASS_PROPERTY;
+                        data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    } else {
+                        Device_Inc_Database_Revision();
+                        status = true;
+                    }
+                }
             } else {
                 object_instance = pObject->Object_Create(data->object_instance);
                 if (object_instance == BACNET_MAX_INSTANCE) {
