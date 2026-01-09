@@ -14,7 +14,6 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/create_object.h"
-#include "bacnet/wp.h"
 
 /**
  * @brief Encode one value for CreateObject List-of-Initial-Values
@@ -644,4 +643,90 @@ bool create_object_initializer_list_process(
     }
 
     return true;
+}
+
+/**
+ * @brief Process the CreateObject request.
+ * @param data [in,out] The Create Object data containing the request details.
+ * @param object_supported [in] Flag indicating if the object type is supported.
+ * @param object_exists [in] Flag indicating if the object already exists.
+ * @param create_object [in] Function pointer to the Create Object handler.
+ * @param delete_object [in] Function pointer to the Delete Object handler.
+ * @param write_property [in] Function pointer to the Write Property handler.
+ * @return true if successful, false on error.
+ */
+bool create_object_process(
+    BACNET_CREATE_OBJECT_DATA *data,
+    bool object_supported,
+    bool object_exists,
+    create_object_function create_object,
+    delete_object_function delete_object,
+    write_property_function write_property)
+{
+    bool status = false;
+    uint32_t object_instance;
+
+    if (!data) {
+        return false;
+    }
+    if (!object_supported) {
+        /* The device does not support the specified object type. */
+        data->error_class = ERROR_CLASS_OBJECT;
+        data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+    } else if (!create_object) {
+        /*  The device supports the object type and may have
+            sufficient space, but does not support the creation of the
+            object for some other reason.*/
+        data->error_class = ERROR_CLASS_OBJECT;
+        data->error_code = ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED;
+    } else if (object_exists) {
+        /* The object being created already exists */
+        data->error_class = ERROR_CLASS_OBJECT;
+        data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
+    } else {
+        if (data->application_data_len) {
+            /* The optional 'List of Initial Values' parameter is included */
+            object_instance = create_object(data->object_instance);
+            if (object_instance == BACNET_MAX_INSTANCE) {
+                /* The device cannot allocate the space needed
+                for the new object.*/
+                data->error_class = ERROR_CLASS_RESOURCES;
+                data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+            } else {
+                /* set the created object instance */
+                data->object_instance = object_instance;
+                /* If the optional 'List of Initial Values' parameter
+                    is included, then all properties in the list shall
+                    be initialized as indicated. */
+                if (!create_object_initializer_list_process(
+                        data, write_property)) {
+                    /* initialization failed - remove the object */
+                    if (delete_object) {
+                        (void)delete_object(object_instance);
+                    }
+                    /* A property specified by the Property_Identifier
+                        in the List of Initial Values does not support
+                        initialization during the CreateObject service.*/
+                    data->error_class = ERROR_CLASS_PROPERTY;
+                    data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else {
+                    status = true;
+                }
+            }
+        } else {
+            object_instance = create_object(data->object_instance);
+            if (object_instance == BACNET_MAX_INSTANCE) {
+                /* The device cannot allocate the space needed
+                for the new object.*/
+                data->error_class = ERROR_CLASS_RESOURCES;
+                data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+            } else {
+                /* required by ACK */
+                data->object_instance = object_instance;
+                status = true;
+            }
+        }
+    }
+
+    return status;
 }

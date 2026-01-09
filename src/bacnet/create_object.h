@@ -15,6 +15,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/delete_object.h"
 #include "bacnet/wp.h"
 
 #ifndef BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
@@ -111,6 +112,13 @@ int create_object_error_ack_encode(
 BACNET_STACK_EXPORT
 bool create_object_initializer_list_process(
     BACNET_CREATE_OBJECT_DATA *data, write_property_function write_property);
+bool create_object_process(
+    BACNET_CREATE_OBJECT_DATA *data,
+    bool object_supported,
+    bool object_exists,
+    create_object_function create_object,
+    delete_object_function delete_object,
+    write_property_function write_property);
 
 #ifdef __cplusplus
 }
