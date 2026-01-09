@@ -63,6 +63,9 @@ int create_object_decode_initial_value(
     BACNET_PROPERTY_ID property_identifier = PROP_ALL;
     int imax = 0;
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     /* property-identifier [0] BACnetPropertyIdentifier */
     len = bacnet_enumerated_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &enumerated_value);
@@ -618,9 +621,6 @@ bool create_object_initializer_list_process(
         wp_data.object_instance = data->object_instance;
 #if BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
         application_data = &data->application_data[apdu_len];
-#else
-        /* not configured to process initial values */
-        return false;
 #endif
         len = create_object_decode_initial_value(
             application_data, data->application_data_len - apdu_len, &value);
