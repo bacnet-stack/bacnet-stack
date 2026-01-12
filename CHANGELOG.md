@@ -66,6 +66,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed RGB color clamp function to avoid Zephyr RTOS name collisions.
 * Changed the load control object AbleToMeetShed to only check for immediate
   shed ability and added CanNowComplyWithShed function to attempt to meet the
   shed request while in the non-compliant state. (#1191)
