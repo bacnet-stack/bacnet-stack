@@ -17,6 +17,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
+double color_rgb_clamp(double d, double min, double max);
+
+BACNET_STACK_EXPORT
 void color_rgb_to_xy(
     uint8_t r,
     uint8_t g,
