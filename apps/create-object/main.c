@@ -87,7 +87,7 @@ static void MyCreateObjectErrorHandler(
     uint16_t service_len)
 {
     int len = 0;
-    BACNET_CREATE_OBJECT_DATA data;
+    BACNET_CREATE_OBJECT_DATA data = { 0 };
 
     (void)service_choice;
     if (address_match(&Target_Address, src) &&
@@ -96,7 +96,7 @@ static void MyCreateObjectErrorHandler(
             service_request, service_len, &data);
         if (len > 0) {
             MyPrintHandler(
-                data.object_type, data.object_instance, data.error_class,
+                Target_Object_Type, Target_Object_Instance, data.error_class,
                 data.error_code, data.first_failed_element_number);
         }
         Error_Detected = true;
@@ -109,7 +109,7 @@ static void MyCreateObjectAckHandler(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
-    BACNET_CREATE_OBJECT_DATA data;
+    BACNET_CREATE_OBJECT_DATA data = { 0 };
     int len = 0;
 
     if (address_match(&Target_Address, src) &&
@@ -235,12 +235,12 @@ static void print_help(const char *filename)
     printf("\n");
     printf(
         "tag:\n"
-        "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \n"
-        "in bacenum.h.  It is the data type of the value that you are\n"
-        "writing.  For example, if you were writing a REAL value, you would \n"
-        "use a tag of 4.\n"
+        "Tag is an integer value representing the data type of the value.\n"
+        "0=NULL, 1=BOOLEAN, 2=UNSIGNED INTEGER, 3=SIGNED INTEGER, 4=REAL,\n"
+        "5=DOUBLE, 6=OCTET STRING, 7=CHARACTER STRING, 8=BIT STRING,\n"
+        "9=ENUMERATED, 10=DATE, 11=TIME, 12=OBJECT IDENTIFIER.\n"
         "Context tags are created using two tags in a row.  The context tag\n"
-        "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged "
+        "is preceded by a C: Ctag tag. C2 4 creates a context 2 tagged "
         "REAL.\n");
     printf("Complex data use the property argument and a tag number -1 to\n"
            "lookup the appropriate internal application tag for the value.\n"
@@ -444,6 +444,23 @@ int main(int argc, char *argv[])
                     fprintf(stderr, "Error: missing tag-value pair\n");
                     return 1;
                 }
+                /* Priority */
+                if (!bacnet_strtol(argv[argi], &priority)) {
+                    fprintf(stderr, "Error: priority=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if (priority < 0 || priority > BACNET_MAX_PRIORITY) {
+                    fprintf(
+                        stderr, "Error: priority=%ld must be within 0 and %u\n",
+                        priority, BACNET_MAX_PRIORITY);
+                    return 1;
+                }
+                initial_value->priority = (uint8_t)priority;
+                if (++argi >= argc) {
+                    fprintf(
+                        stderr, "Error: missing value for tag-value pair\n");
+                    return 1;
+                }
                 /* Tag */
                 if (toupper(argv[argi][0]) == 'C') {
                     /* special case for context tag: [Ctag] tag */
@@ -509,23 +526,6 @@ int main(int argc, char *argv[])
                         stderr,
                         "Error: missing priority and value "
                         "for tag-value pair\n");
-                    return 1;
-                }
-                /* Priority */
-                if (!bacnet_strtol(argv[argi], &priority)) {
-                    fprintf(stderr, "Error: priority=%s invalid\n", argv[argi]);
-                    return 1;
-                }
-                if (priority < 0 || priority > BACNET_MAX_PRIORITY) {
-                    fprintf(
-                        stderr, "Error: priority=%ld must be within 0 and %u\n",
-                        priority, BACNET_MAX_PRIORITY);
-                    return 1;
-                }
-                initial_value->priority = (uint8_t)priority;
-                if (++argi >= argc) {
-                    fprintf(
-                        stderr, "Error: missing value for tag-value pair\n");
                     return 1;
                 }
                 /* Value */
