@@ -207,30 +207,35 @@ static void print_help(const char *filename)
            "The object type is object that you are creating. It\n"
            "can be defined either as the object-type name string\n"
            "as defined in the BACnet specification, or as the\n"
-           "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-           "in bacenum.h. For example if you were reading Analog\n"
-           "Output 2, the object-type would be analog-output or 1.\n");
+           "integer value of the enumeration. For example if \n"
+           "you were reading Analog Output 2, the object-type\n"
+           "would be analog-output or 1.\n");
     printf("\n");
-    printf("object-instance (optional):\n"
-           "This is the object instance number of the object that\n"
-           "you are creating.  For example, if you were writing\n"
-           "Analog Output 2, the object-instance would be 2.\n");
+    printf(
+        "object-instance:\n"
+        "This is the object instance number of the object that\n"
+        "you are creating.  For example, if you were creating\n"
+        "Analog Output 2, the object-instance would be 2.\n"
+        "To create the next available instance number, use\n"
+        "the instance number %u\n",
+        BACNET_MAX_INSTANCE);
     printf("\n");
     printf("property[index]:\n"
-           "The property is an integer value of the enumeration\n"
-           "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
-           "you are writing.  For example, if you were writing the\n"
-           "Present Value property, use 85 as the property.\n");
+           "The property is an integer value or name of the\n"
+           "Property Identifier enumeration as defined in the\n"
+           "BACnet specification. It is the property you are initializing.\n"
+           "For example, if you were initializing the Present Value\n"
+           "property, use present-value or 85 as the property.\n");
     printf("[index]: optional\n"
            "This integer parameter is the index number of an array.\n"
-           "If the property is an array, individual elements can be written\n"
-           "to if supported.\n");
+           "If the property is an array, individual elements can be\n"
+           "initialized if supported.\n");
     printf("\n");
     printf("priority:\n"
            "This parameter is used for setting the priority of the\n"
-           "write. If Priority 0 is given, no priority is sent.  The BACnet \n"
-           "standard states that the value is written at the lowest \n"
-           "priority (16) if the object property supports priorities\n"
+           "initialization. If Priority 0 is given, no priority is used.\n"
+           "The BACnet specification states that the value is written at the\n"
+           "lowest priority (16) if the object property supports priorities\n"
            "when no priority is sent.\n");
     printf("\n");
     printf(
@@ -249,9 +254,9 @@ static void print_help(const char *filename)
     printf(
         "value:\n"
         "The value is an ASCII representation of some type of data that you\n"
-        "are writing.  It is encoded using the tag information provided.  For\n"
-        "example, if you were writing a REAL value of 100.0, you would use \n"
-        "100.0 as the value.\n");
+        "are initializing. It is encoded using the tag information provided.\n"
+        "For example, if you were writing a REAL value of 100.0, you would\n"
+        "use 100.0 as the value.\n");
     printf("\n");
     printf(
         "Here is a brief overview of BACnet property and tags:\n"
@@ -265,9 +270,9 @@ static void print_help(const char *filename)
     printf("\n");
     printf(
         "Example:\n"
-        "If you want to CreateObject of an Analog Input 1\n"
+        "If you want to create Analog Input 1 in device 123,\n"
         "send the following command:\n"
-        "%s 123 0 1\n",
+        "%s 123 analog-input 1\n",
         filename);
 }
 
