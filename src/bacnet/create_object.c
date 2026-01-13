@@ -634,12 +634,15 @@ bool create_object_initializer_list_process(
             (size_t)value.application_data_len);
         wp_data.application_data_len = value.application_data_len;
         wp_data.priority = value.priority;
-        apdu_len += len;
+        if (!write_property_bacnet_array_valid(&wp_data)) {
+            return false;
+        }
         /* write the property - use the provided function */
         if (!write_property(&wp_data)) {
             return false;
         }
         data->first_failed_element_number++;
+        apdu_len += len;
     }
 
     return true;

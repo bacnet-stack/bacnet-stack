@@ -496,9 +496,12 @@ static bool Timer_Write_Members(
                     wp_data.application_data, sizeof(wp_data.application_data),
                     value);
                 if (Write_Property_Internal_Callback) {
-                    status = Write_Property_Internal_Callback(&wp_data);
+                    status = write_property_bacnet_array_valid(&wp_data);
                     if (status) {
-                        wp_data.error_code = ERROR_CODE_SUCCESS;
+                        status = Write_Property_Internal_Callback(&wp_data);
+                        if (status) {
+                            wp_data.error_code = ERROR_CODE_SUCCESS;
+                        }
                     }
                 }
             }
