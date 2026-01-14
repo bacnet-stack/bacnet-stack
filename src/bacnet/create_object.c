@@ -639,6 +639,9 @@ bool create_object_initializer_list_process(
         }
         /* write the property - use the provided function */
         if (!write_property(&wp_data)) {
+            /* report the error */
+            data->error_class = wp_data.error_class;
+            data->error_code = wp_data.error_code;
             return false;
         }
         data->first_failed_element_number++;
@@ -701,17 +704,20 @@ bool create_object_process(
                 /* If the optional 'List of Initial Values' parameter
                     is included, then all properties in the list shall
                     be initialized as indicated. */
+                data->error_class = ERROR_CLASS_PROPERTY;
+                data->error_code = ERROR_CODE_SUCCESS;
                 if (!create_object_initializer_list_process(
                         data, write_property)) {
                     /* initialization failed - remove the object */
                     if (delete_object) {
                         (void)delete_object(object_instance);
                     }
-                    /* A property specified by the Property_Identifier
-                        in the List of Initial Values does not support
-                        initialization during the CreateObject service.*/
-                    data->error_class = ERROR_CLASS_PROPERTY;
-                    data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    if (data->error_code == ERROR_CODE_SUCCESS) {
+                        /* A property specified by the Property_Identifier
+                            in the List of Initial Values does not support
+                            initialization during the CreateObject service.*/
+                        data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    }
                 } else {
                     status = true;
                 }
