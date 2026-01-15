@@ -2919,6 +2919,7 @@ void Device_Init(object_functions_t *object_table)
     characterstring_init_ansi(&My_Object_Name, Device_Name_Default);
 #if (BACNET_PROTOCOL_REVISION >= 14)
 #ifdef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
+    /* link WriteProperty to Channel object for references */
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
 #endif
@@ -2926,6 +2927,10 @@ void Device_Init(object_functions_t *object_table)
     /* link ReadProperty and WriteProperty to Loop object for references */
     Loop_Read_Property_Internal_Callback_Set(Device_Read_Property);
     Loop_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
+    /* link WriteProperty to Timer object for references */
+    Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
 }
 
