@@ -489,7 +489,7 @@ int main(int argc, char *argv[])
                             "tag\n");
                         return 1;
                     }
-                    if (!bacnet_strtol(&argv[argi], &property_tag)) {
+                    if (!bacnet_strtol(argv[argi], &property_tag)) {
                         fprintf(stderr, "Error: tag=%s invalid\n", argv[argi]);
                         return 1;
                     }
@@ -528,8 +528,7 @@ int main(int argc, char *argv[])
                 }
                 if (++argi >= argc) {
                     fprintf(
-                        stderr,
-                        "Error: missing value for tag-value pair\n");
+                        stderr, "Error: missing value for tag-value pair\n");
                     return 1;
                 }
                 /* Value */
