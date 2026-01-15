@@ -96,6 +96,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_TIMER, Timer_Init, Timer_Count,
+        Timer_Index_To_Instance, Timer_Valid_Instance,
+        Timer_Object_Name, Timer_Read_Property,
+        Timer_Write_Property, Timer_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        Timer_Add_List_Element, Timer_Remove_List_Element,
+        Timer_Create, Timer_Delete, Timer_Task },
 #endif
     { OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
         Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
@@ -209,14 +217,6 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
-    { OBJECT_TIMER, Timer_Init, Timer_Count,
-        Timer_Index_To_Instance, Timer_Valid_Instance,
-        Timer_Object_Name, Timer_Read_Property,
-        Timer_Write_Property, Timer_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
-        Timer_Add_List_Element, Timer_Remove_List_Element,
-        Timer_Create, Timer_Delete, Timer_Task },
     { OBJECT_INTEGER_VALUE, Integer_Value_Init, Integer_Value_Count,
         Integer_Value_Index_To_Instance, Integer_Value_Valid_Instance,
         Integer_Value_Object_Name, Integer_Value_Read_Property,
@@ -2523,6 +2523,10 @@ void Device_Init(object_functions_t *object_table)
     /* link ReadProperty and WriteProperty to Loop object for references */
     Loop_Read_Property_Internal_Callback_Set(Device_Read_Property);
     Loop_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    /* link WriteProperty to Timer object for references */
+    Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
 }
 
 bool DeviceGetRRInfo(
