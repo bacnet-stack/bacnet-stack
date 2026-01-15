@@ -1909,6 +1909,9 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
         status = create_object_process(
             data, object_supported, object_exists, NULL, NULL, NULL);
     }
+    if (status) {
+        Device_Inc_Database_Revision();
+    }
 
     return status;
 }
