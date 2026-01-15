@@ -20,7 +20,7 @@
  * @param max - maximum value to clamp within
  * @return value clamped between min and max inclusive
  */
-static double clamp(double d, double min, double max)
+double color_rgb_clamp(double d, double min, double max)
 {
     if (isnan(d)) {
         return min;
@@ -91,8 +91,8 @@ static void color_rgb_to_xy_gamma_correction(
     x = X / (X + Y + Z);
     y = Y / (X + Y + Z);
 
-    x = clamp(x, 0.0f, 1.0f);
-    y = clamp(y, 0.0f, 1.0f);
+    x = color_rgb_clamp(x, 0.0f, 1.0f);
+    y = color_rgb_clamp(y, 0.0f, 1.0f);
 
     /* copy to return values if possible */
     if (x_coordinate) {
@@ -106,7 +106,7 @@ static void color_rgb_to_xy_gamma_correction(
         The Y value indicates the brightness
         of the converted color. */
     Y = Y * 255.0f;
-    Y = clamp(Y, 0.0f, 255.0f);
+    Y = color_rgb_clamp(Y, 0.0f, 255.0f);
     if (brightness) {
         *brightness = (uint8_t)Y;
     }
@@ -211,11 +211,11 @@ static void color_rgb_from_xy_gamma_correction(
         The rgb values from the above formulas are
         between 0.0 and 1.0. */
     r = r * 255.0f;
-    r = clamp(r, 0.0f, 255.0f);
+    r = color_rgb_clamp(r, 0.0f, 255.0f);
     g = g * 255;
-    g = clamp(g, 0.0f, 255.0f);
+    g = color_rgb_clamp(g, 0.0f, 255.0f);
     b = b * 255;
-    b = clamp(b, 0.0f, 255.0f);
+    b = color_rgb_clamp(b, 0.0f, 255.0f);
     /* copy to return value if possible */
     if (red) {
         *red = (uint8_t)r;
@@ -561,7 +561,7 @@ void color_rgb_from_temperature(
     } else {
         red = (float)(temperature_kelvin - 60);
         red = 329.698727446 * pow(red, -0.1332047592);
-        red = clamp(red, 0.0, 255.0);
+        red = color_rgb_clamp(red, 0.0, 255.0);
     }
     /* Calculate Green */
     if (temperature_kelvin <= 66) {
@@ -572,7 +572,7 @@ void color_rgb_from_temperature(
         green = (float)(temperature_kelvin - 60);
         green = 288.1221695283 * pow(green, -0.0755148492);
     }
-    green = clamp(green, 0.0, 255.0);
+    green = color_rgb_clamp(green, 0.0, 255.0);
     /* Calculate Blue */
     if (temperature_kelvin >= 66) {
         /* Blue values above 6600 K */
@@ -583,7 +583,7 @@ void color_rgb_from_temperature(
     } else {
         blue = (float)(temperature_kelvin - 10);
         blue = 138.5177312231 * log(blue) - 305.0447927307;
-        blue = clamp(blue, 0, 255);
+        blue = color_rgb_clamp(blue, 0, 255);
     }
     if (r) {
         *r = (uint8_t)red;

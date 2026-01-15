@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-01-05
+## [Unreleased] - 2026-01-15
 
 ### Security
 
@@ -32,6 +32,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added device WriteProperty callbacks for Timer object in example device
+  objects implementations. (#1203)
 * Added file path name checking for AtomicReadFile and AtomicWriteFile
   example applications. Prohibits use of relative and absolute file paths
   when BACNET_FILE_PATH_RESTRICTED is defined non-zero. (#1197)
@@ -66,6 +68,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed RGB color clamp function to avoid Zephyr RTOS name collisions.(#1201)
 * Changed the load control object AbleToMeetShed to only check for immediate
   shed ability and added CanNowComplyWithShed function to attempt to meet the
   shed request while in the non-compliant state. (#1191)
