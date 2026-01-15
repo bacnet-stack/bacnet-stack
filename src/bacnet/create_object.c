@@ -615,6 +615,9 @@ bool create_object_initializer_list_process(
     if (!data) {
         return false;
     }
+    if (!write_property) {
+        return false;
+    }
     data->first_failed_element_number = 1;
     wp_data.object_type = data->object_type;
     wp_data.object_instance = data->object_instance;
@@ -700,7 +703,7 @@ bool create_object_process(
                 for the new object.*/
                 data->error_class = ERROR_CLASS_RESOURCES;
                 data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-            } else {
+            } else if (write_property) {
                 /* set the created object instance */
                 data->object_instance = object_instance;
                 /* If the optional 'List of Initial Values' parameter
@@ -723,6 +726,9 @@ bool create_object_process(
                 } else {
                     status = true;
                 }
+            } else {
+                /* cannot initialize without write property handler */
+                data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
         } else {
             object_instance = create_object(data->object_instance);
@@ -734,6 +740,7 @@ bool create_object_process(
             } else {
                 /* required by ACK */
                 data->object_instance = object_instance;
+                data->first_failed_element_number = 0;
                 status = true;
             }
         }

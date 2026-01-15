@@ -51,6 +51,18 @@ typedef struct BACnet_Create_Object_Data {
     BACNET_UNSIGNED_INTEGER first_failed_element_number;
 } BACNET_CREATE_OBJECT_DATA;
 
+/**
+ * BACnetPropertyValue ::= SEQUENCE {
+ *      property-identifier [0] BACnetPropertyIdentifier,
+ *      property-array-index [1] Unsigned OPTIONAL,
+ *      -- used only with array datatypes
+ *      -- if omitted with an array the entire array is referenced
+ *      property-value [2] ABSTRACT-SYNTAX.&Type,
+ *      -- any datatype appropriate for the specified property
+ *      priority [3] Unsigned (1..16) OPTIONAL
+ *      -- used only when property is commandable
+ *  }
+ */
 typedef struct BACnet_Create_Object_Property_Value {
     BACNET_PROPERTY_ID propertyIdentifier;
     BACNET_ARRAY_INDEX propertyArrayIndex;
@@ -112,6 +124,7 @@ int create_object_error_ack_encode(
 BACNET_STACK_EXPORT
 bool create_object_initializer_list_process(
     BACNET_CREATE_OBJECT_DATA *data, write_property_function write_property);
+BACNET_STACK_EXPORT
 bool create_object_process(
     BACNET_CREATE_OBJECT_DATA *data,
     bool object_supported,
