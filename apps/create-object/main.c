@@ -185,8 +185,8 @@ static void print_usage(const char *filename)
 {
     printf(
         "Usage: %s device-instance object-type [object-instance]\n"
-        "property[index] priority tag value [property[index] priority tag "
-        "value ...]\n",
+        "[property[index] priority tag value\n"
+        "[property[index] priority tag value ...]]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--verbose]\n");
@@ -489,7 +489,7 @@ int main(int argc, char *argv[])
                             "tag\n");
                         return 1;
                     }
-                    if (!bacnet_strtol(&argv[argi][1], &property_tag)) {
+                    if (!bacnet_strtol(&argv[argi], &property_tag)) {
                         fprintf(stderr, "Error: tag=%s invalid\n", argv[argi]);
                         return 1;
                     }
@@ -529,8 +529,7 @@ int main(int argc, char *argv[])
                 if (++argi >= argc) {
                     fprintf(
                         stderr,
-                        "Error: missing priority and value "
-                        "for tag-value pair\n");
+                        "Error: missing value for tag-value pair\n");
                     return 1;
                 }
                 /* Value */
