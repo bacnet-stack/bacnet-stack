@@ -1959,51 +1959,26 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
 {
     bool status = false;
     struct object_functions *pObject = NULL;
-    uint32_t object_instance;
+    bool object_exists = false;
+    bool object_supported = false;
 
     pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
-        if (!pObject->Object_Create) {
-            /*  The device supports the object type and may have
-                sufficient space, but does not support the creation of the
-                object for some other reason.*/
-            data->error_class = ERROR_CLASS_OBJECT;
-            data->error_code = ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED;
-        } else if (
-            pObject->Object_Valid_Instance &&
+        if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(data->object_instance)) {
-            /* The object being created already exists */
-            data->error_class = ERROR_CLASS_OBJECT;
-            data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
-        } else {
-            if (data->list_of_initial_values) {
-                /* FIXME: add support for writing to list of initial values */
-                /*  A property specified by the Property_Identifier in the
-                    List of Initial Values does not support initialization
-                    during the CreateObject service. */
-                data->first_failed_element_number = 1;
-                data->error_class = ERROR_CLASS_PROPERTY;
-                data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                /* and the object shall not be created */
-            } else {
-                object_instance = pObject->Object_Create(data->object_instance);
-                if (object_instance == BACNET_MAX_INSTANCE) {
-                    /* The device cannot allocate the space needed
-                    for the new object.*/
-                    data->error_class = ERROR_CLASS_RESOURCES;
-                    data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                } else {
-                    /* required by ACK */
-                    data->object_instance = object_instance;
-                    Device_Inc_Database_Revision();
-                    status = true;
-                }
-            }
+            object_exists = true;
         }
+        object_supported = true;
+        status = create_object_process(
+            data, object_supported, object_exists, pObject->Object_Create,
+            pObject->Object_Delete, pObject->Object_Write_Property);
     } else {
-        /* The device does not support the specified object type. */
-        data->error_class = ERROR_CLASS_OBJECT;
-        data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+        /* fill in the error values */
+        status = create_object_process(
+            data, object_supported, object_exists, NULL, NULL, NULL);
+    }
+    if (status) {
+        Device_Inc_Database_Revision();
     }
 
     return status;

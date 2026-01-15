@@ -83,6 +83,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed CreateObject service list-of-initial-values encoding and decoding.
+  Changed the data structure to be similar to WriteProperty. (#1199)
 * Fixed lighting-output object blink warn to honor blink-warn-enable.
   Fixed the blink warn logic for a non-zero percent value blink inhibit.
   Fixed the warn relinquish to actually relinquish. (#1192)

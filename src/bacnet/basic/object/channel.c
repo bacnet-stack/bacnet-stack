@@ -721,9 +721,12 @@ static bool Channel_Write_Members(
                         "channel[%lu].Channel_Write_Member[%u] coerced\n",
                         (unsigned long)object_instance, m);
                     if (Write_Property_Internal_Callback) {
-                        status = Write_Property_Internal_Callback(&wp_data);
+                        status = write_property_bacnet_array_valid(&wp_data);
                         if (status) {
-                            wp_data.error_code = ERROR_CODE_SUCCESS;
+                            status = Write_Property_Internal_Callback(&wp_data);
+                            if (status) {
+                                wp_data.error_code = ERROR_CODE_SUCCESS;
+                            }
                         }
                         debug_printf(
                             "channel[%lu].Channel_Write_Member[%u] "

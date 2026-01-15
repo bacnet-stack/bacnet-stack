@@ -2051,9 +2051,12 @@ static bool Loop_Write_Manipulated_Variable(
             wp_data.application_data_len =
                 encode_application_real(wp_data.application_data, value);
             if (Write_Property_Internal_Callback) {
-                status = Write_Property_Internal_Callback(&wp_data);
+                status = write_property_bacnet_array_valid(&wp_data);
                 if (status) {
-                    wp_data.error_code = ERROR_CODE_SUCCESS;
+                    status = Write_Property_Internal_Callback(&wp_data);
+                    if (status) {
+                        wp_data.error_code = ERROR_CODE_SUCCESS;
+                    }
                 }
             }
         }
