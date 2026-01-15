@@ -616,9 +616,11 @@ bool create_object_initializer_list_process(
         return false;
     }
     data->first_failed_element_number = 1;
+    wp_data.object_type = data->object_type;
+    wp_data.object_instance = data->object_instance;
+    wp_data.error_class = ERROR_CLASS_PROPERTY;
+    wp_data.error_code = ERROR_CODE_SUCCESS;
     while (data->application_data_len > apdu_len) {
-        wp_data.object_type = data->object_type;
-        wp_data.object_instance = data->object_instance;
 #if BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
         application_data = &data->application_data[apdu_len];
 #endif

@@ -10,6 +10,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bacdest.h>
 #include <bacnet/create_object.h>
+#include <bacnet/bactext.h>
 
 static uint32_t Test_Create_Object_Returned_Instance = BACNET_MAX_INSTANCE;
 static uint32_t Test_Delete_Object_Instance = BACNET_MAX_INSTANCE;
@@ -145,8 +146,12 @@ static void test_CreateObjectCodec(BACNET_CREATE_OBJECT_DATA *data)
         test_delete_object_function, test_write_property_function);
     if (data->application_data_len) {
         zassert_equal(status, false, NULL);
-        zassert_equal(data->error_class, ERROR_CLASS_PROPERTY, NULL);
-        zassert_equal(data->error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+        zassert_equal(
+            data->error_class, ERROR_CLASS_PROPERTY, "error_class=%s",
+            bactext_error_class_name(data->error_class));
+        zassert_equal(
+            data->error_code, ERROR_CODE_WRITE_ACCESS_DENIED, "error_code=%s",
+            bactext_error_code_name(data->error_code));
     } else {
         zassert_equal(status, true, NULL);
     }
@@ -174,8 +179,14 @@ ZTEST(create_object_tests, test_CreateObject)
 static void test_CreateObject(void)
 #endif
 {
-    BACNET_CREATE_OBJECT_DATA data = { .object_instance = 1,
-                                       .object_type = OBJECT_ANALOG_OUTPUT };
+    BACNET_CREATE_OBJECT_DATA data = {
+        .object_instance = 1,
+        .object_type = OBJECT_ANALOG_OUTPUT,
+        .application_data_len = 0,
+        .application_data = { 0 },
+        .error_class = ERROR_CLASS_PROPERTY,
+        .error_code = ERROR_CODE_SUCCESS,
+    };
     BACNET_PROPERTY_VALUE value[2] = {
         { .next = NULL,
           .priority = BACNET_NO_PRIORITY,
