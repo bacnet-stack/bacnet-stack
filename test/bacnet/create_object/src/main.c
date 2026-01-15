@@ -170,7 +170,9 @@ static void test_CreateObjectCodec(BACNET_CREATE_OBJECT_DATA *data)
     zassert_equal(status, true, NULL);
     zassert_equal(
         data->object_instance, Test_Create_Object_Returned_Instance, NULL);
-    zassert_true(data->first_failed_element_number > 0, NULL);
+    zassert_equal(
+        data->first_failed_element_number, 0, "first_failed_element_number=%u",
+        data->first_failed_element_number);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

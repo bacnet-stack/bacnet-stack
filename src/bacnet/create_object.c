@@ -724,6 +724,7 @@ bool create_object_process(
                         data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                     }
                 } else {
+                    data->first_failed_element_number = 0;
                     status = true;
                 }
             } else {
