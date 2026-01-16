@@ -41,6 +41,7 @@ static const int32_t Properties_Required[] = {
 };
 
 static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_DOOR_STATUS,      PROP_LOCK_STATUS,
     PROP_SECURED_STATUS,   PROP_DOOR_UNLOCK_DELAY_TIME,
     PROP_DOOR_ALARM_STATE, -1
@@ -53,6 +54,7 @@ static const int32_t Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
     PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE,   PROP_DOOR_STATUS,
     PROP_LOCK_STATUS,   PROP_DOOR_ALARM_STATE, -1
 };

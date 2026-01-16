@@ -26,7 +26,7 @@ void Accumulator_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary);
 BACNET_STACK_EXPORT
-void Accumulator__Writable_Property_List(
+void Accumulator_Writable_Property_List(
     uint32_t object_instance, const int32_t **properties);
 
 BACNET_STACK_EXPORT

@@ -56,7 +56,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Device_Writable_Property_List },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT,
       Network_Port_Init,
@@ -77,7 +78,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Network_Port_Writable_Property_List },
 #endif
     { OBJECT_BINARY_INPUT,
       Binary_Input_Init,
@@ -98,7 +100,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Input_Writable_Property_List },
     { OBJECT_BINARY_LIGHTING_OUTPUT,
       Binary_Lighting_Output_Init,
       Binary_Lighting_Output_Count,
@@ -118,7 +121,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Lighting_Output_Create,
       Binary_Lighting_Output_Delete,
-      Binary_Lighting_Output_Timer },
+      Binary_Lighting_Output_Timer,
+      Binary_Lighting_Output_Writable_Property_List },
     { OBJECT_BINARY_OUTPUT,
       Binary_Output_Init,
       Binary_Output_Count,
@@ -138,7 +142,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Output_Create,
       Binary_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Output_Writable_Property_List },
     { MAX_BACNET_OBJECT_TYPE,
       NULL /* Init */,
       NULL /* Count */,
@@ -158,7 +163,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ }
+      NULL /* Timer */,
+      NULL /* Writable_Property_List */ }
 };
 
 /** Glue function to let the Device object, when called by a handler,

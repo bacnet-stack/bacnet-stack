@@ -53,6 +53,7 @@ static const int32_t Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
     PROP_OUT_OF_SERVICE,
     -1,
 };

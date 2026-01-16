@@ -39,6 +39,10 @@ void Structured_View_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary);
 BACNET_STACK_EXPORT
+void Structured_View_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
+BACNET_STACK_EXPORT
 bool Structured_View_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned Structured_View_Count(void);

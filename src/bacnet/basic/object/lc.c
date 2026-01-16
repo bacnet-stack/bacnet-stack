@@ -99,9 +99,9 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Load_Control_Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -121,16 +121,29 @@ static const int32_t Load_Control_Properties_Required[] = {
 };
 
 static const int32_t Load_Control_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_FULL_DUTY_BASELINE,
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, PROP_FULL_DUTY_BASELINE, -1
+};
+
+static const int32_t Load_Control_Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
     -1
 };
 
-static const int32_t Load_Control_Properties_Proprietary[] = {
-    -1
-};
-/* clang-format on */
-
+/**
+ * Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ *
+ * @param pRequired - Pointer to the pointer of required values.
+ * @param pOptional - Pointer to the pointer of optional values.
+ * @param pProprietary - Pointer to the pointer of properitary values.
+ */
 void Load_Control_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -147,6 +160,20 @@ void Load_Control_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Load Control object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Load_Control_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**

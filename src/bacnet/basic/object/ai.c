@@ -66,20 +66,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
    that is always writable.  */
-static const int32_t Writable_Properties[] = { PROP_OUT_OF_SERVICE,
-                                               PROP_UNITS,
-                                               PROP_COV_INCREMENT,
-#if defined(INTRINSIC_REPORTING)
-                                               PROP_TIME_DELAY,
-                                               PROP_NOTIFICATION_CLASS,
-                                               PROP_HIGH_LIMIT,
-                                               PROP_LOW_LIMIT,
-                                               PROP_DEADBAND,
-                                               PROP_LIMIT_ENABLE,
-                                               PROP_EVENT_ENABLE,
-                                               PROP_NOTIFY_TYPE,
-#endif
-                                               -1 };
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    -1
+};
 
 /**
  * Initialize the pointers for the required, the optional and the properitary

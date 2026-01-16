@@ -50,7 +50,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
    that is always writable.  */
-static const int32_t Writable_Properties[] = { PROP_GLOBAL_IDENTIFIER, -1 };
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_GLOBAL_IDENTIFIER, -1
+};
 
 void Access_Credential_Property_Lists(
     const int32_t **pRequired,

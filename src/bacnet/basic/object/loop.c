@@ -122,6 +122,36 @@ static const int32_t *Properties_Proprietary_Extended;
 static write_property_function Write_Property_Proprietary_Callback;
 static read_property_function Read_Property_Proprietary_Callback;
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    PROP_PRESENT_VALUE,
+    PROP_OUT_OF_SERVICE,
+    PROP_ACTION,
+    PROP_UPDATE_INTERVAL,
+    PROP_OUTPUT_UNITS,
+    PROP_CONTROLLED_VARIABLE_VALUE,
+    PROP_CONTROLLED_VARIABLE_UNITS,
+    PROP_PROPORTIONAL_CONSTANT,
+    PROP_PROPORTIONAL_CONSTANT_UNITS,
+    PROP_INTEGRAL_CONSTANT,
+    PROP_INTEGRAL_CONSTANT_UNITS,
+    PROP_DERIVATIVE_CONSTANT,
+    PROP_DERIVATIVE_CONSTANT_UNITS,
+    PROP_BIAS,
+    PROP_SETPOINT,
+    PROP_MINIMUM_OUTPUT,
+    PROP_MAXIMUM_OUTPUT,
+    PROP_PRIORITY_FOR_WRITING,
+    PROP_MANIPULATED_VARIABLE_REFERENCE,
+    PROP_CONTROLLED_VARIABLE_REFERENCE,
+    PROP_SETPOINT_REFERENCE,
+    PROP_COV_INCREMENT,
+    -1
+};
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -153,6 +183,20 @@ void Loop_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Loop object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Loop_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**

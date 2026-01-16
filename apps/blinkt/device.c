@@ -63,7 +63,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Device_Writable_Property_List },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT,
       Network_Port_Init,
@@ -84,7 +85,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Network_Port_Writable_Property_List },
 #endif
     { OBJECT_LOAD_CONTROL,
       Load_Control_Init,
@@ -105,7 +107,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Load_Control_Writable_Property_List },
 #if (BACNET_PROTOCOL_REVISION >= 14)
     { OBJECT_LIGHTING_OUTPUT,
       Lighting_Output_Init,
@@ -126,7 +129,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Lighting_Output_Create,
       Lighting_Output_Delete,
-      Lighting_Output_Timer },
+      Lighting_Output_Timer,
+      Lighting_Output_Writable_Property_List },
     { OBJECT_CHANNEL,
       Channel_Init,
       Channel_Count,
@@ -146,7 +150,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Channel_Create,
       Channel_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Channel_Writable_Property_List },
 #endif
 #if (BACNET_PROTOCOL_REVISION >= 24)
     { OBJECT_COLOR,
@@ -168,7 +173,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Color_Create,
       Color_Delete,
-      Color_Timer },
+      Color_Timer,
+      Color_Writable_Property_List },
     { OBJECT_COLOR_TEMPERATURE,
       Color_Temperature_Init,
       Color_Temperature_Count,
@@ -188,7 +194,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Color_Temperature_Create,
       Color_Temperature_Delete,
-      Color_Temperature_Timer },
+      Color_Temperature_Timer,
+      Color_Temperature_Writable_Property_List },
 #endif
     { MAX_BACNET_OBJECT_TYPE,
       NULL /* Init */,
@@ -209,8 +216,34 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ }
+      NULL /* Timer */,
+      NULL /* Writable_Property_List */ }
 };
+
+/**
+ * @brief Get the Writeable Property List for an object type
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param properties - pointer to the list of writable properties
+ * @return The number of properties in the writable property list
+ */
+uint32_t Device_Objects_Writable_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **properties)
+{
+    uint32_t count = 0;
+    struct object_functions *pObject = NULL;
+
+    (void)object_instance;
+    pObject = Device_Object_Functions_Find(object_type);
+    if ((pObject != NULL) && (pObject->Object_Writable_Property_List != NULL)) {
+        pObject->Object_Writable_Property_List(object_instance, properties);
+        count = property_list_count(*properties);
+    }
+
+    return count;
+}
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
@@ -334,6 +367,31 @@ bool Device_Objects_Property_List_Member(
     }
 
     return found;
+}
+
+/**
+ * @brief Get the Writeable Property List for an object type
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param properties - pointer to the list of writable properties
+ * @return The number of properties in the writable property list
+ */
+uint32_t Device_Objects_Writable_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **properties)
+{
+    uint32_t count = 0;
+    struct object_functions *pObject = NULL;
+
+    (void)object_instance;
+    pObject = Device_Object_Functions_Find(object_type);
+    if ((pObject != NULL) && (pObject->Object_Writable_Property_List != NULL)) {
+        pObject->Object_Writable_Property_List(object_instance, properties);
+        count = property_list_count(*properties);
+    }
+
+    return count;
 }
 
 /* These three arrays are used by the ReadPropertyMultiple handler */

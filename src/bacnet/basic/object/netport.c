@@ -168,6 +168,10 @@ static const int32_t Ethernet_Port_Properties_Optional[] = {
 #endif
     -1
 };
+static const int32_t Ethernet_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS, PROP_LINK_SPEED, -1
+};
 
 static const int32_t Zigbee_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
@@ -181,6 +185,10 @@ static const int32_t Zigbee_Port_Properties_Optional[] = {
     PROP_LINK_SPEED,
 #endif
     -1
+};
+static const int32_t Zigbee_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS, PROP_LINK_SPEED, -1
 };
 
 static const int32_t MSTP_Port_Properties_Optional[] = {
@@ -197,6 +205,10 @@ static const int32_t MSTP_Port_Properties_Optional[] = {
     PROP_LINK_SPEEDS,
 #endif
     -1
+};
+static const int32_t MSTP_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_LINK_SPEED, -1
 };
 
 static const int32_t BIP_Port_Properties_Optional[] = {
@@ -230,6 +242,17 @@ static const int32_t BIP_Port_Properties_Optional[] = {
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_LINK_SPEED,
 #endif
+    -1
+};
+static const int32_t BIP_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS,
+    PROP_LINK_SPEED,
+    PROP_FD_BBMD_ADDRESS,
+    PROP_FD_SUBSCRIPTION_LIFETIME,
+    PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
     -1
 };
 
@@ -267,6 +290,17 @@ static const int32_t BIP6_Port_Properties_Optional[] = {
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_LINK_SPEED,
 #endif
+    -1
+};
+static const int32_t BIP6_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS,
+    PROP_LINK_SPEED,
+    PROP_FD_BBMD_ADDRESS,
+    PROP_FD_SUBSCRIPTION_LIFETIME,
+    PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
     -1
 };
 
@@ -314,6 +348,17 @@ static const int32_t BSC_Port_Properties_Optional[] = {
     PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
     PROP_SC_FAILED_CONNECTION_REQUESTS,
+    -1
+};
+static const int32_t BSC_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS,
+    PROP_LINK_SPEED,
+    PROP_FD_BBMD_ADDRESS,
+    PROP_FD_SUBSCRIPTION_LIFETIME,
+    PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
     -1
 };
 
@@ -373,6 +418,44 @@ void Network_Port_Property_List(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Network Port object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Network_Port_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    unsigned index;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (index < BACNET_NETWORK_PORTS_MAX) {
+            switch (Object_List[index].Network_Type) {
+                case PORT_TYPE_MSTP:
+                    *properties = MSTP_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_BIP:
+                    *properties = BIP_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_BSC:
+                    *properties = BSC_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_BIP6:
+                    *properties = BIP6_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_ZIGBEE:
+                    *properties = Zigbee_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_ETHERNET:
+                default:
+                    *properties = Ethernet_Port_Writable_Properties;
+                    break;
+            }
+        }
+    }
 }
 
 /**
