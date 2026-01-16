@@ -140,6 +140,7 @@ typedef struct object_functions {
     create_object_function Object_Create;
     delete_object_function Object_Delete;
     object_timer_function Object_Timer;
+    writable_property_list_function Object_Writable_Property_List;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -251,10 +252,18 @@ void Device_Objects_Property_List(
     uint32_t object_instance,
     struct special_property_list_t *pPropertyList);
 BACNET_STACK_EXPORT
+void Device_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+BACNET_STACK_EXPORT
 bool Device_Objects_Property_List_Member(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property);
+BACNET_STACK_EXPORT
+uint32_t Device_Objects_Writable_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **properties);
 
 /* functions to support COV */
 BACNET_STACK_EXPORT
