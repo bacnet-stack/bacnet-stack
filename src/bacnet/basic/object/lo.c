@@ -431,6 +431,11 @@ Present_Value_Set(struct object_data *pObject, float value, unsigned priority)
         (priority != 6 /* reserved */)) {
         priority--;
         BIT_SET(pObject->Priority_Active_Bits, priority);
+        /* Writes to Present_Value at a value greater than 0.0%
+           but less than 1.0% shall be clamped to 1.0%.*/
+        if ((isgreater(value, 0.0)) && (isless(value, 1.0))) {
+            value = 1.0f;
+        }
         pObject->Priority_Array[priority] = value;
         status = true;
     }
