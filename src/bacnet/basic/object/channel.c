@@ -731,8 +731,6 @@ static bool Channel_Write_Members(
                                 wp_data.error_code = ERROR_CODE_SUCCESS;
                             }
                         }
-                        Channel_Write_Property_Notify(
-                            object_instance, status, &wp_data);
                         debug_printf(
                             "channel[%lu].Channel_Write_Member[%u] "
                             "%s\n",
@@ -741,14 +739,14 @@ static bool Channel_Write_Members(
                     }
                 } else {
                     wp_data.error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-                    Channel_Write_Property_Notify(
-                        object_instance, status, &wp_data);
                     debug_printf(
                         "channel[%lu].Channel_Write_Member[%u] "
                         "coercion failed!\n",
                         (unsigned long)object_instance, m);
                     pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
                 }
+                Channel_Write_Property_Notify(
+                    object_instance, status, &wp_data);
             } else {
                 debug_printf(
                     "channel[%lu].Channel_Write_Member[%u] invalid!\n",

@@ -507,9 +507,8 @@ static bool Timer_Write_Members(
                             wp_data.error_code = ERROR_CODE_SUCCESS;
                         }
                     }
-                    Timer_Write_Property_Notify(
-                        object_instance, status, &wp_data);
                 }
+                Timer_Write_Property_Notify(object_instance, status, &wp_data);
             }
         }
     }

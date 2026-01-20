@@ -2103,8 +2103,8 @@ static bool Loop_Write_Manipulated_Variable(
                         wp_data.error_code = ERROR_CODE_SUCCESS;
                     }
                 }
-                Loop_Write_Property_Notify(object_instance, status, &wp_data);
             }
+            Loop_Write_Property_Notify(object_instance, status, &wp_data);
         }
     }
 
