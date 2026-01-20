@@ -496,7 +496,7 @@ lighting_command_step_on_handler(struct bacnet_lighting_command_data *data)
 {
     float old_value, target_value;
 
-    old_value = target_value = data->Tracking_Value;
+    old_value = data->Tracking_Value;
     target_value = lighting_command_step_up_target_value(
         data->Tracking_Value, data->Step_Increment);
     data->Tracking_Value =
@@ -521,7 +521,7 @@ lighting_command_step_off_handler(struct bacnet_lighting_command_data *data)
 {
     float old_value, target_value;
 
-    old_value = target_value = data->Tracking_Value;
+    old_value = data->Tracking_Value;
     target_value = lighting_command_step_down_target_value(
         data->Tracking_Value, data->Step_Increment);
     data->Tracking_Value =
@@ -759,7 +759,7 @@ void lighting_command_step(
     BACNET_LIGHTING_OPERATION operation,
     float step_increment)
 {
-    float target_value, step;
+    float target_value;
 
     if (!data) {
         return;
@@ -775,7 +775,6 @@ void lighting_command_step(
     data->Fade_Time = 0;
     data->Step_Increment = step_increment;
     /* determine the last-on-value for the given step operation */
-    step = lighting_command_step_increment_clamp(step_increment);
     if (operation == BACNET_LIGHTS_STEP_UP) {
         target_value = lighting_command_step_up_target_value(
             data->Tracking_Value, data->Step_Increment);
