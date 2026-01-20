@@ -32,6 +32,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added post-write notifications for channel, timer, and loop objects. (#1204)
 * Added device WriteProperty callbacks for Timer object in example device
   objects implementations. (#1203)
 * Added file path name checking for AtomicReadFile and AtomicWriteFile
