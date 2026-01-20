@@ -120,7 +120,7 @@ bool Channel_Write_Member_Value(
 BACNET_STACK_EXPORT
 void Channel_Write_Property_Internal_Callback_Set(write_property_function cb);
 BACNET_STACK_EXPORT
-void Channel_Write_Property_Notfication_Add(
+void Channel_Write_Property_Notification_Add(
     struct channel_write_property_notification *notification);
 BACNET_STACK_EXPORT
 void Channel_Write_Property_Notify(
