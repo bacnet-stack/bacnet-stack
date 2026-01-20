@@ -40,6 +40,8 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LOOP;
 /* handling for manipulated and reference properties */
 static write_property_function Write_Property_Internal_Callback;
 static read_property_function Read_Property_Internal_Callback;
+/* Write Property notification callbacks for logging or other purposes */
+static struct loop_write_property_notification Write_Property_Notification_Head;
 
 struct object_data {
     /* internal variables for PID calculations */
@@ -2017,6 +2019,49 @@ void Loop_Write_Property_Internal_Callback_Set(write_property_function cb)
 }
 
 /**
+ * @brief Add a Loop notification callback
+ * @param notification - pointer to the notification structure
+ */
+void Loop_Write_Property_Notification_Add(
+    struct loop_write_property_notification *notification)
+{
+    struct loop_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Calls all registered Loop write property notification callbacks
+ * @param instance - object instance number
+ * @param status - write property status
+ * @param wp_data - write property data
+ */
+void Loop_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    struct loop_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(instance, status, wp_data);
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
  * @brief For a given object, writes to the manipulated-variable-reference
  * @param pObject - object instance data
  * @param object_instance - object-instance number of the object
@@ -2058,6 +2103,7 @@ static bool Loop_Write_Manipulated_Variable(
                         wp_data.error_code = ERROR_CODE_SUCCESS;
                     }
                 }
+                Loop_Write_Property_Notify(object_instance, status, &wp_data);
             }
         }
     }

@@ -52,8 +52,11 @@ struct object_data {
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
-
+/* Internal write property callback */
 static write_property_function Write_Property_Internal_Callback;
+/* Write Property notification callbacks for logging or other purposes */
+static struct channel_write_property_notification
+    Write_Property_Notification_Head;
 
 /* These arrays are used by the ReadPropertyMultiple handler
    property-list property (as of protocol-revision 14) */
@@ -728,6 +731,8 @@ static bool Channel_Write_Members(
                                 wp_data.error_code = ERROR_CODE_SUCCESS;
                             }
                         }
+                        Channel_Write_Property_Notify(
+                            object_instance, status, &wp_data);
                         debug_printf(
                             "channel[%lu].Channel_Write_Member[%u] "
                             "%s\n",
@@ -735,6 +740,9 @@ static bool Channel_Write_Members(
                             bactext_error_code_name(wp_data.error_code));
                     }
                 } else {
+                    wp_data.error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+                    Channel_Write_Property_Notify(
+                        object_instance, status, &wp_data);
                     debug_printf(
                         "channel[%lu].Channel_Write_Member[%u] "
                         "coercion failed!\n",
@@ -1378,6 +1386,49 @@ void Channel_Write_Group(
 void Channel_Write_Property_Internal_Callback_Set(write_property_function cb)
 {
     Write_Property_Internal_Callback = cb;
+}
+
+/**
+ * @brief Add a Channel notification callback
+ * @param notification - pointer to the notification structure
+ */
+void Channel_Write_Property_Notification_Add(
+    struct channel_write_property_notification *notification)
+{
+    struct channel_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief call the channel WriteProperty notification callbacks
+ * @param instance - object instance number
+ * @param status - status of the write
+ * @param wp_data - write property data
+ */
+void Channel_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    struct channel_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(instance, status, wp_data);
+        }
+        head = head->next;
+    } while (head);
 }
 
 /**
