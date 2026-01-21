@@ -126,7 +126,15 @@ static void testDevice(void)
     bool status = false;
     const char *name = "Patricia";
     BACNET_REINITIALIZE_DEVICE_DATA rd_data;
+    unsigned i, count, writable;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    const int32_t *properties;
+    struct special_property_list_t property_list;
 
+    Device_Init(NULL);
+    count = Device_Count();
+    zassert_true(count > 0, NULL);
     status = Device_Set_Object_Instance_Number(0);
     zassert_equal(Device_Object_Instance_Number(), 0, NULL);
     zassert_true(status, NULL);
@@ -214,6 +222,27 @@ static void testDevice(void)
     zassert_equal(
         rd_data.error_code, ERROR_CODE_PARAMETER_OUT_OF_RANGE, "error-code=%s",
         bactext_error_code_name(rd_data.error_code));
+
+    count = Device_Object_List_Count();
+    for (i = 1; i <= count; i++) {
+        bool valid = false;
+
+        valid =
+            Device_Object_List_Identifier(i, &object_type, &object_instance);
+        zassert_true(valid, "object-list[%u] is not valid", i);
+        valid = Device_Valid_Object_Id(object_type, object_instance);
+        zassert_true(valid, NULL);
+        Device_Objects_Writable_Property_List(
+            object_type, object_instance, &properties);
+        zassert_not_null(properties, NULL);
+        writable = property_list_count(properties);
+        zassert_true(
+            writable > 0, "%s-%u has no writable properties",
+            bactext_object_type_name(object_type), object_instance);
+        Device_Objects_Property_List(
+            object_type, object_instance, &property_list);
+        zassert_true(property_list.Required.count > 0, NULL);
+    }
 
     return;
 }

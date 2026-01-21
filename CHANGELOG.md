@@ -12,15 +12,40 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2025-12-04
+## [Unreleased] - 2026-01-15
 
 ### Security
 
 * Secured npdu_is_expected_reply() function where the MS/TP reply matcher
   could have an out-of-bounds read. (#1178)
+* Secured ubasic interpreter tokenizer_string() and tokenizer_label()
+  off-by-one buffer overflow when processing string literals longer
+  than the buffer limit.
+  Fixed ubasic potential string buffer overflows by using snprintf.
+  Fixed ubasic label strings to use UBASIC_LABEL_LEN_MAX as buffer limit.
+  Fixed ubasic string variables to initialize with zeros.
+  Fixed compile errors when UBASIC_DEBUG_STRINGVARIABLES is defined.
+  Added ubasic string variables user accessor API and unit testing. (#1196)
+* Secured BACnet file object pathname received from BACnet AtomicWriteFile
+  or ReadFile service used without validation which was vulnerable to
+  directory traversal attacks. (#1197)
 
 ### Added
 
+* Added a new API for writable property lists across all the basic example
+  object types, preparing for the introduction of a Writable_Property_List
+  property in every object in a future BACnet standard revision.
+  The lists can be used by backup and restore feature to automatically
+  choose the object property values in the backup that can be restored
+  via internal WriteProperty directly from BACnet CreateObject services with
+  List of Initial Values. Updated existing device objects to include
+  these writable property lists. (#1206)
+* Added post-write notifications for channel, timer, and loop objects. (#1204)
+* Added device WriteProperty callbacks for Timer object in example device
+  objects implementations. (#1203)
+* Added file path name checking for AtomicReadFile and AtomicWriteFile
+  example applications. Prohibits use of relative and absolute file paths
+  when BACNET_FILE_PATH_RESTRICTED is defined non-zero. (#1197)
 * Added API and optional properties to basic load control object example
   Refactored BACnetShedLevel encoding, decoding, and printing into separate
   file. Added BACnetShedLevel validation testing. (#1187)
@@ -52,6 +77,10 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed bacnet_strtof and bacnet_strtold functions to use strtod to
+  improve compatibility with C89 standards while ensuring proper type
+  casting and range checking. (#1207)
+* Changed RGB color clamp function to avoid Zephyr RTOS name collisions. (#1201)
 * Changed the load control object AbleToMeetShed to only check for immediate
   shed ability and added CanNowComplyWithShed function to attempt to meet the
   shed request while in the non-compliant state. (#1191)
@@ -66,6 +95,16 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting output object lighting-command last-on-value to only
+  be updated with the last value of the Present_Value property that
+  was greater than or equal to 1.0%, keeping in mind that the Present_Value
+  shall indicate the target level of the operation and not the current
+  value. (#1205)
+* Fixed CreateObject service list-of-initial-values encoding and decoding.
+  Changed the data structure to be similar to WriteProperty. (#1199)
+* Fixed lighting-output object blink warn to honor blink-warn-enable.
+  Fixed the blink warn logic for a non-zero percent value blink inhibit.
+  Fixed the warn relinquish to actually relinquish. (#1192)
 * Fixed channel-value encoding in the channel object when no-coercian
   is required for lighting-command, color-command, and xy-color. (#1190)
 * Fixed NULL handling in CharacterString sprintf which caused an endless

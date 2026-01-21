@@ -76,6 +76,16 @@ static const int32_t Color_Properties_Optional[] = { PROP_DESCRIPTION,
 
 static const int32_t Color_Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE,     PROP_COLOR_COMMAND, PROP_DEFAULT_COLOR,
+    PROP_DEFAULT_FADE_TIME, PROP_TRANSITION,    -1
+};
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -103,6 +113,20 @@ void Color_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Color object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Color_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**

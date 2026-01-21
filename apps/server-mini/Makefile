@@ -9,9 +9,18 @@ SRC = main.c
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/device.c \
+	$(BACNET_OBJECT_DIR)/access_credential.c \
+	$(BACNET_OBJECT_DIR)/access_door.c \
+	$(BACNET_OBJECT_DIR)/access_point.c \
+	$(BACNET_OBJECT_DIR)/access_rights.c \
+	$(BACNET_OBJECT_DIR)/access_user.c \
+	$(BACNET_OBJECT_DIR)/access_zone.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \
+	$(BACNET_OBJECT_DIR)/acc.c \
+	$(BACNET_OBJECT_DIR)/auditlog.c \
+	$(BACNET_OBJECT_DIR)/bacfile.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bitstring_value.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
@@ -22,6 +31,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/color_object.c \
 	$(BACNET_OBJECT_DIR)/color_temperature.c \
 	$(BACNET_OBJECT_DIR)/command.c \
+	$(BACNET_OBJECT_DIR)/credential_data_input.c \
 	$(BACNET_OBJECT_DIR)/csv.c \
 	$(BACNET_OBJECT_DIR)/iv.c \
 	$(BACNET_OBJECT_DIR)/lc.c \
@@ -32,25 +42,16 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/ms-input.c \
 	$(BACNET_OBJECT_DIR)/mso.c \
 	$(BACNET_OBJECT_DIR)/msv.c \
-	$(BACNET_OBJECT_DIR)/osv.c \
-	$(BACNET_OBJECT_DIR)/piv.c \
 	$(BACNET_OBJECT_DIR)/nc.c  \
 	$(BACNET_OBJECT_DIR)/netport.c  \
-	$(BACNET_OBJECT_DIR)/program.c  \
-	$(BACNET_OBJECT_DIR)/time_value.c \
-	$(BACNET_OBJECT_DIR)/timer.c \
-	$(BACNET_OBJECT_DIR)/trendlog.c \
+	$(BACNET_OBJECT_DIR)/osv.c \
+	$(BACNET_OBJECT_DIR)/piv.c \
+	$(BACNET_OBJECT_DIR)/program.c \
 	$(BACNET_OBJECT_DIR)/schedule.c \
 	$(BACNET_OBJECT_DIR)/structured_view.c \
-	$(BACNET_OBJECT_DIR)/access_credential.c \
-	$(BACNET_OBJECT_DIR)/access_door.c \
-	$(BACNET_OBJECT_DIR)/access_point.c \
-	$(BACNET_OBJECT_DIR)/access_rights.c \
-	$(BACNET_OBJECT_DIR)/access_user.c \
-	$(BACNET_OBJECT_DIR)/access_zone.c \
-	$(BACNET_OBJECT_DIR)/credential_data_input.c \
-	$(BACNET_OBJECT_DIR)/acc.c \
-	$(BACNET_OBJECT_DIR)/bacfile.c
+	$(BACNET_OBJECT_DIR)/time_value.c \
+	$(BACNET_OBJECT_DIR)/timer.c \
+	$(BACNET_OBJECT_DIR)/trendlog.c
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)

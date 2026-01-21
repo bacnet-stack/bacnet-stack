@@ -115,6 +115,24 @@ static const int32_t Properties_Optional[] = {
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE,       PROP_LIGHTING_COMMAND,
+    PROP_OUT_OF_SERVICE,      PROP_DEFAULT_FADE_TIME,
+    PROP_DEFAULT_RAMP_RATE,   PROP_DEFAULT_STEP_INCREMENT,
+    PROP_TRANSITION,          PROP_RELINQUISH_DEFAULT,
+    PROP_LAST_ON_VALUE,       PROP_DEFAULT_ON_VALUE,
+    PROP_HIGH_END_TRIM,       PROP_LOW_END_TRIM,
+    PROP_TRIM_FADE_TIME,      PROP_BLINK_WARN_ENABLE,
+    PROP_EGRESS_TIME,         PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
+    PROP_FEEDBACK_VALUE,      PROP_POWER,
+    PROP_INSTANTANEOUS_POWER, -1
+};
+
 /**
  * @brief compare two floating point values to 3 decimal places
  *
@@ -154,6 +172,20 @@ void Lighting_Output_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Lighting Output object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Lighting_Output_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -431,6 +463,11 @@ Present_Value_Set(struct object_data *pObject, float value, unsigned priority)
         (priority != 6 /* reserved */)) {
         priority--;
         BIT_SET(pObject->Priority_Active_Bits, priority);
+        /* Writes to Present_Value at a value greater than 0.0%
+           but less than 1.0% shall be clamped to 1.0%.*/
+        if ((isgreater(value, 0.0)) && (isless(value, 1.0))) {
+            value = 1.0f;
+        }
         pObject->Priority_Array[priority] = value;
         status = true;
     }
@@ -477,7 +514,8 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
     current_priority = Present_Value_Priority(pObject);
     if ((priority <= current_priority) &&
         (Priority_Array_Active(pObject, priority - 1)) &&
-        (isgreater(Priority_Array_Value(pObject, priority - 1), 0.0))) {
+        (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+        pObject->Blink_Warn_Enable) {
         /* The blink-warn notification shall not occur
             if any of the following conditions occur:
             (a) The specified priority is not the highest
@@ -506,8 +544,10 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
     current_priority = Present_Value_Priority(pObject);
     if ((priority <= current_priority) &&
         (Priority_Array_Active(pObject, priority - 1)) &&
-        (isgreater(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
-        (isgreater(Priority_Array_Next_Value(pObject, priority - 1), 0.0))) {
+        (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+        (is_float_equal(
+            Priority_Array_Next_Value(pObject, priority - 1), 0.0)) &&
+        pObject->Blink_Warn_Enable) {
         /* The blink-warn notification shall not occur and
             the value 0.0% written at the specified
             priority immediately if any of the following
@@ -521,9 +561,8 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
         lighting_command_blink_warn(
             &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
             &pObject->Lighting_Command.Blink);
-    } else {
-        Present_Value_Set(pObject, 0.0, priority);
     }
+    Present_Value_Set(pObject, 0.0, priority);
 }
 
 /**
@@ -542,28 +581,25 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
     current_priority = Present_Value_Priority(pObject);
     if ((priority <= current_priority) &&
         (Priority_Array_Active(pObject, priority - 1)) &&
-        (isgreater(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
-        (isgreater(Priority_Array_Next_Value(pObject, priority - 1), 0.0))) {
+        (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+        (is_float_equal(
+            Priority_Array_Next_Value(pObject, priority - 1), 0.0)) &&
+        pObject->Blink_Warn_Enable) {
         /* The blink-warn notification shall not occur,
             and the value at the specified priority shall be
             relinquished immediately if any of the following
             conditions occur:
-            (a) The specified priority is not the highest
-                active priority, or
-            (b) The value at the specified priority
-                is 0.0% or NULL, or
-            (c) The value of the next highest non-NULL
-                priority, including Relinquish_Default,
-                is greater than 0.0%, or
-            (d) Blink_Warn_Enable is FALSE. */
+            (a) Blink_Warn_Enable is FALSE, or
+            (b) The Present_Value is 0.0%, or
+            (c) The Present_Value would not evaluate to 0.0% after
+                the priority slot is relinquished. */
         pObject->Lighting_Command.Blink.Duration =
             pObject->Egress_Time_Seconds * 1000UL;
         lighting_command_blink_warn(
             &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
             &pObject->Lighting_Command.Blink);
-    } else {
-        Present_Value_Relinquish(pObject, priority);
     }
+    Present_Value_Relinquish(pObject, priority);
 }
 
 /**

@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <float.h>
+#include <math.h>
 #include <ctype.h>
 #include <errno.h>
 /* BACnet Stack defines - first */
@@ -1565,14 +1567,15 @@ bool bacnet_strtol(const char *str, long *long_value)
  * @param float_value - where to put the converted value
  * @return true if converted and finite value is set
  * @return false if not converted and finite value is not set
+ * @note Uses strtod() for C89 compatibility and casts to float
  */
 bool bacnet_strtof(const char *str, float *float_value)
 {
     char *endptr;
-    float value;
+    double value;
 
     errno = 0;
-    value = strtof(str, &endptr);
+    value = strtod(str, &endptr);
     if (endptr == str) {
         /* No digits found */
         return false;
@@ -1586,8 +1589,12 @@ bool bacnet_strtof(const char *str, float *float_value)
         /* Extra text found */
         return false;
     }
+    if (fabs(value) > FLT_MAX) {
+        /* Value exceeds float range */
+        return false;
+    }
     if (float_value) {
-        *float_value = value;
+        *float_value = (float)value;
     }
 
     return true;
@@ -1635,14 +1642,15 @@ bool bacnet_strtod(const char *str, double *double_value)
  * @param long_double_value - where to put the converted value
  * @return true if converted and finite value is set
  * @return false if not converted and finite value is not set
+ * @note Uses strtod() for C89 compatibility and casts to long double
  */
 bool bacnet_strtold(const char *str, long double *long_double_value)
 {
     char *endptr;
-    long double value;
+    double value;
 
     errno = 0;
-    value = strtold(str, &endptr);
+    value = strtod(str, &endptr);
     if (endptr == str) {
         /* No digits found */
         return false;
@@ -1657,7 +1665,7 @@ bool bacnet_strtold(const char *str, long double *long_double_value)
         return false;
     }
     if (long_double_value) {
-        *long_double_value = value;
+        *long_double_value = (long double)value;
     }
 
     return true;
@@ -1862,23 +1870,16 @@ bool bacnet_string_to_bool(const char *str, bool *bool_value)
  * @param unsigned_int - where to put the converted value
  * @return true if converted and value is set
  * @return false if not converted and value is not set
+ * @note the conversion is limited to the strtoul() range for C89 compatibility
  */
 bool bacnet_string_to_unsigned(
     const char *str, BACNET_UNSIGNED_INTEGER *unsigned_int)
 {
     char *endptr;
-#ifdef UINT64_MAX
-    unsigned long long value;
-#else
     unsigned long value;
-#endif
 
     errno = 0;
-#ifdef UINT64_MAX
-    value = strtoull(str, &endptr, 0);
-#else
     value = strtoul(str, &endptr, 0);
-#endif
     if (endptr == str) {
         /* No digits found */
         return false;

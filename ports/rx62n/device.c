@@ -53,7 +53,7 @@ static struct my_object_functions {
       Device_Property_Lists },
     { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
       Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
-      Binary_Output_Name, Binary_Output_Read_Property,
+      Binary_Output_Object_Name, Binary_Output_Read_Property,
       Binary_Output_Write_Property, Binary_Output_Property_Lists },
     { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
@@ -152,7 +152,8 @@ static int Read_Property_Common(
             break;
         case PROP_OBJECT_NAME:
             if (pObject->Object_Name) {
-                pString = pObject->Object_Name(rpdata->object_instance);
+                pString =
+                    pObject->Object_Name(rpdata->object_instance, &char_string);
             }
             characterstring_init_ansi(&char_string, pString);
             apdu_len =

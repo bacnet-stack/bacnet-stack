@@ -140,6 +140,44 @@ float lighting_command_step_increment_clamp(float step_increment)
 }
 
 /**
+ * @brief Calculate the target value for a step down command
+ * @param tracking_value [in] current tracking value
+ * @param step_increment [in] step increment value
+ * @return target value for step down command
+ */
+float lighting_command_step_down_target_value(
+    float tracking_value, float step_increment)
+{
+    float target_value, step_value;
+
+    step_value = lighting_command_step_increment_clamp(step_increment);
+    if (isgreaterequal(tracking_value, step_value)) {
+        target_value = tracking_value - step_value;
+    } else {
+        target_value = 0.0f;
+    }
+
+    return target_value;
+}
+
+/**
+ * @brief Calculate the target value for a step up command
+ * @param tracking_value [in] current tracking value
+ * @param step_increment [in] step increment value
+ * @return target value for step up command
+ */
+float lighting_command_step_up_target_value(
+    float tracking_value, float step_increment)
+{
+    float target_value, step_value;
+
+    step_value = lighting_command_step_increment_clamp(step_increment);
+    target_value = tracking_value + step_value;
+
+    return target_value;
+}
+
+/**
  * @brief Clamp the value within the operating range between low and high
  *  end trim values.
  * @details The Operating Range is a subset of the Normalized Range,
@@ -245,9 +283,6 @@ static void lighting_command_tracking_value_event(
 {
     if (data->Overridden) {
         value = lighting_command_operating_range_clamp(data, value);
-        if (isgreaterequal(value, 1.0)) {
-            data->Last_On_Value = value;
-        }
         lighting_command_tracking_value_notify(data, old_value, value);
         if (data->Overridden_Momentary) {
             data->Overridden = false;
@@ -255,9 +290,6 @@ static void lighting_command_tracking_value_event(
     } else if (!data->Out_Of_Service) {
         data->Overridden_Momentary = false;
         value = lighting_command_operating_range_clamp(data, value);
-        if (isgreaterequal(value, 1.0)) {
-            data->Last_On_Value = value;
-        }
         lighting_command_tracking_value_notify(data, old_value, value);
     } else {
         debug_printf(
@@ -409,13 +441,13 @@ static void lighting_command_ramp_handler(
 static void
 lighting_command_step_up_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value, step_value;
+    float old_value, target_value;
 
     old_value = data->Tracking_Value;
-    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
-    /* inhibit ON if the value is already OFF */
     if (isgreaterequal(old_value, data->Min_Actual_Value)) {
-        target_value = old_value + step_value;
+        /* inhibit ON if the value is already OFF */
+        target_value = lighting_command_step_up_target_value(
+            data->Tracking_Value, data->Step_Increment);
         data->Tracking_Value =
             lighting_command_normalized_on_range_clamp(data, target_value);
         data->In_Progress = BACNET_LIGHTING_IDLE;
@@ -437,15 +469,11 @@ lighting_command_step_up_handler(struct bacnet_lighting_command_data *data)
 static void
 lighting_command_step_down_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value, step_value;
+    float old_value, target_value;
 
-    old_value = target_value = data->Tracking_Value;
-    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
-    if (isgreaterequal(target_value, step_value)) {
-        target_value -= step_value;
-    } else {
-        target_value = data->Min_Actual_Value;
-    }
+    old_value = data->Tracking_Value;
+    target_value = lighting_command_step_down_target_value(
+        data->Tracking_Value, data->Step_Increment);
     data->Tracking_Value =
         lighting_command_normalized_on_range_clamp(data, target_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
@@ -466,11 +494,11 @@ lighting_command_step_down_handler(struct bacnet_lighting_command_data *data)
 static void
 lighting_command_step_on_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value, step_value;
+    float old_value, target_value;
 
-    old_value = target_value = data->Tracking_Value;
-    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
-    target_value += step_value;
+    old_value = data->Tracking_Value;
+    target_value = lighting_command_step_up_target_value(
+        data->Tracking_Value, data->Step_Increment);
     data->Tracking_Value =
         lighting_command_normalized_range_clamp(data, target_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
@@ -491,15 +519,11 @@ lighting_command_step_on_handler(struct bacnet_lighting_command_data *data)
 static void
 lighting_command_step_off_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value, step_value;
+    float old_value, target_value;
 
-    old_value = target_value = data->Tracking_Value;
-    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
-    if (isgreaterequal(target_value, step_value)) {
-        target_value -= step_value;
-    } else {
-        target_value = 0.0f;
-    }
+    old_value = data->Tracking_Value;
+    target_value = lighting_command_step_down_target_value(
+        data->Tracking_Value, data->Step_Increment);
     data->Tracking_Value =
         lighting_command_normalized_range_clamp(data, target_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
@@ -697,6 +721,10 @@ void lighting_command_fade_to(
     data->Fade_Time = fade_time;
     data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
     data->Target_Level = value;
+    if (isgreaterequal(value, 1.0)) {
+        /* the last value that was greater than or equal to 1.0%.*/
+        data->Last_On_Value = value;
+    }
 }
 
 /**
@@ -714,6 +742,10 @@ void lighting_command_ramp_to(
     data->Ramp_Rate = lighting_command_ramp_rate_clamp(ramp_rate);
     data->Lighting_Operation = BACNET_LIGHTS_RAMP_TO;
     data->Target_Level = value;
+    if (isgreaterequal(value, 1.0)) {
+        /* the last value that was greater than or equal to 1.0%.*/
+        data->Last_On_Value = value;
+    }
 }
 
 /**
@@ -727,12 +759,49 @@ void lighting_command_step(
     BACNET_LIGHTING_OPERATION operation,
     float step_increment)
 {
+    float target_value;
+
     if (!data) {
+        return;
+    }
+    if (((operation == BACNET_LIGHTS_STEP_UP) ||
+         (operation == BACNET_LIGHTS_STEP_DOWN)) &&
+        (!islessgreater(data->Tracking_Value, 0.0))) {
+        /* If the starting level of Tracking_Value is 0.0%,
+        then this operation is ignored. */
         return;
     }
     data->Lighting_Operation = operation;
     data->Fade_Time = 0;
     data->Step_Increment = step_increment;
+    /* determine the last-on-value for the given step operation */
+    if (operation == BACNET_LIGHTS_STEP_UP) {
+        target_value = lighting_command_step_up_target_value(
+            data->Tracking_Value, data->Step_Increment);
+        target_value =
+            lighting_command_normalized_on_range_clamp(data, target_value);
+    } else if (operation == BACNET_LIGHTS_STEP_DOWN) {
+        target_value = lighting_command_step_down_target_value(
+            data->Tracking_Value, data->Step_Increment);
+        target_value =
+            lighting_command_normalized_on_range_clamp(data, target_value);
+    } else if (operation == BACNET_LIGHTS_STEP_ON) {
+        target_value = lighting_command_step_up_target_value(
+            data->Tracking_Value, data->Step_Increment);
+        target_value =
+            lighting_command_normalized_range_clamp(data, target_value);
+    } else if (operation == BACNET_LIGHTS_STEP_OFF) {
+        target_value = lighting_command_step_down_target_value(
+            data->Tracking_Value, data->Step_Increment);
+        target_value =
+            lighting_command_normalized_range_clamp(data, target_value);
+    } else {
+        return;
+    }
+    if (isgreaterequal(target_value, 1.0)) {
+        /* the last value that was greater than or equal to 1.0%.*/
+        data->Last_On_Value = target_value;
+    }
 }
 
 /**
@@ -774,6 +843,10 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
         return;
     }
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
+    if (isgreaterequal(data->Tracking_Value, 1.0)) {
+        /* the last value that was greater than or equal to 1.0%.*/
+        data->Last_On_Value = data->Tracking_Value;
+    }
 }
 
 /**

@@ -26,16 +26,27 @@
 static OCTETSTRING_VALUE_DESCR OSV_Descr[MAX_OCTETSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int32_t OctetString_Value_Properties_Required[] = {
+static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int32_t OctetString_Value_Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1
 };
 
-static const int32_t OctetString_Value_Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+};
 
 void OctetString_Value_Property_Lists(
     const int32_t **pRequired,
@@ -43,16 +54,30 @@ void OctetString_Value_Property_Lists(
     const int32_t **pProprietary)
 {
     if (pRequired) {
-        *pRequired = OctetString_Value_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = OctetString_Value_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = OctetString_Value_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for an Octet String Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void OctetString_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 void OctetString_Value_Init(void)
@@ -304,19 +329,16 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 CurrentAV->Out_Of_Service = value.type.Boolean;
             }
             break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_DESCRIPTION:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

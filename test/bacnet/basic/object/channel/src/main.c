@@ -26,6 +26,20 @@ static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return true;
 }
 
+static struct channel_write_property_notification Write_Property_Notification;
+static BACNET_WRITE_PROPERTY_DATA Write_Property_Notification_Data;
+static uint32_t Write_Property_Notification_Instance;
+static bool Write_Property_Notification_Status;
+static void Channel_Write_Property_Notification_Callback(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    Write_Property_Notification_Instance = instance;
+    Write_Property_Notification_Status = status;
+    memcpy(
+        &Write_Property_Notification_Data, wp_data,
+        sizeof(BACNET_WRITE_PROPERTY_DATA));
+}
+
 /**
  * @brief Test
  */
@@ -38,15 +52,21 @@ static void test_Channel_Property_Read_Write(void)
     const char *test_name = NULL;
     uint32_t test_instance = 0;
     bool status = false;
+    int len = 0;
     const int32_t skip_fail_property_list[] = { -1 };
     BACNET_CHANNEL_VALUE channel_value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_WRITE_GROUP_DATA wg_data = { 0 };
-
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
 
     Channel_Write_Property_Internal_Callback_Set(Write_Property_Internal);
+    Write_Property_Notification.callback =
+        Channel_Write_Property_Notification_Callback;
+    Write_Property_Notification.next = NULL;
+    Channel_Write_Property_Notification_Add(&Write_Property_Notification);
+
     Channel_Init();
     Channel_Create(instance);
     status = Channel_Valid_Instance(instance);
@@ -162,6 +182,48 @@ static void test_Channel_Property_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);
     zassert_true(status, NULL);
+    /* does the callback object property match the last member? */
+    zassert_equal(
+        Write_Property_Internal_Data.object_property, member.propertyIdentifier,
+        "%s:%d %s",
+        bactext_object_type_name(Write_Property_Internal_Data.object_type),
+        Write_Property_Internal_Data.object_instance,
+        bactext_property_name(Write_Property_Internal_Data.object_property));
+    zassert_equal(
+        Write_Property_Internal_Data.object_type, member.objectIdentifier.type,
+        "WriteProperty=%s:%d",
+        bactext_object_type_name(Write_Property_Internal_Data.object_type),
+        Write_Property_Internal_Data.object_instance);
+    zassert_equal(
+        Write_Property_Internal_Data.object_instance,
+        member.objectIdentifier.instance, "WriteProperty=%s:%d",
+        bactext_object_type_name(Write_Property_Internal_Data.object_type),
+        Write_Property_Internal_Data.object_instance);
+    len = bacapp_decode_application_data(
+        Write_Property_Internal_Data.application_data,
+        Write_Property_Internal_Data.application_data_len, &test_value);
+    zassert_true(len > 0, "len=%d", len);
+    /* does the notify callback object property match the last member? */
+    zassert_equal(Write_Property_Notification_Instance, instance, NULL);
+    zassert_equal(Write_Property_Notification_Status, true, NULL);
+    zassert_equal(
+        Write_Property_Notification_Data.object_property,
+        member.propertyIdentifier, NULL);
+    zassert_equal(
+        Write_Property_Notification_Data.object_type,
+        member.objectIdentifier.type, "WriteProperty=%s:%d",
+        bactext_object_type_name(Write_Property_Notification_Data.object_type),
+        Write_Property_Notification_Data.object_instance);
+    zassert_equal(
+        Write_Property_Notification_Data.object_instance,
+        member.objectIdentifier.instance, "WriteProperty=%s:%d",
+        bactext_object_type_name(Write_Property_Notification_Data.object_type),
+        Write_Property_Notification_Data.object_instance);
+    len = bacapp_decode_application_data(
+        Write_Property_Notification_Data.application_data,
+        Write_Property_Notification_Data.application_data_len, &test_value);
+    zassert_true(len > 0, "len=%d", len);
+    /* another coercion */
     value.type.Channel_Value.tag = BACNET_APPLICATION_TAG_XY_COLOR;
     value.type.Channel_Value.type.XY_Color.x_coordinate = 0.4590f;
     value.type.Channel_Value.type.XY_Color.y_coordinate = 0.4101f;

@@ -35,6 +35,17 @@ static const int32_t Properties_Optional[] = { -1 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_GLOBAL_IDENTIFIER,
+    PROP_RELIABILITY,
+    -1,
+};
+
 void Access_Zone_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -51,6 +62,20 @@ void Access_Zone_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for an Access Zone object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Access_Zone_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 void Access_Zone_Init(void)

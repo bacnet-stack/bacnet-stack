@@ -56,7 +56,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Device_Writable_Property_List },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT,
       Network_Port_Init,
@@ -77,7 +78,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Network_Port_Writable_Property_List },
 #endif
     { OBJECT_BINARY_INPUT,
       Binary_Input_Init,
@@ -98,7 +100,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Input_Writable_Property_List },
     { OBJECT_BINARY_LIGHTING_OUTPUT,
       Binary_Lighting_Output_Init,
       Binary_Lighting_Output_Count,
@@ -118,7 +121,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Lighting_Output_Create,
       Binary_Lighting_Output_Delete,
-      Binary_Lighting_Output_Timer },
+      Binary_Lighting_Output_Timer,
+      Binary_Lighting_Output_Writable_Property_List },
     { OBJECT_BINARY_OUTPUT,
       Binary_Output_Init,
       Binary_Output_Count,
@@ -138,7 +142,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Output_Create,
       Binary_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Output_Writable_Property_List },
     { MAX_BACNET_OBJECT_TYPE,
       NULL /* Init */,
       NULL /* Count */,
@@ -158,7 +163,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ }
+      NULL /* Timer */,
+      NULL /* Writable_Property_List */ }
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -331,6 +337,34 @@ static const int Device_Properties_Optional[] = {
     -1
 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_APDU_TIMEOUT,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_SYSTEM_STATUS,
+    PROP_OBJECT_NAME,
+    PROP_LOCATION,
+    PROP_DESCRIPTION,
+    PROP_MODEL_NAME,
+#if defined(BACNET_TIME_MASTER)
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+#endif
+    PROP_UTC_OFFSET,
+#if defined(BACDL_MSTP)
+    PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+#endif
+    -1
+};
+
 static const int Device_Properties_Proprietary[] = { -1 };
 
 void Device_Property_Lists(
@@ -347,6 +381,20 @@ void Device_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Device object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Device_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /* note: you really only need to define variables for
@@ -1891,51 +1939,26 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
 {
     bool status = false;
     struct object_functions *pObject = NULL;
-    uint32_t object_instance;
+    bool object_exists = false;
+    bool object_supported = false;
 
     pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
-        if (!pObject->Object_Create) {
-            /*  The device supports the object type and may have
-                sufficient space, but does not support the creation of the
-                object for some other reason.*/
-            data->error_class = ERROR_CLASS_OBJECT;
-            data->error_code = ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED;
-        } else if (
-            pObject->Object_Valid_Instance &&
+        if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(data->object_instance)) {
-            /* The object being created already exists */
-            data->error_class = ERROR_CLASS_OBJECT;
-            data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
-        } else {
-            if (data->list_of_initial_values) {
-                /* FIXME: add support for writing to list of initial values */
-                /*  A property specified by the Property_Identifier in the
-                    List of Initial Values does not support initialization
-                    during the CreateObject service. */
-                data->first_failed_element_number = 1;
-                data->error_class = ERROR_CLASS_PROPERTY;
-                data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                /* and the object shall not be created */
-            } else {
-                object_instance = pObject->Object_Create(data->object_instance);
-                if (object_instance == BACNET_MAX_INSTANCE) {
-                    /* The device cannot allocate the space needed
-                    for the new object.*/
-                    data->error_class = ERROR_CLASS_RESOURCES;
-                    data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                } else {
-                    /* required by ACK */
-                    data->object_instance = object_instance;
-                    Device_Inc_Database_Revision();
-                    status = true;
-                }
-            }
+            object_exists = true;
         }
+        object_supported = true;
+        status = create_object_process(
+            data, object_supported, object_exists, pObject->Object_Create,
+            pObject->Object_Delete, pObject->Object_Write_Property);
     } else {
-        /* The device does not support the specified object type. */
-        data->error_class = ERROR_CLASS_OBJECT;
-        data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+        /* fill in the error values */
+        status = create_object_process(
+            data, object_supported, object_exists, NULL, NULL, NULL);
+    }
+    if (status) {
+        Device_Inc_Database_Revision();
     }
 
     return status;
