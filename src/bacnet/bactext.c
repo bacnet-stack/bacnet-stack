@@ -2178,6 +2178,70 @@ const char *bactext_node_type_name(uint32_t index)
         bacnet_node_type_names, index, ASHRAE_Reserved_String);
 }
 
+INDTEXT_DATA bacnet_node_relationship_names[] = {
+    { BACNET_RELATIONSHIP_UNKNOWN, "unknown" },
+    { BACNET_RELATIONSHIP_DEFAULT, "default" },
+    { BACNET_RELATIONSHIP_CONTAINS, "contains" },
+    { BACNET_RELATIONSHIP_CONTAINED_BY, "contained-by" },
+    { BACNET_RELATIONSHIP_USES, "uses" },
+    { BACNET_RELATIONSHIP_USED_BY, "used-by" },
+    { BACNET_RELATIONSHIP_COMMANDS, "commands" },
+    { BACNET_RELATIONSHIP_COMMANDED_BY, "commanded-by" },
+    { BACNET_RELATIONSHIP_ADJUSTS, "adjusts" },
+    { BACNET_RELATIONSHIP_ADJUSTED_BY, "adjusted-by" },
+    { BACNET_RELATIONSHIP_INGRESS, "ingress" },
+    { BACNET_RELATIONSHIP_EGRESS, "egress" },
+    { BACNET_RELATIONSHIP_SUPPLIES_AIR, "supplies-air" },
+    { BACNET_RELATIONSHIP_RECEIVES_AIR, "receives-air" },
+    { BACNET_RELATIONSHIP_SUPPLIES_HOT_AIR, "supplies-hot-air" },
+    { BACNET_RELATIONSHIP_RECEIVES_HOT_AIR, "receives-hot-air" },
+    { BACNET_RELATIONSHIP_SUPPLIES_COOL_AIR, "supplies-cool-air" },
+    { BACNET_RELATIONSHIP_RECEIVES_COOL_AIR, "receives-cool-air" },
+    { BACNET_RELATIONSHIP_SUPPLIES_POWER, "supplies-power" },
+    { BACNET_RELATIONSHIP_RECEIVES_POWER, "receives-power" },
+    { BACNET_RELATIONSHIP_SUPPLIES_GAS, "supplies-gas" },
+    { BACNET_RELATIONSHIP_RECEIVES_GAS, "receives-gas" },
+    { BACNET_RELATIONSHIP_SUPPLIES_WATER, "supplies-water" },
+    { BACNET_RELATIONSHIP_RECEIVES_WATER, "receives-water" },
+    { BACNET_RELATIONSHIP_SUPPLIES_HOT_WATER, "supplies-hot-water" },
+    { BACNET_RELATIONSHIP_RECEIVES_HOT_WATER, "receives-hot-water" },
+    { BACNET_RELATIONSHIP_SUPPLIES_COOL_WATER, "supplies-cool-water" },
+    { BACNET_RELATIONSHIP_RECEIVES_COOL_WATER, "receives-cool-water" },
+    { BACNET_RELATIONSHIP_SUPPLIES_STEAM, "supplies-steam" },
+    { BACNET_RELATIONSHIP_RECEIVES_STEAM, "receives-steam" },
+    { 0, NULL }
+};
+
+const char *bactext_node_relationship_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bacnet_node_relationship_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_node_relationship_name_proprietary(uint32_t index)
+{
+    bool status = false;
+
+    if ((index >= BACNET_RELATIONSHIP_PROPRIETARY_MIN) &&
+        (index <= BACNET_RELATIONSHIP_PROPRIETARY_MAX)) {
+        status = true;
+    }
+
+    return status;
+}
+
+bool bactext_node_relationship_name_reserved(uint32_t index)
+{
+    bool status = false;
+
+    if ((index >= BACNET_RELATIONSHIP_RESERVED_MIN) &&
+        (index <= BACNET_RELATIONSHIP_RESERVED_MAX)) {
+        status = true;
+    }
+
+    return status;
+}
+
 INDTEXT_DATA network_layer_msg_names[] = {
     { NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, "Who-Is-Router-To-Network" },
     { NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, "I-Am-Router-To-Network" },
@@ -2848,6 +2912,201 @@ const char *bactext_boolean_value_name(uint32_t index)
         bactext_boolean_value_names, index, ASHRAE_Reserved_String);
 }
 
+INDTEXT_DATA bactext_action_names[] = {
+    /* BACnetAction enumerations */
+    { ACTION_DIRECT, "direct" },
+    { ACTION_REVERSE, "reverse" },
+    { 0, NULL }
+};
+
+const char *bactext_action_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bactext_action_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_file_access_method_names[] = {
+    /* BACnetFileAccessMethod enumerations */
+    { FILE_RECORD_ACCESS, "record-access" },
+    { FILE_STREAM_ACCESS, "stream-access" },
+    { FILE_RECORD_AND_STREAM_ACCESS, "record-and-stream-access" },
+    { 0, NULL }
+};
+
+const char *bactext_file_access_method_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bactext_file_access_method_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_lock_status_names[] = {
+    /* BACnetLockStatus enumerations */
+    { LOCK_STATUS_LOCKED, "locked" },
+    { LOCK_STATUS_UNLOCKED, "unlocked" },
+    { LOCK_STATUS_LOCK_FAULT, "lock-fault" },
+    { LOCK_STATUS_UNUSED, "unused" },
+    { LOCK_STATUS_UNKNOWN, "unknown" },
+    { 0, NULL }
+};
+
+const char *bactext_lock_status_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bactext_lock_status_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_door_alarm_state_names[] = {
+    /* BACnetDoorAlarmState enumerations */
+    { DOOR_ALARM_STATE_NORMAL, "normal" },
+    { DOOR_ALARM_STATE_ALARM, "alarm" },
+    { DOOR_ALARM_STATE_DOOR_OPEN_TOO_LONG, "door-open-too-long" },
+    { DOOR_ALARM_STATE_FORCED_OPEN, "forced-open" },
+    { DOOR_ALARM_STATE_TAMPER, "tamper" },
+    { DOOR_ALARM_STATE_DOOR_FAULT, "door-fault" },
+    { DOOR_ALARM_STATE_LOCK_DOWN, "lock-down" },
+    { DOOR_ALARM_STATE_FREE_ACCESS, "free-access" },
+    { DOOR_ALARM_STATE_EGRESS_OPEN, "egress-open" },
+    { 0, NULL }
+};
+
+const char *bactext_door_alarm_state_name(uint32_t index)
+{
+    /* Enumerated values 0-255 are reserved for definition by ASHRAE.
+       Enumerated values 256-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
+    return indtext_by_index_split_default(
+        bactext_door_alarm_state_names, index, 256, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
+}
+
+INDTEXT_DATA bactext_door_status_names[] = {
+    /* BACnetDoorStatus enumerations */
+    { DOOR_STATUS_CLOSED, "closed" },
+    { DOOR_STATUS_OPENED, "opened" },
+    { DOOR_STATUS_UNKNOWN, "unknown" },
+    { DOOR_STATUS_DOOR_FAULT, "door-fault" },
+    { DOOR_STATUS_UNUSED, "unused" },
+    { DOOR_STATUS_NONE, "none" },
+    { DOOR_STATUS_CLOSING, "closing" },
+    { DOOR_STATUS_OPENING, "opening" },
+    { DOOR_STATUS_SAFETY_LOCKED, "safety-locked" },
+    { DOOR_STATUS_LIMITED_OPENED, "limited-opened" },
+    { 0, NULL }
+};
+
+const char *bactext_door_status_name(uint32_t index)
+{
+    /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
+       Enumerated values 1024-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
+    return indtext_by_index_split_default(
+        bactext_door_status_names, index, 1024, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
+}
+
+INDTEXT_DATA bactext_door_secured_status_names[] = {
+    /* BACnetDoorSecuredStatus enumerations */
+    { DOOR_SECURED_STATUS_SECURED, "secured" },
+    { DOOR_SECURED_STATUS_UNSECURED, "unsecured" },
+    { DOOR_SECURED_STATUS_UNKNOWN, "unknown" },
+    { 0, NULL }
+};
+
+const char *bactext_door_secured_status_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bactext_door_secured_status_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bactext_access_event_names[] = {
+    /* BACnetAccessEvent enumerations */
+    { ACCESS_EVENT_NONE, "none" },
+    { ACCESS_EVENT_GRANTED, "granted" },
+    { ACCESS_EVENT_MUSTER, "muster" },
+    { ACCESS_EVENT_PASSBACK_DETECTED, "passback-detected" },
+    { ACCESS_EVENT_DURESS, "duress" },
+    { ACCESS_EVENT_TRACE, "trace" },
+    { ACCESS_EVENT_LOCKOUT_MAX_ATTEMPTS, "lockout-max-attempts" },
+    { ACCESS_EVENT_LOCKOUT_OTHER, "lockout-other" },
+    { ACCESS_EVENT_LOCKOUT_RELINQUISHED, "lockout-relinquished" },
+    { ACCESS_EVENT_LOCKED_BY_HIGHER_AUTHORITY, "locked-by-higher-authority" },
+    { ACCESS_EVENT_OUT_OF_SERVICE, "out-of-service" },
+    { ACCESS_EVENT_OUT_OF_SERVICE_RELINQUISHED, "out-of-service-relinquished" },
+    { ACCESS_EVENT_ACCOMPANIMENT_BY, "accompaniment-by" },
+    { ACCESS_EVENT_AUTHENTICATION_FACTOR_READ, "authentication-factor-read" },
+    { ACCESS_EVENT_AUTHORIZATION_DELAYED, "authorization-delayed" },
+    { ACCESS_EVENT_VERIFICATION_REQUIRED, "verification-required" },
+    /* values over 128 indicate that access is denied */
+    { ACCESS_EVENT_DENIED_DENY_ALL, "denied-deny-all" },
+    { ACCESS_EVENT_DENIED_UNKNOWN_CREDENTIAL, "denied-unknown-credential" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_UNAVAILABLE,
+      "denied-authentication-unavailable" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_FACTOR_TIMEOUT,
+      "denied-authentication-factor-timeout" },
+    { ACCESS_EVENT_DENIED_INCORRECT_AUTHENTICATION_FACTOR,
+      "denied-incorrect-authentication-factor" },
+    { ACCESS_EVENT_DENIED_ZONE_NO_ACCESS_RIGHTS,
+      "denied-zone-no-access-rights" },
+    { ACCESS_EVENT_DENIED_POINT_NO_ACCESS_RIGHTS,
+      "denied-point-no-access-rights" },
+    { ACCESS_EVENT_DENIED_NO_ACCESS_RIGHTS, "denied-no-access-rights" },
+    { ACCESS_EVENT_DENIED_OUT_OF_TIME_RANGE, "denied-out-of-time-range" },
+    { ACCESS_EVENT_DENIED_THREAT_LEVEL, "denied-threat-level" },
+    { ACCESS_EVENT_DENIED_PASSBACK, "denied-passback" },
+    { ACCESS_EVENT_DENIED_UNEXPECTED_LOCATION_USAGE,
+      "denied-unexpected-location-usage" },
+    { ACCESS_EVENT_DENIED_MAX_ATTEMPTS, "denied-max-attempts" },
+    { ACCESS_EVENT_DENIED_LOWER_OCCUPANCY_LIMIT,
+      "denied-lower-occupancy-limit" },
+    { ACCESS_EVENT_DENIED_UPPER_OCCUPANCY_LIMIT,
+      "denied-upper-occupancy-limit" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_FACTOR_LOST,
+      "denied-authentication-factor-lost" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_FACTOR_STOLEN,
+      "denied-authentication-factor-stolen" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_FACTOR_DAMAGED,
+      "denied-authentication-factor-damaged" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_FACTOR_DESTROYED,
+      "denied-authentication-factor-destroyed" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_FACTOR_DISABLED,
+      "denied-authentication-factor-disabled" },
+    { ACCESS_EVENT_DENIED_AUTHENTICATION_FACTOR_ERROR,
+      "denied-authentication-factor-error" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_UNASSIGNED,
+      "denied-credential-unassigned" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_NOT_PROVISIONED,
+      "denied-credential-not-provisioned" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_NOT_YET_ACTIVE,
+      "denied-credential-not-yet-active" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_EXPIRED, "denied-credential-expired" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_MANUAL_DISABLE,
+      "denied-credential-manual-disable" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_LOCKOUT, "denied-credential-lockout" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_MAX_DAYS, "denied-credential-max-days" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_MAX_USES, "denied-credential-max-uses" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_INACTIVITY,
+      "denied-credential-inactivity" },
+    { ACCESS_EVENT_DENIED_CREDENTIAL_DISABLED, "denied-credential-disabled" },
+    { ACCESS_EVENT_DENIED_NO_ACCOMPANIMENT, "denied-no-accompaniment" },
+    { ACCESS_EVENT_DENIED_INCORRECT_ACCOMPANIMENT,
+      "denied-incorrect-accompaniment" },
+    { ACCESS_EVENT_DENIED_LOCKOUT, "denied-lockout" },
+    { ACCESS_EVENT_DENIED_VERIFICATION_FAILED, "denied-verification-failed" },
+    { ACCESS_EVENT_DENIED_VERIFICATION_TIMEOUT, "denied-verification-timeout" },
+    { ACCESS_EVENT_DENIED_OTHER, "denied-other" },
+    { 0, NULL }
+};
+
+const char *bactext_access_event_name(uint32_t index)
+{
+    /* Enumerated values 0-511 are reserved for definition by ASHRAE.
+       Enumerated values 512-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
+    return indtext_by_index_split_default(
+        bactext_access_event_names, index, ACCESS_EVENT_PROPRIETARY_MIN,
+        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+}
+
 bool bactext_property_states_strtoul(
     BACNET_PROPERTY_STATES property_state,
     const char *search_name,
@@ -2973,14 +3232,36 @@ bool bactext_property_states_strtoul(
                 bactext_protocol_level_names, search_name, found_index);
             break;
         case PROP_STATE_ACTION:
-        case PROP_STATE_DOOR_SECURED_STATUS:
-        case PROP_STATE_DOOR_STATUS:
-        case PROP_STATE_DOOR_VALUE:
+            status = bactext_string_to_uint32_index(
+                bactext_action_names, search_name, found_index);
+            break;
         case PROP_STATE_FILE_ACCESS_METHOD:
+            status = bactext_string_to_uint32_index(
+                bactext_file_access_method_names, search_name, found_index);
+            break;
         case PROP_STATE_LOCK_STATUS:
+            status = bactext_string_to_uint32_index(
+                bactext_lock_status_names, search_name, found_index);
+            break;
+        case PROP_STATE_DOOR_ALARM_STATE:
+            status = bactext_string_to_uint32_index(
+                bactext_door_alarm_state_names, search_name, found_index);
+            break;
+        case PROP_STATE_DOOR_STATUS:
+            status = bactext_string_to_uint32_index(
+                bactext_door_status_names, search_name, found_index);
+            break;
+        case PROP_STATE_DOOR_SECURED_STATUS:
+            status = bactext_string_to_uint32_index(
+                bactext_door_secured_status_names, search_name, found_index);
+            break;
+        case PROP_STATE_ACCESS_EVENT:
+            status = bactext_string_to_uint32_index(
+                bactext_access_event_names, search_name, found_index);
+            break;
+        case PROP_STATE_DOOR_VALUE:
         case PROP_STATE_MAINTENANCE:
         case PROP_STATE_SECURITY_LEVEL:
-        case PROP_STATE_ACCESS_EVENT:
         case PROP_STATE_ZONE_OCCUPANCY_STATE:
         case PROP_STATE_ACCESS_CRED_DISABLE_REASON:
         case PROP_STATE_ACCESS_CRED_DISABLE:
@@ -3001,7 +3282,6 @@ bool bactext_property_states_strtoul(
         case PROP_STATE_AUDIT_LEVEL:
         case PROP_STATE_AUDIT_OPERATION:
         case PROP_STATE_EXTENDED_VALUE:
-        case PROP_STATE_DOOR_ALARM_STATE:
         case PROP_STATE_UNSIGNED_VALUE:
         default:
             status = bacnet_string_to_uint32(search_name, found_index);
@@ -3088,8 +3368,13 @@ bool bactext_object_property_strtoul(
                 bacnet_segmentation_names, search_name, found_index);
             break;
         case PROP_NODE_TYPE:
+        case PROP_SUBORDINATE_NODE_TYPES:
             status = bactext_string_to_uint32_index(
                 bacnet_node_type_names, search_name, found_index);
+            break;
+        case PROP_SUBORDINATE_RELATIONSHIPS:
+            status = bactext_string_to_uint32_index(
+                bacnet_node_relationship_names, search_name, found_index);
             break;
         case PROP_TRANSITION:
             status = bactext_string_to_uint32_index(
@@ -3163,6 +3448,54 @@ bool bactext_object_property_strtoul(
         case PROP_LAST_STATE_CHANGE:
             status = bactext_string_to_uint32_index(
                 bactext_timer_transition_names, search_name, found_index);
+            break;
+        case PROP_ACTION:
+            status = bactext_string_to_uint32_index(
+                bactext_action_names, search_name, found_index);
+            break;
+        case PROP_FILE_ACCESS_METHOD:
+            status = bactext_string_to_uint32_index(
+                bactext_file_access_method_names, search_name, found_index);
+            break;
+        case PROP_LOCK_STATUS:
+            status = bactext_string_to_uint32_index(
+                bactext_lock_status_names, search_name, found_index);
+            break;
+        case PROP_DOOR_ALARM_STATE:
+            status = bactext_string_to_uint32_index(
+                bactext_door_alarm_state_names, search_name, found_index);
+            break;
+        case PROP_DOOR_STATUS:
+            status = bactext_string_to_uint32_index(
+                bactext_door_status_names, search_name, found_index);
+            break;
+        case PROP_SECURED_STATUS:
+            status = bactext_string_to_uint32_index(
+                bactext_door_secured_status_names, search_name, found_index);
+            break;
+        case PROP_ACCESS_EVENT:
+        case PROP_LAST_ACCESS_EVENT:
+            status = bactext_string_to_uint32_index(
+                bactext_access_event_names, search_name, found_index);
+            break;
+
+        case PROP_AUTHENTICATION_STATUS:
+        case PROP_AUTHORIZATION_MODE:
+        case PROP_CREDENTIAL_STATUS:
+        case PROP_CREDENTIAL_DISABLE:
+        case PROP_REASON_FOR_DISABLE:
+        case PROP_USER_TYPE:
+        case PROP_OCCUPANCY_STATE:
+        case PROP_SILENCED:
+        case PROP_WRITE_STATUS:
+        case PROP_FEEDBACK_VALUE:
+        case PROP_BACNET_IP_MODE:
+        case PROP_BACNET_IPV6_MODE:
+        case PROP_SC_HUB_CONNECTOR_STATE:
+        case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
+            /* These properties are encoded as enumerated but currently
+               no text lookup functions are available */
+            status = bacnet_string_to_uint32(search_name, found_index);
             break;
         default:
             status = bacnet_string_to_uint32(search_name, found_index);

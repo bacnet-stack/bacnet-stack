@@ -2265,8 +2265,18 @@ static int bacapp_snprintf_enumerated(
                 str, str_len, "%s", bactext_segmentation_name(value));
             break;
         case PROP_NODE_TYPE:
+        case PROP_SUBORDINATE_NODE_TYPES:
             ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_node_type_name(value));
+            break;
+        case PROP_SUBORDINATE_RELATIONSHIPS:
+            if (bactext_node_relationship_name_proprietary((unsigned)value)) {
+                ret_val = bacapp_snprintf(
+                    str, str_len, "proprietary-%lu", (unsigned long)value);
+            } else {
+                ret_val = bacapp_snprintf(
+                    str, str_len, "%s", bactext_node_relationship_name(value));
+            }
             break;
         case PROP_TRANSITION:
             ret_val = bacapp_snprintf(
@@ -2298,6 +2308,8 @@ static int bacapp_snprintf_enumerated(
                         bactext_life_safety_state_name(value));
                     break;
                 default:
+                    ret_val = bacapp_snprintf(
+                        str, str_len, "%lu", (unsigned long)value);
                     break;
             }
             break;
@@ -2340,6 +2352,54 @@ static int bacapp_snprintf_enumerated(
         case PROP_LAST_STATE_CHANGE:
             ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_timer_transition_name(value));
+            break;
+        case PROP_ACTION:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_action_name(value));
+            break;
+        case PROP_FILE_ACCESS_METHOD:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_file_access_method_name(value));
+            break;
+        case PROP_LOCK_STATUS:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_lock_status_name(value));
+            break;
+        case PROP_DOOR_ALARM_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_door_alarm_state_name(value));
+            break;
+        case PROP_DOOR_STATUS:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_door_status_name(value));
+            break;
+        case PROP_SECURED_STATUS:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_door_secured_status_name(value));
+            break;
+        case PROP_ACCESS_EVENT:
+        case PROP_LAST_ACCESS_EVENT:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_access_event_name(value));
+            break;
+        case PROP_AUTHENTICATION_STATUS:
+        case PROP_AUTHORIZATION_MODE:
+        case PROP_CREDENTIAL_STATUS:
+        case PROP_CREDENTIAL_DISABLE:
+        case PROP_REASON_FOR_DISABLE:
+        case PROP_USER_TYPE:
+        case PROP_OCCUPANCY_STATE:
+        case PROP_SILENCED:
+        case PROP_WRITE_STATUS:
+        case PROP_FEEDBACK_VALUE:
+        case PROP_BACNET_IP_MODE:
+        case PROP_BACNET_IPV6_MODE:
+        case PROP_SC_HUB_CONNECTOR_STATE:
+        case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
+            /* These properties are encoded as enumerated but currently
+               no text lookup functions are available */
+            ret_val =
+                bacapp_snprintf(str, str_len, "%lu", (unsigned long)value);
             break;
         default:
             ret_val =
@@ -2902,8 +2962,8 @@ static int bacapp_snprintf_channel_value(
             break;
         case BACNET_APPLICATION_TAG_ENUMERATED:
 #if defined(CHANNEL_ENUMERATED)
-            ret_val = bacapp_snprintf_enumerated(
-                str, str_len, OBJECT_COMMAND, PROP_ACTION,
+            ret_val = bacapp_snprintf(
+                str, str_len, "%lu", (unsigned long)
                 value->type.Enumerated);
 #endif
             break;
@@ -3385,8 +3445,8 @@ static int bacapp_snprintf_primitive_data_value(
 #endif
 #if defined(BACAPP_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
-            ret_val = bacapp_snprintf_enumerated(
-                str, str_len, OBJECT_COMMAND, PROP_ACTION,
+            ret_val = bacapp_snprintf(
+                str, str_len, "%lu", (unsigned long)
                 value->type.Enumerated);
             break;
 #endif
@@ -3527,8 +3587,8 @@ static int bacapp_snprintf_action_property_value(
 #endif
 #if defined(BACACTION_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
-            ret_val = bacapp_snprintf_enumerated(
-                str, str_len, OBJECT_COMMAND, PROP_ACTION,
+            ret_val = bacapp_snprintf(
+                str, str_len, "%lu", (unsigned long)
                 value->type.Enumerated);
             break;
 #endif

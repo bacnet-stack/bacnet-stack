@@ -141,8 +141,16 @@ BACNET_STACK_EXPORT
 const char *bactext_segmentation_name(uint32_t index);
 BACNET_STACK_EXPORT
 bool bactext_segmentation_index(const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_node_type_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_node_relationship_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_node_relationship_name_proprietary(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_node_relationship_name_reserved(uint32_t index);
+
 BACNET_STACK_EXPORT
 const char *bactext_character_string_encoding_name(uint32_t index);
 BACNET_STACK_EXPORT
@@ -244,6 +252,20 @@ const char *bactext_timer_state_name(uint32_t index);
 
 BACNET_STACK_EXPORT
 const char *bactext_boolean_value_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_action_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_file_access_method_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_lock_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_door_alarm_state_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_door_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_door_secured_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_access_event_name(uint32_t index);
 
 BACNET_STACK_EXPORT
 bool bactext_property_states_strtoul(
