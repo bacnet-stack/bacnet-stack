@@ -77,7 +77,10 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
-* Changed RGB color clamp function to avoid Zephyr RTOS name collisions.(#1201)
+* Changed bacnet_strtof and bacnet_strtold functions to use strtod to
+  improve compatibility with C89 standards while ensuring proper type
+  casting and range checking. (#1207)
+* Changed RGB color clamp function to avoid Zephyr RTOS name collisions. (#1201)
 * Changed the load control object AbleToMeetShed to only check for immediate
   shed ability and added CanNowComplyWithShed function to attempt to meet the
   shed request while in the non-compliant state. (#1191)
