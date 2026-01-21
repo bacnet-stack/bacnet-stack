@@ -220,31 +220,6 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Writable_Property_List */ }
 };
 
-/**
- * @brief Get the Writeable Property List for an object type
- * @param object_type - object type of the object
- * @param object_instance - object-instance number of the object
- * @param properties - pointer to the list of writable properties
- * @return The number of properties in the writable property list
- */
-uint32_t Device_Objects_Writable_Property_List(
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
-    const int32_t **properties)
-{
-    uint32_t count = 0;
-    struct object_functions *pObject = NULL;
-
-    (void)object_instance;
-    pObject = Device_Object_Functions_Find(object_type);
-    if ((pObject != NULL) && (pObject->Object_Writable_Property_List != NULL)) {
-        pObject->Object_Writable_Property_List(object_instance, properties);
-        count = property_list_count(*properties);
-    }
-
-    return count;
-}
-
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
  * @ingroup ObjHelpers
@@ -442,6 +417,34 @@ static const int Device_Properties_Optional[] = {
 
 static const int Device_Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_APDU_TIMEOUT,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_SYSTEM_STATUS,
+    PROP_OBJECT_NAME,
+    PROP_LOCATION,
+    PROP_DESCRIPTION,
+    PROP_MODEL_NAME,
+#if defined(BACNET_TIME_MASTER)
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+#endif
+    PROP_UTC_OFFSET,
+#if defined(BACDL_MSTP)
+    PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+#endif
+    -1
+};
+
 /**
  * @brief Returns the list of required, optional, and proprietary properties
  *       for the Device object.
@@ -467,6 +470,20 @@ void Device_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Device object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Device_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /* note: you really only need to define variables for
