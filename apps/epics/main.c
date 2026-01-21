@@ -47,11 +47,18 @@
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacepics.h"
 
 /** @addtogroup BACEPICS
  * @{ */
 
+/**
+ * The allowed States of the bacepics State Machine.
+ */
+typedef enum {
+    EPICS_STATE_BIND,
+    EPICS_STATE_BUILD,
+    EPICS_STATE_EXIT
+} EPICS_STATES;
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint8_t Rx_RP_Data[sizeof(BACNET_READ_ACCESS_DATA)] = { 0 };
@@ -77,7 +84,7 @@ static uint16_t Last_Error_Class = 0;
 static uint16_t Last_Error_Code = 0;
 /* Counts errors we couldn't get around */
 static uint16_t Error_Count = 0;
-static EPICS_STATES myState = INITIAL_BINDING;
+static EPICS_STATES myState = EPICS_STATE_BIND;
 static struct mstimer APDU_Timer;
 /* Show value instead of '?' for values that likely change in a device */
 static bool ShowValues = false;
@@ -1332,9 +1339,21 @@ static void print_property_list(
     printf("%s: {\n", bactext_property_name(PROP_PROPERTY_LIST));
     for (i = 0; i < num_properties; i++) {
         if (i == num_properties - 1) {
-            printf("        %i}\n", prop_list[i].property);
+            if (ShowValues) {
+                printf(
+                    "        %s}\n",
+                    bactext_property_name(prop_list[i].property));
+            } else {
+                printf("        %i}\n", prop_list[i].property);
+            }
         } else {
-            printf("        %i,\n", prop_list[i].property);
+            if (ShowValues) {
+                printf(
+                    "        %s,\n",
+                    bactext_property_name(prop_list[i].property));
+            } else {
+                printf("        %i,\n", prop_list[i].property);
+            }
         }
     }
 }
@@ -1731,7 +1750,7 @@ int main(int argc, char *argv[])
                 Target_Device_Object_Instance, Target_Device_Object_Instance);
         }
     }
-    myState = INITIAL_BINDING;
+    myState = EPICS_STATE_BIND;
     do {
         /* increment timer - will exit if timed out */
         last_seconds = current_seconds;
@@ -1744,7 +1763,7 @@ int main(int argc, char *argv[])
         }
         /* OK to proceed; see what we are up to now */
         switch (myState) {
-            case INITIAL_BINDING:
+            case EPICS_STATE_BIND:
                 /* returns 0 bytes on timeout */
                 pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
@@ -1769,18 +1788,18 @@ int main(int argc, char *argv[])
                     /* else, loop back and try again */
                     continue;
                 } else {
-                    myState = BUILD_EPICS;
+                    myState = EPICS_STATE_BUILD;
                 }
                 break;
 
-            case BUILD_EPICS:
+            case EPICS_STATE_BUILD:
                 if (ShowHeader) {
                     Error_Count +=
                         Print_EPICS_Header(Target_Device_Object_Instance);
                 }
                 Error_Count +=
                     Print_List_Of_Objects(Target_Device_Object_Instance);
-                myState = EPICS_EXIT;
+                myState = EPICS_STATE_EXIT;
                 break;
 
             default:
@@ -1800,7 +1819,7 @@ int main(int argc, char *argv[])
             }
         }
 
-    } while (myState != EPICS_EXIT);
+    } while (myState != EPICS_STATE_EXIT);
 
     if (Error_Count > 0) {
         printf("\r-- Found %d Errors \n", Error_Count);
