@@ -43,6 +43,10 @@ void Loop_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary);
 BACNET_STACK_EXPORT
+void Loop_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
+BACNET_STACK_EXPORT
 void Loop_Proprietary_Property_List_Set(const int32_t *pProprietary);
 BACNET_STACK_EXPORT
 void Loop_Read_Property_Proprietary_Callback_Set(read_property_function cb);

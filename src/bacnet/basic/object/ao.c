@@ -84,6 +84,16 @@ static const int32_t Properties_Optional[] = {
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_PRESENT_VALUE,  PROP_OUT_OF_SERVICE, PROP_UNITS, PROP_COV_INCREMENT,
+    PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE, -1
+};
+
 /**
  * @brief Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -110,6 +120,20 @@ void Analog_Output_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for an Analog Output object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Analog_Output_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**

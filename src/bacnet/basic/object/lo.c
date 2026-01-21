@@ -115,6 +115,24 @@ static const int32_t Properties_Optional[] = {
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE,       PROP_LIGHTING_COMMAND,
+    PROP_OUT_OF_SERVICE,      PROP_DEFAULT_FADE_TIME,
+    PROP_DEFAULT_RAMP_RATE,   PROP_DEFAULT_STEP_INCREMENT,
+    PROP_TRANSITION,          PROP_RELINQUISH_DEFAULT,
+    PROP_LAST_ON_VALUE,       PROP_DEFAULT_ON_VALUE,
+    PROP_HIGH_END_TRIM,       PROP_LOW_END_TRIM,
+    PROP_TRIM_FADE_TIME,      PROP_BLINK_WARN_ENABLE,
+    PROP_EGRESS_TIME,         PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
+    PROP_FEEDBACK_VALUE,      PROP_POWER,
+    PROP_INSTANTANEOUS_POWER, -1
+};
+
 /**
  * @brief compare two floating point values to 3 decimal places
  *
@@ -154,6 +172,20 @@ void Lighting_Output_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Lighting Output object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Lighting_Output_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**

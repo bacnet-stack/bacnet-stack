@@ -42,6 +42,9 @@ void Binary_Output_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
     const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Binary_Output_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 
 BACNET_STACK_EXPORT
 bool Binary_Output_Valid_Instance(uint32_t object_instance);

@@ -26,7 +26,8 @@
 static POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int32_t PositiveInteger_Value_Properties_Required[] = {
+static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -36,30 +37,68 @@ static const int32_t PositiveInteger_Value_Properties_Required[] = {
     -1
 };
 
-static const int32_t PositiveInteger_Value_Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_OUT_OF_SERVICE, -1
 };
 
-static const int32_t PositiveInteger_Value_Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1
+};
+
+/**
+ * @brief Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ *
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void PositiveInteger_Value_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
     const int32_t **pProprietary)
 {
     if (pRequired) {
-        *pRequired = PositiveInteger_Value_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = PositiveInteger_Value_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = PositiveInteger_Value_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
 }
 
+/**
+ * @brief Get list of writable properties for a Positive Integer Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void PositiveInteger_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
+}
+
+/**
+ * @brief Initializes the Positive Integer Value objects
+ */
 void PositiveInteger_Value_Init(void)
 {
     unsigned i;
@@ -345,10 +384,8 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                    PositiveInteger_Value_Properties_Required,
-                    PositiveInteger_Value_Properties_Optional,
-                    PositiveInteger_Value_Properties_Proprietary,
-                    wp_data->object_property)) {
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {

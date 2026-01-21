@@ -29,6 +29,9 @@ void BACfile_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
     const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void BACfile_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 
 BACNET_STACK_EXPORT
 bool bacfile_object_name(
