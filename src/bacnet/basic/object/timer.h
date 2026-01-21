@@ -18,6 +18,21 @@
 #include "bacnet/rp.h"
 #include "bacnet/list_element.h"
 
+/**
+ * @brief Callback for tracking the timer writes for logging or other purposes
+ * @param  instance - timer object instance number
+ * @param  status - true if write was successful
+ * @param  wp_data - pointer to the write property data structure
+ */
+typedef void (*timer_write_property_callback)(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data);
+/* linked list structure for notifications */
+struct timer_write_property_notification;
+struct timer_write_property_notification {
+    struct timer_write_property_notification *next;
+    timer_write_property_callback callback;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -170,6 +185,12 @@ void Timer_Task(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
 void Timer_Write_Property_Internal_Callback_Set(write_property_function cb);
+BACNET_STACK_EXPORT
+void Timer_Write_Property_Notification_Add(
+    struct timer_write_property_notification *notification);
+BACNET_STACK_EXPORT
+void Timer_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 int Timer_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);

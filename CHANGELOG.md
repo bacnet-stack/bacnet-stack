@@ -32,6 +32,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added post-write notifications for channel, timer, and loop objects. (#1204)
 * Added device WriteProperty callbacks for Timer object in example device
   objects implementations. (#1203)
 * Added file path name checking for AtomicReadFile and AtomicWriteFile
@@ -83,6 +84,13 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting output object lighting-command last-on-value to only
+  be updated with the last value of the Present_Value property that
+  was greater than or equal to 1.0%, keeping in mind that the Present_Value
+  shall indicate the target level of the operation and not the current
+  value. (#1205)
+* Fixed CreateObject service list-of-initial-values encoding and decoding.
+  Changed the data structure to be similar to WriteProperty. (#1199)
 * Fixed lighting-output object blink warn to honor blink-warn-enable.
   Fixed the blink warn logic for a non-zero percent value blink inhibit.
   Fixed the warn relinquish to actually relinquish. (#1192)

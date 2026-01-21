@@ -39,6 +39,9 @@ static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_TIMER;
 static write_property_function Write_Property_Internal_Callback;
+/* Write Property notification callbacks for logging or other purposes */
+static struct timer_write_property_notification
+    Write_Property_Notification_Head;
 
 struct object_data {
     uint32_t Present_Value;
@@ -491,7 +494,7 @@ unsigned Timer_Reference_List_Member_Element_Count(uint32_t object_instance)
 /**
  * For a given object instance-number, sets the present-value at a given
  * priority 1..16.
- *
+ * @param object_instance - object-instance number of the object
  * @param pObject - object instance data
  * @param value - application value
  * @param priority - BACnet priority 0=none,1..16
@@ -499,6 +502,7 @@ unsigned Timer_Reference_List_Member_Element_Count(uint32_t object_instance)
  * @return  true if values are within range and present-value is sent.
  */
 static bool Timer_Write_Members(
+    uint32_t object_instance,
     struct object_data *pObject,
     const BACNET_TIMER_STATE_CHANGE_VALUE *value,
     uint8_t priority)
@@ -528,11 +532,15 @@ static bool Timer_Write_Members(
                     wp_data.application_data, sizeof(wp_data.application_data),
                     value);
                 if (Write_Property_Internal_Callback) {
-                    status = Write_Property_Internal_Callback(&wp_data);
+                    status = write_property_bacnet_array_valid(&wp_data);
                     if (status) {
-                        wp_data.error_code = ERROR_CODE_SUCCESS;
+                        status = Write_Property_Internal_Callback(&wp_data);
+                        if (status) {
+                            wp_data.error_code = ERROR_CODE_SUCCESS;
+                        }
                     }
                 }
+                Timer_Write_Property_Notify(object_instance, status, &wp_data);
             }
         }
     }
@@ -543,9 +551,11 @@ static bool Timer_Write_Members(
 /**
  * @brief initiate the write requests for the current transition
  * @param  object_instance - object-instance number of the object
+ * @param  pObject - object instance data
  * @return true if the write occurred
  */
-static bool Timer_Write_Request_Initiate(struct object_data *pObject)
+static bool Timer_Write_Request_Initiate(
+    uint32_t object_instance, struct object_data *pObject)
 {
     bool status = false;
     unsigned index = 0;
@@ -561,7 +571,7 @@ static bool Timer_Write_Request_Initiate(struct object_data *pObject)
         }
         if (value) {
             status = Timer_Write_Members(
-                pObject, value, pObject->Priority_For_Writing);
+                object_instance, pObject, value, pObject->Priority_For_Writing);
         }
     }
 
@@ -629,7 +639,7 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
                 pObject->Last_State_Change = TIMER_TRANSITION_RUNNING_TO_IDLE;
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
             } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
                 pObject->Last_State_Change = TIMER_TRANSITION_EXPIRED_TO_IDLE;
                 /*  then set Timer_State to IDLE;
@@ -643,7 +653,7 @@ bool Timer_State_Set(uint32_t object_instance, BACNET_TIMER_STATE value)
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
                 pObject->Last_State_Change = TIMER_TRANSITION_EXPIRED_TO_IDLE;
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
             } else if (pObject->Timer_State == TIMER_STATE_IDLE) {
                 /* then no properties shall be changed;
                    no write requests shall be initiated;
@@ -724,7 +734,7 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
             } else if (pObject->Timer_State == TIMER_STATE_RUNNING) {
                 /* If a value of TRUE is written to the Timer_Running property,
                    then set Last_State_Change to RUNNING_TO_RUNNING;
@@ -741,7 +751,7 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
             } else if (pObject->Timer_State == TIMER_STATE_EXPIRED) {
                 /* If a value of TRUE is written to the Timer_Running property,
                    set Timer_State to RUNNING;
@@ -759,7 +769,7 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
             }
         } else {
             if (pObject->Timer_State == TIMER_STATE_RUNNING) {
@@ -778,7 +788,7 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
             }
         }
         status = true;
@@ -1108,7 +1118,7 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
             }
             status = true;
         } else {
@@ -1141,7 +1151,7 @@ bool Timer_Present_Value_Set(uint32_t object_instance, uint32_t value)
                 datetime_local(
                     &pObject->Update_Time.date, &pObject->Update_Time.time,
                     NULL, NULL);
-                Timer_Write_Request_Initiate(pObject);
+                Timer_Write_Request_Initiate(object_instance, pObject);
                 status = true;
             } else {
                 status = false;
@@ -2109,6 +2119,49 @@ void Timer_Context_Set(uint32_t object_instance, void *context)
 void Timer_Write_Property_Internal_Callback_Set(write_property_function cb)
 {
     Write_Property_Internal_Callback = cb;
+}
+
+/**
+ * @brief Add a Timer write property notification callback
+ * @param notification - pointer to the notification structure
+ */
+void Timer_Write_Property_Notification_Add(
+    struct timer_write_property_notification *notification)
+{
+    struct timer_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Calls all registered Timer write property notification callbacks
+ * @param instance - object instance number
+ * @param status - write property status
+ * @param wp_data - write property data
+ */
+void Timer_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    struct timer_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(instance, status, wp_data);
+        }
+        head = head->next;
+    } while (head);
 }
 
 /**
