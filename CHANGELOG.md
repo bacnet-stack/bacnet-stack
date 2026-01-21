@@ -32,6 +32,14 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added a new API for writable property lists across all the basic example
+  object types, preparing for the introduction of a Writable_Property_List
+  property in every object in a future BACnet standard revision.
+  The lists can be used by backup and restore feature to automatically
+  choose the object property values in the backup that can be restored
+  via internal WriteProperty directly from BACnet CreateObject services with
+  List of Initial Values. Updated existing device objects to include
+  these writable property lists. (#1206)
 * Added post-write notifications for channel, timer, and loop objects. (#1204)
 * Added device WriteProperty callbacks for Timer object in example device
   objects implementations. (#1203)
