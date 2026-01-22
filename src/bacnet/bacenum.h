@@ -2810,7 +2810,7 @@ typedef enum BACnetNetworkPortCommand {
     PORT_COMMAND_MAX = 255
 } BACNET_PORT_COMMAND;
 
-typedef enum {
+typedef enum BACnetSecurityLevel {
     BACNET_SECURITY_LEVEL_INCAPABLE = 0,
     BACNET_SECURITY_LEVEL_PLAIN = 1,
     BACNET_SECURITY_LEVEL_SIGNED = 2,
@@ -2819,21 +2819,21 @@ typedef enum {
     BACNET_SECURITY_LEVEL_ENCRYPTED_END_TO_END = 5
 } BACNET_SECURITY_LEVEL;
 
-typedef enum {
+typedef enum BACnetSecurityPolicy {
     BACNET_SECURITY_POLICY_PLAIN_NOT_TRUSTED = 0,
     BACNET_SECURITY_POLICY_PLAIN_TRUSTED = 1,
     BACNET_SECURITY_POLICY_SIGNED_TRUSTED = 2,
     BACNET_SECURITY_POLICY_ENCRYPTED_TRUSTED = 3
 } BACNET_SECURITY_POLICY;
 
-typedef enum {
+typedef enum BACnetKeyIdentifierAlgorithm {
     KIA_AES_MD5 = 0,
     KIA_AES_SHA256 = 1,
     /* 2-255 reserved */
     KIA_MAX_KEY_IDENTIFIER_ALGORITHM = 255
 } BACNET_KEY_IDENTIFIER_ALGORITHM;
 
-typedef enum {
+typedef enum BACnetKeyIdentifierKeyNumber {
     KIKN_NOT_USED = 0,
     KIKN_DEVICE_MASTER = 1,
     KIKN_DISTRIBUTION = 2,
@@ -2846,7 +2846,7 @@ typedef enum {
     KIKN_MAX_KEY_IDENTIFIER_KEY_NUMBER = 255
 } BACNET_KEY_IDENTIFIER_KEY_NUMBER;
 
-typedef enum {
+typedef enum BACnetSecurityResponseCode {
     SEC_RESP_SUCCESS = 0,
     SEC_RESP_ACCESS_DENIED = 1,
     SEC_RESP_BAD_DESTINATION_ADDRESS = 2,
@@ -2903,7 +2903,7 @@ typedef enum BACnetAccessCredentialDisableReason {
        the procedures and constraints described in Clause 23. */
 } BACNET_ACCESS_CREDENTIAL_DISABLE_REASON;
 
-typedef enum {
+typedef enum BACnetAuthenticationDisableReason {
     AUTHENTICATION_NONE = 0,
     AUTHENTICATION_DISABLED = 1,
     AUTHENTICATION_DISABLED_LOST = 2,
