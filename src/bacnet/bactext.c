@@ -2349,7 +2349,7 @@ INDTEXT_DATA bactext_life_safety_state_names[] = {
     { LIFE_SAFETY_STATE_TEST_ALARM, "test-alarm" },
     { LIFE_SAFETY_STATE_TEST_ACTIVE, "test-active" },
     { LIFE_SAFETY_STATE_TEST_FAULT, "test-fault" },
-    { LIFE_SAFETY_STATE_TEST_FAULT_ALARM, "fault-alarm" },
+    { LIFE_SAFETY_STATE_TEST_FAULT_ALARM, "test-fault-alarm" },
     { LIFE_SAFETY_STATE_HOLDUP, "holdupt" },
     { LIFE_SAFETY_STATE_DURESS, "duress" },
     { LIFE_SAFETY_STATE_TAMPER_ALARM, "tamper-alarm" },
@@ -3699,6 +3699,30 @@ bool bactext_property_states_strtoul(
     }
 
     return status;
+}
+
+const char *bactext_property_states_name(
+    BACNET_PROPERTY_STATES property_state,
+    uint32_t index,
+    const char *default_string)
+{
+    const char *name = NULL;
+    INDTEXT_PROPERTY_DATA *list;
+    list = bactext_property_states_data;
+    while (list->data_list != NULL) {
+        if (list->index == property_state) {
+            if (list->data_list != NULL) {
+                name = indtext_by_index_default(
+                    list->data_list, index, default_string);
+            }
+            break;
+        }
+        list++;
+    }
+    if (!name) {
+        name = default_string;
+    }
+    return name;
 }
 
 INDTEXT_PROPERTY_DATA bactext_object_property_data[] = {

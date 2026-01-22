@@ -86,8 +86,20 @@ static void testBacText(void)
         status = bactext_property_states_strtoul(
             (BACNET_PROPERTY_STATES)k, ascii_number, &index);
         zassert_true(status, "k=%u", k);
-        /* only enumerated properties */
         zassert_equal(index, k, "index=%u k=%u", index, k);
+        for (i = 0; i < 255; i++) {
+            pString = bactext_property_states_name(
+                (BACNET_PROPERTY_STATES)k, i, NULL);
+            if (!pString) {
+                break;
+            }
+            status = bactext_property_states_strtoul(
+                (BACNET_PROPERTY_STATES)k, pString, &found_index);
+            zassert_true(status, "%s k=%u i=%u", pString, k, i);
+            zassert_equal(
+                i, found_index, "state=%u[%u]=%s ==>[%u]", k, i, pString,
+                found_index);
+        }
     }
 }
 /**

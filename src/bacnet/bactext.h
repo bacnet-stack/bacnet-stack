@@ -320,6 +320,11 @@ bool bactext_property_states_strtoul(
     BACNET_PROPERTY_STATES object_property,
     const char *search_name,
     uint32_t *found_index);
+BACNET_STACK_EXPORT
+const char *bactext_property_states_name(
+    BACNET_PROPERTY_STATES property_state,
+    uint32_t index,
+    const char *default_string);
 
 BACNET_STACK_EXPORT
 bool bactext_object_property_strtoul(
