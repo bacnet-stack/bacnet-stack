@@ -2233,6 +2233,7 @@ static int bacapp_snprintf_enumerated(
             break;
         case PROP_PRESENT_VALUE:
         case PROP_RELINQUISH_DEFAULT:
+        case PROP_FEEDBACK_VALUE:
             switch (object_type) {
                 case OBJECT_BINARY_INPUT:
                 case OBJECT_BINARY_OUTPUT:
@@ -2245,6 +2246,10 @@ static int bacapp_snprintf_enumerated(
                     ret_val = bacapp_snprintf(
                         str, str_len, "%s",
                         bactext_binary_lighting_pv_name(value));
+                    break;
+                case OBJECT_ACCESS_DOOR:
+                    ret_val = bacapp_snprintf(
+                        str, str_len, "%s", bactext_door_value_name(value));
                     break;
                 default:
                     ret_val = bacapp_snprintf(
@@ -2270,6 +2275,7 @@ static int bacapp_snprintf_enumerated(
                 str, str_len, "%s", bactext_node_type_name(value));
             break;
         case PROP_SUBORDINATE_RELATIONSHIPS:
+        case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
             if (bactext_node_relationship_name_proprietary((unsigned)value)) {
                 ret_val = bacapp_snprintf(
                     str, str_len, "proprietary-%lu", (unsigned long)value);
@@ -2354,8 +2360,8 @@ static int bacapp_snprintf_enumerated(
                 str, str_len, "%s", bactext_timer_transition_name(value));
             break;
         case PROP_ACTION:
-            ret_val = bacapp_snprintf(
-                str, str_len, "%s", bactext_action_name(value));
+            ret_val =
+                bacapp_snprintf(str, str_len, "%s", bactext_action_name(value));
             break;
         case PROP_FILE_ACCESS_METHOD:
             ret_val = bacapp_snprintf(
@@ -2383,23 +2389,94 @@ static int bacapp_snprintf_enumerated(
                 str, str_len, "%s", bactext_access_event_name(value));
             break;
         case PROP_AUTHENTICATION_STATUS:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_authentication_status_name(value));
+            break;
         case PROP_AUTHORIZATION_MODE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_authorization_mode_name(value));
+            break;
         case PROP_CREDENTIAL_STATUS:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_binary_present_value_name(value));
+            break;
         case PROP_CREDENTIAL_DISABLE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s",
+                bactext_access_credential_disable_name(value));
+            break;
         case PROP_REASON_FOR_DISABLE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s",
+                bactext_access_credential_disable_reason_name(value));
+            break;
         case PROP_USER_TYPE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_access_user_type_name(value));
+            break;
         case PROP_OCCUPANCY_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s",
+                bactext_access_zone_occupancy_state_name(value));
+            break;
         case PROP_SILENCED:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_silenced_state_name(value));
+            break;
         case PROP_WRITE_STATUS:
-        case PROP_FEEDBACK_VALUE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_write_status_name(value));
+            break;
         case PROP_BACNET_IP_MODE:
         case PROP_BACNET_IPV6_MODE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_ip_mode_name(value));
+            break;
         case PROP_SC_HUB_CONNECTOR_STATE:
-        case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
-            /* These properties are encoded as enumerated but currently
-               no text lookup functions are available */
-            ret_val =
-                bacapp_snprintf(str, str_len, "%lu", (unsigned long)value);
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_sc_hub_connector_state_name(value));
+            break;
+        case PROP_MAINTENANCE_REQUIRED:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_maintenance_name(value));
+            break;
+        case PROP_FAULT_SIGNALS:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_escalator_fault_name(value));
+            break;
+        case PROP_OPERATION_DIRECTION:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s",
+                bactext_escalator_operation_direction_name(value));
+            break;
+        case PROP_BACKUP_AND_RESTORE_STATE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_backup_state_name(value));
+            break;
+        case PROP_BASE_DEVICE_SECURITY_POLICY:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_security_level_name(value));
+            break;
+        case PROP_GROUP_MODE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_lift_group_mode_name(value));
+            break;
+        case PROP_CAR_MODE:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_lift_car_mode_name(value));
+            break;
+        case PROP_CAR_DRIVE_STATUS:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_lift_car_drive_status_name(value));
+            break;
+        case PROP_CAR_DOOR_COMMAND:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_lift_car_door_command_name(value));
+            break;
+        case PROP_CAR_ASSIGNED_DIRECTION:
+        case PROP_CAR_MOVING_DIRECTION:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%s", bactext_lift_car_direction_name(value));
             break;
         default:
             ret_val =
@@ -2963,8 +3040,7 @@ static int bacapp_snprintf_channel_value(
         case BACNET_APPLICATION_TAG_ENUMERATED:
 #if defined(CHANNEL_ENUMERATED)
             ret_val = bacapp_snprintf(
-                str, str_len, "%lu", (unsigned long)
-                value->type.Enumerated);
+                str, str_len, "%lu", (unsigned long)value->type.Enumerated);
 #endif
             break;
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
@@ -3446,8 +3522,7 @@ static int bacapp_snprintf_primitive_data_value(
 #if defined(BACAPP_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             ret_val = bacapp_snprintf(
-                str, str_len, "%lu", (unsigned long)
-                value->type.Enumerated);
+                str, str_len, "%lu", (unsigned long)value->type.Enumerated);
             break;
 #endif
         case BACNET_APPLICATION_TAG_EMPTYLIST:
@@ -3588,8 +3663,7 @@ static int bacapp_snprintf_action_property_value(
 #if defined(BACACTION_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             ret_val = bacapp_snprintf(
-                str, str_len, "%lu", (unsigned long)
-                value->type.Enumerated);
+                str, str_len, "%lu", (unsigned long)value->type.Enumerated);
             break;
 #endif
         case BACNET_APPLICATION_TAG_EMPTYLIST:

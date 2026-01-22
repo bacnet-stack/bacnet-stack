@@ -266,6 +266,54 @@ BACNET_STACK_EXPORT
 const char *bactext_door_secured_status_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_access_event_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_authentication_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_authorization_mode_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_access_credential_disable_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_access_credential_disable_reason_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_access_user_type_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_access_zone_occupancy_state_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_write_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_ip_mode_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_door_value_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_maintenance_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_escalator_fault_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_escalator_operation_direction_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_backup_state_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_security_level_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_lift_car_direction_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_lift_car_door_command_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_lift_car_drive_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_lift_car_mode_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_lift_fault_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_lift_group_mode_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_audit_level_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_audit_operation_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_sc_hub_connector_state_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_sc_connection_state_name(uint32_t index);
 
 BACNET_STACK_EXPORT
 bool bactext_property_states_strtoul(
