@@ -23,8 +23,9 @@ ZTEST(bactext_tests, testBacText)
 static void testBacText(void)
 #endif
 {
-    uint32_t i, j;
+    uint32_t i, j, k;
     const char *pString;
+    char ascii_number[64] = "";
     uint32_t index, found_index;
     bool status;
     unsigned count;
@@ -79,6 +80,14 @@ static void testBacText(void)
                 }
             }
         }
+    }
+    for (k = 0; k < PROP_STATE_PROPRIETARY_MIN; k++) {
+        snprintf(ascii_number, sizeof(ascii_number), "%u", k);
+        status = bactext_property_states_strtoul(
+            (BACNET_PROPERTY_STATES)k, ascii_number, &index);
+        zassert_true(status, "k=%u", k);
+        /* only enumerated properties */
+        zassert_equal(index, k, "index=%u k=%u", index, k);
     }
 }
 /**
