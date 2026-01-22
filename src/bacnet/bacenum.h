@@ -1696,7 +1696,9 @@ typedef enum {
     /* no-value - context tagged null */
     BACNET_APPLICATION_TAG_NO_VALUE,
     /* ABSTRACT-SYNTAX - constructed value */
-    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX
+    BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX,
+    /* == mark the end of this list == */
+    BACNET_APPLICATION_TAG_EXTENDED_MAX
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
