@@ -89,7 +89,6 @@ bool bactext_confirmed_service_index(
         bacnet_confirmed_service_names, search_name, found_index);
 }
 
-
 INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
     { SERVICE_UNCONFIRMED_I_AM, "I-Am" },
     { SERVICE_UNCONFIRMED_I_HAVE, "I-Have" },
@@ -198,12 +197,11 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
 
 const char *bactext_application_tag_name(uint32_t index)
 {
-    return bactext_application_tag_name_default(
-        index, ASHRAE_Reserved_String);
+    return bactext_application_tag_name_default(index, ASHRAE_Reserved_String);
 }
 
-const char *bactext_application_tag_name_default(
-    uint32_t index, const char *default_string)
+const char *
+bactext_application_tag_name_default(uint32_t index, const char *default_string)
 {
     return indtext_by_index_default(
         bacnet_application_tag_names, index, default_string);
@@ -400,7 +398,8 @@ const char *bactext_object_type_name_capitalized_default(
         bacnet_object_type_names_capitalized, index, default_string);
 }
 
-bool bactext_object_type_name_capitalized_index(const char *search_name, uint32_t *found_index)
+bool bactext_object_type_name_capitalized_index(
+    const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
         bacnet_object_type_names_capitalized, search_name, found_index);
@@ -1529,13 +1528,11 @@ bactext_reject_reason_name_default(uint32_t index, const char *default_string)
         bacnet_reject_reason_names, index, default_string);
 }
 
-bool bactext_reject_reason_index(
-    const char *search_name, uint32_t *found_index)
+bool bactext_reject_reason_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
         bacnet_reject_reason_names, search_name, found_index);
 }
-
 
 INDTEXT_DATA bacnet_abort_reason_names[] = {
     { ABORT_REASON_OTHER, "Other" },
@@ -1570,8 +1567,7 @@ bactext_abort_reason_name_default(uint32_t index, const char *default_string)
         bacnet_abort_reason_names, index, default_string);
 }
 
-bool bactext_abort_reason_index(
-    const char *search_name, uint32_t *found_index)
+bool bactext_abort_reason_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
         bacnet_abort_reason_names, search_name, found_index);
@@ -1603,8 +1599,7 @@ bactext_error_class_name_default(uint32_t index, const char *default_string)
         bacnet_error_class_names, index, default_string);
 }
 
-bool bactext_error_class_index(
-    const char *search_name, uint32_t *found_index)
+bool bactext_error_class_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
         bacnet_error_class_names, search_name, found_index);
@@ -1893,8 +1888,7 @@ bactext_error_code_name_default(uint32_t index, const char *default_string)
         bacnet_error_code_names, index, default_string);
 }
 
-bool bactext_error_code_index(
-    const char *search_name, uint32_t *found_index)
+bool bactext_error_code_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
         bacnet_error_code_names, search_name, found_index);
@@ -1921,11 +1915,9 @@ bactext_month_name_default(uint32_t index, const char *default_string)
     return indtext_by_index_default(bacnet_month_names, index, default_string);
 }
 
-bool bactext_month_index(
-    const char *search_name, uint32_t *found_index)
+bool bactext_month_index(const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
-        bacnet_month_names, search_name, found_index);
+    return indtext_by_istring(bacnet_month_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_week_of_month_names[] = {
@@ -1937,8 +1929,7 @@ INDTEXT_DATA bacnet_week_of_month_names[] = {
 
 const char *bactext_week_of_month_name(uint32_t index)
 {
-    return bactext_week_of_month_name_default(
-        index, ASHRAE_Reserved_String);
+    return bactext_week_of_month_name_default(index, ASHRAE_Reserved_String);
 }
 
 const char *
@@ -1948,8 +1939,7 @@ bactext_week_of_month_name_default(uint32_t index, const char *default_string)
         bacnet_week_of_month_names, index, default_string);
 }
 
-bool bactext_week_of_month_index(
-    const char *search_name, uint32_t *found_index)
+bool bactext_week_of_month_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
         bacnet_week_of_month_names, search_name, found_index);
@@ -1966,8 +1956,7 @@ INDTEXT_DATA bacnet_day_of_week_names[] = {
 
 const char *bactext_day_of_week_name(uint32_t index)
 {
-    return bactext_day_of_week_name_default(
-        index, ASHRAE_Reserved_String);
+    return bactext_day_of_week_name_default(index, ASHRAE_Reserved_String);
 }
 
 const char *
@@ -1977,8 +1966,7 @@ bactext_day_of_week_name_default(uint32_t index, const char *default_string)
         bacnet_day_of_week_names, index, default_string);
 }
 
-bool bactext_day_of_week_index(
-    const char *search_name, uint32_t *found_index)
+bool bactext_day_of_week_index(const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
         bacnet_day_of_week_names, search_name, found_index);
@@ -1998,8 +1986,7 @@ INDTEXT_DATA bacnet_days_of_week_names[] = {
 
 const char *bactext_days_of_week_name(uint32_t index)
 {
-    return bactext_days_of_week_name_default(
-        index, ASHRAE_Reserved_String);
+    return bactext_days_of_week_name_default(index, ASHRAE_Reserved_String);
 }
 
 const char *
@@ -2165,7 +2152,6 @@ bool bactext_binary_polarity_index(
     return indtext_by_istring(
         bacnet_binary_polarity_names, search_name, found_index);
 }
-
 
 INDTEXT_DATA bacnet_reliability_names[] = {
     { RELIABILITY_NO_FAULT_DETECTED, "no-fault-detected" },
