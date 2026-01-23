@@ -101,7 +101,7 @@ BACNET_STACK_EXPORT
 const char *
 bactext_reject_reason_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_reject_reason_index(
+bool bactext_reject_reason_strtol(
     const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
@@ -110,7 +110,8 @@ BACNET_STACK_EXPORT
 const char *
 bactext_abort_reason_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_abort_reason_index(const char *search_name, uint32_t *found_index);
+bool bactext_abort_reason_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_error_class_name(uint32_t index);
@@ -118,7 +119,7 @@ BACNET_STACK_EXPORT
 const char *
 bactext_error_class_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_error_class_index(const char *search_name, uint32_t *found_index);
+bool bactext_error_class_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_error_code_name(uint32_t index);
@@ -126,7 +127,7 @@ BACNET_STACK_EXPORT
 const char *
 bactext_error_code_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_error_code_index(const char *search_name, uint32_t *found_index);
+bool bactext_error_code_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_month_name(uint32_t index);
@@ -134,7 +135,7 @@ BACNET_STACK_EXPORT
 const char *
 bactext_month_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_month_index(const char *search_name, uint32_t *found_index);
+bool bactext_month_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_week_of_month_name(uint32_t index);
@@ -142,7 +143,7 @@ BACNET_STACK_EXPORT
 const char *
 bactext_week_of_month_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_week_of_month_index(
+bool bactext_week_of_month_strtol(
     const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
@@ -151,7 +152,7 @@ BACNET_STACK_EXPORT
 const char *
 bactext_day_of_week_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_day_of_week_index(const char *search_name, uint32_t *found_index);
+bool bactext_day_of_week_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_days_of_week_name(uint32_t index);
@@ -159,33 +160,31 @@ BACNET_STACK_EXPORT
 const char *
 bactext_days_of_week_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
-bool bactext_days_of_week_index(const char *search_name, uint32_t *found_index);
+bool bactext_days_of_week_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_notify_type_name(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_notify_type_index(const char *search_name, uint32_t *found_index);
+const char *
+bactext_notify_type_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
 bool bactext_notify_type_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_event_state_name(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_event_state_index(const char *search_name, uint32_t *found_index);
-BACNET_STACK_EXPORT
 bool bactext_event_state_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_event_type_name(uint32_t index);
-BACNET_STACK_EXPORT
-bool bactext_event_type_index(const char *search_name, uint32_t *found_index);
 BACNET_STACK_EXPORT
 bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_binary_present_value_name(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_binary_present_value_index(
+bool bactext_binary_present_value_strtol(
     const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
@@ -204,6 +203,8 @@ bool bactext_segmentation_index(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_node_type_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_node_type_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_node_relationship_name(uint32_t index);
@@ -211,73 +212,136 @@ BACNET_STACK_EXPORT
 bool bactext_node_relationship_name_proprietary(uint32_t index);
 BACNET_STACK_EXPORT
 bool bactext_node_relationship_name_reserved(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_node_relationship_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_character_string_encoding_name(uint32_t index);
 BACNET_STACK_EXPORT
+bool bactext_character_string_encoding_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_event_transition_name(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_event_transition_index(
+const char *bactext_event_transition_name_default(
+    uint32_t index, const char *default_string);
+BACNET_STACK_EXPORT
+bool bactext_event_transition_strtol(
     const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_network_layer_msg_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_network_layer_msg_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_life_safety_mode_name(uint32_t index);
 BACNET_STACK_EXPORT
+bool bactext_life_safety_mode_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_life_safety_operation_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_life_safety_operation_strtol(
+    const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_life_safety_state_name(uint32_t index);
 BACNET_STACK_EXPORT
+bool bactext_life_safety_state_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_silenced_state_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_silenced_state_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_device_communications_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_device_communications_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_lighting_operation_name(uint32_t index);
-
 BACNET_STACK_EXPORT
 bool bactext_lighting_operation_strtol(
     const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_binary_lighting_pv_name(uint32_t index);
-
 BACNET_STACK_EXPORT
 bool bactext_binary_lighting_pv_names_strtol(
     const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_lighting_in_progress(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_lighting_in_progress_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_lighting_transition(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_lighting_transition_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_color_operation_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_color_operation_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_shed_state_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_shed_state_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_shed_level_type_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_shed_level_type_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_log_datum_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_log_datum_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_restart_reason_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_restart_reason_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_network_port_type_name(uint32_t index);
 BACNET_STACK_EXPORT
+bool bactext_network_port_type_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_network_number_quality_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_network_number_quality_strtol(
+    const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_protocol_level_name(uint32_t index);
 BACNET_STACK_EXPORT
+bool bactext_protocol_level_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_network_port_command_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_network_port_command_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_authentication_decision_name(uint32_t index);
@@ -382,6 +446,12 @@ const char *bactext_property_states_name(
     uint32_t index,
     const char *default_string);
 
+BACNET_STACK_EXPORT
+const char *bactext_object_property_name(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property,
+    uint32_t index,
+    const char *default_string);
 BACNET_STACK_EXPORT
 bool bactext_object_property_strtoul(
     BACNET_OBJECT_TYPE object_type,

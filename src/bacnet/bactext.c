@@ -1528,9 +1528,10 @@ bactext_reject_reason_name_default(uint32_t index, const char *default_string)
         bacnet_reject_reason_names, index, default_string);
 }
 
-bool bactext_reject_reason_index(const char *search_name, uint32_t *found_index)
+bool bactext_reject_reason_strtol(
+    const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_reject_reason_names, search_name, found_index);
 }
 
@@ -1567,9 +1568,9 @@ bactext_abort_reason_name_default(uint32_t index, const char *default_string)
         bacnet_abort_reason_names, index, default_string);
 }
 
-bool bactext_abort_reason_index(const char *search_name, uint32_t *found_index)
+bool bactext_abort_reason_strtol(const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_abort_reason_names, search_name, found_index);
 }
 
@@ -1599,9 +1600,9 @@ bactext_error_class_name_default(uint32_t index, const char *default_string)
         bacnet_error_class_names, index, default_string);
 }
 
-bool bactext_error_class_index(const char *search_name, uint32_t *found_index)
+bool bactext_error_class_strtol(const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_error_class_names, search_name, found_index);
 }
 
@@ -1888,9 +1889,9 @@ bactext_error_code_name_default(uint32_t index, const char *default_string)
         bacnet_error_code_names, index, default_string);
 }
 
-bool bactext_error_code_index(const char *search_name, uint32_t *found_index)
+bool bactext_error_code_strtol(const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_error_code_names, search_name, found_index);
 }
 
@@ -1915,9 +1916,10 @@ bactext_month_name_default(uint32_t index, const char *default_string)
     return indtext_by_index_default(bacnet_month_names, index, default_string);
 }
 
-bool bactext_month_index(const char *search_name, uint32_t *found_index)
+bool bactext_month_strtol(const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(bacnet_month_names, search_name, found_index);
+    return bactext_string_to_uint32_index(
+        bacnet_month_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_week_of_month_names[] = {
@@ -1939,9 +1941,10 @@ bactext_week_of_month_name_default(uint32_t index, const char *default_string)
         bacnet_week_of_month_names, index, default_string);
 }
 
-bool bactext_week_of_month_index(const char *search_name, uint32_t *found_index)
+bool bactext_week_of_month_strtol(
+    const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_week_of_month_names, search_name, found_index);
 }
 
@@ -1966,9 +1969,9 @@ bactext_day_of_week_name_default(uint32_t index, const char *default_string)
         bacnet_day_of_week_names, index, default_string);
 }
 
-bool bactext_day_of_week_index(const char *search_name, uint32_t *found_index)
+bool bactext_day_of_week_strtol(const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_day_of_week_names, search_name, found_index);
 }
 
@@ -1996,9 +1999,9 @@ bactext_days_of_week_name_default(uint32_t index, const char *default_string)
         bacnet_days_of_week_names, index, default_string);
 }
 
-bool bactext_days_of_week_index(const char *search_name, uint32_t *found_index)
+bool bactext_days_of_week_strtol(const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_days_of_week_names, search_name, found_index);
 }
 
@@ -2012,14 +2015,14 @@ INDTEXT_DATA bacnet_notify_type_names[] = {
 
 const char *bactext_notify_type_name(uint32_t index)
 {
-    return indtext_by_index_default(
-        bacnet_notify_type_names, index, ASHRAE_Reserved_String);
+    return bactext_notify_type_name_default(index, ASHRAE_Reserved_String);
 }
 
-bool bactext_notify_type_index(const char *search_name, uint32_t *found_index)
+const char *
+bactext_notify_type_name_default(uint32_t index, const char *default_string)
 {
-    return indtext_by_istring(
-        bacnet_notify_type_names, search_name, found_index);
+    return indtext_by_index_default(
+        bacnet_notify_type_names, index, default_string);
 }
 
 bool bactext_notify_type_strtol(const char *search_name, uint32_t *found_index)
@@ -2037,14 +2040,20 @@ INDTEXT_DATA bacnet_event_transition_names[] = {
 
 const char *bactext_event_transition_name(uint32_t index)
 {
-    return indtext_by_index_default(
-        bacnet_event_transition_names, index, ASHRAE_Reserved_String);
+    return bactext_event_transition_name_default(index, ASHRAE_Reserved_String);
 }
 
-bool bactext_event_transition_index(
+const char *bactext_event_transition_name_default(
+    uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_event_transition_names, index, default_string);
+}
+
+bool bactext_event_transition_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_event_transition_names, search_name, found_index);
 }
 
@@ -2062,12 +2071,6 @@ const char *bactext_event_state_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_event_state_names, index, ASHRAE_Reserved_String);
-}
-
-bool bactext_event_state_index(const char *search_name, uint32_t *found_index)
-{
-    return indtext_by_istring(
-        bacnet_event_state_names, search_name, found_index);
 }
 
 bool bactext_event_state_strtol(const char *search_name, uint32_t *found_index)
@@ -2107,12 +2110,6 @@ const char *bactext_event_type_name(uint32_t index)
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
-bool bactext_event_type_index(const char *search_name, uint32_t *found_index)
-{
-    return indtext_by_istring(
-        bacnet_event_type_names, search_name, found_index);
-}
-
 bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index)
 {
     return bactext_string_to_uint32_index(
@@ -2129,10 +2126,10 @@ const char *bactext_binary_present_value_name(uint32_t index)
         bacnet_binary_present_value_names, index, ASHRAE_Reserved_String);
 }
 
-bool bactext_binary_present_value_index(
+bool bactext_binary_present_value_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_binary_present_value_names, search_name, found_index);
 }
 
@@ -2146,10 +2143,10 @@ const char *bactext_binary_polarity_name(uint32_t index)
         bacnet_binary_polarity_names, index, ASHRAE_Reserved_String);
 }
 
-bool bactext_binary_polarity_index(
+bool bactext_binary_polarity_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_binary_polarity_names, search_name, found_index);
 }
 
@@ -2258,6 +2255,12 @@ const char *bactext_node_type_name(uint32_t index)
         bacnet_node_type_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_node_type_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_node_type_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_node_relationship_names[] = {
     { BACNET_RELATIONSHIP_UNKNOWN, "unknown" },
     { BACNET_RELATIONSHIP_DEFAULT, "default" },
@@ -2296,6 +2299,13 @@ const char *bactext_node_relationship_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_node_relationship_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_node_relationship_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_node_relationship_names, search_name, found_index);
 }
 
 bool bactext_node_relationship_name_proprietary(uint32_t index)
@@ -3879,6 +3889,111 @@ INDTEXT_PROPERTY_DATA bactext_object_property_data[] = {
     { PROP_FAULT_SIGNALS, NULL /* handled in function */ },
     { 0, NULL }
 };
+
+/**
+ * @brief Get the name of an enumerated object property returning
+ *  a default string if not found
+ * @param object_type - object type identifier
+ * @param property - object property identifier
+ * @param index - index within the property enumeration
+ * @param default_string - string to return if no name is found
+ * @return name of the property or default_string if not found
+ */
+const char *bactext_object_property_name(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property,
+    uint32_t index,
+    const char *default_string)
+{
+    const char *name = NULL;
+    INDTEXT_PROPERTY_DATA *list;
+
+    list = bactext_object_property_data;
+    while (list->data_list != NULL) {
+        if (list->index == object_property) {
+            name = indtext_by_index_default(
+                list->data_list, index, default_string);
+            break;
+        }
+        list++;
+    }
+    if (!name) {
+        switch (object_property) {
+            case PROP_PRESENT_VALUE:
+            case PROP_RELINQUISH_DEFAULT:
+                switch (object_type) {
+                    case OBJECT_BINARY_INPUT:
+                    case OBJECT_BINARY_OUTPUT:
+                    case OBJECT_BINARY_VALUE:
+                        name = indtext_by_index_default(
+                            bacnet_binary_present_value_names, index,
+                            default_string);
+                        break;
+                    case OBJECT_BINARY_LIGHTING_OUTPUT:
+                        name = indtext_by_index_default(
+                            bacnet_binary_lighting_pv_names, index,
+                            default_string);
+                        break;
+                    case OBJECT_ACCESS_DOOR:
+                        name = indtext_by_index_default(
+                            bactext_door_value_names, index, default_string);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case PROP_TRACKING_VALUE:
+                switch (object_type) {
+                    case OBJECT_LIFE_SAFETY_POINT:
+                    case OBJECT_LIFE_SAFETY_ZONE:
+                        name = indtext_by_index_default(
+                            bactext_life_safety_state_names, index,
+                            default_string);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case PROP_FEEDBACK_VALUE:
+                switch (object_type) {
+                    case OBJECT_BINARY_LIGHTING_OUTPUT:
+                        name = indtext_by_index_default(
+                            bacnet_binary_lighting_pv_names, index,
+                            default_string);
+                        break;
+                    case OBJECT_BINARY_OUTPUT:
+                        name = indtext_by_index_default(
+                            bacnet_binary_present_value_names, index,
+                            default_string);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case PROP_FAULT_SIGNALS:
+                switch (object_type) {
+                    case OBJECT_ESCALATOR:
+                        name = indtext_by_index_default(
+                            bactext_escalator_fault_names, index,
+                            default_string);
+                        break;
+                    case OBJECT_LIFT:
+                        name = indtext_by_index_default(
+                            bactext_lift_fault_names, index, default_string);
+                        break;
+                    default:
+                        break;
+                }
+            default:
+                break;
+        }
+    }
+    if (!name) {
+        name = default_string;
+    }
+
+    return name;
+}
 
 /**
  * @brief For a given enumerated object property string,

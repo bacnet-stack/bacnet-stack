@@ -105,13 +105,20 @@ static void testBacText(void)
                     bactext_object_type_name(i), i, pString, property);
                 zassert_equal(
                     index, property, "index=%u property=%u", index, property);
-                status = bactext_object_property_strtoul(
-                    i, property, pString, &found_index);
-                if (status) {
-                    zassert_true(status, "i=%u", i);
+                for (k = 0; k < UINT16_MAX; k++) {
+                    pString = bactext_object_property_name(
+                        (BACNET_OBJECT_TYPE)i, property, k, NULL);
+                    if (!pString) {
+                        break;
+                    }
+                    status = bactext_object_property_strtoul(
+                        i, property, pString, &found_index);
+                    zassert_true(
+                        status, "%s i=%u property=%u k=%u", pString, i,
+                        property, k);
                     zassert_equal(
-                        index, found_index, "index=%u found_index=%u", index,
-                        found_index);
+                        k, found_index, "%s index=%u found_index=%u", pString,
+                        k, found_index);
                 }
             }
             pString = bactext_property_name_default(property, NULL);
@@ -161,7 +168,7 @@ static void testBacText(void)
     for (i = 0; i < MAX_BACNET_REJECT_REASON; i++) {
         pString = bactext_reject_reason_name(i);
         if (pString) {
-            status = bactext_reject_reason_index(pString, &index);
+            status = bactext_reject_reason_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
@@ -171,7 +178,7 @@ static void testBacText(void)
     for (i = 0; i < MAX_BACNET_ABORT_REASON; i++) {
         pString = bactext_abort_reason_name(i);
         if (pString) {
-            status = bactext_abort_reason_index(pString, &index);
+            status = bactext_abort_reason_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
@@ -181,7 +188,7 @@ static void testBacText(void)
     for (i = 0; i < MAX_BACNET_ERROR_CLASS; i++) {
         pString = bactext_error_class_name(i);
         if (pString) {
-            status = bactext_error_class_index(pString, &index);
+            status = bactext_error_class_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
@@ -192,7 +199,7 @@ static void testBacText(void)
         pString = bactext_error_code_name_default(i, NULL);
         if (pString) {
             pString = bactext_error_code_name(i);
-            status = bactext_error_code_index(pString, &index);
+            status = bactext_error_code_strtol(pString, &index);
             zassert_true(status, "i=%u %s", i, pString);
             zassert_equal(index, i, "index=%u i=%u %s", index, i, pString);
         } else {
@@ -203,7 +210,7 @@ static void testBacText(void)
         pString = bactext_month_name_default(i, NULL);
         if (pString) {
             pString = bactext_month_name(i);
-            status = bactext_month_index(pString, &index);
+            status = bactext_month_strtol(pString, &index);
             zassert_true(status, "i=%u %s", i, pString);
             zassert_equal(index, i, "index=%u i=%u %s", index, i, pString);
         }
@@ -212,7 +219,7 @@ static void testBacText(void)
         pString = bactext_week_of_month_name_default(i, NULL);
         if (pString) {
             pString = bactext_week_of_month_name(i);
-            status = bactext_week_of_month_index(pString, &index);
+            status = bactext_week_of_month_strtol(pString, &index);
             zassert_true(status, "i=%u %s", i, pString);
             zassert_equal(index, i, "index=%u i=%u %s", index, i, pString);
         }
@@ -221,7 +228,7 @@ static void testBacText(void)
         pString = bactext_day_of_week_name_default(i, NULL);
         if (pString) {
             pString = bactext_day_of_week_name(i);
-            status = bactext_day_of_week_index(pString, &index);
+            status = bactext_day_of_week_strtol(pString, &index);
             zassert_true(status, "i=%u %s", i, pString);
             zassert_equal(index, i, "index=%u i=%u %s", index, i, pString);
         }
@@ -230,9 +237,27 @@ static void testBacText(void)
         pString = bactext_days_of_week_name_default(i, NULL);
         if (pString) {
             pString = bactext_days_of_week_name(i);
-            status = bactext_days_of_week_index(pString, &index);
+            status = bactext_days_of_week_strtol(pString, &index);
             zassert_true(status, "i=%u %s", i, pString);
             zassert_equal(index, i, "index=%u i=%u %s", index, i, pString);
+        }
+    }
+    for (i = 0; i < NOTIFY_MAX; i++) {
+        pString = bactext_notify_type_name_default(i, NULL);
+        if (pString) {
+            pString = bactext_notify_type_name(i);
+            status = bactext_notify_type_strtol(pString, &found_index);
+            zassert_true(status, "i=%u %s", i, pString);
+            zassert_equal(
+                i, found_index, "i=%u found_index=%u", i, found_index);
+        }
+    }
+    for (i = 0; i < MAX_BACNET_EVENT_TRANSITION; i++) {
+        pString = bactext_event_transition_name(i);
+        if (pString) {
+            status = bactext_event_transition_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
         }
     }
 }
