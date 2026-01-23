@@ -189,12 +189,20 @@ bool bactext_binary_present_value_strtol(
 
 BACNET_STACK_EXPORT
 const char *bactext_binary_polarity_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_binary_polarity_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_reliability_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_reliability_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_device_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_device_status_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_segmentation_name(uint32_t index);

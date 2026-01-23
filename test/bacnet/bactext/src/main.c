@@ -260,6 +260,48 @@ static void testBacText(void)
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
     }
+    for (i = 0; i < EVENT_STATE_MAX; i++) {
+        pString = bactext_event_state_name(i);
+        zassert_not_null(pString, "i=%u", i);
+        status = bactext_event_state_strtol(pString, &index);
+        zassert_true(status, "i=%u", i);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
+    }
+    for (i = 0; i <= EVENT_CHANGE_OF_TIMER; i++) {
+        pString = bactext_event_type_name(i);
+        zassert_not_null(pString, "i=%u", i);
+        status = bactext_event_type_strtol(pString, &index);
+        zassert_true(status, "i=%u %s", i, pString);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
+    }
+    for (i = 0; i < BINARY_PV_MAX; i++) {
+        pString = bactext_binary_present_value_name(i);
+        zassert_not_null(pString, "i=%u", i);
+        status = bactext_binary_present_value_strtol(pString, &index);
+        zassert_true(status, "i=%u %s", i, pString);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
+    }
+    for (i = 0; i < MAX_POLARITY; i++) {
+        pString = bactext_binary_polarity_name(i);
+        zassert_not_null(pString, "i=%u", i);
+        status = bactext_binary_polarity_strtol(pString, &index);
+        zassert_true(status, "i=%u %s", i, pString);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
+    }
+    for (i = 0; i < RELIABILITY_RESERVED_MIN; i++) {
+        pString = bactext_reliability_name(i);
+        zassert_not_null(pString, "i=%u", i);
+        status = bactext_reliability_strtol(pString, &index);
+        zassert_true(status, "i=%u %s", i, pString);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
+    }
+    for (i = 0; i < MAX_DEVICE_STATUS; i++) {
+        pString = bactext_device_status_name(i);
+        zassert_not_null(pString, "i=%u", i);
+        status = bactext_device_status_strtol(pString, &index);
+        zassert_true(status, "i=%u %s", i, pString);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
+    }
 }
 /**
  * @}

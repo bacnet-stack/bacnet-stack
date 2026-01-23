@@ -2086,14 +2086,17 @@ INDTEXT_DATA bacnet_event_type_names[] = {
     { EVENT_COMMAND_FAILURE, "command-failure" },
     { EVENT_FLOATING_LIMIT, "floating-limit" },
     { EVENT_OUT_OF_RANGE, "out-of-range" },
+    { EVENT_COMPLEX_EVENT_TYPE, "complex-event-type" },
+    { EVENT_RESERVED_7, "reserved-7" },
     { EVENT_CHANGE_OF_LIFE_SAFETY, "change-of-life-safety" },
     { EVENT_EXTENDED, "extended" },
     { EVENT_BUFFER_READY, "buffer-ready" },
-    { EVENT_UNSIGNED_RANGE, "uint32_t-range" },
+    { EVENT_UNSIGNED_RANGE, "unsigned-range" },
+    { EVENT_RESERVED_12, "reserved-12" },
     { EVENT_ACCESS_EVENT, "access-event" },
     { EVENT_DOUBLE_OUT_OF_RANGE, "double-out-of-range" },
     { EVENT_SIGNED_OUT_OF_RANGE, "signed-out-of-range" },
-    { EVENT_UNSIGNED_OUT_OF_RANGE, "uint32_t-out-of-range" },
+    { EVENT_UNSIGNED_OUT_OF_RANGE, "unsigned-out-of-range" },
     { EVENT_CHANGE_OF_CHARACTERSTRING, "change-of-characterstring" },
     { EVENT_CHANGE_OF_STATUS_FLAGS, "change-of-status-flags" },
     { EVENT_CHANGE_OF_RELIABILITY, "change-of-reliability" },
@@ -2117,7 +2120,10 @@ bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index)
 }
 
 INDTEXT_DATA bacnet_binary_present_value_names[] = {
-    { BINARY_INACTIVE, "inactive" }, { BINARY_ACTIVE, "active" }, { 0, NULL }
+    /* list of each index and associated unique name */
+    { BINARY_INACTIVE, "inactive" },
+    { BINARY_ACTIVE, "active" },
+    { 0, NULL }
 };
 
 const char *bactext_binary_present_value_name(uint32_t index)
@@ -2133,9 +2139,12 @@ bool bactext_binary_present_value_strtol(
         bacnet_binary_present_value_names, search_name, found_index);
 }
 
-INDTEXT_DATA bacnet_binary_polarity_names[] = { { POLARITY_NORMAL, "normal" },
-                                                { POLARITY_REVERSE, "reverse" },
-                                                { 0, NULL } };
+INDTEXT_DATA bacnet_binary_polarity_names[] = {
+    /* list of each index and associated unique name */
+    { POLARITY_NORMAL, "normal" },
+    { POLARITY_REVERSE, "reverse" },
+    { 0, NULL }
+};
 
 const char *bactext_binary_polarity_name(uint32_t index)
 {
@@ -2162,6 +2171,7 @@ INDTEXT_DATA bacnet_reliability_names[] = {
     { RELIABILITY_PROCESS_ERROR, "process-error" },
     { RELIABILITY_MULTI_STATE_FAULT, "mult-state-fault" },
     { RELIABILITY_CONFIGURATION_ERROR, "configuration-error" },
+    { RELIABILITY_RESERVED_11, "reserved-11" },
     { RELIABILITY_COMMUNICATION_FAILURE, "communication-failure" },
     { RELIABILITY_MEMBER_FAULT, "member-fault" },
     { RELIABILITY_MONITORED_OBJECT_FAULT, "monitored-object-fault" },
@@ -2187,6 +2197,12 @@ const char *bactext_reliability_name(uint32_t index)
         bacnet_reliability_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_reliability_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_reliability_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_device_status_names[] = {
     { STATUS_OPERATIONAL, "operational" },
     { STATUS_OPERATIONAL_READ_ONLY, "operational-read-only" },
@@ -2201,6 +2217,13 @@ const char *bactext_device_status_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_device_status_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_device_status_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_device_status_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_segmentation_names[] = {
