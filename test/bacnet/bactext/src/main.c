@@ -34,7 +34,7 @@ static void testBacText(void)
     for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
         pString = bactext_confirmed_service_name(i);
         if (pString) {
-            status = bactext_confirmed_service_index(pString, &index);
+            status = bactext_confirmed_service_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
@@ -43,7 +43,7 @@ static void testBacText(void)
     for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
         pString = bactext_unconfirmed_service_name(i);
         if (pString) {
-            status = bactext_unconfirmed_service_index(pString, &index);
+            status = bactext_unconfirmed_service_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
@@ -64,16 +64,11 @@ static void testBacText(void)
     for (i = 0; i < BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
         pString = bactext_object_type_name(i);
         if (pString) {
-            status = bactext_object_type_index(pString, &index);
+            status = bactext_object_type_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
             status = bactext_object_property_strtoul(
                 (BACNET_OBJECT_TYPE)i, PROP_OBJECT_TYPE, pString, &found_index);
-            zassert_true(status, "i=%u", i);
-            zassert_equal(
-                index, found_index, "index=%u found_index=%u", index,
-                found_index);
-            status = bactext_object_type_strtol(pString, &found_index);
             zassert_true(status, "i=%u", i);
             zassert_equal(
                 index, found_index, "index=%u found_index=%u", index,
@@ -87,7 +82,7 @@ static void testBacText(void)
         zassert_not_null(pString, "i=%u", i);
         if (pString) {
             status =
-                bactext_object_type_name_capitalized_index(pString, &index);
+                bactext_object_type_name_capitalized_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
@@ -266,11 +261,17 @@ static void testBacText(void)
         status = bactext_event_state_strtol(pString, &index);
         zassert_true(status, "i=%u", i);
         zassert_equal(index, i, "index=%u i=%u", index, i);
+        status = bactext_event_state_index(pString, &index);
+        zassert_true(status, "i=%u", i);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
     }
     for (i = 0; i <= EVENT_CHANGE_OF_TIMER; i++) {
         pString = bactext_event_type_name(i);
         zassert_not_null(pString, "i=%u", i);
         status = bactext_event_type_strtol(pString, &index);
+        zassert_true(status, "i=%u %s", i, pString);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
+        status = bactext_event_type_index(pString, &index);
         zassert_true(status, "i=%u %s", i, pString);
         zassert_equal(index, i, "index=%u i=%u", index, i);
     }
@@ -284,21 +285,24 @@ static void testBacText(void)
     for (i = 0; i < MAX_POLARITY; i++) {
         pString = bactext_binary_polarity_name(i);
         zassert_not_null(pString, "i=%u", i);
-        status = bactext_binary_polarity_strtol(pString, &index);
+        status = bactext_property_states_strtoul(
+            PROP_STATE_POLARITY, pString, &index);
         zassert_true(status, "i=%u %s", i, pString);
         zassert_equal(index, i, "index=%u i=%u", index, i);
     }
     for (i = 0; i < RELIABILITY_RESERVED_MIN; i++) {
         pString = bactext_reliability_name(i);
         zassert_not_null(pString, "i=%u", i);
-        status = bactext_reliability_strtol(pString, &index);
+        status = bactext_property_states_strtoul(
+            PROP_STATE_RELIABILITY, pString, &index);
         zassert_true(status, "i=%u %s", i, pString);
         zassert_equal(index, i, "index=%u i=%u", index, i);
     }
     for (i = 0; i < MAX_DEVICE_STATUS; i++) {
         pString = bactext_device_status_name(i);
         zassert_not_null(pString, "i=%u", i);
-        status = bactext_device_status_strtol(pString, &index);
+        status = bactext_property_states_strtoul(
+            PROP_STATE_SYSTEM_STATUS, pString, &index);
         zassert_true(status, "i=%u %s", i, pString);
         zassert_equal(index, i, "index=%u i=%u", index, i);
     }
@@ -313,7 +317,8 @@ static void testBacText(void)
     for (i = 0; i < BACNET_NODE_TYPE_MAX; i++) {
         pString = bactext_node_type_name(i);
         if (pString) {
-            status = bactext_node_type_strtol(pString, &index);
+            status = bactext_property_states_strtoul(
+                PROP_STATE_NODE_TYPE, pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }

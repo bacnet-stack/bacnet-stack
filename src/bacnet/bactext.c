@@ -82,10 +82,10 @@ const char *bactext_confirmed_service_name_default(
         bacnet_confirmed_service_names, index, default_string);
 }
 
-bool bactext_confirmed_service_index(
+bool bactext_confirmed_service_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_confirmed_service_names, search_name, found_index);
 }
 
@@ -122,10 +122,10 @@ const char *bactext_unconfirmed_service_name_default(
         bacnet_unconfirmed_service_names, index, default_string);
 }
 
-bool bactext_unconfirmed_service_index(
+bool bactext_unconfirmed_service_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_unconfirmed_service_names, search_name, found_index);
 }
 
@@ -214,6 +214,29 @@ bool bactext_application_tag_index(
         bacnet_application_tag_names, search_name, found_index);
 }
 
+INDTEXT_DATA bacnet_character_string_encoding_names[] = {
+    { CHARACTER_UTF8, "UTF-8" },
+    { CHARACTER_MS_DBCS, "IBM/Microsoft DBCS" },
+    { CHARACTER_JISC_6226, "JIS C 6226" },
+    { CHARACTER_UCS4, "ISO 10646 (UCS-4)" },
+    { CHARACTER_UCS2, "ISO 10646 (UCS-2)" },
+    { CHARACTER_ISO8859, "ISO 8859" },
+    { 0, NULL }
+};
+
+const char *bactext_character_string_encoding_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bacnet_character_string_encoding_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_character_string_encoding_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_character_string_encoding_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_object_type_names[] = {
     { OBJECT_ANALOG_INPUT, "analog-input" },
     { OBJECT_ANALOG_OUTPUT, "analog-output" },
@@ -298,12 +321,6 @@ bactext_object_type_name_default(uint32_t index, const char *default_string)
 {
     return indtext_by_index_default(
         bacnet_object_type_names, index, default_string);
-}
-
-bool bactext_object_type_index(const char *search_name, uint32_t *found_index)
-{
-    return indtext_by_istring(
-        bacnet_object_type_names, search_name, found_index);
 }
 
 bool bactext_object_type_strtol(const char *search_name, uint32_t *found_index)
@@ -398,10 +415,10 @@ const char *bactext_object_type_name_capitalized_default(
         bacnet_object_type_names_capitalized, index, default_string);
 }
 
-bool bactext_object_type_name_capitalized_index(
+bool bactext_object_type_name_capitalized_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return indtext_by_istring(
+    return bactext_string_to_uint32_index(
         bacnet_object_type_names_capitalized, search_name, found_index);
 }
 
@@ -2073,6 +2090,12 @@ const char *bactext_event_state_name(uint32_t index)
         bacnet_event_state_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_event_state_index(const char *search_name, uint32_t *found_index)
+{
+    return indtext_by_istring(
+        bacnet_event_state_names, search_name, found_index);
+}
+
 bool bactext_event_state_strtol(const char *search_name, uint32_t *found_index)
 {
     return bactext_string_to_uint32_index(
@@ -2111,6 +2134,12 @@ const char *bactext_event_type_name(uint32_t index)
     return indtext_by_index_split_default(
         bacnet_event_type_names, index, EVENT_PROPRIETARY_MIN,
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
+}
+
+bool bactext_event_type_index(const char *search_name, uint32_t *found_index)
+{
+    return indtext_by_istring(
+        bacnet_event_type_names, search_name, found_index);
 }
 
 bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index)
@@ -2152,13 +2181,6 @@ const char *bactext_binary_polarity_name(uint32_t index)
         bacnet_binary_polarity_names, index, ASHRAE_Reserved_String);
 }
 
-bool bactext_binary_polarity_strtol(
-    const char *search_name, uint32_t *found_index)
-{
-    return bactext_string_to_uint32_index(
-        bacnet_binary_polarity_names, search_name, found_index);
-}
-
 INDTEXT_DATA bacnet_reliability_names[] = {
     { RELIABILITY_NO_FAULT_DETECTED, "no-fault-detected" },
     { RELIABILITY_NO_SENSOR, "no-sensor" },
@@ -2197,12 +2219,6 @@ const char *bactext_reliability_name(uint32_t index)
         bacnet_reliability_names, index, ASHRAE_Reserved_String);
 }
 
-bool bactext_reliability_strtol(const char *search_name, uint32_t *found_index)
-{
-    return bactext_string_to_uint32_index(
-        bacnet_reliability_names, search_name, found_index);
-}
-
 INDTEXT_DATA bacnet_device_status_names[] = {
     { STATUS_OPERATIONAL, "operational" },
     { STATUS_OPERATIONAL_READ_ONLY, "operational-read-only" },
@@ -2217,13 +2233,6 @@ const char *bactext_device_status_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_device_status_names, index, ASHRAE_Reserved_String);
-}
-
-bool bactext_device_status_strtol(
-    const char *search_name, uint32_t *found_index)
-{
-    return bactext_string_to_uint32_index(
-        bacnet_device_status_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_segmentation_names[] = {
@@ -2276,12 +2285,6 @@ const char *bactext_node_type_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_node_type_names, index, ASHRAE_Reserved_String);
-}
-
-bool bactext_node_type_strtol(const char *search_name, uint32_t *found_index)
-{
-    return bactext_string_to_uint32_index(
-        bacnet_node_type_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_node_relationship_names[] = {
@@ -2713,6 +2716,13 @@ const char *bactext_shed_level_type_name(uint32_t index)
         bacnet_shed_level_type_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_shed_level_type_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_shed_level_type_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_log_datum_names[] = {
     { BACNET_LOG_DATUM_STATUS, "status" },
     { BACNET_LOG_DATUM_BOOLEAN, "boolean" },
@@ -2732,6 +2742,12 @@ const char *bactext_log_datum_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_log_datum_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_log_datum_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_log_datum_names, search_name, found_index);
 }
 
 INDTEXT_DATA bactext_restart_reason_names[] = {
