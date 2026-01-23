@@ -607,14 +607,16 @@ typedef enum BACnetBinaryPV {
     MIN_BINARY_PV = 0, /* for validating incoming values */
     BINARY_INACTIVE = 0,
     BINARY_ACTIVE = 1,
-    MAX_BINARY_PV = 1, /* for validating incoming values */
+    MAX_BINARY_PV = 1, /* deprecated */
+    BINARY_PV_MAX = 2, /* for validating incoming values */
     BINARY_NULL = 255 /* our homemade way of storing this info */
 } BACNET_BINARY_PV;
 
 typedef enum {
-    ACTION_BINARY_PV,
-    ACTION_UNSIGNED,
-    ACTION_FLOAT
+    ACTION_BINARY_PV = 0,
+    ACTION_UNSIGNED = 1,
+    ACTION_FLOAT = 2,
+    ACTION_VALUE_MAX = 3
 } BACNET_ACTION_VALUE_TYPE;
 
 typedef enum BACnetEventState {
@@ -1311,13 +1313,14 @@ typedef enum BACnetEventType {
     EVENT_FLOATING_LIMIT = 4,
     EVENT_OUT_OF_RANGE = 5,
     EVENT_COMPLEX_EVENT_TYPE = 6, /* -- see comment below */
-    /*  event-buffer-ready   (7), -- context tag 7 is deprecated */
+    EVENT_RESERVED_7 = 7, /* -- context tag 7 is deprecated */
     EVENT_CHANGE_OF_LIFE_SAFETY = 8,
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11,
     /* -- context tag 12 is reserved for future addenda
        since it conflicts with event-values[12] OPTIONAL */
+    EVENT_RESERVED_12 = 12,
     EVENT_ACCESS_EVENT = 13,
     EVENT_DOUBLE_OUT_OF_RANGE = 14,
     EVENT_SIGNED_OUT_OF_RANGE = 15,

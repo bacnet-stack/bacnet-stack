@@ -325,7 +325,7 @@ bool Binary_Output_Present_Value_Set(
             (priority != 6 /* reserved */)) {
             priority--;
             old_value = Object_Present_Value(pObject);
-            if (binary_value <= MAX_BINARY_PV) {
+            if (binary_value < BINARY_PV_MAX) {
                 BIT_SET(pObject->Priority_Active_Bits, priority);
                 if (binary_value == BINARY_ACTIVE) {
                     BIT_SET(pObject->Priority_Array, priority);
@@ -448,7 +448,7 @@ static bool Binary_Output_Present_Value_Write(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-            (value <= MAX_BINARY_PV)) {
+            (value < BINARY_PV_MAX)) {
             if (priority != 6) {
                 old_value = Object_Present_Value(pObject);
                 Binary_Output_Present_Value_Set(
