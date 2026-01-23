@@ -302,6 +302,223 @@ static void testBacText(void)
         zassert_true(status, "i=%u %s", i, pString);
         zassert_equal(index, i, "index=%u i=%u", index, i);
     }
+    for (i = 0; i < MAX_BACNET_SEGMENTATION; i++) {
+        pString = bactext_segmentation_name(i);
+        if (pString) {
+            status = bactext_segmentation_index(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    for (i = 0; i < BACNET_NODE_TYPE_MAX; i++) {
+        pString = bactext_node_type_name(i);
+        if (pString) {
+            status = bactext_node_type_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    for (i = 0; i < BACNET_RELATIONSHIP_RESERVED_MIN; i++) {
+        pString = bactext_node_relationship_name(i);
+        if (pString) {
+            status = bactext_node_relationship_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+        status = bactext_node_relationship_name_proprietary(i);
+        zassert_false(status, "i=%u", i);
+        status = bactext_node_relationship_name_reserved(i);
+        zassert_false(status, "i=%u", i);
+    }
+    status = bactext_node_relationship_name_proprietary(
+        BACNET_RELATIONSHIP_PROPRIETARY_MIN);
+    zassert_true(status, NULL);
+    status = bactext_node_relationship_name_reserved(
+        BACNET_RELATIONSHIP_RESERVED_MIN);
+    zassert_true(status, NULL);
+    for (i = 0; i < NETWORK_MESSAGE_ASHRAE_RESERVED_MIN; i++) {
+        pString = bactext_network_layer_msg_name(i);
+        if (pString) {
+            status = bactext_network_layer_msg_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString =
+        bactext_network_layer_msg_name(NETWORK_MESSAGE_ASHRAE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_network_layer_msg_name(NETWORK_MESSAGE_INVALID - 1);
+    zassert_not_null(pString, NULL);
+    pString = bactext_network_layer_msg_name(NETWORK_MESSAGE_INVALID);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < LIFE_SAFETY_MODE_RESERVED_MIN; i++) {
+        pString = bactext_life_safety_mode_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFE_SAFETY_MODE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_life_safety_mode_name(LIFE_SAFETY_MODE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_life_safety_mode_name(LIFE_SAFETY_MODE_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_life_safety_mode_name(LIFE_SAFETY_MODE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < LIFE_SAFETY_OP_RESERVED_MIN; i++) {
+        pString = bactext_life_safety_operation_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFE_SAFETY_OPERATION, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_life_safety_operation_name(LIFE_SAFETY_OP_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_life_safety_operation_name(LIFE_SAFETY_OP_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_life_safety_operation_name(LIFE_SAFETY_OP_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_life_safety_operation_name(LIFE_SAFETY_OP_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < LIFE_SAFETY_STATE_RESERVED_MIN; i++) {
+        pString = bactext_life_safety_state_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFE_SAFETY_STATE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_life_safety_state_name(LIFE_SAFETY_STATE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_life_safety_state_name(LIFE_SAFETY_STATE_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_life_safety_state_name(LIFE_SAFETY_STATE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_life_safety_state_name(LIFE_SAFETY_STATE_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < SILENCED_STATE_RESERVED_MIN; i++) {
+        pString = bactext_silenced_state_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_SILENCED_STATE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_silenced_state_name(SILENCED_STATE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_silenced_state_name(SILENCED_STATE_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_silenced_state_name(SILENCED_STATE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_silenced_state_name(SILENCED_STATE_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < MAX_BACNET_LIGHTING_IN_PROGRESS; i++) {
+        pString = bactext_lighting_in_progress(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIGHTING_IN_PROGRESS, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_lighting_in_progress(MAX_BACNET_LIGHTING_IN_PROGRESS);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < BACNET_LIGHTING_TRANSITION_RESERVED_MIN; i++) {
+        pString = bactext_lighting_transition(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIGHTING_TRANSITION, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString =
+        bactext_lighting_transition(BACNET_LIGHTING_TRANSITION_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_lighting_transition(BACNET_LIGHTING_TRANSITION_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_lighting_transition(BACNET_LIGHTING_TRANSITION_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lighting_transition(
+        BACNET_LIGHTING_TRANSITION_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < BACNET_LIGHTS_RESERVED_MIN; i++) {
+        pString = bactext_lighting_operation_name(i);
+        if (pString) {
+            status = bactext_lighting_operation_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_lighting_operation_name(BACNET_LIGHTS_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lighting_operation_name(BACNET_LIGHTS_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lighting_operation_name(BACNET_LIGHTS_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_lighting_operation_name(BACNET_LIGHTS_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < BINARY_LIGHTING_PV_MAX; i++) {
+        pString = bactext_binary_lighting_pv_name(i);
+        if (pString) {
+            status = bactext_binary_lighting_pv_names_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_binary_lighting_pv_name(BINARY_LIGHTING_PV_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_binary_lighting_pv_name(BINARY_LIGHTING_PV_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_binary_lighting_pv_name(BINARY_LIGHTING_PV_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_binary_lighting_pv_name(BINARY_LIGHTING_PV_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < BACNET_COLOR_OPERATION_MAX; i++) {
+        pString = bactext_color_operation_name(i);
+        if (pString) {
+            status = bactext_color_operation_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_color_operation_name(BACNET_COLOR_OPERATION_MAX);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < MAX_BACNET_COMMUNICATION_ENABLE_DISABLE; i++) {
+        pString = bactext_device_communications_name(i);
+        if (pString) {
+            status = bactext_device_communications_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_device_communications_name(
+        MAX_BACNET_COMMUNICATION_ENABLE_DISABLE);
+    zassert_not_null(pString, NULL);
+    for (i = 0; i < BACNET_SHED_STATE_MAX; i++) {
+        pString = bactext_shed_state_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_SHED_STATE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
 }
 /**
  * @}

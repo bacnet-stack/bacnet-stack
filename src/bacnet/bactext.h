@@ -247,27 +247,13 @@ bool bactext_network_layer_msg_strtol(
 
 BACNET_STACK_EXPORT
 const char *bactext_life_safety_mode_name(uint32_t index);
-BACNET_STACK_EXPORT
-bool bactext_life_safety_mode_strtol(
-    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_life_safety_operation_name(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_life_safety_operation_strtol(
-    const char *search_name, uint32_t *found_index);
-
-BACNET_STACK_EXPORT
 const char *bactext_life_safety_state_name(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_life_safety_state_strtol(
-    const char *search_name, uint32_t *found_index);
-
-BACNET_STACK_EXPORT
 const char *bactext_silenced_state_name(uint32_t index);
-BACNET_STACK_EXPORT
-bool bactext_silenced_state_strtol(
-    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_device_communications_name(uint32_t index);
@@ -290,14 +276,7 @@ bool bactext_binary_lighting_pv_names_strtol(
 BACNET_STACK_EXPORT
 const char *bactext_lighting_in_progress(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_lighting_in_progress_strtol(
-    const char *search_name, uint32_t *found_index);
-
-BACNET_STACK_EXPORT
 const char *bactext_lighting_transition(uint32_t index);
-BACNET_STACK_EXPORT
-bool bactext_lighting_transition_strtol(
-    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_color_operation_name(uint32_t index);
@@ -307,8 +286,6 @@ bool bactext_color_operation_strtol(
 
 BACNET_STACK_EXPORT
 const char *bactext_shed_state_name(uint32_t index);
-BACNET_STACK_EXPORT
-bool bactext_shed_state_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_shed_level_type_name(uint32_t index);

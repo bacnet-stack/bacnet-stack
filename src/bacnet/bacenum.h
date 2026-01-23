@@ -1391,6 +1391,8 @@ typedef enum BACnetLifeSafetyOperation {
     LIFE_SAFETY_OP_UNSILENCE = 7,
     LIFE_SAFETY_OP_UNSILENCE_AUDIBLE = 8,
     LIFE_SAFETY_OP_UNSILENCE_VISUAL = 9,
+    LIFE_SAFETY_OP_RESERVED_MIN = 10,
+    LIFE_SAFETY_OP_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
     /* Enumerated values 64-65535 may be used by others subject to  */
     /* procedures and constraints described in Clause 23. */
@@ -1454,6 +1456,8 @@ typedef enum BACnetSilencedState {
     SILENCED_STATE_AUDIBLE_SILENCED = 1,
     SILENCED_STATE_VISIBLE_SILENCED = 2,
     SILENCED_STATE_ALL_SILENCED = 3,
+    SILENCED_STATE_RESERVED_MIN = 4,
+    SILENCED_STATE_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* procedures and constraints described in Clause 23. */
@@ -2349,7 +2353,8 @@ typedef enum BACnetNodeType {
     BACNET_NODE_MEMBER = 18,
     BACNET_NODE_PROTOCOL = 19,
     BACNET_NODE_ROOM = 20,
-    BACNET_NODE_ZONE = 21
+    BACNET_NODE_ZONE = 21,
+    BACNET_NODE_TYPE_MAX = 22
 } BACNET_NODE_TYPE;
 
 typedef enum BACnetRelationship {
@@ -2396,7 +2401,8 @@ typedef enum BACnetShedState {
     BACNET_SHED_INACTIVE = 0,
     BACNET_SHED_REQUEST_PENDING = 1,
     BACNET_SHED_COMPLIANT = 2,
-    BACNET_SHED_NON_COMPLIANT = 3
+    BACNET_SHED_NON_COMPLIANT = 3,
+    BACNET_SHED_STATE_MAX = 4
 } BACNET_SHED_STATE;
 
 typedef enum BACnetShedLevelType {

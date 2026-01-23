@@ -2366,15 +2366,24 @@ INDTEXT_DATA network_layer_msg_names[] = {
       "Router-Available-To-Network" },
     { NETWORK_MESSAGE_INIT_RT_TABLE, "Initialize-Routing-Table" },
     { NETWORK_MESSAGE_INIT_RT_TABLE_ACK, "Initialize-Routing-Table-Ack" },
-    { NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK,
-      "Est-Conn-Ntwk" }, /* Terse since unused */
+    { NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK, "Est-Conn-Ntwk" },
     { NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK, "Dsc-Conn-Ntwk" },
+    { NETWORK_MESSAGE_CHALLENGE_REQUEST, "Challenge-Request" },
+    { NETWORK_MESSAGE_SECURITY_PAYLOAD, "Security-Payload" },
+    { NETWORK_MESSAGE_SECURITY_RESPONSE, "Security-Response" },
+    { NETWORK_MESSAGE_REQUEST_KEY_UPDATE, "Request-Key-Update" },
+    { NETWORK_MESSAGE_UPDATE_KEY_SET, "Update-Key-Set" },
+    { NETWORK_MESSAGE_UPDATE_DISTRIBUTION_KEY, "Update-Distribution-Key" },
+    { NETWORK_MESSAGE_REQUEST_MASTER_KEY, "Request-Master-Key" },
+    { NETWORK_MESSAGE_SET_MASTER_KEY, "Set-Master-Key" },
+    { NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER, "What-Is-Network-Number" },
+    { NETWORK_MESSAGE_NETWORK_NUMBER_IS, "Network-Number-Is" },
     { 0, NULL }
 };
 
 const char *bactext_network_layer_msg_name(uint32_t index)
 {
-    if (index <= 0x7F) {
+    if (index <= NETWORK_MESSAGE_ASHRAE_RESERVED_MAX) {
         return indtext_by_index_default(
             network_layer_msg_names, index, ASHRAE_Reserved_String);
     } else if (index < NETWORK_MESSAGE_INVALID) {
@@ -2382,6 +2391,13 @@ const char *bactext_network_layer_msg_name(uint32_t index)
     } else {
         return "Invalid Network Layer Message";
     }
+}
+
+bool bactext_network_layer_msg_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        network_layer_msg_names, search_name, found_index);
 }
 
 INDTEXT_DATA bactext_life_safety_mode_names[] = {
@@ -2643,6 +2659,13 @@ const char *bactext_color_operation_name(uint32_t index)
         bacnet_color_operation_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_color_operation_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_color_operation_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_device_communications_names[] = {
     { COMMUNICATION_ENABLE, "enabled" },
     { COMMUNICATION_DISABLE, "disabled" },
@@ -2654,6 +2677,13 @@ const char *bactext_device_communications_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_device_communications_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_device_communications_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_device_communications_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_shed_state_names[] = {
