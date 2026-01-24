@@ -64,6 +64,15 @@ static void testBacText(void)
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
     }
+    /* BACNET_CHARACTER_STRING_ENCODING */
+    for (i = 0; i < MAX_CHARACTER_STRING_ENCODING; i++) {
+        pString = bactext_character_string_encoding_name(i);
+        if (pString) {
+            status = bactext_character_string_encoding_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
     /* BACnetObjectType */
     for (i = 0; i < BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
         pString = bactext_object_type_name(i);
@@ -141,6 +150,13 @@ static void testBacText(void)
                 found_index);
         }
     }
+    /* non-existant property of the device object */
+    pString = bactext_object_property_name(
+        OBJECT_DEVICE, PROP_FAULT_SIGNALS, 0, NULL);
+    zassert_false(pString, NULL);
+    pString = bactext_property_name(PROP_PROPRIETARY_RANGE_MIN);
+    zassert_not_null(pString, NULL);
+
     /* BACnetPropertyStates */
     for (k = 0; k < PROP_STATE_PROPRIETARY_MIN; k++) {
         snprintf(ascii_number, sizeof(ascii_number), "%u", k);
@@ -174,6 +190,16 @@ static void testBacText(void)
         pString = bactext_engineering_unit_name_default(i, NULL);
         zassert_not_null(pString, "i=%u", i);
     }
+    pString = bactext_engineering_unit_name(UNITS_PROPRIETARY_RANGE_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_engineering_unit_name(UNITS_PROPRIETARY_RANGE_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_engineering_unit_name(UNITS_PROPRIETARY_RANGE_MIN2);
+    zassert_not_null(pString, NULL);
+    pString = bactext_engineering_unit_name(UNITS_PROPRIETARY_RANGE_MAX2);
+    zassert_not_null(pString, NULL);
+    pString = bactext_engineering_unit_name(UNITS_PROPRIETARY_RANGE_MAX2 + 1);
+    zassert_not_null(pString, NULL);
     /* BACNET_REJECT_REASON */
     for (i = 0; i < MAX_BACNET_REJECT_REASON; i++) {
         pString = bactext_reject_reason_name(i);
@@ -264,6 +290,10 @@ static void testBacText(void)
         pString = bactext_notify_type_name_default(i, NULL);
         if (pString) {
             pString = bactext_notify_type_name(i);
+            status = bactext_notify_type_index(pString, &found_index);
+            zassert_true(status, "i=%u %s", i, pString);
+            zassert_equal(
+                i, found_index, "i=%u found_index=%u", i, found_index);
             status = bactext_notify_type_strtol(pString, &found_index);
             zassert_true(status, "i=%u %s", i, pString);
             zassert_equal(
@@ -405,6 +435,9 @@ static void testBacText(void)
     pString = bactext_life_safety_mode_name(LIFE_SAFETY_MODE_PROPRIETARY_MIN);
     zassert_not_null(pString, NULL);
     pString = bactext_life_safety_mode_name(LIFE_SAFETY_MODE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_life_safety_mode_name(LIFE_SAFETY_MODE_PROPRIETARY_MAX + 1);
     zassert_not_null(pString, NULL);
     /* BACnetLifeSafetyOperation */
     for (i = 0; i < LIFE_SAFETY_OP_RESERVED_MIN; i++) {
@@ -986,9 +1019,320 @@ static void testBacText(void)
     pString =
         bactext_access_user_type_name(ACCESS_USER_TYPE_PROPRIETARY_MAX + 1);
     zassert_not_null(pString, NULL);
+    /* BACnetAccessZoneOccupancyState */
+    for (i = 0; i < ACCESS_ZONE_OCCUPANCY_STATE_RESERVED_MIN; i++) {
+        pString = bactext_access_zone_occupancy_state_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_ZONE_OCCUPANCY_STATE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_access_zone_occupancy_state_name(
+        ACCESS_ZONE_OCCUPANCY_STATE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_access_zone_occupancy_state_name(
+        ACCESS_ZONE_OCCUPANCY_STATE_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_access_zone_occupancy_state_name(
+        ACCESS_ZONE_OCCUPANCY_STATE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_access_zone_occupancy_state_name(
+        ACCESS_ZONE_OCCUPANCY_STATE_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetWriteStatus */
+    for (i = 0; i < BACNET_WRITE_STATUS_MAX; i++) {
+        pString = bactext_write_status_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_WRITE_STATUS, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetIPMode */
+    for (i = 0; i < BACNET_IP_MODE_MAX; i++) {
+        pString = bactext_ip_mode_name(i);
+        if (pString) {
+            status = bactext_ip_mode_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetDoorValue */
+    for (i = 0; i < DOOR_VALUE_MAX; i++) {
+        pString = bactext_door_value_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_DOOR_VALUE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetMaintenance */
+    for (i = 0; i < MAINTENANCE_RESERVED_MIN; i++) {
+        pString = bactext_maintenance_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_MAINTENANCE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_maintenance_name(MAINTENANCE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_maintenance_name(MAINTENANCE_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_maintenance_name(MAINTENANCE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_maintenance_name(MAINTENANCE_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetEscalatorFault */
+    for (i = 0; i < ESCALATOR_FAULT_RESERVED_MIN; i++) {
+        pString = bactext_escalator_fault_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_ESCALATOR_FAULT, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetEscalatorMode */
+    for (i = 0; i < ESCALATOR_MODE_RESERVED_MIN; i++) {
+        pString = bactext_escalator_mode_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_ESCALATOR_MODE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_escalator_mode_name(ESCALATOR_MODE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_escalator_mode_name(ESCALATOR_MODE_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_escalator_mode_name(ESCALATOR_MODE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_escalator_mode_name(ESCALATOR_MODE_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetEscalatorOperationDirection */
+    for (i = 0; i < ESCALATOR_OPERATION_DIRECTION_RESERVED_MIN; i++) {
+        pString = bactext_escalator_operation_direction_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_ESCALATOR_OPERATION_DIRECTION, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_escalator_operation_direction_name(
+        ESCALATOR_OPERATION_DIRECTION_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_escalator_operation_direction_name(
+        ESCALATOR_OPERATION_DIRECTION_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_escalator_operation_direction_name(
+        ESCALATOR_OPERATION_DIRECTION_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_escalator_operation_direction_name(
+        ESCALATOR_OPERATION_DIRECTION_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetBackupState */
+    for (i = 0; i < BACKUP_STATE_MAX; i++) {
+        pString = bactext_backup_state_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_BACKUP_STATE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetSecurityLevel */
+    for (i = 0; i < BACNET_SECURITY_LEVEL_MAX; i++) {
+        pString = bactext_security_level_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_SECURITY_LEVEL, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetLiftCarDirection */
+    for (i = 0; i < LIFT_CAR_DIRECTION_RESERVED_MIN; i++) {
+        pString = bactext_lift_car_direction_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFT_CAR_DIRECTION, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_lift_car_direction_name(LIFT_CAR_DIRECTION_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_lift_car_direction_name(LIFT_CAR_DIRECTION_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_lift_car_direction_name(LIFT_CAR_DIRECTION_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString =
+        bactext_lift_car_direction_name(LIFT_CAR_DIRECTION_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetLiftCarDoorCommand */
+    for (i = 0; i < LIFT_CAR_DOOR_COMMAND_MAX; i++) {
+        pString = bactext_lift_car_door_command_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFT_CAR_DOOR_COMMAND, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetLiftCarDriveStatus */
+    for (i = 0; i < LIFT_CAR_DRIVE_STATUS_RESERVED_MIN; i++) {
+        pString = bactext_lift_car_drive_status_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFT_CAR_DRIVE_STATUS, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString =
+        bactext_lift_car_drive_status_name(LIFT_CAR_DRIVE_STATUS_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_car_drive_status_name(
+        LIFT_CAR_DRIVE_STATUS_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_car_drive_status_name(
+        LIFT_CAR_DRIVE_STATUS_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_car_drive_status_name(
+        LIFT_CAR_DRIVE_STATUS_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetLiftCarMode */
+    for (i = 0; i < LIFT_CAR_MODE_RESERVED_MIN; i++) {
+        pString = bactext_lift_car_mode_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFT_CAR_MODE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_lift_car_mode_name(LIFT_CAR_MODE_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_car_mode_name(LIFT_CAR_MODE_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_car_mode_name(LIFT_CAR_MODE_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_car_mode_name(LIFT_CAR_MODE_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetLiftFault */
+    for (i = 0; i < LIFT_FAULT_RESERVED_MIN; i++) {
+        pString = bactext_lift_fault_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFT_FAULT, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_lift_fault_name(LIFT_FAULT_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_fault_name(LIFT_FAULT_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_fault_name(LIFT_FAULT_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_lift_fault_name(LIFT_FAULT_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetLiftGroupMode */
+    for (i = 0; i < LIFT_GROUP_MODE_MAX; i++) {
+        pString = bactext_lift_group_mode_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_LIFT_GROUP_MODE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetAuditLevel */
+    for (i = 0; i < AUDIT_LEVEL_RESERVED_MIN; i++) {
+        pString = bactext_audit_level_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_AUDIT_LEVEL, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_audit_level_name(AUDIT_LEVEL_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_audit_level_name(AUDIT_LEVEL_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_audit_level_name(AUDIT_LEVEL_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_audit_level_name(AUDIT_LEVEL_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetAuditOperation */
+    for (i = 0; i < AUDIT_OPERATION_RESERVED_MIN; i++) {
+        pString = bactext_audit_operation_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_AUDIT_OPERATION, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    pString = bactext_audit_operation_name(AUDIT_OPERATION_RESERVED_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_audit_operation_name(AUDIT_OPERATION_PROPRIETARY_MIN);
+    zassert_not_null(pString, NULL);
+    pString = bactext_audit_operation_name(AUDIT_OPERATION_PROPRIETARY_MAX);
+    zassert_not_null(pString, NULL);
+    pString = bactext_audit_operation_name(AUDIT_OPERATION_PROPRIETARY_MAX + 1);
+    zassert_not_null(pString, NULL);
+    /* BACnetSCHubConnectorState */
+    for (i = 0; i < BACNET_SC_HUB_CONNECTOR_STATE_MAX; i++) {
+        pString = bactext_sc_hub_connector_state_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_SC_HUB_CONNECTOR_STATE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    /* BACnetSCConnectionState */
+    for (i = 0; i < BACNET_SC_CONNECTION_STATE_MAX; i++) {
+        pString = bactext_sc_connection_state_name(i);
+        if (pString) {
+            status = bactext_property_states_strtoul(
+                PROP_STATE_SC_CONNECTION_STATE, pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
+    status = bactext_object_property_strtoul(
+        OBJECT_DEVICE, PROP_PRESENT_VALUE, "8", &found_index);
+    zassert_true(status, NULL);
+    zassert_equal(found_index, 8, NULL);
+    status = bactext_object_property_strtoul(
+        OBJECT_DEVICE, PROP_TRACKING_VALUE, "7", &found_index);
+    zassert_true(status, NULL);
+    zassert_equal(found_index, 7, NULL);
+    status = bactext_object_property_strtoul(
+        OBJECT_DEVICE, PROP_FEEDBACK_VALUE, "6", &found_index);
+    zassert_true(status, NULL);
+    zassert_equal(found_index, 6, NULL);
+    status = bactext_object_property_strtoul(
+        OBJECT_DEVICE, PROP_FAULT_SIGNALS, "5", &found_index);
+    zassert_true(status, NULL);
+    zassert_equal(found_index, 5, NULL);
 }
-/**
- * @}
+/*/**
+ * @brief
+ *
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)

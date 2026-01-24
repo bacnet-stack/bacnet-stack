@@ -1474,6 +1474,8 @@ typedef enum BACnetMaintenance {
     MAINTENANCE_PERIODIC_TEST = 1,
     MAINTENANCE_NEED_SERVICE_OPERATIONAL = 2,
     MAINTENANCE_NEED_SERVICE_INOPERATIVE = 3,
+    MAINTENANCE_RESERVED_MIN = 4,
+    MAINTENANCE_RESERVED_MAX = 255,
     /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
     /* Enumerated values 256-65535 may be used by others subject to  */
     /* procedures and constraints described in Clause 23. */
@@ -2588,7 +2590,8 @@ typedef enum BACnetDoorValue {
     DOOR_VALUE_LOCK = 0,
     DOOR_VALUE_UNLOCK = 1,
     DOOR_VALUE_PULSE_UNLOCK = 2,
-    DOOR_VALUE_EXTENDED_PULSE_UNLOCK = 3
+    DOOR_VALUE_EXTENDED_PULSE_UNLOCK = 3,
+    DOOR_VALUE_MAX = 4,
 } BACNET_DOOR_VALUE;
 
 /* Lock Status */
@@ -2712,6 +2715,8 @@ typedef enum BACnetAccessZoneOccupancyState {
     ACCESS_ZONE_OCCUPANCY_STATE_ABOVE_UPPER_LIMIT = 4,
     ACCESS_ZONE_OCCUPANCY_STATE_DISABLED = 5,
     ACCESS_ZONE_OCCUPANCY_STATE_NOT_SUPPORTED = 6,
+    ACCESS_ZONE_OCCUPANCY_STATE_RESERVED_MIN = 7,
+    ACCESS_ZONE_OCCUPANCY_STATE_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
     Enumerated values 64-65535 may be used by others subject
     to the procedures and constraints described in Clause 23. */
@@ -2859,7 +2864,8 @@ typedef enum BACnetSecurityLevel {
     BACNET_SECURITY_LEVEL_SIGNED = 2,
     BACNET_SECURITY_LEVEL_ENCRYPTED = 3,
     BACNET_SECURITY_LEVEL_SIGNED_END_TO_END = 4,
-    BACNET_SECURITY_LEVEL_ENCRYPTED_END_TO_END = 5
+    BACNET_SECURITY_LEVEL_ENCRYPTED_END_TO_END = 5,
+    BACNET_SECURITY_LEVEL_MAX = 6
 } BACNET_SECURITY_LEVEL;
 
 typedef enum BACnetSecurityPolicy {
@@ -3049,6 +3055,8 @@ typedef enum BACnetEscalatorFault {
     ESCALATOR_FAULT_CONTROLLER_SUPPLY_FAULT = 6,
     ESCALATOR_FAULT_DRIVE_TEMPERATURE_EXCEEDED = 7,
     ESCALATOR_FAULT_COMB_PLATE_FAULT = 8,
+    ESCALATOR_FAULT_RESERVED_MIN = 9,
+    ESCALATOR_FAULT_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3063,6 +3071,8 @@ typedef enum BACnetEscalatorMode {
     ESCALATOR_MODE_DOWN = 3,
     ESCALATOR_MODE_INSPECTION = 4,
     ESCALATOR_MODE_OUT_OF_SERVICE = 5,
+    ESCALATOR_MODE_RESERVED_MIN = 6,
+    ESCALATOR_MODE_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3077,6 +3087,8 @@ typedef enum BACnetEscalatorOperationDirection {
     ESCALATOR_OPERATION_DIRECTION_UP_REDUCED_SPEED = 3,
     ESCALATOR_OPERATION_DIRECTION_DOWN_RATED_SPEED = 4,
     ESCALATOR_OPERATION_DIRECTION_DOWN_REDUCED_SPEED = 5,
+    ESCALATOR_OPERATION_DIRECTION_RESERVED_MIN = 6,
+    ESCALATOR_OPERATION_DIRECTION_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3091,6 +3103,8 @@ typedef enum BACnetLiftCarDirection {
     LIFT_CAR_DIRECTION_UP = 3,
     LIFT_CAR_DIRECTION_DOWN = 4,
     LIFT_CAR_DIRECTION_UP_AND_DOWN = 5,
+    LIFT_CAR_DIRECTION_RESERVED_MIN = 6,
+    LIFT_CAR_DIRECTION_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3101,7 +3115,8 @@ typedef enum BACnetLiftCarDirection {
 typedef enum BACnetLiftCarDoorCommand {
     LIFT_CAR_DOOR_COMMAND_NONE = 0,
     LIFT_CAR_DOOR_COMMAND_OPEN = 1,
-    LIFT_CAR_DOOR_COMMAND_CLOSE = 2
+    LIFT_CAR_DOOR_COMMAND_CLOSE = 2,
+    LIFT_CAR_DOOR_COMMAND_MAX = 3
 } BACNET_LIFT_CAR_DOOR_COMMAND;
 
 typedef enum BACnetLiftCarDriveStatus {
@@ -3115,6 +3130,8 @@ typedef enum BACnetLiftCarDriveStatus {
     LIFT_CAR_DRIVE_STATUS_TWO_FLOOR_JUMP = 7,
     LIFT_CAR_DRIVE_STATUS_THREE_FLOOR_JUMP = 8,
     LIFT_CAR_DRIVE_STATUS_MULTI_FLOOR_JUMP = 9,
+    LIFT_CAR_DRIVE_STATUS_RESERVED_MIN = 10,
+    LIFT_CAR_DRIVE_STATUS_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3137,6 +3154,8 @@ typedef enum BACnetLiftCarMode {
     LIFT_CAR_MODE_FIRE_OPERATION = 11,
     LIFT_CAR_MODE_OUT_OF_SERVICE = 12,
     LIFT_CAR_MODE_OCCUPANT_EVACUATION = 13,
+    LIFT_CAR_MODE_RESERVED_MIN = 14,
+    LIFT_CAR_MODE_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3162,6 +3181,8 @@ typedef enum BACnetLiftFault {
     LIFT_FAULT_POSITION_LOST = 14,
     LIFT_FAULT_DRIVE_TEMPERATURE_EXCEEDED = 15,
     LIFT_FAULT_LOAD_MEASUREMENT_FAULT = 16,
+    LIFT_FAULT_RESERVED_MIN = 17,
+    LIFT_FAULT_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3176,7 +3197,8 @@ typedef enum BACnetLiftGroupMode {
     LIFT_GROUP_MODE_TWO_WAY = 3,
     LIFT_GROUP_MODE_FOUR_WAY = 4,
     LIFT_GROUP_MODE_EMERGENCY_POWER = 5,
-    LIFT_GROUP_MODE_UP_PEAK = 6
+    LIFT_GROUP_MODE_UP_PEAK = 6,
+    LIFT_GROUP_MODE_MAX = 7,
 } BACNET_LIFT_GROUP_MODE;
 
 typedef enum BACnetAuditLevel {
@@ -3184,6 +3206,8 @@ typedef enum BACnetAuditLevel {
     AUDIT_LEVEL_AUDIT_ALL = 1,
     AUDIT_LEVEL_AUDIT_CONFIG = 2,
     AUDIT_LEVEL_DEFAULT = 3,
+    AUDIT_LEVEL_RESERVED_MIN = 4,
+    AUDIT_LEVEL_RESERVED_MAX = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
     Enumerated values 128-255 may be used by others subject to
     the procedures and constraints described in Clause 23. */
@@ -3208,6 +3232,8 @@ typedef enum BACnetAuditOperation {
     AUDIT_OPERATION_AUDITING_FAILURE = 13,
     AUDIT_OPERATION_NETWORK_CHANGES = 14,
     AUDIT_OPERATION_GENERAL = 15,
+    AUDIT_OPERATION_RESERVED_MIN = 16,
+    AUDIT_OPERATION_RESERVED_MAX = 31,
     /* Enumerated values 0-31 are reserved for definition by ASHRAE.
     Enumerated values 32-63 may be used by others subject to
     the procedures and constraints described in Clause 23.

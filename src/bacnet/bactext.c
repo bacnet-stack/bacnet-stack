@@ -3502,6 +3502,12 @@ const char *bactext_ip_mode_name(uint32_t index)
         bactext_ip_mode_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_ip_mode_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_ip_mode_names, search_name, found_index);
+}
+
 INDTEXT_DATA bactext_door_value_names[] = {
     /* BACnetDoorValue enumerations */
     { DOOR_VALUE_LOCK, "lock" },

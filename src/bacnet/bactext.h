@@ -400,14 +400,20 @@ BACNET_STACK_EXPORT
 const char *bactext_access_zone_occupancy_state_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_write_status_name(uint32_t index);
+
 BACNET_STACK_EXPORT
 const char *bactext_ip_mode_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_ip_mode_strtol(const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_door_value_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_maintenance_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_escalator_fault_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_escalator_mode_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_escalator_operation_direction_name(uint32_t index);
 BACNET_STACK_EXPORT
