@@ -490,7 +490,7 @@ bool Binary_Value_Present_Value_Set(
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        if (value <= MAX_BINARY_PV) {
+        if (value < BINARY_PV_MAX) {
             Binary_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = Binary_Present_Value_Boolean(value);
             status = true;
@@ -522,7 +522,7 @@ static bool Binary_Value_Present_Value_Write(
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        if (value <= MAX_BINARY_PV) {
+        if (value < BINARY_PV_MAX) {
             if (pObject->Write_Enabled) {
                 old_value = Binary_Present_Value(pObject->Present_Value);
                 Binary_Value_Present_Value_COV_Detect(pObject, value);
@@ -1096,7 +1096,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                if (value.type.Enumerated <= MAX_BINARY_PV) {
+                if (value.type.Enumerated < BINARY_PV_MAX) {
                     Binary_Value_Alarm_Value_Set(
                         wp_data->object_instance,
                         (BACNET_BINARY_PV)value.type.Enumerated);
