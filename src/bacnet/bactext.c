@@ -215,7 +215,7 @@ bool bactext_application_tag_index(
 }
 
 INDTEXT_DATA bacnet_character_string_encoding_names[] = {
-    { CHARACTER_UTF8, "UTF-8" },
+    { CHARACTER_ANSI_X34, "ANSI X3.4" },
     { CHARACTER_MS_DBCS, "IBM/Microsoft DBCS" },
     { CHARACTER_JISC_6226, "JIS C 6226" },
     { CHARACTER_UCS4, "ISO 10646 (UCS-4)" },
