@@ -67,6 +67,9 @@ static void testBacText(void)
             status = bactext_object_type_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
+            status = bactext_object_type_index(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
             status = bactext_object_property_strtoul(
                 (BACNET_OBJECT_TYPE)i, PROP_OBJECT_TYPE, pString, &found_index);
             zassert_true(status, "i=%u", i);
@@ -278,7 +281,7 @@ static void testBacText(void)
     for (i = 0; i < BINARY_PV_MAX; i++) {
         pString = bactext_binary_present_value_name(i);
         zassert_not_null(pString, "i=%u", i);
-        status = bactext_binary_present_value_strtol(pString, &index);
+        status = bactext_binary_present_value_index(pString, &index);
         zassert_true(status, "i=%u %s", i, pString);
         zassert_equal(index, i, "index=%u i=%u", index, i);
     }

@@ -323,6 +323,12 @@ bactext_object_type_name_default(uint32_t index, const char *default_string)
         bacnet_object_type_names, index, default_string);
 }
 
+bool bactext_object_type_index(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_object_type_names, search_name, found_index);
+}
+
 bool bactext_object_type_strtol(const char *search_name, uint32_t *found_index)
 {
     return bactext_string_to_uint32_index(
@@ -2042,6 +2048,12 @@ bactext_notify_type_name_default(uint32_t index, const char *default_string)
         bacnet_notify_type_names, index, default_string);
 }
 
+bool bactext_notify_type_index(const char *search_name, uint32_t *found_index)
+{
+    return indtext_by_istring(
+        bacnet_notify_type_names, search_name, found_index);
+}
+
 bool bactext_notify_type_strtol(const char *search_name, uint32_t *found_index)
 {
     return bactext_string_to_uint32_index(
@@ -2161,10 +2173,10 @@ const char *bactext_binary_present_value_name(uint32_t index)
         bacnet_binary_present_value_names, index, ASHRAE_Reserved_String);
 }
 
-bool bactext_binary_present_value_strtol(
+bool bactext_binary_present_value_index(
     const char *search_name, uint32_t *found_index)
 {
-    return bactext_string_to_uint32_index(
+    return indtext_by_istring(
         bacnet_binary_present_value_names, search_name, found_index);
 }
 

@@ -57,6 +57,8 @@ BACNET_STACK_EXPORT
 const char *
 bactext_object_type_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
+bool bactext_object_type_index(const char *search_name, uint32_t *found_index);
+BACNET_STACK_EXPORT
 bool bactext_object_type_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
@@ -167,6 +169,8 @@ BACNET_STACK_EXPORT
 const char *
 bactext_notify_type_name_default(uint32_t index, const char *default_string);
 BACNET_STACK_EXPORT
+bool bactext_notify_type_index(const char *search_name, uint32_t *found_index);
+BACNET_STACK_EXPORT
 bool bactext_notify_type_strtol(const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
@@ -186,7 +190,7 @@ bool bactext_event_type_strtol(const char *search_name, uint32_t *found_index);
 BACNET_STACK_EXPORT
 const char *bactext_binary_present_value_name(uint32_t index);
 BACNET_STACK_EXPORT
-bool bactext_binary_present_value_strtol(
+bool bactext_binary_present_value_index(
     const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
