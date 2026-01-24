@@ -305,17 +305,43 @@ const char *bactext_network_port_command_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_authentication_decision_name(uint32_t index);
 BACNET_STACK_EXPORT
+bool bactext_authentication_decision_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_authorization_posture_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_authorization_posture_strtol(
+    const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_fault_type_name(uint32_t index);
 BACNET_STACK_EXPORT
-const char *bacnet_priority_filter_name(uint32_t index);
+bool bactext_fault_type_strtol(const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
-const char *bactext_success_filter_name(uint32_t index);
+const char *bactext_priority_filter_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_priority_filter_strtol(
+    const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_result_flags_name(uint32_t index);
 BACNET_STACK_EXPORT
+bool bactext_result_flags_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
+const char *bactext_success_filter_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_success_filter_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_logging_type_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_logging_type_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_program_request_name(uint32_t index);
@@ -343,18 +369,33 @@ BACNET_STACK_EXPORT
 const char *bactext_door_status_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_door_secured_status_name(uint32_t index);
+
 BACNET_STACK_EXPORT
 const char *bactext_access_event_name(uint32_t index);
 BACNET_STACK_EXPORT
+const char *
+bactext_access_event_name_default(uint32_t index, const char *default_string);
+
+BACNET_STACK_EXPORT
 const char *bactext_authentication_status_name(uint32_t index);
+
 BACNET_STACK_EXPORT
 const char *bactext_authorization_mode_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_authorization_mode_strtol(
+    const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_access_credential_disable_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_access_credential_disable_reason_name(uint32_t index);
+
 BACNET_STACK_EXPORT
 const char *bactext_access_user_type_name(uint32_t index);
+BACNET_STACK_EXPORT
+bool bactext_access_user_type_strtol(
+    const char *search_name, uint32_t *found_index);
+
 BACNET_STACK_EXPORT
 const char *bactext_access_zone_occupancy_state_name(uint32_t index);
 BACNET_STACK_EXPORT

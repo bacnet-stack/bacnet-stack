@@ -1344,7 +1344,8 @@ typedef enum BACnetEventType {
 typedef enum BACnetFileAccessMethod {
     FILE_RECORD_ACCESS = 0,
     FILE_STREAM_ACCESS = 1,
-    FILE_RECORD_AND_STREAM_ACCESS = 2
+    FILE_RECORD_AND_STREAM_ACCESS = 2,
+    BACNET_FILE_ACCESS_METHOD_MAX = 3
 } BACNET_FILE_ACCESS_METHOD;
 
 typedef enum BACnetLifeSafetyMode {
@@ -1891,7 +1892,8 @@ typedef enum BACnetLogStatus {
 typedef enum BACnetLoggingType {
     LOGGING_TYPE_POLLED = 0,
     LOGGING_TYPE_COV = 1,
-    LOGGING_TYPE_TRIGGERED = 2
+    LOGGING_TYPE_TRIGGERED = 2,
+    BACNET_LOGGING_TYPE_MAX = 3
 } BACNET_LOGGING_TYPE;
 
 typedef enum BACnetLogDatum {
@@ -2406,9 +2408,10 @@ typedef enum BACnetShedState {
 } BACNET_SHED_STATE;
 
 typedef enum BACnetShedLevelType {
-    BACNET_SHED_TYPE_PERCENT, /* Unsigned */
-    BACNET_SHED_TYPE_LEVEL, /* Unsigned */
-    BACNET_SHED_TYPE_AMOUNT /* REAL */
+    BACNET_SHED_TYPE_PERCENT = 0, /* Unsigned */
+    BACNET_SHED_TYPE_LEVEL = 1, /* Unsigned */
+    BACNET_SHED_TYPE_AMOUNT = 2, /* REAL */
+    BACNET_SHED_LEVEL_TYPE_MAX = 3
 } BACNET_SHED_LEVEL_TYPE;
 
 typedef enum BACnetLightingOperation {
@@ -2541,17 +2544,22 @@ typedef enum BACnetDoorAlarmState {
     DOOR_ALARM_STATE_DOOR_FAULT = 5,
     DOOR_ALARM_STATE_LOCK_DOWN = 6,
     DOOR_ALARM_STATE_FREE_ACCESS = 7,
-    DOOR_ALARM_STATE_EGRESS_OPEN = 8
+    DOOR_ALARM_STATE_EGRESS_OPEN = 8,
+    DOOR_ALARM_STATE_RESERVED_MIN = 9,
+    DOOR_ALARM_STATE_RESERVED_MAX = 255,
     /* Enumerated values 0-255 are reserved for definition by ASHRAE.
        Enumerated values 256-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    DOOR_ALARM_STATE_PROPRIETARY_MIN = 256,
+    DOOR_ALARM_STATE_PROPRIETARY_MAX = 65535
 } BACNET_DOOR_ALARM_STATE;
 
 /* Door Secured Status */
 typedef enum BACnetDoorSecuredStatus {
     DOOR_SECURED_STATUS_SECURED = 0,
     DOOR_SECURED_STATUS_UNSECURED = 1,
-    DOOR_SECURED_STATUS_UNKNOWN = 2
+    DOOR_SECURED_STATUS_UNKNOWN = 2,
+    DOOR_SECURED_STATUS_MAX = 3
 } BACNET_DOOR_SECURED_STATUS;
 
 /* Door Status */
@@ -2565,10 +2573,14 @@ typedef enum BACnetDoorStatus {
     DOOR_STATUS_CLOSING = 6,
     DOOR_STATUS_OPENING = 7,
     DOOR_STATUS_SAFETY_LOCKED = 8,
-    DOOR_STATUS_LIMITED_OPENED = 9
+    DOOR_STATUS_LIMITED_OPENED = 9,
+    DOOR_STATUS_RESERVED_MIN = 10,
+    DOOR_STATUS_RESERVED_MAX = 1023,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
        Enumerated values 1024-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    DOOR_STATUS_PROPRIETARY_MIN = 1024,
+    DOOR_STATUS_PROPRIETARY_MAX = 65535
 } BACNET_DOOR_STATUS;
 
 /* Door Value */
@@ -2585,7 +2597,8 @@ typedef enum BACnetLockStatus {
     LOCK_STATUS_UNLOCKED = 1,
     LOCK_STATUS_LOCK_FAULT = 2,
     LOCK_STATUS_UNUSED = 3,
-    LOCK_STATUS_UNKNOWN = 4
+    LOCK_STATUS_UNKNOWN = 4,
+    BACNET_LOCK_STATUS_MAX = 5,
 } BACNET_LOCK_STATUS;
 
 /* Access Event */
@@ -2644,6 +2657,8 @@ typedef enum BACnetAccessEvent {
     ACCESS_EVENT_DENIED_VERIFICATION_FAILED = 162,
     ACCESS_EVENT_DENIED_VERIFICATION_TIMEOUT = 163,
     ACCESS_EVENT_DENIED_OTHER = 164,
+    ACCESS_EVENT_RESERVED_MIN = 165,
+    ACCESS_EVENT_RESERVED_MAX = 511,
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
@@ -2660,7 +2675,8 @@ typedef enum BACnetAuthenticationStatus {
     AUTHENTICATION_STATUS_WAITING_FOR_AUTHENTICATION_FACTOR = 3,
     AUTHENTICATION_STATUS_WAITING_FOR_ACCOMPANIMENT = 4,
     AUTHENTICATION_STATUS_WAITING_FOR_VERIFICATION = 5,
-    AUTHENTICATION_STATUS_IN_PROGRESS = 6
+    AUTHENTICATION_STATUS_IN_PROGRESS = 6,
+    AUTHENTICATION_STATUS_MAX = 7,
 } BACNET_AUTHENTICATION_STATUS;
 
 /* Authorization Mode */
@@ -2670,10 +2686,14 @@ typedef enum BACnetAuthorizationMode {
     AUTHORIZATION_MODE_DENY_ALL = 2,
     AUTHORIZATION_MODE_VERIFICATION_REQUIRED = 3,
     AUTHORIZATION_MODE_AUTHORIZATION_DELAYED = 4,
-    AUTHORIZATION_MODE_NONE = 5
+    AUTHORIZATION_MODE_NONE = 5,
+    AUTHORIZATION_MODE_RESERVED_MIN = 6,
+    AUTHORIZATION_MODE_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    AUTHORIZATION_MODE_PROPRIETARY_MIN = 64,
+    AUTHORIZATION_MODE_PROPRIETARY_MAX = 65535
 } BACNET_AUTHORIZATION_MODE;
 
 /* Access Passback Mode */
@@ -2703,11 +2723,14 @@ typedef enum BACnetAccessZoneOccupancyState {
 typedef enum BACnetAccessUserType {
     ACCESS_USER_TYPE_ASSET = 0,
     ACCESS_USER_TYPE_GROUP = 1,
-    ACCESS_USER_TYPE_PERSON = 2
+    ACCESS_USER_TYPE_PERSON = 2,
+    ACCESS_USER_TYPE_RESERVED_MIN = 3,
+    ACCESS_USER_TYPE_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-65535 may be used by others subject to
-       the procedures and constraints described
--- in Clause 23. */
+       the procedures and constraints described in Clause 23. */
+    ACCESS_USER_TYPE_PROPRIETARY_MIN = 64,
+    ACCESS_USER_TYPE_PROPRIETARY_MAX = 65535
 } BACNET_ACCESS_USER_TYPE;
 
 /* Access Authentication Factor Disable */
@@ -2718,10 +2741,13 @@ typedef enum BACnetAccessAuthenticationFactorDisable {
     ACCESS_AUTHENTICATION_FACTOR_DISABLE_DISABLED_STOLEN = 3,
     ACCESS_AUTHENTICATION_FACTOR_DISABLE_DISABLED_DAMAGED = 4,
     ACCESS_AUTHENTICATION_FACTOR_DISABLE_DISABLED_DESTROYED = 5,
-    ACCESS_AUTHENTICATION_FACTOR_DISABLE_MAX = 6
+    ACCESS_AUTHENTICATION_FACTOR_DISABLE_RESERVED_MIN = 6,
+    ACCESS_AUTHENTICATION_FACTOR_DISABLE_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    ACCESS_AUTHENTICATION_FACTOR_DISABLE_PROPRIETARY_MIN = 64,
+    ACCESS_AUTHENTICATION_FACTOR_DISABLE_PROPRIETARY_MAX = 65535
 } BACNET_ACCESS_AUTHENTICATION_FACTOR_DISABLE;
 
 /* Authorization Exemption */
@@ -2732,10 +2758,14 @@ typedef enum BACnetAuthorizationExemption {
     AUTHORIZATION_EXEMPTION_LOCKOUT = 3,
     AUTHORIZATION_EXEMPTION_DENY = 4,
     AUTHORIZATION_EXEMPTION_VERIFICATION = 5,
-    AUTHORIZATION_EXEMPTION_AUTHORIZATION_DELAY = 6
+    AUTHORIZATION_EXEMPTION_AUTHORIZATION_DELAY = 6,
+    AUTHORIZATION_EXEMPTION_RESERVED_MIN = 7,
+    AUTHORIZATION_EXEMPTION_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    AUTHORIZATION_EXEMPTION_PROPRIETARY_MIN = 64,
+    AUTHORIZATION_EXEMPTION_PROPRIETARY_MAX = 255
 } BACNET_AUTHORIZATION_EXEMPTION;
 
 /* The Network Reject Reasons  for NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK */
@@ -2755,7 +2785,8 @@ typedef enum BACnetWriteStatus {
     BACNET_WRITE_STATUS_IDLE = 0,
     BACNET_WRITE_STATUS_IN_PROGRESS = 1,
     BACNET_WRITE_STATUS_SUCCESSFUL = 2,
-    BACNET_WRITE_STATUS_FAILED = 3
+    BACNET_WRITE_STATUS_FAILED = 3,
+    BACNET_WRITE_STATUS_MAX = 4
 } BACNET_WRITE_STATUS;
 
 typedef enum BACnetNetworkType {
@@ -2796,7 +2827,8 @@ typedef enum BACnetNetworkNumberQuality {
     PORT_QUALITY_UNKNOWN = 0,
     PORT_QUALITY_LEARNED = 1,
     PORT_QUALITY_LEARNED_CONFIGURED = 2,
-    PORT_QUALITY_CONFIGURED = 3
+    PORT_QUALITY_CONFIGURED = 3,
+    PORT_QUALITY_MAX = 4
 } BACNET_PORT_QUALITY;
 
 typedef enum BACnetNetworkPortCommand {
@@ -2888,13 +2920,16 @@ typedef enum BACnetSecurityResponseCode {
 
 typedef enum BACnetAccessCredentialDisable {
     ACCESS_CREDENTIAL_DISABLE_NONE = 0,
-    ACCESS_CREDENTIAL_DISABLE = 1,
+    ACCESS_CREDENTIAL_DISABLE_DISABLE = 1,
     ACCESS_CREDENTIAL_DISABLE_MANUAL = 2,
     ACCESS_CREDENTIAL_DISABLE_LOCKOUT = 3,
-    ACCESS_CREDENTIAL_DISABLE_MAX = 4
+    ACCESS_CREDENTIAL_DISABLE_RESERVED_MIN = 4,
+    ACCESS_CREDENTIAL_DISABLE_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    ACCESS_CREDENTIAL_DISABLE_PROPRIETARY_MIN = 64,
+    ACCESS_CREDENTIAL_DISABLE_PROPRIETARY_MAX = 65535
 } BACNET_ACCESS_CREDENTIAL_DISABLE;
 
 typedef enum BACnetAccessCredentialDisableReason {
@@ -2908,10 +2943,13 @@ typedef enum BACnetAccessCredentialDisableReason {
     CREDENTIAL_DISABLED_MAX_USES = 7,
     CREDENTIAL_DISABLED_INACTIVITY = 8,
     CREDENTIAL_DISABLED_MANUAL = 9,
-    CREDENTIAL_DISABLED_MAX = 10
+    CREDENTIAL_DISABLED_RESERVED_MIN = 10,
+    CREDENTIAL_DISABLED_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    CREDENTIAL_DISABLED_PROPRIETARY_MIN = 64,
+    CREDENTIAL_DISABLED_PROPRIETARY_MAX = 65535
 } BACNET_ACCESS_CREDENTIAL_DISABLE_REASON;
 
 typedef enum BACnetAuthenticationDisableReason {
@@ -2960,13 +2998,15 @@ typedef enum BACnetProtocolLevel_T {
     BACNET_PROTOCOL_LEVEL_PHYSICAL = 0,
     BACNET_PROTOCOL_LEVEL_PROTOCOL = 1,
     BACNET_PROTOCOL_LEVEL_BACNET_APPLICATION = 2,
-    BACNET_PROTOCOL_LEVEL_NON_BACNET_APPLICATION = 3
+    BACNET_PROTOCOL_LEVEL_NON_BACNET_APPLICATION = 3,
+    BACNET_PROTOCOL_LEVEL_MAX = 4
 } BACNET_PROTOCOL_LEVEL;
 
 typedef enum BACnetIPMode_T {
     BACNET_IP_MODE_NORMAL = 0,
     BACNET_IP_MODE_FOREIGN = 1,
-    BACNET_IP_MODE_BBMD = 2
+    BACNET_IP_MODE_BBMD = 2,
+    BACNET_IP_MODE_MAX = 3
 } BACNET_IP_MODE;
 
 typedef enum BACnetBackupState {
@@ -2976,7 +3016,8 @@ typedef enum BACnetBackupState {
     BACKUP_STATE_PERFORMING_A_BACKUP = 3,
     BACKUP_STATE_PERFORMING_A_RESTORE = 4,
     BACKUP_STATE_BACKUP_FAILURE = 5,
-    BACKUP_STATE_RESTORE_FAILURE = 6
+    BACKUP_STATE_RESTORE_FAILURE = 6,
+    BACKUP_STATE_MAX = 7
 } BACNET_BACKUP_STATE;
 
 typedef enum BACnetTimerState {
@@ -3197,7 +3238,8 @@ typedef enum BACnetSCConnectionState {
 typedef enum BACnetAuthenticationDecision {
     BACNET_AUTHENTICATION_DECISION_ALLOW_MATCH = 0,
     BACNET_AUTHENTICATION_DECISION_DENY_MISMATCH = 1,
-    BACNET_AUTHENTICATION_DECISION_DENY_NON_RELAY = 2
+    BACNET_AUTHENTICATION_DECISION_DENY_NON_RELAY = 2,
+    BACNET_AUTHENTICATION_DECISION_MAX = 3
 } BACNET_AUTHENTICATION_DECISION;
 
 typedef enum BACnetAuthorizationPosture {
@@ -3205,7 +3247,8 @@ typedef enum BACnetAuthorizationPosture {
     BACNET_AUTHORIZATION_POSTURE_PROPRIETARY = 1,
     BACNET_AUTHORIZATION_POSTURE_CONFIGURED = 2,
     BACNET_AUTHORIZATION_POSTURE_MISCONFIGURED_PARTIAL = 3,
-    BACNET_AUTHORIZATION_POSTURE_MISCONFIGURED_TOTAL = 4
+    BACNET_AUTHORIZATION_POSTURE_MISCONFIGURED_TOTAL = 4,
+    BACNET_AUTHORIZATION_POSTURE_MAX = 5
 } BACNET_AUTHORIZATION_POSTURE;
 
 typedef enum BACnetFaultType {
@@ -3216,7 +3259,8 @@ typedef enum BACnetFaultType {
     BACNET_FAULT_TYPE_STATE = 4,
     BACNET_FAULT_TYPE_STATUS_FLAGS = 5,
     BACNET_FAULT_TYPE_OUT_OF_RANGE = 6,
-    BACNET_FAULT_TYPE_LISTED = 7
+    BACNET_FAULT_TYPE_LISTED = 7,
+    BACNET_FAULT_TYPE_MAX = 8
 } BACNET_FAULT_TYPE;
 
 typedef enum BACnetPriorityFilter {
@@ -3236,19 +3280,21 @@ typedef enum BACnetPriorityFilter {
     BACNET_PRIORITY_FILTER_PRIORITY_14 = 13,
     BACNET_PRIORITY_FILTER_PRIORITY_15 = 14,
     BACNET_PRIORITY_FILTER_PRIORITY_16 = 15,
-    BACNET_PRIORITY_FILTER_PRIORITY_MAX = 16
+    BACNET_PRIORITY_FILTER_MAX = 16
 } BACNET_PRIORITY_FILTER;
 
 typedef enum BACnetResultFlags {
     RESULT_FLAG_FIRST_ITEM = 0,
     RESULT_FLAG_LAST_ITEM = 1,
-    RESULT_FLAG_MORE_ITEMS = 2
+    RESULT_FLAG_MORE_ITEMS = 2,
+    BACNET_RESULT_FLAGS_MAX = 3,
 } BACNET_RESULT_FLAGS;
 
 typedef enum BACnetSuccessFilter {
     BACNET_SUCCESS_FILTER_ALL = 0,
     BACNET_SUCCESS_FILTER_SUCCESS_ONLY = 1,
-    BACNET_SUCCESS_FILTER_FAILURES_ONLY = 2
+    BACNET_SUCCESS_FILTER_FAILURES_ONLY = 2,
+    BACNET_SUCCESS_FILTER_MAX = 3
 } BACNET_SUCCESS_FILTER;
 
 #endif /* end of BACENUM_H */

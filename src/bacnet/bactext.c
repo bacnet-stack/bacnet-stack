@@ -2884,6 +2884,13 @@ const char *bactext_authentication_decision_name(uint32_t index)
         bactext_authentication_decision_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_authentication_decision_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_authentication_decision_names, search_name, found_index);
+}
+
 INDTEXT_DATA bactext_authorization_posture_names[] = {
     { BACNET_AUTHORIZATION_POSTURE_OPEN, "open" },
     { BACNET_AUTHORIZATION_POSTURE_PROPRIETARY, "proprietary" },
@@ -2898,6 +2905,13 @@ const char *bactext_authorization_posture_name(uint32_t index)
 {
     return indtext_by_index_default(
         bactext_authorization_posture_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_authorization_posture_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_authorization_posture_names, search_name, found_index);
 }
 
 INDTEXT_DATA bactext_fault_type_names[] = {
@@ -2916,6 +2930,12 @@ const char *bactext_fault_type_name(uint32_t index)
 {
     return indtext_by_index_default(
         bactext_fault_type_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_fault_type_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_fault_type_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_priority_filter_names[] = {
@@ -2939,10 +2959,17 @@ INDTEXT_DATA bacnet_priority_filter_names[] = {
     { 0, NULL }
 };
 
-const char *bacnet_priority_filter_name(uint32_t index)
+const char *bactext_priority_filter_name(uint32_t index)
 {
     return indtext_by_index_default(
         bacnet_priority_filter_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_priority_filter_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_priority_filter_names, search_name, found_index);
 }
 
 INDTEXT_DATA bactext_result_flags_names[] = {
@@ -2958,6 +2985,12 @@ const char *bactext_result_flags_name(uint32_t index)
         bactext_result_flags_names, index, ASHRAE_Reserved_String);
 }
 
+bool bactext_result_flags_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_result_flags_names, search_name, found_index);
+}
+
 INDTEXT_DATA bactext_success_filter_names[] = {
     { BACNET_SUCCESS_FILTER_ALL, "all" },
     { BACNET_SUCCESS_FILTER_SUCCESS_ONLY, "success-only" },
@@ -2969,6 +3002,13 @@ const char *bactext_success_filter_name(uint32_t index)
 {
     return indtext_by_index_default(
         bactext_success_filter_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_success_filter_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_success_filter_names, search_name, found_index);
 }
 
 INDTEXT_DATA bactext_logging_type_names[] = {
@@ -2983,6 +3023,12 @@ const char *bactext_logging_type_name(uint32_t index)
 {
     return indtext_by_index_default(
         bactext_logging_type_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_logging_type_strtol(const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_logging_type_names, search_name, found_index);
 }
 
 INDTEXT_DATA bactext_program_request_names[] = {
@@ -3278,6 +3324,13 @@ const char *bactext_access_event_name(uint32_t index)
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+const char *
+bactext_access_event_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bactext_access_event_names, index, default_string);
+}
+
 INDTEXT_DATA bactext_authentication_status_names[] = {
     /* BACnetAuthenticationStatus enumerations */
     { AUTHENTICATION_STATUS_NOT_READY, "not-ready" },
@@ -3320,13 +3373,19 @@ const char *bactext_authorization_mode_name(uint32_t index)
         Vendor_Proprietary_String);
 }
 
+bool bactext_authorization_mode_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_authorization_mode_names, search_name, found_index);
+}
+
 INDTEXT_DATA bactext_access_credential_disable_names[] = {
     /* BACnetAccessCredentialDisable enumerations */
     { ACCESS_CREDENTIAL_DISABLE_NONE, "none" },
-    { ACCESS_CREDENTIAL_DISABLE, "disable" },
+    { ACCESS_CREDENTIAL_DISABLE_DISABLE, "disable" },
     { ACCESS_CREDENTIAL_DISABLE_MANUAL, "disable-manual" },
     { ACCESS_CREDENTIAL_DISABLE_LOCKOUT, "disable-lockout" },
-    { ACCESS_CREDENTIAL_DISABLE_MAX, "disable-max" },
     { 0, NULL }
 };
 
@@ -3336,8 +3395,9 @@ const char *bactext_access_credential_disable_name(uint32_t index)
        Enumerated values 64-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
     return indtext_by_index_split_default(
-        bactext_access_credential_disable_names, index, 64,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+        bactext_access_credential_disable_names, index,
+        ACCESS_CREDENTIAL_DISABLE_PROPRIETARY_MIN, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bactext_access_credential_disable_reason_names[] = {
@@ -3361,8 +3421,9 @@ const char *bactext_access_credential_disable_reason_name(uint32_t index)
        Enumerated values 64-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
     return indtext_by_index_split_default(
-        bactext_access_credential_disable_reason_names, index, 64,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+        bactext_access_credential_disable_reason_names, index,
+        CREDENTIAL_DISABLED_PROPRIETARY_MIN, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bactext_access_user_type_names[] = {
@@ -3381,6 +3442,13 @@ const char *bactext_access_user_type_name(uint32_t index)
     return indtext_by_index_split_default(
         bactext_access_user_type_names, index, 64, ASHRAE_Reserved_String,
         Vendor_Proprietary_String);
+}
+
+bool bactext_access_user_type_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bactext_access_user_type_names, search_name, found_index);
 }
 
 INDTEXT_DATA bactext_access_zone_occupancy_state_names[] = {
