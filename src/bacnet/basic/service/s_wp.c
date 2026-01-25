@@ -97,19 +97,15 @@ uint8_t Send_Write_Property_Request_Data_Address(
             bytes_sent = datalink_send_pdu(
                 dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                if (Debug_Enabled) {
-                    debug_perror("Failed to Send WriteProperty Request");
-                }
+                debug_perror("Failed to Send WriteProperty Request");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            if (Debug_Enabled) {
-                debug_fprintf(
-                    stderr,
-                    "Failed to Send WriteProperty Request "
-                    "(exceeds destination maximum APDU)!\n");
-            }
+            debug_fprintf(
+                stderr,
+                "Failed to Send WriteProperty Request "
+                "(exceeds destination maximum APDU)!\n");
         }
     }
 
