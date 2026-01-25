@@ -1501,7 +1501,7 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
         for (i = 1; i <= num_objects; i++) {
             /* get object ids from device object object_list */
             if (Debug_Enabled) {
-                fprintf(stderr, "\rReading object %i of %i", i, num_objects);
+                fprintf(stderr, "\rReading object %i of %i\n", i, num_objects);
             }
             status = get_primitive_value(
                 device_instance, device_object, PROP_OBJECT_LIST, i,

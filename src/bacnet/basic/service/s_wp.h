@@ -26,6 +26,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
+void Send_Write_Property_Debug(bool enable);
+
+BACNET_STACK_EXPORT
 uint8_t Send_Write_Property_Request_Address(
     BACNET_ADDRESS *dest,
     uint16_t max_apdu,
