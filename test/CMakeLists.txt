@@ -96,6 +96,7 @@ list(APPEND testdirs
   bacnet/bacpropstates
   bacnet/bacreal
   bacnet/bacstr
+  bacnet/bactext
   bacnet/bactimevalue
   bacnet/channel_value
   bacnet/cov

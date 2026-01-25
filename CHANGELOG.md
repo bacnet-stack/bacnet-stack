@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-01-15
+## [Unreleased] - 2026-01-22
 
 ### Security
 
@@ -32,6 +32,19 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added enumeration text lookup for BACnetAuthenticationStatus,
+  BACnetAuthorizationMode, BACnetAccessCredentialDisable,
+  BACnetAccessCredentialDisableReason, BACnetAccessUserType,
+  BACnetAccessZoneOccupancyState, BACnetWriteStatus, BACnetIPMode,
+  BACnetDoorValue, BACnetMaintenance, BACnetEscalatorFault,
+  BACnetEscalatorMode, BACnetEscalatorOperationDirection,
+  BACnetBackupState, BACnetSecurityLevel, BACnetLiftCarDirection,
+  BACnetLiftCarDoorCommand, BACnetLiftCarDriveStatus, BACnetLiftCarMode,
+  BACnetLiftFault, BACnetLiftGroupMode, BACnetAuditLevel, BACnetAuditOperation,
+  BACnetSCHubConnectorState, BACnetSCConnectionState, BACnetNodeRelationship,
+  BACnetAction, BACnetFileAccessMethod, BACnetLockStatus,
+  BACnetDoorAlarmState, BACnetDoorStatus, BACnetDoorSecuredStatus,
+  and BACnetAccessEvent. (#1209)
 * Added a new API for writable property lists across all the basic example
   object types, preparing for the introduction of a Writable_Property_List
   property in every object in a future BACnet standard revision.
