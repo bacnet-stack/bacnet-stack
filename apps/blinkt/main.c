@@ -14,104 +14,48 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bactext.h"
+#include "bacnet/version.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/npdu.h"
-#include "bacnet/apdu.h"
-#include "bacnet/iam.h"
-#include "bacnet/dcc.h"
-#include "bacnet/getevent.h"
 #include "bacnet/lighting.h"
-/* demo services */
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/datalink/dlenv.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/basic/sys/mstimer.h"
+/* BACnet System API */
 #include "bacnet/basic/sys/color_rgb.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/linear.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/version.h"
-/* include the device object */
+#include "bacnet/basic/sys/mstimer.h"
+/* BACnet basic server & services API */
+#include "bacnet/basic/server/bacnet_basic.h"
+#include "bacnet/basic/server/bacnet_port.h"
+#include "bacnet/basic/services.h"
+/* BACnet basic datalink API */
+#include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
+/* BACnet basic object */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/lo.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
+#include "bacnet/basic/object/timer.h"
 /* local includes */
 #include "bacport.h"
 #include "blinkt.h"
 
-/* (Doxygen note: The next two lines pull all the following Javadoc
- *  into the ServerDemo module.) */
-/** @addtogroup ServerDemo */
-/*@{*/
-
-/** Buffer used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
-/* current version of the BACnet stack */
-static const char *BACnet_Version = BACNET_VERSION_TEXT;
-/* task timer for various BACnet timeouts */
-static struct mstimer BACnet_Task_Timer;
-/* task timer for TSM timeouts */
-static struct mstimer BACnet_TSM_Timer;
-/* task timer for address binding timeouts */
-static struct mstimer BACnet_Address_Timer;
-/* task timer for object functionality */
-static struct mstimer BACnet_Object_Timer;
+/* some device customization */
+static const char *Device_Name = "Blinkt! Server";
+static uint32_t Device_ID = 260001;
+/* task timer for Blinkt! RGB LED display */
+static struct mstimer Blinkt_Task;
+/* flag to enable the Blinkt! test */
+static bool Blinkt_Test = false;
 /* observer for WriteGroup notifications */
 static BACNET_WRITE_GROUP_NOTIFICATION Write_Group_Notification;
-
-/** Initialize the handlers we will utilize.
- * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
- */
-static void Init_Service_Handlers(void)
-{
-    Device_Init(NULL);
-    /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
-    /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
-    /* set the handler for all the services we don't implement */
-    /* It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
-    /* Set the handlers for any confirmed services that we support. */
-    /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_WRITE_GROUP, handler_write_group);
-    /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-        handler_device_communication_control);
-    /* configure the cyclic timers */
-    mstimer_set(&BACnet_Task_Timer, 1000UL);
-    mstimer_set(&BACnet_TSM_Timer, 50UL);
-    mstimer_set(&BACnet_Address_Timer, 60UL * 1000UL);
-    mstimer_set(&BACnet_Object_Timer, 100UL);
-}
-
+/* object instances */
+static uint32_t Light_Channel_Instance = 1;
+static uint32_t Color_Channel_Instance = 2;
+static uint32_t CCT_Channel_Instance = 3;
 /**
  * Clean up the Blinkt! interface
  */
@@ -209,30 +153,28 @@ static void Color_Write_Value_Handler(
 /**
  * @brief Create the objects and configure the callbacks for BACnet objects
  */
-static void bacnet_output_init(void)
+static void BACnet_Object_Table_Init(void *context)
 {
     unsigned i = 0;
     uint8_t led_max;
     uint32_t object_instance = 0, member_element = 0;
     BACNET_COLOR_COMMAND command = { 0 };
-    BACNET_OBJECT_ID object_id;
-    uint32_t light_channel_instance = 1;
-    uint32_t color_channel_instance = 2;
-    uint32_t temp_channel_instance = 3;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member;
+    BACNET_OBJECT_ID object_id = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
 
-    Channel_Create(light_channel_instance);
-    Channel_Name_Set(light_channel_instance, "Lights");
-    Channel_Number_Set(light_channel_instance, 1);
-    Channel_Control_Groups_Element_Set(light_channel_instance, 1, 1);
-    Channel_Create(color_channel_instance);
-    Channel_Name_Set(color_channel_instance, "Colors");
-    Channel_Number_Set(color_channel_instance, 2);
-    Channel_Control_Groups_Element_Set(color_channel_instance, 1, 2);
-    Channel_Create(temp_channel_instance);
-    Channel_Name_Set(temp_channel_instance, "Color-Temperatures");
-    Channel_Number_Set(temp_channel_instance, 3);
-    Channel_Control_Groups_Element_Set(temp_channel_instance, 1, 3);
+    (void)context;
+    Channel_Create(Light_Channel_Instance);
+    Channel_Name_Set(Light_Channel_Instance, "Lights");
+    Channel_Number_Set(Light_Channel_Instance, 1);
+    Channel_Control_Groups_Element_Set(Light_Channel_Instance, 1, 1);
+    Channel_Create(Color_Channel_Instance);
+    Channel_Name_Set(Color_Channel_Instance, "Colors");
+    Channel_Number_Set(Color_Channel_Instance, 2);
+    Channel_Control_Groups_Element_Set(Color_Channel_Instance, 1, 2);
+    Channel_Create(CCT_Channel_Instance);
+    Channel_Name_Set(CCT_Channel_Instance, "Color-Temperatures");
+    Channel_Number_Set(CCT_Channel_Instance, 3);
+    Channel_Control_Groups_Element_Set(CCT_Channel_Instance, 1, 3);
     /* configure outputs and bindings */
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
@@ -257,7 +199,7 @@ static void bacnet_output_init(void)
         member.deviceIdentifier.type = OBJECT_DEVICE;
         member.deviceIdentifier.instance = Device_Object_Instance_Number();
         Channel_Reference_List_Member_Element_Set(
-            color_channel_instance, member_element, &member);
+            Color_Channel_Instance, member_element, &member);
 
         /* color temperature */
         Color_Temperature_Create(object_instance);
@@ -275,7 +217,7 @@ static void bacnet_output_init(void)
         member.deviceIdentifier.type = OBJECT_DEVICE;
         member.deviceIdentifier.instance = Device_Object_Instance_Number();
         Channel_Reference_List_Member_Element_Set(
-            temp_channel_instance, member_element, &member);
+            CCT_Channel_Instance, member_element, &member);
 
         /* lighting output */
         Lighting_Output_Create(object_instance);
@@ -293,8 +235,9 @@ static void bacnet_output_init(void)
         member.deviceIdentifier.type = OBJECT_DEVICE;
         member.deviceIdentifier.instance = Device_Object_Instance_Number();
         Channel_Reference_List_Member_Element_Set(
-            light_channel_instance, member_element, &member);
+            Light_Channel_Instance, member_element, &member);
     }
+    /* enable the callbacks for control */
     Color_Write_Present_Value_Callback_Set(Color_Write_Value_Handler);
     Color_Temperature_Write_Present_Value_Callback_Set(
         Color_Temperature_Write_Value_Handler);
@@ -302,6 +245,54 @@ static void bacnet_output_init(void)
         Lighting_Output_Write_Value_Handler);
     Write_Group_Notification.callback = Channel_Write_Group;
     handler_write_group_notification_add(&Write_Group_Notification);
+    /* LEDs run at 0.1s intervals */
+    bacnet_basic_task_object_timer_set(100);
+    mstimer_set(&Blinkt_Task, 100);
+}
+
+/**
+ * @brief BACnet object value initialization
+ * @param color_name - color name string
+ */
+static void BACnet_Object_Value_Init(const char *color_name)
+{
+    BACNET_CHANNEL_VALUE value = { 0 };
+    float x_coordinate = 1.0f, y_coordinate = 1.0f;
+    uint8_t brightness = 0;
+
+    /* update the lighting-output and color-temperature */
+    if (color_rgb_xy_from_ascii(
+            &x_coordinate, &y_coordinate, &brightness, color_name)) {
+        debug_printf_stdout(
+            "Initial color: %s x=%.2f y=%.2f brightness=%u/255\n", color_name,
+            x_coordinate, y_coordinate, (unsigned)brightness);
+        /* Set the Color */
+        value.tag = BACNET_APPLICATION_TAG_XY_COLOR;
+        value.type.XY_Color.x_coordinate = x_coordinate;
+        value.type.XY_Color.y_coordinate = y_coordinate;
+        Channel_Present_Value_Set(Color_Channel_Instance, 16, &value);
+        /* Set the Brightness */
+        value.tag = BACNET_APPLICATION_TAG_REAL;
+        value.type.Real =
+            linear_interpolate(0.0f, brightness, 255.0f, 0.0f, 100.0f);
+        Channel_Present_Value_Set(Light_Channel_Instance, 16, &value);
+    }
+}
+
+static void BACnet_Object_Task(void *context)
+{
+    (void)context;
+    /* input/process/output */
+    if (Blinkt_Test) {
+        blinkt_test_task();
+    }
+    if (mstimer_expired(&Blinkt_Task)) {
+        mstimer_restart(&Blinkt_Task);
+        /* run at the same interval as the BACnet basic objects */
+        if (!Blinkt_Test) {
+            blinkt_show();
+        }
+    }
 }
 
 /**
@@ -329,6 +320,10 @@ static void print_help(const char *filename)
            "try and bind with this device using Who-Is and\n"
            "I-Am services.\n");
     printf("\n");
+    printf(
+        "--color:\n"
+        "Default CSS color name from W3C, such as black, red, green, etc.\n");
+    printf("\n");
     printf("--test:\n"
            "Test the Blinkt! RGB LEDs with a cycling pattern.\n");
     printf("\n");
@@ -352,16 +347,11 @@ static void print_help(const char *filename)
  */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
-    uint16_t pdu_len = 0;
-    unsigned timeout_ms = 1;
-    unsigned long seconds = 0;
-    unsigned long milliseconds;
-    bool blinkt_test = false;
     unsigned int target_args = 0;
     uint32_t device_id = BACNET_MAX_INSTANCE;
     int argi = 0;
     const char *filename = NULL;
+    const char *color_name = "darkred";
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -380,92 +370,72 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (strcmp(argv[argi], "--device") == 0) {
+            /* allow the device ID to be set */
             if (++argi < argc) {
                 if (!bacnet_string_to_uint32(argv[argi], &device_id)) {
                     fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
                     return 1;
                 }
+                if (device_id > BACNET_MAX_INSTANCE) {
+                    fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                } else {
+                    Device_ID = device_id;
+                }
             }
         } else if (strcmp(argv[argi], "--test") == 0) {
-            blinkt_test = true;
+            /* test the hardware */
+            Blinkt_Test = true;
+        } else if (strcmp(argv[argi], "--color") == 0) {
+            /* initial color */
+            color_name = argv[++argi];
         } else {
             if (target_args == 0) {
+                /* allow the device ID to be set */
                 if (!bacnet_string_to_uint32(argv[argi], &device_id)) {
                     fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
                     return 1;
                 }
+                if (device_id > BACNET_MAX_INSTANCE) {
+                    fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                } else {
+                    Device_ID = device_id;
+                }
                 target_args++;
+            } else if (target_args == 1) {
+                /* allow the device name to be set */
+                Device_Name = argv[argi];
+                return 1;
             }
         }
     }
-    if (device_id > BACNET_MAX_INSTANCE) {
-        fprintf(
-            stderr, "device=%u - not greater than %u\n", device_id,
-            BACNET_MAX_INSTANCE);
-        return 1;
-    }
-    Device_Set_Object_Instance_Number(device_id);
+    Device_Set_Object_Instance_Number(Device_ID);
+    Device_Object_Name_ANSI_Init(Device_Name);
     printf(
-        "BACnet Raspberry Pi Blinkt! Demo\n"
+        "BACnet Raspberry Pi Blinkt! Demo %s\n"
         "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n"
         "Max APDU: %d\n",
-        BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
-    /* load any static address bindings to show up
-       in our device bindings list */
-    address_init();
-    Init_Service_Handlers();
-    dlenv_init();
-    atexit(datalink_cleanup);
+        Device_Application_Software_Version(), Device_Firmware_Revision(),
+        Device_Object_Instance_Number(), MAX_APDU);
     blinkt_init();
     atexit(blinkt_cleanup);
-    bacnet_output_init();
-    /* configure the timeout values */
-    /* broadcast an I-Am on startup */
-    Send_I_Am(&Handler_Transmit_Buffer[0]);
-    /* loop forever */
+    debug_printf_stdout("Blinkt! initialized\n");
+    bacnet_basic_init_callback_set(BACnet_Object_Table_Init, NULL);
+    bacnet_basic_task_callback_set(BACnet_Object_Task, NULL);
+    bacnet_basic_init();
+    if (bacnet_port_init()) {
+        /* OS based apps use DLENV for environment variables */
+        dlenv_init();
+        atexit(datalink_cleanup);
+    }
+    debug_printf_stdout("Server: BACnet initialized\n");
+    BACnet_Object_Value_Init(color_name);
     for (;;) {
-        /* input */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout_ms);
-        /* process */
-        if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
-        }
-        if (mstimer_expired(&BACnet_Task_Timer)) {
-            mstimer_reset(&BACnet_Task_Timer);
-            /* 1 second tasks */
-            dcc_timer_seconds(1);
-            datalink_maintenance_timer(1);
-            dlenv_maintenance_timer(1);
-            handler_cov_timer_seconds(1);
-        }
-        if (mstimer_expired(&BACnet_TSM_Timer)) {
-            mstimer_reset(&BACnet_TSM_Timer);
-            tsm_timer_milliseconds(mstimer_interval(&BACnet_TSM_Timer));
-        }
-        handler_cov_task();
-        if (mstimer_expired(&BACnet_Address_Timer)) {
-            mstimer_reset(&BACnet_Address_Timer);
-            /* address cache */
-            seconds = mstimer_interval(&BACnet_Address_Timer) / 1000;
-            address_cache_timer(seconds);
-        }
-        /* output/input */
-        if (blinkt_test) {
-            blinkt_test_task();
-        } else {
-            if (mstimer_expired(&BACnet_Object_Timer)) {
-                mstimer_reset(&BACnet_Object_Timer);
-                milliseconds = mstimer_interval(&BACnet_Object_Timer);
-                Device_Timer(milliseconds);
-                blinkt_show();
-            }
-        }
+        bacnet_basic_task();
+        bacnet_port_task();
     }
 
     return 0;
 }
-
-/* @} */
-
-/* End group ServerDemo */
