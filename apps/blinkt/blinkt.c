@@ -70,6 +70,29 @@ void blinkt_set_pixel(uint8_t led, uint8_t r, uint8_t g, uint8_t b)
 }
 
 /**
+ * @brief Set one LED to specific RGB color
+ * @param led index 0..#BLINKT_NUM_LEDS
+ * @param r color red from 0..255
+ * @param g color green from 0..255
+ * @param b color blue from 0..255
+ */
+void blinkt_get_pixel(uint8_t led, uint8_t *r, uint8_t *g, uint8_t *b)
+{
+    if (led >= BLINKT_NUM_LEDS) {
+        return;
+    }
+    if (r) {
+        *r = (Blinkt_LED[led] >> 24) & 0xFF;
+    }
+    if (g) {
+        *g = (Blinkt_LED[led] >> 16) & 0xFF;
+    }
+    if (b) {
+        *b = (Blinkt_LED[led] >> 8) & 0xFF;
+    }
+}
+
+/**
  * @brief Set one LED to specific intensity
  * @param led index 0..#BLINKT_NUM_LEDS
  * @param brightness intensity from 0..31, 0=OFF, 1=dimmest, 31=brightest
@@ -81,6 +104,20 @@ void blinkt_set_pixel_brightness(uint8_t led, uint8_t brightness)
     }
 
     Blinkt_LED[led] = (Blinkt_LED[led] & 0xFFFFFF00) | (brightness & 0x1F);
+}
+
+/**
+ * @brief Set one LED to specific intensity
+ * @param led index 0..#BLINKT_NUM_LEDS
+ * @return brightness intensity from 0..31, 0=OFF, 1=dimmest, 31=brightest
+ */
+uint8_t blinkt_get_pixel_brightness(uint8_t led)
+{
+    if (led >= BLINKT_NUM_LEDS) {
+        return 0;
+    }
+
+    return Blinkt_LED[led] & 0x1F;
 }
 
 /**
