@@ -491,6 +491,33 @@ unsigned color_rgb_from_ascii(
 }
 
 /**
+ * @brief Convert CSS color name to CIE xy coordinates and brightness
+ * @param x_coordinate - return x of CIE xy 0.0..1.0
+ * @param y_coordinate - return y of CIE xy 0.0..1.0
+ * @param brightness - return brightness of the CIE xy color 0..255
+ * @param name - CSS color name from W3C
+ * @return true if color name was found, false if not found
+ */
+bool color_rgb_xy_from_ascii(
+    float *x_coordinate,
+    float *y_coordinate,
+    uint8_t *brightness,
+    const char *name)
+{
+    bool status = false;
+    uint8_t r = 0, g = 0, b = 0;
+    unsigned index;
+
+    index = color_rgb_from_ascii(&r, &g, &b, name);
+    if (index < color_rgb_count()) {
+        color_rgb_to_xy(r, g, b, x_coordinate, y_coordinate, brightness);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Convert sRGB from CIE xy and brightness
  * @param red - return R value of sRGB
  * @param green - return G value of sRGB

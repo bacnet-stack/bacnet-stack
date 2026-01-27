@@ -32,6 +32,11 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added API to get the RGB pixel and brightness values from the blinkt
+  interface. Added API to the color-RGB library to convert from ASCII
+  CSS color name to X,Y and brightness. Added a default color name command
+  line option. Set the color and brightness at startup. Changed the Blinkt
+  example app to use the basic-server framework. (#1210)
 * Added enumeration text lookup for BACnetAuthenticationStatus,
   BACnetAuthorizationMode, BACnetAccessCredentialDisable,
   BACnetAccessCredentialDisableReason, BACnetAccessUserType,
@@ -108,6 +113,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Channel object for Color object present-value which does not
+  use coercion. (#1210)
 * Fixed lighting output object lighting-command last-on-value to only
   be updated with the last value of the Present_Value property that
   was greater than or equal to 1.0%, keeping in mind that the Present_Value

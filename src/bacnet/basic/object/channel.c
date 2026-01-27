@@ -663,18 +663,6 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (
-            (wp_data->object_type == OBJECT_COLOR) &&
-            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
-             (wp_data->object_property == PROP_DEFAULT_COLOR)) &&
-            (wp_data->array_index == BACNET_ARRAY_ALL)) {
-            apdu_len = bacnet_channel_value_coerce_data_encode(
-                wp_data->application_data, wp_data->application_data_len, value,
-                BACNET_APPLICATION_TAG_XY_COLOR);
-            if (apdu_len != BACNET_STATUS_ERROR) {
-                wp_data->application_data_len = apdu_len;
-                status = true;
-            }
-        } else if (
             (wp_data->object_type == OBJECT_COLOR_TEMPERATURE) &&
             ((wp_data->object_property == PROP_PRESENT_VALUE) ||
              (wp_data->object_property == PROP_DEFAULT_COLOR_TEMPERATURE)) &&
@@ -761,8 +749,11 @@ static bool Channel_Write_Members(
                         }
                         debug_printf(
                             "channel[%lu].Channel_Write_Member[%u] "
-                            "%s\n",
+                            "%s-%u %s %s\n",
                             (unsigned long)object_instance, m,
+                            bactext_object_type_name(wp_data.object_type),
+                            wp_data.object_instance,
+                            bactext_property_name(wp_data.object_property),
                             bactext_error_code_name(wp_data.error_code));
                     }
                 } else {
