@@ -70,11 +70,11 @@ void blinkt_set_pixel(uint8_t led, uint8_t r, uint8_t g, uint8_t b)
 }
 
 /**
- * @brief Set one LED to specific RGB color
+ * @brief Get the current RGB color of one LED
  * @param led index 0..#BLINKT_NUM_LEDS
- * @param r color red from 0..255
- * @param g color green from 0..255
- * @param b color blue from 0..255
+ * @param r pointer to store the red component (0..255), may be NULL
+ * @param g pointer to store the green component (0..255), may be NULL
+ * @param b pointer to store the blue component (0..255), may be NULL
  */
 void blinkt_get_pixel(uint8_t led, uint8_t *r, uint8_t *g, uint8_t *b)
 {
@@ -107,7 +107,7 @@ void blinkt_set_pixel_brightness(uint8_t led, uint8_t brightness)
 }
 
 /**
- * @brief Set one LED to specific intensity
+ * @brief Get the brightness of one LED
  * @param led index 0..#BLINKT_NUM_LEDS
  * @return brightness intensity from 0..31, 0=OFF, 1=dimmest, 31=brightest
  */
