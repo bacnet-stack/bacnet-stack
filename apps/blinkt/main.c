@@ -159,14 +159,15 @@ static void BACnet_Object_Table_Init(void *context)
 {
     unsigned i = 0;
     uint8_t led_max;
-    uint32_t object_instance = 0, member_element = 0, device_instance = 0;
+    uint32_t object_instance = 0, member_element = 0;
     BACNET_COLOR_COMMAND command = { 0 };
     BACNET_OBJECT_ID object_id = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
     BACNET_TIMER_STATE_CHANGE_VALUE timer_transition = { 0 };
 
     (void)context;
-    device_instance = Device_Object_Instance_Number();
+    Device_Set_Object_Instance_Number(Device_ID);
+    Device_Object_Name_ANSI_Init(Device_Name);
     /* create the objects */
     Channel_Create(Light_Channel_Instance);
     Channel_Name_Set(Light_Channel_Instance, "Lights");
@@ -209,7 +210,7 @@ static void BACnet_Object_Table_Init(void *context)
     member.propertyIdentifier = PROP_PRESENT_VALUE;
     member.arrayIndex = BACNET_ARRAY_ALL;
     member.deviceIdentifier.type = OBJECT_DEVICE;
-    member.deviceIdentifier.instance = device_instance;
+    member.deviceIdentifier.instance = Device_ID;
     Timer_Reference_List_Member_Element_Add(Vacancy_Timer_Instance, &member);
     Timer_Priority_For_Writing_Set(Vacancy_Timer_Instance, Default_Priority);
     /* configure outputs and bindings */
@@ -234,7 +235,7 @@ static void BACnet_Object_Table_Init(void *context)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = device_instance;
+        member.deviceIdentifier.instance = Device_ID;
         Channel_Reference_List_Member_Element_Set(
             Color_Channel_Instance, member_element, &member);
 
@@ -252,7 +253,7 @@ static void BACnet_Object_Table_Init(void *context)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = device_instance;
+        member.deviceIdentifier.instance = Device_ID;
         Channel_Reference_List_Member_Element_Set(
             CCT_Channel_Instance, member_element, &member);
 
@@ -270,7 +271,7 @@ static void BACnet_Object_Table_Init(void *context)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = device_instance;
+        member.deviceIdentifier.instance = Device_ID;
         Channel_Reference_List_Member_Element_Set(
             Light_Channel_Instance, member_element, &member);
     }
@@ -451,18 +452,11 @@ int main(int argc, char *argv[])
             }
         }
     }
-    Device_Set_Object_Instance_Number(Device_ID);
-    Device_Object_Name_ANSI_Init(Device_Name);
-    printf(
-        "BACnet Raspberry Pi Blinkt! Demo %s\n"
-        "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n"
-        "Max APDU: %d\n",
-        Device_Application_Software_Version(), Device_Firmware_Revision(),
-        Device_Object_Instance_Number(), MAX_APDU);
+    /* hardware init */
     blinkt_init();
     atexit(blinkt_cleanup);
     debug_printf_stdout("Blinkt! initialized\n");
+    /* application init */
     bacnet_basic_init_callback_set(BACnet_Object_Table_Init, NULL);
     bacnet_basic_task_callback_set(BACnet_Object_Task, NULL);
     bacnet_basic_init();
@@ -471,7 +465,16 @@ int main(int argc, char *argv[])
         dlenv_init();
         atexit(datalink_cleanup);
     }
-    debug_printf_stdout("Server: BACnet initialized\n");
+    debug_printf_stdout("BACnet initialized\n");
+    /* application info */
+    printf(
+        "BACnet Raspberry Pi Blinkt! Demo %s\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
+        Device_Application_Software_Version(), Device_Firmware_Revision(),
+        Device_Object_Instance_Number(), MAX_APDU);
+    /* operation */
     BACnet_Object_Value_Init(color_name);
     for (;;) {
         bacnet_basic_task();
