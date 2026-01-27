@@ -56,6 +56,8 @@ static BACNET_WRITE_GROUP_NOTIFICATION Write_Group_Notification;
 static uint32_t Light_Channel_Instance = 1;
 static uint32_t Color_Channel_Instance = 2;
 static uint32_t CCT_Channel_Instance = 3;
+static uint32_t Vacancy_Timer_Instance = 1;
+static unsigned Default_Priority = 16;
 /**
  * Clean up the Blinkt! interface
  */
@@ -157,12 +159,15 @@ static void BACnet_Object_Table_Init(void *context)
 {
     unsigned i = 0;
     uint8_t led_max;
-    uint32_t object_instance = 0, member_element = 0;
+    uint32_t object_instance = 0, member_element = 0, device_instance = 0;
     BACNET_COLOR_COMMAND command = { 0 };
     BACNET_OBJECT_ID object_id = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_TIMER_STATE_CHANGE_VALUE timer_transition = { 0 };
 
     (void)context;
+    device_instance = Device_Object_Instance_Number();
+    /* create the objects */
     Channel_Create(Light_Channel_Instance);
     Channel_Name_Set(Light_Channel_Instance, "Lights");
     Channel_Number_Set(Light_Channel_Instance, 1);
@@ -175,6 +180,38 @@ static void BACnet_Object_Table_Init(void *context)
     Channel_Name_Set(CCT_Channel_Instance, "Color-Temperatures");
     Channel_Number_Set(CCT_Channel_Instance, 3);
     Channel_Control_Groups_Element_Set(CCT_Channel_Instance, 1, 3);
+    /* timer to automatically turn off the lights */
+    Timer_Create(Vacancy_Timer_Instance);
+    Timer_Name_Set(Vacancy_Timer_Instance, "Vacancy-Timer");
+    Timer_Default_Timeout_Set(Vacancy_Timer_Instance, 30UL * 60UL * 1000UL);
+    /* to running */
+    timer_transition.next = NULL;
+    timer_transition.tag = BACNET_APPLICATION_TAG_REAL;
+    timer_transition.type.Real = BACNET_LIGHTING_SPECIAL_VALUE_RESTORE_ON;
+    Timer_State_Change_Value_Set(
+        Vacancy_Timer_Instance, TIMER_TRANSITION_IDLE_TO_RUNNING,
+        &timer_transition);
+    Timer_State_Change_Value_Set(
+        Vacancy_Timer_Instance, TIMER_TRANSITION_RUNNING_TO_RUNNING,
+        &timer_transition);
+    Timer_State_Change_Value_Set(
+        Vacancy_Timer_Instance, TIMER_TRANSITION_EXPIRED_TO_RUNNING,
+        &timer_transition);
+    /* to expired */
+    timer_transition.next = NULL;
+    timer_transition.tag = BACNET_APPLICATION_TAG_REAL;
+    timer_transition.type.Real = BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH;
+    Timer_State_Change_Value_Set(
+        Vacancy_Timer_Instance, TIMER_TRANSITION_RUNNING_TO_EXPIRED,
+        &timer_transition);
+    member.objectIdentifier.type = OBJECT_CHANNEL;
+    member.objectIdentifier.instance = Light_Channel_Instance;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = device_instance;
+    Timer_Reference_List_Member_Element_Add(Vacancy_Timer_Instance, &member);
+    Timer_Priority_For_Writing_Set(Vacancy_Timer_Instance, Default_Priority);
     /* configure outputs and bindings */
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
@@ -197,7 +234,7 @@ static void BACnet_Object_Table_Init(void *context)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = Device_Object_Instance_Number();
+        member.deviceIdentifier.instance = device_instance;
         Channel_Reference_List_Member_Element_Set(
             Color_Channel_Instance, member_element, &member);
 
@@ -215,7 +252,7 @@ static void BACnet_Object_Table_Init(void *context)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = Device_Object_Instance_Number();
+        member.deviceIdentifier.instance = device_instance;
         Channel_Reference_List_Member_Element_Set(
             CCT_Channel_Instance, member_element, &member);
 
@@ -233,7 +270,7 @@ static void BACnet_Object_Table_Init(void *context)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = Device_Object_Instance_Number();
+        member.deviceIdentifier.instance = device_instance;
         Channel_Reference_List_Member_Element_Set(
             Light_Channel_Instance, member_element, &member);
     }
@@ -263,7 +300,7 @@ static void BACnet_Object_Value_Init(const char *color_name)
     /* update the lighting-output and color-temperature */
     if (color_rgb_xy_from_ascii(
             &x_coordinate, &y_coordinate, &brightness, color_name)) {
-        debug_printf_stdout(
+        printf(
             "Initial color: %s x=%.2f y=%.2f brightness=%u/255\n", color_name,
             x_coordinate, y_coordinate, (unsigned)brightness);
         /* Set the Color */
@@ -275,7 +312,12 @@ static void BACnet_Object_Value_Init(const char *color_name)
         value.tag = BACNET_APPLICATION_TAG_REAL;
         value.type.Real =
             linear_interpolate(0.0f, brightness, 255.0f, 0.0f, 100.0f);
-        Channel_Present_Value_Set(Light_Channel_Instance, 16, &value);
+        Channel_Present_Value_Set(
+            Light_Channel_Instance, Default_Priority, &value);
+        /* start the vacancy timer */
+        Timer_Running_Set(Vacancy_Timer_Instance, true);
+    } else {
+        printf("Initial color: %s unknown\n", color_name);
     }
 }
 
@@ -334,15 +376,8 @@ static void print_help(const char *filename)
 }
 
 /** Main function of server demo.
- *
- * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
- *      datalink_receive, npdu_handler,
- *      dcc_timer_seconds, datalink_maintenance_timer,
- *      handler_cov_task,
- *      tsm_timer_milliseconds
- *
  * @param argc [in] Arg count.
- * @param argv [in] Takes one argument: the Device Instance #.
+ * @param argv [in] Argument list.
  * @return 0 on success.
  */
 int main(int argc, char *argv[])
@@ -388,7 +423,13 @@ int main(int argc, char *argv[])
             Blinkt_Test = true;
         } else if (strcmp(argv[argi], "--color") == 0) {
             /* initial color */
-            color_name = argv[++argi];
+            if (++argi < argc) {
+                color_name = argv[argi];
+            } else {
+                fprintf(stderr, "Missing color name after --color\n");
+                print_usage(filename);
+                return 1;
+            }
         } else {
             if (target_args == 0) {
                 /* allow the device ID to be set */
@@ -406,7 +447,7 @@ int main(int argc, char *argv[])
             } else if (target_args == 1) {
                 /* allow the device name to be set */
                 Device_Name = argv[argi];
-                return 1;
+                target_args++;
             }
         }
     }
