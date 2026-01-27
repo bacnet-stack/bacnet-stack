@@ -505,7 +505,7 @@ bool color_rgb_xy_from_ascii(
     const char *name)
 {
     bool status = false;
-    uint8_t r, g, b;
+    uint8_t r = 0, g = 0, b = 0;
     unsigned index;
 
     index = color_rgb_from_ascii(&r, &g, &b, name);
