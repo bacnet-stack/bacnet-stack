@@ -28,7 +28,7 @@
 /* Although this stack can implement any revision,
  * sometimes a specific revision is desired */
 #ifndef BACNET_PROTOCOL_REVISION
-#define BACNET_PROTOCOL_REVISION 24
+#define BACNET_PROTOCOL_REVISION 28
 #endif
 
 /* there are a few dependencies on the BACnet Protocol-Revision */

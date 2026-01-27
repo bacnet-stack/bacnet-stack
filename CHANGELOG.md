@@ -32,6 +32,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added debug prints for lighting output properties to assist in identifying
+  out-of-range values. (#1211)
 * Added API to get the RGB pixel and brightness values from the blinkt
   interface. Added API to the color-RGB library to convert from ASCII
   CSS color name to X,Y and brightness. Added a default color name command
@@ -95,6 +97,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the default BACnet protocol revision to 28 to enable usage of
+  special lighting output values. (#1211)
 * Changed bacnet_strtof and bacnet_strtold functions to use strtod to
   improve compatibility with C89 standards while ensuring proper type
   casting and range checking. (#1207)
@@ -113,6 +117,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the server name in the blinkt app and removed the unnecessary
+  device.c module. (#1211)
 * Fixed Channel object for Color object present-value which does not
   use coercion. (#1210)
 * Fixed lighting output object lighting-command last-on-value to only
