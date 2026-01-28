@@ -52,11 +52,17 @@ static struct mstimer Blinkt_Task;
 static bool Blinkt_Test = false;
 /* observer for WriteGroup notifications */
 static BACNET_WRITE_GROUP_NOTIFICATION Write_Group_Notification;
+/* observers for internal object to object writes */
+static struct channel_write_property_notification
+    Channel_Write_Property_Observer;
+static struct timer_write_property_notification Timer_Write_Property_Observer;
+
 /* object instances */
 static uint32_t Light_Channel_Instance = 1;
 static uint32_t Color_Channel_Instance = 2;
 static uint32_t CCT_Channel_Instance = 3;
 static uint32_t Vacancy_Timer_Instance = 1;
+static uint32_t Vacancy_Timeout_Milliseconds = 30UL * 60UL * 1000UL;
 static unsigned Default_Priority = 16;
 /**
  * Clean up the Blinkt! interface
@@ -64,6 +70,71 @@ static unsigned Default_Priority = 16;
 static void blinkt_cleanup(void)
 {
     blinkt_stop();
+}
+
+/**
+ * @brief Log internal object to object WriteProperty calls
+ * @param object_type The object type being written to
+ * @param instance The object instance being written to
+ * @param status The status of the WriteProperty
+ * @param wp_data The WriteProperty data
+ */
+static void write_property_observer(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t instance,
+    bool status,
+    BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    unsigned i;
+    char value_string[64 + 1] = { 0 };
+
+    if (status) {
+        printf(
+            "WriteProperty: %s-%d to %s-%u %s@%u\n",
+            bactext_object_type_name(object_type), instance,
+            bactext_object_type_name(wp_data->object_type),
+            wp_data->object_instance,
+            bactext_property_name(wp_data->object_property), wp_data->priority);
+    } else {
+        for (i = 0; i < wp_data->application_data_len &&
+             (i * 2) < sizeof(value_string) - 1;
+             i++) {
+            snprintf(
+                &value_string[i * 2], 3, "%02X", wp_data->application_data[i]);
+        }
+        printf(
+            "WriteProperty: %s-%d to %s-%u %s@%u %s %s-%s\n",
+            bactext_object_type_name(object_type), instance,
+            bactext_object_type_name(wp_data->object_type),
+            wp_data->object_instance,
+            bactext_property_name(wp_data->object_property), wp_data->priority,
+            value_string, bactext_error_class_name(wp_data->error_class),
+            bactext_error_code_name(wp_data->error_code));
+    }
+}
+
+/**
+ * @brief Log internal object to object WriteProperty calls
+ * @param instance The object instance being written to
+ * @param status The status of the WriteProperty
+ * @param wp_data The WriteProperty data
+ */
+static void channel_write_property_observer(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    write_property_observer(OBJECT_CHANNEL, instance, status, wp_data);
+}
+
+/**
+ * @brief Log internal object to object WriteProperty calls
+ * @param instance The object instance being written to
+ * @param status The status of the WriteProperty
+ * @param wp_data The WriteProperty data
+ */
+static void timer_write_property_observer(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    write_property_observer(OBJECT_TIMER, instance, status, wp_data);
 }
 
 /**
@@ -184,7 +255,11 @@ static void BACnet_Object_Table_Init(void *context)
     /* timer to automatically turn off the lights */
     Timer_Create(Vacancy_Timer_Instance);
     Timer_Name_Set(Vacancy_Timer_Instance, "Vacancy-Timer");
-    Timer_Default_Timeout_Set(Vacancy_Timer_Instance, 30UL * 60UL * 1000UL);
+    Timer_Default_Timeout_Set(
+        Vacancy_Timer_Instance, Vacancy_Timeout_Milliseconds);
+    printf(
+        "Vacancy timeout: %lu milliseconds\n",
+        (unsigned long)Vacancy_Timeout_Milliseconds);
     /* to running */
     timer_transition.next = NULL;
     timer_transition.tag = BACNET_APPLICATION_TAG_REAL;
@@ -205,6 +280,7 @@ static void BACnet_Object_Table_Init(void *context)
     Timer_State_Change_Value_Set(
         Vacancy_Timer_Instance, TIMER_TRANSITION_RUNNING_TO_EXPIRED,
         &timer_transition);
+    /* timer members */
     member.objectIdentifier.type = OBJECT_CHANNEL;
     member.objectIdentifier.instance = Light_Channel_Instance;
     member.propertyIdentifier = PROP_PRESENT_VALUE;
@@ -281,6 +357,11 @@ static void BACnet_Object_Table_Init(void *context)
         Color_Temperature_Write_Value_Handler);
     Lighting_Output_Write_Present_Value_Callback_Set(
         Lighting_Output_Write_Value_Handler);
+    /* set the observer callbacks.  log the internal object-to-object writes */
+    Channel_Write_Property_Observer.callback = channel_write_property_observer;
+    Channel_Write_Property_Notification_Add(&Channel_Write_Property_Observer);
+    Timer_Write_Property_Observer.callback = timer_write_property_observer;
+    Timer_Write_Property_Notification_Add(&Timer_Write_Property_Observer);
     Write_Group_Notification.callback = Channel_Write_Group;
     handler_write_group_notification_add(&Write_Group_Notification);
     /* LEDs run at 0.1s intervals */
@@ -345,7 +426,7 @@ static void BACnet_Object_Task(void *context)
 static void print_usage(const char *filename)
 {
     printf("Usage: %s [device-instance]\n", filename);
-    printf("       [--device N][--test]\n");
+    printf("       [--device N][--test][--color COLOR][--vacancy MS]\n");
     printf("       [--version][--help]\n");
 }
 
@@ -367,6 +448,9 @@ static void print_help(const char *filename)
         "--color:\n"
         "Default CSS color name from W3C, such as black, red, green, etc.\n");
     printf("\n");
+    printf("--vacancy:\n"
+           "Vacancy timeout in milliseconds.\n");
+    printf("\n");
     printf("--test:\n"
            "Test the Blinkt! RGB LEDs with a cycling pattern.\n");
     printf("\n");
@@ -384,7 +468,7 @@ static void print_help(const char *filename)
 int main(int argc, char *argv[])
 {
     unsigned int target_args = 0;
-    uint32_t device_id = BACNET_MAX_INSTANCE;
+    uint32_t device_id = BACNET_MAX_INSTANCE, vacancy_timeout = 0;
     int argi = 0;
     const char *filename = NULL;
     const char *color_name = "darkred";
@@ -430,6 +514,15 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Missing color name after --color\n");
                 print_usage(filename);
                 return 1;
+            }
+        } else if (strcmp(argv[argi], "--vacancy") == 0) {
+            /* allow the device ID to be set */
+            if (++argi < argc) {
+                if (!bacnet_string_to_uint32(argv[argi], &vacancy_timeout)) {
+                    fprintf(stderr, "vacancy=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                Vacancy_Timeout_Milliseconds = vacancy_timeout;
             }
         } else {
             if (target_args == 0) {
