@@ -2190,6 +2190,10 @@ void Timer_Task(uint32_t object_instance, uint16_t milliseconds)
                     pObject->Timer_State = TIMER_STATE_EXPIRED;
                     pObject->Last_State_Change =
                         TIMER_TRANSITION_RUNNING_TO_EXPIRED;
+                    datetime_local(
+                        &pObject->Update_Time.date, &pObject->Update_Time.time,
+                        NULL, NULL);
+                    Timer_Write_Request_Initiate(object_instance, pObject);
                 }
                 break;
             case TIMER_STATE_EXPIRED:

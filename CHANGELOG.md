@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-01-22
+## [Unreleased] - 2026-01-28
 
 ### Security
 
@@ -32,6 +32,16 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added channel and timer object write-property observers in blinkt app
+  to monitor internal writes. Added vacancy timer command line argument
+  for testing initial timer object vacancy time for lights channel. (#1212)
+* Added debug prints for lighting output properties to assist in identifying
+  out-of-range values. (#1211)
+* Added API to get the RGB pixel and brightness values from the blinkt
+  interface. Added API to the color-RGB library to convert from ASCII
+  CSS color name to X,Y and brightness. Added a default color name command
+  line option. Set the color and brightness at startup. Changed the Blinkt
+  example app to use the basic-server framework. (#1210)
 * Added enumeration text lookup for BACnetAuthenticationStatus,
   BACnetAuthorizationMode, BACnetAccessCredentialDisable,
   BACnetAccessCredentialDisableReason, BACnetAccessUserType,
@@ -90,6 +100,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the default BACnet protocol revision to 28 to enable usage of
+  special lighting output values. (#1211)
 * Changed bacnet_strtof and bacnet_strtold functions to use strtod to
   improve compatibility with C89 standards while ensuring proper type
   casting and range checking. (#1207)
@@ -108,6 +120,13 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting output object lighting-commands for warn-off and
+  warn-relinquish when blink-warn notification shall not occur. (#1212)
+* Fixed timer object task to initiate a write-request at expiration. (#1212)
+* Fixed the server name in the blinkt app and removed the unnecessary
+  device.c module. (#1211)
+* Fixed Channel object for Color object present-value which does not
+  use coercion. (#1210)
 * Fixed lighting output object lighting-command last-on-value to only
   be updated with the last value of the Present_Value property that
   was greater than or equal to 1.0%, keeping in mind that the Present_Value
