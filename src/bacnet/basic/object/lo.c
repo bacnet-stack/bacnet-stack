@@ -502,110 +502,6 @@ unsigned Lighting_Output_Present_Value_Priority(uint32_t object_instance)
  * @brief Set the lighting command if the priority is active
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
- */
-static void
-Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
-{
-    unsigned current_priority;
-
-    if (!pObject) {
-        return;
-    }
-    current_priority = Present_Value_Priority(pObject);
-    if ((priority <= current_priority) &&
-        (Priority_Array_Active(pObject, priority - 1)) &&
-        (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
-        pObject->Blink_Warn_Enable) {
-        /* The blink-warn notification shall not occur
-            if any of the following conditions occur:
-            (a) The specified priority is not the highest
-                active priority, or
-            (b) The value at the specified priority is 0.0%, or
-            (c) Blink_Warn_Enable is FALSE. */
-        lighting_command_blink_warn(
-            &pObject->Lighting_Command, BACNET_LIGHTS_WARN,
-            &pObject->Lighting_Command.Blink);
-    }
-}
-
-/**
- * @brief Set the lighting command if the priority is active
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
- */
-static void
-Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
-{
-    unsigned current_priority;
-
-    if (!pObject) {
-        return;
-    }
-    current_priority = Present_Value_Priority(pObject);
-    if ((priority <= current_priority) &&
-        (Priority_Array_Active(pObject, priority - 1)) &&
-        (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
-        (is_float_equal(
-            Priority_Array_Next_Value(pObject, priority - 1), 0.0)) &&
-        pObject->Blink_Warn_Enable) {
-        /* The blink-warn notification shall not occur and
-            the value 0.0% written at the specified
-            priority immediately if any of the following
-            conditions occur:
-            (a) The specified priority is not the highest
-                active priority, or
-            (b) The Present_Value is 0.0%, or
-            (c) Blink_Warn_Enable is FALSE. */
-        pObject->Lighting_Command.Blink.Duration =
-            pObject->Egress_Time_Seconds * 1000UL;
-        lighting_command_blink_warn(
-            &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
-            &pObject->Lighting_Command.Blink);
-    }
-    Present_Value_Set(pObject, 0.0, priority);
-}
-
-/**
- * @brief Set the lighting command if the priority is active
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
- */
-static void
-Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
-{
-    unsigned current_priority;
-
-    if (!pObject) {
-        return;
-    }
-    current_priority = Present_Value_Priority(pObject);
-    if ((priority <= current_priority) &&
-        (Priority_Array_Active(pObject, priority - 1)) &&
-        (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
-        (is_float_equal(
-            Priority_Array_Next_Value(pObject, priority - 1), 0.0)) &&
-        pObject->Blink_Warn_Enable) {
-        /* The blink-warn notification shall not occur,
-            and the value at the specified priority shall be
-            relinquished immediately if any of the following
-            conditions occur:
-            (a) Blink_Warn_Enable is FALSE, or
-            (b) The Present_Value is 0.0%, or
-            (c) The Present_Value would not evaluate to 0.0% after
-                the priority slot is relinquished. */
-        pObject->Lighting_Command.Blink.Duration =
-            pObject->Egress_Time_Seconds * 1000UL;
-        lighting_command_blink_warn(
-            &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
-            &pObject->Lighting_Command.Blink);
-    }
-    Present_Value_Relinquish(pObject, priority);
-}
-
-/**
- * @brief Set the lighting command if the priority is active
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
  * @param value [in] BACnet lighting value
  * @param fade_time [in] BACnet lighting fade time
  */
@@ -651,6 +547,182 @@ static void Lighting_Command_Ramp_To(
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
         lighting_command_ramp_to(&pObject->Lighting_Command, value, ramp_rate);
+    }
+}
+
+/**
+ * @brief Set the lighting command using default values when the priority
+ *  is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ * @param value - floating point analog value 0.0%, 1.0%-100.0%
+ */
+static void Lighting_Command_Transition_Default(
+    struct object_data *pObject, unsigned priority, float value)
+{
+    unsigned current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        /* we have priority - configure the Lighting Command */
+        if (pObject->Transition == BACNET_LIGHTING_TRANSITION_FADE) {
+            Lighting_Command_Fade_To(
+                pObject, priority, value, pObject->Default_Fade_Time);
+        } else if (pObject->Transition == BACNET_LIGHTING_TRANSITION_RAMP) {
+            Lighting_Command_Ramp_To(
+                pObject, priority, value, pObject->Default_Ramp_Rate);
+        } else {
+            Lighting_Command_Fade_To(pObject, priority, value, 0);
+        }
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
+{
+    unsigned current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if ((priority <= current_priority) &&
+        (Priority_Array_Active(pObject, priority - 1)) &&
+        (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+        pObject->Blink_Warn_Enable) {
+        /* The blink-warn notification shall not occur
+            if any of the following conditions occur:
+            (a) The specified priority is not the highest
+                active priority, or
+            (b) The value at the specified priority is 0.0%, or
+            (c) Blink_Warn_Enable is FALSE. */
+        lighting_command_blink_warn(
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN,
+            &pObject->Lighting_Command.Blink);
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
+{
+    unsigned current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        if ((Priority_Array_Active(pObject, priority - 1)) &&
+            (!is_float_equal(
+                Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+            pObject->Blink_Warn_Enable) {
+            /* The blink-warn notification shall not occur and
+                the value 0.0% written at the specified
+                priority immediately if any of the following
+                conditions occur:
+                (a) The specified priority is not the highest
+                    active priority, or
+                (b) The Present_Value is 0.0%, or
+                (c) Blink_Warn_Enable is FALSE. */
+            pObject->Lighting_Command.Blink.Duration =
+                pObject->Egress_Time_Seconds * 1000UL;
+            lighting_command_blink_warn(
+                &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
+                &pObject->Lighting_Command.Blink);
+            /* FIXME: writes the value 0.0% to the specified slot
+               in the priority array after a delay of Egress_Time seconds. */
+            Present_Value_Set(pObject, 0.0, priority);
+        } else {
+            /* the value 0.0% written at the specified priority immediately */
+            Present_Value_Set(pObject, 0.0, priority);
+            Lighting_Command_Transition_Default(pObject, priority, 0.0);
+        }
+    } else {
+        Present_Value_Set(pObject, 0.0, priority);
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Relinquish(struct object_data *pObject, unsigned priority)
+{
+    bool status = false;
+    uint8_t old_priority, new_priority;
+    float value;
+
+    if (pObject) {
+        old_priority = Present_Value_Priority(pObject);
+        status = Present_Value_Relinquish(pObject, priority);
+        new_priority = Present_Value_Priority(pObject);
+        if (status && (old_priority != new_priority)) {
+            value = Priority_Array_Next_Value(pObject, 0);
+            /* we have priority - configure the Lighting Command */
+            Lighting_Command_Transition_Default(pObject, new_priority, value);
+        }
+    }
+}
+
+/**
+ * @brief Set the lighting command if the priority is active
+ * @param object [in] BACnet object instance
+ * @param priority [in] BACnet priority array value 1..16
+ */
+static void
+Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
+{
+    uint8_t current_priority;
+
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (priority <= current_priority) {
+        if ((Priority_Array_Active(pObject, priority - 1)) &&
+            (!is_float_equal(
+                Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+            (is_float_equal(
+                Priority_Array_Next_Value(pObject, priority - 1), 0.0)) &&
+            pObject->Blink_Warn_Enable) {
+            /* The blink-warn notification shall not occur,
+                and the value at the specified priority shall be
+                relinquished immediately if any of the following
+                conditions occur:
+                (a) Blink_Warn_Enable is FALSE, or
+                (b) The Present_Value is 0.0%, or
+                (c) The Present_Value would not evaluate to 0.0% after
+                    the priority slot is relinquished. */
+            pObject->Lighting_Command.Blink.Duration =
+                pObject->Egress_Time_Seconds * 1000UL;
+            lighting_command_blink_warn(
+                &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
+                &pObject->Lighting_Command.Blink);
+            /* FIXME: relinquishes the value at the specified priority slot
+               after a delay of Egress_Time seconds.*/
+            Present_Value_Relinquish(pObject, priority);
+        } else {
+            /* the value at the specified priority shall be
+               relinquished immediately */
+            Lighting_Command_Relinquish(pObject, priority);
+        }
+    } else {
+        Present_Value_Relinquish(pObject, priority);
     }
 }
 
@@ -761,36 +833,6 @@ static void Lighting_Command_Step_Down_Off(
         /* we have priority - configure the Lighting Command */
         lighting_command_step(
             &pObject->Lighting_Command, operation, step_increment);
-    }
-}
-
-/**
- * @brief Set the lighting command using default values when the priority
- *  is active
- * @param object [in] BACnet object instance
- * @param priority [in] BACnet priority array value 1..16
- * @param value - floating point analog value 0.0%, 1.0%-100.0%
- */
-static void Lighting_Command_Transition_Default(
-    struct object_data *pObject, unsigned priority, float value)
-{
-    unsigned current_priority;
-
-    if (!pObject) {
-        return;
-    }
-    current_priority = Present_Value_Priority(pObject);
-    if (priority <= current_priority) {
-        /* we have priority - configure the Lighting Command */
-        if (pObject->Transition == BACNET_LIGHTING_TRANSITION_FADE) {
-            Lighting_Command_Fade_To(
-                pObject, priority, value, pObject->Default_Fade_Time);
-        } else if (pObject->Transition == BACNET_LIGHTING_TRANSITION_RAMP) {
-            Lighting_Command_Ramp_To(
-                pObject, priority, value, pObject->Default_Ramp_Rate);
-        } else {
-            Lighting_Command_Fade_To(pObject, priority, value, 0);
-        }
     }
 }
 
@@ -1094,27 +1136,18 @@ float Lighting_Output_Priority_Array_Value(
  * @param  object_instance - object-instance number of the object
  * @param  priority - priority 1..16
  *
- * @return true if priority is within range and priority-array slot is
- *  relinquished.
+ * @return true if the object exists
  */
 bool Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority)
 {
     bool status = false;
     struct object_data *pObject;
-    uint8_t old_priority, new_priority;
-    float value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        old_priority = Present_Value_Priority(pObject);
-        status = Present_Value_Relinquish(pObject, priority);
-        new_priority = Present_Value_Priority(pObject);
-        if (status && (old_priority != new_priority)) {
-            value = Priority_Array_Next_Value(pObject, 0);
-            /* we have priority - configure the Lighting Command */
-            Lighting_Command_Transition_Default(pObject, new_priority, value);
-        }
+        status = true;
+        Lighting_Command_Relinquish(pObject, priority);
     }
 
     return status;
