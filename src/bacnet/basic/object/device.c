@@ -397,7 +397,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         bacfile_create, bacfile_delete, NULL /* Timer */,
-        bacfile_Writable_Property_List },
+        BACfile_Writable_Property_List },
 #endif
     { OBJECT_SCHEDULE, Schedule_Init, Schedule_Count,
         Schedule_Index_To_Instance, Schedule_Valid_Instance,
