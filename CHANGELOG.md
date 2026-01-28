@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-01-22
+## [Unreleased] - 2026-01-28
 
 ### Security
 
@@ -32,6 +32,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added channel and timer object write-property observers in blinkt app
+  to monitor internal writes. Added vacancy timer command line argument
+  for testing initial timer object vacancy time for lights channel. (#1212)
 * Added debug prints for lighting output properties to assist in identifying
   out-of-range values. (#1211)
 * Added API to get the RGB pixel and brightness values from the blinkt
@@ -117,6 +120,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting output object lighting-commands for warn-off and
+  warn-relinquish when blink-warn notification shall not occur. (#1212)
+* Fixed timer object task to initiate a write-request at expiration. (#1212)
 * Fixed the server name in the blinkt app and removed the unnecessary
   device.c module. (#1211)
 * Fixed Channel object for Color object present-value which does not
