@@ -42,12 +42,14 @@ struct lighting_command_timer_notification {
 };
 
 /**
- * @brief Callback for the end of blink warn off and blink warn relinquish
- *  used to relinquish or set to OFF at the end of a blink
- * @param  data - Lighting Command data structure
+ * @brief Callback that manipulates the value at the specified priority slot
+    after a delay of Egress_Time seconds.
+ * @param object_instance object-instance number of the object
+ * @param operation BACnet lighting operation
+ * @param priority BACnet priority array value 1..16
  */
 typedef void (*lighting_command_blink_callback)(
-    struct bacnet_lighting_command_data *data);
+    uint32_t key, BACNET_LIGHTING_OPERATION operation, uint8_t priority);
 
 typedef struct bacnet_lighting_command_warn_data {
     /* warn */

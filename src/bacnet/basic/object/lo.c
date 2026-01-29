@@ -611,35 +611,34 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 }
 
 /**
- * @brief Callback for the end of blink warn off and blink warn relinquish
- *  used to relinquish or set to OFF at the end of a blink
- * @param  data - Lighting Command data structure
+ * @brief Callback that manipulates the value at the specified priority slot
+    after a delay of Egress_Time seconds.
+ * @param object_instance object-instance number of the object
+ * @param operation BACnet lighting operation
+ * @param priority BACnet priority array value 1..16
  */
-static void
-Lighting_Command_Blink_End(struct bacnet_lighting_command_data *data)
+static void Lighting_Command_Blink_Stop(
+    uint32_t object_instance,
+    BACNET_LIGHTING_OPERATION operation,
+    uint8_t priority)
 {
     struct object_data *pObject;
 
-    if (!data) {
-        return;
-    }
-    switch (data->Lighting_Operation) {
+    switch (operation) {
         case BACNET_LIGHTS_WARN_OFF:
             /* writes the value 0.0% to the specified priority slot
                after a delay of Egress_Time seconds. */
-            pObject = Keylist_Data(Object_List, data->Key);
+            pObject = Keylist_Data(Object_List, object_instance);
             if (pObject) {
-                (void)Present_Value_Set(pObject, 0.0, data->Blink.Priority);
-                data->Blink.Priority = 0;
+                (void)Present_Value_Set(pObject, 0.0, priority);
             }
             break;
         case BACNET_LIGHTS_WARN_RELINQUISH:
             /* relinquishes the value at the specified priority slot
                after a delay of Egress_Time seconds. */
-            pObject = Keylist_Data(Object_List, data->Key);
+            pObject = Keylist_Data(Object_List, object_instance);
             if (pObject) {
-                (void)Present_Value_Relinquish(pObject, data->Blink.Priority);
-                data->Blink.Priority = 0;
+                (void)Present_Value_Relinquish(pObject, priority);
             }
             break;
         default:
@@ -680,7 +679,7 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
                 sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
-            blink.Callback = Lighting_Command_Blink_End;
+            blink.Callback = Lighting_Command_Blink_Stop;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF, &blink);
         } else {
@@ -752,7 +751,7 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
                 sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
-            blink.Callback = Lighting_Command_Blink_End;
+            blink.Callback = Lighting_Command_Blink_Stop;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
                 &blink);

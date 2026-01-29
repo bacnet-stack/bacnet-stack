@@ -61,9 +61,23 @@ static bool is_float_equal(float x1, float x2)
     return fabs(x1 - x2) < 0.001;
 }
 
-static void test_blink_end(BACNET_LIGHTING_COMMAND_DATA *data)
+static uint32_t Test_Blink_End_Key;
+static BACNET_LIGHTING_OPERATION Test_Blink_End_Operation;
+static uint8_t Test_Blink_End_Priority;
+
+/**
+ * @brief Callback that manipulates the value at the specified priority slot
+    after a delay of Egress_Time seconds.
+ * @param object_instance object-instance number of the object
+ * @param operation BACnet lighting operation
+ * @param priority BACnet priority array value 1..16
+ */
+static void test_blink_end(
+    uint32_t key, BACNET_LIGHTING_OPERATION operation, uint8_t priority)
 {
-    data->Blink.Priority = 0;
+    Test_Blink_End_Key = key;
+    Test_Blink_End_Operation = operation;
+    Test_Blink_End_Priority = priority;
 }
 
 /**
@@ -90,6 +104,7 @@ static void test_lighting_command_blink_unit(BACNET_LIGHTING_COMMAND_DATA *data)
         /* blink warn - common */
         data->Blink.Callback = test_blink_end;
         data->Blink.Priority = 8;
+        Test_Blink_End_Priority = 0;
         /* special cases */
         if (blink->Duration == 0) {
             /* immediate */
@@ -149,7 +164,9 @@ static void test_lighting_command_blink_unit(BACNET_LIGHTING_COMMAND_DATA *data)
         }
         if (operation[i] != BACNET_LIGHTS_WARN) {
             /* callback was called */
-            zassert_equal(data->Blink.Priority, 0, NULL);
+            zassert_equal(Test_Blink_End_Priority, blink->Priority, NULL);
+            zassert_equal(Test_Blink_End_Operation, operation[i], NULL);
+            zassert_equal(Test_Blink_End_Key, data->Key, NULL);
         }
     }
 }

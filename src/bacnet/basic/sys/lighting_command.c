@@ -118,7 +118,9 @@ lighting_command_blink_stop_notify(struct bacnet_lighting_command_data *data)
             case BACNET_LIGHTS_WARN_OFF:
             case BACNET_LIGHTS_WARN_RELINQUISH:
                 if (data->Blink.Priority != 0) {
-                    data->Blink.Callback(data);
+                    data->Blink.Callback(
+                        data->Key, data->Lighting_Operation,
+                        data->Blink.Priority);
                 }
                 break;
             default:
@@ -742,7 +744,7 @@ void lighting_command_fade_to(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
@@ -766,7 +768,7 @@ void lighting_command_ramp_to(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Ramp_Rate = lighting_command_ramp_rate_clamp(ramp_rate);
@@ -794,7 +796,7 @@ void lighting_command_step(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     if (((operation == BACNET_LIGHTS_STEP_UP) ||
@@ -851,7 +853,7 @@ void lighting_command_blink_warn(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the new warning */
     data->Lighting_Operation = operation;
@@ -880,7 +882,7 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
@@ -900,7 +902,7 @@ void lighting_command_none(struct bacnet_lighting_command_data *data)
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Lighting_Operation = BACNET_LIGHTS_NONE;
@@ -917,7 +919,7 @@ void lighting_command_restore_on(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
@@ -936,7 +938,7 @@ void lighting_command_default_on(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
@@ -955,7 +957,7 @@ void lighting_command_toggle_restore(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
@@ -980,7 +982,7 @@ void lighting_command_toggle_default(
     if (!data) {
         return;
     }
-    /* cancel any warn in progress */
+    /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify(data);
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
