@@ -121,6 +121,9 @@ The git repositories are hosted at the following sites:
 ### Fixed
 
 * Fixed lighting output object lighting-commands for warn-off and
+  warn-relinquish when update at the specified priority slot
+  after an egress time delay shall occur. (#12xx)
+* Fixed lighting output object lighting-commands for warn-off and
   warn-relinquish when blink-warn notification shall not occur. (#1212)
 * Fixed timer object task to initiate a write-request at expiration. (#1212)
 * Fixed the server name in the blinkt app and removed the unnecessary
