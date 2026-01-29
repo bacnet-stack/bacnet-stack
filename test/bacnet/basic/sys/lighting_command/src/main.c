@@ -87,6 +87,10 @@ static void test_lighting_command_blink_unit(BACNET_LIGHTING_COMMAND_DATA *data)
     zassert_true(data->In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data->Max_Actual_Value), NULL);
     for (i = 0; i < ARRAY_SIZE(operation); i++) {
+        /* blink warn - common */
+        data->Blink.Callback = test_blink_end;
+        data->Blink.Priority = 8;
+        /* special cases */
         if (blink->Duration == 0) {
             /* immediate */
             lighting_command_blink_warn(data, operation[i], blink);
@@ -400,8 +404,6 @@ static void test_lighting_command_unit(void)
     zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
     zassert_true(
         is_float_equal(data.Last_On_Value, data.Min_Actual_Value), NULL);
-    /* blink warn - common */
-    data.Blink.Callback = test_blink_end;
     /* blink warn - immediate off */
     data.Blink.Interval = 0;
     data.Blink.Duration = 0;
@@ -410,7 +412,6 @@ static void test_lighting_command_unit(void)
     data.Blink.Off_Value = 0.0f;
     data.Blink.End_Value = 0.0f;
     data.Blink.Count = UINT16_MAX;
-    data.Blink.Priority = 8;
     test_lighting_command_blink_unit(&data);
     /* blink warn - off after duration */
     data.Blink.Interval = 0;
@@ -420,7 +421,6 @@ static void test_lighting_command_unit(void)
     data.Blink.Off_Value = 0.0f;
     data.Blink.End_Value = 0.0f;
     data.Blink.Count = UINT16_MAX;
-    data.Blink.Priority = 8;
     test_lighting_command_blink_unit(&data);
     /* blink warn - on/off for duration */
     data.Blink.Interval = 500;
@@ -430,7 +430,6 @@ static void test_lighting_command_unit(void)
     data.Blink.Off_Value = 0.0f;
     data.Blink.End_Value = 0.0f;
     data.Blink.Count = UINT16_MAX;
-    data.Blink.Priority = 8;
     test_lighting_command_blink_unit(&data);
 
     /* quick ramp */

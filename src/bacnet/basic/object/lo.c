@@ -612,7 +612,7 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 
 /**
  * @brief Callback for the end of blink warn off and blink warn relinquish
- *  used to reqlinsh or set to OFF at the end of a blink
+ *  used to relinquish or set to OFF at the end of a blink
  * @param  data - Lighting Command data structure
  */
 static void
@@ -656,6 +656,7 @@ static void
 Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink;
 
     if (!pObject) {
         return;
@@ -674,14 +675,14 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
                     active priority, or
                 (b) The Present_Value is 0.0%, or
                 (c) Blink_Warn_Enable is FALSE. */
-            pObject->Lighting_Command.Blink.Duration =
-                pObject->Egress_Time_Seconds * 1000UL;
-            pObject->Lighting_Command.Blink.Priority = priority;
-            pObject->Lighting_Command.Blink.Callback =
-                Lighting_Command_Blink_End;
+            memmove(
+                &blink, &pObject->Lighting_Command.Blink,
+                sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
+            blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
+            blink.Priority = priority;
+            blink.Callback = Lighting_Command_Blink_End;
             lighting_command_blink_warn(
-                &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
-                &pObject->Lighting_Command.Blink);
+                &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF, &blink);
         } else {
             /* the value 0.0% written at the specified priority immediately */
             Present_Value_Set(pObject, 0.0, priority);
@@ -725,6 +726,7 @@ static void
 Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
 {
     uint8_t current_priority;
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink;
 
     if (!pObject) {
         return;
@@ -745,14 +747,15 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
                 (b) The Present_Value is 0.0%, or
                 (c) The Present_Value would not evaluate to 0.0% after
                     the priority slot is relinquished. */
-            pObject->Lighting_Command.Blink.Duration =
-                pObject->Egress_Time_Seconds * 1000UL;
-            pObject->Lighting_Command.Blink.Priority = priority;
-            pObject->Lighting_Command.Blink.Callback =
-                Lighting_Command_Blink_End;
+            memmove(
+                &blink, &pObject->Lighting_Command.Blink,
+                sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
+            blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
+            blink.Priority = priority;
+            blink.Callback = Lighting_Command_Blink_End;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
-                &pObject->Lighting_Command.Blink);
+                &blink);
         } else {
             /* the value at the specified priority shall be
                relinquished immediately */

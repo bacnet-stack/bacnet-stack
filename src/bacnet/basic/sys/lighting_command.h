@@ -43,7 +43,7 @@ struct lighting_command_timer_notification {
 
 /**
  * @brief Callback for the end of blink warn off and blink warn relinquish
- *  used to reqlinsh or set to OFF at the end of a blink
+ *  used to relinquish or set to OFF at the end of a blink
  * @param  data - Lighting Command data structure
  */
 typedef void (*lighting_command_blink_callback)(

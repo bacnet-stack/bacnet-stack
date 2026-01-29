@@ -105,7 +105,8 @@ void lighting_command_timer_notfication_add(
 }
 
 /**
- * @brief call the lighting command tracking value callbacks
+ * @brief call the lighting command blink end callback
+ *        for WARN_OFF/WARN_RELINQUISH operations
  * @param data - dimmer data structure
  */
 static void
@@ -1016,7 +1017,8 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Blink.Count = 0;
     data->Blink.Interval = 0;
     data->Blink.Duration = 0;
-    data->Blink.Priority = 0;
+    data->Blink.State = false;
+    data->Blink.Callback = NULL;
     data->Blink.State = false;
     data->Notification_Head.next = NULL;
     data->Notification_Head.callback = NULL;
