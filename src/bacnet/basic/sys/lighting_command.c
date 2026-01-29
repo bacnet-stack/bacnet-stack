@@ -111,40 +111,19 @@ void lighting_command_timer_notfication_add(
 static void
 lighting_command_blink_notify(struct bacnet_lighting_command_data *data)
 {
-    struct lighting_command_blink_notification *head;
-
-    head = &data->Blink_Notification_Head;
-    do {
-        if (head->callback) {
-            head->callback(data);
+    if (data->Blink.Callback) {
+        /* do some checking to avoid extra callbacks */
+        switch (data->Lighting_Operation) {
+            case BACNET_LIGHTS_WARN_OFF:
+            case BACNET_LIGHTS_WARN_RELINQUISH:
+                if (data->Blink.Priority != 0) {
+                    data->Blink.Callback(data);
+                }
+                break;
+            default:
+                break;
         }
-        head = head->next;
-    } while (head);
-}
-
-/**
- * @brief Add a Lighting Command notification callback
- * @param data - dimmer data structure
- * @param cb - notification callback to be added
- */
-void lighting_command_blink_notfication_add(
-    struct bacnet_lighting_command_data *data,
-    struct lighting_command_blink_notification *notification)
-{
-    struct lighting_command_blink_notification *head;
-
-    head = &data->Blink_Notification_Head;
-    do {
-        if (head->next == notification) {
-            /* already here! */
-            break;
-        } else if (!head->next) {
-            /* first available free node */
-            head->next = notification;
-            break;
-        }
-        head = head->next;
-    } while (head);
+    }
 }
 
 /**
@@ -612,10 +591,10 @@ static void lighting_command_blink_handler(
     }
     if (data->Blink.Duration == 0) {
         /* 'end' operation */
+        lighting_command_blink_notify(data);
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
         target_value = data->Blink.End_Value;
-        lighting_command_blink_notify(data);
     } else if (data->Blink.Target_Interval == 0) {
         /* only 'on' level */
         target_value = data->Blink.On_Value;
@@ -644,6 +623,7 @@ static void lighting_command_blink_handler(
                 }
                 if (data->Blink.Count == 0) {
                     /* 'end' operation */
+                    lighting_command_blink_notify(data);
                     data->In_Progress = BACNET_LIGHTING_IDLE;
                     data->Lighting_Operation = BACNET_LIGHTS_STOP;
                     target_value = data->Blink.End_Value;
@@ -877,6 +857,7 @@ void lighting_command_blink_warn(
     data->Blink.Target_Interval = blink->Interval;
     data->Blink.Duration = blink->Duration;
     data->Blink.Priority = blink->Priority;
+    data->Blink.Callback = blink->Callback;
     data->Blink.Count = blink->Count;
     data->Blink.On_Value = blink->On_Value;
     data->Blink.Off_Value = blink->Off_Value;

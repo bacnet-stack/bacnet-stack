@@ -61,8 +61,6 @@ static OS_Keylist Object_List;
 /* callback for present value writes */
 static lighting_command_tracking_value_callback
     Lighting_Command_Tracking_Value_Callback;
-static struct lighting_command_blink_notification
-    Lighting_Command_Blink_Callback;
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
@@ -622,6 +620,9 @@ Lighting_Command_Blink_End(struct bacnet_lighting_command_data *data)
 {
     struct object_data *pObject;
 
+    if (!data) {
+        return;
+    }
     switch (data->Lighting_Operation) {
         case BACNET_LIGHTS_WARN_OFF:
             /* writes the value 0.0% to the specified priority slot
@@ -676,13 +677,11 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
             pObject->Lighting_Command.Blink.Duration =
                 pObject->Egress_Time_Seconds * 1000UL;
             pObject->Lighting_Command.Blink.Priority = priority;
+            pObject->Lighting_Command.Blink.Callback =
+                Lighting_Command_Blink_End;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
                 &pObject->Lighting_Command.Blink);
-            Lighting_Command_Blink_Callback.callback =
-                Lighting_Command_Blink_End;
-            lighting_command_blink_notfication_add(
-                &pObject->Lighting_Command, &Lighting_Command_Blink_Callback);
         } else {
             /* the value 0.0% written at the specified priority immediately */
             Present_Value_Set(pObject, 0.0, priority);
@@ -749,13 +748,11 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
             pObject->Lighting_Command.Blink.Duration =
                 pObject->Egress_Time_Seconds * 1000UL;
             pObject->Lighting_Command.Blink.Priority = priority;
+            pObject->Lighting_Command.Blink.Callback =
+                Lighting_Command_Blink_End;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
                 &pObject->Lighting_Command.Blink);
-            Lighting_Command_Blink_Callback.callback =
-                Lighting_Command_Blink_End;
-            lighting_command_blink_notfication_add(
-                &pObject->Lighting_Command, &Lighting_Command_Blink_Callback);
         } else {
             /* the value at the specified priority shall be
                relinquished immediately */
