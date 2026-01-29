@@ -41,11 +41,24 @@ struct lighting_command_timer_notification {
     lighting_command_timer_callback callback;
 };
 
+/**
+ * @brief Callback for the end of blink warn off and blink warn relinquish
+ *  used to reqlinsh or set to OFF at the end of a blink
+ * @param  data - Lighting Command data structure
+ */
+typedef void (*lighting_command_blink_callback)(
+    struct bacnet_lighting_command_data *data);
+struct lighting_command_blink_notification {
+    struct lighting_command_blink_notification *next;
+    lighting_command_blink_callback callback;
+};
+
 typedef struct bacnet_lighting_command_warn_data {
     /* warn */
     float On_Value;
     float Off_Value;
     float End_Value;
+    uint8_t Priority;
     uint16_t Target_Interval;
     /* internal tracking */
     uint16_t Interval;
@@ -78,6 +91,7 @@ typedef struct bacnet_lighting_command_data {
     uint32_t Key;
     struct lighting_command_notification Notification_Head;
     struct lighting_command_timer_notification Timer_Notification_Head;
+    struct lighting_command_blink_notification Blink_Notification_Head;
 } BACNET_LIGHTING_COMMAND_DATA;
 
 #ifdef __cplusplus
@@ -150,6 +164,10 @@ BACNET_STACK_EXPORT
 void lighting_command_timer_notfication_add(
     struct bacnet_lighting_command_data *data,
     struct lighting_command_timer_notification *notification);
+BACNET_STACK_EXPORT
+void lighting_command_blink_notfication_add(
+    struct bacnet_lighting_command_data *data,
+    struct lighting_command_blink_notification *notification);
 
 #ifdef __cplusplus
 }
