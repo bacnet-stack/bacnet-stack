@@ -611,6 +611,42 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 }
 
 /**
+ * @brief Callback that manipulates the value at the specified priority slot
+    after a delay of Egress_Time seconds.
+ * @param object_instance object-instance number of the object
+ * @param operation BACnet lighting operation
+ * @param priority BACnet priority array value 1..16
+ */
+static void Lighting_Command_Blink_Stop(
+    uint32_t object_instance,
+    BACNET_LIGHTING_OPERATION operation,
+    uint8_t priority)
+{
+    struct object_data *pObject;
+
+    switch (operation) {
+        case BACNET_LIGHTS_WARN_OFF:
+            /* writes the value 0.0% to the specified priority slot
+               after a delay of Egress_Time seconds. */
+            pObject = Keylist_Data(Object_List, object_instance);
+            if (pObject) {
+                (void)Present_Value_Set(pObject, 0.0, priority);
+            }
+            break;
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+            /* relinquishes the value at the specified priority slot
+               after a delay of Egress_Time seconds. */
+            pObject = Keylist_Data(Object_List, object_instance);
+            if (pObject) {
+                (void)Present_Value_Relinquish(pObject, priority);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+/**
  * @brief Set the lighting command if the priority is active
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
@@ -619,6 +655,7 @@ static void
 Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink;
 
     if (!pObject) {
         return;
@@ -637,14 +674,14 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
                     active priority, or
                 (b) The Present_Value is 0.0%, or
                 (c) Blink_Warn_Enable is FALSE. */
-            pObject->Lighting_Command.Blink.Duration =
-                pObject->Egress_Time_Seconds * 1000UL;
+            memmove(
+                &blink, &pObject->Lighting_Command.Blink,
+                sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
+            blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
+            blink.Priority = priority;
+            blink.Callback = Lighting_Command_Blink_Stop;
             lighting_command_blink_warn(
-                &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
-                &pObject->Lighting_Command.Blink);
-            /* FIXME: writes the value 0.0% to the specified slot
-               in the priority array after a delay of Egress_Time seconds. */
-            Present_Value_Set(pObject, 0.0, priority);
+                &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF, &blink);
         } else {
             /* the value 0.0% written at the specified priority immediately */
             Present_Value_Set(pObject, 0.0, priority);
@@ -688,6 +725,7 @@ static void
 Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
 {
     uint8_t current_priority;
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink;
 
     if (!pObject) {
         return;
@@ -708,14 +746,15 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
                 (b) The Present_Value is 0.0%, or
                 (c) The Present_Value would not evaluate to 0.0% after
                     the priority slot is relinquished. */
-            pObject->Lighting_Command.Blink.Duration =
-                pObject->Egress_Time_Seconds * 1000UL;
+            memmove(
+                &blink, &pObject->Lighting_Command.Blink,
+                sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
+            blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
+            blink.Priority = priority;
+            blink.Callback = Lighting_Command_Blink_Stop;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
-                &pObject->Lighting_Command.Blink);
-            /* FIXME: relinquishes the value at the specified priority slot
-               after a delay of Egress_Time seconds.*/
-            Present_Value_Relinquish(pObject, priority);
+                &blink);
         } else {
             /* the value at the specified priority shall be
                relinquished immediately */
