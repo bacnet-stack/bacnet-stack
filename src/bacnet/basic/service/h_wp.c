@@ -70,7 +70,7 @@ handler_write_property_relinquish_bypass(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- *   - the WriteProperty failes and error code is an Abort
+ *   - the WriteProperty fails and error code is an Abort
  * - a Reject if the WriteProperty fails and error code is a Reject
  * - an ACK if Device_Write_Property() succeeds
  * - an Error if Device_Write_Property() fails and error code is an Error
