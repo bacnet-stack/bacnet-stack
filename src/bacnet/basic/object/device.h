@@ -306,6 +306,11 @@ BACNET_STACK_EXPORT
 bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
+void Device_Start_Backup(void);
+BACNET_STACK_EXPORT
+void Device_Start_Restore(void);
+
+BACNET_STACK_EXPORT
 unsigned Device_Count(void);
 BACNET_STACK_EXPORT
 uint32_t Device_Index_To_Instance(unsigned index);
