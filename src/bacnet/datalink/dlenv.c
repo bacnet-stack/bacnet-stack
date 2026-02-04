@@ -167,7 +167,7 @@ static int bbmd_register_as_foreign_device(void)
     }
     if (BBMD_Address_Valid) {
         if (Datalink_Debug) {
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Registering with BBMD at %u.%u.%u.%u:%u for %u seconds\n",
                 (unsigned)BBMD_Address.address[0],
@@ -199,7 +199,7 @@ static int bbmd_register_as_foreign_device(void)
                     bip_get_addr_by_name(pEnv, &BBMD_Table_Entry.dest_address);
                 if (entry_number == 1) {
                     if (Datalink_Debug) {
-                        fprintf(
+                        debug_fprintf(
                             stderr, "BBMD 1 address overridden %s=%s!\n",
                             bbmd_env, pEnv);
                     }
@@ -218,7 +218,7 @@ static int bbmd_register_as_foreign_device(void)
                     bdt_entry_port = strtol(pEnv, NULL, 0);
                     if (entry_number == 1) {
                         if (Datalink_Debug) {
-                            fprintf(
+                            debug_fprintf(
                                 stderr, "BBMD 1 port overridden %s=%s!\n",
                                 bbmd_env, pEnv);
                         }
@@ -248,7 +248,7 @@ static int bbmd_register_as_foreign_device(void)
                 bvlc_broadcast_distribution_table_entry_append(
                     bdt_table, &BBMD_Table_Entry);
                 if (Datalink_Debug) {
-                    fprintf(
+                    debug_fprintf(
                         stderr, "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n",
                         entry_number,
                         (unsigned)BBMD_Table_Entry.dest_address.address[0],
@@ -311,7 +311,7 @@ static int bbmd6_register_as_foreign_device(void)
     pEnv = getenv("BACNET_BBMD6_ADDRESS");
     if (bvlc6_address_from_ascii(&bip6_addr, pEnv)) {
         if (Datalink_Debug) {
-            fprintf(
+            debug_fprintf(
                 stderr, "Registering with BBMD6 at %s:0x%04x for %u seconds\n",
                 pEnv, (unsigned)bip6_port, (unsigned)BBMD_TTL_Seconds);
         }
@@ -417,7 +417,7 @@ static void dlenv_network_port_bip_init(uint32_t instance)
     bip_get_addr(&addr);
     prefix = bip_get_subnet_prefix();
     if (Datalink_Debug) {
-        fprintf(
+        debug_fprintf(
             stderr, "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
             (unsigned long)instance, (unsigned)addr.address[0],
             (unsigned)addr.address[1], (unsigned)addr.address[2],
@@ -492,7 +492,7 @@ void dlenv_network_port_mstp_init(uint32_t instance)
         mac_address = strtol(pEnv, NULL, 0);
     }
     if (Datalink_Debug) {
-        fprintf(
+        debug_fprintf(
             stderr,
             "Network Port[%lu] mode=MSTP bitrate=%ld mac[0]=%ld "
             "max_info_frames=%ld, max_master=%ld\n",
@@ -880,7 +880,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             if (Datalink_Debug) {
 #ifdef BACDL_MSTP
                 dlmstp_fill_statistics(&statistics);
-                fprintf(
+                debug_fprintf(
                     stderr,
                     "MSTP: Frames Rx:%u/%u/%u Tx:%u PDU Rx:%u Tx:%u "
                     "Lost:%u BadCRC:%u PFM:%u\n",
@@ -1091,7 +1091,7 @@ void dlenv_init(void)
     /* === INIT - Initialize the Datalink Here === */
     pEnv = getenv("BACNET_IFACE");
     if (Datalink_Debug) {
-        fprintf(stderr, "BACNET_IFACE=%s\n", pEnv ? pEnv : "none");
+        debug_fprintf(stderr, "BACNET_IFACE=%s\n", pEnv ? pEnv : "none");
     }
     if (!datalink_init(pEnv)) {
         exit(1);

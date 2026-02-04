@@ -1466,12 +1466,10 @@ int bacnet_null_context_decode(
 
 /**
  * @brief Reverse the bits of the given byte.
- *
  * @param in_byte  Byte to reverse.
- *
  * @return Byte with reversed bit order.
  */
-static uint8_t byte_reverse_bits(uint8_t in_byte)
+uint8_t bacnet_byte_reverse_bits(uint8_t in_byte)
 {
     uint8_t out_byte = 0;
 
@@ -1534,7 +1532,8 @@ int decode_bitstring(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        bit_string, (uint8_t)i, byte_reverse_bits(apdu[len++]));
+                        bit_string, (uint8_t)i,
+                        bacnet_byte_reverse_bits(apdu[len++]));
                 }
                 /* Erase the remaining unused bits. */
                 unused_bits = (uint8_t)(apdu[0] & 0x07);
@@ -1581,7 +1580,7 @@ int bacnet_bitstring_decode(
                 /* Copy the bytes in reversed bit order. */
                 for (i = 0; i < bytes_used; i++) {
                     bitstring_set_octet(
-                        value, (uint8_t)i, byte_reverse_bits(apdu[len]));
+                        value, (uint8_t)i, bacnet_byte_reverse_bits(apdu[len]));
                     len++;
                 }
                 /* Erase the remaining unused bits. */
@@ -1775,7 +1774,8 @@ int encode_bitstring(uint8_t *apdu, const BACNET_BIT_STRING *bit_string)
         len++;
         for (i = 0; i < used_bytes; i++) {
             if (apdu) {
-                apdu[len] = byte_reverse_bits(bitstring_octet(bit_string, i));
+                apdu[len] =
+                    bacnet_byte_reverse_bits(bitstring_octet(bit_string, i));
             }
             len++;
         }
@@ -1847,6 +1847,40 @@ int encode_context_bitstring(
 }
 
 /**
+ * @brief Encode the BACnet Object Identifier Value
+ * as defined in clause 20.2.14 Encoding of an Object Identifier Value
+ * @param object_type - object type to be encoded
+ * @param instance - object instance to be encoded
+ * @return the 32-bit object identifier value
+ */
+uint32_t
+bacnet_object_id_to_value(BACNET_OBJECT_TYPE object_type, uint32_t instance)
+{
+    return (((uint32_t)object_type & BACNET_MAX_OBJECT)
+            << BACNET_INSTANCE_BITS) |
+        (instance & BACNET_MAX_INSTANCE);
+}
+
+/**
+ * @brief Decode the BACnet Object Identifier Value
+ * as defined in clause 20.2.14 Encoding of an Object Identifier Value
+ * @param value - the 32-bit object identifier value to be decoded
+ * @param object_type - pointer to store decoded object type
+ * @param instance - object instance to be decoded
+ */
+void bacnet_object_id_from_value(
+    uint32_t value, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
+{
+    if (object_type) {
+        *object_type = (BACNET_OBJECT_TYPE)((
+            (value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
+    }
+    if (instance) {
+        *instance = (value & BACNET_MAX_INSTANCE);
+    }
+}
+
+/**
  * @brief Decode the BACnet Object Identifier Value
  * as defined in clause 20.2.14 Encoding of an Object Identifier Value
  *
@@ -1870,13 +1904,7 @@ int decode_object_id_safe(
     if (len_value_type == len) {
         if (apdu) {
             /* value is meaningless if apdu was NULL */
-            if (object_type) {
-                *object_type = (BACNET_OBJECT_TYPE)((
-                    (value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
-            }
-            if (instance) {
-                *instance = (value & BACNET_MAX_INSTANCE);
-            }
+            bacnet_object_id_from_value(value, object_type, instance);
         }
     }
 
@@ -2123,12 +2151,10 @@ int decode_context_object_id(
 int encode_bacnet_object_id(
     uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t instance)
 {
-    uint32_t value = 0;
+    uint32_t value;
     int len;
 
-    value =
-        (((uint32_t)object_type & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) |
-        (instance & BACNET_MAX_INSTANCE);
+    value = bacnet_object_id_to_value(object_type, instance);
     len = encode_unsigned32(apdu, value);
 
     return len;
@@ -2254,6 +2280,36 @@ int encode_application_octet_string(
     }
 
     return len;
+}
+
+/**
+ * @brief Encode the BACnet Octet String value as application tagged
+ *  from clause 20.2.8 Encoding of an Octet String Value
+ *  and 20.2.1 General Rules for Encoding BACnet Tags
+ * @param apdu - buffer to hold the bytes
+ * @param buffer - the octet string to be encoded
+ * @param buffer_size - the size of the octet string to be encoded
+ * @return returns the number of apdu bytes encoded
+ */
+int encode_application_octet_string_buffer(
+    uint8_t *apdu, const uint8_t *buffer, size_t buffer_size)
+{
+    int apdu_len = 0, len = 0, i = 0;
+
+    len = encode_tag(
+        apdu, BACNET_APPLICATION_TAG_OCTET_STRING, false, buffer_size);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    for (i = 0; i < buffer_size; i++) {
+        if (apdu && buffer) {
+            apdu[i] = buffer[i];
+        }
+    }
+    apdu_len += buffer_size;
+
+    return apdu_len;
 }
 
 /**

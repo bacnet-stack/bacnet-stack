@@ -484,12 +484,24 @@ bool bip6_init(char *ifname)
         bvlc6_address_set(
             &BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
             BIP6_MULTICAST_GROUP_ID);
+        BIP6_Broadcast_Addr.port = BIP6_Addr.port;
     }
     /* assumes that the driver has already been initialized */
     BIP6_Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     if (BIP6_Socket < 0) {
         return false;
     }
+
+    if (BIP6_Socket_Scope_Id > 0) {
+        unsigned int idx = BIP6_Socket_Scope_Id;
+        /* Explicitly set the interface for OUTGOING multicast packets */
+        status = setsockopt(
+            BIP6_Socket, IPPROTO_IPV6, IPV6_MULTICAST_IF, &idx, sizeof(idx));
+        if (status < 0) {
+            debug_perror("BIP6: setsockopt(IPV6_MULTICAST_IF)");
+        }
+    }
+
     /* Allow us to use the same socket for sending and receiving */
     /* This makes sure that the src port is correct when sending */
     sockopt = 1;

@@ -1037,10 +1037,11 @@ static void datalink_init(void)
     }
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
-        BACNET_IP6_ADDRESS addr;
+        BACNET_IP6_ADDRESS addr = { 0 };
         bvlc6_address_set(
-            &addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0, 0,
+            &addr, (uint16_t)strtol(pEnv, NULL, 16), 0, 0, 0, 0, 0, 0,
             BIP6_MULTICAST_GROUP_ID);
+        addr.port = bip6_get_port();
         bip6_set_broadcast_addr(&addr);
     }
     if (!bip6_init(getenv("BACNET_BIP6_IFACE"))) {

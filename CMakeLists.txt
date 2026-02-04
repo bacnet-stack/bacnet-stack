@@ -105,7 +105,7 @@ option(
   "build with uci"
   OFF)
 
-set(BACNET_PROTOCOL_REVISION 24)
+set(BACNET_PROTOCOL_REVISION 28)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -162,6 +162,17 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   if (APPLE)
     # Apple defines UINT64_MAX with ULL suffix. This is not C90 compliant.
     add_compile_options(-Wno-long-long)
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    # These warnings orginate from libdispatch
+    # ISO C restricts enumerator values to range of 'int'
+    # DISPATCH_ENUM_API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0))    = ~1ull
+    add_compile_options(-Wno-pedantic)
+    # These warnings originate from libdispatch headers,
+    # which rely on Clang extensions that Apple Clang supports,
+    # but FreeBSD LLVM Clang does not.
+    add_compile_options(-Wno-nullability-extension)
   endif()
 
   # Should be fixed in a future.
@@ -679,6 +690,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/rpm.h
   $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:src/bacnet/segmentack.c>
   $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:src/bacnet/segmentack.h>
+  src/bacnet/shed_level.c
+  src/bacnet/shed_level.h
   src/bacnet/timer_value.c
   src/bacnet/timer_value.h
   src/bacnet/timestamp.c
@@ -845,6 +858,7 @@ elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
+  add_compile_definitions(USE_MACH_TIME)
   include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
@@ -890,6 +904,18 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   include_directories(ports/posix)
+  link_directories(/usr/lib)
+  link_libraries(c)
+  link_libraries(m)
+  FIND_PATH(DISPATCH_INCLUDE dispatch/dispatch.h)
+  FIND_LIBRARY(DISPATCH_LIBRARIES NAMES dispatch)
+  if(NOT DISPATCH_INCLUDE OR NOT DISPATCH_LIBRARIES)
+      message(FATAL_ERROR "BACNET: dispatch.h header file not found
+      install libdispatch with 'pkg install libdispatch'")
+  else()
+      include_directories(${DISPATCH_INCLUDE})
+      link_libraries(${DISPATCH_LIBRARIES})
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
@@ -1097,6 +1123,7 @@ if(BACNET_STACK_BUILD_APPS)
     if(NOT LIBCONFIG_LIBRARIES)
       message(WARNING "BACNET: Will not build apps/router as libconfig not found")
     else()
+      message(STATUS "BACNET: Will build apps/router with libconfig")
       add_executable(
         router
         ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c

@@ -36,7 +36,11 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/assigned_access_rights.c
+    ${SRC_DIR}/bacnet/authentication_factor.c
+    ${SRC_DIR}/bacnet/authentication_factor_format.c
     ${SRC_DIR}/bacnet/bacaction.c
+    ${SRC_DIR}/bacnet/bacaudit.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -51,8 +55,15 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bactimevalue.c
     ${SRC_DIR}/bacnet/basic/binding/address.c
     ${SRC_DIR}/bacnet/basic/object/acc.c
+    ${SRC_DIR}/bacnet/basic/object/access_credential.c
+    ${SRC_DIR}/bacnet/basic/object/access_door.c
+    ${SRC_DIR}/bacnet/basic/object/access_point.c
+    ${SRC_DIR}/bacnet/basic/object/access_rights.c
+    ${SRC_DIR}/bacnet/basic/object/access_user.c
+    ${SRC_DIR}/bacnet/basic/object/access_zone.c
     ${SRC_DIR}/bacnet/basic/object/ai.c
     ${SRC_DIR}/bacnet/basic/object/ao.c
+    ${SRC_DIR}/bacnet/basic/object/auditlog.c
     ${SRC_DIR}/bacnet/basic/object/av.c
     ${SRC_DIR}/bacnet/basic/object/bi.c
     ${SRC_DIR}/bacnet/basic/object/bitstring_value.c
@@ -64,6 +75,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/color_object.c
     ${SRC_DIR}/bacnet/basic/object/color_temperature.c
     ${SRC_DIR}/bacnet/basic/object/command.c
+    ${SRC_DIR}/bacnet/basic/object/credential_data_input.c
     ${SRC_DIR}/bacnet/basic/object/csv.c
     ${SRC_DIR}/bacnet/basic/object/iv.c
     ${SRC_DIR}/bacnet/basic/object/lc.c
@@ -92,7 +104,10 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/cov.c
+    ${SRC_DIR}/bacnet/create_object.c
+    ${SRC_DIR}/bacnet/credential_authentication_factor.c
     ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/delete_object.c
     ${SRC_DIR}/bacnet/dcc.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
@@ -102,6 +117,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/property.c
     ${SRC_DIR}/bacnet/reject.c
+    ${SRC_DIR}/bacnet/shed_level.c
     ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c

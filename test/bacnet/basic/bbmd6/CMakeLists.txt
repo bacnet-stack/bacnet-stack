@@ -35,9 +35,11 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacint.c
-    ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/iam.c
+    ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c

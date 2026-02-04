@@ -52,6 +52,33 @@ static const int32_t Schedule_Properties_Optional[] = {
 
 static const int32_t Schedule_Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_OUT_OF_SERVICE,
+    PROP_WEEKLY_SCHEDULE,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
+    PROP_EFFECTIVE_PERIOD,
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    PROP_EXCEPTION_SCHEDULE,
+#endif
+    -1
+};
+
+/**
+ * Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ *
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void Schedule_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -65,6 +92,20 @@ void Schedule_Property_Lists(
     }
     if (pProprietary) {
         *pProprietary = Schedule_Properties_Proprietary;
+    }
+}
+
+/**
+ * @brief Get the list of writable properties for a Schedule object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Schedule_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
     }
 }
 

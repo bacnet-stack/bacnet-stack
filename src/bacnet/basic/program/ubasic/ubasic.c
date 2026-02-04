@@ -837,7 +837,9 @@ static int16_t sstr(
     *(data->stringstack + bp) = 0;
     bp++;
 
-    sprintf((char *)(data->stringstack + bp), "%ld", (long)j);
+    snprintf(
+        (char *)(data->stringstack + bp), sizeof(data->stringstack) - bp, "%ld",
+        (long)j);
 
     data->freebufptr = bp + strlen((char *)(data->stringstack + bp)) + 1;
 
@@ -886,7 +888,7 @@ static int16_t sfactor(struct ubasic_data *data)
 {
     /* string form of factor */
     int16_t r = 0, s = 0;
-    char tmpstring[UBASIC_STRINGLEN_MAX];
+    char tmpstring[UBASIC_STRINGLEN_MAX] = { 0 };
     UBASIC_VARIABLE_TYPE i, j;
     struct ubasic_tokenizer *tree = &data->tree;
 
@@ -898,7 +900,7 @@ static int16_t sfactor(struct ubasic_data *data)
             break;
 
         case UBASIC_TOKENIZER_STRING:
-            tokenizer_string(tree, tmpstring, UBASIC_STRINGLEN_MAX);
+            tokenizer_string(tree, tmpstring, sizeof(tmpstring));
             r = scpy(data, tmpstring);
             accept(data, UBASIC_TOKENIZER_STRING);
             break;
@@ -1572,13 +1574,13 @@ static uint8_t jump_label(struct ubasic_data *data, char *label)
 
 static void gosub_statement(struct ubasic_data *data)
 {
-    char tmpstring[UBASIC_STRINGLEN_MAX];
+    char tmplabel[UBASIC_LABEL_LEN_MAX] = { 0 };
     struct ubasic_tokenizer *tree = &data->tree;
 
     accept(data, UBASIC_TOKENIZER_GOSUB);
     if (tokenizer_token(tree) == UBASIC_TOKENIZER_LABEL) {
         /* copy label */
-        tokenizer_label(tree, tmpstring, UBASIC_STRINGLEN_MAX);
+        tokenizer_label(tree, tmplabel, sizeof(tmplabel));
         tokenizer_next(tree);
         /* check for the end of line */
         while (tokenizer_token(tree) == UBASIC_TOKENIZER_EOL) {
@@ -1588,7 +1590,7 @@ static void gosub_statement(struct ubasic_data *data)
             data->gosub_stack[data->gosub_stack_ptr] =
                 tokenizer_save_offset(tree);
             data->gosub_stack_ptr++;
-            jump_label(data, tmpstring);
+            jump_label(data, tmplabel);
             return;
         }
     }
@@ -1616,15 +1618,15 @@ static void return_statement(struct ubasic_data *data)
 
 static void goto_statement(struct ubasic_data *data)
 {
-    char tmpstring[UBASIC_STRINGLEN_MAX];
+    char tmplabel[UBASIC_LABEL_LEN_MAX] = { 0 };
     struct ubasic_tokenizer *tree = &data->tree;
 
     accept(data, UBASIC_TOKENIZER_GOTO);
 
     if (tokenizer_token(tree) == UBASIC_TOKENIZER_LABEL) {
-        tokenizer_label(tree, tmpstring, sizeof(tmpstring));
+        tokenizer_label(tree, tmplabel, sizeof(tmplabel));
         tokenizer_next(tree);
-        jump_label(data, tmpstring);
+        jump_label(data, tmplabel);
         return;
     }
 
@@ -1860,7 +1862,7 @@ static void bac_write_statement(struct ubasic_data *data)
 static void print_statement(struct ubasic_data *data, uint8_t println)
 {
     uint8_t print_how = 0; /*0-xp, 1-hex, 2-oct, 3-dec, 4-bin*/
-    char tmpstring[UBASIC_STRINGLEN_MAX];
+    char tmpstring[UBASIC_STRINGLEN_MAX] = { 0 };
     struct ubasic_tokenizer *tree = &data->tree;
 
     /* string additions */
@@ -1879,30 +1881,37 @@ static void print_statement(struct ubasic_data *data, uint8_t println)
         }
 #if defined(UBASIC_VARIABLE_TYPE_STRING)
         if (tokenizer_token(tree) == UBASIC_TOKENIZER_STRING) {
-            tokenizer_string(tree, tmpstring, UBASIC_STRINGLEN_MAX);
+            tokenizer_string(tree, tmpstring, sizeof(tmpstring));
             tokenizer_next(tree);
         } else
 #endif
             if (tokenizer_token(tree) == UBASIC_TOKENIZER_COMMA) {
-            sprintf(tmpstring, " ");
+            snprintf(tmpstring, sizeof(tmpstring), " ");
             tokenizer_next(tree);
         } else {
 #if defined(UBASIC_VARIABLE_TYPE_STRING)
             if (tokenizer_stringlookahead(tree)) {
-                sprintf(tmpstring, "%s", strptr(data, sexpr(data)));
+                snprintf(
+                    tmpstring, sizeof(tmpstring), "%s",
+                    strptr(data, sexpr(data)));
             } else
 #endif
             {
                 if (print_how == 1) {
-                    sprintf(tmpstring, "%lx", (unsigned long)relation(data));
+                    snprintf(
+                        tmpstring, sizeof(tmpstring), "%lx",
+                        (unsigned long)relation(data));
                 } else if (print_how == 2) {
-                    sprintf(tmpstring, "%ld", (long)relation(data));
+                    snprintf(
+                        tmpstring, sizeof(tmpstring), "%ld",
+                        (long)relation(data));
                 } else {
 #if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
                     fixedpt_str(relation(data), tmpstring, FIXEDPT_FBITS / 3);
 #else
-                    sprintf(tmpstring, "%ld", relation(data));
+                    snprintf(
+                        tmpstring, sizeof(tmpstring), "%ld", relation(data));
 #endif
                 }
             }
@@ -2407,7 +2416,8 @@ static void serial_getline_completed(struct ubasic_data *data)
 #if defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_24_8) || \
     defined(UBASIC_VARIABLE_TYPE_FLOAT_AS_FIXEDPT_22_10)
                 r = str_fixedpt(
-                    data->statement, UBASIC_STRINGLEN_MAX, FIXEDPT_FBITS >> 1);
+                    data->statement, sizeof(data->statement),
+                    FIXEDPT_FBITS >> 1);
 #else
                 r = atoi(data->statement);
 #endif
@@ -3090,9 +3100,9 @@ void ubasic_set_stringvariable(
 #if defined(UBASIC_DEBUG_STRINGVARIABLES)
         serial_write_string(data, "set_stringvar:");
         char msg[12];
-        sprintf(msg, "[%d]", stringvariables[svarnum]);
+        snprintf(msg, sizeof(msg), "[%d]", data->stringvariables[svarnum]);
         serial_write_string(data, msg);
-        serial_write_string(data, strptr(stringvariables[svarnum]));
+        serial_write_string(data, strptr(data, data->stringvariables[svarnum]));
         serial_write_string(data, "\n");
 #endif
     }
@@ -3106,9 +3116,9 @@ int16_t ubasic_get_stringvariable(struct ubasic_data *data, uint8_t varnum)
 #if defined(UBASIC_DEBUG_STRINGVARIABLES)
         serial_write_string(data, "get_stringvar:");
         char msg[12];
-        sprintf(msg, "[%d]", stringvariables[varnum]);
+        snprintf(msg, sizeof(msg), "[%d]", data->stringvariables[varnum]);
         serial_write_string(data, msg);
-        serial_write_string(data, strptr(stringvariables[varnum]));
+        serial_write_string(data, strptr(data, data->stringvariables[varnum]));
         serial_write_string(data, "\n");
 #endif
 
@@ -3117,6 +3127,31 @@ int16_t ubasic_get_stringvariable(struct ubasic_data *data, uint8_t varnum)
 
     return (-1);
 }
+
+/**
+ * @brief Get pointer to string variable value.
+ * @param data ubasic data structure.
+ * @param variable string variable 'a' through 'z' or 'A' through 'Z'.
+ * @return Pointer to the string value, or NULL if variable is invalid.
+ */
+const char *ubasic_ptr_stringvariable(struct ubasic_data *data, char variable)
+{
+    uint8_t varnum;
+
+    if (isupper(variable)) {
+        varnum = variable - 'A';
+    } else if (islower(variable)) {
+        varnum = variable - 'a';
+    } else {
+        return NULL;
+    }
+    if (varnum < UBASIC_STRING_VAR_LEN_MAX) {
+        return strptr(data, data->stringvariables[varnum]);
+    }
+
+    return NULL;
+}
+
 /* */
 /* end of string additions */
 /* */

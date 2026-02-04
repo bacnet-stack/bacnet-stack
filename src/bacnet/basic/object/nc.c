@@ -50,6 +50,15 @@ static const int32_t Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRIORITY, PROP_ACK_REQUIRED, PROP_RECIPIENT_LIST, -1
+};
+
 void Notification_Class_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -65,6 +74,20 @@ void Notification_Class_Property_Lists(
         *pProprietary = Properties_Proprietary;
     }
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Notification Class object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Notification_Class_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 void Notification_Class_Init(void)

@@ -20,7 +20,7 @@
  * @param max - maximum value to clamp within
  * @return value clamped between min and max inclusive
  */
-static double clamp(double d, double min, double max)
+double color_rgb_clamp(double d, double min, double max)
 {
     if (isnan(d)) {
         return min;
@@ -91,8 +91,8 @@ static void color_rgb_to_xy_gamma_correction(
     x = X / (X + Y + Z);
     y = Y / (X + Y + Z);
 
-    x = clamp(x, 0.0f, 1.0f);
-    y = clamp(y, 0.0f, 1.0f);
+    x = color_rgb_clamp(x, 0.0f, 1.0f);
+    y = color_rgb_clamp(y, 0.0f, 1.0f);
 
     /* copy to return values if possible */
     if (x_coordinate) {
@@ -106,7 +106,7 @@ static void color_rgb_to_xy_gamma_correction(
         The Y value indicates the brightness
         of the converted color. */
     Y = Y * 255.0f;
-    Y = clamp(Y, 0.0f, 255.0f);
+    Y = color_rgb_clamp(Y, 0.0f, 255.0f);
     if (brightness) {
         *brightness = (uint8_t)Y;
     }
@@ -211,11 +211,11 @@ static void color_rgb_from_xy_gamma_correction(
         The rgb values from the above formulas are
         between 0.0 and 1.0. */
     r = r * 255.0f;
-    r = clamp(r, 0.0f, 255.0f);
+    r = color_rgb_clamp(r, 0.0f, 255.0f);
     g = g * 255;
-    g = clamp(g, 0.0f, 255.0f);
+    g = color_rgb_clamp(g, 0.0f, 255.0f);
     b = b * 255;
-    b = clamp(b, 0.0f, 255.0f);
+    b = color_rgb_clamp(b, 0.0f, 255.0f);
     /* copy to return value if possible */
     if (red) {
         *red = (uint8_t)r;
@@ -491,6 +491,33 @@ unsigned color_rgb_from_ascii(
 }
 
 /**
+ * @brief Convert CSS color name to CIE xy coordinates and brightness
+ * @param x_coordinate - return x of CIE xy 0.0..1.0
+ * @param y_coordinate - return y of CIE xy 0.0..1.0
+ * @param brightness - return brightness of the CIE xy color 0..255
+ * @param name - CSS color name from W3C
+ * @return true if color name was found, false if not found
+ */
+bool color_rgb_xy_from_ascii(
+    float *x_coordinate,
+    float *y_coordinate,
+    uint8_t *brightness,
+    const char *name)
+{
+    bool status = false;
+    uint8_t r = 0, g = 0, b = 0;
+    unsigned index;
+
+    index = color_rgb_from_ascii(&r, &g, &b, name);
+    if (index < color_rgb_count()) {
+        color_rgb_to_xy(r, g, b, x_coordinate, y_coordinate, brightness);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Convert sRGB from CIE xy and brightness
  * @param red - return R value of sRGB
  * @param green - return G value of sRGB
@@ -561,7 +588,7 @@ void color_rgb_from_temperature(
     } else {
         red = (float)(temperature_kelvin - 60);
         red = 329.698727446 * pow(red, -0.1332047592);
-        red = clamp(red, 0.0, 255.0);
+        red = color_rgb_clamp(red, 0.0, 255.0);
     }
     /* Calculate Green */
     if (temperature_kelvin <= 66) {
@@ -572,7 +599,7 @@ void color_rgb_from_temperature(
         green = (float)(temperature_kelvin - 60);
         green = 288.1221695283 * pow(green, -0.0755148492);
     }
-    green = clamp(green, 0.0, 255.0);
+    green = color_rgb_clamp(green, 0.0, 255.0);
     /* Calculate Blue */
     if (temperature_kelvin >= 66) {
         /* Blue values above 6600 K */
@@ -583,7 +610,7 @@ void color_rgb_from_temperature(
     } else {
         blue = (float)(temperature_kelvin - 10);
         blue = 138.5177312231 * log(blue) - 305.0447927307;
-        blue = clamp(blue, 0, 255);
+        blue = color_rgb_clamp(blue, 0, 255);
     }
     if (r) {
         *r = (uint8_t)red;

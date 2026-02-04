@@ -71,6 +71,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/property.c
+    ${SRC_DIR}/bacnet/shed_level.c
     ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
@@ -84,6 +85,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/basic/sys/filename.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bvlc6.c

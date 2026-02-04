@@ -235,7 +235,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Device_Writable_Property_List },
 #if defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT)
     { OBJECT_ANALOG_INPUT,
       Analog_Input_Init,
@@ -256,7 +257,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Input_Create,
       Analog_Input_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Analog_Input_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT)
     { OBJECT_ANALOG_OUTPUT,
@@ -278,7 +280,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Output_Create,
       Analog_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Analog_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE)
     { OBJECT_ANALOG_VALUE,
@@ -300,7 +303,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Value_Create,
       Analog_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Analog_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG)
     { OBJECT_AUDIT_LOG,
@@ -322,7 +326,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Audit_Log_Create,
       Audit_Log_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Audit_Log_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT)
     { OBJECT_BINARY_INPUT,
@@ -344,7 +349,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Input_Create,
       Binary_Input_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Input_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT)
     { OBJECT_BINARY_OUTPUT,
@@ -366,7 +372,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Output_Create,
       Binary_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE)
     { OBJECT_BINARY_VALUE,
@@ -388,7 +395,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Value_Create,
       Binary_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_INPUT)
     { OBJECT_MULTI_STATE_INPUT,
@@ -410,7 +418,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Multistate_Input_Create,
       Multistate_Input_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Multistate_Input_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_OUTPUT)
     { OBJECT_MULTI_STATE_OUTPUT,
@@ -432,7 +441,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Multistate_Output_Create,
       Multistate_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Multistate_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_VALUE)
     { OBJECT_MULTI_STATE_VALUE,
@@ -454,7 +464,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Multistate_Value_Create,
       Multistate_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Multistate_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT)
     { OBJECT_NETWORK_PORT,
@@ -476,7 +487,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Network_Port_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CALENDAR)
     { OBJECT_CALENDAR,
@@ -498,7 +510,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Calendar_Create,
       Calendar_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Calendar_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_INTEGER_VALUE)
     { OBJECT_INTEGER_VALUE,
@@ -520,7 +533,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Integer_Value_Create,
       Integer_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Integer_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT)
     { OBJECT_LIFE_SAFETY_POINT,
@@ -542,7 +556,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Life_Safety_Point_Create,
       Life_Safety_Point_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Life_Safety_Point_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE)
     { OBJECT_LIFE_SAFETY_ZONE,
@@ -564,7 +579,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Life_Safety_Zone_Create,
       Life_Safety_Zone_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Life_Safety_Zone_Writable_Property_List },
 #endif
 
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL)
@@ -587,7 +603,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Load_Control_Create,
       Load_Control_Delete,
-      Load_Control_Timer },
+      Load_Control_Timer,
+      Load_Control_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT)
     { OBJECT_LIGHTING_OUTPUT,
@@ -609,7 +626,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Lighting_Output_Create,
       Lighting_Output_Delete,
-      Lighting_Output_Timer },
+      Lighting_Output_Timer,
+      Lighting_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CHANNEL)
     { OBJECT_CHANNEL,
@@ -631,7 +649,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Channel_Create,
       Channel_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Channel_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT)
     { OBJECT_BINARY_LIGHTING_OUTPUT,
@@ -653,7 +672,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Lighting_Output_Create,
       Binary_Lighting_Output_Delete,
-      Binary_Lighting_Output_Timer },
+      Binary_Lighting_Output_Timer,
+      Binary_Lighting_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_COLOR)
     { OBJECT_COLOR,
@@ -675,7 +695,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Color_Create,
       Color_Delete,
-      Color_Timer },
+      Color_Timer,
+      Color_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_COLOR_TEMPERATURE)
     { OBJECT_COLOR_TEMPERATURE,
@@ -697,7 +718,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Color_Temperature_Create,
       Color_Temperature_Delete,
-      Color_Temperature_Timer },
+      Color_Temperature_Timer,
+      Color_Temperature_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_FILE)
     { OBJECT_FILE,
@@ -719,7 +741,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       bacfile_create,
       bacfile_delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      BACfile_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW)
     { OBJECT_STRUCTURED_VIEW,
@@ -741,7 +764,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Structured_View_Create,
       Structured_View_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      NULL /* Writable_Property_List */ },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE)
     { OBJECT_BITSTRING_VALUE,
@@ -763,7 +787,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       BitString_Value_Create,
       BitString_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      BitString_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE)
     { OBJECT_CHARACTERSTRING_VALUE,
@@ -785,7 +810,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       CharacterString_Value_Create,
       CharacterString_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      CharacterString_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE)
     { OBJECT_TIME_VALUE,
@@ -807,7 +833,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Time_Value_Create,
       Time_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Time_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_TIMER)
     { OBJECT_TIMER,
@@ -829,7 +856,8 @@ static object_functions_t My_Object_Table[] = {
       Timer_Remove_List_Element,
       Timer_Create,
       Timer_Delete,
-      Timer_Task },
+      Timer_Task,
+      Timer_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LOOP)
     { OBJECT_LOOP,
@@ -851,7 +879,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Loop_Create,
       Loop_Delete,
-      Loop_Timer },
+      Loop_Timer,
+      Loop_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM)
     { OBJECT_BITSTRING_VALUE,
@@ -873,7 +902,8 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Program_Create,
       Program_Delete,
-      Program_Timer },
+      Program_Timer,
+      Program_Writable_Property_List },
 #endif
     {
         MAX_BACNET_OBJECT_TYPE,
@@ -895,7 +925,8 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Remove_List_Element */,
         NULL /* Create */,
         NULL /* Delete */,
-        NULL /* Timer */
+        NULL /* Timer */,
+        NULL /* Writable_Property_List */
     }
 };
 
@@ -994,6 +1025,31 @@ void Device_Objects_Property_List(
     return;
 }
 
+/**
+ * @brief Get the Writeable Property List for an object type
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param properties - pointer to the list of writable properties
+ * @return The number of properties in the writable property list
+ */
+uint32_t Device_Objects_Writable_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **properties)
+{
+    uint32_t count = 0;
+    struct object_functions *pObject = NULL;
+
+    (void)object_instance;
+    pObject = Device_Object_Functions_Find(object_type);
+    if ((pObject != NULL) && (pObject->Object_Writable_Property_List != NULL)) {
+        pObject->Object_Writable_Property_List(object_instance, properties);
+        count = property_list_count(*properties);
+    }
+
+    return count;
+}
+
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Device_Properties_Required[] = {
     /* List of Required properties in this object */
@@ -1051,6 +1107,35 @@ static const int32_t Device_Properties_Proprietary[] = {
     -1
 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_APDU_TIMEOUT,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_SYSTEM_STATUS,
+    PROP_OBJECT_NAME,
+    PROP_LOCATION,
+    PROP_DESCRIPTION,
+    PROP_MODEL_NAME,
+#if defined(BACNET_TIME_MASTER)
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+#endif
+    PROP_UTC_OFFSET,
+#if defined(BACDL_MSTP)
+    PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+#endif
+    PROP_TIME_OF_DEVICE_RESTART,
+    -1
+};
+
 /**
  * @brief Returns the list of required, optional, and proprietary properties
  *       for the Device object.
@@ -1078,6 +1163,20 @@ void Device_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Device object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Device_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -2763,51 +2862,26 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
 {
     bool status = false;
     struct object_functions *pObject = NULL;
-    uint32_t object_instance;
+    bool object_exists = false;
+    bool object_supported = false;
 
     pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
-        if (!pObject->Object_Create) {
-            /*  The device supports the object type and may have
-                sufficient space, but does not support the creation of the
-                object for some other reason.*/
-            data->error_class = ERROR_CLASS_OBJECT;
-            data->error_code = ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED;
-        } else if (
-            pObject->Object_Valid_Instance &&
+        if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(data->object_instance)) {
-            /* The object being created already exists */
-            data->error_class = ERROR_CLASS_OBJECT;
-            data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
-        } else {
-            if (data->list_of_initial_values) {
-                /* FIXME: add support for writing to list of initial values */
-                /*  A property specified by the Property_Identifier in the
-                    List of Initial Values does not support initialization
-                    during the CreateObject service. */
-                data->first_failed_element_number = 1;
-                data->error_class = ERROR_CLASS_PROPERTY;
-                data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                /* and the object shall not be created */
-            } else {
-                object_instance = pObject->Object_Create(data->object_instance);
-                if (object_instance == BACNET_MAX_INSTANCE) {
-                    /* The device cannot allocate the space needed
-                    for the new object.*/
-                    data->error_class = ERROR_CLASS_RESOURCES;
-                    data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                } else {
-                    /* required by ACK */
-                    data->object_instance = object_instance;
-                    Device_Inc_Database_Revision();
-                    status = true;
-                }
-            }
+            object_exists = true;
         }
+        object_supported = true;
+        status = create_object_process(
+            data, object_supported, object_exists, pObject->Object_Create,
+            pObject->Object_Delete, pObject->Object_Write_Property);
     } else {
-        /* The device does not support the specified object type. */
-        data->error_class = ERROR_CLASS_OBJECT;
-        data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+        /* fill in the error values */
+        status = create_object_process(
+            data, object_supported, object_exists, NULL, NULL, NULL);
+    }
+    if (status) {
+        Device_Inc_Database_Revision();
     }
 
     return status;
@@ -2919,8 +2993,18 @@ void Device_Init(object_functions_t *object_table)
     characterstring_init_ansi(&My_Object_Name, Device_Name_Default);
 #if (BACNET_PROTOCOL_REVISION >= 14)
 #ifdef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
+    /* link WriteProperty to Channel object for references */
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_LOOP
+    /* link ReadProperty and WriteProperty to Loop object for references */
+    Loop_Read_Property_Internal_Callback_Set(Device_Read_Property);
+    Loop_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
+    /* link WriteProperty to Timer object for references */
+    Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
 }
 

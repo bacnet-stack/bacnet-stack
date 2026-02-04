@@ -41,12 +41,23 @@ static const int32_t Properties_Required[] = {
 };
 
 static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_DOOR_STATUS,      PROP_LOCK_STATUS,
     PROP_SECURED_STATUS,   PROP_DOOR_UNLOCK_DELAY_TIME,
     PROP_DOOR_ALARM_STATE, -1
 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE,   PROP_DOOR_STATUS,
+    PROP_LOCK_STATUS,   PROP_DOOR_ALARM_STATE, -1
+};
 
 void Access_Door_Property_Lists(
     const int32_t **pRequired,
@@ -64,6 +75,20 @@ void Access_Door_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for an Access Door object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Access_Door_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 void Access_Door_Init(void)

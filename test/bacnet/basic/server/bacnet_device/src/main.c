@@ -15,6 +15,14 @@
  * @{
  */
 
+static BACNET_WRITE_PROPERTY_DATA Test_Write_Property_Store_Data;
+bool Test_Write_Property_Return_Value;
+static bool Test_Write_Property_Store(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    Test_Write_Property_Store_Data = *wp_data;
+    return Test_Write_Property_Return_Value;
+}
+
 /**
  * @brief Test ReadProperty API
  */
@@ -27,6 +35,7 @@ static void test_Device_Data_Sharing(void)
     const int32_t skip_fail_property_list[] = { -1 };
 
     Device_Init(NULL);
+    Device_Write_Property_Store_Callback_Set(Test_Write_Property_Store);
     status = Device_Set_Object_Instance_Number(instance);
     zassert_true(status, NULL);
     test_instance = Device_Object_Instance_Number();
@@ -69,6 +78,9 @@ static void testDevice(void)
     const char *name_string = NULL;
     unsigned count = 0, test_count = 0;
     int len = 0, time_diff = 0;
+    unsigned i, writable;
+    const int32_t *properties;
+    struct special_property_list_t property_list;
 
     Device_Init(NULL);
     status = Device_Set_Object_Instance_Number(0);
@@ -331,6 +343,12 @@ static void testDevice(void)
     zassert_equal(time_diff, -60, NULL);
     status = Device_Daylight_Savings_Status();
     zassert_false(status, NULL);
+    name_string = Device_Application_Software_Version();
+    zassert_not_null(name_string, NULL);
+    zassert_true(strlen(name_string) > 0, NULL);
+    status = Device_Set_Application_Software_Version(
+        name_string, strlen(name_string));
+    zassert_true(status, NULL);
 
     /* Add/Remove List Elements */
     list_data.object_type = OBJECT_DEVICE;
@@ -376,7 +394,7 @@ static void testDevice(void)
     count = Device_Object_List_Count();
     create_data.object_type = OBJECT_ANALOG_VALUE;
     create_data.object_instance = BACNET_MAX_INSTANCE;
-    create_data.list_of_initial_values = NULL;
+    create_data.application_data_len = 0;
     create_data.error_class = ERROR_CLASS_DEVICE;
     create_data.error_code = ERROR_CODE_SUCCESS;
     create_data.first_failed_element_number = 0;
@@ -410,7 +428,7 @@ static void testDevice(void)
     /* known object without create */
     create_data.object_type = OBJECT_DEVICE;
     create_data.object_instance = BACNET_MAX_INSTANCE;
-    create_data.list_of_initial_values = NULL;
+    create_data.application_data_len = 0;
     create_data.error_class = ERROR_CLASS_DEVICE;
     create_data.error_code = ERROR_CODE_SUCCESS;
     create_data.first_failed_element_number = 0;
@@ -424,6 +442,27 @@ static void testDevice(void)
     zassert_false(status, NULL);
     /* object timers */
     Device_Timer(1000);
+    /* property lists */
+    count = Device_Object_List_Count();
+    for (i = 1; i <= count; i++) {
+        bool valid = false;
+
+        valid =
+            Device_Object_List_Identifier(i, &object_type, &object_instance);
+        zassert_true(valid, "object-list[%u] is not valid", i);
+        valid = Device_Valid_Object_Id(object_type, object_instance);
+        zassert_true(valid, NULL);
+        Device_Objects_Writable_Property_List(
+            object_type, object_instance, &properties);
+        zassert_not_null(properties, NULL);
+        writable = property_list_count(properties);
+        zassert_true(
+            writable > 0, "%s-%u has no writable properties",
+            bactext_object_type_name(object_type), object_instance);
+        Device_Objects_Property_List(
+            object_type, object_instance, &property_list);
+        zassert_true(property_list.Required.count > 0, NULL);
+    }
 }
 /**
  * @}

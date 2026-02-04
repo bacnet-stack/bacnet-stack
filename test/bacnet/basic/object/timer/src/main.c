@@ -26,6 +26,20 @@ static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return true;
 }
 
+static struct timer_write_property_notification Write_Property_Notification;
+static BACNET_WRITE_PROPERTY_DATA Write_Property_Notification_Data;
+static uint32_t Write_Property_Notification_Instance;
+static bool Write_Property_Notification_Status;
+static void Timer_Write_Property_Notification_Callback(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    Write_Property_Notification_Instance = instance;
+    Write_Property_Notification_Status = status;
+    memcpy(
+        &Write_Property_Notification_Data, wp_data,
+        sizeof(BACNET_WRITE_PROPERTY_DATA));
+}
+
 /**
  * @brief Test
  */
@@ -544,6 +558,15 @@ static void test_Timer_Operation_Transition_Default(
         Write_Property_Internal_Data.application_data,
         Write_Property_Internal_Data.application_data_len, &test_value);
     zassert_true(len > 0, "len=%d", len);
+    zassert_equal(Write_Property_Notification_Instance, instance, NULL);
+    zassert_equal(Write_Property_Notification_Status, true, NULL);
+    zassert_equal(
+        Write_Property_Notification_Data.object_property, PROP_PRESENT_VALUE,
+        NULL);
+    len = bacapp_decode_application_data(
+        Write_Property_Notification_Data.application_data,
+        Write_Property_Notification_Data.application_data_len, &test_value);
+    zassert_true(len > 0, "len=%d", len);
     value = Timer_State_Change_Value(instance, test_transition);
     zassert_equal(test_value.tag, value->tag, NULL);
     zassert_equal(test_value.type.Enumerated, value->type.Enumerated, NULL);
@@ -576,6 +599,10 @@ static void test_Timer_Operation(void)
     datetime_timesync(&bdatetime.date, &bdatetime.time, false);
     /* configure the reference members and the write property values */
     Timer_Write_Property_Internal_Callback_Set(Write_Property_Internal);
+    Write_Property_Notification.callback =
+        Timer_Write_Property_Notification_Callback;
+    Write_Property_Notification.next = NULL;
+    Timer_Write_Property_Notification_Add(&Write_Property_Notification);
     members = Timer_Reference_List_Member_Capacity(instance);
     for (i = 0; i < members; i++) {
         member.deviceIdentifier.type = OBJECT_DEVICE;

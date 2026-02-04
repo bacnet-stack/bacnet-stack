@@ -40,6 +40,8 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LOOP;
 /* handling for manipulated and reference properties */
 static write_property_function Write_Property_Internal_Callback;
 static read_property_function Read_Property_Internal_Callback;
+/* Write Property notification callbacks for logging or other purposes */
+static struct loop_write_property_notification Write_Property_Notification_Head;
 
 struct object_data {
     /* internal variables for PID calculations */
@@ -50,7 +52,7 @@ struct object_data {
     uint32_t Update_Interval;
     float Present_Value;
     BACNET_ENGINEERING_UNITS Output_Units;
-    BACNET_OBJECT_PROPERTY_REFERENCE Manipulated_Property_Reference;
+    BACNET_OBJECT_PROPERTY_REFERENCE Manipulated_Variable_Reference;
     BACNET_ENGINEERING_UNITS Controlled_Variable_Units;
     float Controlled_Variable_Value;
     BACNET_OBJECT_PROPERTY_REFERENCE Controlled_Variable_Reference;
@@ -122,6 +124,36 @@ static const int32_t *Properties_Proprietary_Extended;
 static write_property_function Write_Property_Proprietary_Callback;
 static read_property_function Read_Property_Proprietary_Callback;
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    PROP_PRESENT_VALUE,
+    PROP_OUT_OF_SERVICE,
+    PROP_ACTION,
+    PROP_UPDATE_INTERVAL,
+    PROP_OUTPUT_UNITS,
+    PROP_CONTROLLED_VARIABLE_VALUE,
+    PROP_CONTROLLED_VARIABLE_UNITS,
+    PROP_PROPORTIONAL_CONSTANT,
+    PROP_PROPORTIONAL_CONSTANT_UNITS,
+    PROP_INTEGRAL_CONSTANT,
+    PROP_INTEGRAL_CONSTANT_UNITS,
+    PROP_DERIVATIVE_CONSTANT,
+    PROP_DERIVATIVE_CONSTANT_UNITS,
+    PROP_BIAS,
+    PROP_SETPOINT,
+    PROP_MINIMUM_OUTPUT,
+    PROP_MAXIMUM_OUTPUT,
+    PROP_PRIORITY_FOR_WRITING,
+    PROP_MANIPULATED_VARIABLE_REFERENCE,
+    PROP_CONTROLLED_VARIABLE_REFERENCE,
+    PROP_SETPOINT_REFERENCE,
+    PROP_COV_INCREMENT,
+    -1
+};
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -153,6 +185,20 @@ void Loop_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Loop object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Loop_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -652,11 +698,18 @@ Object_Property_Reference_Empty(const BACNET_OBJECT_PROPERTY_REFERENCE *value)
  * @param  value - object property reference
  * @return true if the reference is empty
  */
-static void
-Object_Property_Reference_Set_Empty(BACNET_OBJECT_PROPERTY_REFERENCE *value)
+static void Object_Property_Reference_Set(
+    BACNET_OBJECT_PROPERTY_REFERENCE *value,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID property_id,
+    BACNET_ARRAY_INDEX array_index)
 {
     if (value) {
-        value->object_identifier.instance = BACNET_MAX_INSTANCE;
+        value->object_identifier.type = object_type;
+        value->object_identifier.instance = object_instance;
+        value->property_identifier = property_id;
+        value->property_array_index = array_index;
     }
 }
 
@@ -679,7 +732,7 @@ bool Loop_Manipulated_Variable_Reference(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_object_property_reference_copy(
-            value, &pObject->Manipulated_Property_Reference);
+            value, &pObject->Manipulated_Variable_Reference);
     }
 
     return status;
@@ -705,7 +758,7 @@ bool Loop_Manipulated_Variable_Reference_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_object_property_reference_copy(
-            &pObject->Manipulated_Property_Reference, value);
+            &pObject->Manipulated_Variable_Reference, value);
     }
 
     return status;
@@ -1425,13 +1478,12 @@ bool Loop_COV_Increment_Set(uint32_t object_instance, float value)
 int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
-    BACNET_UNSIGNED_INTEGER unsigned_value;
-    BACNET_OBJECT_PROPERTY_REFERENCE reference_value;
-    float real_value;
+    BACNET_BIT_STRING bit_string = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_OBJECT_PROPERTY_REFERENCE reference_value = { 0 };
+    float real_value = 0.0f;
     uint8_t *apdu = NULL;
-
     uint32_t enum_value = 0;
     bool state = false;
 
@@ -2011,22 +2063,73 @@ void Loop_Write_Property_Internal_Callback_Set(write_property_function cb)
 }
 
 /**
+ * @brief Add a Loop notification callback
+ * @param notification - pointer to the notification structure
+ */
+void Loop_Write_Property_Notification_Add(
+    struct loop_write_property_notification *notification)
+{
+    struct loop_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Calls all registered Loop write property notification callbacks
+ * @param instance - object instance number
+ * @param status - write property status
+ * @param wp_data - write property data
+ */
+void Loop_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    struct loop_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(instance, status, wp_data);
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
  * @brief For a given object, writes to the manipulated-variable-reference
  * @param pObject - object instance data
+ * @param object_instance - object-instance number of the object
  * @param value - application value
  * @param priority - BACnet priority 0=none,1..16
  * @return  true if values are within range and value is written.
  */
 static bool Loop_Write_Manipulated_Variable(
-    struct object_data *pObject, float value, uint8_t priority)
+    struct object_data *pObject,
+    uint32_t object_instance,
+    float value,
+    uint8_t priority)
 {
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_OBJECT_PROPERTY_REFERENCE *member;
     bool status = false;
 
     if (pObject) {
-        member = &pObject->Manipulated_Property_Reference;
-        if (!Object_Property_Reference_Empty(member)) {
+        member = &pObject->Manipulated_Variable_Reference;
+        if ((member->object_identifier.type == OBJECT_LOOP) &&
+            (member->object_identifier.instance == object_instance)) {
+            /* self - perform simulation by setting the controlled variable */
+            pObject->Controlled_Variable_Value = value;
+        } else if (!Object_Property_Reference_Empty(member)) {
             wp_data.object_type = member->object_identifier.type;
             wp_data.object_instance = member->object_identifier.instance;
             wp_data.object_property = member->property_identifier;
@@ -2037,11 +2140,15 @@ static bool Loop_Write_Manipulated_Variable(
             wp_data.application_data_len =
                 encode_application_real(wp_data.application_data, value);
             if (Write_Property_Internal_Callback) {
-                status = Write_Property_Internal_Callback(&wp_data);
+                status = write_property_bacnet_array_valid(&wp_data);
                 if (status) {
-                    wp_data.error_code = ERROR_CODE_SUCCESS;
+                    status = Write_Property_Internal_Callback(&wp_data);
+                    if (status) {
+                        wp_data.error_code = ERROR_CODE_SUCCESS;
+                    }
                 }
             }
+            Loop_Write_Property_Notify(object_instance, status, &wp_data);
         }
     }
 
@@ -2146,7 +2253,7 @@ void Loop_Timer(uint32_t object_instance, uint16_t elapsed_milliseconds)
                     respond to changes made to these properties,
                     as if those changes had been made by the algorithm.*/
                 Loop_Write_Manipulated_Variable(
-                    pObject, pObject->Present_Value,
+                    pObject, object_instance, pObject->Present_Value,
                     pObject->Priority_For_Writing);
             }
         }
@@ -2193,19 +2300,28 @@ uint32_t Loop_Create(uint32_t object_instance)
         return BACNET_MAX_INSTANCE;
     }
     /* only need to set property values that are non-zero */
+    pObject->Maximum_Output = 10.0f;
+    pObject->Minimum_Output = 0.0f;
     pObject->Output_Units = UNITS_NO_UNITS;
     pObject->Controlled_Variable_Units = UNITS_NO_UNITS;
+    pObject->Proportional_Constant = 1.0f;
     pObject->Proportional_Constant_Units = UNITS_NO_UNITS;
+    pObject->Integral_Constant = 0.2f;
     pObject->Integral_Constant_Units = UNITS_NO_UNITS;
+    pObject->Derivative_Constant = 0.05f;
     pObject->Derivative_Constant_Units = UNITS_NO_UNITS;
     pObject->Action = ACTION_DIRECT;
-    pObject->Maximum_Output = FLT_MAX;
-    pObject->Minimum_Output = FLT_MIN;
-    Object_Property_Reference_Set_Empty(
-        &pObject->Manipulated_Property_Reference);
-    Object_Property_Reference_Set_Empty(
-        &pObject->Controlled_Variable_Reference);
-    Object_Property_Reference_Set_Empty(&pObject->Setpoint_Reference);
+    pObject->Update_Interval = 1000;
+    /* set the references to self */
+    Object_Property_Reference_Set(
+        &pObject->Manipulated_Variable_Reference, OBJECT_LOOP, object_instance,
+        PROP_CONTROLLED_VARIABLE_VALUE, BACNET_ARRAY_ALL);
+    Object_Property_Reference_Set(
+        &pObject->Controlled_Variable_Reference, OBJECT_LOOP, object_instance,
+        PROP_CONTROLLED_VARIABLE_VALUE, BACNET_ARRAY_ALL);
+    Object_Property_Reference_Set(
+        &pObject->Setpoint_Reference, OBJECT_LOOP, object_instance,
+        PROP_SETPOINT, BACNET_ARRAY_ALL);
     pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
     pObject->COV_Increment = 1.0f;
     pObject->Description = NULL;

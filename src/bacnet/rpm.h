@@ -87,6 +87,8 @@ BACNET_STACK_EXPORT
 int rpm_encode_apdu_object_end(uint8_t *apdu);
 
 BACNET_STACK_EXPORT
+void bacnet_read_access_data_init(BACNET_READ_ACCESS_DATA *data, size_t count);
+BACNET_STACK_EXPORT
 int read_property_multiple_request_encode(
     uint8_t *apdu, BACNET_READ_ACCESS_DATA *data);
 BACNET_STACK_EXPORT

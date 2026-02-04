@@ -132,7 +132,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #elif !defined(BACDL_TEST) /* Multiple, none or custom datalink */
 #include "bacnet/npdu.h"
 
-#define MAX_HEADER (8)
+#define MAX_HEADER (17) /* ETHERNET_HEADER_MAX */
 #define MAX_MPDU (MAX_HEADER + MAX_PDU)
 
 #ifdef __cplusplus

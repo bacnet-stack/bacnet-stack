@@ -18,6 +18,21 @@
 #include "bacnet/rp.h"
 #include "bacnet/list_element.h"
 
+/**
+ * @brief Callback for tracking the loop writes for logging or other purposes
+ * @param  instance - loop object instance number
+ * @param  status - true if write was successful
+ * @param  wp_data - pointer to the write property data structure
+ */
+typedef void (*loop_write_property_callback)(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data);
+/* linked list structure for notifications */
+struct loop_write_property_notification;
+struct loop_write_property_notification {
+    struct loop_write_property_notification *next;
+    loop_write_property_callback callback;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -27,6 +42,10 @@ void Loop_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
     const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Loop_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 void Loop_Proprietary_Property_List_Set(const int32_t *pProprietary);
 BACNET_STACK_EXPORT
@@ -191,6 +210,12 @@ BACNET_STACK_EXPORT
 void Loop_Write_Property_Internal_Callback_Set(write_property_function cb);
 BACNET_STACK_EXPORT
 void Loop_Read_Property_Internal_Callback_Set(read_property_function cb);
+BACNET_STACK_EXPORT
+void Loop_Write_Property_Notification_Add(
+    struct loop_write_property_notification *notification);
+BACNET_STACK_EXPORT
+void Loop_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

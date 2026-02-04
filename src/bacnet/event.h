@@ -62,7 +62,11 @@ typedef enum {
 #endif
 
 #ifndef BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
+#if defined(INTRINSIC_REPORTING)
+#define BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED 1
+#else
 #define BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED 0
+#endif
 #endif
 
 #ifndef BACNET_EVENT_CHANGE_OF_DISCRETE_VALUE_ENABLED
@@ -470,6 +474,10 @@ int uevent_notify_send(
     uint8_t *buffer,
     BACNET_EVENT_NOTIFICATION_DATA *data,
     BACNET_ADDRESS *dest);
+
+BACNET_STACK_EXPORT
+bool event_notify_parse(
+    BACNET_EVENT_NOTIFICATION_DATA *data, int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

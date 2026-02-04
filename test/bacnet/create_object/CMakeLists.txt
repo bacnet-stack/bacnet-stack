@@ -53,6 +53,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/shed_level.c
     ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/memcopy.c
@@ -63,6 +65,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
+    ${SRC_DIR}/bacnet/wp.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

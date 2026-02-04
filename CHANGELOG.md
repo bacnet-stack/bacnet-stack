@@ -12,17 +12,112 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2025-11-15
+## [Unreleased] - 2026-02-02
 
 ### Security
+
+* Secured npdu_is_expected_reply() function where the MS/TP reply matcher
+  could have an out-of-bounds read. (#1178)
+* Secured ubasic interpreter tokenizer_string() and tokenizer_label()
+  off-by-one buffer overflow when processing string literals longer
+  than the buffer limit.
+  Fixed ubasic potential string buffer overflows by using snprintf.
+  Fixed ubasic label strings to use UBASIC_LABEL_LEN_MAX as buffer limit.
+  Fixed ubasic string variables to initialize with zeros.
+  Fixed compile errors when UBASIC_DEBUG_STRINGVARIABLES is defined.
+  Added ubasic string variables user accessor API and unit testing. (#1196)
+* Secured BACnet file object pathname received from BACnet AtomicWriteFile
+  or ReadFile service used without validation which was vulnerable to
+  directory traversal attacks. (#1197)
+
 ### Added
 
 * Added segmentation support for server devices for some services.
   Configure BACNET_SEGMENTATION_ENABLED=1 to include in the library,
   and adjust BACNET_MAX_SEGMENTS_ACCEPTED for maximum number of segments. (#974)
 
+
+* Added channel and timer object write-property observers in blinkt app
+  to monitor internal writes. Added vacancy timer command line argument
+  for testing initial timer object vacancy time for lights channel. (#1212)
+* Added debug prints for lighting output properties to assist in identifying
+  out-of-range values. (#1211)
+* Added API to get the RGB pixel and brightness values from the blinkt
+  interface. Added API to the color-RGB library to convert from ASCII
+  CSS color name to X,Y and brightness. Added a default color name command
+  line option. Set the color and brightness at startup. Changed the Blinkt
+  example app to use the basic-server framework. (#1210)
+* Added enumeration text lookup for BACnetAuthenticationStatus,
+  BACnetAuthorizationMode, BACnetAccessCredentialDisable,
+  BACnetAccessCredentialDisableReason, BACnetAccessUserType,
+  BACnetAccessZoneOccupancyState, BACnetWriteStatus, BACnetIPMode,
+  BACnetDoorValue, BACnetMaintenance, BACnetEscalatorFault,
+  BACnetEscalatorMode, BACnetEscalatorOperationDirection,
+  BACnetBackupState, BACnetSecurityLevel, BACnetLiftCarDirection,
+  BACnetLiftCarDoorCommand, BACnetLiftCarDriveStatus, BACnetLiftCarMode,
+  BACnetLiftFault, BACnetLiftGroupMode, BACnetAuditLevel, BACnetAuditOperation,
+  BACnetSCHubConnectorState, BACnetSCConnectionState, BACnetNodeRelationship,
+  BACnetAction, BACnetFileAccessMethod, BACnetLockStatus,
+  BACnetDoorAlarmState, BACnetDoorStatus, BACnetDoorSecuredStatus,
+  and BACnetAccessEvent. (#1209)
+* Added a new API for writable property lists across all the basic example
+  object types, preparing for the introduction of a Writable_Property_List
+  property in every object in a future BACnet standard revision.
+  The lists can be used by backup and restore feature to automatically
+  choose the object property values in the backup that can be restored
+  via internal WriteProperty directly from BACnet CreateObject services with
+  List of Initial Values. Updated existing device objects to include
+  these writable property lists. (#1206)
+* Added post-write notifications for channel, timer, and loop objects. (#1204)
+* Added device WriteProperty callbacks for Timer object in example device
+  objects implementations. (#1203)
+* Added file path name checking for AtomicReadFile and AtomicWriteFile
+  example applications. Prohibits use of relative and absolute file paths
+  when BACNET_FILE_PATH_RESTRICTED is defined non-zero. (#1197)
+* Added API and optional properties to basic load control object example
+  Refactored BACnetShedLevel encoding, decoding, and printing into separate
+  file. Added BACnetShedLevel validation testing. (#1187)
+* Added API for Analog_Input_Notification_Class, Analog_Input_Event_Enable,
+  and Analog_Input_Notify_Type. (#1184)
+* Added API and optional properties to basic lighting output object example
+  for power and feedback value. (#1185)
+* Added properties to the Channel object write member value coercion
+  minimal properties supported. (#1176)
+* Added Send_x_Address() API to ReadPropertyMultiple, WritePropertyMultiple,
+  and SubscribeSOV services primarily for interacting with MS/TP slaves (#1174)
+* Added npdu_set_i_am_router_to_network_handler() API. Fixed sending to
+  broadcast address in npdu_send_what_is_network_number() API.  (#1169)
+* Added BACnetRecipient and BACnetAddressBinding codecs for EPICS application.
+  The implementation includes full encode/decode, ASCII conversion,
+  comparison, and copy functions for both data types, along with
+  comprehensive test coverage and supporting string utility functions.
+  Integrated the new types into the application data framework with
+  application tag assignments. (#1163)
+* Added library specific string manipulation utilities including strcmp,
+  strncmp, and snprintf with offset functions. (#1163)(#1164)
+* Added default option to bactext name functions so that NULL can be
+  returned when a name does not exist. (#1160)
+* Added library specific ltrim, rtrim, and trim string functions. (#1159)
+* Added library specific itoa, ltoa, ultoa, dtoa, utoa, and general
+  print format with ASCII return functions. (#1157)
+* Added library specific string-to functions similar to stdlib.
+  Added library specific string-to functions for BACnet primitives. (#1151)
+
 ### Changed
 
+* Changed the default BACnet protocol revision to 28 to enable usage of
+  special lighting output values. (#1211)
+* Changed bacnet_strtof and bacnet_strtold functions to use strtod to
+  improve compatibility with C89 standards while ensuring proper type
+  casting and range checking. (#1207)
+* Changed RGB color clamp function to avoid Zephyr RTOS name collisions. (#1201)
+* Changed the load control object AbleToMeetShed to only check for immediate
+  shed ability and added CanNowComplyWithShed function to attempt to meet the
+  shed request while in the non-compliant state. (#1191)
+* Changed the size of MAX_HEADER in BACDL_MULTIPLE because 8 is not
+  big enough for some datalinks (e.g. mstp). (#1170)
+* Changed printf() in many apps to use debug_printf() and friends. (#1168)
+* Changed apps to use common BACnet value string parsing functions. (#1152)
 * Changed basic object API for units properties to use BACNET_ENGINEERING_UNITS
   datatype. (#1104)
 * Changed all the property list values into int32_t to support the larger
@@ -30,6 +125,69 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed handling for abort and reject errors in Write Property service. (#1216)
+* Fixed lighting output object lighting-commands for warn-off and
+  warn-relinquish when an update at the specified priority slot
+  shall occur after an egress time delay. (#1214)
+* Fixed lighting output object lighting-commands for warn-off and
+  warn-relinquish when blink-warn notification shall not occur. (#1212)
+* Fixed timer object task to initiate a write-request at expiration. (#1212)
+* Fixed the server name in the blinkt app and removed the unnecessary
+  device.c module. (#1211)
+* Fixed Channel object for Color object present-value which does not
+  use coercion. (#1210)
+* Fixed lighting output object lighting-command last-on-value to only
+  be updated with the last value of the Present_Value property that
+  was greater than or equal to 1.0%, keeping in mind that the Present_Value
+  shall indicate the target level of the operation and not the current
+  value. (#1205)
+* Fixed CreateObject service list-of-initial-values encoding and decoding.
+  Changed the data structure to be similar to WriteProperty. (#1199)
+* Fixed lighting-output object blink warn to honor blink-warn-enable.
+  Fixed the blink warn logic for a non-zero percent value blink inhibit.
+  Fixed the warn relinquish to actually relinquish. (#1192)
+* Fixed channel-value encoding in the channel object when no-coercian
+  is required for lighting-command, color-command, and xy-color. (#1190)
+* Fixed NULL handling in CharacterString sprintf which caused an endless
+  loop. (#1189)
+* Fixed a regression in the rpm_ack_object_property_process() function
+  that prevented proper parsing of multi-object ReadPropertyMultiple ACK
+  responses. The bug was introduced in PR [#765] and caused the function
+  to incorrectly return ERROR_CODE_INVALID_TAG after processing the
+  first object, even when additional valid objects were present in
+  the response. Added tests that use rpm_ack_object_property_process()
+  with a multi-object RPM ACK to verify the fix and prevent regression. (#1183)
+* Fix warnings during unit testing of BACnet secure connect node. (#1182)
+* Fixed the BACnetChannelValue coercion function to include all the coercions,
+  no coercions, and invalid datatypes described in Table 12-63 of the Channel
+  object.  Expanded unit testing code coverage for BACnetChannelValue. (#1181)
+* Fixed the Channel object to handle all data types that do not need
+  coercion when written. Fixed present-value when no value is able to
+  be encoded. (#1176)
+* Fixed the Loop object read/write references and manipulated variables
+  update during timer loop by adding callbacks to device read/write property
+  in basic example device object. (#1175)
+* Fixed library specific strcmp/stricmp functions match standard strcmp. (#1173)
+* Fixed compiler macro redefined warning when optional datatypes are defined
+  globally. (#1172)
+* Fixed copy and compare API of BACnetObjectPropertyReference structure. (#1171)
+* Fixed array-bounds on BACnetObjectPropertyReference parsing. (#1167)
+* Fixed the missing BACnetObjectPropertyReference,
+  BACnetSCFailedConnectionRequest, BACnetSCHubFunctionConnection,
+  BACnetSCDirectConnection,BACnetSCHubConnection, BACnetTimerStateChangeValue,
+  and BACnetAddressBinding text used in debugging.(#1166)
+* Fixed the units to/from ASCII to function for other units properties. (#1165)
+* Fixed datetime integer overflow on 8-bit AVR compiler (#1162)
+* Fixed the ports/linux BACnet/IP cache netmask for accurate subnet
+  prefix calculation implementation which had always returned 0. (#1155)
+* Fixed the loop object empty reference property by initializing to self.
+  When configured for self, the manipulated property value will update
+  the controlled variable value for simulation.(#1158)
+* Fixed unit test stack corruption from using stack based message text
+  characterstring pointer in multiple functions and setting the value
+  in the global event and test event data structures. (#1154)
+* Fix timesync recipient encoding to check for OBJECT_DEVICE type before
+  encoding. (#1153)
 * Fixed segmented ComplexACK in MS/TP by adding postpone reply because
   transmission of the segmented ComplexACK cannot begin until the node
   holds the token. (#1116)

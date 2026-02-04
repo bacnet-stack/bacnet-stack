@@ -26,13 +26,17 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records:
 
+[CVE-2025-66624](https://www.cve.org/CVERecord?id=CVE-2025-66624) -
+BACnet-stack MS/TP reply matcher OOB read
+[GHSA-8wgw-5h6x-qgqg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8wgw-5h6x-qgqg)
+
 [CVE-2023-38341](https://www.cve.org/CVERecord?id=CVE-2023-38341) -
 Multiple out-of-bounds accesses in bacerror code paths
 [#81](https://sourceforge.net/p/bacnet/bugs/81/)
 
 [CVE-2023-38340](https://www.cve.org/CVERecord?id=CVE-2023-38340) -
 Out of bounds accesses in bacnet_npdu_decode
-[#80](https://sourceforge.net/auth/?return_to=/p/bacnet/bugs/80/)
+[#80](https://sourceforge.net/p/bacnet/bugs/80/)
 
 [CVE-2023-38339](https://www.cve.org/CVERecord?id=CVE-2023-38339) -
 Out of bounds jump in h_apdu.c:apdu_handler

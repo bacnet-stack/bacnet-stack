@@ -70,8 +70,10 @@ handler_write_property_relinquish_bypass(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
+ *   - the WriteProperty fails and error code is an Abort
+ * - a Reject if the WriteProperty fails and error code is a Reject
  * - an ACK if Device_Write_Property() succeeds
- * - an Error if Device_Write_Property() fails
+ * - an Error if Device_Write_Property() fails and error code is an Error
  *   or there isn't enough room in the APDU to fit the data.
  *
  * @param service_request [in] The contents of the service request.
@@ -157,6 +159,16 @@ void handler_write_property(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
                 debug_print("WP: Sending Simple Ack!\n");
+            } else if (abort_valid_error_code(wp_data.error_code)) {
+                len = abort_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    abort_convert_error_code(wp_data.error_code), true);
+                debug_print("WP: Sending Abort!\n");
+            } else if (reject_valid_error_code(wp_data.error_code)) {
+                len = reject_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    reject_convert_error_code(wp_data.error_code));
+                debug_print("WP: Sending Reject!\n");
             } else {
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,

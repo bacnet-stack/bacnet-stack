@@ -2,6 +2,12 @@
 #define TERMIOS2_H
 
 #define termios asmtermios /*avoid conflicts with others including termios.h*/
+/* for musl def TCGETS2 in asm-generic/ioctls.h */
+/* needs (int)sizeof(t) in _IOWR */
+/* asm-generic/ioctl.h */
+/* libc int ioctl (int, unsigned long int, ...) */
+/* musl int ioctl (int, int, ...) */
+#include <asm/ioctls.h>
 #include <asm/termbits.h>
 #undef termios
 
