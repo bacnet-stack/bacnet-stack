@@ -1,48 +1,21 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2010 Julien Bennet
+/**
+ * @file
+ * @brief Segment Acknowledgment (SegmentAck) PDU encode and decode functions
+ * @author Julien Bennet <antibarbie@users.sourceforge.net>
+ * @date 2010
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
+#include "bacnet/segmentack.h"
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-#include "segmentack.h"
-
-/** Method to encode the segment ack .
- *
+/**
+ * @brief Method to encode the segment ack .
  * @param apdu[in]  Pointer to the buffer for encoding.
- * @param negativeack[in]  Acknowedlegment for the segment.
+ * @param negativeack[in]  Acknowledgment for the segment.
  * @param server[in]  Set to True if the acknowledgment is from the server, else
  * false.
  * @param invoke_id[in]  Invoke Id
  * @param sequence_number[in]  Sequence number of the segment to be acknowledged
  * @param actual_window_size[in]  Actual window size.
- *
  * @return Length of encoded data or zero on error.
  */
 int segmentack_encode_apdu(
@@ -68,14 +41,13 @@ int segmentack_encode_apdu(
     return apdu_len;
 }
 
-/** Method to decode the segment ack service request
- *
+/**
+ * @brief Method to decode the segment ack service request
  * @param apdu[in] The apdu portion of the ACK reply.
  * @param apdu_len[in] The total length of the apdu.
- * @param invoke_id[in]  Invoke Id of the request.
- * @param sequence_number[in]  Sequence number of the segment received.
- * @param actual_window_size[in]  Actual window size.
- *
+ * @param invoke_id[out]  Invoke Id of the request.
+ * @param sequence_number[out]  Sequence number of the segment received.
+ * @param actual_window_size[out]  Actual window size.
  * @return Length of decoded data or zero on error.
  */
 int segmentack_decode_service_request(
@@ -98,6 +70,9 @@ int segmentack_decode_service_request(
         if (actual_window_size) {
             *actual_window_size = apdu[2];
         }
+        /* three bytes successfully decoded: invoke_id, sequence_number,
+         * and actual_window_size */
+        len = apdu_header_size;
     }
 
     return len;
