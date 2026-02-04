@@ -38,4 +38,4 @@ int segmentack_decode_service_request(
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* SEGMENT_ACK_H */
+#endif /* BACNET_SEGMENT_ACK_H */

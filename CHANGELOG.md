@@ -32,6 +32,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added segmentation support functions and example changes, but
+  no support for segmentation in the TSM or APDU handlers. (#1218)
 * Added channel and timer object write-property observers in blinkt app
   to monitor internal writes. Added vacancy timer command line argument
   for testing initial timer object vacancy time for lights channel. (#1212)

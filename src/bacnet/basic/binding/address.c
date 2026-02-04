@@ -401,8 +401,7 @@ bool address_segment_get_by_device(
 }
 
 /**
- * @brief Return the cached addresBACNET_STACK_EXPORT
-s for the given device-id
+ * @brief Return the cached address for the given device-id
  * @param device_id  Device-Id
  * @param max_apdu  Pointer to a variable, taking the maximum APDU size.
  * @param src  Pointer to address structure for return.

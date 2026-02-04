@@ -10,7 +10,7 @@
 /**
  * @brief Method to encode the segment ack .
  * @param apdu[in]  Pointer to the buffer for encoding.
- * @param negativeack[in]  Acknowedlegment for the segment.
+ * @param negativeack[in]  Acknowledgment for the segment.
  * @param server[in]  Set to True if the acknowledgment is from the server, else
  * false.
  * @param invoke_id[in]  Invoke Id
@@ -45,9 +45,9 @@ int segmentack_encode_apdu(
  * @brief Method to decode the segment ack service request
  * @param apdu[in] The apdu portion of the ACK reply.
  * @param apdu_len[in] The total length of the apdu.
- * @param invoke_id[in]  Invoke Id of the request.
- * @param sequence_number[in]  Sequence number of the segment received.
- * @param actual_window_size[in]  Actual window size.
+ * @param invoke_id[out]  Invoke Id of the request.
+ * @param sequence_number[out]  Sequence number of the segment received.
+ * @param actual_window_size[out]  Actual window size.
  * @return Length of decoded data or zero on error.
  */
 int segmentack_decode_service_request(
@@ -70,6 +70,9 @@ int segmentack_decode_service_request(
         if (actual_window_size) {
             *actual_window_size = apdu[2];
         }
+        /* three bytes successfully decoded: invoke_id, sequence_number,
+         * and actual_window_size */
+        len = apdu_header_size;
     }
 
     return len;
