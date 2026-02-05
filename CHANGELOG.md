@@ -122,6 +122,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Event parsing and help text for the example uevent and event apps.
+  Fixed initialization of event data by adding static CharacterString for
+  message text. Fixed the event parsing to start at argument zero. (#1221)
 * Fixed You-Are-Request encoding and decoding to use object-id instead
   of unsigned. (#1220)
 * Fixed handling for abort and reject errors in Write Property service. (#1216)

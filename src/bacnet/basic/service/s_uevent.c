@@ -47,3 +47,33 @@ int Send_UEvent_Notify(
 
     return bytes_sent;
 }
+
+/**
+ * @brief Sends an Unconfirmed Alarm/Event Notification.
+ * @ingroup BIBB-AE-N-A
+ * @param buffer [in,out] The buffer to build the message in for sending.
+ * @param data [in] The information about the Event to be sent.
+ * @param device_id [in] ID of the destination device
+ * @return Size of the message sent (bytes), or a negative value on error.
+ */
+int Send_UEvent_Notify_Device(
+    uint8_t *buffer,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
+    uint32_t device_id)
+{
+    int bytes_sent = 0;
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
+    bool status = false;
+    uint8_t segmentation = 0;
+    uint16_t maxsegments = 0;
+
+    /* is the device bound? */
+    status = address_segment_get_by_device(
+        device_id, &max_apdu, &dest, &segmentation, &maxsegments);
+    if (status) {
+        bytes_sent = Send_UEvent_Notify(buffer, data, &dest);
+    }
+
+    return bytes_sent;
+}
