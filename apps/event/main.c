@@ -167,71 +167,88 @@ static void print_help(const char *filename)
         "the device using Who-Is and I-Am services.  For example, if you were\n"
         "notifying Device Object 123, the device-instance would be 123.\n");
     printf("\n");
-    printf("process-id:\n"
-           "Process Identifier in the receiving device for which the\n"
-           "notification is intended.\n");
+    printf(
+        "process-id:\n"
+        "Process Identifier in the receiving device for which the\n"
+        "notification is intended.\n");
     printf("\n");
-    printf("initiating-device-id: the BACnet Device Object Instance number\n"
-           "that initiated the ConfirmedEventNotification service request.\n");
+    printf(
+        "initiating-device-id: the BACnet Device Object Instance number\n"
+        "that initiated the ConfirmedEventNotification service request.\n");
     printf("\n");
     printf(
         "event-object-type:\n"
         "The object type is defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the integer value.\n");
     printf("\n");
-    printf("event-object-instance:\n"
-           "The object instance number of the event object.\n");
+    printf(
+        "event-object-instance:\n"
+        "The object instance number of the event object.\n");
     printf("\n");
-    printf("sequence-number:\n"
-           "The sequence number of the event.\n");
+    printf(
+        "sequence-number:\n"
+        "The sequence number of the event.\n");
     printf("\n");
-    printf("notification-class:\n"
-           "The notification-class of the event.\n");
+    printf(
+        "notification-class:\n"
+        "The notification-class of the event.\n");
     printf("\n");
-    printf("priority:\n"
-           "The priority of the event.\n");
+    printf(
+        "priority:\n"
+        "The priority of the event.\n");
     printf("\n");
-    printf("message-text:\n"
-           "The message text of the event.\n");
+    printf(
+        "message-text:\n"
+        "The message text of the event.\n");
     printf("\n");
-    printf("notify-type:\n"
-           "The notify type of the event.\n");
+    printf(
+        "notify-type:\n"
+        "The notify type of the event.\n");
     printf("\n");
-    printf("ack-required:\n"
-           "The ack-required of the event (0=FALSE,1=TRUE).\n");
+    printf(
+        "ack-required:\n"
+        "The ack-required of the event (0=FALSE,1=TRUE).\n");
     printf("\n");
-    printf("from-state:\n"
-           "The from-state of the event.\n");
+    printf(
+        "from-state:\n"
+        "The from-state of the event.\n");
     printf("\n");
-    printf("to-state:\n"
-           "The to-state of the event.\n");
+    printf(
+        "to-state:\n"
+        "The to-state of the event.\n");
     printf("\n");
-    printf("event-type\n"
-           "The event-type of the event.\n");
+    printf(
+        "event-type\n"
+        "The event-type of the event.\n");
     printf("\n");
-    printf("--mac A\n"
-           "Optional BACnet mac address."
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf(
+        "--mac A\n"
+        "Optional BACnet mac address."
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("--dnet N\n"
-           "Optional BACnet network number N for directed requests.\n"
-           "Valid range is from 0 to 65535 where 0 is the local connection\n"
-           "and 65535 is network broadcast.\n");
+    printf(
+        "--dnet N\n"
+        "Optional BACnet network number N for directed requests.\n"
+        "Valid range is from 0 to 65535 where 0 is the local connection\n"
+        "and 65535 is network broadcast.\n");
     printf("\n");
-    printf("--dadr A\n"
-           "Optional BACnet mac address on the destination BACnet network.\n"
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf(
+        "--dadr A\n"
+        "Optional BACnet mac address on the destination BACnet network.\n"
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    (void)filename;
+    printf("Example:\n");
+    printf("%s 123 1 2 binary-value 4 5 6 7 message event\n", filename);
 }
 
 int main(int argc, char *argv[])
 {
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
+    BACNET_CHARACTER_STRING event_data_message_text = { 0 };
     unsigned long long_value = 0;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     unsigned timeout = 100; /* milliseconds */
@@ -251,6 +268,7 @@ int main(int argc, char *argv[])
     unsigned int target_args = 0;
     const char *filename = NULL;
 
+    event_data.messageText = &event_data_message_text;
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
@@ -260,11 +278,12 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2016 by Steve Karg and others.\n"
-                   "This is free software; see the source for copying "
-                   "conditions.\n"
-                   "There is NO warranty; not even for MERCHANTABILITY or\n"
-                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf(
+                "Copyright (C) 2016 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
         if (strcmp(argv[argi], "--mac") == 0) {
@@ -305,11 +324,12 @@ int main(int argc, char *argv[])
                 Target_Device_Object_Instance = (uint32_t)long_value;
                 target_args++;
             } else if (target_args == 1) {
-                if (!event_notify_parse(
-                        &event_data, argc - argi, &argv[argi])) {
-                    fprintf(stderr, "event=%s invalid\n", argv[argi]);
-                } else {
+                if (event_notify_parse(&event_data, argc - argi, &argv[argi])) {
                     target_args++;
+                    break;
+                } else {
+                    fprintf(stderr, "event parsing invalid\n");
+                    return 1;
                 }
             } else {
                 print_usage(filename);
@@ -317,7 +337,7 @@ int main(int argc, char *argv[])
             }
         }
     }
-    if (target_args < 14) {
+    if (target_args < 2) {
         print_usage(filename);
         return 0;
     }
