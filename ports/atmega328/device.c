@@ -58,6 +58,11 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
     return status;
 }
 
+BACNET_SEGMENTATION Device_Segmentation_Supported(void)
+{
+    return SEGMENTATION_NONE;
+}
+
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
     /* BACnet allows for a wildcard instance number */

@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-02
+## [Unreleased] - 2026-02-05
 
 ### Security
 
@@ -32,6 +32,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added segmentation support functions and example changes, but
+  no support for segmentation in the TSM or APDU handlers. (#1218)
 * Added channel and timer object write-property observers in blinkt app
   to monitor internal writes. Added vacancy timer command line argument
   for testing initial timer object vacancy time for lights channel. (#1212)
@@ -120,6 +122,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Event parsing and help text for the example uevent and event apps.
+  Fixed initialization of event data by adding static CharacterString for
+  message text. Fixed the event parsing to start at argument zero. (#1221)
+* Fixed You-Are-Request encoding and decoding to use object-id instead
+  of unsigned. (#1220)
 * Fixed handling for abort and reject errors in Write Property service. (#1216)
 * Fixed lighting output object lighting-commands for warn-off and
   warn-relinquish when an update at the specified priority slot
