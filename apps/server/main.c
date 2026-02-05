@@ -174,6 +174,21 @@ static void Init_Service_Handlers(void)
                 (unsigned)object_data.object_instance);
         }
     }
+#if defined(BACFILE)
+    /* file for backup and restore example */
+    object_data.object_instance = bacfile_create(BACNET_MAX_INSTANCE);
+    if (object_data.object_instance != BACNET_MAX_INSTANCE) {
+        bacfile_pathname_set(object_data.object_instance, "backup_1.bin");
+#if defined(BACNET_BACKUP_RESTORE)
+        Device_Configuration_File_Set(0, object_data.object_instance);
+#endif
+        printf(
+            "Created %s-%u path=%s for backup and restore (%u files).\n",
+            bactext_object_type_name(OBJECT_FILE),
+            (unsigned)object_data.object_instance,
+            bacfile_pathname(object_data.object_instance), bacfile_count());
+    }
+#endif
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_who_am_i_unicast);

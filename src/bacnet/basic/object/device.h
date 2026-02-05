@@ -242,6 +242,31 @@ BACNET_STACK_EXPORT
 bool Device_Interval_Offset_Set(uint32_t value);
 
 BACNET_STACK_EXPORT
+bool Device_Configuration_File_Set(unsigned index, uint32_t instance);
+BACNET_STACK_EXPORT
+uint32_t Device_Configuration_File(unsigned index);
+BACNET_STACK_EXPORT
+uint16_t Device_Backup_Failure_Timeout(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_Failure_Timeout_Set(uint16_t timeout);
+BACNET_STACK_EXPORT
+uint16_t Device_Backup_Preparation_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_Preparation_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+uint16_t Device_Restore_Preparation_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Restore_Preparation_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+uint16_t Device_Restore_Completion_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Restore_Completion_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state);
+
+BACNET_STACK_EXPORT
 void Device_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
