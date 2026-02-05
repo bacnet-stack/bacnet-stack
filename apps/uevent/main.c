@@ -77,7 +77,7 @@ static void print_help(const char *filename)
            "notification is intended.\n");
     printf("\n");
     printf("initiating-device-id: the BACnet Device Object Instance number\n"
-           "that initiated the ConfirmedEventNotification service request.\n");
+           "that initiated the UnconfirmedEventNotification request.\n");
     printf("\n");
     printf(
         "event-object-type:\n"
@@ -111,7 +111,7 @@ static void print_help(const char *filename)
     printf("to-state:\n"
            "The to-state of the event.\n");
     printf("\n");
-    printf("event-type\n"
+    printf("event-type:\n"
            "The event-type of the event.\n");
     printf("\n");
     printf("--mac A\n"
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
                 if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device=%u - not greater than %u\n",
+                        stderr, "device=%u exceeds maximum %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -250,10 +250,11 @@ int main(int argc, char *argv[])
         Send_WhoIs(
             Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
-    /* loop forever - not necessary for time sync, but we can watch */
+    /* main loop: run until the event notification is sent or
+       an error/timeout occurs */
     for (;;) {
         if (found) {
-            if (Target_Device_Object_Instance != BACNET_MAX_INSTANCE) {
+            if (Target_Device_Object_Instance == BACNET_MAX_INSTANCE) {
                 /* use BACNET_ADDRESS API */
                 apdu_len = Send_UEvent_Notify(
                     Handler_Transmit_Buffer, &event_data, &Target_Address);
