@@ -122,6 +122,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed You-Are-Request encoding and decoding to use object-id instead
+  of unsigned. (#1220)
 * Fixed handling for abort and reject errors in Write Property service. (#1216)
 * Fixed lighting output object lighting-commands for warn-off and
   warn-relinquish when an update at the specified priority slot
