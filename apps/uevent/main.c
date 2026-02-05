@@ -114,25 +114,22 @@ static void print_help(const char *filename)
     printf("event-type\n"
            "The event-type of the event.\n");
     printf("\n");
-    printf(
-        "--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf(
-        "--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+    printf("--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
-    printf(
-        "--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--device D:\n"
            "BACnet Device Object Instance number of the target device.\n"
@@ -172,12 +169,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2016 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2016 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
         if (strcmp(argv[argi], "--mac") == 0) {
@@ -214,8 +210,7 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                if (event_notify_parse(
-                        &event_data, argc - argi, &argv[argi])) {
+                if (event_notify_parse(&event_data, argc - argi, &argv[argi])) {
                     target_args++;
                     break;
                 } else {
