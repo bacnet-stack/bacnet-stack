@@ -192,12 +192,8 @@ int you_are_request_decode(
         if (object_type != OBJECT_DEVICE) {
             return BACNET_STATUS_ERROR;
         }
-        if (object_instance <= UINT32_MAX) {
-            if (device_id) {
-                *device_id = (uint32_t)object_instance;
-            }
-        } else {
-            return BACNET_STATUS_ERROR;
+        if (device_id) {
+            *device_id = object_instance;
         }
     } else if (len == 0) {
         /* optional - skip apdu_len increment */
