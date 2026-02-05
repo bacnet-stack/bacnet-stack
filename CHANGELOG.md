@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-02
+## [Unreleased] - 2026-02-05
 
 ### Security
 
@@ -122,6 +122,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed You-Are-Request encoding and decoding to use object-id instead
+  of unsigned. (#1220)
 * Fixed handling for abort and reject errors in Write Property service. (#1216)
 * Fixed lighting output object lighting-commands for warn-off and
   warn-relinquish when an update at the specified priority slot
