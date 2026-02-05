@@ -14,6 +14,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/create_object.h"
+#include "bacnet/proplist.h"
 
 /**
  * @brief Encode one value for CreateObject List-of-Initial-Values
@@ -51,8 +52,7 @@ int create_object_encode_initial_value(
  * @return Bytes encoded or zero on error.
  */
 int create_object_encode_initial_value_data(
-    uint8_t *apdu, int offset,
-    BACNET_CREATE_OBJECT_PROPERTY_VALUE *value)
+    uint8_t *apdu, int offset, BACNET_CREATE_OBJECT_PROPERTY_VALUE *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -826,4 +826,136 @@ bool create_object_process(
     }
 
     return status;
+}
+
+/**
+ * @brief Encode the CreateObject service request with writable properties
+ *  encoded in the List of Initial Values.
+ * @param apdu [in] The APDU buffer.
+ * @param apdu_size [in] The size of the APDU buffer.
+ * @param data [in,out] The Create Object data containing the request details.
+ * @param required_properties - list of required properties
+ * @param optional_properties - list of optional properties
+ * @param proprietary_properties - list of proprietary properties
+ * @param writable_properties - list of writable properties
+ * @param read_property [in] Function pointer to the Read Property handler.
+ * @return Number of bytes encoded
+ */
+int create_object_writable_properties_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_CREATE_OBJECT_DATA *data,
+    const int32_t *required_properties,
+    const int32_t *optional_properties,
+    const int32_t *proprietary_properties,
+    const int32_t *writable_properties,
+    read_property_function read_property)
+{
+    int apdu_len = 0, len = 0;
+    size_t j = 0, priority = 0, offset = 0, a = 0;
+    BACNET_UNSIGNED_INTEGER array_count = 0;
+    uint32_t writable_property_count = 0;
+    uint8_t property_apdu[MAX_APDU] = { 0 };
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE property_value = { 0 };
+
+    writable_property_count = property_list_count(writable_properties);
+    if (writable_property_count == 0) {
+        /* no writable properties
+           create the object absent the List of Initial Values */
+        apdu_len = create_object_service_request_encode(apdu, apdu_size, data);
+    } else {
+        offset = 0;
+        for (j = 0; j < writable_property_count; j++) {
+            /* read each writable property value from our device */
+            rpdata.application_data = property_apdu;
+            rpdata.application_data_len = sizeof(property_apdu);
+            rpdata.object_type = data->object_type;
+            rpdata.object_instance = data->object_instance;
+            rpdata.object_property = writable_properties[j];
+            if (property_list_bacnet_array_member(
+                    rpdata.object_type, rpdata.object_property)) {
+                /* array properties - get the size */
+                rpdata.array_index = 0;
+                len = read_property(&rpdata);
+                if (len <= 0) {
+                    continue;
+                }
+                /* convert to integer */
+                len = bacnet_unsigned_application_decode(
+                    &property_apdu[0], (uint32_t)len, &array_count);
+                if (len <= 0) {
+                    continue;
+                }
+                for (a = 1; a <= array_count; a++) {
+                    rpdata.array_index = a;
+                    len = read_property(&rpdata);
+                    if (len <= 0) {
+                        continue;
+                    }
+                    property_value.propertyIdentifier = writable_properties[j];
+                    property_value.propertyArrayIndex = a;
+                    property_value.application_data_len = len;
+                    property_value.application_data = property_apdu;
+                    len = create_object_encode_initial_value_data(
+                        &data->application_data[offset],
+                        sizeof(data->application_data) - offset,
+                        &property_value);
+                    if (len > 0) {
+                        offset += len;
+                    }
+                }
+            } else if (
+                property_list_commandable_member(
+                    rpdata.object_type, rpdata.object_property) &&
+                property_lists_member(
+                    required_properties, optional_properties,
+                    proprietary_properties, PROP_PRIORITY_ARRAY)) {
+                /* convert the priority-array index to
+                   present-value and priority */
+                for (priority = 1; priority <= BACNET_MAX_PRIORITY;
+                     priority++) {
+                    rpdata.array_index = (uint32_t)priority;
+                    len = read_property(&rpdata);
+                    if (len <= 0) {
+                        continue;
+                    }
+                    property_value.propertyIdentifier = rpdata.object_property;
+                    property_value.propertyArrayIndex = BACNET_ARRAY_ALL;
+                    property_value.priority = priority;
+                    property_value.application_data_len = len;
+                    property_value.application_data = property_apdu;
+                    len = create_object_encode_initial_value_data(
+                        &data->application_data[offset],
+                        sizeof(data->application_data) - offset,
+                        &property_value);
+                    if (len > 0) {
+                        offset += len;
+                    }
+                }
+            } else {
+                /* non array, non-priority properties */
+                rpdata.array_index = BACNET_ARRAY_ALL;
+                len = read_property(&rpdata);
+                if (len <= 0) {
+                    continue;
+                }
+                property_value.propertyIdentifier = rpdata.object_property;
+                property_value.propertyArrayIndex = BACNET_ARRAY_ALL;
+                property_value.application_data_len = len;
+                property_value.application_data = property_apdu;
+                len = create_object_encode_initial_value_data(
+                    &data->application_data[offset],
+                    sizeof(data->application_data) - offset, &property_value);
+                if (len > 0) {
+                    offset += len;
+                }
+            }
+        }
+        data->application_data_len = offset;
+        /* writable properties - create object with List of Initial Values  */
+        apdu_len = create_object_service_request_encode(apdu, apdu_size, data);
+    }
+
+    return apdu_len;
 }
