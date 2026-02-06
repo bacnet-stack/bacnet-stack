@@ -851,7 +851,7 @@ int create_object_writable_properties_encode(
     read_property_function read_property)
 {
     int apdu_len = 0, len = 0;
-    size_t j = 0, priority = 0, offset = 0, a = 0;
+    size_t j = 0, priority = 0, a = 0;
     BACNET_UNSIGNED_INTEGER array_count = 0;
     uint32_t writable_property_count = 0;
     uint8_t property_apdu[MAX_APDU] = { 0 };
@@ -864,7 +864,7 @@ int create_object_writable_properties_encode(
            create the object absent the List of Initial Values */
         apdu_len = create_object_service_request_encode(apdu, apdu_size, data);
     } else {
-        offset = 0;
+        data->application_data_len = 0;
         for (j = 0; j < writable_property_count; j++) {
             /* read each writable property value from our device */
             rpdata.application_data = property_apdu;
@@ -894,14 +894,14 @@ int create_object_writable_properties_encode(
                     }
                     property_value.propertyIdentifier = writable_properties[j];
                     property_value.propertyArrayIndex = a;
+                    property_value.priority = BACNET_NO_PRIORITY;
                     property_value.application_data_len = len;
                     property_value.application_data = property_apdu;
                     len = create_object_encode_initial_value_data(
-                        &data->application_data[offset],
-                        sizeof(data->application_data) - offset,
+                        data->application_data, data->application_data_len,
                         &property_value);
                     if (len > 0) {
-                        offset += len;
+                        data->application_data_len += len;
                     }
                 }
             } else if (
@@ -925,11 +925,10 @@ int create_object_writable_properties_encode(
                     property_value.application_data_len = len;
                     property_value.application_data = property_apdu;
                     len = create_object_encode_initial_value_data(
-                        &data->application_data[offset],
-                        sizeof(data->application_data) - offset,
+                        data->application_data, data->application_data_len,
                         &property_value);
                     if (len > 0) {
-                        offset += len;
+                        data->application_data_len += len;
                     }
                 }
             } else {
@@ -941,17 +940,17 @@ int create_object_writable_properties_encode(
                 }
                 property_value.propertyIdentifier = rpdata.object_property;
                 property_value.propertyArrayIndex = BACNET_ARRAY_ALL;
+                property_value.priority = BACNET_NO_PRIORITY;
                 property_value.application_data_len = len;
                 property_value.application_data = property_apdu;
                 len = create_object_encode_initial_value_data(
-                    &data->application_data[offset],
-                    sizeof(data->application_data) - offset, &property_value);
+                    data->application_data, data->application_data_len,
+                    &property_value);
                 if (len > 0) {
-                    offset += len;
+                    data->application_data_len += len;
                 }
             }
         }
-        data->application_data_len = offset;
         /* writable properties - create object with List of Initial Values  */
         apdu_len = create_object_service_request_encode(apdu, apdu_size, data);
     }
