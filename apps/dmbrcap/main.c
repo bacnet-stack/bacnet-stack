@@ -142,7 +142,8 @@ static bool open_backup_file(const char *filename)
 static size_t backup_file_packet(void)
 {
     BACNET_NPDU_DATA npdu_data = { 0 };
-    size_t len = 0, packet_len = 0, apdu_len = 0, decoded_len = 0;
+    size_t len = 0, packet_len = 0, apdu_len = 0;
+    int decoded_len = 0;
     uint8_t apdu[1500] = { 0 };
 
     /* Ethernet SNAP Encoding*/
@@ -195,6 +196,8 @@ static size_t backup_file_packet(void)
                 /* Ethernet length is data only - not address or length bytes */
                 encode_unsigned16(&MTU_Buffer[12], packet_len - 14);
                 write_received_packet(MTU_Buffer, packet_len);
+            } else {
+                packet_len = 0;
             }
         } else {
             packet_len = 0;
@@ -219,7 +222,7 @@ static void cleanup(void)
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s filename", filename);
+    printf("Usage: %s <filename>", filename);
     printf(" [--version][--help]\n");
 }
 
