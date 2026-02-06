@@ -2207,6 +2207,7 @@ int Device_Configuration_File_Encode(
     return apdu_len;
 }
 
+#if defined BACNET_BACKUP_RESTORE
 /**
  * @brief Decode a BACnetLIST property element to determine the element length
  * @param object_instance [in] BACnet object instance number
@@ -2271,7 +2272,6 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
     return error_code;
 }
 
-#if defined BACNET_BACKUP_RESTORE
 uint16_t Device_Backup_Failure_Timeout(void)
 {
     return Backup_Failure_Timeout;
