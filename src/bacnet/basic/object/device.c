@@ -1,14 +1,15 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2005
  * @brief Base "class" for handling all BACnet objects belonging
  * to a BACnet device, as well as Device-specific properties.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -34,10 +35,10 @@
 #include "bacnet/basic/object/access_rights.h"
 #include "bacnet/basic/object/access_user.h"
 #include "bacnet/basic/object/access_zone.h"
-#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/bv.h"
@@ -712,7 +713,10 @@ static const int32_t Device_Properties_Optional[] = {
     -1
 };
 
-static const int32_t Device_Properties_Proprietary[] = { -1 };
+static const int32_t Device_Properties_Proprietary[] = {
+    /* List of Proprietary properties in this object */
+    -1
+};
 
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
@@ -727,8 +731,6 @@ static const int32_t Writable_Properties[] = {
     PROP_MODEL_NAME,
     PROP_LOCATION,
     PROP_DESCRIPTION,
-    PROP_PROTOCOL_SERVICES_SUPPORTED,
-    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
     PROP_APDU_TIMEOUT,
     PROP_NUMBER_OF_APDU_RETRIES,
     PROP_UTC_OFFSET,
@@ -840,6 +842,7 @@ static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
 static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 static char Serial_Number[MAX_DEV_DESC_LEN + 1] =
     "BACnetDMcN56RBkeDJuNfxn3M44tfC2Y";
+static uint8_t Device_UUID[16];
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -1022,6 +1025,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
+#if defined BACNET_BACKUP_RESTORE
             case BACNET_REINIT_STARTBACKUP:
                 Device_Start_Backup();
                 Reinitialize_State = rd_data->state;
@@ -1035,6 +1039,15 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
             case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ENDRESTORE:
             case BACNET_REINIT_ABORTRESTORE:
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+#else
+            case BACNET_REINIT_STARTBACKUP:
+            case BACNET_REINIT_STARTRESTORE:
+            case BACNET_REINIT_ENDBACKUP:
+            case BACNET_REINIT_ENDRESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
                 if (dcc_communication_disabled()) {
                     rd_data->error_class = ERROR_CLASS_SERVICES;
                     rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
@@ -1044,6 +1057,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                         ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }
                 break;
+#endif
             case BACNET_REINIT_ACTIVATE_CHANGES:
                 /* note: activate changes *after* the simple ack is sent */
                 for (i = 0; i < Network_Port_Count(); i++) {
@@ -1084,8 +1098,6 @@ uint32_t Device_Index_To_Instance(unsigned index)
     (void)index;
     return Object_Instance_Number;
 }
-
-/* methods to manipulate the data */
 
 /** Return the Object Instance number for our (single) Device Object.
  * This is a key function, widely invoked by the handler code, since
@@ -1170,6 +1182,71 @@ char *Device_Object_Name_ANSI(void)
     return (char *)characterstring_value(&My_Object_Name);
 }
 
+/**
+ * @brief Initialize a UUID for storing the unique identifier of this device
+ * @note A Universally Unique IDentifier (UUID) - also called a
+ * Global Unique IDentifier (GUID) - is a 128-bit value, see RFC 4122.
+ *
+ * 4.4.  Algorithms for Creating a UUID from Truly Random or
+ *      Pseudo-Random Numbers
+ *
+ *   The version 4 UUID is meant for generating UUIDs from truly-random or
+ *   pseudo-random numbers.
+ *
+ *   The algorithm is as follows:
+ *
+ *   o  Set the two most significant bits (bits 6 and 7) of the
+ *      clock_seq_hi_and_reserved to zero and one, respectively.
+ *
+ *   o  Set the four most significant bits (bits 12 through 15) of the
+ *      time_hi_and_version field to the 4-bit version number from
+ *      Section 4.1.3.
+ *
+ *   o  Set all the other bits to randomly (or pseudo-randomly) chosen
+ *      values.
+ */
+void Device_UUID_Init(void)
+{
+    unsigned i = 0;
+
+    /* 1. Generate 16 random bytes = 128 bits */
+    for (i = 0; i < sizeof(Device_UUID); i++) {
+        Device_UUID[i] = rand() % 256;
+    }
+    /* 2. Adjust certain bits according to RFC 4122 section 4.4.
+       This just means do the following
+       (a) set the high nibble of the 7th byte equal to 4 and
+       (b) set the two most significant bits of the 9th byte to 10'B,
+       so the high nibble will be one of {8,9,A,B}.
+       From http://www.cryptosys.net/pki/Uuid.c.html */
+    Device_UUID[6] = 0x40 | (Device_UUID[6] & 0x0f);
+    Device_UUID[8] = 0x80 | (Device_UUID[8] & 0x3f);
+}
+
+/**
+ * @brief Set the UUID for this device
+ * @param new_uuid [in] The new UUID to set
+ * @param length [in] The length of the new UUID
+ */
+void Device_UUID_Set(const uint8_t *new_uuid, size_t length)
+{
+    if (new_uuid && (length == sizeof(Device_UUID))) {
+        memcpy(Device_UUID, new_uuid, sizeof(Device_UUID));
+    }
+}
+
+/**
+ * @brief Get the UUID for this device
+ * @param uuid [out] The UUID of this device
+ * @param length [in] The length of the UUID
+ */
+void Device_UUID_Get(uint8_t *uuid, size_t length)
+{
+    if (uuid && (length == sizeof(Device_UUID))) {
+        memcpy(uuid, Device_UUID, sizeof(Device_UUID));
+    }
+}
+
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
     return System_Status;
@@ -1188,47 +1265,40 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
             case STATUS_DOWNLOAD_REQUIRED:
             case STATUS_DOWNLOAD_IN_PROGRESS:
             case STATUS_NON_OPERATIONAL:
+#if defined BACNET_BACKUP_RESTORE
+            case STATUS_BACKUP_IN_PROGRESS:
+#endif
                 System_Status = status;
                 break;
-
-                /* Don't support backup at present so don't allow setting */
+#ifndef BACNET_BACKUP_RESTORE
             case STATUS_BACKUP_IN_PROGRESS:
                 result = -2;
                 break;
-
+#endif
             default:
                 result = -1;
                 break;
         }
     } else {
         switch (status) {
-                /* Allow these for the moment as a way to easily alter
-                 * overall device operation. The lack of password protection
-                 * or other authentication makes allowing writes to this
-                 * property a risky facility to provide.
-                 */
             case STATUS_OPERATIONAL:
             case STATUS_OPERATIONAL_READ_ONLY:
             case STATUS_NON_OPERATIONAL:
+                /* Allow these for the moment as a way to easily alter
+                 * overall device operation. The lack of password protection
+                 * or other authentication makes allowing writes to this
+                 * property a risky facility to provide. */
                 System_Status = status;
                 break;
-
-                /* Don't allow outsider set this - it should probably
+            case STATUS_DOWNLOAD_REQUIRED:
+            case STATUS_DOWNLOAD_IN_PROGRESS:
+            case STATUS_BACKUP_IN_PROGRESS:
+                /* Don't allow outsider set these - they should probably
                  * be set if the device config is incomplete or
                  * corrupted or perhaps after some sort of operator
-                 * wipe operation.
-                 */
-            case STATUS_DOWNLOAD_REQUIRED:
-                /* Don't allow outsider set this - it should be set
-                 * internally at the start of a multi packet download
-                 * perhaps indirectly via PT or WF to a config file.
-                 */
-            case STATUS_DOWNLOAD_IN_PROGRESS:
-                /* Don't support backup at present so don't allow setting */
-            case STATUS_BACKUP_IN_PROGRESS:
+                 * wipe operation. */
                 result = -2;
                 break;
-
             default:
                 result = -1;
                 break;
@@ -1243,9 +1313,17 @@ const char *Device_Vendor_Name(void)
     return Vendor_Name;
 }
 
+bool Device_Set_Vendor_Name(const char *name, size_t length)
+{
+    (void)length;
+    Vendor_Name = name;
+
+    return true;
+}
+
 /** Returns the Vendor ID for this Device.
  * See the assignments at
- * http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+ * https://bacnet.org/assigned-vendor-ids/
  * @return The Vendor ID of this Device.
  */
 uint16_t Device_Vendor_Identifier(void)
@@ -1855,8 +1933,16 @@ bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state)
 }
 #endif
 
-/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
-   BACNET_STATUS_ABORT for abort message */
+/**
+ * ReadProperty handler for this object.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -2114,7 +2200,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param pObject - object table
  * @param rpdata [in,out] Structure with the requested Object & Property info
  *  on entry, and APDU message on return.
- * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
  */
 static int Read_Property_Common(
     const struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
@@ -2126,7 +2213,7 @@ static int Read_Property_Common(
     struct special_property_list_t property_list;
 #endif
 
-    if ((rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -2168,6 +2255,9 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
+    if (!rpdata) {
+        return 0;
+    }
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -2657,7 +2747,9 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             if (pObject->Object_Add_List_Element) {
                 status = pObject->Object_Add_List_Element(list_element);
                 if (status) {
-                    Device_Add_List_Element_Callback(list_element);
+                    if (Device_Add_List_Element_Callback) {
+                        (void)Device_Add_List_Element_Callback(list_element);
+                    }
                 }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
@@ -2703,7 +2795,9 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             if (pObject->Object_Remove_List_Element) {
                 status = pObject->Object_Remove_List_Element(list_element);
                 if (status) {
-                    Device_Remove_List_Element_Callback(list_element);
+                    if (Device_Remove_List_Element_Callback) {
+                        (void)Device_Remove_List_Element_Callback(list_element);
+                    }
                 }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
@@ -2727,7 +2821,8 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
  * @param [in] The object type to be looked up.
  * @param [in] The object instance number to be looked up.
  * @param [out] The value list
- * @return True if the object instance supports this feature and value changed.
+ * @return True if the object instance supports this feature
+ *         and was encoded correctly
  */
 bool Device_Encode_Value_List(
     BACNET_OBJECT_TYPE object_type,
