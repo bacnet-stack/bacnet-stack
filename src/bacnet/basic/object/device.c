@@ -2995,7 +2995,7 @@ void Device_Start_Backup(void)
     uint32_t object_count = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
-    const int32_t *writable_properties;
+    const int32_t *writable_properties = NULL;
     struct special_property_list_t property_list = { 0 };
     uint8_t object_apdu[MAX_APDU] = { 0 };
     BACNET_CREATE_OBJECT_DATA create_data = { 0 };

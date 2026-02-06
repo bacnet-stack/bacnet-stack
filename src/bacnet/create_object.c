@@ -101,9 +101,6 @@ int create_object_encode_initial_value_data(
     if (value->priority != BACNET_NO_PRIORITY) {
         len = encode_context_unsigned(apdu, 3, value->priority);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
     }
 
     return apdu_len;
