@@ -1923,8 +1923,8 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
     uint32_t instance = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     int len = 0;
-    int count = 0;
 
+    (void)object_instance;
     if (array_index == 0) {
         /* This array is not required to be resizable
             through BACnet write services */
