@@ -2166,6 +2166,7 @@ bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
 uint32_t Device_Configuration_File(unsigned index)
 {
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
+
 #if BACNET_BACKUP_FILE_COUNT
     if (index < BACNET_BACKUP_FILE_COUNT) {
         instance = Configuration_Files[index];
@@ -2204,6 +2205,70 @@ int Device_Configuration_File_Encode(
 #endif
 
     return apdu_len;
+}
+
+/**
+ * @brief Decode a BACnetLIST property element to determine the element length
+ * @param object_instance [in] BACnet object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Device_Configuration_File_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    (void)object_instance;
+    return bacnet_object_id_application_decode(apdu, apdu_size, NULL, NULL);
+}
+
+/**
+ * @brief Write a value to a BACnetLIST property element value
+ *  using a BACnetARRAY write utility function
+ * @param object_instance [in] BACnet object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Device_Configuration_File_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    uint32_t instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    int len = 0;
+    int count = 0;
+
+    if (array_index == 0) {
+        /* This array is not required to be resizable
+            through BACnet write services */
+        error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    } else if (array_index <= BACNET_BACKUP_FILE_COUNT) {
+        len = bacnet_object_id_application_decode(
+            application_data, application_data_len, &object_type, &instance);
+        if (len > 0) {
+            if ((object_type == OBJECT_FILE) &&
+                Device_Valid_Object_Id(object_type, instance)) {
+                if (Device_Configuration_File_Set(array_index - 1, instance)) {
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    } else {
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
 }
 
 #if defined BACNET_BACKUP_RESTORE
@@ -2494,6 +2559,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_RESTORE_PREPARATION_TIME:
             apdu_len = encode_application_unsigned(
                 &apdu[0], Device_Restore_Preparation_Time());
+            break;
+        case PROP_RESTORE_COMPLETION_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Restore_Completion_Time());
             break;
         case PROP_BACKUP_AND_RESTORE_STATE:
             apdu_len = encode_application_enumerated(
@@ -2826,18 +2895,14 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-        case PROP_RESTORE_COMPLETION_TIME:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                if (value.type.Unsigned_Int <= UINT16_MAX) {
-                    Device_Restore_Completion_Time_Set(
-                        (uint16_t)value.type.Unsigned_Int);
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+        case PROP_CONFIGURATION_FILES:
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Device_Configuration_File_Length,
+                Device_Configuration_File_Write, BACNET_BACKUP_FILE_COUNT,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
 #endif
