@@ -32,6 +32,12 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added Device Management-Backup and Restore-B to example object/device.c
+  and basic/server/bacnet-device.c so that when ReinitializeDevice STARTBACKUP
+  is requested a backup file is stored in CreateObject format for all the
+  writable properties in the device. (#1223)
+* Added apps/dmbrcap for Device Management-Backup and Restore to convert
+  a backup file encoded with CreateObject to Wireshark PCAP format. (#1223)
 * Added segmentation support functions and example changes, but
   no support for segmentation in the TSM or APDU handlers. (#1218)
 * Added channel and timer object write-property observers in blinkt app
@@ -122,6 +128,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed bacfile-posix file write to return the number of bytes written. (#1223)
 * Fixed Event parsing and help text for the example uevent and event apps.
   Fixed initialization of event data by adding static CharacterString for
   message text. Fixed the event parsing to start at argument zero. (#1221)
