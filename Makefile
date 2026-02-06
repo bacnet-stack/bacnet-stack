@@ -236,6 +236,10 @@ sc-hub:
 sc-hub-debug:
 	$(MAKE) LEGACY=true BACDL=bsc BUILD=debug -s -C apps sc-hub
 
+.PHONY: dmbrcap
+dmbrcap:
+	$(MAKE) -s -C apps $@
+
 .PHONY: mstpcap
 mstpcap:
 	$(MAKE) -s -C apps $@

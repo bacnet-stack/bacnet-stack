@@ -105,6 +105,16 @@ option(
   "build with uci"
   OFF)
 
+option(
+  BACFILE
+  "enable bacnet file support"
+  ON)
+
+option(
+  BACNET_BACKUP_RESTORE
+  "enable backup and restore support"
+  ON)
+
 set(BACNET_PROTOCOL_REVISION 28)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -744,6 +754,8 @@ target_compile_definitions(
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
   $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:BACNET_SEGMENTATION_ENABLED=1>
+  $<$<BOOL:${BACFILE}>:BACFILE>
+  $<$<BOOL:${BACNET_BACKUP_RESTORE}>:BACNET_BACKUP_RESTORE>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
@@ -1017,6 +1029,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(initrouter apps/initrouter/main.c)
   target_link_libraries(initrouter PRIVATE ${PROJECT_NAME})
+
+  add_executable(dmbrcap apps/dmbrcap/main.c)
+  target_link_libraries(dmbrcap PRIVATE ${PROJECT_NAME})
 
   if(BACDL_MSTP)
     add_executable(mstpcap apps/mstpcap/main.c)
@@ -1311,3 +1326,5 @@ message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ZIGBEE:...................\"${BACDL_ZIGBEE}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
 message(STATUS "BACNET: BACNET_SEGMENTATION_ENABLED:....\"${BACNET_SEGMENTATION_ENABLED}\"")
+message(STATUS "BACNET: BACNET_BACKUP_RESTORE:..........\"${BACNET_BACKUP_RESTORE}\"")
+message(STATUS "BACNET: BACFILE:........................\"${BACFILE}\"")
