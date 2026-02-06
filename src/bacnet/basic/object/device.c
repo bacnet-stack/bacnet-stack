@@ -2904,9 +2904,6 @@ void Device_Start_Backup(void)
         status = Device_Object_List_Identifier(
             (uint32_t)(i + 1), &object_type, &object_instance);
         if (status) {
-            printf(
-                "CreateObject:%s-%u...\n",
-                bactext_object_type_name(object_type), object_instance);
             Device_Objects_Property_List(
                 object_type, object_instance, &property_list);
             writable_property_count = Device_Objects_Writable_Property_List(
@@ -2919,14 +2916,13 @@ void Device_Start_Backup(void)
                 property_list.Required.pList, property_list.Optional.pList,
                 property_list.Proprietary.pList, writable_properties,
                 Device_Read_Property);
-            printf(
-                "CreateObject:%s-%u len=%d initial-values=%d bytes\n",
-                bactext_object_type_name(object_type), object_instance, len,
-                create_data.application_data_len);
 #if defined(BACFILE)
-            bytes_written = bacfile_write_offset(
-                Configuration_Files[0], offset, &object_apdu[0], (uint32_t)len);
-            offset += (int32_t)bytes_written;
+            if (len > 0) {
+                bytes_written = bacfile_write_offset(
+                    Configuration_Files[0], offset, &object_apdu[0],
+                    (uint32_t)len);
+                offset += (int32_t)bytes_written;
+            }
 #endif
         }
     }
