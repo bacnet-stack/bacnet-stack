@@ -32,6 +32,13 @@ static FILE *Backup_File_Handle = NULL; /* stream pointer */
 static long Backup_File_Start_Position;
 static long Backup_File_Packet_Counter;
 
+/**
+ * @brief Write data to the capture file.
+ * @param ptr Pointer to the data to be written
+ * @param size Size of each element to write
+ * @param nitems Number of items to write
+ * @return Number of items successfully written to the capture file
+ */
 static size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
     size_t written = 0;
@@ -43,6 +50,13 @@ static size_t data_write(const void *ptr, size_t size, size_t nitems)
     return written;
 }
 
+/**
+ * @brief Write header data to the capture file.
+ * @param ptr Pointer to the header data to be written
+ * @param size Size of each element to write
+ * @param nitems Number of items to write
+ * @return Number of items successfully written to the capture file
+ */
 static size_t data_write_header(const void *ptr, size_t size, size_t nitems)
 {
     size_t written = 0;
@@ -54,6 +68,12 @@ static size_t data_write_header(const void *ptr, size_t size, size_t nitems)
     return written;
 }
 
+/**
+ * @brief Create a new capture filename based on the current date and time.
+ *
+ * Closes any existing capture file, generates a new filename using the
+ * current local date and time, and opens a new capture file for writing.
+ */
 static void filename_create_new(void)
 {
     BACNET_DATE bdate;
@@ -80,7 +100,13 @@ static void filename_create_new(void)
     }
 }
 
-/* write packet to file in libpcap format */
+/**
+ * @brief Write the global header to the capture file in libpcap format.
+ *
+ * Writes the standard libpcap global header including magic number,
+ * version information, timezone, timestamp accuracy, snapshot length,
+ * and data link type.
+ */
 static void write_global_header(void)
 {
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
@@ -102,6 +128,14 @@ static void write_global_header(void)
     fflush(Capture_File_Handle);
 }
 
+/**
+ * @brief Write a packet record to the capture file in libpcap format.
+ *
+ * Writes a packet record with timestamp and length information followed by
+ * the packet data to the capture file in libpcap format.
+ * @param packet Pointer to the packet data to write
+ * @param packet_len Length of the packet data in bytes
+ */
 static void write_received_packet(uint8_t *packet, size_t packet_len)
 {
     uint32_t ts_msec = 0; /* timestamp milliseconds */
@@ -122,7 +156,14 @@ static void write_received_packet(uint8_t *packet, size_t packet_len)
     (void)data_write(packet, packet_len, 1);
 }
 
-/* open backup file for reading */
+/**
+ * @brief Open a backup file for reading.
+ *
+ * Opens an existing backup file for reading and initializes the file
+ * position tracking for packet extraction.
+ * @param filename Path to the backup file to open
+ * @return true if the file was successfully opened, false otherwise
+ */
 static bool open_backup_file(const char *filename)
 {
     /* open existing file. */
@@ -138,7 +179,15 @@ static bool open_backup_file(const char *filename)
     return false;
 }
 
-/* Get the next packet from the file */
+/**
+ * @brief Extract and convert the next packet from the backup file.
+ *
+ * Reads the next CreateObject service request from the backup file,
+ * encapsulates it in BACnet NPDU and APDU headers with Ethernet framing,
+ * and writes the complete packet to the capture file. Advances the file
+ * position for the next packet extraction.
+ * @return Length of the packet written, or 0 if no more packets are available
+ */
 static size_t backup_file_packet(void)
 {
     BACNET_NPDU_DATA npdu_data = { 0 };
@@ -207,6 +256,12 @@ static size_t backup_file_packet(void)
     return packet_len;
 }
 
+/**
+ * @brief Clean up and close all open file handles.
+ *
+ * Flushes and closes the capture file and backup file handles, preparing
+ * the program for exit. This function is registered as an exit handler.
+ */
 static void cleanup(void)
 {
     if (Capture_File_Handle) {
@@ -220,12 +275,20 @@ static void cleanup(void)
     Backup_File_Handle = NULL;
 }
 
+/**
+ * @brief Print the command-line usage information.
+ * @param filename The name of the program (typically argv[0])
+ */
 static void print_usage(const char *filename)
 {
     printf("Usage: %s <filename>", filename);
     printf(" [--version][--help]\n");
 }
 
+/**
+ * @brief Print detailed help information for the program.
+ * @param filename The name of the program (typically argv[0])
+ */
 static void print_help(const char *filename)
 {
     printf(
@@ -235,7 +298,17 @@ static void print_help(const char *filename)
     printf("\n");
 }
 
-/* simple test to packetize the data and print it */
+/**
+ * @brief Main entry point for the dmbrcap utility.
+ *
+ * Processes command-line arguments, opens the backup file, initializes the
+ * timer system, creates a new capture file with libpcap headers, reads all
+ * packets from the backup file and converts them to libpcap format, then
+ * closes all files and exits.
+ * @param argc Number of command-line arguments
+ * @param argv Array of command-line argument strings
+ * @return 0 on success, 1 if backup file cannot be opened or is not provided
+ */
 int main(int argc, char *argv[])
 {
     const char *filename = NULL;
