@@ -79,14 +79,12 @@ int create_object_encode_initial_value_data(
     if (apdu) {
         apdu += len;
     }
+    len = value->application_data_len;
     if (apdu) {
         /* data */
-        for (i = 0; i < value->application_data_len; i++) {
+        for (i = 0; i < len; i++) {
             apdu[i] = value->application_data[i];
         }
-        len = value->application_data_len;
-    } else {
-        len = 0;
     }
     apdu_len += len;
     if (apdu) {
@@ -856,7 +854,6 @@ bool create_object_process(
  * @param apdu [in] The APDU buffer.
  * @param apdu_size [in] The size of the APDU buffer.
  * @param data [in,out] The Create Object data containing the request details.
- * @param required_properties - list of required properties
  * @param optional_properties - list of optional properties
  * @param proprietary_properties - list of proprietary properties
  * @param writable_properties - list of writable properties
@@ -881,6 +878,9 @@ int create_object_writable_properties_encode(
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_CREATE_OBJECT_PROPERTY_VALUE property_value = { 0 };
 
+    if (!data) {
+        return 0;
+    }
     writable_property_count = property_list_count(writable_properties);
     if (writable_property_count == 0) {
         /* no writable properties
@@ -899,7 +899,10 @@ int create_object_writable_properties_encode(
                     rpdata.object_type, rpdata.object_property)) {
                 /* array properties - get the size */
                 rpdata.array_index = 0;
-                len = read_property(&rpdata);
+                len = 0;
+                if (read_property) {
+                    len = read_property(&rpdata);
+                }
                 if (len <= 0) {
                     continue;
                 }
@@ -911,7 +914,10 @@ int create_object_writable_properties_encode(
                 }
                 for (a = 1; a <= array_count; a++) {
                     rpdata.array_index = a;
-                    len = read_property(&rpdata);
+                    len = 0;
+                    if (read_property) {
+                        len = read_property(&rpdata);
+                    }
                     if (len <= 0) {
                         continue;
                     }
@@ -937,12 +943,16 @@ int create_object_writable_properties_encode(
                    present-value and priority */
                 for (priority = 1; priority <= BACNET_MAX_PRIORITY;
                      priority++) {
+                    rpdata.object_property = PROP_PRIORITY_ARRAY;
                     rpdata.array_index = (uint32_t)priority;
-                    len = read_property(&rpdata);
+                    len = 0;
+                    if (read_property) {
+                        len = read_property(&rpdata);
+                    }
                     if (len <= 0) {
                         continue;
                     }
-                    property_value.propertyIdentifier = rpdata.object_property;
+                    property_value.propertyIdentifier = PROP_PRESENT_VALUE;
                     property_value.propertyArrayIndex = BACNET_ARRAY_ALL;
                     property_value.priority = priority;
                     property_value.application_data_len = len;
