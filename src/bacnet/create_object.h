@@ -92,6 +92,12 @@ BACNET_STACK_EXPORT
 int create_object_encode_initial_value_data(
     uint8_t *apdu, int offset, BACNET_CREATE_OBJECT_PROPERTY_VALUE *value);
 BACNET_STACK_EXPORT
+size_t create_object_initial_value_data_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    int offset,
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
 int create_object_decode_initial_value(
     const uint8_t *apdu,
     uint32_t apdu_size,

@@ -105,6 +105,32 @@ int create_object_encode_initial_value_data(
 
     return apdu_len;
 }
+
+/**
+ * @brief Encode one value for CreateObject List-of-Initial-Values
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t create_object_initial_value_data_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    int offset,
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE *value)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = create_object_encode_initial_value_data(NULL, offset, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = create_object_encode_initial_value_data(apdu, offset, value);
+    }
+
+    return apdu_len;
+}
+
 /**
  * @brief Decode one BACnetPropertyValue value
  *
@@ -894,9 +920,9 @@ int create_object_writable_properties_encode(
                     property_value.priority = BACNET_NO_PRIORITY;
                     property_value.application_data_len = len;
                     property_value.application_data = property_apdu;
-                    len = create_object_encode_initial_value_data(
-                        data->application_data, data->application_data_len,
-                        &property_value);
+                    len = create_object_initial_value_data_encode(
+                        data->application_data, sizeof(data->application_data),
+                        data->application_data_len, &property_value);
                     if (len > 0) {
                         data->application_data_len += len;
                     }
@@ -921,9 +947,9 @@ int create_object_writable_properties_encode(
                     property_value.priority = priority;
                     property_value.application_data_len = len;
                     property_value.application_data = property_apdu;
-                    len = create_object_encode_initial_value_data(
-                        data->application_data, data->application_data_len,
-                        &property_value);
+                    len = create_object_initial_value_data_encode(
+                        data->application_data, sizeof(data->application_data),
+                        data->application_data_len, &property_value);
                     if (len > 0) {
                         data->application_data_len += len;
                     }
@@ -940,9 +966,9 @@ int create_object_writable_properties_encode(
                 property_value.priority = BACNET_NO_PRIORITY;
                 property_value.application_data_len = len;
                 property_value.application_data = property_apdu;
-                len = create_object_encode_initial_value_data(
-                    data->application_data, data->application_data_len,
-                    &property_value);
+                len = create_object_initial_value_data_encode(
+                    data->application_data, sizeof(data->application_data),
+                    data->application_data_len, &property_value);
                 if (len > 0) {
                     data->application_data_len += len;
                 }
