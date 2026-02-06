@@ -54,8 +54,7 @@ int create_object_encode_initial_value(
 int create_object_encode_initial_value_data(
     uint8_t *apdu, int offset, BACNET_CREATE_OBJECT_PROPERTY_VALUE *value)
 {
-    int len = 0;
-    int apdu_len = 0;
+    int len = 0, apdu_len = 0, i = 0;
 
     if (apdu) {
         apdu += offset;
@@ -82,7 +81,7 @@ int create_object_encode_initial_value_data(
     }
     if (apdu) {
         /* data */
-        for (int i = 0; i < value->application_data_len; i++) {
+        for (i = 0; i < value->application_data_len; i++) {
             apdu[i] = value->application_data[i];
         }
         len = value->application_data_len;

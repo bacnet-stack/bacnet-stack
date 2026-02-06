@@ -402,6 +402,10 @@ whatisnetnum: $(BACNET_LIB_TARGET)
 netnumis: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: dmbrcap
+dmbrcap:
+	$(MAKE) -B -C $@
+
 .PHONY: mstpcap
 mstpcap:
 	$(MAKE) -B -C $@

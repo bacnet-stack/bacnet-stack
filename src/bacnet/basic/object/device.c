@@ -1829,14 +1829,18 @@ uint32_t Device_Interval_Offset(void)
 }
 #endif
 
-#if BACNET_BACKUP_FILE_COUNT
 bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
 {
     bool status = false;
+#if BACNET_BACKUP_FILE_COUNT
     if (index < BACNET_BACKUP_FILE_COUNT) {
         Configuration_Files[index] = instance;
         status = true;
     }
+#else
+    (void)index;
+    (void)instance;
+#endif
 
     return status;
 }
@@ -1844,9 +1848,14 @@ bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
 uint32_t Device_Configuration_File(unsigned index)
 {
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
+
+#if BACNET_BACKUP_FILE_COUNT
     if (index < BACNET_BACKUP_FILE_COUNT) {
         instance = Configuration_Files[index];
     }
+#else
+    (void)index;
+#endif
 
     return instance;
 }
@@ -1867,14 +1876,18 @@ int Device_Configuration_File_Encode(
     int apdu_len = BACNET_STATUS_ERROR;
 
     (void)object_instance;
+#if BACNET_BACKUP_FILE_COUNT
     if (array_index < BACNET_BACKUP_FILE_COUNT) {
         apdu_len = encode_application_object_id(
             apdu, OBJECT_FILE, Configuration_Files[array_index]);
     }
+#else
+    (void)array_index;
+    (void)apdu;
+#endif
 
     return apdu_len;
 }
-#endif
 
 #if defined BACNET_BACKUP_RESTORE
 uint16_t Device_Backup_Failure_Timeout(void)
@@ -2979,7 +2992,7 @@ void Device_Start_Backup(void)
 {
 #if defined BACNET_BACKUP_RESTORE
     size_t i = 0;
-    uint32_t object_count = 0, writable_property_count = 0;
+    uint32_t object_count = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     const int32_t *writable_properties;
@@ -2987,9 +3000,7 @@ void Device_Start_Backup(void)
     uint8_t object_apdu[MAX_APDU] = { 0 };
     BACNET_CREATE_OBJECT_DATA create_data = { 0 };
     bool status = false;
-    int len = 0;
-    int32_t offset = 0;
-    uint32_t bytes_written = 0;
+    int32_t len = 0, offset = 0;
 
     Backup_State = BACKUP_STATE_PREPARING_FOR_BACKUP;
     object_count = Device_Object_List_Count();
@@ -3001,7 +3012,7 @@ void Device_Start_Backup(void)
         if (status) {
             Device_Objects_Property_List(
                 object_type, object_instance, &property_list);
-            writable_property_count = Device_Objects_Writable_Property_List(
+            (void)Device_Objects_Writable_Property_List(
                 object_type, object_instance, &writable_properties);
             create_data.object_type = object_type;
             create_data.object_instance = object_instance;
@@ -3011,14 +3022,14 @@ void Device_Start_Backup(void)
                 property_list.Required.pList, property_list.Optional.pList,
                 property_list.Proprietary.pList, writable_properties,
                 Device_Read_Property);
-#if defined(BACFILE)
             if (len > 0) {
-                bytes_written = bacfile_write_offset(
+#if defined(BACFILE)
+                (void)bacfile_write_offset(
                     Configuration_Files[0], offset, &object_apdu[0],
                     (uint32_t)len);
-                offset += (int32_t)bytes_written;
-            }
 #endif
+                offset += len;
+            }
         }
     }
     Backup_State = BACKUP_STATE_IDLE;
