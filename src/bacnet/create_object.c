@@ -967,7 +967,10 @@ int create_object_writable_properties_encode(
             } else {
                 /* non array, non-priority properties */
                 rpdata.array_index = BACNET_ARRAY_ALL;
-                len = read_property(&rpdata);
+                len = 0;
+                if (read_property) {
+                    len = read_property(&rpdata);
+                }
                 if (len <= 0) {
                     continue;
                 }
