@@ -109,13 +109,16 @@ void handler_write_property(
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
         debug_print("WP: Missing Required Parameter. Sending Reject!\n");
         bcontinue = false;
-    } else if (service_data->segmented_message) {
+    }
+#if !BACNET_SEGMENTATION_ENABLED
+    else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
         debug_print("WP: Segmented message.  Sending Abort!\n");
         bcontinue = false;
     }
+#endif
     if (bcontinue) {
         /* decode the service request only */
         len = wp_decode_service_request(service_request, service_len, &wp_data);
