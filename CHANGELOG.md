@@ -12,10 +12,16 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-05
+## [Unreleased] - 2026-02-06
 
 ### Security
 
+* Secured Schedule_Weekly_Schedule_Set() the example schedule object
+  by fixing stack buffer overflow. The memcpy was using
+  sizeof(BACNET_WEEKLY_SCHEDULE) instead of sizeof(BACNET_DAILY_SCHEDULE),
+  causing it to read 6784 bytes from a 968-byte source buffer, leading
+  to stack buffer overflow and segmentation fault in the test_schedule
+  unit test. (#1222)
 * Secured npdu_is_expected_reply() function where the MS/TP reply matcher
   could have an out-of-bounds read. (#1178)
 * Secured ubasic interpreter tokenizer_string() and tokenizer_label()
