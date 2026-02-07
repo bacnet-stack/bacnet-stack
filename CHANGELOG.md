@@ -16,6 +16,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnet file object pathname received from BACnet AtomicWriteFile
+  or ReadFile service used without validation which was vulnerable to
+  directory traversal attacks. (#1197)
 * Secured ubasic interpreter tokenizer_string() and tokenizer_label()
   off-by-one buffer overflow when processing string literals longer
   than the buffer limit.
@@ -27,6 +30,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed bacfile-posix file write to return the number of bytes written. (#1223)
 * Fixed NULL handling in CharacterString sprintf which caused an endless
   loop. (#1189)
 * Fixed a regression in the rpm_ack_object_property_process() function
