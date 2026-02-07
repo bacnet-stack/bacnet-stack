@@ -20,8 +20,6 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 const char *filename_remove_path(const char *filename_in);
-BACNET_STACK_EXPORT
-bool filename_path_valid(const char *pathname);
 
 #ifdef __cplusplus
 }
