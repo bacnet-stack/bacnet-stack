@@ -551,6 +551,32 @@ bacfile_read(uint32_t object_instance, uint8_t *buffer, uint32_t buffer_size)
 }
 
 /**
+ * @brief Read the entire file into a buffer
+ * @param  object_instance - object-instance number of the object
+ * @param  offset - offset in bytes from the beginning of the file
+ * @param  buffer - data store from the file
+ * @param  buffer_size - in bytes
+ * @return  number of bytes read, or 0 if not successful
+ */
+uint32_t bacfile_read_offset(
+    uint32_t object_instance,
+    int32_t offset,
+    uint8_t *buffer,
+    uint32_t buffer_size)
+{
+    const char *pathname = NULL;
+    long file_size = 0;
+
+    pathname = bacfile_pathname(object_instance);
+    if (pathname) {
+        file_size = bacfile_read_stream_data_callback(
+            pathname, offset, buffer, buffer_size);
+    }
+
+    return (uint32_t)file_size;
+}
+
+/**
  * @brief Write the entire file from a buffer
  * @param  object_instance - object-instance number of the object
  * @param  buffer - data store for the file
