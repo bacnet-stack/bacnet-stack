@@ -838,7 +838,11 @@ bool create_object_process(
                 data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
         } else {
-            object_instance = create_object(data->object_instance);
+            if (create_object) {
+                object_instance = create_object(data->object_instance);
+            } else {
+                object_instance = data->object_instance;
+            }
             if (object_instance == BACNET_MAX_INSTANCE) {
                 /* The device cannot allocate the space needed
                 for the new object.*/
