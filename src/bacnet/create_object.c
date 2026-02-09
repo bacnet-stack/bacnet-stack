@@ -742,10 +742,12 @@ bool create_object_initializer_list_process(
         }
         /* write the property - use the provided function */
         if (!write_property(&wp_data)) {
-            /* report the error */
-            data->error_class = wp_data.error_class;
-            data->error_code = wp_data.error_code;
-            return false;
+            if (!data->continue_on_error) {
+                /* report the error */
+                data->error_class = wp_data.error_class;
+                data->error_code = wp_data.error_code;
+                return false;
+            }
         }
         data->first_failed_element_number++;
         apdu_len += len;
@@ -782,20 +784,26 @@ bool create_object_process(
         /* The device does not support the specified object type. */
         data->error_class = ERROR_CLASS_OBJECT;
         data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
-    } else if (!create_object) {
+    } else if ((!create_object) && (!data->continue_on_error)) {
         /*  The device supports the object type and may have
             sufficient space, but does not support the creation of the
             object for some other reason.*/
         data->error_class = ERROR_CLASS_OBJECT;
         data->error_code = ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED;
-    } else if (object_exists) {
+    } else if ((object_exists) && (!data->continue_on_error)) {
         /* The object being created already exists */
         data->error_class = ERROR_CLASS_OBJECT;
         data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
     } else {
         if (data->application_data_len) {
             /* The optional 'List of Initial Values' parameter is included */
-            object_instance = create_object(data->object_instance);
+            if (create_object) {
+                /* dynamic creation supported */
+                object_instance = create_object(data->object_instance);
+            } else {
+                /* dynamic creation not supported, but used for restore */
+                object_instance = data->object_instance;
+            }
             if (object_instance == BACNET_MAX_INSTANCE) {
                 /* The device cannot allocate the space needed
                 for the new object.*/

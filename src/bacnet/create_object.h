@@ -50,6 +50,8 @@ typedef struct BACnet_Create_Object_Data {
        Initial Values' parameter, the 'First Failed Element Number' shall
        be equal to zero. */
     BACNET_UNSIGNED_INTEGER first_failed_element_number;
+    /* bypass error and continue initializing values */
+    bool continue_on_error;
 } BACNET_CREATE_OBJECT_DATA;
 
 /**
