@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-06
+## [Unreleased] - 2026-02-09
 
 ### Security
 
@@ -41,6 +41,8 @@ The git repositories are hosted at the following sites:
 * Added Device Management-Backup and Restore-B to example object/device.c
   and basic/server/bacnet-device.c so that when ReinitializeDevice STARTBACKUP
   is requested a backup file is stored in CreateObject format for all the
+  writable properties in the device. When ReinitializeDevice STARTRESTORE
+  is requested a backup file is restored from CreateObject format for all the
   writable properties in the device. (#1223)
 * Added apps/dmbrcap for Device Management-Backup and Restore to convert
   a backup file encoded with CreateObject to Wireshark PCAP format. (#1223)
