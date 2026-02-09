@@ -1,14 +1,11 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet BVLC datalink encoding and decoding API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
-#include <stdlib.h> /* For calloc() */
+#include <stdlib.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/datalink/bvlc.h>
@@ -290,7 +287,7 @@ static void test_BVLC_Register_Foreign_Device_Message(uint16_t ttl_seconds)
     uint8_t message_type = 0;
     uint16_t length = 0;
     int len = 0, test_len = 0;
-    const int msg_len = 6;
+    const int32_t msg_len = 6;
 
     len = bvlc_encode_register_foreign_device(pdu, sizeof(pdu), ttl_seconds);
     zassert_equal(len, msg_len, NULL);
@@ -326,7 +323,7 @@ static void test_BVLC_Delete_Foreign_Device_Message(
     uint8_t message_type = 0;
     uint16_t length = 0;
     int len = 0, test_len = 0;
-    const int msg_len = 0x000A;
+    const int32_t msg_len = 0x000A;
 
     len = bvlc_encode_delete_foreign_device(
         pdu, sizeof(pdu), &fdt_entry->dest_address);

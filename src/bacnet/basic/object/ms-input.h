@@ -32,7 +32,12 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Multistate_Input_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Multistate_Input_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 
 BACNET_STACK_EXPORT
 bool Multistate_Input_Valid_Instance(uint32_t object_instance);
@@ -116,6 +121,11 @@ uint32_t Multistate_Input_Max_States(uint32_t instance);
 BACNET_STACK_EXPORT
 const char *
 Multistate_Input_State_Text(uint32_t object_instance, uint32_t state_index);
+
+BACNET_STACK_EXPORT
+void *Multistate_Input_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Multistate_Input_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Multistate_Input_Create(uint32_t object_instance);

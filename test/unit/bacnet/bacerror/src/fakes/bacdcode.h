@@ -1,9 +1,11 @@
-/*
- * Copyright (c) 2023 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: Apache-2.0
+/**
+ * @file
+ * @brief fakes for BACnet primitive encoding and decoding
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2023
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #ifndef BACNET_STACK_TEST_UNIT_BACNET_BACERROR_FAKES_BACDCODE_H_
 #define BACNET_STACK_TEST_UNIT_BACNET_BACERROR_FAKES_BACDCODE_H_
 

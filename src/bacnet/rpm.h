@@ -51,7 +51,9 @@ typedef struct BACnet_Read_Access_Data {
  *                           properties for this BACNET_OBJECT_TYPE.
  */
 typedef void (*rpm_property_lists_function)(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
 
 typedef void (*rpm_object_property_lists_function)(
     BACNET_OBJECT_TYPE object_type,
@@ -84,6 +86,8 @@ int rpm_encode_apdu_object_property(
 BACNET_STACK_EXPORT
 int rpm_encode_apdu_object_end(uint8_t *apdu);
 
+BACNET_STACK_EXPORT
+void bacnet_read_access_data_init(BACNET_READ_ACCESS_DATA *data, size_t count);
 BACNET_STACK_EXPORT
 int read_property_multiple_request_encode(
     uint8_t *apdu, BACNET_READ_ACCESS_DATA *data);

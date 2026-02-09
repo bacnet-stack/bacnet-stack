@@ -57,6 +57,26 @@ typedef BACNET_ERROR_CODE (*bacnet_array_property_element_write_function)(
     uint8_t *application_data,
     size_t application_data_len);
 
+/**
+ * @brief Add a unique element to a BACnetLIST property
+ * @param object_instance [in] BACnet network port object instance number
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+typedef BACNET_ERROR_CODE (*bacnet_list_property_element_add_function)(
+    uint32_t object_instance,
+    uint8_t *application_data,
+    size_t application_data_len);
+
+#ifndef BACNET_CONSTRUCTED_VALUE_SIZE
+#define BACNET_CONSTRUCTED_VALUE_SIZE MAX_APDU
+#endif
+typedef struct BACnet_Constructed_Value_Type {
+    uint8_t data[BACNET_CONSTRUCTED_VALUE_SIZE];
+    uint16_t data_len;
+} BACNET_CONSTRUCTED_VALUE_TYPE;
+
 typedef struct BACnetTag {
     uint8_t number;
     bool application : 1;
@@ -164,6 +184,9 @@ BACNET_STACK_EXPORT
 int encode_context_null(uint8_t *apdu, uint8_t tag_number);
 BACNET_STACK_EXPORT
 int bacnet_null_application_decode(const uint8_t *apdu, uint32_t apdu_size);
+BACNET_STACK_EXPORT
+int bacnet_null_context_decode(
+    const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_value);
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
 BACNET_STACK_EXPORT
@@ -219,6 +242,8 @@ int bacnet_bitstring_decode(
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_BIT_STRING *value);
+BACNET_STACK_EXPORT
+uint8_t bacnet_byte_reverse_bits(uint8_t in_byte);
 
 BACNET_STACK_EXPORT
 int bacnet_bitstring_application_encode(
@@ -286,6 +311,13 @@ int bacnet_double_application_encode(
 BACNET_STACK_EXPORT
 int bacnet_double_application_decode(
     const uint8_t *apdu, uint32_t apdu_len_max, double *value);
+
+BACNET_STACK_EXPORT
+uint32_t
+bacnet_object_id_to_value(BACNET_OBJECT_TYPE object_type, uint32_t instance);
+BACNET_STACK_EXPORT
+void bacnet_object_id_from_value(
+    uint32_t value, BACNET_OBJECT_TYPE *object_type, uint32_t *instance);
 
 BACNET_STACK_EXPORT
 int encode_bacnet_object_id(
@@ -357,6 +389,9 @@ int encode_octet_string(uint8_t *apdu, const BACNET_OCTET_STRING *octet_string);
 BACNET_STACK_EXPORT
 int encode_application_octet_string(
     uint8_t *apdu, const BACNET_OCTET_STRING *octet_string);
+BACNET_STACK_EXPORT
+int encode_application_octet_string_buffer(
+    uint8_t *apdu, const uint8_t *buffer, size_t buffer_size);
 BACNET_STACK_EXPORT
 int encode_context_octet_string(
     uint8_t *apdu, uint8_t tag_number, const BACNET_OCTET_STRING *octet_string);
@@ -618,6 +653,32 @@ int bacnet_date_context_decode(
     uint8_t tag_value,
     BACNET_DATE *value);
 
+BACNET_STACK_EXPORT
+int bacnet_constructed_value_context_encode(
+    uint8_t *apdu,
+    uint8_t tag_value,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value);
+BACNET_STACK_EXPORT
+int bacnet_constructed_value_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value);
+BACNET_STACK_EXPORT
+int bacnet_constructed_value_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_value,
+    BACNET_CONSTRUCTED_VALUE_TYPE *value);
+BACNET_STACK_EXPORT
+bool bacnet_constructed_value_same(
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value1,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *value2);
+BACNET_STACK_EXPORT
+bool bacnet_constructed_value_copy(
+    BACNET_CONSTRUCTED_VALUE_TYPE *dest,
+    const BACNET_CONSTRUCTED_VALUE_TYPE *src);
+
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */
 /* returns the encoded octet */
@@ -648,6 +709,16 @@ BACNET_ERROR_CODE bacnet_array_write(
     bacnet_array_property_element_decode_function decode_function,
     bacnet_array_property_element_write_function write_function,
     BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size);
+
+BACNET_STACK_EXPORT
+BACNET_ERROR_CODE bacnet_list_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_list_property_element_add_function add_function,
+    BACNET_UNSIGNED_INTEGER max_elements,
     uint8_t *apdu,
     size_t apdu_size);
 

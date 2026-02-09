@@ -22,10 +22,10 @@
 
 static bool Access_Rights_Initialized = false;
 
-static ACCESS_RIGHTS_DESCR ar_descr[MAX_ACCESS_RIGHTSS];
+static ACCESS_RIGHTS_DESCR ar_descr[MAX_ACCESS_RIGHTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -39,12 +39,23 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = { -1 };
+static const int32_t Properties_Optional[] = { -1 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_GLOBAL_IDENTIFIER, -1
+};
 
 void Access_Rights_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -59,6 +70,23 @@ void Access_Rights_Property_Lists(
     return;
 }
 
+/**
+ * @brief Get the list of writable properties for an Access Rights object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Access_Rights_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
+}
+
+/**
+ * @brief Initialize the Access Rights Object data
+ */
 void Access_Rights_Init(void)
 {
     unsigned i;
@@ -66,7 +94,7 @@ void Access_Rights_Init(void)
     if (!Access_Rights_Initialized) {
         Access_Rights_Initialized = true;
 
-        for (i = 0; i < MAX_ACCESS_RIGHTSS; i++) {
+        for (i = 0; i < MAX_ACCESS_RIGHTS; i++) {
             ar_descr[i].global_identifier =
                 0; /* set to some meaningful value */
             ar_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
@@ -85,7 +113,7 @@ void Access_Rights_Init(void)
 /* given instance exists */
 bool Access_Rights_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ACCESS_RIGHTSS) {
+    if (object_instance < MAX_ACCESS_RIGHTS) {
         return true;
     }
 
@@ -96,7 +124,7 @@ bool Access_Rights_Valid_Instance(uint32_t object_instance)
 /* more complex, and then count how many you have */
 unsigned Access_Rights_Count(void)
 {
-    return MAX_ACCESS_RIGHTSS;
+    return MAX_ACCESS_RIGHTS;
 }
 
 /* we simply have 0-n object instances.  Yours might be */
@@ -112,9 +140,9 @@ uint32_t Access_Rights_Index_To_Instance(unsigned index)
 /* that correlates to the correct instance number */
 unsigned Access_Rights_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_ACCESS_RIGHTSS;
+    unsigned index = MAX_ACCESS_RIGHTS;
 
-    if (object_instance < MAX_ACCESS_RIGHTSS) {
+    if (object_instance < MAX_ACCESS_RIGHTS) {
         index = object_instance;
     }
 
@@ -128,7 +156,7 @@ bool Access_Rights_Object_Name(
     char text[32] = "";
     bool status = false;
 
-    if (object_instance < MAX_ACCESS_RIGHTSS) {
+    if (object_instance < MAX_ACCESS_RIGHTS) {
         snprintf(
             text, sizeof(text), "ACCESS RIGHTS %lu",
             (unsigned long)object_instance);
@@ -155,7 +183,7 @@ static int Negative_Access_Rules_Encode(
     BACNET_ACCESS_RULE *rule;
     uint32_t count;
 
-    if (object_instance < MAX_ACCESS_RIGHTSS) {
+    if (object_instance < MAX_ACCESS_RIGHTS) {
         count = ar_descr[object_instance].negative_access_rules_count;
         if (index < count) {
             rule = &ar_descr[object_instance].negative_access_rules[index];
@@ -183,7 +211,7 @@ static int Positive_Access_Rules_Encode(
     BACNET_ACCESS_RULE *rule;
     uint32_t count;
 
-    if (object_instance < MAX_ACCESS_RIGHTSS) {
+    if (object_instance < MAX_ACCESS_RIGHTS) {
         count = ar_descr[object_instance].positive_access_rules_count;
         if (index < count) {
             rule = &ar_descr[object_instance].positive_access_rules[index];

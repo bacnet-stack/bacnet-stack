@@ -166,10 +166,12 @@ int timesync_encode_timesync_recipients(
         if (pRecipient->tag == 0) {
             if (max_apdu >= (1 + 4)) {
                 /* CHOICE - device [0] BACnetObjectIdentifier */
-                len = encode_context_object_id(
-                    &apdu[apdu_len], 0, pRecipient->type.device.type,
-                    pRecipient->type.device.instance);
-                apdu_len += len;
+                if (pRecipient->type.device.type == OBJECT_DEVICE) {
+                    len = encode_context_object_id(
+                        &apdu[apdu_len], 0, pRecipient->type.device.type,
+                        pRecipient->type.device.instance);
+                    apdu_len += len;
+                }
             } else {
                 return BACNET_STATUS_ABORT;
             }

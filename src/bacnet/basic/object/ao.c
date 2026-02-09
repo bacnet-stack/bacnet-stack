@@ -42,10 +42,11 @@ struct object_data {
     float Relinquish_Default;
     float Min_Pres_Value;
     float Max_Pres_Value;
-    uint16_t Units;
+    BACNET_ENGINEERING_UNITS Units;
     uint8_t Reliability;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -57,7 +58,7 @@ static analog_output_write_present_value_callback
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -75,13 +76,23 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_RELIABILITY,    PROP_DESCRIPTION,    PROP_COV_INCREMENT,
     PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE, -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_PRESENT_VALUE,  PROP_OUT_OF_SERVICE, PROP_UNITS, PROP_COV_INCREMENT,
+    PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE, -1
+};
 
 /**
  * @brief Returns the list of required, optional, and proprietary properties.
@@ -94,7 +105,9 @@ static const int Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Analog_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -107,6 +120,20 @@ void Analog_Output_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for an Analog Output object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Analog_Output_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -368,6 +395,48 @@ bool Analog_Output_Present_Value_Relinquish(
 }
 
 /**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return true if the priority-array slot is relinquished
+ */
+bool Analog_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if (pObject->Relinquished[priority - 1]) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the priority-array value from its slot
+ * @param object_instance [in] BACnet network port object instance number
+ * @param  priority - priority-array index value 1..16
+ * @return priority-array value from its slot
+ */
+float Analog_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority)
+{
+    float real_value = 0.0f;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        real_value = pObject->Priority_Array[priority - 1];
+    }
+
+    return real_value;
+}
+
+/**
  * @brief For a given object instance-number, writes the present-value to the
  * remote node
  * @param  object_instance - object-instance number of the object
@@ -561,9 +630,9 @@ const char *Analog_Output_Name_ASCII(uint32_t object_instance)
  *
  * @return  units property value
  */
-uint16_t Analog_Output_Units(uint32_t object_instance)
+BACNET_ENGINEERING_UNITS Analog_Output_Units(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -582,7 +651,8 @@ uint16_t Analog_Output_Units(uint32_t object_instance)
  *
  * @return true if the units property value was set
  */
-bool Analog_Output_Units_Set(uint32_t object_instance, uint16_t units)
+bool Analog_Output_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
     struct object_data *pObject;
@@ -1149,9 +1219,11 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                status = Analog_Output_Units_Set(
-                    wp_data->object_instance, value.type.Enumerated);
-                if (!status) {
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    Analog_Output_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                } else {
+                    status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
@@ -1214,6 +1286,38 @@ void Analog_Output_Write_Present_Value_Callback_Set(
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Analog_Output_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Analog_Output_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Analog Output object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1224,6 +1328,9 @@ uint32_t Analog_Output_Create(uint32_t object_instance)
     int index = 0;
     unsigned priority = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

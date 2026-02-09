@@ -3,7 +3,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @brief test BACnet MSTP datalink state machines
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <assert.h>
 #include <stdlib.h>
@@ -1082,6 +1082,27 @@ static void testZeroConfigNode_Test_LURK_ClaimLostToken(
         mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
 }
 
+static void
+testZeroConfigNode_Test_DuplicateNode(struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+    uint8_t station;
+
+    /* ClaimAddressInUse */
+    station = mstp_port->Zero_Config_Station;
+    mstp_port->SourceAddress = station;
+    mstp_port->DestinationAddress = 0;
+    mstp_port->FrameType = FRAME_TYPE_POLL_FOR_MASTER;
+    mstp_port->ReceivedValidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+    zassert_equal(mstp_port->master_state, MSTP_MASTER_STATE_INITIALIZE, NULL);
+    zassert_equal(mstp_port->This_Station, 255, NULL);
+}
+
 static void testZeroConfigNodeFSM(void)
 {
     struct mstp_port_struct_t MSTP_Port = { 0 }; /* port data */
@@ -1148,6 +1169,14 @@ static void testZeroConfigNodeFSM(void)
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ClaimLostToken(&MSTP_Port);
+    /* test case: valid frame event LURK PFMs: ClaimAddress
+       ConfirmationSuccessful, DuplicateNode */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ClaimTokenForUs(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ConfirmationSuccessful(&MSTP_Port);
+    testZeroConfigNode_Test_DuplicateNode(&MSTP_Port);
     /* test next station rollover */
     station = 0;
     test_station = Nmin_poll_station;

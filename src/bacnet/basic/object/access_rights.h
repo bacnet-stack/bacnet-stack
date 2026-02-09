@@ -19,8 +19,8 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
-#ifndef MAX_ACCESS_RIGHTSS
-#define MAX_ACCESS_RIGHTSS 4
+#ifndef MAX_ACCESS_RIGHTS
+#define MAX_ACCESS_RIGHTS 4
 #endif
 
 #ifndef MAX_NEGATIVE_ACCESS_RIGHTS_RULES
@@ -48,7 +48,13 @@ typedef struct {
 
 BACNET_STACK_EXPORT
 void Access_Rights_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Access_Rights_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 bool Access_Rights_Valid_Instance(uint32_t object_instance);
 unsigned Access_Rights_Count(void);

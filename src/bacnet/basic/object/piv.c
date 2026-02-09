@@ -26,7 +26,8 @@
 static POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int PositiveInteger_Value_Properties_Required[] = {
+static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -36,28 +37,68 @@ static const int PositiveInteger_Value_Properties_Required[] = {
     -1
 };
 
-static const int PositiveInteger_Value_Properties_Optional[] = {
+static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_OUT_OF_SERVICE, -1
 };
 
-static const int PositiveInteger_Value_Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1
+};
+
+/**
+ * @brief Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ *
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void PositiveInteger_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
-        *pRequired = PositiveInteger_Value_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = PositiveInteger_Value_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = PositiveInteger_Value_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
 }
 
+/**
+ * @brief Get list of writable properties for a Positive Integer Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void PositiveInteger_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
+}
+
+/**
+ * @brief Initializes the Positive Integer Value objects
+ */
 void PositiveInteger_Value_Init(void)
 {
     unsigned i;
@@ -164,7 +205,16 @@ bool PositiveInteger_Value_Object_Name(
     return status;
 }
 
-/* return apdu len, or BACNET_STATUS_ERROR on error */
+/**
+ * ReadProperty handler for this object.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return number of APDU bytes in the response, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -228,8 +278,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_UNITS:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], CurrentAV->Units);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], (uint32_t)CurrentAV->Units);
             break;
             /* BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -
@@ -254,7 +304,15 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/* returns true if successful */
+/**
+ * WriteProperty handler for this object.  For the given WriteProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return false if an error is loaded, true if no errors
+ */
 bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -280,7 +338,6 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     } else {
         return false;
     }
-
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -305,7 +362,6 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-
         case PROP_OUT_OF_SERVICE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
@@ -313,18 +369,29 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 CurrentAV->Out_Of_Service = value.type.Boolean;
             }
             break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
         case PROP_UNITS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated <= UINT16_MAX) {
+                    CurrentAV->Units = (uint16_t)value.type.Enumerated;
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
             break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

@@ -9,6 +9,10 @@
 #define BACNET_SYS_FILENAME_H
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* standard includes */
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +20,8 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 const char *filename_remove_path(const char *filename_in);
+BACNET_STACK_EXPORT
+bool filename_path_valid(const char *pathname);
 
 #ifdef __cplusplus
 }

@@ -129,6 +129,12 @@
     <ClCompile Include="..\..\..\..\src\bacnet\rpm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\shed_level.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\timer_value.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c">
       <Filter>Source Files</Filter>
     </ClCompile>

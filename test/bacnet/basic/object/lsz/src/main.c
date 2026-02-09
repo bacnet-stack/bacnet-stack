@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet Life Safety Zone object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2024
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/lsz.h>
@@ -30,7 +27,7 @@ static void testLifeSafetyZone(void)
     bool status;
     unsigned count = 0;
     uint32_t object_instance = 0, test_object_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     const char *test_name = NULL;
     char *sample_name = "sample";
 

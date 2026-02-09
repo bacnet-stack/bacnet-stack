@@ -26,12 +26,20 @@
 
 /* For backward compatibility for old BACDL_ALL */
 #if defined(BACDL_ALL)
+#undef BACDL_ETHERNET
 #define BACDL_ETHERNET
+#undef BACDL_ARCNET
 #define BACDL_ARCNET
+#undef BACDL_MSTP
 #define BACDL_MSTP
+#undef BACDL_BIP
 #define BACDL_BIP
+#undef BACDL_BIP6
 #define BACDL_BIP6
+#undef BACDL_BSC
 #define BACDL_BSC
+#undef BACDL_ZIGBEE
+#define BACDL_ZIGBEE
 #endif
 
 #if defined(BACDL_ETHERNET)
@@ -67,6 +75,13 @@
 #endif
 
 #if defined(BACDL_BSC)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_ZIGBEE)
 #if defined(BACDL_SOME_DATALINK_ENABLED)
 #define BACDL_MULTIPLE 1
 #endif
@@ -137,6 +152,8 @@
 /* #define MAX_APDU 128 */
 #elif defined(BACDL_BIP6)
 #define MAX_APDU 1476
+#elif defined(BACDL_ZIGBEE)
+#define MAX_APDU 480
 #elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
 /* note: MS/TP extended frames can be up to 1476 bytes */
 #define MAX_APDU 480
@@ -154,23 +171,9 @@
 #endif
 #endif
 
-#ifndef SC_NETPORT_BVLC_MAX
-#define SC_NETPORT_BVLC_MAX 1500
-#endif
-#ifndef SC_NETPORT_NPDU_MAX
-#define SC_NETPORT_NPDU_MAX 1500
-#endif
-#ifndef SC_NETPORT_CONNECT_TIMEOUT
-#define SC_NETPORT_CONNECT_TIMEOUT 5
-#endif
-#ifndef SC_NETPORT_HEARTBEAT_TIMEOUT
-#define SC_NETPORT_HEARTBEAT_TIMEOUT 60
-#endif
-#ifndef SC_NETPORT_DISCONNECT_TIMEOUT
-#define SC_NETPORT_DISCONNECT_TIMEOUT 150
-#endif
-#ifndef SC_NETPORT_RECONNECT_TIME
-#define SC_NETPORT_RECONNECT_TIME 2
+/* Enable or disable segmentation support in the library */
+#ifndef BACNET_SEGMENTATION_ENABLED
+#define BACNET_SEGMENTATION_ENABLED 0
 #endif
 
 /* for confirmed messages, this is the number of transactions */
@@ -234,6 +237,10 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_TIMER_VALUE) || \
+    defined(BACAPP_RECIPIENT) || \
+    defined(BACAPP_ADDRESS_BINDING) || \
+    defined(BACAPP_NO_VALUE) || \
     defined(BACAPP_LOG_RECORD) || \
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
@@ -242,49 +249,95 @@
 /* clang-format on */
 
 #if defined(BACAPP_ALL)
+#undef BACAPP_MINIMAL
 #define BACAPP_MINIMAL
+#undef BACAPP_TYPES_EXTRA
 #define BACAPP_TYPES_EXTRA
 #endif
 
 #if defined(BACAPP_MINIMAL)
+#undef BACAPP_NULL
 #define BACAPP_NULL
+#undef BACAPP_BOOLEAN
 #define BACAPP_BOOLEAN
+#undef BACAPP_UNSIGNED
 #define BACAPP_UNSIGNED
+#undef BACAPP_SIGNED
 #define BACAPP_SIGNED
+#undef BACAPP_REAL
 #define BACAPP_REAL
+#undef BACAPP_CHARACTER_STRING
 #define BACAPP_CHARACTER_STRING
+#undef BACAPP_OCTET_STRING
 #define BACAPP_OCTET_STRING
+#undef BACAPP_BIT_STRING
 #define BACAPP_BIT_STRING
+#undef BACAPP_ENUMERATED
 #define BACAPP_ENUMERATED
+#undef BACAPP_DATE
 #define BACAPP_DATE
+#undef BACAPP_TIME
 #define BACAPP_TIME
+#undef BACAPP_OBJECT_ID
 #define BACAPP_OBJECT_ID
 #endif
 
 #if defined(BACAPP_TYPES_EXTRA)
+#undef BACAPP_DOUBLE
 #define BACAPP_DOUBLE
+#undef BACAPP_TIMESTAMP
 #define BACAPP_TIMESTAMP
+#undef BACAPP_DATETIME
 #define BACAPP_DATETIME
+#undef BACAPP_DATERANGE
 #define BACAPP_DATERANGE
+#undef BACAPP_LIGHTING_COMMAND
 #define BACAPP_LIGHTING_COMMAND
+#undef BACAPP_XY_COLOR
 #define BACAPP_XY_COLOR
+#undef BACAPP_COLOR_COMMAND
 #define BACAPP_COLOR_COMMAND
+#undef BACAPP_WEEKLY_SCHEDULE
 #define BACAPP_WEEKLY_SCHEDULE
+#undef BACAPP_CALENDAR_ENTRY
 #define BACAPP_CALENDAR_ENTRY
+#undef BACAPP_SPECIAL_EVENT
 #define BACAPP_SPECIAL_EVENT
+#undef BACAPP_HOST_N_PORT
 #define BACAPP_HOST_N_PORT
+#undef BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE
 #define BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE
+#undef BACAPP_DEVICE_OBJECT_REFERENCE
 #define BACAPP_DEVICE_OBJECT_REFERENCE
+#undef BACAPP_OBJECT_PROPERTY_REFERENCE
 #define BACAPP_OBJECT_PROPERTY_REFERENCE
+#undef BACAPP_DESTINATION
 #define BACAPP_DESTINATION
+#undef BACAPP_BDT_ENTRY
 #define BACAPP_BDT_ENTRY
+#undef BACAPP_FDT_ENTRY
 #define BACAPP_FDT_ENTRY
+#undef BACAPP_ACTION_COMMAND
 #define BACAPP_ACTION_COMMAND
+#undef BACAPP_SCALE
 #define BACAPP_SCALE
+#undef BACAPP_SHED_LEVEL
 #define BACAPP_SHED_LEVEL
+#undef BACAPP_ACCESS_RULE
 #define BACAPP_ACCESS_RULE
+#undef BACAPP_CHANNEL_VALUE
 #define BACAPP_CHANNEL_VALUE
+#undef BACAPP_TIMER_VALUE
+#define BACAPP_TIMER_VALUE
+#undef BACAPP_RECIPIENT
+#define BACAPP_RECIPIENT
+#undef BACAPP_ADDRESS_BINDING
+#define BACAPP_ADDRESS_BINDING
+#undef BACAPP_NO_VALUE
+#define BACAPP_NO_VALUE
+#undef BACAPP_LOG_RECORD
 #define BACAPP_LOG_RECORD
+#undef BACAPP_SECURE_CONNECT
 #define BACAPP_SECURE_CONNECT
 #endif
 
@@ -311,7 +364,12 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_TIMER_VALUE) || \
+    defined(BACAPP_RECIPIENT) || \
+    defined(BACAPP_ADDRESS_BINDING) || \
+    defined(BACAPP_NO_VALUE) || \
     defined(BACAPP_LOG_RECORD)
+#undef BACAPP_COMPLEX_TYPES
 #define BACAPP_COMPLEX_TYPES
 #endif
 /* clang-format on */

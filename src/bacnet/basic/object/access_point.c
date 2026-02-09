@@ -22,7 +22,8 @@ static bool Access_Point_Initialized = false;
 static ACCESS_POINT_DESCR ap_descr[MAX_ACCESS_POINTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -43,12 +44,24 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = { -1 };
+static const int32_t Properties_Optional[] = { -1 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_OUT_OF_SERVICE,
+    -1,
+};
 
 void Access_Point_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -61,6 +74,20 @@ void Access_Point_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for an Access Point object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Access_Point_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 void Access_Point_Init(void)

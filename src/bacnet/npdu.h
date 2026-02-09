@@ -113,6 +113,23 @@ int bacnet_npdu_decode(
 
 BACNET_STACK_EXPORT
 bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len);
+BACNET_STACK_EXPORT
+bool npdu_is_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len);
+BACNET_STACK_EXPORT
+bool npdu_is_expected_reply(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    BACNET_ADDRESS *request_address,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    BACNET_ADDRESS *reply_address);
+bool npdu_is_data_expecting_reply(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    uint8_t request_mac,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    uint8_t reply_mac);
 
 #ifdef __cplusplus
 }

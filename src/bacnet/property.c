@@ -23,17 +23,17 @@
 /** @file property.c  List of Required and Optional object properties */
 /* note: the PROP_PROPERTY_LIST is NOT included in these lists, on purpose */
 
-static const int Default_Properties_Required[] = {
+static const int32_t Default_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE, -1
 };
 
-static const int Default_Properties_Optional[] = {
+static const int32_t Default_Properties_Optional[] = {
     /* unordered list of properties */
     -1
 };
 
-static const int Access_Credential_Properties_Required[] = {
+static const int32_t Access_Credential_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -51,7 +51,7 @@ static const int Access_Credential_Properties_Required[] = {
     -1
 };
 
-static const int Access_Credential_Properties_Optional[] = {
+static const int32_t Access_Credential_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DAYS_REMAINING,
@@ -74,7 +74,7 @@ static const int Access_Credential_Properties_Optional[] = {
     -1
 };
 
-static const int Access_Door_Properties_Required[] = {
+static const int32_t Access_Door_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -93,7 +93,7 @@ static const int Access_Door_Properties_Required[] = {
     -1
 };
 
-static const int Access_Door_Properties_Optional[] = {
+static const int32_t Access_Door_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DOOR_STATUS,
@@ -132,7 +132,7 @@ static const int Access_Door_Properties_Optional[] = {
     -1
 };
 
-static const int Access_Point_Properties_Required[] = {
+static const int32_t Access_Point_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -154,7 +154,7 @@ static const int Access_Point_Properties_Required[] = {
     -1
 };
 
-static const int Access_Point_Properties_Optional[] = {
+static const int32_t Access_Point_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_AUTHENTICATION_POLICY_LIST,
@@ -197,7 +197,7 @@ static const int Access_Point_Properties_Optional[] = {
     -1
 };
 
-static const int Access_Rights_Properties_Required[] = {
+static const int32_t Access_Rights_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -211,7 +211,7 @@ static const int Access_Rights_Properties_Required[] = {
     -1
 };
 
-static const int Access_Rights_Properties_Optional[] = {
+static const int32_t Access_Rights_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_ACCOMPANIMENT,
@@ -224,14 +224,14 @@ static const int Access_Rights_Properties_Optional[] = {
     -1
 };
 
-static const int Access_User_Properties_Required[] = {
+static const int32_t Access_User_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_GLOBAL_IDENTIFIER, PROP_STATUS_FLAGS, PROP_RELIABILITY,
     PROP_USER_TYPE,         PROP_CREDENTIALS,  -1
 };
 
-static const int Access_User_Properties_Optional[] = {
+static const int32_t Access_User_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_USER_NAME,
@@ -248,7 +248,7 @@ static const int Access_User_Properties_Optional[] = {
     -1
 };
 
-static const int Access_Zone_Properties_Required[] = {
+static const int32_t Access_Zone_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,     PROP_OBJECT_TYPE,
     PROP_GLOBAL_IDENTIFIER, PROP_OCCUPANCY_STATE, PROP_STATUS_FLAGS,
@@ -256,7 +256,7 @@ static const int Access_Zone_Properties_Required[] = {
     PROP_ENTRY_POINTS,      PROP_EXIT_POINTS,     -1
 };
 
-static const int Access_Zone_Properties_Optional[] = {
+static const int32_t Access_Zone_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_OCCUPANCY_COUNT,
@@ -293,7 +293,7 @@ static const int Access_Zone_Properties_Optional[] = {
     -1
 };
 
-static const int Accumulator_Properties_Required[] = {
+static const int32_t Accumulator_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -308,7 +308,7 @@ static const int Accumulator_Properties_Required[] = {
     -1
 };
 
-static const int Accumulator_Properties_Optional[] = {
+static const int32_t Accumulator_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -347,7 +347,7 @@ static const int Accumulator_Properties_Optional[] = {
     -1
 };
 
-static const int Alert_Enrollment_Properties_Required[] = {
+static const int32_t Alert_Enrollment_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,  PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,        PROP_PRESENT_VALUE,
@@ -357,7 +357,7 @@ static const int Alert_Enrollment_Properties_Required[] = {
     PROP_EVENT_TIME_STAMPS,  -1
 };
 
-static const int Alert_Enrollment_Properties_Optional[] = {
+static const int32_t Alert_Enrollment_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_MESSAGE_TEXTS,
@@ -372,14 +372,14 @@ static const int Alert_Enrollment_Properties_Optional[] = {
     -1
 };
 
-static const int Analog_Input_Properties_Required[] = {
+static const int32_t Analog_Input_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,    PROP_UNITS,        -1
 };
 
-static const int Analog_Input_Properties_Optional[] = {
+static const int32_t Analog_Input_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -417,7 +417,7 @@ static const int Analog_Input_Properties_Optional[] = {
     -1
 };
 
-static const int Analog_Output_Properties_Required[] = {
+static const int32_t Analog_Output_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -435,7 +435,7 @@ static const int Analog_Output_Properties_Required[] = {
     -1
 };
 
-static const int Analog_Output_Properties_Optional[] = {
+static const int32_t Analog_Output_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -475,14 +475,14 @@ static const int Analog_Output_Properties_Optional[] = {
     -1
 };
 
-static const int Analog_Value_Properties_Required[] = {
+static const int32_t Analog_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,    PROP_UNITS,        -1
 };
 
-static const int Analog_Value_Properties_Optional[] = {
+static const int32_t Analog_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -525,7 +525,7 @@ static const int Analog_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Averaging_Properties_Required[] = {
+static const int32_t Averaging_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,    PROP_OBJECT_TYPE,
     PROP_MINIMUM_VALUE,     PROP_AVERAGE_VALUE,  PROP_MAXIMUM_VALUE,
@@ -533,7 +533,7 @@ static const int Averaging_Properties_Required[] = {
     PROP_WINDOW_INTERVAL,   PROP_WINDOW_SAMPLES, -1
 };
 
-static const int Averaging_Properties_Optional[] = {
+static const int32_t Averaging_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_MINIMUM_VALUE_TIMESTAMP,
     PROP_VARIANCE_VALUE,
@@ -547,14 +547,14 @@ static const int Averaging_Properties_Optional[] = {
     -1
 };
 
-static const int Binary_Input_Properties_Required[] = {
+static const int32_t Binary_Input_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,    PROP_POLARITY,     -1
 };
 
-static const int Binary_Input_Properties_Optional[] = {
+static const int32_t Binary_Input_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -589,7 +589,7 @@ static const int Binary_Input_Properties_Optional[] = {
     -1
 };
 
-static const int Binary_Lighting_Output_Properties_Required[] = {
+static const int32_t Binary_Lighting_Output_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -606,7 +606,7 @@ static const int Binary_Lighting_Output_Properties_Required[] = {
     -1
 };
 
-static const int Binary_Lighting_Output_Properties_Optional[] = {
+static const int32_t Binary_Lighting_Output_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -639,7 +639,7 @@ static const int Binary_Lighting_Output_Properties_Optional[] = {
     -1
 };
 
-static const int Binary_Output_Properties_Required[] = {
+static const int32_t Binary_Output_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -657,7 +657,7 @@ static const int Binary_Output_Properties_Required[] = {
     -1
 };
 
-static const int Binary_Output_Properties_Optional[] = {
+static const int32_t Binary_Output_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -699,7 +699,7 @@ static const int Binary_Output_Properties_Optional[] = {
     -1
 };
 
-static const int Binary_Value_Properties_Required[] = {
+static const int32_t Binary_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
@@ -707,7 +707,7 @@ static const int Binary_Value_Properties_Required[] = {
     PROP_OUT_OF_SERVICE,    -1
 };
 
-static const int Binary_Value_Properties_Optional[] = {
+static const int32_t Binary_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -750,13 +750,13 @@ static const int Binary_Value_Properties_Optional[] = {
     -1
 };
 
-static const int BitString_Value_Properties_Required[] = {
+static const int32_t BitString_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int BitString_Value_Properties_Optional[] = {
+static const int32_t BitString_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -792,13 +792,13 @@ static const int BitString_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Calendar_Properties_Required[] = {
+static const int32_t Calendar_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_DATE_LIST,   -1
 };
 
-static const int Calendar_Properties_Optional[] = {
+static const int32_t Calendar_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_AUDIT_LEVEL,
@@ -809,7 +809,7 @@ static const int Calendar_Properties_Optional[] = {
     -1
 };
 
-static const int Channel_Properties_Required[] = {
+static const int32_t Channel_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -825,7 +825,7 @@ static const int Channel_Properties_Required[] = {
     -1
 };
 
-static const int Channel_Properties_Optional[] = {
+static const int32_t Channel_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -850,7 +850,7 @@ static const int Channel_Properties_Optional[] = {
     -1
 };
 
-static const int Command_Properties_Required[] = {
+static const int32_t Command_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -862,7 +862,7 @@ static const int Command_Properties_Required[] = {
     -1
 };
 
-static const int Command_Properties_Optional[] = {
+static const int32_t Command_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_ACTION_TEXT,
@@ -887,13 +887,13 @@ static const int Command_Properties_Optional[] = {
     -1
 };
 
-static const int CharacterString_Value_Properties_Required[] = {
+static const int32_t CharacterString_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int CharacterString_Value_Properties_Optional[] = {
+static const int32_t CharacterString_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -929,7 +929,7 @@ static const int CharacterString_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Color_Properties_Required[] = {
+static const int32_t Color_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
@@ -938,7 +938,7 @@ static const int Color_Properties_Required[] = {
     PROP_DEFAULT_FADE_TIME, -1
 };
 
-static const int Color_Properties_Optional[] = {
+static const int32_t Color_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_RELIABILITY,  PROP_DESCRIPTION,
     PROP_TRANSITION,   PROP_VALUE_SOURCE,
@@ -947,7 +947,7 @@ static const int Color_Properties_Optional[] = {
     PROP_PROFILE_NAME, -1
 };
 
-static const int Color_Temperature_Properties_Required[] = {
+static const int32_t Color_Temperature_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -963,7 +963,7 @@ static const int Color_Temperature_Properties_Required[] = {
     -1
 };
 
-static const int Color_Temperature_Properties_Optional[] = {
+static const int32_t Color_Temperature_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_MIN_PRES_VALUE,
@@ -978,7 +978,7 @@ static const int Color_Temperature_Properties_Optional[] = {
     -1
 };
 
-static const int Credential_Data_Input_Properties_Required[] = {
+static const int32_t Credential_Data_Input_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
@@ -987,7 +987,7 @@ static const int Credential_Data_Input_Properties_Required[] = {
     PROP_UPDATE_TIME,       -1
 };
 
-static const int Credential_Data_Input_Properties_Optional[] = {
+static const int32_t Credential_Data_Input_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_SUPPORTED_FORMAT_CLASSES,
@@ -1009,13 +1009,13 @@ static const int Credential_Data_Input_Properties_Optional[] = {
     -1
 };
 
-static const int Date_Pattern_Value_Properties_Required[] = {
+static const int32_t Date_Pattern_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Date_Pattern_Value_Properties_Optional[] = {
+static const int32_t Date_Pattern_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -1045,13 +1045,13 @@ static const int Date_Pattern_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Date_Value_Properties_Required[] = {
+static const int32_t Date_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Date_Value_Properties_Optional[] = {
+static const int32_t Date_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -1082,13 +1082,13 @@ static const int Date_Value_Properties_Optional[] = {
     -1
 };
 
-static const int DateTime_Pattern_Value_Properties_Required[] = {
+static const int32_t DateTime_Pattern_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int DateTime_Pattern_Value_Properties_Optional[] = {
+static const int32_t DateTime_Pattern_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -1120,13 +1120,13 @@ static const int DateTime_Pattern_Value_Properties_Optional[] = {
     -1
 };
 
-static const int DateTime_Value_Properties_Required[] = {
+static const int32_t DateTime_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int DateTime_Value_Properties_Optional[] = {
+static const int32_t DateTime_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -1158,7 +1158,7 @@ static const int DateTime_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Device_Properties_Required[] = {
+static const int32_t Device_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1183,7 +1183,7 @@ static const int Device_Properties_Required[] = {
     -1
 };
 
-static const int Device_Properties_Optional[] = {
+static const int32_t Device_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_LOCATION,
     PROP_DESCRIPTION,
@@ -1240,7 +1240,7 @@ static const int Device_Properties_Optional[] = {
     -1
 };
 
-static const int Elevator_Group_Properties_Required[] = {
+static const int32_t Elevator_Group_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1251,7 +1251,7 @@ static const int Elevator_Group_Properties_Required[] = {
     -1
 };
 
-static const int Elevator_Group_Properties_Optional[] = {
+static const int32_t Elevator_Group_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,   PROP_GROUP_MODE,
     PROP_LANDING_CALLS, PROP_LANDING_CALL_CONTROL,
@@ -1260,7 +1260,7 @@ static const int Elevator_Group_Properties_Optional[] = {
     PROP_PROFILE_NAME,  -1
 };
 
-static const int Escalator_Properties_Required[] = {
+static const int32_t Escalator_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1275,7 +1275,7 @@ static const int Escalator_Properties_Required[] = {
     -1
 };
 
-static const int Escalator_Properties_Optional[] = {
+static const int32_t Escalator_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_POWER_MODE,
@@ -1306,7 +1306,7 @@ static const int Escalator_Properties_Optional[] = {
     -1
 };
 
-static const int Event_Enrollment_Properties_Required[] = {
+static const int32_t Event_Enrollment_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1326,7 +1326,7 @@ static const int Event_Enrollment_Properties_Required[] = {
     -1
 };
 
-static const int Event_Enrollment_Properties_Optional[] = {
+static const int32_t Event_Enrollment_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_MESSAGE_TEXTS,
@@ -1344,7 +1344,7 @@ static const int Event_Enrollment_Properties_Optional[] = {
     -1
 };
 
-static const int Event_Log_Properties_Required[] = {
+static const int32_t Event_Log_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,        PROP_OBJECT_TYPE,
     PROP_STATUS_FLAGS,      PROP_EVENT_STATE,        PROP_ENABLE,
@@ -1352,7 +1352,7 @@ static const int Event_Log_Properties_Required[] = {
     PROP_RECORD_COUNT,      PROP_TOTAL_RECORD_COUNT, -1
 };
 
-static const int Event_Log_Properties_Optional[] = {
+static const int32_t Event_Log_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -1380,7 +1380,7 @@ static const int Event_Log_Properties_Optional[] = {
     -1
 };
 
-static const int File_Properties_Required[] = {
+static const int32_t File_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1394,7 +1394,7 @@ static const int File_Properties_Required[] = {
     -1
 };
 
-static const int File_Properties_Optional[] = {
+static const int32_t File_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,  PROP_RECORD_COUNT,
     PROP_AUDIT_LEVEL,  PROP_AUDITABLE_OPERATIONS,
@@ -1402,7 +1402,7 @@ static const int File_Properties_Optional[] = {
     PROP_PROFILE_NAME, -1
 };
 
-static const int Global_Group_Properties_Required[] = {
+static const int32_t Global_Group_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_GROUP_MEMBERS,
@@ -1411,7 +1411,7 @@ static const int Global_Group_Properties_Required[] = {
     PROP_OUT_OF_SERVICE,    -1
 };
 
-static const int Global_Group_Properties_Optional[] = {
+static const int32_t Global_Group_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_GROUP_MEMBER_NAMES,
@@ -1443,13 +1443,13 @@ static const int Global_Group_Properties_Optional[] = {
     -1
 };
 
-static const int Group_Properties_Required[] = {
+static const int32_t Group_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,     PROP_OBJECT_NAME,   PROP_OBJECT_TYPE,
     PROP_LIST_OF_GROUP_MEMBERS, PROP_PRESENT_VALUE, -1
 };
 
-static const int Group_Properties_Optional[] = {
+static const int32_t Group_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_AUDIT_LEVEL,
@@ -1460,7 +1460,7 @@ static const int Group_Properties_Optional[] = {
     -1
 };
 
-static const int Integer_Value_Properties_Required[] = {
+static const int32_t Integer_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1471,7 +1471,7 @@ static const int Integer_Value_Properties_Required[] = {
     -1
 };
 
-static const int Integer_Value_Properties_Optional[] = {
+static const int32_t Integer_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -1516,7 +1516,7 @@ static const int Integer_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Large_Analog_Value_Properties_Required[] = {
+static const int32_t Large_Analog_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1527,7 +1527,7 @@ static const int Large_Analog_Value_Properties_Required[] = {
     -1
 };
 
-static const int Large_Analog_Value_Properties_Optional[] = {
+static const int32_t Large_Analog_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -1572,7 +1572,7 @@ static const int Large_Analog_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Lift_Properties_Required[] = {
+static const int32_t Lift_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,    PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,          PROP_STATUS_FLAGS,
@@ -1583,7 +1583,7 @@ static const int Lift_Properties_Required[] = {
     PROP_FAULT_SIGNALS,        -1
 };
 
-static const int Lift_Properties_Optional[] = {
+static const int32_t Lift_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_FLOOR_TEXT,
@@ -1627,7 +1627,7 @@ static const int Lift_Properties_Optional[] = {
     -1
 };
 
-static const int Lighting_Output_Properties_Required[] = {
+static const int32_t Lighting_Output_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1648,10 +1648,12 @@ static const int Lighting_Output_Properties_Required[] = {
     PROP_RELINQUISH_DEFAULT,
     PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
     PROP_CURRENT_COMMAND_PRIORITY,
+    PROP_LAST_ON_VALUE,
+    PROP_DEFAULT_ON_VALUE,
     -1
 };
 
-static const int Lighting_Output_Properties_Optional[] = {
+static const int32_t Lighting_Output_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -1670,13 +1672,19 @@ static const int Lighting_Output_Properties_Optional[] = {
     PROP_AUDIT_LEVEL,
     PROP_AUDITABLE_OPERATIONS,
     PROP_AUDIT_PRIORITY_FILTER,
+    PROP_COLOR_REFERENCE,
+    PROP_COLOR_OVERRIDE,
+    PROP_OVERRIDE_COLOR_REFERENCE,
+    PROP_HIGH_END_TRIM,
+    PROP_LOW_END_TRIM,
+    PROP_TRIM_FADE_TIME,
     PROP_TAGS,
     PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME,
     -1
 };
 
-static const int Load_Control_Properties_Required[] = {
+static const int32_t Load_Control_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1696,7 +1704,7 @@ static const int Load_Control_Properties_Required[] = {
     -1
 };
 
-static const int Load_Control_Properties_Optional[] = {
+static const int32_t Load_Control_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_STATE_DESCRIPTION,
@@ -1724,7 +1732,7 @@ static const int Load_Control_Properties_Optional[] = {
     -1
 };
 
-static const int Life_Safety_Point_Properties_Required[] = {
+static const int32_t Life_Safety_Point_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,  PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,        PROP_PRESENT_VALUE,
@@ -1735,7 +1743,7 @@ static const int Life_Safety_Point_Properties_Required[] = {
     PROP_OPERATION_EXPECTED, -1
 };
 
-static const int Life_Safety_Point_Properties_Optional[] = {
+static const int32_t Life_Safety_Point_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -1769,7 +1777,7 @@ static const int Life_Safety_Point_Properties_Optional[] = {
     -1
 };
 
-static const int Life_Safety_Zone_Properties_Required[] = {
+static const int32_t Life_Safety_Zone_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1788,7 +1796,7 @@ static const int Life_Safety_Zone_Properties_Required[] = {
     -1
 };
 
-static const int Life_Safety_Zone_Properties_Optional[] = {
+static const int32_t Life_Safety_Zone_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -1818,7 +1826,7 @@ static const int Life_Safety_Zone_Properties_Optional[] = {
     -1
 };
 
-static const int Loop_Properties_Required[] = {
+static const int32_t Loop_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1839,10 +1847,11 @@ static const int Loop_Properties_Required[] = {
     -1
 };
 
-static const int Loop_Properties_Optional[] = {
+static const int32_t Loop_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
+    PROP_UPDATE_INTERVAL,
     PROP_PROPORTIONAL_CONSTANT,
     PROP_PROPORTIONAL_CONSTANT_UNITS,
     PROP_INTEGRAL_CONSTANT,
@@ -1877,14 +1886,14 @@ static const int Loop_Properties_Optional[] = {
     -1
 };
 
-static const int Multistate_Input_Properties_Required[] = {
+static const int32_t Multistate_Input_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1
 };
 
-static const int Multistate_Input_Properties_Optional[] = {
+static const int32_t Multistate_Input_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -1914,7 +1923,7 @@ static const int Multistate_Input_Properties_Optional[] = {
     -1
 };
 
-static const int Multistate_Output_Properties_Required[] = {
+static const int32_t Multistate_Output_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -1932,7 +1941,7 @@ static const int Multistate_Output_Properties_Required[] = {
     -1
 };
 
-static const int Multistate_Output_Properties_Optional[] = {
+static const int32_t Multistate_Output_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_DEVICE_TYPE,
@@ -1966,14 +1975,14 @@ static const int Multistate_Output_Properties_Optional[] = {
     -1
 };
 
-static const int Multistate_Value_Properties_Required[] = {
+static const int32_t Multistate_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1
 };
 
-static const int Multistate_Value_Properties_Optional[] = {
+static const int32_t Multistate_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -2009,7 +2018,7 @@ static const int Multistate_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Network_Port_Properties_Required[] = {
+static const int32_t Network_Port_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2029,7 +2038,7 @@ static const int Network_Port_Properties_Required[] = {
     -1
 };
 
-static const int Network_Port_Properties_Optional[] = {
+static const int32_t Network_Port_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_REFERENCE_PORT,
@@ -2100,7 +2109,7 @@ static const int Network_Port_Properties_Optional[] = {
     -1
 };
 
-static const int Network_Security_Properties_Required[] = {
+static const int32_t Network_Security_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2119,7 +2128,7 @@ static const int Network_Security_Properties_Required[] = {
     -1
 };
 
-static const int Network_Security_Properties_Optional[] = {
+static const int32_t Network_Security_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_AUDIT_LEVEL,
@@ -2130,7 +2139,7 @@ static const int Network_Security_Properties_Optional[] = {
     -1
 };
 
-static const int Notification_Class_Properties_Required[] = {
+static const int32_t Notification_Class_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
@@ -2138,7 +2147,7 @@ static const int Notification_Class_Properties_Required[] = {
     PROP_RECIPIENT_LIST,    -1
 };
 
-static const int Notification_Class_Properties_Optional[] = {
+static const int32_t Notification_Class_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_STATUS_FLAGS,
@@ -2160,7 +2169,7 @@ static const int Notification_Class_Properties_Optional[] = {
     -1
 };
 
-static const int Notification_Forwarder_Properties_Required[] = {
+static const int32_t Notification_Forwarder_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2175,7 +2184,7 @@ static const int Notification_Forwarder_Properties_Required[] = {
     -1
 };
 
-static const int Notification_Forwarder_Properties_Optional[] = {
+static const int32_t Notification_Forwarder_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_PORT_FILTER,
@@ -2188,13 +2197,13 @@ static const int Notification_Forwarder_Properties_Optional[] = {
     -1
 };
 
-static const int OctetString_Value_Properties_Required[] = {
+static const int32_t OctetString_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int OctetString_Value_Properties_Optional[] = {
+static const int32_t OctetString_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -2217,7 +2226,7 @@ static const int OctetString_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Positive_Integer_Value_Properties_Required[] = {
+static const int32_t Positive_Integer_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2228,7 +2237,7 @@ static const int Positive_Integer_Value_Properties_Required[] = {
     -1
 };
 
-static const int Positive_Integer_Value_Properties_Optional[] = {
+static const int32_t Positive_Integer_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -2273,7 +2282,7 @@ static const int Positive_Integer_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Program_Properties_Required[] = {
+static const int32_t Program_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PROGRAM_STATE,
@@ -2281,7 +2290,7 @@ static const int Program_Properties_Required[] = {
     PROP_OUT_OF_SERVICE,    -1
 };
 
-static const int Program_Properties_Optional[] = {
+static const int32_t Program_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_REASON_FOR_HALT,
     PROP_DESCRIPTION_OF_HALT,
@@ -2307,7 +2316,7 @@ static const int Program_Properties_Optional[] = {
     -1
 };
 
-static const int Pulse_Converter_Properties_Required[] = {
+static const int32_t Pulse_Converter_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2326,7 +2335,7 @@ static const int Pulse_Converter_Properties_Required[] = {
     -1
 };
 
-static const int Pulse_Converter_Properties_Optional[] = {
+static const int32_t Pulse_Converter_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_INPUT_REFERENCE,
@@ -2358,7 +2367,7 @@ static const int Pulse_Converter_Properties_Optional[] = {
     -1
 };
 
-static const int Schedule_Properties_Required[] = {
+static const int32_t Schedule_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2374,7 +2383,7 @@ static const int Schedule_Properties_Required[] = {
     -1
 };
 
-static const int Schedule_Properties_Optional[] = {
+static const int32_t Schedule_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_WEEKLY_SCHEDULE,
@@ -2397,7 +2406,7 @@ static const int Schedule_Properties_Optional[] = {
     -1
 };
 
-static const int Staging_Properties_Required[] = {
+static const int32_t Staging_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2417,7 +2426,7 @@ static const int Staging_Properties_Required[] = {
     -1
 };
 
-static const int Staging_Properties_Optional[] = {
+static const int32_t Staging_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_STAGE_NAMES,
     PROP_DESCRIPTION,
@@ -2441,13 +2450,13 @@ static const int Staging_Properties_Optional[] = {
     -1
 };
 
-static const int Structured_View_Properties_Required[] = {
+static const int32_t Structured_View_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
     PROP_NODE_TYPE,         PROP_SUBORDINATE_LIST, -1
 };
 
-static const int Structured_View_Properties_Optional[] = {
+static const int32_t Structured_View_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_NODE_SUBTYPE,
@@ -2465,13 +2474,13 @@ static const int Structured_View_Properties_Optional[] = {
     -1
 };
 
-static const int Time_Pattern_Value_Properties_Required[] = {
+static const int32_t Time_Pattern_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Time_Pattern_Value_Properties_Optional[] = {
+static const int32_t Time_Pattern_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -2502,13 +2511,13 @@ static const int Time_Pattern_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Time_Value_Properties_Required[] = {
+static const int32_t Time_Value_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Time_Value_Properties_Optional[] = {
+static const int32_t Time_Value_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -2539,7 +2548,7 @@ static const int Time_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Timer_Properties_Required[] = {
+static const int32_t Timer_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
@@ -2547,7 +2556,7 @@ static const int Timer_Properties_Required[] = {
     PROP_TIMER_RUNNING,     -1
 };
 
-static const int Timer_Properties_Optional[] = {
+static const int32_t Timer_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_EVENT_STATE,
@@ -2586,7 +2595,7 @@ static const int Timer_Properties_Optional[] = {
     -1
 };
 
-static const int Trend_Log_Properties_Required[] = {
+static const int32_t Trend_Log_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2603,7 +2612,7 @@ static const int Trend_Log_Properties_Required[] = {
     -1
 };
 
-static const int Trend_Log_Properties_Optional[] = {
+static const int32_t Trend_Log_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_START_TIME,
@@ -2638,7 +2647,7 @@ static const int Trend_Log_Properties_Optional[] = {
     -1
 };
 
-static const int Trend_Log_Multiple_Properties_Required[] = {
+static const int32_t Trend_Log_Multiple_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2657,7 +2666,7 @@ static const int Trend_Log_Multiple_Properties_Required[] = {
     -1
 };
 
-static const int Trend_Log_Multiple_Properties_Optional[] = {
+static const int32_t Trend_Log_Multiple_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -2688,7 +2697,7 @@ static const int Trend_Log_Multiple_Properties_Optional[] = {
     -1
 };
 
-static const int Audit_Log_Properties_Required[] = {
+static const int32_t Audit_Log_Properties_Required[] = {
     /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -2703,7 +2712,7 @@ static const int Audit_Log_Properties_Required[] = {
     -1
 };
 
-static const int Audit_Log_Properties_Optional[] = {
+static const int32_t Audit_Log_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
@@ -2733,12 +2742,12 @@ static const int Audit_Log_Properties_Optional[] = {
  *
  * @param object_type - enumerated BACNET_OBJECT_TYPE
  * @return returns a pointer to a '-1' terminated array of
- * type 'int' that contain BACnet object properties for the given object
+ * type 'int32_t' that contain BACnet object properties for the given object
  * type.
  */
-const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
+const int32_t *property_list_optional(BACNET_OBJECT_TYPE object_type)
 {
-    const int *pList = NULL;
+    const int32_t *pList = NULL;
 
     switch (object_type) {
         case OBJECT_ACCESS_CREDENTIAL:
@@ -2947,12 +2956,12 @@ const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
  *
  * @param object_type - enumerated BACNET_OBJECT_TYPE
  * @return returns a pointer to a '-1' terminated array of
- * type 'int' that contain BACnet object properties for the given object
+ * type 'int32_t' that contain BACnet object properties for the given object
  * type.
  */
-const int *property_list_required(BACNET_OBJECT_TYPE object_type)
+const int32_t *property_list_required(BACNET_OBJECT_TYPE object_type)
 {
-    const int *pList = NULL;
+    const int32_t *pList = NULL;
 
     switch (object_type) {
         case OBJECT_ACCESS_CREDENTIAL:
@@ -3161,7 +3170,7 @@ const int *property_list_required(BACNET_OBJECT_TYPE object_type)
  *
  * @param object_type - enumerated BACNET_OBJECT_TYPE
  * @param pPropertyList - returns a pointer to two '-1' terminated arrays of
- * type 'int' that contain BACnet object properties for the given object
+ * type 'int32_t' that contain BACnet object properties for the given object
  * type.
  */
 void property_list_special(
@@ -3187,10 +3196,10 @@ void property_list_special(
 BACNET_PROPERTY_ID property_list_special_property(
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID special_property,
-    unsigned index)
+    uint32_t index)
 {
     BACNET_PROPERTY_ID property = UINT32_MAX; /* return value */
-    unsigned required, optional, proprietary;
+    uint32_t required, optional, proprietary;
     struct special_property_list_t PropertyList = { 0 };
 
     property_list_special(object_type, &PropertyList);
@@ -3230,10 +3239,10 @@ BACNET_PROPERTY_ID property_list_special_property(
     return property;
 }
 
-unsigned property_list_special_count(
+uint32_t property_list_special_count(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID special_property)
 {
-    unsigned count = 0; /* return value */
+    uint32_t count = 0; /* return value */
     struct special_property_list_t PropertyList = { 0 };
 
     property_list_special(object_type, &PropertyList);

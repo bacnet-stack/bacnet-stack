@@ -251,7 +251,7 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, const uint8_t *dadr)
  * returned as -1 in these cases.
  */
 bool Routed_Device_GetNext(
-    const BACNET_ADDRESS *dest, const int *DNET_list, int *cursor)
+    const BACNET_ADDRESS *dest, const int32_t *DNET_list, int *cursor)
 {
     int dnet = DNET_list[0]; /* Get the DNET of our virtual network */
     int idx = *cursor;
@@ -315,7 +315,7 @@ bool Routed_Device_GetNext(
  *          Device (the gateway), or is BACNET_BROADCAST_NETWORK,
  * which is an automatic match. Else False if not a reachable network.
  */
-bool Routed_Device_Is_Valid_Network(uint16_t dest_net, const int *DNET_list)
+bool Routed_Device_Is_Valid_Network(uint16_t dest_net, const int32_t *DNET_list)
 {
     int dnet = DNET_list[0]; /* Get the DNET of our virtual network */
     bool bSuccess = false;

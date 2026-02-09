@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet Access Credential object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/access_credential.h>
 
@@ -31,7 +28,7 @@ static void testAccessCredential(void)
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_APPLICATION_DATA_VALUE value2 = { 0 };
-    const int *required_property = NULL;
+    const int32_t *required_property = NULL;
     bool status = false;
 
     Access_Credential_Init();

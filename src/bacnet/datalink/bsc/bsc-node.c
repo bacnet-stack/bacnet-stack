@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet secure connect node API.
+ * @brief BACnet secure connect node API.
  * @author Kirill Neznamov <kirill\.neznamov@dsr-corporation\.com>
  * @date October 2022
  * @copyright SPDX-License-Identifier: MIT
@@ -19,10 +19,8 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
-#define DEBUG_BSC_NODE 0
-
 #undef DEBUG_PRINTF
-#if DEBUG_BSC_NODE == 1
+#if DEBUG_BSC_NODE
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED

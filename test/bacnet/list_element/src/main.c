@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/bacdest.h>
@@ -23,7 +23,8 @@ static void test_ListElement(void)
     int application_data_len = 0, test_application_data_len = 0;
     unsigned i = 0;
     BACNET_DESTINATION destination[5] = { 0 }, test_destination[5] = { 0 };
-    const int destination_size = sizeof(destination) / sizeof(destination[0]);
+    const int32_t destination_size =
+        sizeof(destination) / sizeof(destination[0]);
 
     list_element.application_data = NULL;
     list_element.application_data_len = 0;

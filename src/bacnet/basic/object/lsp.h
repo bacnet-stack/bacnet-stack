@@ -22,7 +22,13 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Life_Safety_Point_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Life_Safety_Point_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 bool Life_Safety_Point_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -80,6 +86,11 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
 bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void *Life_Safety_Point_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Life_Safety_Point_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Life_Safety_Point_Create(uint32_t object_instance);

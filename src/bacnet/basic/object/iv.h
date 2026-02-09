@@ -31,7 +31,13 @@ typedef void (*integer_value_write_present_value_callback)(
 
 BACNET_STACK_EXPORT
 void Integer_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Integer_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 bool Integer_Value_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -86,9 +92,9 @@ BACNET_STACK_EXPORT
 const char *Integer_Value_Description_ANSI(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-uint16_t Integer_Value_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Integer_Value_Units(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Integer_Value_Units_Set(uint32_t instance, uint16_t unit);
+bool Integer_Value_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS unit);
 
 BACNET_STACK_EXPORT
 bool Integer_Value_Out_Of_Service(uint32_t instance);
@@ -96,16 +102,19 @@ BACNET_STACK_EXPORT
 void Integer_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-void Integer_Value_Init(void);
+void *Integer_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Integer_Value_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Integer_Value_Create(uint32_t object_instance);
-
 BACNET_STACK_EXPORT
 bool Integer_Value_Delete(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 void Integer_Value_Cleanup(void);
+BACNET_STACK_EXPORT
+void Integer_Value_Init(void);
 
 #ifdef __cplusplus
 }

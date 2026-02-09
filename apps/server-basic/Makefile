@@ -11,9 +11,11 @@ SRC = main.c \
 	$(BACNET_SERVER_DIR)/bacnet_port.c \
 	$(BACNET_SERVER_DIR)/bacnet_port_ipv4.c \
 	$(BACNET_SERVER_DIR)/bacnet_port_ipv6.c \
+	$(BACNET_SERVER_DIR)/bacnet_port_mstp.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \
+	$(BACNET_OBJECT_DIR)/auditlog.c \
 	$(BACNET_OBJECT_DIR)/bacfile.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bitstring_value.c \
@@ -29,6 +31,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/iv.c \
 	$(BACNET_OBJECT_DIR)/lc.c \
 	$(BACNET_OBJECT_DIR)/lo.c \
+	$(BACNET_OBJECT_DIR)/loop.c \
 	$(BACNET_OBJECT_DIR)/lsp.c \
 	$(BACNET_OBJECT_DIR)/lsz.c \
 	$(BACNET_OBJECT_DIR)/ms-input.c \
@@ -39,6 +42,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/osv.c \
 	$(BACNET_OBJECT_DIR)/program.c  \
 	$(BACNET_OBJECT_DIR)/structured_view.c \
+	$(BACNET_OBJECT_DIR)/timer.c  \
 	$(BACNET_OBJECT_DIR)/time_value.c
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing

@@ -270,6 +270,8 @@ int16_t ubasic_get_stringvariable(struct ubasic_data *data, uint8_t varnum);
 BACNET_STACK_EXPORT
 void ubasic_set_stringvariable(
     struct ubasic_data *data, uint8_t varnum, int16_t size);
+BACNET_STACK_EXPORT
+const char *ubasic_ptr_stringvariable(struct ubasic_data *data, char variable);
 #endif
 
 /* API to interface and initialize the ported hardware drivers */

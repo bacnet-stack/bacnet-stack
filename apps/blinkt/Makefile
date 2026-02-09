@@ -1,6 +1,8 @@
 ###############################################################################
 # Makefile for Project - BACnet Blinkt!
 # sudo apt install libpigpio-dev libpigpiod-if-dev pigpiod
+# note: start pigpio daemon with the command 'sudo pigpiod'
+# note: Blinkt! pigpio library is not supported on Raspberry Pi 5 at this time
 ###############################################################################
 
 ## General Flags
@@ -8,13 +10,46 @@ TARGET = bacblinkt
 
 # BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
-SRC = main.c blinkt.c device.c \
-	$(BACNET_OBJECT_DIR)/netport.c \
+BACNET_SERVER_DIR = $(BACNET_SRC_DIR)/bacnet/basic/server
+SRC = main.c blinkt.c \
+	$(BACNET_SERVER_DIR)/bacnet_basic.c \
+	$(BACNET_SERVER_DIR)/bacnet_device.c \
+	$(BACNET_SERVER_DIR)/bacnet_port.c \
+	$(BACNET_SERVER_DIR)/bacnet_port_ipv4.c \
+	$(BACNET_SERVER_DIR)/bacnet_port_ipv6.c \
+	$(BACNET_SERVER_DIR)/bacnet_port_mstp.c \
+	$(BACNET_OBJECT_DIR)/ai.c \
+	$(BACNET_OBJECT_DIR)/ao.c \
+	$(BACNET_OBJECT_DIR)/av.c \
+	$(BACNET_OBJECT_DIR)/auditlog.c \
+	$(BACNET_OBJECT_DIR)/bacfile.c \
+	$(BACNET_OBJECT_DIR)/bi.c \
+	$(BACNET_OBJECT_DIR)/bitstring_value.c \
+	$(BACNET_OBJECT_DIR)/blo.c \
+	$(BACNET_OBJECT_DIR)/bo.c \
+	$(BACNET_OBJECT_DIR)/bv.c \
+	$(BACNET_OBJECT_DIR)/calendar.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
 	$(BACNET_OBJECT_DIR)/color_object.c \
 	$(BACNET_OBJECT_DIR)/color_temperature.c \
+	$(BACNET_OBJECT_DIR)/command.c \
+	$(BACNET_OBJECT_DIR)/csv.c \
+	$(BACNET_OBJECT_DIR)/iv.c \
 	$(BACNET_OBJECT_DIR)/lc.c \
-	$(BACNET_OBJECT_DIR)/lo.c
+	$(BACNET_OBJECT_DIR)/lo.c \
+	$(BACNET_OBJECT_DIR)/loop.c \
+	$(BACNET_OBJECT_DIR)/lsp.c \
+	$(BACNET_OBJECT_DIR)/lsz.c \
+	$(BACNET_OBJECT_DIR)/ms-input.c \
+	$(BACNET_OBJECT_DIR)/mso.c \
+	$(BACNET_OBJECT_DIR)/msv.c \
+	$(BACNET_OBJECT_DIR)/nc.c  \
+	$(BACNET_OBJECT_DIR)/netport.c  \
+	$(BACNET_OBJECT_DIR)/osv.c \
+	$(BACNET_OBJECT_DIR)/program.c  \
+	$(BACNET_OBJECT_DIR)/structured_view.c \
+	$(BACNET_OBJECT_DIR)/timer.c  \
+	$(BACNET_OBJECT_DIR)/time_value.c
 
 CFLAGS += -DMAX_TSM_TRANSACTIONS=1
 

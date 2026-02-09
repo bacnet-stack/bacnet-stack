@@ -32,7 +32,12 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Multistate_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Multistate_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 
 BACNET_STACK_EXPORT
 bool Multistate_Value_Valid_Instance(uint32_t object_instance);
@@ -115,6 +120,11 @@ BACNET_RELIABILITY Multistate_Value_Reliability(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Multistate_Value_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
+
+BACNET_STACK_EXPORT
+void *Multistate_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Multistate_Value_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Multistate_Value_Create(uint32_t object_instance);

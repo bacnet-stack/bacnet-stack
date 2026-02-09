@@ -33,6 +33,7 @@ struct object_data {
     /* The state text functions expect a list of C strings separated by '\0' */
     const char *State_Text;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -47,16 +48,28 @@ static const char *Default_State_Text = "State 1\0"
                                         "State 3\0";
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
+static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1
 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
-                                           PROP_STATE_TEXT, -1 };
+static const int32_t Properties_Optional[] = {
+    /* unordered list of required properties */
+    PROP_DESCRIPTION, PROP_RELIABILITY, PROP_STATE_TEXT, -1
+};
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+};
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -67,7 +80,9 @@ static const int Properties_Proprietary[] = { -1 };
  * @param pProprietary - Pointer to the pointer of properitary values.
  */
 void Multistate_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -80,6 +95,20 @@ void Multistate_Value_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Multi-State Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Multistate_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -951,6 +980,38 @@ void Multistate_Value_Write_Disable(uint32_t object_instance)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Multistate_Value_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Multistate_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a new object and adds it to the object list
  * @param  object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -960,6 +1021,9 @@ uint32_t Multistate_Value_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

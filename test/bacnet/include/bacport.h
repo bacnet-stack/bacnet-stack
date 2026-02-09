@@ -1,13 +1,11 @@
-/**************************************************************************
- *
- * Copyright (c) 2022 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
-
-/* ztest mock file */
-
+/**
+ * @file
+ * @brief Mock for BACnet port file
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #ifndef BACPORT_H
 #define BACPORT_H
 

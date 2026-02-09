@@ -23,7 +23,9 @@ extern "C" {
 #define NC_RESCAN_RECIPIENTS_SECS 60
 
 /* max "length" of recipient_list */
+#ifndef NC_MAX_RECIPIENTS
 #define NC_MAX_RECIPIENTS 10
+#endif
 
 #if defined(INTRINSIC_REPORTING)
 
@@ -50,7 +52,12 @@ typedef struct Ack_Notification {
 
 BACNET_STACK_EXPORT
 void Notification_Class_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Notification_Class_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 
 BACNET_STACK_EXPORT
 void Notification_Class_Init(void);

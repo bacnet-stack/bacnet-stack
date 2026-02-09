@@ -1,13 +1,11 @@
-/*
- * Copyright (c) 2023 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet AuditLog object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @date 2023
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet auditlog APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/auditlog.h>
 #include <bacnet/bactext.h>
@@ -28,7 +26,7 @@ static void testAuditlog(void)
     int len = 0, index = 0;
     const uint32_t instance = 1;
     uint32_t test_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     bool status = false;
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     uint32_t buffer_size = 0;

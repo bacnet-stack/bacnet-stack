@@ -35,7 +35,13 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Color_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Color_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 bool Color_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -117,6 +123,11 @@ void Color_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
 void Color_Timer(uint32_t object_instance, uint16_t milliseconds);
+
+BACNET_STACK_EXPORT
+void *Color_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Color_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Color_Create(uint32_t object_instance);

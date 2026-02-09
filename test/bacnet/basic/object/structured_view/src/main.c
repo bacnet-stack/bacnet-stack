@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2024
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/structured_view.h>
@@ -28,7 +28,7 @@ static void test_object_structured_view(void)
     int diff = 0;
     unsigned count = 0, index = 0;
     const uint32_t instance = 123;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     const char *test_name = "name-1234";
     const char *test_description = "description-1234";
     const char *test_node_subtype = "node-subtype-1234";

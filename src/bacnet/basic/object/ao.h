@@ -33,7 +33,12 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Analog_Output_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Analog_Output_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 BACNET_STACK_EXPORT
 bool Analog_Output_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -58,6 +63,13 @@ unsigned Analog_Output_Present_Value_Priority(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Analog_Output_Write_Present_Value_Callback_Set(
     analog_output_write_present_value_callback cb);
+
+BACNET_STACK_EXPORT
+bool Analog_Output_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Analog_Output_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
 
 BACNET_STACK_EXPORT
 float Analog_Output_Relinquish_Default(uint32_t object_instance);
@@ -91,9 +103,9 @@ BACNET_STACK_EXPORT
 bool Analog_Output_Description_Set(uint32_t instance, const char *new_name);
 
 BACNET_STACK_EXPORT
-bool Analog_Output_Units_Set(uint32_t instance, uint16_t units);
+bool Analog_Output_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS units);
 BACNET_STACK_EXPORT
-uint16_t Analog_Output_Units(uint32_t instance);
+BACNET_ENGINEERING_UNITS Analog_Output_Units(uint32_t instance);
 
 BACNET_STACK_EXPORT
 bool Analog_Output_Out_Of_Service(uint32_t instance);
@@ -124,6 +136,11 @@ BACNET_STACK_EXPORT
 int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void *Analog_Output_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Analog_Output_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Analog_Output_Create(uint32_t object_instance);

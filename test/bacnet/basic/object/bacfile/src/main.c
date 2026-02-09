@@ -7,7 +7,7 @@
  *
  * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/bacfile.h>
@@ -30,7 +30,7 @@ static void test_BACnet_File_Object(void)
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *required_property = NULL;
+    const int32_t *required_property = NULL;
     const uint32_t instance = 1;
 
     bacfile_init();

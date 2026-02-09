@@ -30,11 +30,13 @@
     <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaudit.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdcode.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdest.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdevobjpropref.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacerror.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacint.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\baclog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacprop.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacpropstates.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacreal.c" />
@@ -43,6 +45,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\bactimevalue.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\binding\address.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\acc.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_credential.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_door.c" />
@@ -52,11 +55,15 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_zone.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ai.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ao.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\auditlog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\av.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bacfile.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bi.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bitstring_value.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\blo.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bo.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\calendar.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\channel.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\color_object.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\color_temperature.c" />
@@ -67,7 +74,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\iv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lc.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lo.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\loop.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsz.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ms-input.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\mso.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\msv.c" />
@@ -78,7 +87,10 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\piv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\program.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\sc_netport.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\timer.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_apdu.c" />
@@ -109,10 +121,13 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ts.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ucov.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_upt.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whoami.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whohas.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whois.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_wp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_wpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_write_group.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_youare.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_abort.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ack_alarm.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_arfs.c" />
@@ -137,10 +152,13 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ts.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_uevent.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_upt.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_whoami.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_whohas.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_whois.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_wp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_wpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_write_group.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_youare.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\bigend.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\color_rgb.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\days.c" />
@@ -154,6 +172,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\sbuf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\tsm\tsm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\channel_value.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\cov.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\create_object.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\credential_authentication_factor.c" />
@@ -190,15 +209,22 @@
     <ClCompile Include="..\..\..\..\src\bacnet\reject.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\rp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\rpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\secure_connect.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\shed_level.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\timer_value.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timesync.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\calendar_entry.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\special_event.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\whoami.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\whohas.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\whois.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\wp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\wpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\write_group.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\youare.c" />
+    <ClCompile Include="..\..\..\..\ports\posix\bacfile-posix.c" />
     <ClCompile Include="..\..\bip-init.c" />
     <ClCompile Include="..\..\datetime-init.c" />
     <ClCompile Include="..\..\mstimer-init.c" />
@@ -217,12 +243,15 @@
     <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacaction.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaudit.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdcode.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdef.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdest.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdevobjpropref.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacenum.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacerror.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacint.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\baclog.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacprop.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacpropstates.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacreal.h" />
@@ -231,6 +260,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\bactimevalue.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\binding\address.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\acc.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_credential.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_door.h" />
@@ -240,11 +270,15 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_zone.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ai.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ao.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\auditlog.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\av.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bacfile.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bi.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bitstring_value.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\blo.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bo.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\calendar.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\channel.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\color_object.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\color_temperature.h" />
@@ -256,15 +290,22 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lc.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lo.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lsp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lsz.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ms-input.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\mso.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\msv.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\nc.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\netport.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\netport_internal.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\objects.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\osv.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\piv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\program.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\schedule.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\sc_netport.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\structured_view.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\time_value.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\timer.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\object\trendlog.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\services.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.h" />
@@ -296,10 +337,13 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ts.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ucov.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_upt.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whoami.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whohas.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whois.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_wp.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_wpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_write_group.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_youare.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_abort.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ack_alarm.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_arfs.h" />
@@ -324,10 +368,13 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ts.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_uevent.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_upt.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_whoami.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_whohas.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_whois.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_wp.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_wpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_write_group.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_youare.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\bigend.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\color_rgb.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\days.h" />
@@ -342,6 +389,9 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\sbuf.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\tsm\tsm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\calendar_entry.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\channel_value.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\config.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\cov.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\create_object.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\credential_authentication_factor.h" />
@@ -384,14 +434,20 @@
     <ClInclude Include="..\..\..\..\src\bacnet\reject.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\rp.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\rpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\secure_connect.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\special_event.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\timestamp.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\timesync.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\version.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\weeklyschedule.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\whoami.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\whohas.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\whois.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\wp.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\wpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\write_group.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\youare.h" />
+    <ClInclude Include="..\..\..\..\ports\posix\bacfile-posix.h" />
     <ClInclude Include="..\..\bacport.h" />
     <ClInclude Include="..\..\rs485.h" />
   </ItemGroup>
@@ -468,8 +524,6 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>

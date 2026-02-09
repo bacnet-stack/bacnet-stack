@@ -32,7 +32,13 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void Time_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Time_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 bool Time_Value_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -92,6 +98,11 @@ BACNET_STACK_EXPORT
 bool Time_Value_Change_Of_Value(uint32_t instance);
 BACNET_STACK_EXPORT
 void Time_Value_Change_Of_Value_Clear(uint32_t instance);
+
+BACNET_STACK_EXPORT
+void *Time_Value_Context_Get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Time_Value_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 uint32_t Time_Value_Create(uint32_t object_instance);

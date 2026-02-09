@@ -683,7 +683,8 @@ static void PrintReadPropertyData(
 static void Print_Property_Identifier(unsigned propertyIdentifier)
 {
     if (bactext_property_name_proprietary(propertyIdentifier)) {
-        fprintf(stdout, "-- proprietary %u", propertyIdentifier);
+        fprintf(
+            stdout, "-- proprietary %lu", (unsigned long)propertyIdentifier);
     } else {
         fprintf(stdout, "%s", bactext_property_name(propertyIdentifier));
     }

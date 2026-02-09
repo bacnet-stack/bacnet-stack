@@ -95,9 +95,9 @@ static void LocalIAmHandler(
     uint16_t vendor_id = 0;
 
     (void)src;
-    (void)service_len;
-    len = iam_decode_service_request(
-        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
+    len = bacnet_iam_request_decode(
+        service_request, service_len, &device_id, &max_apdu, &segmentation,
+        &vendor_id);
     if (len != -1) {
         address_add(device_id, max_apdu, src);
     } else {
@@ -159,6 +159,10 @@ int main(int argc, char *argv[])
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
+    if (!filename_path_valid(argv[3])) {
+        fprintf(stderr, "Invalid file path: %s\n", argv[3]);
+        return 1;
+    }
     Local_File_Name = argv[3];
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(

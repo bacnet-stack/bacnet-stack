@@ -1,14 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
-/* @file
- * @brief test BACnet integer encode/decode APIs
+/**
+ * @file
+ * @brief test BACnetDate and BACnetTime encoding and decoding API
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -104,6 +100,24 @@ static void testBACnetDateTimeAdd(void)
     datetime_set_values(&test_bdatetime, 2013, 6, 5, 23, 59, 59, 0);
     diff = datetime_compare(&test_bdatetime, &bdatetime);
     zassert_equal(diff, 0, NULL);
+
+    datetime_set_values(&bdatetime, 2013, 6, 6, 0, 59, 59, 0);
+    datetime_add_seconds(&bdatetime, 1);
+    datetime_set_values(&test_bdatetime, 2013, 6, 6, 1, 0, 0, 0);
+    diff = datetime_compare(&test_bdatetime, &bdatetime);
+    zassert_equal(diff, 0, "diff=%d", diff);
+
+    datetime_set_values(&bdatetime, 2013, 6, 6, 0, 0, 0, 0);
+    datetime_add_seconds(&bdatetime, -1);
+    datetime_set_values(&test_bdatetime, 2013, 6, 5, 23, 59, 59, 0);
+    diff = datetime_compare(&test_bdatetime, &bdatetime);
+    zassert_equal(diff, 0, "diff=%d", diff);
+
+    datetime_set_values(&bdatetime, 2013, 6, 6, 0, 59, 59, 99);
+    datetime_add_milliseconds(&bdatetime, 10);
+    datetime_set_values(&test_bdatetime, 2013, 6, 6, 1, 0, 0, 0);
+    diff = datetime_compare(&test_bdatetime, &bdatetime);
+    zassert_equal(diff, 0, "diff=%d", diff);
 }
 
 static void testBACnetDateTimeSeconds(void)

@@ -13,18 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\src">
-      <UniqueIdentifier>{90832ddc-f8fc-45e8-aa26-045670fba630}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\bacnet">
-      <UniqueIdentifier>{4a4bcb82-10e3-497f-9ec0-b7ea244db6d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\bacnet\basic">
-      <UniqueIdentifier>{81485c5d-72ca-495c-99b4-a747e1b3fe04}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\bacnet\basic\npdu">
-      <UniqueIdentifier>{8070a950-266e-4202-9094-8c528cd1b312}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\apps">
       <UniqueIdentifier>{9f8c7149-3e7a-4583-9890-03c4b43a07cc}</UniqueIdentifier>
     </Filter>
@@ -33,16 +21,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.c">
-      <Filter>Source Files\src\bacnet\basic\npdu</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\apps\server\main.c">
       <Filter>Source Files\apps\server</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.h">
-      <Filter>Source Files\src\bacnet\basic\npdu</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -30,6 +30,9 @@
 #if defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
 #endif
+#if defined(BACDL_ZIGBEE)
+#include "bacnet/datalink/bzll.h"
+#endif
 #if defined(BACDL_BSC)
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #endif
@@ -41,6 +44,7 @@ static enum {
     DATALINK_BIP,
     DATALINK_BIP6,
     DATALINK_MSTP,
+    DATALINK_ZIGBEE,
     DATALINK_BSC
 } Datalink_Transport;
 
@@ -72,6 +76,11 @@ void datalink_set(char *datalink_string)
 #if defined(BACDL_MSTP)
     else if (bacnet_stricmp("mstp", datalink_string) == 0) {
         Datalink_Transport = DATALINK_MSTP;
+    }
+#endif
+#if defined(BACDL_ZIGBEE)
+    else if (bacnet_stricmp("zigbee", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_ARCNET;
     }
 #endif
 #if defined(BACDL_BSC)
@@ -112,6 +121,11 @@ bool datalink_init(char *ifname)
 #if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             status = dlmstp_init(ifname);
+            break;
+#endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            status = bzll_init(ifname);
             break;
 #endif
 #if defined(BACDL_BSC)
@@ -163,6 +177,11 @@ int datalink_send_pdu(
             bytes = dlmstp_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
 #endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            bytes = bzll_send_pdu(dest, npdu_data, pdu, pdu_len);
+            break;
+#endif
 #if defined(BACDL_BSC)
         case DATALINK_BSC:
             bytes = bsc_send_pdu(dest, npdu_data, pdu, pdu_len);
@@ -208,6 +227,11 @@ uint16_t datalink_receive(
             bytes = dlmstp_receive(src, pdu, max_pdu, timeout);
             break;
 #endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            bytes = bzll_receive(src, pdu, max_pdu, timeout);
+            break;
+#endif
 #if defined(BACDL_BSC)
         case DATALINK_BSC:
             bytes = bsc_receive(src, pdu, max_pdu, timeout);
@@ -250,6 +274,11 @@ void datalink_cleanup(void)
             dlmstp_cleanup();
             break;
 #endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            bzll_cleanup();
+            break;
+#endif
 #if defined(BACDL_BSC)
         case DATALINK_BSC:
             bsc_cleanup();
@@ -290,6 +319,11 @@ void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
             dlmstp_get_broadcast_address(dest);
             break;
 #endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            bzll_get_broadcast_address(dest);
+            break;
+#endif
 #if defined(BACDL_BSC)
         case DATALINK_BSC:
             bsc_get_broadcast_address(dest);
@@ -328,6 +362,11 @@ void datalink_get_my_address(BACNET_ADDRESS *my_address)
 #if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             dlmstp_get_my_address(my_address);
+            break;
+#endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            bzll_get_my_address(my_address);
             break;
 #endif
 #if defined(BACDL_BSC)
@@ -371,6 +410,11 @@ void datalink_set_interface(char *ifname)
             (void)ifname;
             break;
 #endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            (void)ifname;
+            break;
+#endif
 #if defined(BACDL_BSC)
         case DATALINK_BSC:
             (void)ifname;
@@ -406,6 +450,11 @@ void datalink_maintenance_timer(uint16_t seconds)
 #endif
 #if defined(BACDL_MSTP)
         case DATALINK_MSTP:
+            break;
+#endif
+#if defined(BACDL_ZIGBEE)
+        case DATALINK_ZIGBEE:
+            bzll_maintenance_timer(seconds);
             break;
 #endif
 #if defined(BACDL_BSC)

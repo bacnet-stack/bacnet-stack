@@ -38,9 +38,12 @@ typedef struct dlmstp_statistics {
     uint32_t transmit_frame_counter;
     uint32_t receive_valid_frame_counter;
     uint32_t receive_invalid_frame_counter;
+    uint32_t receive_valid_frame_not_for_us_counter;
     uint32_t transmit_pdu_counter;
     uint32_t receive_pdu_counter;
     uint32_t lost_token_counter;
+    uint32_t bad_crc_counter;
+    uint32_t poll_for_master_counter;
 } DLMSTP_STATISTICS;
 
 #ifndef DLMSTP_MAX_INFO_FRAMES
@@ -101,6 +104,7 @@ struct dlmstp_user_data_t {
     struct dlmstp_rs485_driver *RS485_Driver;
     dlmstp_hook_frame_rx_start_cb Preamble_Callback;
     dlmstp_hook_frame_rx_complete_cb Valid_Frame_Rx_Callback;
+    dlmstp_hook_frame_rx_complete_cb Valid_Frame_Not_For_Us_Rx_Callback;
     dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
     uint32_t Valid_Frame_Milliseconds;
     /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
@@ -117,6 +121,10 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 bool dlmstp_init(char *ifname);
+BACNET_STACK_EXPORT
+void dlmstp_set_interface(const char *ifname);
+BACNET_STACK_EXPORT
+const char *dlmstp_get_interface(void);
 BACNET_STACK_EXPORT
 void dlmstp_reset(void);
 BACNET_STACK_EXPORT
@@ -228,6 +236,9 @@ void dlmstp_valid_frame_milliseconds_reset(void *arg);
 /* interfering with bus timing */
 BACNET_STACK_EXPORT
 void dlmstp_set_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func);
+BACNET_STACK_EXPORT
+void dlmstp_set_frame_not_for_us_rx_complete_callback(
     dlmstp_hook_frame_rx_complete_cb cb_func);
 BACNET_STACK_EXPORT
 void dlmstp_set_invalid_frame_rx_complete_callback(

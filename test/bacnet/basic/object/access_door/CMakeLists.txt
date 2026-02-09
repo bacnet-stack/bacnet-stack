@@ -53,6 +53,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/shed_level.c
+    ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c

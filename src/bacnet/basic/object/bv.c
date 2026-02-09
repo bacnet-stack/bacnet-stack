@@ -43,6 +43,7 @@ struct object_data {
     const char *Active_Text;
     const char *Inactive_Text;
     const char *Description;
+    void *Context;
 #if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -66,20 +67,17 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_BINARY_VALUE;
 static binary_value_write_present_value_callback
     Binary_Value_Write_Present_Value_Callback;
 
-/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    -1
+static const int32_t Binary_Value_Properties_Required[] = {
+    /* unordered list of optional properties */
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,      PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    -1
 };
 
-static const int Binary_Value_Properties_Optional[] = {
+static const int32_t Binary_Value_Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
     PROP_ACTIVE_TEXT,
@@ -97,10 +95,25 @@ static const int Binary_Value_Properties_Optional[] = {
     -1
 };
 
-static const int Binary_Value_Properties_Proprietary[] = {
+static const int32_t Binary_Value_Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE,
+    PROP_OUT_OF_SERVICE,
+#if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_ALARM_VALUE,
+    PROP_EVENT_ENABLE,
+    PROP_NOTIFY_TYPE,
+#endif
     -1
 };
-/* clang-format on */
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -111,7 +124,9 @@ static const int Binary_Value_Properties_Proprietary[] = {
  * @param pProprietary - Pointer to the pointer of properitary values.
  */
 void Binary_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Binary_Value_Properties_Required;
@@ -124,6 +139,20 @@ void Binary_Value_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Binary Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Binary_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -461,7 +490,7 @@ bool Binary_Value_Present_Value_Set(
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        if (value <= MAX_BINARY_PV) {
+        if (value < BINARY_PV_MAX) {
             Binary_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = Binary_Present_Value_Boolean(value);
             status = true;
@@ -493,7 +522,7 @@ static bool Binary_Value_Present_Value_Write(
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        if (value <= MAX_BINARY_PV) {
+        if (value < BINARY_PV_MAX) {
             if (pObject->Write_Enabled) {
                 old_value = Binary_Present_Value(pObject->Present_Value);
                 Binary_Value_Present_Value_COV_Detect(pObject, value);
@@ -1067,7 +1096,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                if (value.type.Enumerated <= MAX_BINARY_PV) {
+                if (value.type.Enumerated < BINARY_PV_MAX) {
                     Binary_Value_Alarm_Value_Set(
                         wp_data->object_instance,
                         (BACNET_BINARY_PV)value.type.Enumerated);
@@ -1188,6 +1217,38 @@ void Binary_Value_Write_Disable(uint32_t object_instance)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Binary_Value_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Binary_Value_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Binary Value object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1197,6 +1258,9 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

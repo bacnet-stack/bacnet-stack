@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Create Build Environment
       run: |
@@ -57,16 +57,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Checkout libmcp23s17 repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: piface/libmcp23s17
         path: ./apps/piface/libmcp23s17
 
     - name: Checkout libpifacedigital repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: piface/libpifacedigital
         path: ./apps/piface/libpifacedigital
@@ -106,10 +106,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Checkout pigpio repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: joan2937/pigpio
         path: ./apps/blinkt/pigpio

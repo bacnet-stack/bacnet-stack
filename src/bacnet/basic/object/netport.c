@@ -85,6 +85,10 @@ struct ethernet_port {
     uint8_t MAC_Address[6];
 };
 
+struct bacnet_zigbee_port {
+    uint8_t MAC_Address[3];
+};
+
 struct mstp_port {
     uint8_t MAC_Address;
     uint8_t Max_Master;
@@ -110,10 +114,12 @@ struct object_data {
     float Link_Speed;
     bacnet_network_port_activate_changes Activate_Changes;
     bacnet_network_port_discard_changes Discard_Changes;
+    void *Context;
     union {
         struct bacnet_ipv4_port IPv4;
         struct bacnet_ipv6_port IPv6;
         struct ethernet_port Ethernet;
+        struct bacnet_zigbee_port Zigbee;
         struct mstp_port MSTP;
         struct bsc_port BSC;
     } Network;
@@ -130,7 +136,7 @@ static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 static uint32_t Link_Speeds[] = { 9600, 19200, 38400, 57600, 76800, 115200 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Network_Port_Properties_Required[] = {
+static const int32_t Network_Port_Properties_Required[] = {
     /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -150,7 +156,7 @@ static const int Network_Port_Properties_Required[] = {
     -1
 };
 
-static const int Ethernet_Port_Properties_Optional[] = {
+static const int32_t Ethernet_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -162,8 +168,30 @@ static const int Ethernet_Port_Properties_Optional[] = {
 #endif
     -1
 };
+static const int32_t Ethernet_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS, PROP_LINK_SPEED, -1
+};
 
-static const int MSTP_Port_Properties_Optional[] = {
+static const int32_t Zigbee_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,
+    PROP_VIRTUAL_MAC_ADDRESS_TABLE,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_APDU_LENGTH,
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_LINK_SPEED,
+#endif
+    -1
+};
+static const int32_t Zigbee_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS, PROP_LINK_SPEED, -1
+};
+
+static const int32_t MSTP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -178,8 +206,12 @@ static const int MSTP_Port_Properties_Optional[] = {
 #endif
     -1
 };
+static const int32_t MSTP_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_LINK_SPEED, -1
+};
 
-static const int BIP_Port_Properties_Optional[] = {
+static const int32_t BIP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -212,8 +244,19 @@ static const int BIP_Port_Properties_Optional[] = {
 #endif
     -1
 };
+static const int32_t BIP_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS,
+    PROP_LINK_SPEED,
+    PROP_FD_BBMD_ADDRESS,
+    PROP_FD_SUBSCRIPTION_LIFETIME,
+    PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    -1
+};
 
-static const int BIP6_Port_Properties_Optional[] = {
+static const int32_t BIP6_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
@@ -224,6 +267,7 @@ static const int BIP6_Port_Properties_Optional[] = {
     PROP_IPV6_DEFAULT_GATEWAY,
     PROP_BACNET_IPV6_MULTICAST_ADDRESS,
     PROP_IPV6_DNS_SERVER,
+    PROP_VIRTUAL_MAC_ADDRESS_TABLE,
 #if defined(BACDL_BIP6) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     PROP_IPV6_AUTO_ADDRESSING_ENABLE,
     PROP_IPV6_DHCP_LEASE_TIME,
@@ -248,8 +292,19 @@ static const int BIP6_Port_Properties_Optional[] = {
 #endif
     -1
 };
+static const int32_t BIP6_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS,
+    PROP_LINK_SPEED,
+    PROP_FD_BBMD_ADDRESS,
+    PROP_FD_SUBSCRIPTION_LIFETIME,
+    PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    -1
+};
 
-static const int BSC_Port_Properties_Optional[] = {
+static const int32_t BSC_Port_Properties_Optional[] = {
     PROP_NETWORK_NUMBER,
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_APDU_LENGTH,
@@ -295,8 +350,19 @@ static const int BSC_Port_Properties_Optional[] = {
     PROP_SC_FAILED_CONNECTION_REQUESTS,
     -1
 };
+static const int32_t BSC_Port_Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MAC_ADDRESS,
+    PROP_LINK_SPEED,
+    PROP_FD_BBMD_ADDRESS,
+    PROP_FD_SUBSCRIPTION_LIFETIME,
+    PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    -1
+};
 
-static const int Network_Port_Properties_Proprietary[] = { -1 };
+static const int32_t Network_Port_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -312,9 +378,9 @@ static const int Network_Port_Properties_Proprietary[] = { -1 };
  */
 void Network_Port_Property_List(
     uint32_t object_instance,
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     unsigned index = 0;
 
@@ -337,6 +403,9 @@ void Network_Port_Property_List(
                 case PORT_TYPE_BIP6:
                     *pOptional = BIP6_Port_Properties_Optional;
                     break;
+                case PORT_TYPE_ZIGBEE:
+                    *pOptional = Zigbee_Port_Properties_Optional;
+                    break;
                 case PORT_TYPE_ETHERNET:
                 default:
                     *pOptional = Ethernet_Port_Properties_Optional;
@@ -352,6 +421,44 @@ void Network_Port_Property_List(
 }
 
 /**
+ * @brief Get the list of writable properties for a Network Port object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Network_Port_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    unsigned index;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (index < BACNET_NETWORK_PORTS_MAX) {
+            switch (Object_List[index].Network_Type) {
+                case PORT_TYPE_MSTP:
+                    *properties = MSTP_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_BIP:
+                    *properties = BIP_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_BSC:
+                    *properties = BSC_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_BIP6:
+                    *properties = BIP6_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_ZIGBEE:
+                    *properties = Zigbee_Port_Writable_Properties;
+                    break;
+                case PORT_TYPE_ETHERNET:
+                default:
+                    *properties = Ethernet_Port_Writable_Properties;
+                    break;
+            }
+        }
+    }
+}
+
+/**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
  *
@@ -363,7 +470,9 @@ void Network_Port_Property_List(
  * BACnet proprietary properties for this object.
  */
 void Network_Port_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     Network_Port_Property_List(
         Object_List[0].Instance_Number, pRequired, pOptional, pProprietary);
@@ -378,9 +487,9 @@ void Network_Port_Property_Lists(
 static bool Property_List_Member(uint32_t object_instance, int object_property)
 {
     bool found = false;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
+    const int32_t *pRequired = NULL;
+    const int32_t *pOptional = NULL;
+    const int32_t *pProprietary = NULL;
 
     Network_Port_Property_List(
         object_instance, &pRequired, &pOptional, &pProprietary);
@@ -857,6 +966,10 @@ uint8_t Network_Port_MAC_Address_Value(
                 mac_len =
                     sizeof(Object_List[index].Network.Ethernet.MAC_Address);
                 break;
+            case PORT_TYPE_ZIGBEE:
+                mac = &Object_List[index].Network.Zigbee.MAC_Address[0];
+                mac_len = sizeof(Object_List[index].Network.Zigbee.MAC_Address);
+                break;
             case PORT_TYPE_MSTP:
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
@@ -940,6 +1053,11 @@ bool Network_Port_MAC_Address_Set(
                 mac_dest = &Object_List[index].Network.Ethernet.MAC_Address[0];
                 mac_size =
                     sizeof(Object_List[index].Network.Ethernet.MAC_Address);
+                break;
+            case PORT_TYPE_ZIGBEE:
+                mac_dest = &Object_List[index].Network.Zigbee.MAC_Address[0];
+                mac_size =
+                    sizeof(Object_List[index].Network.Zigbee.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
                 mac_dest = &Object_List[index].Network.MSTP.MAC_Address;
@@ -3910,6 +4028,35 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
+ * @brief Encode a Calendar entity list complex data type
+ *
+ * @param object_instance - object-instance number of the object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - size of the apdu buffer.
+ *
+ * @return bytes encoded or zero on error.
+ */
+static int Network_Port_Virtual_MAC_Table_Encode(
+    uint32_t object_instance, uint8_t *apdu, int max_apdu)
+{
+    int apdu_len = 0;
+    unsigned index = 0;
+
+    (void)apdu;
+    (void)max_apdu;
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            /* fixme: add abstraction to get the BACnetLIST */
+        } else if (Object_List[index].Network_Type == PORT_TYPE_ZIGBEE) {
+            /* fixme: add abstraction to get the BACnetLIST */
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -4189,6 +4336,11 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             Network_Port_IPv6_Zone_Index(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_VIRTUAL_MAC_ADDRESS_TABLE:
+            /* BACnetLIST of BACnetVMACEntry */
+            apdu_len = Network_Port_Virtual_MAC_Table_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
 #ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
@@ -4685,6 +4837,38 @@ void Network_Port_Cleanup(void)
         }
     }
 #endif
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Network_Port_Context_Get(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        return Object_List[index].Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Network_Port_Context_Set(uint32_t object_instance, void *context)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Context = context;
+    }
 }
 
 /**

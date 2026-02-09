@@ -5,7 +5,7 @@
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @date Aug 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 
 #include <stdint.h>

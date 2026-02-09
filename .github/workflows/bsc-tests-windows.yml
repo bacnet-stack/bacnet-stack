@@ -1,4 +1,4 @@
-name: BACNet/SC windows tests
+name: BACnet/SC windows tests
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ jobs:
   job_bsc_tests_windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Create Build Environment
       run: |
         rmdir 'C:\Program Files\OpenSSL' -Recurse -Force

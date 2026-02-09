@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date July 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/command.h>
@@ -27,7 +27,7 @@ static void test_object_command(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = 0;
-    const int skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     BACNET_ACTION_LIST *pAction;
 
     Command_Init();

@@ -1,35 +1,44 @@
 /**
  * @file
  * @brief Base "class" for handling all BACnet objects belonging
- *  to a BACnet device, as well as Device-specific properties.
+ * to a BACnet device, as well as Device-specific properties.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date March 2024
- * @copyright SPDX-License-Identifier: Apache-2.0
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacstr.h"
-#include "bacnet/bacenum.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
-#include "bacnet/dcc.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/property.h"
+#include "bacnet/wp.h" /* WriteProperty handling */
+#include "bacnet/rp.h" /* ReadProperty handling */
+#include "bacnet/dcc.h" /* DeviceCommunicationControl handling */
 #include "bacnet/version.h"
+#if defined(BACDL_MSTP)
+#include "bacnet/datalink/dlmstp.h"
+#endif
 #include "bacnet/basic/services.h"
-/* objects */
+#include "bacnet/basic/binding/address.h"
+/* include the device object */
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/acc.h"
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/bv.h"
 #include "bacnet/basic/object/calendar.h"
 #include "bacnet/basic/object/command.h"
+#include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/lsp.h"
 #include "bacnet/basic/object/lsz.h"
@@ -45,6 +54,8 @@
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/time_value.h"
+#include "bacnet/basic/object/timer.h"
+#include "bacnet/basic/object/loop.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/program.h"
 #include "bacnet/basic/object/lo.h"
@@ -52,7 +63,7 @@
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
-#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/program.h"
 
 #ifdef CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION
 #define BACNET_DEVICE_VERSION CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION
@@ -101,6 +112,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE) ||           \
+    defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG) ||              \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE) ||           \
@@ -121,6 +133,9 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
+    defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE) ||             \
+    defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                  \
+    defined(CONFIG_BACNET_BASIC_OBJECT_LOOP) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE))
 #define CONFIG_BACNET_BASIC_OBJECT_ALL
@@ -130,6 +145,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE
@@ -150,6 +166,9 @@
 #define CONFIG_BACNET_BASIC_OBJECT_FILE
 #define CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_TIMER
+#define CONFIG_BACNET_BASIC_OBJECT_LOOP
 #define CONFIG_BACNET_BASIC_OBJECT_PROGRAM
 #define CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE
 #endif
@@ -177,6 +196,10 @@
 #undef CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
 #warning "Network Port is configured, but BACnet Protocol Revision < 17"
 #endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
+#undef CONFIG_BACNET_BASIC_OBJECT_TIMER
+#warning "Timer is configured, but BACnet Protocol Revision < 17"
+#endif
 #endif
 
 #if (BACNET_PROTOCOL_REVISION < 24)
@@ -190,7 +213,9 @@
 #endif
 #endif
 
-static object_functions_t Object_Table[] = {
+/* may be overridden by outside table */
+static object_functions_t *Object_Table;
+static object_functions_t My_Object_Table[] = {
     { OBJECT_DEVICE,
       NULL, /* don't init - recursive! */
       Device_Count,
@@ -210,7 +235,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Device_Writable_Property_List },
 #if defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT)
     { OBJECT_ANALOG_INPUT,
       Analog_Input_Init,
@@ -231,7 +257,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Input_Create,
       Analog_Input_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Analog_Input_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT)
     { OBJECT_ANALOG_OUTPUT,
@@ -253,7 +280,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Output_Create,
       Analog_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Analog_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE)
     { OBJECT_ANALOG_VALUE,
@@ -275,7 +303,31 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Analog_Value_Create,
       Analog_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Analog_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG)
+    { OBJECT_AUDIT_LOG,
+      Audit_Log_Init,
+      Audit_Log_Count,
+      Audit_Log_Index_To_Instance,
+      Audit_Log_Valid_Instance,
+      Audit_Log_Object_Name,
+      Audit_Log_Read_Property,
+      Audit_Log_Write_Property,
+      Audit_Log_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Audit_Log_Create,
+      Audit_Log_Delete,
+      NULL /* Timer */,
+      Audit_Log_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT)
     { OBJECT_BINARY_INPUT,
@@ -297,7 +349,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Input_Create,
       Binary_Input_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Input_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT)
     { OBJECT_BINARY_OUTPUT,
@@ -319,7 +372,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Output_Create,
       Binary_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE)
     { OBJECT_BINARY_VALUE,
@@ -341,7 +395,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Value_Create,
       Binary_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Binary_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_INPUT)
     { OBJECT_MULTI_STATE_INPUT,
@@ -363,7 +418,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Multistate_Input_Create,
       Multistate_Input_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Multistate_Input_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_OUTPUT)
     { OBJECT_MULTI_STATE_OUTPUT,
@@ -385,7 +441,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Multistate_Output_Create,
       Multistate_Output_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Multistate_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_VALUE)
     { OBJECT_MULTI_STATE_VALUE,
@@ -407,7 +464,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Multistate_Value_Create,
       Multistate_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Multistate_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT)
     { OBJECT_NETWORK_PORT,
@@ -429,7 +487,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       NULL /* Create */,
       NULL /* Delete */,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Network_Port_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CALENDAR)
     { OBJECT_CALENDAR,
@@ -451,7 +510,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Calendar_Create,
       Calendar_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Calendar_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_INTEGER_VALUE)
     { OBJECT_INTEGER_VALUE,
@@ -473,7 +533,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Integer_Value_Create,
       Integer_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Integer_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT)
     { OBJECT_LIFE_SAFETY_POINT,
@@ -495,7 +556,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Life_Safety_Point_Create,
       Life_Safety_Point_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Life_Safety_Point_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE)
     { OBJECT_LIFE_SAFETY_ZONE,
@@ -517,7 +579,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Life_Safety_Zone_Create,
       Life_Safety_Zone_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Life_Safety_Zone_Writable_Property_List },
 #endif
 
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL)
@@ -540,7 +603,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Load_Control_Create,
       Load_Control_Delete,
-      Load_Control_Timer },
+      Load_Control_Timer,
+      Load_Control_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT)
     { OBJECT_LIGHTING_OUTPUT,
@@ -562,7 +626,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Lighting_Output_Create,
       Lighting_Output_Delete,
-      Lighting_Output_Timer },
+      Lighting_Output_Timer,
+      Lighting_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CHANNEL)
     { OBJECT_CHANNEL,
@@ -584,7 +649,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Channel_Create,
       Channel_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      Channel_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT)
     { OBJECT_BINARY_LIGHTING_OUTPUT,
@@ -606,7 +672,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Binary_Lighting_Output_Create,
       Binary_Lighting_Output_Delete,
-      Binary_Lighting_Output_Timer },
+      Binary_Lighting_Output_Timer,
+      Binary_Lighting_Output_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_COLOR)
     { OBJECT_COLOR,
@@ -628,7 +695,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Color_Create,
       Color_Delete,
-      Color_Timer },
+      Color_Timer,
+      Color_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_COLOR_TEMPERATURE)
     { OBJECT_COLOR_TEMPERATURE,
@@ -650,7 +718,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Color_Temperature_Create,
       Color_Temperature_Delete,
-      Color_Temperature_Timer },
+      Color_Temperature_Timer,
+      Color_Temperature_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_FILE)
     { OBJECT_FILE,
@@ -672,7 +741,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       bacfile_create,
       bacfile_delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      BACfile_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW)
     { OBJECT_STRUCTURED_VIEW,
@@ -694,7 +764,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Structured_View_Create,
       Structured_View_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      NULL /* Writable_Property_List */ },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE)
     { OBJECT_BITSTRING_VALUE,
@@ -716,7 +787,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       BitString_Value_Create,
       BitString_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      BitString_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE)
     { OBJECT_CHARACTERSTRING_VALUE,
@@ -738,7 +810,77 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       CharacterString_Value_Create,
       CharacterString_Value_Delete,
-      NULL /* Timer */ },
+      NULL /* Timer */,
+      CharacterString_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE)
+    { OBJECT_TIME_VALUE,
+      Time_Value_Init,
+      Time_Value_Count,
+      Time_Value_Index_To_Instance,
+      Time_Value_Valid_Instance,
+      Time_Value_Object_Name,
+      Time_Value_Read_Property,
+      Time_Value_Write_Property,
+      Time_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Time_Value_Create,
+      Time_Value_Delete,
+      NULL /* Timer */,
+      Time_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIMER)
+    { OBJECT_TIMER,
+      Timer_Init,
+      Timer_Count,
+      Timer_Index_To_Instance,
+      Timer_Valid_Instance,
+      Timer_Object_Name,
+      Timer_Read_Property,
+      Timer_Write_Property,
+      Timer_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      Timer_Add_List_Element,
+      Timer_Remove_List_Element,
+      Timer_Create,
+      Timer_Delete,
+      Timer_Task,
+      Timer_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_LOOP)
+    { OBJECT_LOOP,
+      Loop_Init,
+      Loop_Count,
+      Loop_Index_To_Instance,
+      Loop_Valid_Instance,
+      Loop_Object_Name,
+      Loop_Read_Property,
+      Loop_Write_Property,
+      Loop_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Loop_Create,
+      Loop_Delete,
+      Loop_Timer,
+      Loop_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM)
     { OBJECT_BITSTRING_VALUE,
@@ -760,7 +902,8 @@ static object_functions_t Object_Table[] = {
       NULL /* Remove_List_Element */,
       Program_Create,
       Program_Delete,
-      Program_Timer },
+      Program_Timer,
+      Program_Writable_Property_List },
 #endif
     {
         MAX_BACNET_OBJECT_TYPE,
@@ -782,77 +925,10 @@ static object_functions_t Object_Table[] = {
         NULL /* Remove_List_Element */,
         NULL /* Create */,
         NULL /* Delete */,
-        NULL /* Timer */
+        NULL /* Timer */,
+        NULL /* Writable_Property_List */
     }
 };
-
-/* local data */
-static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
-static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-static BACNET_CHARACTER_STRING My_Object_Name;
-static const char *Device_Name_Default = BACNET_DEVICE_OBJECT_NAME;
-static const char *Device_Description_Default = BACNET_DEVICE_DESCRIPTION;
-static const char *Device_Vendor_Name_Default = BACNET_VENDOR_NAME;
-static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
-static const char *Model_Name = BACNET_DEVICE_MODEL_NAME;
-static const char *Device_Location_Default = BACNET_DEVICE_LOCATION_NAME;
-static const char *Application_Software_Version = BACNET_DEVICE_VERSION;
-static const char *Firmware_Revision = BACNET_VERSION_TEXT;
-static uint32_t Database_Revision;
-static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static BACNET_CHARACTER_STRING Reinit_Password;
-static write_property_function Device_Write_Property_Store_Callback;
-static uint8_t Device_UUID[16];
-static const char *Serial_Number = BACNET_DEVICE_SERIAL_NUMBER;
-static BACNET_TIMESTAMP Time_Of_Device_Restart;
-
-/* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Device_Properties_Required[] = {
-    /* List of Required properties in this object */
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_SYSTEM_STATUS,
-    PROP_VENDOR_NAME,
-    PROP_VENDOR_IDENTIFIER,
-    PROP_MODEL_NAME,
-    PROP_FIRMWARE_REVISION,
-    PROP_APPLICATION_SOFTWARE_VERSION,
-    PROP_PROTOCOL_VERSION,
-    PROP_PROTOCOL_REVISION,
-    PROP_PROTOCOL_SERVICES_SUPPORTED,
-    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
-    PROP_OBJECT_LIST,
-    PROP_MAX_APDU_LENGTH_ACCEPTED,
-    PROP_SEGMENTATION_SUPPORTED,
-    PROP_APDU_TIMEOUT,
-    PROP_NUMBER_OF_APDU_RETRIES,
-    PROP_DEVICE_ADDRESS_BINDING,
-    PROP_DATABASE_REVISION,
-    -1
-};
-
-static const int Device_Properties_Optional[] = {
-    /* List of Optional properties in this object */
-    PROP_DESCRIPTION,
-    PROP_LOCATION,
-#if defined(BACDL_MSTP)
-    PROP_MAX_MASTER,
-    PROP_MAX_INFO_FRAMES,
-#endif
-#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
-    PROP_ACTIVE_COV_SUBSCRIPTIONS,
-#endif
-    PROP_LOCAL_DATE,
-    PROP_LOCAL_TIME,
-    PROP_UTC_OFFSET,
-    PROP_DAYLIGHT_SAVINGS_STATUS,
-    PROP_SERIAL_NUMBER,
-    PROP_TIME_OF_DEVICE_RESTART,
-    -1
-};
-
-static const int Device_Properties_Proprietary[] = { -1 };
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
@@ -862,22 +938,40 @@ static const int Device_Properties_Proprietary[] = { -1 };
  * @return Pointer to the group of object helper functions that implement this
  *         type of Object.
  */
-static struct object_functions *
-Device_Objects_Find_Functions(BACNET_OBJECT_TYPE Object_Type)
+struct object_functions *
+Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type)
 {
     struct object_functions *pObject = NULL;
 
-    pObject = &Object_Table[0];
+    pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
         if (pObject->Object_Type == Object_Type) {
             return (pObject);
         }
-
         pObject++;
     }
 
     return (NULL);
+}
+
+/** Try to find a rr_info_function helper function for the requested object
+ * type.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The type of BACnet Object the handler wants to
+ * access.
+ * @return Pointer to the object helper function that implements the
+ *         ReadRangeInfo function, Object_RR_Info, for this type of Object on
+ *         success, else a NULL pointer if the type of Object isn't supported
+ *         or doesn't have a ReadRangeInfo function.
+ */
+rr_info_function Device_Objects_RR_Info(BACNET_OBJECT_TYPE object_type)
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Object_Functions_Find(object_type);
+    return (pObject != NULL ? pObject->Object_RR_Info : NULL);
 }
 
 /** For a given object type, returns the special property list.
@@ -908,7 +1002,7 @@ void Device_Objects_Property_List(
      * to populate the pointers to the individual list counters.
      */
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
         pObject->Object_RPM_List(
             &pPropertyList->Required.pList, &pPropertyList->Optional.pList,
@@ -931,8 +1025,145 @@ void Device_Objects_Property_List(
     return;
 }
 
+/**
+ * @brief Get the Writeable Property List for an object type
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param properties - pointer to the list of writable properties
+ * @return The number of properties in the writable property list
+ */
+uint32_t Device_Objects_Writable_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **properties)
+{
+    uint32_t count = 0;
+    struct object_functions *pObject = NULL;
+
+    (void)object_instance;
+    pObject = Device_Object_Functions_Find(object_type);
+    if ((pObject != NULL) && (pObject->Object_Writable_Property_List != NULL)) {
+        pObject->Object_Writable_Property_List(object_instance, properties);
+        count = property_list_count(*properties);
+    }
+
+    return count;
+}
+
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int32_t Device_Properties_Required[] = {
+    /* List of Required properties in this object */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION,
+    PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_REVISION,
+    PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+    PROP_OBJECT_LIST,
+    PROP_MAX_APDU_LENGTH_ACCEPTED,
+    PROP_SEGMENTATION_SUPPORTED,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_DEVICE_ADDRESS_BINDING,
+    PROP_DATABASE_REVISION,
+    -1
+};
+
+static const int32_t Device_Properties_Optional[] = {
+/* List of Optional properties in this object */
+#if defined(BACDL_MSTP)
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+#endif
+    PROP_DESCRIPTION,
+    PROP_LOCAL_TIME,
+    PROP_UTC_OFFSET,
+    PROP_LOCAL_DATE,
+    PROP_DAYLIGHT_SAVINGS_STATUS,
+    PROP_LOCATION,
+#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
+#endif
+    PROP_SERIAL_NUMBER,
+    PROP_TIME_OF_DEVICE_RESTART,
+#if defined(BACNET_TIME_MASTER)
+    PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+#endif
+#if defined(BACNET_BACKUP_RESTORE)
+    PROP_CONFIGURATION_FILES,
+    PROP_BACKUP_FAILURE_TIMEOUT,
+    PROP_BACKUP_PREPARATION_TIME,
+    PROP_RESTORE_PREPARATION_TIME,
+    PROP_BACKUP_AND_RESTORE_STATE,
+#endif
+    -1
+};
+
+static const int32_t Device_Properties_Proprietary[] = {
+    /* List of Proprietary properties in this object */
+    -1
+};
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_LOCATION,
+    PROP_DESCRIPTION,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_UTC_OFFSET,
+#if defined(BACNET_TIME_MASTER)
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+#endif
+#if defined(BACDL_MSTP)
+    PROP_MAX_INFO_FRAMES,
+    PROP_MAX_MASTER,
+#endif
+#if defined(BACNET_BACKUP_RESTORE)
+    PROP_CONFIGURATION_FILES,
+    PROP_BACKUP_FAILURE_TIMEOUT,
+    PROP_BACKUP_PREPARATION_TIME,
+    PROP_RESTORE_PREPARATION_TIME,
+#endif
+    PROP_TIME_OF_DEVICE_RESTART,
+    -1
+};
+
+/**
+ * @brief Returns the list of required, optional, and proprietary properties
+ *       for the Device object.
+ * @param pRequired [out] Pointer to the list of required properties
+ * @param pOptional [out] Pointer to the list of optional properties
+ * @param pProprietary [out] Pointer to the list of proprietary properties
+ * @note The lists are terminated with -1.
+ * @note The lists are not allocated, so do not free them.
+ * @note The lists are static, so do not modify them.
+ * @ingroup ObjIntf
+ */
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Device_Properties_Required;
@@ -945,6 +1176,20 @@ void Device_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Device object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Device_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -975,6 +1220,100 @@ bool Device_Objects_Property_List_Member(
 
     return found;
 }
+
+/* note: you really only need to define variables for
+   properties that are writable or that may change.
+   The properties that are constant can be hard coded
+   into the read-property encoding. */
+
+/* local data */
+static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
+static BACNET_CHARACTER_STRING My_Object_Name;
+static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
+static const char *Device_Name_Default = BACNET_DEVICE_OBJECT_NAME;
+static const char *Device_Vendor_Name_Default = BACNET_VENDOR_NAME;
+static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
+static const char *Model_Name = BACNET_DEVICE_MODEL_NAME;
+static const char *Application_Software_Version = BACNET_DEVICE_VERSION;
+static const char *Firmware_Revision = BACNET_VERSION_TEXT;
+static const char *Device_Location_Default = BACNET_DEVICE_LOCATION_NAME;
+static const char *Device_Description_Default = BACNET_DEVICE_DESCRIPTION;
+static uint32_t Database_Revision;
+static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
+static BACNET_CHARACTER_STRING Reinit_Password;
+static write_property_function Device_Write_Property_Store_Callback;
+static list_element_function Device_Add_List_Element_Callback;
+static list_element_function Device_Remove_List_Element_Callback;
+static uint8_t Device_UUID[16];
+static const char *Serial_Number = BACNET_DEVICE_SERIAL_NUMBER;
+static BACNET_TIMESTAMP Time_Of_Device_Restart;
+static BACNET_TIME Local_Time; /* rely on OS, if there is one */
+static BACNET_DATE Local_Date; /* rely on OS, if there is one */
+/* NOTE: BACnet UTC Offset is inverse of common practice.
+   If your UTC offset is -5hours of GMT,
+   then BACnet UTC offset is +5hours.
+   BACnet UTC offset is expressed in minutes. */
+static int16_t UTC_Offset = 5 * 60;
+static bool Daylight_Savings_Status = false; /* rely on OS */
+#if defined(BACNET_TIME_MASTER)
+static bool Align_Intervals;
+static uint32_t Interval_Minutes;
+static uint32_t Interval_Offset_Minutes;
+/* Time_Synchronization_Recipients */
+#endif
+
+/* backup and restore */
+#if defined BACNET_BACKUP_RESTORE
+/* number of backup files */
+#ifndef BACNET_BACKUP_FILE_COUNT
+#if defined(BACFILE)
+#define BACNET_BACKUP_FILE_COUNT 1
+#else
+#define BACNET_BACKUP_FILE_COUNT 0
+#endif
+#endif
+
+#if BACNET_BACKUP_FILE_COUNT
+/* device A will read the Configuration_Files property of the Device object.
+   This property will be used to determine the files to read and in what
+   order the files will be read. The value of the Configuration_Files
+   property is not guaranteed to contain a complete or correct set of
+   configuration File object references before the backup request is
+   accepted by device B. */
+static uint32_t Configuration_Files[BACNET_BACKUP_FILE_COUNT];
+#endif
+/* If the restore is successful, no other actions by device A shall
+   be required, and device B will update the Last_Restore_Time property
+   in its Device object. */
+static BACNET_TIMESTAMP Last_Restore_Time;
+/* If device B does not receive any messages related to the restore
+   procedure from device A for the number of seconds specified
+   in the Backup_Failure_Timeout property of its Device object,
+   device B should assume that the restore procedure has been aborted,
+   and device B should exit restore mode.*/
+static uint16_t Backup_Failure_Timeout;
+/* This property indicates the amount of time in seconds
+   that the device might remain unresponsive after the sending
+   of a ReinitializeDevice-ACK at the start of a backup procedure.
+   The device that initiated the backup shall either wait the
+   period of time specified by this property or be prepared
+   to encounter communication timeouts during this period. */
+static uint16_t Backup_Preparation_Time;
+/* This property indicates the amount of time in seconds that the device
+   is allowed to remain unresponsive after the sending of a
+   ReinitializeDevice-ACK at the start of a restore procedure.
+   The restoring device shall either wait or be prepared to
+   encounter communication timeouts during this period.*/
+static uint16_t Restore_Preparation_Time;
+/* This property indicates the amount of time in seconds that
+   the device is allowed to remain unresponsive after the sending
+   of a ReinitializeDevice-ACK at the end of a restore procedure.
+   The restoring device shall either wait or be prepared to
+   encounter communication timeouts during this period. */
+static uint16_t Restore_Completion_Time;
+/* This property indicates a server device's backup and restore state. */
+static BACNET_BACKUP_STATE Backup_State = BACKUP_STATE_IDLE;
+#endif
 
 /**
  * @brief Sets the ReinitializeDevice password
@@ -1012,6 +1351,8 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
     bool password_success = false;
+    unsigned i;
+    size_t length;
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to
@@ -1020,7 +1361,12 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
     if (characterstring_length(&Reinit_Password) > 0) {
-        if (characterstring_length(&rd_data->password) > 20) {
+        if (characterstring_encoding(&rd_data->password) == CHARACTER_UTF8) {
+            length = characterstring_utf8_length(&rd_data->password);
+        } else {
+            length = characterstring_length(&rd_data->password);
+        }
+        if (length > 20) {
             rd_data->error_class = ERROR_CLASS_SERVICES;
             rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
         } else if (characterstring_same(&rd_data->password, &Reinit_Password)) {
@@ -1035,19 +1381,46 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     if (password_success) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
-            case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-                /* Note: you could use a mix of state
-                       and password to multiple things */
                 /* note: you probably want to restart *after* the
-                       simple ack has been sent from the return handler
-                       so just set a flag from here */
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
+            case BACNET_REINIT_WARMSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Changes_Pending_Activate(
+                        Network_Port_Index_To_Instance(i));
+                }
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+#if defined BACNET_BACKUP_RESTORE
             case BACNET_REINIT_STARTBACKUP:
-            case BACNET_REINIT_ENDBACKUP:
+                Device_Start_Backup();
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
             case BACNET_REINIT_STARTRESTORE:
+                Device_Start_Restore();
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_ENDBACKUP:
+            case BACNET_REINIT_ENDRESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+#else
+            case BACNET_REINIT_STARTBACKUP:
+            case BACNET_REINIT_STARTRESTORE:
+            case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ENDRESTORE:
             case BACNET_REINIT_ABORTRESTORE:
                 if (dcc_communication_disabled()) {
@@ -1058,6 +1431,16 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                     rd_data->error_code =
                         ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }
+                break;
+#endif
+            case BACNET_REINIT_ACTIVATE_CHANGES:
+                /* note: activate changes *after* the simple ack is sent */
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Changes_Pending_Activate(
+                        Network_Port_Index_To_Instance(i));
+                }
+                Reinitialize_State = rd_data->state;
+                status = true;
                 break;
             default:
                 rd_data->error_class = ERROR_CLASS_SERVICES;
@@ -1091,6 +1474,37 @@ uint32_t Device_Index_To_Instance(unsigned index)
     return Object_Instance_Number;
 }
 
+/** Return the Object Instance number for our (single) Device Object.
+ * This is a key function, widely invoked by the handler code, since
+ * it provides "our" (ie, local) address.
+ * @ingroup ObjIntf
+ * @return The Instance number used in the BACNET_OBJECT_ID for the Device.
+ */
+uint32_t Device_Object_Instance_Number(void)
+{
+    return Object_Instance_Number;
+}
+
+bool Device_Set_Object_Instance_Number(uint32_t object_id)
+{
+    bool status = true; /* return value */
+
+    if (object_id <= BACNET_MAX_INSTANCE) {
+        /* Make the change and update the database revision */
+        Object_Instance_Number = object_id;
+        Device_Inc_Database_Revision();
+    } else {
+        status = false;
+    }
+
+    return status;
+}
+
+bool Device_Valid_Object_Instance_Number(uint32_t object_id)
+{
+    return (Object_Instance_Number == object_id);
+}
+
 bool Device_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -1098,6 +1512,19 @@ bool Device_Object_Name(
 
     if (object_instance == Object_Instance_Number) {
         status = characterstring_copy(object_name, &My_Object_Name);
+    }
+
+    return status;
+}
+
+bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
+{
+    bool status = false; /*return value */
+
+    if (!characterstring_same(&My_Object_Name, object_name)) {
+        /* Make the change and update the database revision */
+        status = characterstring_copy(&My_Object_Name, object_name);
+        Device_Inc_Database_Revision();
     }
 
     return status;
@@ -1120,19 +1547,6 @@ bool Device_Object_Name_ANSI_Init(const char *value)
 char *Device_Object_Name_ANSI(void)
 {
     return (char *)characterstring_value(&My_Object_Name);
-}
-
-bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
-{
-    bool status = false; /*return value */
-
-    if (!characterstring_same(&My_Object_Name, object_name)) {
-        /* Make the change and update the database revision */
-        status = characterstring_copy(&My_Object_Name, object_name);
-        Device_Inc_Database_Revision();
-    }
-
-    return status;
 }
 
 /**
@@ -1200,35 +1614,6 @@ void Device_UUID_Get(uint8_t *uuid, size_t length)
     }
 }
 
-/** Return the Object Instance number for our (single) Device Object.
- * This is a key function, widely invoked by the handler code, since
- * it provides "our" (ie, local) address.
- * @ingroup ObjIntf
- * @return The Instance number used in the BACNET_OBJECT_ID for the Device.
- */
-uint32_t Device_Object_Instance_Number(void)
-{
-    return Object_Instance_Number;
-}
-
-bool Device_Set_Object_Instance_Number(uint32_t object_id)
-{
-    bool status = true; /* return value */
-
-    if (object_id <= BACNET_MAX_INSTANCE) {
-        Object_Instance_Number = object_id;
-    } else {
-        status = false;
-    }
-
-    return status;
-}
-
-bool Device_Valid_Object_Instance_Number(uint32_t object_id)
-{
-    return (Object_Instance_Number == object_id);
-}
-
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
     return System_Status;
@@ -1236,18 +1621,78 @@ BACNET_DEVICE_STATUS Device_System_Status(void)
 
 int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
 {
-    /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
-    int result = -1;
+    int result = 0; /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
 
-    (void)local;
-    if (status < MAX_DEVICE_STATUS) {
-        System_Status = status;
-        result = 0;
+    /* We limit the options available depending on whether the source is
+     * internal or external. */
+    if (local) {
+        switch (status) {
+            case STATUS_OPERATIONAL:
+            case STATUS_OPERATIONAL_READ_ONLY:
+            case STATUS_DOWNLOAD_REQUIRED:
+            case STATUS_DOWNLOAD_IN_PROGRESS:
+            case STATUS_NON_OPERATIONAL:
+#if defined BACNET_BACKUP_RESTORE
+            case STATUS_BACKUP_IN_PROGRESS:
+#endif
+                System_Status = status;
+                break;
+#ifndef BACNET_BACKUP_RESTORE
+            case STATUS_BACKUP_IN_PROGRESS:
+                result = -2;
+                break;
+#endif
+            default:
+                result = -1;
+                break;
+        }
+    } else {
+        switch (status) {
+            case STATUS_OPERATIONAL:
+            case STATUS_OPERATIONAL_READ_ONLY:
+            case STATUS_NON_OPERATIONAL:
+                /* Allow these for the moment as a way to easily alter
+                 * overall device operation. The lack of password protection
+                 * or other authentication makes allowing writes to this
+                 * property a risky facility to provide. */
+                System_Status = status;
+                break;
+            case STATUS_DOWNLOAD_REQUIRED:
+            case STATUS_DOWNLOAD_IN_PROGRESS:
+            case STATUS_BACKUP_IN_PROGRESS:
+                /* Don't allow outsider set these - they should probably
+                 * be set if the device config is incomplete or
+                 * corrupted or perhaps after some sort of operator
+                 * wipe operation. */
+                result = -2;
+                break;
+            default:
+                result = -1;
+                break;
+        }
     }
 
-    return result;
+    return (result);
 }
 
+const char *Device_Vendor_Name(void)
+{
+    return Device_Vendor_Name_Default;
+}
+
+bool Device_Set_Vendor_Name(const char *name, size_t length)
+{
+    (void)length;
+    Device_Vendor_Name_Default = name ? name : BACNET_VENDOR_NAME;
+
+    return true;
+}
+
+/** Returns the Vendor ID for this Device.
+ * See the assignments at
+ * https://bacnet.org/assigned-vendor-ids/
+ * @return The Vendor ID of this Device.
+ */
 uint16_t Device_Vendor_Identifier(void)
 {
     return Vendor_Identifier;
@@ -1322,19 +1767,6 @@ bool Device_Set_Location(const char *name, size_t length)
     return true;
 }
 
-const char *Device_Vendor_Name(void)
-{
-    return Device_Vendor_Name_Default;
-}
-
-bool Device_Set_Vendor_Name(const char *name, size_t length)
-{
-    (void)length;
-    Device_Vendor_Name_Default = name ? name : BACNET_VENDOR_NAME;
-
-    return true;
-}
-
 /**
  * @brief Get the device serial-number property value.
  * @return The device serial-number, as a character string.
@@ -1375,9 +1807,23 @@ bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart)
     return status;
 }
 
+uint8_t Device_Protocol_Version(void)
+{
+    return BACNET_PROTOCOL_VERSION;
+}
+
+uint8_t Device_Protocol_Revision(void)
+{
+    return BACNET_PROTOCOL_REVISION;
+}
+
 BACNET_SEGMENTATION Device_Segmentation_Supported(void)
 {
+#if BACNET_SEGMENTATION_ENABLED
+    return SEGMENTATION_BOTH;
+#else
     return SEGMENTATION_NONE;
+#endif
 }
 
 /**
@@ -1419,7 +1865,7 @@ unsigned Device_Object_List_Count(void)
     struct object_functions *pObject = NULL;
 
     /* initialize the default return values */
-    pObject = &Object_Table[0];
+    pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Count) {
             count += pObject->Object_Count();
@@ -1531,7 +1977,7 @@ bool Device_Valid_Object_Name(
     for (i = 1; i <= max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
+            pObject = Device_Object_Functions_Find(type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                  characterstring_same(object_name1, &object_name2))) {
@@ -1561,7 +2007,7 @@ bool Device_Valid_Object_Id(
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -1583,25 +2029,320 @@ bool Device_Object_Name_Copy(
     struct object_functions *pObject = NULL;
     bool found = false;
 
-    pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-        found = pObject->Object_Name(object_instance, object_name);
+    pObject = Device_Object_Functions_Find(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Name) {
+                found = pObject->Object_Name(object_instance, object_name);
+            }
+        }
     }
 
     return found;
 }
 
-/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
-   BACNET_STATUS_ABORT for abort message */
+static void Update_Current_Time(void)
+{
+    datetime_local(
+        &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
+}
+
+void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
+{
+    Update_Current_Time();
+
+    DateTime->date = Local_Date;
+    DateTime->time = Local_Time;
+}
+
+int32_t Device_UTC_Offset(void)
+{
+    Update_Current_Time();
+
+    return UTC_Offset;
+}
+
+void Device_UTC_Offset_Set(int16_t offset)
+{
+    UTC_Offset = offset;
+}
+
+bool Device_Daylight_Savings_Status(void)
+{
+    return Daylight_Savings_Status;
+}
+
+#if defined(BACNET_TIME_MASTER)
+/**
+ * Sets the time sync interval in minutes
+ *
+ * @param flag
+ * This property, of type BOOLEAN, specifies whether (TRUE)
+ * or not (FALSE) clock-aligned periodic time synchronization is
+ * enabled. If periodic time synchronization is enabled and the
+ * time synchronization interval is a factor of (divides without
+ * remainder) an hour or day, then the beginning of the period
+ * specified for time synchronization shall be aligned to the hour or
+ * day, respectively. If this property is present, it shall be writable.
+ */
+bool Device_Align_Intervals_Set(bool flag)
+{
+    Align_Intervals = flag;
+
+    return true;
+}
+
+bool Device_Align_Intervals(void)
+{
+    return Align_Intervals;
+}
+
+/**
+ * Sets the time sync interval in minutes
+ *
+ * @param minutes
+ * This property, of type Unsigned, specifies the periodic
+ * interval in minutes at which TimeSynchronization and
+ * UTCTimeSynchronization requests shall be sent. If this
+ * property has a value of zero, then periodic time synchronization is
+ * disabled. If this property is present, it shall be writable.
+ */
+bool Device_Time_Sync_Interval_Set(uint32_t minutes)
+{
+    Interval_Minutes = minutes;
+
+    return true;
+}
+
+uint32_t Device_Time_Sync_Interval(void)
+{
+    return Interval_Minutes;
+}
+
+/**
+ * Sets the time sync interval offset value.
+ *
+ * @param minutes
+ * This property, of type Unsigned, specifies the offset in
+ * minutes from the beginning of the period specified for time
+ * synchronization until the actual time synchronization requests
+ * are sent. The offset used shall be the value of Interval_Offset
+ * modulo the value of Time_Synchronization_Interval;
+ * e.g., if Interval_Offset has the value 31 and
+ * Time_Synchronization_Interval is 30, the offset used shall be 1.
+ * Interval_Offset shall have no effect if Align_Intervals is
+ * FALSE. If this property is present, it shall be writable.
+ */
+bool Device_Interval_Offset_Set(uint32_t minutes)
+{
+    Interval_Offset_Minutes = minutes;
+
+    return true;
+}
+
+uint32_t Device_Interval_Offset(void)
+{
+    return Interval_Offset_Minutes;
+}
+#endif
+
+bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
+{
+    bool status = false;
+#if BACNET_BACKUP_FILE_COUNT
+    if (index < BACNET_BACKUP_FILE_COUNT) {
+        Configuration_Files[index] = instance;
+        status = true;
+    }
+#else
+    (void)index;
+    (void)instance;
+#endif
+
+    return status;
+}
+
+uint32_t Device_Configuration_File(unsigned index)
+{
+    uint32_t instance = BACNET_MAX_INSTANCE + 1;
+
+#if BACNET_BACKUP_FILE_COUNT
+    if (index < BACNET_BACKUP_FILE_COUNT) {
+        instance = Configuration_Files[index];
+    }
+#else
+    (void)index;
+#endif
+
+    return instance;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int Device_Configuration_File_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+
+    (void)object_instance;
+#if BACNET_BACKUP_FILE_COUNT
+    if (array_index < BACNET_BACKUP_FILE_COUNT) {
+        apdu_len = encode_application_object_id(
+            apdu, OBJECT_FILE, Configuration_Files[array_index]);
+    }
+#else
+    (void)array_index;
+    (void)apdu;
+#endif
+
+    return apdu_len;
+}
+
+#if defined BACNET_BACKUP_RESTORE
+/**
+ * @brief Decode a BACnetLIST property element to determine the element length
+ * @param object_instance [in] BACnet object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Device_Configuration_File_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    (void)object_instance;
+    return bacnet_object_id_application_decode(apdu, apdu_size, NULL, NULL);
+}
+
+/**
+ * @brief Write a value to a BACnetLIST property element value
+ *  using a BACnetARRAY write utility function
+ * @param object_instance [in] BACnet object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Device_Configuration_File_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    uint32_t instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    int len = 0;
+
+    (void)object_instance;
+    if (array_index == 0) {
+        /* This array is not required to be resizable
+            through BACnet write services */
+        error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    } else if (array_index <= BACNET_BACKUP_FILE_COUNT) {
+        len = bacnet_object_id_application_decode(
+            application_data, application_data_len, &object_type, &instance);
+        if (len > 0) {
+            if ((object_type == OBJECT_FILE) &&
+                Device_Valid_Object_Id(object_type, instance)) {
+                if (Device_Configuration_File_Set(array_index - 1, instance)) {
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    } else {
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
+}
+
+uint16_t Device_Backup_Failure_Timeout(void)
+{
+    return Backup_Failure_Timeout;
+}
+
+bool Device_Backup_Failure_Timeout_Set(uint16_t timeout)
+{
+    Backup_Failure_Timeout = timeout;
+    return true;
+}
+
+uint16_t Device_Backup_Preparation_Time(void)
+{
+    return Backup_Preparation_Time;
+}
+
+bool Device_Backup_Preparation_Time_Set(uint16_t time)
+{
+    Backup_Preparation_Time = time;
+    return true;
+}
+
+uint16_t Device_Restore_Preparation_Time(void)
+{
+    return Restore_Preparation_Time;
+}
+
+bool Device_Restore_Preparation_Time_Set(uint16_t time)
+{
+    Restore_Preparation_Time = time;
+    return true;
+}
+
+uint16_t Device_Restore_Completion_Time(void)
+{
+    return Restore_Completion_Time;
+}
+
+bool Device_Restore_Completion_Time_Set(uint16_t time)
+{
+    Restore_Completion_Time = time;
+    return true;
+}
+
+BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void)
+{
+    return Backup_State;
+}
+
+bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state)
+{
+    Backup_State = state;
+    return true;
+}
+#endif
+
+/**
+ * ReadProperty handler for this object.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
-    BACNET_DATE bdate;
-    BACNET_TIME btime;
-    int16_t utc_offset_minutes;
-    bool dst_active;
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -1615,13 +2356,19 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     apdu = rpdata->application_data;
     apdu_max = rpdata->application_data_len;
     switch ((int)rpdata->object_property) {
+        case PROP_OBJECT_IDENTIFIER:
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
+            break;
+        case PROP_OBJECT_NAME:
+            apdu_len =
+                encode_application_character_string(&apdu[0], &My_Object_Name);
+            break;
+        case PROP_OBJECT_TYPE:
+            apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
+            break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, Device_Description_Default);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
-        case PROP_LOCATION:
-            characterstring_init_ansi(&char_string, Device_Location_Default);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -1653,13 +2400,35 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-        case PROP_PROTOCOL_VERSION:
+        case PROP_LOCATION:
+            characterstring_init_ansi(&char_string, Device_Location_Default);
             apdu_len =
-                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_VERSION);
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_LOCAL_TIME:
+            Update_Current_Time();
+            apdu_len = encode_application_time(&apdu[0], &Local_Time);
+            break;
+        case PROP_UTC_OFFSET:
+            Update_Current_Time();
+            apdu_len = encode_application_signed(&apdu[0], UTC_Offset);
+            break;
+        case PROP_LOCAL_DATE:
+            Update_Current_Time();
+            apdu_len = encode_application_date(&apdu[0], &Local_Date);
+            break;
+        case PROP_DAYLIGHT_SAVINGS_STATUS:
+            Update_Current_Time();
+            apdu_len =
+                encode_application_boolean(&apdu[0], Daylight_Savings_Status);
+            break;
+        case PROP_PROTOCOL_VERSION:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Protocol_Version());
             break;
         case PROP_PROTOCOL_REVISION:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_REVISION);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Protocol_Revision());
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             /* Note: list of services that are executed, not initiated. */
@@ -1674,17 +2443,19 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
             /* Note: this is the list of objects that can be in this device,
-                   not a list of objects that this device can access */
+               not a list of objects that this device can access */
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
                 /* initialize all the object types to not-supported */
                 bitstring_set_bit(&bit_string, (uint8_t)i, false);
             }
             /* set the object types with objects to supported */
+
             pObject = Object_Table;
             while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
                 if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
-                    bitstring_set_bit(&bit_string, pObject->Object_Type, true);
+                    bitstring_set_bit(
+                        &bit_string, (uint8_t)pObject->Object_Type, true);
                 }
                 pObject++;
             }
@@ -1696,8 +2467,12 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->object_instance, rpdata->array_index,
                 Device_Object_List_Element_Encode, count, apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
+#if BACNET_SEGMENTATION_ENABLED
+                rpdata->error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
+#else
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+#endif
             } else if (apdu_len == BACNET_STATUS_ERROR) {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -1717,7 +2492,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
-            /* FIXME: encode the list here, if it exists */
+            apdu_len = address_list_encode(&apdu[0], apdu_max);
             break;
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(
@@ -1733,22 +2508,67 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
 #endif
-        case PROP_LOCAL_TIME:
-            datetime_local(&bdate, &btime, &utc_offset_minutes, &dst_active);
-            apdu_len = encode_application_time(&apdu[0], &btime);
+#if defined(BACNET_TIME_MASTER)
+        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
+            apdu_len = handler_timesync_encode_recipients(&apdu[0], MAX_APDU);
+            if (apdu_len < 0) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                apdu_len = BACNET_STATUS_ABORT;
+            }
             break;
-        case PROP_LOCAL_DATE:
-            datetime_local(&bdate, &btime, &utc_offset_minutes, &dst_active);
-            apdu_len = encode_application_date(&apdu[0], &bdate);
+        case PROP_TIME_SYNCHRONIZATION_INTERVAL:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Time_Sync_Interval());
             break;
-        case PROP_UTC_OFFSET:
-            datetime_local(&bdate, &btime, &utc_offset_minutes, &dst_active);
-            apdu_len = encode_application_signed(&apdu[0], utc_offset_minutes);
+        case PROP_ALIGN_INTERVALS:
+            apdu_len =
+                encode_application_boolean(&apdu[0], Device_Align_Intervals());
             break;
-        case PROP_DAYLIGHT_SAVINGS_STATUS:
-            datetime_local(&bdate, &btime, &utc_offset_minutes, &dst_active);
-            apdu_len = encode_application_boolean(&apdu[0], dst_active);
+        case PROP_INTERVAL_OFFSET:
+            apdu_len =
+                encode_application_unsigned(&apdu[0], Device_Interval_Offset());
             break;
+#endif
+#if defined(BACNET_BACKUP_RESTORE)
+        case PROP_CONFIGURATION_FILES:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Device_Configuration_File_Encode, BACNET_BACKUP_FILE_COUNT,
+                &apdu[0], apdu_max);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+#if BACNET_SEGMENTATION_ENABLED
+                rpdata->error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
+#else
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+#endif
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_BACKUP_FAILURE_TIMEOUT:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Backup_Failure_Timeout());
+            break;
+        case PROP_BACKUP_PREPARATION_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Backup_Preparation_Time());
+            break;
+        case PROP_RESTORE_PREPARATION_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Restore_Preparation_Time());
+            break;
+        case PROP_RESTORE_COMPLETION_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Restore_Completion_Time());
+            break;
+        case PROP_BACKUP_AND_RESTORE_STATE:
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Device_Backup_And_Restore_State());
+            break;
+#endif
 #if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             if ((apdu_len = handler_cov_encode_subscriptions(
@@ -1774,13 +2594,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = BACNET_STATUS_ERROR;
-    }
 
     return apdu_len;
 }
@@ -1790,10 +2603,11 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param pObject - object table
  * @param rpdata [in,out] Structure with the requested Object & Property info
  *  on entry, and APDU message on return.
- * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
  */
 static int Read_Property_Common(
-    struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
+    const struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
@@ -1802,69 +2616,29 @@ static int Read_Property_Common(
     struct special_property_list_t property_list;
 #endif
 
-    if ((rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
-    switch (rpdata->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                /* Device Object exception: requested instance
-                       may not match our instance if a wildcard */
-                if (rpdata->object_type == OBJECT_DEVICE) {
-                    rpdata->object_instance = Object_Instance_Number;
-                }
-                apdu_len = encode_application_object_id(
-                    &apdu[0], rpdata->object_type, rpdata->object_instance);
-            }
-            break;
-        case PROP_OBJECT_NAME:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                characterstring_init_ansi(&char_string, "");
-                if (pObject->Object_Name) {
-                    (void)pObject->Object_Name(
-                        rpdata->object_instance, &char_string);
-                }
-                apdu_len =
-                    encode_application_character_string(&apdu[0], &char_string);
-            }
-            break;
-        case PROP_OBJECT_TYPE:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                apdu_len = encode_application_enumerated(
-                    &apdu[0], rpdata->object_type);
-            }
-            break;
+    if (property_list_common(rpdata->object_property)) {
+        apdu_len = property_list_common_encode(rpdata, Object_Instance_Number);
+    } else if (rpdata->object_property == PROP_OBJECT_NAME) {
+        characterstring_init_ansi(&char_string, "");
+        if (pObject->Object_Name) {
+            (void)pObject->Object_Name(rpdata->object_instance, &char_string);
+        }
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
 #if (BACNET_PROTOCOL_REVISION >= 14)
-        case PROP_PROPERTY_LIST:
-            Device_Objects_Property_List(
-                rpdata->object_type, rpdata->object_instance, &property_list);
-            apdu_len = property_list_encode(
-                rpdata, property_list.Required.pList,
-                property_list.Optional.pList, property_list.Proprietary.pList);
-            break;
+    } else if (rpdata->object_property == PROP_PROPERTY_LIST) {
+        Device_Objects_Property_List(
+            rpdata->object_type, rpdata->object_instance, &property_list);
+        apdu_len = property_list_encode(
+            rpdata, property_list.Required.pList, property_list.Optional.pList,
+            property_list.Proprietary.pList);
 #endif
-        default:
-            if (pObject->Object_Read_Property) {
-                apdu_len = pObject->Object_Read_Property(rpdata);
-            }
-            break;
+    } else if (pObject->Object_Read_Property) {
+        apdu_len = pObject->Object_Read_Property(rpdata);
     }
 
     return apdu_len;
@@ -1884,11 +2658,14 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
+    if (!rpdata) {
+        return 0;
+    }
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(rpdata->object_type);
-    if (pObject) {
+    pObject = Device_Object_Functions_Find(rpdata->object_type);
+    if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
             apdu_len = Read_Property_Common(pObject, rpdata);
@@ -1907,109 +2684,280 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 /* returns true if successful */
 bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false; /* return value - false=error */
+    bool status = false; /* return value */
     int len = 0;
-    uint8_t encoding = 0;
-    size_t length = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
+    int result = 0;
+#if defined(BACNET_TIME_MASTER)
+    uint32_t minutes = 0;
+#endif
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-    /* FIXME: len < application_data_len: more data? */
+    len = bacapp_decode_known_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
-    switch ((int)wp_data->object_property) {
+    /* FIXME: len < application_data_len: more data? */
+    switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_OBJECT_ID);
+            if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(
                         value.type.Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_NUMBER_OF_APDU_RETRIES:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                /* FIXME: bounds check? */
+                apdu_retries_set((uint8_t)value.type.Unsigned_Int);
+            }
+            break;
+        case PROP_APDU_TIMEOUT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                /* FIXME: bounds check? */
+                apdu_timeout_set((uint16_t)value.type.Unsigned_Int);
+            }
+            break;
+        case PROP_VENDOR_IDENTIFIER:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                /* FIXME: bounds check? */
+                Device_Set_Vendor_Identifier((uint16_t)value.type.Unsigned_Int);
+            }
+            break;
+        case PROP_SYSTEM_STATUS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                result = Device_Set_System_Status(
+                    (BACNET_DEVICE_STATUS)value.type.Enumerated, false);
+                if (result != 0) {
+                    /* result: - 0 = ok, -1 = bad value, -2 = not allowed */
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    if (result == -1) {
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    } else {
+                        wp_data->error_code =
+                            ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                    }
+                }
+            }
+            break;
+        case PROP_OBJECT_NAME:
+            status = write_property_string_valid(
+                wp_data, &value, characterstring_capacity(&My_Object_Name));
+            if (status) {
+                /* All the object names in a device must be unique */
+                if (Device_Valid_Object_Name(
+                        &value.type.Character_String, &object_type,
+                        &object_instance)) {
+                    if ((object_type == wp_data->object_type) &&
+                        (object_instance == wp_data->object_instance)) {
+                        /* writing same name to same object */
+                        status = true;
+                    } else {
+                        status = false;
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
+                    }
+                } else {
+                    Device_Set_Object_Name(&value.type.Character_String);
+                }
+            }
+            break;
+        case PROP_LOCATION:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_LOC_LEN);
+            if (status) {
+                Device_Set_Location(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
+            break;
+
+        case PROP_DESCRIPTION:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_DESC_LEN);
+            if (status) {
+                Device_Set_Description(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
+            break;
+        case PROP_MODEL_NAME:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_MOD_LEN);
+            if (status) {
+                Device_Set_Model_Name(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
+            break;
+#if defined(BACNET_TIME_MASTER)
+        case PROP_TIME_SYNCHRONIZATION_INTERVAL:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int < 65535) {
+                    minutes = value.type.Unsigned_Int;
+                    Device_Time_Sync_Interval_Set(minutes);
                     status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_ALIGN_INTERVALS:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Device_Align_Intervals_Set(value.type.Boolean);
+                status = true;
+            }
+            break;
+        case PROP_INTERVAL_OFFSET:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int < 65535) {
+                    minutes = value.type.Unsigned_Int;
+                    Device_Interval_Offset_Set(minutes);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+#endif
+#if defined(BACNET_BACKUP_RESTORE)
+        case PROP_BACKUP_FAILURE_TIMEOUT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Device_Backup_Failure_Timeout_Set(
+                        (uint16_t)value.type.Unsigned_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_BACKUP_PREPARATION_TIME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Device_Backup_Preparation_Time_Set(
+                        (uint16_t)value.type.Unsigned_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_RESTORE_PREPARATION_TIME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Device_Restore_Preparation_Time_Set(
+                        (uint16_t)value.type.Unsigned_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_CONFIGURATION_FILES:
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Device_Configuration_File_Length,
+                Device_Configuration_File_Write, BACNET_BACKUP_FILE_COUNT,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+#endif
+        case PROP_UTC_OFFSET:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
+            if (status) {
+                if ((value.type.Signed_Int < (12 * 60)) &&
+                    (value.type.Signed_Int > (-12 * 60))) {
+                    Device_UTC_Offset_Set(value.type.Signed_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
 #if defined(BACDL_MSTP)
         case PROP_MAX_INFO_FRAMES:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames(value.type.Unsigned_Int);
-                    status = true;
+                    dlmstp_set_max_info_frames(
+                        (uint8_t)value.type.Unsigned_Int);
                 } else {
+                    status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_MAX_MASTER:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if ((value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= 127)) {
-                    dlmstp_set_max_master(value.type.Unsigned_Int);
-                    status = true;
+                    dlmstp_set_max_master((uint8_t)value.type.Unsigned_Int);
                 } else {
+                    status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #endif
-        case PROP_OBJECT_NAME:
-            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                length = characterstring_length(&value.type.Character_String);
-                if (length < 1) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                } else if (length < characterstring_capacity(&My_Object_Name)) {
-                    encoding =
-                        characterstring_encoding(&value.type.Character_String);
-                    if (encoding < MAX_CHARACTER_STRING_ENCODING) {
-                        /* All the object names in a device must be unique. */
-                        if (Device_Valid_Object_Name(
-                                &value.type.Character_String, NULL, NULL)) {
-                            wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
-                        } else {
-                            Device_Set_Object_Name(
-                                &value.type.Character_String);
-                            status = true;
-                        }
-                    } else {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code =
-                            ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
-                    }
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        case PROP_TIME_OF_DEVICE_RESTART:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
+            if (status) {
+#if defined(BACAPP_TIMESTAMP)
+                bacapp_timestamp_copy(
+                    &Time_Of_Device_Restart, &value.type.Time_Stamp);
+#endif
             }
             break;
         default:
@@ -2024,8 +2972,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
     }
-    /* not using len at this time */
-    (void)len;
 
     return status;
 }
@@ -2046,15 +2992,9 @@ static bool Device_Write_Property_Object_Name(
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     int apdu_size = 0;
-    uint8_t *apdu = NULL;
+    const uint8_t *apdu = NULL;
 
     if (!wp_data) {
-        return false;
-    }
-    if (wp_data->array_index != BACNET_ARRAY_ALL) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     apdu = wp_data->application_data;
@@ -2081,8 +3021,8 @@ static bool Device_Write_Property_Object_Name(
         if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
             if ((object_type == wp_data->object_type) &&
                 (object_instance == wp_data->object_instance)) {
-                /* writing same name to same object */
-                status = true;
+                /* writing same name to same object - but is it writable? */
+                status = Object_Write_Property(wp_data);
             } else {
                 /* name already exists in some object */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -2127,14 +3067,14 @@ static void Device_Write_Property_Store(BACNET_WRITE_PROPERTY_DATA *wp_data)
  */
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;
+    bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(wp_data->object_type);
-    if (pObject) {
+    pObject = Device_Object_Functions_Find(wp_data->object_type);
+    if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
             if (pObject->Object_Write_Property) {
@@ -2142,7 +3082,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if (wp_data->object_property == PROP_PROPERTY_LIST) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                    return status;
+                    return false;
                 }
 #endif
                 if (wp_data->object_property == PROP_OBJECT_NAME) {
@@ -2155,8 +3095,17 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Device_Write_Property_Store(wp_data);
                 }
             } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                if (Device_Objects_Property_List_Member(
+                        wp_data->object_type, wp_data->object_instance,
+                        wp_data->object_property)) {
+                    /* this property is not writable */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else {
+                    /* this property is not supported */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                }
             }
         } else {
             wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -2165,6 +3114,102 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     } else {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return (status);
+}
+
+/**
+ * @brief Set the callback for a Add_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Add_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Add_List_Element_Callback = cb;
+}
+
+/**
+ * @brief AddListElement from an object list property
+ * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
+ * which is packed with the information from the request.
+ * @return The length of the apdu encoded or #BACNET_STATUS_ERROR or
+ * #BACNET_STATUS_ABORT or #BACNET_STATUS_REJECT.
+ */
+int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
+{
+    int status = BACNET_STATUS_ERROR;
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Object_Functions_Find(list_element->object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(list_element->object_instance)) {
+            if (pObject->Object_Add_List_Element) {
+                status = pObject->Object_Add_List_Element(list_element);
+                if (status) {
+                    if (Device_Add_List_Element_Callback) {
+                        (void)Device_Add_List_Element_Callback(list_element);
+                    }
+                }
+            } else {
+                list_element->error_class = ERROR_CLASS_PROPERTY;
+                list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+        } else {
+            list_element->error_class = ERROR_CLASS_OBJECT;
+            list_element->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        list_element->error_class = ERROR_CLASS_OBJECT;
+        list_element->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the callback for a Remove_List_Element successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Remove_List_Element_Callback_Set(list_element_function cb)
+{
+    Device_Remove_List_Element_Callback = cb;
+}
+
+/**
+ * @brief RemoveListElement from an object list property
+ * @param list_element [in] Pointer to the BACnet_List_Element_Data structure,
+ * which is packed with the information from the request.
+ * @return The length of the apdu encoded or #BACNET_STATUS_ERROR or
+ * #BACNET_STATUS_ABORT or #BACNET_STATUS_REJECT.
+ */
+int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
+{
+    int status = BACNET_STATUS_ERROR;
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Object_Functions_Find(list_element->object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(list_element->object_instance)) {
+            if (pObject->Object_Remove_List_Element) {
+                status = pObject->Object_Remove_List_Element(list_element);
+                if (status) {
+                    if (Device_Remove_List_Element_Callback) {
+                        (void)Device_Remove_List_Element_Callback(list_element);
+                    }
+                }
+            } else {
+                list_element->error_class = ERROR_CLASS_PROPERTY;
+                list_element->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+        } else {
+            list_element->error_class = ERROR_CLASS_OBJECT;
+            list_element->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        list_element->error_class = ERROR_CLASS_OBJECT;
+        list_element->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;
@@ -2184,10 +3229,10 @@ bool Device_Encode_Value_List(
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE *value_list)
 {
-    bool status = false; /* Ever the pessamist! */
+    bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -2212,7 +3257,7 @@ bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
     bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -2234,7 +3279,7 @@ void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Object_Functions_Find(object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
@@ -2243,6 +3288,310 @@ void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
             }
         }
     }
+}
+
+/**
+ * @brief Creates a child object, if supported
+ * @ingroup ObjHelpers
+ * @param data - CreateObject data, including error codes if failures
+ * @return true if object has been created
+ */
+bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
+{
+    bool status = false;
+    struct object_functions *pObject = NULL;
+    bool object_exists = false;
+    bool object_supported = false;
+
+    pObject = Device_Object_Functions_Find(data->object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(data->object_instance)) {
+            object_exists = true;
+        }
+        object_supported = true;
+        status = create_object_process(
+            data, object_supported, object_exists, pObject->Object_Create,
+            pObject->Object_Delete, pObject->Object_Write_Property);
+    } else {
+        /* fill in the error values */
+        status = create_object_process(
+            data, object_supported, object_exists, NULL, NULL, NULL);
+    }
+    if (status) {
+        Device_Inc_Database_Revision();
+    }
+
+    return status;
+}
+
+/**
+ * @brief Deletes a child object, if supported
+ * @ingroup ObjHelpers
+ * @param data - DeleteObject data, including error codes if failures
+ * @return true if object has been deleted
+ */
+bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
+{
+    bool status = false;
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Object_Functions_Find(data->object_type);
+    if (pObject != NULL) {
+        if (!pObject->Object_Delete) {
+            /*  The device supports the object type
+                but does not support the deletion of the
+                object for some reason.*/
+            data->error_class = ERROR_CLASS_OBJECT;
+            data->error_code = ERROR_CODE_OBJECT_DELETION_NOT_PERMITTED;
+        } else if (
+            pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(data->object_instance)) {
+            /* The object being deleted must already exist */
+            status = pObject->Object_Delete(data->object_instance);
+            if (status) {
+                Device_Inc_Database_Revision();
+            } else {
+                /* The object exists but cannot be deleted. */
+                data->error_class = ERROR_CLASS_OBJECT;
+                data->error_code = ERROR_CODE_OBJECT_DELETION_NOT_PERMITTED;
+            }
+        } else {
+            /* The object to be deleted does not exist. */
+            data->error_class = ERROR_CLASS_OBJECT;
+            data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        /* The device does not support the specified object type. */
+        data->error_class = ERROR_CLASS_OBJECT;
+        data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Loop through the Device object-list property and export to
+ *  a file as BACnet CreateObject services with List of Initial Values
+ *  for every writable property
+ */
+void Device_Start_Backup(void)
+{
+#if defined BACNET_BACKUP_RESTORE
+    size_t i = 0;
+    uint32_t object_count = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
+    const int32_t *writable_properties = NULL;
+    struct special_property_list_t property_list = { 0 };
+    uint8_t object_apdu[MAX_APDU] = { 0 };
+    BACNET_CREATE_OBJECT_DATA create_data = { 0 };
+    bool status = false;
+    int32_t len = 0, offset = 0;
+
+    Backup_State = BACKUP_STATE_PREPARING_FOR_BACKUP;
+    object_count = Device_Object_List_Count();
+    Backup_State = BACKUP_STATE_PERFORMING_A_BACKUP;
+    for (i = 0; i < object_count; i++) {
+        /* get the object type and instance from the device object list */
+        status = Device_Object_List_Identifier(
+            (uint32_t)(i + 1), &object_type, &object_instance);
+        if (status) {
+            Device_Objects_Property_List(
+                object_type, object_instance, &property_list);
+            (void)Device_Objects_Writable_Property_List(
+                object_type, object_instance, &writable_properties);
+            create_data.object_type = object_type;
+            create_data.object_instance = object_instance;
+            create_data.application_data_len = 0;
+            len = create_object_writable_properties_encode(
+                object_apdu, sizeof(object_apdu), &create_data,
+                property_list.Required.pList, property_list.Optional.pList,
+                property_list.Proprietary.pList, writable_properties,
+                Device_Read_Property);
+            if (len > 0) {
+#if defined(BACFILE)
+                (void)bacfile_write_offset(
+                    Configuration_Files[0], offset, &object_apdu[0],
+                    (uint32_t)len);
+#endif
+                offset += len;
+            }
+        }
+    }
+    Backup_State = BACKUP_STATE_IDLE;
+#endif
+}
+
+/**
+ * @brief Loop through the Device object-list property and export to
+ *  a file as BACnet CreateObject services with List of Initial Values
+ *  for every writable property
+ */
+void Device_Start_Restore(void)
+{
+#if defined BACNET_BACKUP_RESTORE
+    BACNET_DATE_TIME bdateTime = { 0 };
+    datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
+    bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
+    Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
+#endif
+}
+
+#if defined(INTRINSIC_REPORTING)
+void Device_local_reporting(void)
+{
+    struct object_functions *pObject = NULL;
+    uint32_t objects_count = 0;
+    uint32_t object_instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t idx = 0;
+
+    objects_count = Device_Object_List_Count();
+
+    /* loop for all objects */
+    for (idx = 1; idx <= objects_count; idx++) {
+        Device_Object_List_Identifier(idx, &object_type, &object_instance);
+
+        pObject = Device_Object_Functions_Find(object_type);
+        if (pObject != NULL) {
+            if (pObject->Object_Valid_Instance &&
+                pObject->Object_Valid_Instance(object_instance)) {
+                if (pObject->Object_Intrinsic_Reporting) {
+                    pObject->Object_Intrinsic_Reporting(object_instance);
+                }
+            }
+        }
+    }
+}
+#endif
+
+/** Looks up the requested Object to see if the functionality is supported.
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @return True if the object instance supports this feature.
+ */
+bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
+{
+    bool status = false; /* Ever the pessamist! */
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Object_Functions_Find(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Value_List) {
+            status = true;
+        }
+    }
+
+    return (status);
+}
+
+/**
+ * @brief Get the Device object functions table
+ * @return the Device object function table
+ */
+struct object_functions *Device_Object_Functions(void)
+{
+    return Object_Table;
+}
+
+/** Initialize the Device Object.
+ Initialize the group of object helper functions for any supported Object.
+ Initialize each of the Device Object child Object instances.
+ * @ingroup ObjIntf
+ * @param object_table [in,out] array of structure with object functions.
+ *  Each Child Object must provide some implementation of each of these
+ *  functions in order to properly support the default handlers.
+ */
+void Device_Init(object_functions_t *object_table)
+{
+    struct object_functions *pObject = NULL;
+
+    datetime_init();
+    if (object_table) {
+        Object_Table = object_table;
+    } else {
+        Object_Table = &My_Object_Table[0];
+    }
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Init) {
+            pObject->Object_Init();
+        }
+        pObject++;
+    }
+    dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+    if (Object_Instance_Number > BACNET_MAX_INSTANCE) {
+        Object_Instance_Number = BACNET_MAX_INSTANCE;
+    }
+    characterstring_init_ansi(&My_Object_Name, Device_Name_Default);
+#if (BACNET_PROTOCOL_REVISION >= 14)
+#ifdef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
+    /* link WriteProperty to Channel object for references */
+    Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_LOOP
+    /* link ReadProperty and WriteProperty to Loop object for references */
+    Loop_Read_Property_Internal_Callback_Set(Device_Read_Property);
+    Loop_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
+    /* link WriteProperty to Timer object for references */
+    Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
+}
+
+bool DeviceGetRRInfo(
+    BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
+    RR_PROP_INFO *pInfo)
+{ /* Where to put the response */
+    bool status = false; /* return value */
+
+    switch (pRequest->object_property) {
+        case PROP_VT_CLASSES_SUPPORTED:
+        case PROP_ACTIVE_VT_SESSIONS:
+        case PROP_LIST_OF_SESSION_KEYS:
+        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
+        case PROP_MANUAL_SLAVE_ADDRESS_BINDING:
+        case PROP_SLAVE_ADDRESS_BINDING:
+        case PROP_RESTART_NOTIFICATION_RECIPIENTS:
+        case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
+            pInfo->RequestTypes = RR_BY_POSITION;
+            pRequest->error_class = ERROR_CLASS_PROPERTY;
+            if (pRequest->array_index == BACNET_ARRAY_ALL) {
+                pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            } else {
+                pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            }
+            break;
+
+        case PROP_DEVICE_ADDRESS_BINDING:
+            pInfo->RequestTypes = RR_BY_POSITION;
+            pInfo->Handler = rr_address_list_encode;
+            status = true;
+            break;
+
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            pInfo->RequestTypes = RR_BY_POSITION;
+            pRequest->error_class = ERROR_CLASS_PROPERTY;
+            if (pRequest->array_index == BACNET_ARRAY_ALL) {
+                pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            } else {
+                pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            }
+            break;
+        default:
+            pRequest->error_class = ERROR_CLASS_SERVICES;
+            pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+            if (pRequest->array_index == BACNET_ARRAY_ALL) {
+                pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                pRequest->error_class = ERROR_CLASS_PROPERTY;
+            }
+            break;
+    }
+
+    return status;
 }
 
 /**
@@ -2270,54 +3619,4 @@ void Device_Timer(uint16_t milliseconds)
         }
         pObject++;
     }
-}
-
-/** Looks up the requested Object to see if the functionality is supported.
- * @ingroup ObjHelpers
- * @param [in] The object type to be looked up.
- * @return True if the object instance supports this feature.
- */
-bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
-{
-    bool status = false; /* Ever the pessamist! */
-    struct object_functions *pObject = NULL;
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Value_List) {
-            status = true;
-        }
-    }
-
-    return (status);
-}
-
-/** Initialize the Device Object.
- Initialize the group of object helper functions for any supported Object.
- Initialize each of the Device Object child Object instances.
- * @ingroup ObjIntf
- * @param object_table [in,out] array of structure with object functions.
- *  Each Child Object must provide some implementation of each of these
- *  functions in order to properly support the default handlers.
- */
-void Device_Init(object_functions_t *object_table)
-{
-    struct object_functions *pObject = NULL;
-
-    /* we don't use the object table passed in
-       since there is extra stuff we don't need in there. */
-    (void)object_table;
-    /* our local object table */
-    pObject = &Object_Table[0];
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Init) {
-            pObject->Object_Init();
-        }
-        pObject++;
-    }
-    dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-    if (Object_Instance_Number > BACNET_MAX_INSTANCE) {
-        Object_Instance_Number = BACNET_MAX_INSTANCE;
-    }
-    characterstring_init_ansi(&My_Object_Name, Device_Name_Default);
 }

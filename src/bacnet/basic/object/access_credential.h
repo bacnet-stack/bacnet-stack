@@ -60,7 +60,12 @@ typedef struct {
 
 BACNET_STACK_EXPORT
 void Access_Credential_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary);
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Access_Credential_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 BACNET_STACK_EXPORT
 bool Access_Credential_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT

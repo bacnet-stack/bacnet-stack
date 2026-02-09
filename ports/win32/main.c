@@ -71,7 +71,7 @@ static void Read_Properties(void)
        Device Object
        note: you could just loop through
        all the properties in all the objects. */
-    const int object_props[] = {
+    const int32_t object_props[] = {
         PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
         PROP_SYSTEM_STATUS, PROP_VENDOR_NAME, PROP_VENDOR_IDENTIFIER,
         PROP_MODEL_NAME, PROP_FIRMWARE_REVISION,
@@ -131,9 +131,9 @@ static void LocalIAmHandler(
     uint16_t vendor_id = 0;
 
     (void)src;
-    (void)service_len;
-    len = iam_decode_service_request(
-        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
+    len = bacnet_iam_request_decode(
+        service_request, service_len, &device_id, &max_apdu, &segmentation,
+        &vendor_id);
     fprintf(stderr, "Received I-Am Request");
     if (len != -1) {
         fprintf(stderr, " from %u!\n", device_id);

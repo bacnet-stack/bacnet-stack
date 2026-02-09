@@ -40,6 +40,7 @@ struct object_data {
     uint8_t Reliability;
     const char *Object_Name;
     OS_Keylist Zone_Members;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -47,7 +48,7 @@ static OS_Keylist Object_List;
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LIFE_SAFETY_ZONE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Life_Safety_Zone_Properties_Required[] = {
+static const int32_t Life_Safety_Zone_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,    PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,          PROP_PRESENT_VALUE,
     PROP_TRACKING_VALUE,       PROP_STATUS_FLAGS,
@@ -58,9 +59,24 @@ static const int Life_Safety_Zone_Properties_Required[] = {
     PROP_MAINTENANCE_REQUIRED, -1
 };
 
-static const int Life_Safety_Zone_Properties_Optional[] = { -1 };
+static const int32_t Life_Safety_Zone_Properties_Optional[] = { -1 };
 
-static const int Life_Safety_Zone_Properties_Proprietary[] = { -1 };
+static const int32_t Life_Safety_Zone_Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MODE,
+    PROP_PRESENT_VALUE,
+    PROP_OUT_OF_SERVICE,
+    PROP_SILENCED,
+    PROP_OPERATION_EXPECTED,
+    PROP_ZONE_MEMBERS,
+    -1
+};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -74,7 +90,9 @@ static const int Life_Safety_Zone_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Life_Safety_Zone_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Life_Safety_Zone_Properties_Required;
@@ -87,6 +105,20 @@ void Life_Safety_Zone_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Life Safety Zone object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Life_Safety_Zone_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -209,8 +241,8 @@ bool Life_Safety_Zone_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "LIFE-SAFETY-ZONE-%u",
-                object_instance);
+                name_text, sizeof(name_text), "LIFE-SAFETY-ZONE-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -845,6 +877,38 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Life_Safety_Zone_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Life_Safety_Zone_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates an object and initialize its properties to defaults
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -854,6 +918,9 @@ uint32_t Life_Safety_Zone_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

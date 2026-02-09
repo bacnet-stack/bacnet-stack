@@ -53,7 +53,7 @@ static struct my_object_functions {
       Device_Property_Lists },
     { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
       Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
-      Binary_Output_Name, Binary_Output_Read_Property,
+      Binary_Output_Object_Name, Binary_Output_Read_Property,
       Binary_Output_Write_Property, Binary_Output_Property_Lists },
     { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
@@ -75,7 +75,7 @@ static char Description[MAX_DEV_DESC_LEN + 1] = "Renesas Rulz!";
 static uint32_t Database_Revision = 0;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Device_Properties_Required[] = {
+static const int32_t Device_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -101,9 +101,9 @@ static const int Device_Properties_Required[] = {
     -1
 };
 
-static const int Device_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int32_t Device_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Device_Properties_Proprietary[] = { -1 };
+static const int32_t Device_Properties_Proprietary[] = { -1 };
 
 static struct my_object_functions *
 Device_Objects_Find_Functions(BACNET_OBJECT_TYPE Object_Type)
@@ -152,7 +152,8 @@ static int Read_Property_Common(
             break;
         case PROP_OBJECT_NAME:
             if (pObject->Object_Name) {
-                pString = pObject->Object_Name(rpdata->object_instance);
+                pString =
+                    pObject->Object_Name(rpdata->object_instance, &char_string);
             }
             characterstring_init_ansi(&char_string, pString);
             apdu_len =
@@ -181,7 +182,7 @@ static int Read_Property_Common(
     return apdu_len;
 }
 
-static unsigned property_list_count(const int *pList)
+static unsigned property_list_count(const int32_t *pList)
 {
     unsigned property_count = 0;
 
@@ -247,7 +248,9 @@ void Device_Objects_Property_List(
 }
 
 void Device_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Device_Properties_Required;

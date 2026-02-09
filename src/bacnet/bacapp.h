@@ -17,6 +17,7 @@
 /* BACnet Stack API */
 #include "bacnet/access_rule.h"
 #include "bacnet/bacaction.h"
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
 #include "bacnet/baclog.h"
@@ -30,6 +31,8 @@
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
+#include "bacnet/shed_level.h"
+#include "bacnet/timer_value.h"
 #include "bacnet/secure_connect.h"
 
 #ifndef BACAPP_PRINT_ENABLED
@@ -51,23 +54,18 @@ typedef struct BACnetScale {
     } type;
 } BACNET_SCALE;
 
-/* The shed levels for the LEVEL choice of BACnetShedLevel. */
-typedef struct {
-    BACNET_SHED_LEVEL_TYPE type;
-    union {
-        BACNET_UNSIGNED_INTEGER level;
-        BACNET_UNSIGNED_INTEGER percent;
-        float amount;
-    } value;
-} BACNET_SHED_LEVEL;
-
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
     bool context_specific; /* true if context specific data */
     uint8_t context_tag; /* only used for context specific data */
     uint8_t tag; /* application tag data type */
     union {
-        /* NULL - not needed as it is encoded in the tag alone */
+#if defined(BACAPP_NULL)
+        /* no value needed because it is encoded in the tag alone */
+#endif
+#if defined(BACAPP_NO_VALUE)
+        /* no value needed because it is encoded in the tag alone */
+#endif
 #if defined(BACAPP_BOOLEAN)
         bool Boolean;
 #endif
@@ -170,6 +168,15 @@ typedef struct BACnet_Application_Data_Value {
 #if defined(BACAPP_CHANNEL_VALUE)
         BACNET_CHANNEL_VALUE Channel_Value;
 #endif
+#if defined(BACAPP_TIMER_VALUE)
+        BACNET_TIMER_STATE_CHANGE_VALUE Timer_Value;
+#endif
+#if defined(BACAPP_RECIPIENT)
+        BACNET_RECIPIENT Recipient;
+#endif
+#if defined(BACAPP_ADDRESS_BINDING)
+        BACNET_ADDRESS_BINDING Address_Binding;
+#endif
 #if defined(BACAPP_LOG_RECORD)
         BACNET_LOG_RECORD Log_Record;
 #endif
@@ -223,6 +230,18 @@ typedef struct BACnet_Object_Property_Value {
     BACNET_APPLICATION_DATA_VALUE *value;
 } BACNET_OBJECT_PROPERTY_VALUE;
 
+struct BACnetDeviceObjectPropertyValue;
+typedef struct BACnetDeviceObjectPropertyValue {
+    BACNET_OBJECT_ID device_identifier;
+    BACNET_OBJECT_ID object_identifier;
+    BACNET_PROPERTY_ID property_identifier;
+    /* optional array index */
+    BACNET_ARRAY_INDEX property_array_index;
+    BACNET_APPLICATION_DATA_VALUE *value;
+    /* simple linked list */
+    struct BACnetDeviceObjectPropertyValue *next;
+} BACNET_DEVICE_OBJECT_PROPERTY_VALUE;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -241,6 +260,9 @@ BACNET_STACK_EXPORT
 int bacapp_property_value_encode(
     uint8_t *apdu, const BACNET_PROPERTY_VALUE *value);
 BACNET_STACK_EXPORT
+int bacapp_property_value_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
 int bacapp_property_value_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_VALUE *value);
 BACNET_STACK_EXPORT
@@ -249,6 +271,23 @@ int bacapp_object_property_value_decode(
     uint32_t apdu_size,
     BACNET_PROPERTY_VALUE *value,
     BACNET_OBJECT_TYPE object_type);
+
+BACNET_STACK_EXPORT
+int bacapp_device_object_property_value_encode(
+    uint8_t *apdu, const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+int bacapp_device_object_property_value_decode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+bool bacapp_device_object_property_value_same(
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value1,
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *value2);
+BACNET_STACK_EXPORT
+void bacapp_device_object_property_value_copy(
+    BACNET_DEVICE_OBJECT_PROPERTY_VALUE *dest,
+    const BACNET_DEVICE_OBJECT_PROPERTY_VALUE *src);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_data(

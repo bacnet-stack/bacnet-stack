@@ -28,16 +28,16 @@
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int32_t Binary_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
 
-static const int Binary_Value_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int32_t Binary_Value_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Binary_Value_Properties_Proprietary[] = { -1 };
+static const int32_t Binary_Value_Properties_Proprietary[] = { -1 };
 
 void Binary_Value_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired, const int32_t **pOptional, const int32_t **pProprietary)
 {
     if (pRequired)
         *pRequired = Binary_Value_Properties_Required;
@@ -105,7 +105,7 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 bool Binary_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[16] = "BV-0"; /* okay for single thread */
+    char text_string[16] = "BV-0";
     bool status = false;
 
     if (object_instance < MAX_BINARY_VALUES) {

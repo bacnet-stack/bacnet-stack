@@ -1,16 +1,14 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- */
-
-/* @file
+/**
+ * @file
  * @brief test BACnet load control object
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/bacstr.h>
+#include <bacnet/bactext.h>
 #include <bacnet/basic/object/ao.h>
 #include <bacnet/basic/object/lc.h>
 #include <property_test.h>
@@ -28,11 +26,23 @@
  */
 
 /**
+ * @brief compare two floating point values to 3 decimal places
+ *
+ * @param x1 - first comparison value
+ * @param x2 - second comparison value
+ * @return true if the value is the same to 3 decimal points
+ */
+static bool is_float_equal(float x1, float x2)
+{
+    return fabs(x1 - x2) < 0.001;
+}
+
+/**
  * @brief Test
  */
 
-static void
-Load_Control_WriteProperty_Request_Shed_Level(int instance, unsigned level)
+static void Load_Control_WriteProperty_Request_Shed_Level(
+    int instance, BACNET_SHED_LEVEL_TYPE type, float level)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
@@ -43,8 +53,7 @@ Load_Control_WriteProperty_Request_Shed_Level(int instance, unsigned level)
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_NO_PRIORITY;
     wp_data.object_property = PROP_REQUESTED_SHED_LEVEL;
-    value.type.Shed_Level.type = BACNET_SHED_TYPE_LEVEL;
-    value.type.Shed_Level.value.level = level;
+    bacnet_shed_level_init(&value.type.Shed_Level, type, level);
     wp_data.application_data_len = bacapp_encode_known_property(
         &wp_data.application_data[0], &value, wp_data.object_type,
         wp_data.object_property);
@@ -393,10 +402,12 @@ static void testLoadControlStateMachine(void)
     float level = 0;
     unsigned count = 0;
     BACNET_DATE_TIME bdatetime = { 0 };
-    uint32_t object_index = 0;
     uint32_t object_instance = 1234;
     BACNET_OBJECT_PROPERTY_REFERENCE object_property_reference;
-    bool status;
+    bool status = false;
+    BACNET_SHED_LEVEL shed_level = { 0 };
+    BACNET_SHED_STATE shed_state = BACNET_SHED_INACTIVE;
+    uint32_t update_interval = 0;
 
     test_setup(object_instance);
     status = Load_Control_Valid_Instance(object_instance);
@@ -412,9 +423,13 @@ static void testLoadControlStateMachine(void)
     zassert_equal(
         object_property_reference.property_identifier,
         test_object_property_reference.property_identifier, NULL);
+    update_interval = Load_Control_Update_Interval(object_instance);
+    zassert_true(update_interval > 0, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
     /* validate the state does not change - without any triggers */
     for (j = 0; j < 20; j++) {
-        Load_Control_State_Machine(object_index, &bdatetime);
+        Load_Control_Timer(object_instance, 1);
         count = Load_Control_Count();
         zassert_equal(count, 1, NULL);
         zassert_equal(
@@ -426,11 +441,11 @@ static void testLoadControlStateMachine(void)
     Load_Control_WriteProperty_Enable(object_instance, true);
     Load_Control_WriteProperty_Shed_Duration(object_instance, 60);
     Load_Control_WriteProperty_Start_Time_Wildcards(object_instance);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
         NULL);
@@ -440,16 +455,20 @@ static void testLoadControlStateMachine(void)
     test_setup(object_instance);
     status = Load_Control_Valid_Instance(object_instance);
     zassert_true(status, NULL);
-    Load_Control_WriteProperty_Request_Shed_Level(object_instance, 0);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 0.0f);
     Load_Control_WriteProperty_Start_Time(
         object_instance, 2007, 2, 27, 15, 0, 0, 0);
     Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
     datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
         NULL);
@@ -459,17 +478,21 @@ static void testLoadControlStateMachine(void)
     test_setup(object_instance);
     status = Load_Control_Valid_Instance(object_instance);
     zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
     Load_Control_WriteProperty_Enable(object_instance, true);
-    Load_Control_WriteProperty_Request_Shed_Level(object_instance, 1);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 1.0f);
     Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
     Load_Control_WriteProperty_Start_Time(
         object_instance, 2007, 2, 27, 15, 0, 0, 0);
     datetime_set_values(&bdatetime, 2007, 2, 28, 15, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
         NULL);
@@ -479,46 +502,52 @@ static void testLoadControlStateMachine(void)
     test_setup(object_instance);
     status = Load_Control_Valid_Instance(object_instance);
     zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
     Load_Control_WriteProperty_Enable(object_instance, true);
-    Load_Control_WriteProperty_Request_Shed_Level(object_instance, 1);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 1.0f);
     Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
     Load_Control_WriteProperty_Start_Time(
         object_instance, 2007, 2, 27, 15, 0, 0, 0);
     datetime_set_values(&bdatetime, 2007, 2, 27, 5, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_WriteProperty_Request_Shed_Level(object_instance, 2);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 2.0f);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
     Load_Control_WriteProperty_Shed_Duration(object_instance, 6);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
     Load_Control_WriteProperty_Duty_Window(object_instance, 60);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
     Load_Control_WriteProperty_Start_Time(
         object_instance, 2007, 2, 27, 15, 0, 0, 1);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
@@ -528,34 +557,40 @@ static void testLoadControlStateMachine(void)
     test_setup(object_instance);
     status = Load_Control_Valid_Instance(object_instance);
     zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
     Load_Control_WriteProperty_Enable(object_instance, true);
-    Load_Control_WriteProperty_Request_Shed_Level(object_instance, 1);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 1.0f);
     Load_Control_WriteProperty_Shed_Duration(object_instance, 120);
     Load_Control_WriteProperty_Start_Time(
         object_instance, 2007, 2, 27, 15, 0, 0, 0);
     datetime_set_values(&bdatetime, 2007, 2, 27, 5, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    /* set to lowest value so we cannot meet the shed level */
+    /* set to value that cannot meet the shed level immediately */
+    Test_Present_Value_Priority_Set(100.0f, 16);
     datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 0, 0);
-    Test_Present_Value_Priority_Set(0.0f, 16);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
         NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
         NULL);
     /* FinishedUnsuccessfulShed */
     datetime_set_values(&bdatetime, 2007, 2, 27, 23, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
         NULL);
@@ -565,51 +600,58 @@ static void testLoadControlStateMachine(void)
     test_setup(object_instance);
     status = Load_Control_Valid_Instance(object_instance);
     zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
     Load_Control_WriteProperty_Enable(object_instance, true);
-    Load_Control_WriteProperty_Request_Shed_Level(object_instance, 1);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 1.0f);
     Load_Control_WriteProperty_Shed_Duration(object_instance, 120);
     Load_Control_WriteProperty_Start_Time(
         object_instance, 2007, 2, 27, 15, 0, 0, 0);
     datetime_set_values(&bdatetime, 2007, 2, 27, 5, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    /* set to lowest value so we cannot meet the shed level */
+    /* not able to meet the shed level immediately */
+    Test_Present_Value_Priority_Set(100.0f, 16);
     datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 0, 0);
-    Test_Present_Value_Priority_Set(0.0f, 16);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
         NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
         NULL);
     /* FinishedUnsuccessfulShed */
     Load_Control_WriteProperty_Start_Time(
         object_instance, 2007, 2, 27, 16, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance),
         BACNET_SHED_REQUEST_PENDING, NULL);
     datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 1, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
         NULL);
     /* CanNowComplyWithShed */
     Test_Present_Value_Priority_Set(100.0f, 16);
     datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 2, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_COMPLIANT,
         NULL);
@@ -621,7 +663,8 @@ static void testLoadControlStateMachine(void)
         Load_Control_Priority_For_Writing(object_instance), priority, NULL);
     /* FinishedSuccessfulShed */
     datetime_set_values(&bdatetime, 2007, 2, 27, 23, 0, 0, 0);
-    Load_Control_State_Machine(object_index, &bdatetime);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_State_Machine_Handler();
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
         NULL);
@@ -630,6 +673,130 @@ static void testLoadControlStateMachine(void)
         islessgreater(100.0f, level), "Present Value = %f", (double)level);
     priority = Test_Present_Value_Priority();
     zassert_equal(16, priority, NULL);
+    test_teardown(object_instance);
+    /* SHED TYPE PERCENT - default value 100% */
+    test_setup(object_instance);
+    status = Load_Control_Valid_Instance(object_instance);
+    zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    shed_level.type = BACNET_SHED_TYPE_PERCENT;
+    shed_level.value.percent = 100;
+    status =
+        Load_Control_Requested_Shed_Level_Set(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_REQUEST_PENDING, NULL);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_INACTIVE, NULL);
+    test_teardown(object_instance);
+
+    /* SHED TYPE PERCENT - 20% */
+    test_setup(object_instance);
+    status = Load_Control_Valid_Instance(object_instance);
+    zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_PERCENT, 20.0f);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_REQUEST_PENDING, NULL);
+    /* configure for non-compliance */
+    Test_Present_Value_Priority_Set(100.0f, 16);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 2, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_NON_COMPLIANT, NULL);
+    /* configure for compliance */
+    priority = Load_Control_Priority_For_Writing(object_instance);
+    Test_Present_Value_Priority_Set(20.0f, 16);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 3, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_COMPLIANT, NULL);
+    test_teardown(object_instance);
+
+    /* SHED TYPE AMOUNT - default value 0.0 watts */
+    test_setup(object_instance);
+    status = Load_Control_Valid_Instance(object_instance);
+    zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_AMOUNT, 0.0f);
+    status =
+        Load_Control_Requested_Shed_Level_Set(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_REQUEST_PENDING, NULL);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_INACTIVE, NULL);
+    test_teardown(object_instance);
+    /* SHED TYPE PERCENT - 10.0 watts */
+    test_setup(object_instance);
+    status = Load_Control_Valid_Instance(object_instance);
+    zassert_true(status, NULL);
+    status = Load_Control_Update_Interval_Set(object_instance, 0);
+    zassert_true(status, NULL);
+    status = Load_Control_Full_Duty_Baseline_Set(object_instance, 100.0f);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    shed_level.type = BACNET_SHED_TYPE_AMOUNT;
+    shed_level.value.amount = 10.0f;
+    status =
+        Load_Control_Requested_Shed_Level_Set(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_REQUEST_PENDING, NULL);
+    /* configure for non-compliance */
+    priority = Load_Control_Priority_For_Writing(object_instance);
+    Test_Present_Value_Priority_Set(100.0f, priority);
+    zassert_true(status, NULL);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 2, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_NON_COMPLIANT, NULL);
+    /* configure for compliance - amount reference full-duty-baseline */
+    priority = Load_Control_Priority_For_Writing(object_instance);
+    zassert_true(status, NULL);
+    Test_Present_Value_Priority_Set(10.0f, priority);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 3, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    shed_state = Load_Control_Present_Value(object_instance);
+    zassert_equal(shed_state, BACNET_SHED_COMPLIANT, NULL);
     test_teardown(object_instance);
 }
 
@@ -643,7 +810,13 @@ static void test_Load_Control_Read_Write_Property(void)
     uint32_t object_instance = 123;
     unsigned index;
     bool status = false;
-    const int skip_fail_property_list[] = { -1 };
+    struct shed_level_data shed_level_entry = { 0 };
+    BACNET_SHED_LEVEL shed_level = { 0 };
+    BACNET_DATE_TIME bdatetime = { 0 };
+    uint32_t duration = 0;
+    bool enable = false;
+    float wattage = 0.0f;
+    const int32_t skip_fail_property_list[] = { -1 };
 
     test_setup(object_instance);
     status = Load_Control_Valid_Instance(object_instance);
@@ -658,6 +831,100 @@ static void test_Load_Control_Read_Write_Property(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Load_Control_Name_Set, Load_Control_Name_ASCII);
+    /* specific property API validation - shed level */
+    status =
+        Load_Control_Shed_Level_Array(object_instance, 1, &shed_level_entry);
+    zassert_true(status, NULL);
+    status = Load_Control_Shed_Level_Array_Set(
+        object_instance, 1, &shed_level_entry);
+    zassert_true(status, NULL);
+    status = Load_Control_Shed_Level_Array_Set(4194303, 1, &shed_level_entry);
+    zassert_false(status, NULL);
+    status = Load_Control_Shed_Level_Array_Set(
+        object_instance, 0, &shed_level_entry);
+    zassert_false(status, NULL);
+    status =
+        Load_Control_Shed_Level_Array(object_instance, 0, &shed_level_entry);
+    zassert_false(status, NULL);
+    status = Load_Control_Shed_Level_Array(4194303, 1, &shed_level_entry);
+    zassert_false(status, NULL);
+    /* specific property API validation - requested shed level */
+    status = Load_Control_Requested_Shed_Level(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    status =
+        Load_Control_Requested_Shed_Level_Set(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    status = Load_Control_Requested_Shed_Level_Set(4194303, &shed_level);
+    zassert_false(status, NULL);
+    status = Load_Control_Requested_Shed_Level(4194303, &shed_level);
+    zassert_false(status, NULL);
+    /* specific property API validation - expected shed level */
+    status = Load_Control_Expected_Shed_Level(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    status = Load_Control_Expected_Shed_Level_Set(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    status = Load_Control_Expected_Shed_Level_Set(4194303, &shed_level);
+    zassert_false(status, NULL);
+    status = Load_Control_Expected_Shed_Level(4194303, &shed_level);
+    zassert_false(status, NULL);
+    /* specific property API validation - actual shed level */
+    status = Load_Control_Actual_Shed_Level(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    status = Load_Control_Actual_Shed_Level_Set(object_instance, &shed_level);
+    zassert_true(status, NULL);
+    status = Load_Control_Actual_Shed_Level_Set(4194303, &shed_level);
+    zassert_false(status, NULL);
+    status = Load_Control_Actual_Shed_Level(4194303, &shed_level);
+    zassert_false(status, NULL);
+    /* specific property API validation - start time */
+    status = Load_Control_Start_Time(object_instance, &bdatetime);
+    zassert_true(status, NULL);
+    status = Load_Control_Start_Time_Set(object_instance, &bdatetime);
+    zassert_true(status, NULL);
+    status = Load_Control_Start_Time_Set(4194303, &bdatetime);
+    zassert_false(status, NULL);
+    status = Load_Control_Start_Time(4194303, &bdatetime);
+    zassert_false(status, NULL);
+    /* specific property API validation - shed duration */
+    status = Load_Control_Shed_Duration_Set(object_instance, 60);
+    zassert_true(status, NULL);
+    duration = Load_Control_Shed_Duration(object_instance);
+    zassert_equal(duration, 60, NULL);
+    status = Load_Control_Shed_Duration_Set(4194303, 60);
+    zassert_false(status, NULL);
+    duration = Load_Control_Shed_Duration(4194303);
+    zassert_true(duration == 0, NULL);
+    /* specific property API validation - duty window */
+    status = Load_Control_Duty_Window_Set(object_instance, 60);
+    zassert_true(status, NULL);
+    duration = Load_Control_Duty_Window(object_instance);
+    zassert_equal(duration, 60, NULL);
+    status = Load_Control_Duty_Window_Set(4194303, 60);
+    zassert_false(status, NULL);
+    duration = Load_Control_Duty_Window(4194303);
+    zassert_true(duration == 0, NULL);
+    /* specific property API validation - full duty baseline */
+    status = Load_Control_Full_Duty_Baseline_Set(object_instance, 60.0f);
+    zassert_true(status, NULL);
+    wattage = Load_Control_Full_Duty_Baseline(object_instance);
+    zassert_true(is_float_equal(wattage, 60.0f), NULL);
+    status = Load_Control_Full_Duty_Baseline_Set(4194303, 60.0f);
+    zassert_false(status, NULL);
+    wattage = Load_Control_Full_Duty_Baseline(4194303);
+    zassert_true(is_float_equal(wattage, 0.0f), NULL);
+    /* specific property API validation - enable */
+    status = Load_Control_Enable_Set(object_instance, true);
+    zassert_true(status, NULL);
+    enable = Load_Control_Enable(object_instance);
+    zassert_true(enable, NULL);
+    status = Load_Control_Enable_Set(4194303, true);
+    zassert_false(status, NULL);
+    enable = Load_Control_Enable(4194303);
+    zassert_false(enable, NULL);
+    /* specific property API validation - context */
+    Load_Control_Context_Set(
+        object_instance, Load_Control_Context_Get(object_instance));
+
     test_teardown(object_instance);
 }
 

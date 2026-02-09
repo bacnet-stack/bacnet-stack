@@ -1,13 +1,10 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief test BACnet Access Point object APIs
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/access_point.h>
@@ -31,7 +28,7 @@ static void testAccessPoint(void)
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int *required_property = NULL;
+    const int32_t *required_property = NULL;
     unsigned count = 0;
     uint32_t object_instance = 0;
 

@@ -36,7 +36,11 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/assigned_access_rights.c
+    ${SRC_DIR}/bacnet/authentication_factor.c
+    ${SRC_DIR}/bacnet/authentication_factor_format.c
     ${SRC_DIR}/bacnet/bacaction.c
+    ${SRC_DIR}/bacnet/bacaudit.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -51,8 +55,15 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bactimevalue.c
     ${SRC_DIR}/bacnet/basic/binding/address.c
     ${SRC_DIR}/bacnet/basic/object/acc.c
+    ${SRC_DIR}/bacnet/basic/object/access_credential.c
+    ${SRC_DIR}/bacnet/basic/object/access_door.c
+    ${SRC_DIR}/bacnet/basic/object/access_point.c
+    ${SRC_DIR}/bacnet/basic/object/access_rights.c
+    ${SRC_DIR}/bacnet/basic/object/access_user.c
+    ${SRC_DIR}/bacnet/basic/object/access_zone.c
     ${SRC_DIR}/bacnet/basic/object/ai.c
     ${SRC_DIR}/bacnet/basic/object/ao.c
+    ${SRC_DIR}/bacnet/basic/object/auditlog.c
     ${SRC_DIR}/bacnet/basic/object/av.c
     ${SRC_DIR}/bacnet/basic/object/bi.c
     ${SRC_DIR}/bacnet/basic/object/bitstring_value.c
@@ -64,10 +75,12 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/color_object.c
     ${SRC_DIR}/bacnet/basic/object/color_temperature.c
     ${SRC_DIR}/bacnet/basic/object/command.c
+    ${SRC_DIR}/bacnet/basic/object/credential_data_input.c
     ${SRC_DIR}/bacnet/basic/object/csv.c
     ${SRC_DIR}/bacnet/basic/object/iv.c
     ${SRC_DIR}/bacnet/basic/object/lc.c
     ${SRC_DIR}/bacnet/basic/object/lo.c
+    ${SRC_DIR}/bacnet/basic/object/loop.c
     ${SRC_DIR}/bacnet/basic/object/lsp.c
     ${SRC_DIR}/bacnet/basic/object/lsz.c
     ${SRC_DIR}/bacnet/basic/object/ms-input.c
@@ -80,21 +93,21 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/schedule.c
     ${SRC_DIR}/bacnet/basic/object/structured_view.c
     ${SRC_DIR}/bacnet/basic/object/time_value.c
+    ${SRC_DIR}/bacnet/basic/object/timer.c
     ${SRC_DIR}/bacnet/basic/object/trendlog.c
-    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
-    ${SRC_DIR}/bacnet/basic/service/h_cov.c
-    ${SRC_DIR}/bacnet/basic/service/h_wp.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/lighting_command.c
     ${SRC_DIR}/bacnet/basic/sys/linear.c
-    ${SRC_DIR}/bacnet/basic/tsm/tsm.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/cov.c
+    ${SRC_DIR}/bacnet/create_object.c
+    ${SRC_DIR}/bacnet/credential_authentication_factor.c
     ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/delete_object.c
     ${SRC_DIR}/bacnet/dcc.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
@@ -104,6 +117,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/property.c
     ${SRC_DIR}/bacnet/reject.c
+    ${SRC_DIR}/bacnet/shed_level.c
+    ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
@@ -112,9 +127,14 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
-    ./stubs.c
     # Test and test library files
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/apdu_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/bip_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/cov_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
+    ${TST_DIR}/bacnet/basic/object/test/datetime_local.c
+    ${TST_DIR}/bacnet/basic/object/test/tsm_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date July 2023
  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 
 #include <zephyr/ztest.h>
@@ -24,7 +24,7 @@ static void test_Trend_Log_ReadProperty(void)
     unsigned count = 0;
     uint32_t object_instance = 0;
     bool status = false;
-    const int known_fail_property_list[] = { -1 };
+    const int32_t known_fail_property_list[] = { -1 };
 
     Trend_Log_Init();
     count = Trend_Log_Count();

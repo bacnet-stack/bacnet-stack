@@ -48,6 +48,7 @@ struct object_data {
     uint32_t Present_Value_Maximum;
     const char *Object_Name;
     const char *Description;
+    void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
@@ -56,7 +57,7 @@ static color_temperature_write_present_value_callback
     Color_Temperature_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Color_Temperature_Properties_Required[] = {
+static const int32_t Color_Temperature_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -71,12 +72,27 @@ static const int Color_Temperature_Properties_Required[] = {
     -1
 };
 
-static const int Color_Temperature_Properties_Optional[] = {
+static const int32_t Color_Temperature_Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_TRANSITION, PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE,
     -1
 };
 
-static const int Color_Temperature_Properties_Proprietary[] = { -1 };
+static const int32_t Color_Temperature_Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE,
+    PROP_DEFAULT_COLOR_TEMPERATURE,
+    PROP_DEFAULT_FADE_TIME,
+    PROP_TRANSITION,
+    PROP_DEFAULT_RAMP_RATE,
+    PROP_DEFAULT_STEP_INCREMENT,
+    -1
+};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -90,7 +106,9 @@ static const int Color_Temperature_Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Color_Temperature_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Color_Temperature_Properties_Required;
@@ -106,7 +124,21 @@ void Color_Temperature_Property_Lists(
 }
 
 /**
- * Determines if a given Color instance is valid
+ * @brief Get the list of writable properties for an Color Temperature object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Color_Temperature_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
+}
+
+/**
+ * Determines if a given Color Temperature instance is valid
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -125,9 +157,9 @@ bool Color_Temperature_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * Determines the number of Color objects
+ * Determines the number of Color Temperature objects
  *
- * @return  Number of Color objects
+ * @return  Number of Color Temperature objects
  */
 unsigned Color_Temperature_Count(void)
 {
@@ -136,7 +168,7 @@ unsigned Color_Temperature_Count(void)
 
 /**
  * Determines the object instance-number for a given 0..N index
- * of Color objects where N is Color_Temperature_Count().
+ * of Color Temperature objects where N is Color_Temperature_Count().
  *
  * @param  index - 0..N where N is Color_Temperature_Count()
  *
@@ -153,7 +185,7 @@ uint32_t Color_Temperature_Index_To_Instance(unsigned index)
 
 /**
  * For a given object instance-number, determines a 0..N index
- * of Color objects where N is Color_Temperature_Count().
+ * of Color Temperature objects where N is Color_Temperature_Count().
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -935,7 +967,7 @@ bool Color_Temperature_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[26] = "COLOR-TEMPERATURE-4194303";
+    char name_text[48] = "COLOR-TEMPERATURE-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -944,8 +976,8 @@ bool Color_Temperature_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                name_text, sizeof(name_text), "COLOR-TEMPERATURE-%u",
-                object_instance);
+                name_text, sizeof(name_text), "COLOR-TEMPERATURE-%lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -1576,6 +1608,38 @@ void Color_Temperature_Write_Disable(uint32_t object_instance)
 }
 
 /**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void *Color_Temperature_Context_Get(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return pObject->Context;
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the context used with a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @param context [in] pointer to the context
+ */
+void Color_Temperature_Context_Set(uint32_t object_instance, void *context)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Context = context;
+    }
+}
+
+/**
  * @brief Creates a Color Temperature object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -1585,6 +1649,9 @@ uint32_t Color_Temperature_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {

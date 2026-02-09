@@ -56,16 +56,16 @@ struct object_data {
 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    /* unordered list of properties */
+static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_PROGRAM_STATE,
     PROP_PROGRAM_CHANGE,    PROP_STATUS_FLAGS,
     PROP_OUT_OF_SERVICE,    -1
 };
 
-static const int Properties_Optional[] = {
-    /* unordered list of properties */
+static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
     PROP_REASON_FOR_HALT,
     PROP_DESCRIPTION_OF_HALT,
     PROP_PROGRAM_LOCATION,
@@ -75,7 +75,16 @@ static const int Properties_Optional[] = {
     -1
 };
 
-static const int Properties_Proprietary[] = { -1 };
+static const int32_t Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PROGRAM_CHANGE, PROP_OUT_OF_SERVICE, -1
+};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -89,7 +98,9 @@ static const int Properties_Proprietary[] = { -1 };
  * BACnet proprietary properties for this object.
  */
 void Program_Property_Lists(
-    const int **pRequired, const int **pOptional, const int **pProprietary)
+    const int32_t **pRequired,
+    const int32_t **pOptional,
+    const int32_t **pProprietary)
 {
     if (pRequired) {
         *pRequired = Properties_Required;
@@ -102,6 +113,20 @@ void Program_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Program object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Program_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -179,8 +204,9 @@ unsigned Program_Instance_To_Index(uint32_t object_instance)
 BACNET_PROGRAM_STATE Program_State(uint32_t object_instance)
 {
     BACNET_PROGRAM_STATE value = 0;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         value = pObject->Program_State;
     }
@@ -199,8 +225,9 @@ BACNET_PROGRAM_STATE Program_State(uint32_t object_instance)
 bool Program_State_Set(uint32_t object_instance, BACNET_PROGRAM_STATE value)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Program_State = value;
         status = true;
@@ -564,14 +591,15 @@ const char *Program_Instance_Of_ANSI(uint32_t object_instance)
  */
 BACNET_PROGRAM_REQUEST Program_Change(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
-    struct object_data *pObject = Object_Data(object_instance);
+    BACNET_PROGRAM_REQUEST program_change = PROGRAM_REQUEST_READY;
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
-        units = pObject->Program_Change;
+        program_change = pObject->Program_Change;
     }
 
-    return units;
+    return program_change;
 }
 
 /**
@@ -586,8 +614,9 @@ bool Program_Change_Set(
     uint32_t object_instance, BACNET_PROGRAM_REQUEST program_change)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Program_Change = program_change;
         status = true;
@@ -623,8 +652,9 @@ static bool Program_Change_Write(
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         if (pObject->Program_Change == PROGRAM_REQUEST_READY) {
             if (program_change <= PROGRAM_REQUEST_MAX) {
@@ -652,14 +682,15 @@ static bool Program_Change_Write(
  */
 BACNET_PROGRAM_ERROR Program_Reason_For_Halt(uint32_t object_instance)
 {
-    uint16_t units = UNITS_NO_UNITS;
-    struct object_data *pObject = Object_Data(object_instance);
+    BACNET_PROGRAM_ERROR reason = PROGRAM_ERROR_NORMAL;
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
-        units = pObject->Reason_For_Halt;
+        reason = pObject->Reason_For_Halt;
     }
 
-    return units;
+    return reason;
 }
 
 /**
@@ -674,8 +705,9 @@ bool Program_Reason_For_Halt_Set(
     uint32_t object_instance, BACNET_PROGRAM_ERROR reason)
 {
     bool status = false;
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Reason_For_Halt = reason;
         status = true;
@@ -694,9 +726,10 @@ bool Program_Reason_For_Halt_Set(
  */
 bool Program_Out_Of_Service(uint32_t object_instance)
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
     bool value = false;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         value = pObject->Out_Of_Service;
     }
@@ -714,8 +747,9 @@ bool Program_Out_Of_Service(uint32_t object_instance)
  */
 void Program_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Out_Of_Service = value;
     }
@@ -965,8 +999,9 @@ void *Program_Context_Get(uint32_t object_instance)
  */
 void Program_Context_Set(uint32_t object_instance, void *context)
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Context = context;
     }
@@ -980,8 +1015,9 @@ void Program_Context_Set(uint32_t object_instance, void *context)
  */
 void Program_Load_Set(uint32_t object_instance, int (*load)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Load = load;
     }
@@ -995,8 +1031,9 @@ void Program_Load_Set(uint32_t object_instance, int (*load)(void *context))
  */
 void Program_Run_Set(uint32_t object_instance, int (*run)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Run = run;
     }
@@ -1010,8 +1047,9 @@ void Program_Run_Set(uint32_t object_instance, int (*run)(void *context))
  */
 void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Halt = halt;
     }
@@ -1026,8 +1064,9 @@ void Program_Halt_Set(uint32_t object_instance, int (*halt)(void *context))
 void Program_Restart_Set(
     uint32_t object_instance, int (*restart)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Restart = restart;
     }
@@ -1041,8 +1080,9 @@ void Program_Restart_Set(
  */
 void Program_Unload_Set(uint32_t object_instance, int (*unload)(void *context))
 {
-    struct object_data *pObject = Object_Data(object_instance);
+    struct object_data *pObject;
 
+    pObject = Object_Data(object_instance);
     if (pObject) {
         pObject->Unload = unload;
     }
