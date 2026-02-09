@@ -3432,9 +3432,46 @@ void Device_Start_Restore(void)
 {
 #if defined BACNET_BACKUP_RESTORE
     BACNET_DATE_TIME bdateTime = { 0 };
+    BACNET_CREATE_OBJECT_DATA create_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int32_t apdu_len = 0, offset = 0, file_size = 0;
+    int decoded_len = 0;
+
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
     Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
+    /* create objects from the backup file */
+#if defined(BACFILE)
+    file_size = bacfile_file_size(Configuration_Files[0]);
+#endif
+    while (offset < file_size) {
+#if defined(BACFILE)
+        apdu_len = bacfile_read_offset(
+            Configuration_Files[0], offset, &apdu[0], sizeof(apdu));
+#endif
+        if (apdu_len > 0) {
+            decoded_len = create_object_decode_service_request(
+                apdu, apdu_len, &create_data);
+            if (decoded_len > 0) {
+                offset += decoded_len;
+                create_data.error_class = ERROR_CLASS_PROPERTY;
+                create_data.error_code = ERROR_CODE_SUCCESS;
+                create_data.continue_on_error = true;
+                if (Device_Create_Object(&create_data)) {
+                    /* object created and initialized successfully */
+                } else {
+                    /* error creating object - keep going */
+                }
+            } else {
+                /* error while decoding object  */
+                break;
+            }
+        } else {
+            /* error while reading file  */
+            break;
+        }
+    }
+    Backup_State = BACKUP_STATE_IDLE;
 #endif
 }
 
