@@ -166,12 +166,15 @@ static void Init_Service_Handlers(void)
     Device_Init(NULL);
     /* create some dynamically created objects as examples */
     object_data.object_instance = BACNET_MAX_INSTANCE;
-    for (i = 0; i <= BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
+    for (i = 0; i < BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
         object_data.object_type = i;
+        object_data.error_class = ERROR_CLASS_OBJECT;
+        object_data.error_code = ERROR_CODE_SUCCESS;
         if (Device_Create_Object(&object_data)) {
             printf(
-                "Created object %s-%u\n", bactext_object_type_name(i),
-                (unsigned)object_data.object_instance);
+                "CreateObject: %s-%u %s\n", bactext_object_type_name(i),
+                (unsigned)object_data.object_instance,
+                bactext_error_code_name(object_data.error_code));
         }
     }
 #if defined(BACFILE)
