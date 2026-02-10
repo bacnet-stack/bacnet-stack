@@ -1065,14 +1065,14 @@ bool Lighting_Output_Present_Value_Set(
                 isgreaterequal(value, 0.0) && islessequal(value, 100.0)) {
                 debug_printf(
                     "LO[%u]: Present-Value@%u %0.2f\n", object_instance,
-                    priority, value);
+                    priority, (double)value);
                 Present_Value_Set(pObject, value, priority);
                 Lighting_Command_Transition_Default(pObject, priority, value);
                 status = true;
             } else {
                 debug_printf(
                     "LO[%u]: Present-Value@%u %0.2f out-of-range\n",
-                    object_instance, priority, value);
+                    object_instance, priority, (double)value);
             }
         }
     }
