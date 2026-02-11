@@ -26,9 +26,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif
 
 /*
 from BACnet SSPC-135-2004
@@ -59,7 +57,6 @@ of the BACnet device is a local matter and is not defined by this
 standard.
 */
 
-#if defined(BACFILE)
 void handler_atomic_write_file(
     uint8_t *service_request,
     uint16_t service_len,
@@ -161,4 +158,3 @@ AWF_ABORT:
 
     return;
 }
-#endif

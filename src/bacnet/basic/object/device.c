@@ -58,9 +58,7 @@
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
 #include "bacnet/basic/object/bitstring_value.h"
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/object/iv.h"
@@ -393,7 +391,6 @@ static object_functions_t My_Object_Table[] = {
         Color_Temperature_Create, Color_Temperature_Delete,
         Color_Temperature_Timer, Color_Temperature_Writable_Property_List },
 #endif
-#if defined(BACFILE)
     { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
         bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
         bacfile_write_property, BACfile_Property_Lists,
@@ -402,7 +399,6 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         bacfile_create, bacfile_delete, NULL /* Timer */,
         BACfile_Writable_Property_List },
-#endif
     { OBJECT_SCHEDULE, Schedule_Init, Schedule_Count,
         Schedule_Index_To_Instance, Schedule_Valid_Instance,
         Schedule_Object_Name, Schedule_Read_Property, Schedule_Write_Property,
@@ -887,14 +883,9 @@ static list_element_function Device_Remove_List_Element_Callback;
 #if defined BACNET_BACKUP_RESTORE
 /* number of backup files */
 #ifndef BACNET_BACKUP_FILE_COUNT
-#if defined(BACFILE)
 #define BACNET_BACKUP_FILE_COUNT 1
-#else
-#define BACNET_BACKUP_FILE_COUNT 0
-#endif
 #endif
 
-#if BACNET_BACKUP_FILE_COUNT
 /* device A will read the Configuration_Files property of the Device object.
    This property will be used to determine the files to read and in what
    order the files will be read. The value of the Configuration_Files
@@ -902,7 +893,6 @@ static list_element_function Device_Remove_List_Element_Callback;
    configuration File object references before the backup request is
    accepted by device B. */
 static uint32_t Configuration_Files[BACNET_BACKUP_FILE_COUNT];
-#endif
 /* If the restore is successful, no other actions by device A shall
    be required, and device B will update the Last_Restore_Time property
    in its Device object. */
@@ -3087,11 +3077,9 @@ void Device_Start_Backup(void)
                 property_list.Proprietary.pList, writable_properties,
                 Device_Read_Property);
             if (len > 0) {
-#if defined(BACFILE)
                 (void)bacfile_write_offset(
                     Configuration_Files[0], offset, &object_apdu[0],
                     (uint32_t)len);
-#endif
                 offset += len;
             }
         }
@@ -3118,14 +3106,10 @@ void Device_Start_Restore(void)
     bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
     Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
     /* create objects from the backup file */
-#if defined(BACFILE)
     file_size = bacfile_file_size(Configuration_Files[0]);
-#endif
     while (offset < file_size) {
-#if defined(BACFILE)
         apdu_len = bacfile_read_offset(
             Configuration_Files[0], offset, &apdu[0], sizeof(apdu));
-#endif
         if (apdu_len > 0) {
             decoded_len = create_object_decode_service_request(
                 apdu, apdu_len, &create_data);

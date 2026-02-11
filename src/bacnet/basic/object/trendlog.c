@@ -23,9 +23,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/trendlog.h"
 #include "bacnet/datalink/datalink.h"
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h" /* object list dependency */
-#endif
+#include "bacnet/basic/object/bacfile.h"
 
 /* number of demo objects */
 #ifndef MAX_TREND_LOGS
