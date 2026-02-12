@@ -49,9 +49,7 @@
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
@@ -177,14 +175,12 @@ static void Init_Service_Handlers(void)
                 bactext_error_code_name(object_data.error_code));
         }
     }
-#if defined(BACFILE)
+#if defined BACNET_BACKUP_RESTORE
     /* file for backup and restore example */
     object_data.object_instance = bacfile_create(BACNET_MAX_INSTANCE);
     if (object_data.object_instance != BACNET_MAX_INSTANCE) {
         bacfile_pathname_set(object_data.object_instance, "backup_1.bin");
-#if defined(BACNET_BACKUP_RESTORE)
         Device_Configuration_File_Set(0, object_data.object_instance);
-#endif
         printf(
             "Created %s-%u path=%s for backup and restore (%u files).\n",
             bactext_object_type_name(OBJECT_FILE),
@@ -211,7 +207,7 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
-#if defined(BACFILE)
+#if defined BACNET_BACKUP_RESTORE
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
     apdu_set_confirmed_handler(
