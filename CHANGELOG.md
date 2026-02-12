@@ -116,6 +116,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed BACFILE define dependencies to reflect bacfile-posix.c dependence
+  since bacfile.c is now independent of any back end file system. (#1227)
 * Changed the default BACnet protocol revision to 28 to enable usage of
   special lighting output values. (#1211)
 * Changed bacnet_strtof and bacnet_strtold functions to use strtod to
