@@ -2201,7 +2201,7 @@ int Device_Configuration_File_Encode(
     return apdu_len;
 }
 
-#if defined BACNET_BACKUP_RESTORE
+#if defined(BACNET_BACKUP_RESTORE)
 /**
  * @brief Decode a BACnetLIST property element to determine the element length
  * @param object_instance [in] BACnet object instance number
@@ -2707,7 +2707,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(
                         value.type.Object_Id.instance))) {
-                    /* we could send an I-Am broadcast to let the world know */
+                    /* success! */
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

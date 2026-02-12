@@ -2381,8 +2381,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(
                         value.type.Object_Id.instance))) {
-                    /* FIXME: we could send an I-Am broadcast to let the world
-                     * know */
+                    /* success! */
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
