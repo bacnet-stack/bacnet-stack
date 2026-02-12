@@ -190,7 +190,8 @@ void bacnet_basic_init(void)
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_who_am_i_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
@@ -202,15 +203,37 @@ void bacnet_basic_init(void)
         SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
+#if defined BACNET_BACKUP_RESTORE
     apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
-    /* handle communication so we can shutup when asked, or restart */
+        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
     apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-        handler_device_communication_control);
+        SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, handler_atomic_write_file);
+#endif
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
     /* start the 1 second timer for non-critical cyclic tasks */
+#if defined(BACNET_TIME_MASTER)
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+#endif
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_YOU_ARE, handler_you_are_device_id_set);
+#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+#endif
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+        handler_device_communication_control);
+#if defined(BACNET_TIME_MASTER)
+    handler_timesync_init();
+#endif
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_CREATE_OBJECT, handler_create_object);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DELETE_OBJECT, handler_delete_object);
     mstimer_set(&BACnet_Task_Timer, 1000L);
     /* start the timer for more time sensitive object specific cyclic tasks */
     if (mstimer_interval(&BACnet_Object_Timer) == 0) {
