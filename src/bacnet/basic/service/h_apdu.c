@@ -456,6 +456,9 @@ uint16_t apdu_decode_confirmed_service_request(
             } else {
                 return 0;
             }
+        } else {
+            service_data->sequence_number = 0;
+            service_data->proposed_window_number = 0;
         }
         if (apdu_len > MAX_APDU) {
             return 0;
@@ -610,7 +613,7 @@ static void apdu_handler_confirmed_service_segment(
         return;
     }
     /* new segment : memorize it */
-    segment_ok = tsm_set_segmented_confirmed_service_received(
+    segment_ok = tsm_set_confirmed_service_received(
         src, &service_data, &internal_service_id, &service_request,
         &service_request_len);
     /* last segment  */
@@ -625,8 +628,7 @@ static void apdu_handler_confirmed_service_segment(
         tsm_free_invoke_id_check(internal_service_id, NULL, true);
     }
 }
-#endif
-
+#else
 /* Handler for normal message without segmentation, or segmented complete
  * message reassembled all-in-one */
 static void apdu_handler_confirmed_service(
@@ -648,16 +650,14 @@ static void apdu_handler_confirmed_service(
         /* service data unable to be decoded - simply drop */
         return;
     }
-#if BACNET_SEGMENTATION_ENABLED
-    /* Check for unexpected request is received in active TSM state */
-    if (tsm_is_invalid_apdu_in_this_state(src, &service_data)) {
-        return;
-    }
-#endif
+    /* ConfirmedUnsegmentedReceived */
+    /* send a CONF_SERV.indication to the local application program,
+       start RequestTimer; and enter the AWAIT_RESPONSE state. */
     invoke_confirmed_service_service_request(
         src, &service_data, service_choice, service_request,
         service_request_len);
 }
+#endif
 
 /** Process the APDU header and invoke the appropriate service handler
  * to manage the received request.
@@ -703,13 +703,10 @@ void apdu_handler(
         case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
             /* segmented_message_reception ? */
 #if BACNET_SEGMENTATION_ENABLED
-            if (apdu[0] & BIT(3)) {
-                apdu_handler_confirmed_service_segment(src, apdu, apdu_len);
-            } else
+            apdu_handler_confirmed_service_segment(src, apdu, apdu_len);
+#else
+            apdu_handler_confirmed_service(src, apdu, apdu_len);
 #endif
-            {
-                apdu_handler_confirmed_service(src, apdu, apdu_len);
-            }
             break;
         case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
             if (apdu_len < 2) {

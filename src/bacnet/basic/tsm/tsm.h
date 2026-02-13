@@ -176,7 +176,7 @@ BACNET_STACK_EXPORT
 uint8_t tsm_get_peer_id(BACNET_ADDRESS *src, uint8_t invokeID);
 
 BACNET_STACK_EXPORT
-bool tsm_set_segmented_confirmed_service_received(
+bool tsm_set_confirmed_service_received(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
     uint8_t *internal_invoke_id,

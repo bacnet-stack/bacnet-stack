@@ -795,7 +795,7 @@ void tsm_abort_pdu_send(
  * @param pservice_request_len [in/out] Service request length
  * @return true if the segment was received and processed
  */
-bool tsm_set_segmented_confirmed_service_received(
+bool tsm_set_confirmed_service_received(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
     uint8_t *internal_invoke_id,
@@ -830,12 +830,22 @@ bool tsm_set_segmented_confirmed_service_received(
             /* Initial state: ConfirmedSegmentReceived */
         case TSM_STATE_IDLE:
             /* We never stay in IDLE state */
-            TSM_List[index].state = TSM_STATE_SEGMENTED_REQUEST_SERVER;
+            if (service_data->segmented_message) {
+                TSM_List[index].state = TSM_STATE_SEGMENTED_REQUEST_SERVER;
+            } else {
+                TSM_List[index].state = TSM_STATE_AWAIT_RESPONSE;
+            }
             /* First time : Compute Actual WindowSize */
             /* we automatically accept the proposed window size */
-            TSM_List[index].ActualWindowSize =
-                TSM_List[index].ProposedWindowSize =
-                    service_data->proposed_window_number;
+            if (service_data->segmented_message) {
+                TSM_List[index].ActualWindowSize =
+                    TSM_List[index].ProposedWindowSize =
+                        service_data->proposed_window_number;
+            } else {
+                /* unsegmented is one segment */
+                TSM_List[index].ActualWindowSize = 1;
+                TSM_List[index].ProposedWindowSize = 1;
+            }
             /* Init sequence numbers */
             TSM_List[index].InitialSequenceNumber = 0;
             TSM_List[index].LastSequenceNumber = 0;
@@ -861,7 +871,6 @@ bool tsm_set_segmented_confirmed_service_received(
                 tsm_free_invoke_id_check(internal_service_id, NULL, true);
                 break;
             }
-
             /* Test : sequence number MUST be 0 */
             /* UnexpectedPDU_Received */
             if (service_data->sequence_number != 0) {
@@ -877,11 +886,13 @@ bool tsm_set_segmented_confirmed_service_received(
                 /* Okay : memorize data */
                 tsm_blob_data_add(
                     &TSM_List[index], service_request, service_request_len);
-                /* We ACK the first segment of the segmented message */
-                tsm_segmentack_pdu_send(
-                    src, false, true, service_data->invoke_id,
-                    TSM_List[index].LastSequenceNumber,
-                    TSM_List[index].ActualWindowSize);
+                if (service_data->segmented_message) {
+                    /* We ACK the first segment of the segmented message */
+                    tsm_segmentack_pdu_send(
+                        src, false, true, service_data->invoke_id,
+                        TSM_List[index].LastSequenceNumber,
+                        TSM_List[index].ActualWindowSize);
+                }
             }
             break;
             /* New segments  */
@@ -1501,6 +1512,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 }
             }
         }
+#if BACNET_SEGMENTATION_ENABLED
         if (plist->state == TSM_STATE_AWAIT_RESPONSE) {
             /*  5.4.5.3 AWAIT_RESPONSE
                 In the AWAIT_RESPONSE state, the device waits for the
@@ -1516,9 +1528,19 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 'abort-reason' = APPLICATION_EXCEEDED_REPLY_TIME
                 to the local application program; and
                 enter the IDLE state. */
-            /* note: this TSM implementation doesn't do this state */
+            /* RequestTimer stopped in this state */
+            if (plist->SegmentTimer > milliseconds) {
+                plist->SegmentTimer -= milliseconds;
+            } else {
+                plist->SegmentTimer = 0;
+            }
+            /* timeout.  retry? */
+            if (plist->SegmentTimer == 0) {
+                tsm_abort_pdu_send(
+                    plist->InvokeID, &plist->dest,
+                    ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME, true);
+            }
         }
-#if BACNET_SEGMENTATION_ENABLED
         if (plist->state == TSM_STATE_SEGMENTED_RESPONSE_SERVER) {
             /* RequestTimer stopped in this state */
             if (plist->SegmentTimer > milliseconds) {
