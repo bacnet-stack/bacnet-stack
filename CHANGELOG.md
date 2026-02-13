@@ -18,6 +18,12 @@ The git repositories are hosted at the following sites:
 
 * Secured decoding length underflow in wp_decode_service_request() and
   bacnet_action_command_decode() which had similar issue. (#1231)
+* Secured Schedule_Weekly_Schedule_Set() the example schedule object
+  by fixing stack buffer overflow. The memcpy was using
+  sizeof(BACNET_WEEKLY_SCHEDULE) instead of sizeof(BACNET_DAILY_SCHEDULE),
+  causing it to read 6784 bytes from a 968-byte source buffer, leading
+  to stack buffer overflow and segmentation fault in the test_schedule
+  unit test. (#1222)
 * Secured BACnet file object pathname received from BACnet AtomicWriteFile
   or ReadFile service used without validation which was vulnerable to
   directory traversal attacks. (#1197)
