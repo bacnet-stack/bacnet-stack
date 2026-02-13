@@ -227,9 +227,11 @@ INDTEXT_DATA bacnet_reinitialized_state_names[] = {
     { 0, NULL }
 };
 
-const char *bactext_reinitialized_state_name(uint32_t index)
+const char *bactext_reinitialized_state_name_default(
+    uint32_t index, const char *default_string)
 {
-    return indtext_by_index(bacnet_reinitialized_state_names, index);
+    return indtext_by_index_default(
+        bacnet_reinitialized_state_names, index, default_string);
 }
 
 bool bactext_reinitialized_state_strtol(

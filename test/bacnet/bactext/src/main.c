@@ -52,7 +52,7 @@ static void testBacText(void)
     }
     /* BACNET_REINITIALIZED_STATE */
     for (i = 0; i < BACNET_REINIT_MAX; i++) {
-        pString = bactext_reinitialized_state_name(i);
+        pString = bactext_reinitialized_state_name_default(i, NULL);
         if (pString) {
             status = bactext_reinitialized_state_strtol(pString, &index);
             zassert_true(status, "i=%u", i);
