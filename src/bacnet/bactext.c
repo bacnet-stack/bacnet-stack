@@ -214,6 +214,33 @@ bool bactext_application_tag_index(
         bacnet_application_tag_names, search_name, found_index);
 }
 
+INDTEXT_DATA bacnet_reinitialized_state_names[] = {
+    { BACNET_REINIT_COLDSTART, "coldstart" },
+    { BACNET_REINIT_WARMSTART, "warmstart" },
+    { BACNET_REINIT_STARTBACKUP, "startbackup" },
+    { BACNET_REINIT_ENDBACKUP, "endbackup" },
+    { BACNET_REINIT_STARTRESTORE, "startrestore" },
+    { BACNET_REINIT_ENDRESTORE, "endrestore" },
+    { BACNET_REINIT_ABORTRESTORE, "abortrestore" },
+    { BACNET_REINIT_ACTIVATE_CHANGES, "activate-changes" },
+    { BACNET_REINIT_IDLE, "idle" },
+    { 0, NULL }
+};
+
+const char *bactext_reinitialized_state_name_default(
+    uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_reinitialized_state_names, index, default_string);
+}
+
+bool bactext_reinitialized_state_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_reinitialized_state_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_character_string_encoding_names[] = {
     { CHARACTER_ANSI_X34, "ANSI X3.4" },
     { CHARACTER_MS_DBCS, "IBM/Microsoft DBCS" },

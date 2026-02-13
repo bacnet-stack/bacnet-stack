@@ -50,7 +50,15 @@ static void testBacText(void)
             zassert_equal(index, i, "index=%u i=%u", index, i);
         }
     }
-
+    /* BACNET_REINITIALIZED_STATE */
+    for (i = 0; i < BACNET_REINIT_MAX; i++) {
+        pString = bactext_reinitialized_state_name_default(i, NULL);
+        if (pString) {
+            status = bactext_reinitialized_state_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
+        }
+    }
     /* BACNET_APPLICATION_TAG */
     for (i = 0; i < BACNET_APPLICATION_TAG_EXTENDED_MAX; i++) {
         pString = bactext_application_tag_name(i);
