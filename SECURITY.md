@@ -26,6 +26,14 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records:
 
+[CVE-2026-26264](https://www.cve.org/CVERecord?id=CVE-2026-26264) -
+WriteProperty decoding length underflow leads to OOB read and crash
+[GHSA-phjh-v45p-gmjj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-phjh-v45p-gmjj)
+
+[CVE-2026-21870](https://www.cve.org/CVERecord?id=CVE-2026-21870) -
+Off-by-one Stack-based Buffer Overflow in tokenizer_string
+[GHSA-pc83-wp6w-93mx](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-pc83-wp6w-93mx)
+
 [CVE-2023-38341](https://www.cve.org/CVERecord?id=CVE-2023-38341) -
 Multiple out-of-bounds accesses in bacerror code paths
 [#81](https://sourceforge.net/p/bacnet/bugs/81/)
