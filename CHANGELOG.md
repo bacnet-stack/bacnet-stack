@@ -12,10 +12,12 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-01-03
+## [Unreleased] - 2026-02-13
 
 ### Security
 
+* Secured decoding length underflow in wp_decode_service_request() and
+  bacnet_action_command_decode() which had similar issue. (#1231)
 * Secured BACnet file object pathname received from BACnet AtomicWriteFile
   or ReadFile service used without validation which was vulnerable to
   directory traversal attacks. (#1197)
@@ -30,6 +32,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed conditional compilation of mstp.c and mstptext.c based
+  on BACDL_MSTP option (#1229)
 * Fixed bacfile-posix file write to return the number of bytes written. (#1223)
 * Fixed NULL handling in CharacterString sprintf which caused an endless
   loop. (#1189)
