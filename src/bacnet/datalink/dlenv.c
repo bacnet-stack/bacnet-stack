@@ -825,12 +825,20 @@ void dlenv_network_port_bsc_init(uint32_t instance)
 
 /**
  * Check if BACnet/SC hub connection is established.
+ *
+ * If no primary hub URI is configured, connection/registration is not
+ * required and this function returns true, consistent with
+ * bsc_register_as_node().
  */
 bool dlenv_is_bsc_hub_connected(void)
 {
 #if defined(BACDL_BSC)
-    return Network_Port_SC_Primary_Hub_URI_char(Network_Port_Instance) &&
-        dlenv_hub_connection_status_check(Network_Port_Instance);
+    if (!Network_Port_SC_Primary_Hub_URI_char(Network_Port_Instance)) {
+        /* No primary hub URI configured: registration/connection not required.
+         */
+        return true;
+    }
+    return dlenv_hub_connection_status_check(Network_Port_Instance);
 #else
     return true;
 #endif
@@ -846,12 +854,10 @@ bool bsc_register_as_node(uint32_t instance, bool repeat_until_connected)
     if (Network_Port_SC_Primary_Hub_URI_char(instance)) {
         debug_printf_stderr("Waiting for a BACnet/SC connection to hub...\n");
         is_connected = dlenv_hub_connection_status_check(instance);
-        if (!is_connected) {
-            do {
-                bsc_wait(1);
-                bsc_maintenance_timer(1);
-                is_connected = dlenv_hub_connection_status_check(instance);
-            } while (repeat_until_connected && !is_connected);
+        while (repeat_until_connected && !is_connected) {
+            bsc_wait(1);
+            bsc_maintenance_timer(1);
+            is_connected = dlenv_hub_connection_status_check(instance);
         }
         if (is_connected) {
             debug_printf_stderr("Connected to a BACnet/SC hub!\n");
@@ -932,14 +938,13 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  */
 uint8_t dlenv_get_port_type(void)
 {
-    char *pEnv = NULL;
     uint8_t port_type = PORT_TYPE_BIP;
 
     if (getenv("BACNET_DATALINK_DEBUG")) {
         dlenv_debug_enable();
     }
 #if defined(BACDL_MULTIPLE)
-    pEnv = getenv("BACNET_DATALINK");
+    char *pEnv = getenv("BACNET_DATALINK");
     if (pEnv) {
         datalink_set(pEnv);
         if (bacnet_stricmp("none", pEnv) == 0) {
@@ -1083,9 +1088,9 @@ void dlenv_init_no_device_registration(uint8_t port_type)
 bool dlenv_register_device(uint8_t port_type, bool wait_until_connected)
 {
     if (port_type == PORT_TYPE_BIP) {
-        bbmd_register_as_foreign_device();
+        return (bbmd_register_as_foreign_device() >= 0);
     } else if (port_type == PORT_TYPE_BIP6) {
-        bbmd6_register_as_foreign_device();
+        return (bbmd6_register_as_foreign_device() >= 0);
     } else if (port_type == PORT_TYPE_BSC) {
         return bsc_register_as_node(
             Network_Port_Instance, wait_until_connected);
