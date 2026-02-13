@@ -832,7 +832,7 @@ bool dlenv_is_bsc_hub_connected(void)
     return Network_Port_SC_Primary_Hub_URI_char(Network_Port_Instance) &&
         dlenv_hub_connection_status_check(Network_Port_Instance);
 #else
-    return true
+    return true;
 #endif
 }
 
@@ -856,6 +856,10 @@ bool bsc_register_as_node(uint32_t instance, bool repeat_until_connected)
         if (is_connected) {
             debug_printf_stderr("Connected to a BACnet/SC hub!\n");
         }
+    } else {
+        /* No primary hub URI configured: registration/connection not required.
+         */
+        is_connected = true;
     }
     return is_connected;
 #else
@@ -923,7 +927,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
     }
 }
 
-/** Determine the the DataLink port type from Environment variables,
+/** Determine the DataLink port type from Environment variables,
  * or else to defaults.
  */
 uint8_t dlenv_get_port_type(void)
@@ -1073,7 +1077,7 @@ void dlenv_init_no_device_registration(uint8_t port_type)
 
 /**
  * Registers a device to the network according to the given port type.
- * As prerequesite, the Datalink configuration should have been initialized by
+ * As prerequisite, the Datalink configuration should have been initialized by
  * calling dlenv_init_no_device_registration() with the same port type.
  */
 bool dlenv_register_device(uint8_t port_type, bool wait_until_connected)
