@@ -844,7 +844,7 @@ bool dlenv_is_bsc_hub_connected(void)
 #endif
 }
 
-bool bsc_register_as_node(uint32_t instance, bool repeat_until_connected)
+static bool bsc_register_as_node(uint32_t instance, bool wait_until_connected)
 {
 #if defined(BACDL_BSC)
     bool is_connected = false;
@@ -854,7 +854,7 @@ bool bsc_register_as_node(uint32_t instance, bool repeat_until_connected)
     if (Network_Port_SC_Primary_Hub_URI_char(instance)) {
         debug_printf_stderr("Waiting for a BACnet/SC connection to hub...\n");
         is_connected = dlenv_hub_connection_status_check(instance);
-        while (repeat_until_connected && !is_connected) {
+        while (wait_until_connected && !is_connected) {
             bsc_wait(1);
             bsc_maintenance_timer(1);
             is_connected = dlenv_hub_connection_status_check(instance);
@@ -870,7 +870,7 @@ bool bsc_register_as_node(uint32_t instance, bool repeat_until_connected)
     return is_connected;
 #else
     (void)instance;
-    (void)repeat_until_connected;
+    (void)wait_until_connected;
     return true;
 #endif
 }
@@ -935,6 +935,11 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 
 /** Determine the DataLink port type from Environment variables,
  * or else to defaults.
+ *
+ * @return Detected port type based on environment variables and
+ * compile-time configuration, which can be PORT_TYPE_BIP,
+ * PORT_TYPE_BIP6, PORT_TYPE_MSTP, PORT_TYPE_BSC, PORT_TYPE_ETHERNET,
+ * PORT_TYPE_ARCNET, PORT_TYPE_ZIGBEE, or PORT_TYPE_NON_BACNET.
  */
 uint8_t dlenv_get_port_type(void)
 {
@@ -1018,6 +1023,10 @@ uint8_t dlenv_get_port_type(void)
  * without registering the devices to the network.  This is useful when the
  * device registration needs to be delayed or shall be done separately, e.g. in
  * a different thread.
+ *
+ * @param port_type Port type to initialize, such as PORT_TYPE_BIP,
+ * PORT_TYPE_BIP6, PORT_TYPE_MSTP, PORT_TYPE_BSC, or other supported PORT_TYPE_*
+ *                  values.
  */
 void dlenv_init_no_device_registration(uint8_t port_type)
 {
@@ -1084,6 +1093,21 @@ void dlenv_init_no_device_registration(uint8_t port_type)
  * Registers a device to the network according to the given port type.
  * As prerequisite, the Datalink configuration should have been initialized by
  * calling dlenv_init_no_device_registration() with the same port type.
+ *
+ * This function is not thread safe, make sure the caller calls this function
+ * only as soon as dlenv_init_no_device_registration() returns.
+ *
+ * @param port_type
+ *     The network port type that determines which registration mechanism
+ *     (e.g., BIP, BIP6, BSC) is used. For other port types, no registration
+ *     is performed.
+ * @param wait_until_connected
+ *     Only used for PORT_TYPE_BSC. If true, block until the
+ *     device is connected/registered; otherwise return immediately.
+ * @return
+ *     true if the device was successfully registered or registration is not
+ *     required for the given port type; false if registration was attempted
+ *     but failed.
  */
 bool dlenv_register_device(uint8_t port_type, bool wait_until_connected)
 {
@@ -1175,5 +1199,9 @@ void dlenv_init(void)
 {
     uint8_t port_type = dlenv_get_port_type();
     dlenv_init_no_device_registration(port_type);
-    dlenv_register_device(port_type, true);
+    if (!dlenv_register_device(port_type, true)) {
+        debug_fprintf(
+            stderr, "dlenv_init: failed to register device for port type %u\n",
+            (unsigned)port_type);
+    }
 }
