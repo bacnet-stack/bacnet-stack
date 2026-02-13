@@ -12,10 +12,12 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-09
+## [Unreleased] - 2026-02-13
 
 ### Security
 
+* Secured decoding length underflow in wp_decode_service_request() and
+  bacnet_action_command_decode() which had similar issue. (#1231)
 * Secured Schedule_Weekly_Schedule_Set() the example schedule object
   by fixing stack buffer overflow. The memcpy was using
   sizeof(BACNET_WEEKLY_SCHEDULE) instead of sizeof(BACNET_DAILY_SCHEDULE),
