@@ -38,6 +38,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added text and parser for BACnet ReinitailizeDevice service states. (#1228)
 * Added Device Management-Backup and Restore-B to example object/device.c
   and basic/server/bacnet-device.c so that when ReinitializeDevice STARTBACKUP
   is requested a backup file is stored in CreateObject format for all the
