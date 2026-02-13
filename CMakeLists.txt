@@ -642,10 +642,10 @@ add_library(${PROJECT_NAME}
   src/bacnet/datalink/dlenv.h
   src/bacnet/datalink/dlmstp.h
   src/bacnet/datalink/ethernet.h
-  src/bacnet/datalink/mstp.c
+  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.c>
   src/bacnet/datalink/mstpdef.h
   src/bacnet/datalink/mstp.h
-  src/bacnet/datalink/mstptext.c
+  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstptext.c>
   src/bacnet/datalink/mstptext.h
   src/bacnet/datetime.c
   src/bacnet/datetime.h
