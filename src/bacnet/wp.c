@@ -277,7 +277,7 @@ int wp_decode_service_request(
     }
     if ((unsigned)apdu_len < apdu_size) {
         len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_len - apdu_size, 4, &unsigned_value);
+            &apdu[apdu_len], apdu_size - apdu_len, 4, &unsigned_value);
         if (len > 0) {
             apdu_len += len;
             if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
