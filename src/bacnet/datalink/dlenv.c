@@ -833,9 +833,12 @@ void dlenv_network_port_bsc_init(uint32_t instance)
 bool dlenv_is_bsc_hub_connected(void)
 {
 #if defined(BACDL_BSC)
-    if (!Network_Port_SC_Primary_Hub_URI_char(Network_Port_Instance)) {
-        /* No primary hub URI configured: registration/connection not required.
-         */
+    const char *primary_uri =
+        Network_Port_SC_Primary_Hub_URI_char(Network_Port_Instance);
+    const char *failover_uri =
+        Network_Port_SC_Failover_Hub_URI_char(Network_Port_Instance);
+    if (!primary_uri && !failover_uri) {
+        /* No hub URIs configured: registration/connection not required. */
         return true;
     }
     return dlenv_hub_connection_status_check(Network_Port_Instance);
@@ -848,22 +851,31 @@ static bool bsc_register_as_node(uint32_t instance, bool wait_until_connected)
 {
 #if defined(BACDL_BSC)
     bool is_connected = false;
-    /* if a user has configured BACnet/SC port with primary hub URI,     */
-    /* wait for a establishing of a connection to BACnet/SC hub at first */
-    /* to reduce possibility of packet losses.                           */
-    if (Network_Port_SC_Primary_Hub_URI_char(instance)) {
+    const char *primary_uri =
+        Network_Port_SC_Primary_Hub_URI_char(Network_Port_Instance);
+    const char *failover_uri =
+        Network_Port_SC_Failover_Hub_URI_char(Network_Port_Instance);
+    if (primary_uri || failover_uri) {
         debug_printf_stderr("Waiting for a BACnet/SC connection to hub...\n");
         is_connected = dlenv_hub_connection_status_check(instance);
-        while (wait_until_connected && !is_connected) {
-            bsc_wait(1);
-            bsc_maintenance_timer(1);
-            is_connected = dlenv_hub_connection_status_check(instance);
+        if (!is_connected) {
+            bool first_round = true;
+            do {
+                if (!first_round) {
+                    bsc_wait(1);
+                } else {
+                    first_round = false;
+                }
+                bsc_maintenance_timer(1);
+                is_connected = dlenv_hub_connection_status_check(instance);
+            } while (wait_until_connected && !is_connected);
         }
         if (is_connected) {
             debug_printf_stderr("Connected to a BACnet/SC hub!\n");
         }
     } else {
-        /* No primary hub URI configured: registration/connection not required.
+        /* No primary/failover hub URI configured: registration/connection
+         * not required.
          */
         is_connected = true;
     }
@@ -934,7 +946,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 }
 
 /** Determine the DataLink port type from Environment variables,
- * or else to defaults.
+ * or else to defaults. Also sets the static Datalink_Transport
+ * variable to the according value.
  *
  * @return Detected port type based on environment variables and
  * compile-time configuration, which can be PORT_TYPE_BIP,
@@ -1026,7 +1039,7 @@ uint8_t dlenv_get_port_type(void)
  *
  * @param port_type Port type to initialize, such as PORT_TYPE_BIP,
  * PORT_TYPE_BIP6, PORT_TYPE_MSTP, PORT_TYPE_BSC, or other supported PORT_TYPE_*
- *                  values.
+ * values. It should be determined before by calling dlenv_get_port_type()
  */
 void dlenv_init_no_device_registration(uint8_t port_type)
 {
