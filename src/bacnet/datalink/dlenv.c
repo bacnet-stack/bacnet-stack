@@ -859,13 +859,8 @@ static bool bsc_register_as_node(uint32_t instance, bool wait_until_connected)
         debug_printf_stderr("Waiting for a BACnet/SC connection to hub...\n");
         is_connected = dlenv_hub_connection_status_check(instance);
         if (!is_connected) {
-            bool first_round = true;
             do {
-                if (!first_round) {
-                    bsc_wait(1);
-                } else {
-                    first_round = false;
-                }
+                bsc_wait(1);
                 bsc_maintenance_timer(1);
                 is_connected = dlenv_hub_connection_status_check(instance);
             } while (wait_until_connected && !is_connected);
@@ -947,7 +942,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 
 /** Determine the DataLink port type from Environment variables,
  * or else to defaults. Also sets the static Datalink_Transport
- * variable to the according value.
+ * variable to the corresponding value.
  *
  * @return Detected port type based on environment variables and
  * compile-time configuration, which can be PORT_TYPE_BIP,
@@ -1107,8 +1102,12 @@ void dlenv_init_no_device_registration(uint8_t port_type)
  * As prerequisite, the Datalink configuration should have been initialized by
  * calling dlenv_init_no_device_registration() with the same port type.
  *
- * This function is not thread safe, make sure the caller calls this function
- * only as soon as dlenv_init_no_device_registration() returns.
+ * This function is not thread safe. It must be called only after
+ * dlenv_init_no_device_registration() has completed for the same port type,
+ * and while no other thread is concurrently using or modifying the datalink
+ * or Network Port Object state. The call may be made immediately after init
+ * returns or at a later time (including from a different thread), provided
+ * these conditions are satisfied.
  *
  * @param port_type
  *     The network port type that determines which registration mechanism
