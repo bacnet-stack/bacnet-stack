@@ -826,8 +826,8 @@ void dlenv_network_port_bsc_init(uint32_t instance)
 /**
  * Check if BACnet/SC hub connection is established.
  *
- * If no primary hub URI is configured, connection/registration is not
- * required and this function returns true, consistent with
+ * If no hub URIs (primary or failover) are configured, connection/registration
+ * is not required and this function returns true, consistent with
  * bsc_register_as_node().
  */
 bool dlenv_is_bsc_hub_connected(void)
@@ -941,8 +941,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 }
 
 /** Determine the DataLink port type from Environment variables,
- * or else to defaults. Also sets the static Datalink_Transport
- * variable to the corresponding value.
+ * or else to defaults. In BACDL_MULTIPLE builds, this selection
+ * is also used to choose the active Datalink_Transport.
  *
  * @return Detected port type based on environment variables and
  * compile-time configuration, which can be PORT_TYPE_BIP,
