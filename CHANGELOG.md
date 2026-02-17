@@ -40,6 +40,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added CreateObject and DeleteObject for basic Accumulator objects and
+  WriteProperty handling for object-name, scale, out-of-service, units,
+  and max-pres-value. (#1234)
 * Added text and parser for BACnet ReinitializeDevice service states. (#1228)
 * Added Device Management-Backup and Restore-B to example object/device.c
   and basic/server/bacnet-device.c so that when ReinitializeDevice STARTBACKUP
