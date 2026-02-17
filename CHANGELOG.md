@@ -144,6 +144,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed dlenv_init() for BACnet/SC. bsc_register_as_node() was blocking
+  when the hub was not reachable. Added API so that BACnet/SC
+  node can register via thread that is reponsible for connecting
+  BACnet/SC hub and the dlenv_init() can continue without waiting. (#1230)
 * Fixed bacfile-posix file write to return the number of bytes written. (#1223)
 * Fixed Event parsing and help text for the example uevent and event apps.
   Fixed initialization of event data by adding static CharacterString for
