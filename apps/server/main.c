@@ -137,7 +137,7 @@ static void Structured_View_Update(void)
         /* update the device instance to internal */
         Lighting_Subordinate[i].Device_Instance = device_id;
         /* update the common node data */
-        Lighting_Subordinate[i].Node_Type = BACNET_NODE_ROOM;
+        Lighting_Subordinate[i].Node_Type = BACNET_NODE_POINT;
         Lighting_Subordinate[i].Relationship = BACNET_RELATIONSHIP_CONTAINS;
     }
     instance = Structured_View_Index_To_Instance(0);
@@ -148,9 +148,11 @@ static void Structured_View_Update(void)
     represents.deviceIdentifier.type = OBJECT_NONE;
     represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
     represents.objectIdentifier.type = OBJECT_DEVICE;
-    represents.objectIdentifier.instance = Device_Object_Instance_Number();
+    represents.objectIdentifier.instance = device_id;
     Structured_View_Represents_Set(instance, &represents);
     Structured_View_Node_Type_Set(instance, BACNET_NODE_ROOM);
+    Structured_View_Default_Subordinate_Relationship_Set(
+        instance, BACNET_RELATIONSHIP_CONTAINS);
 }
 
 /** Initialize the handlers we will utilize.
