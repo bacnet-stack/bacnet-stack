@@ -568,7 +568,7 @@ int Accumulator_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0;
-    bool status;
+    bool status = false;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
@@ -594,7 +594,7 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    return false;
+                    status = false;
                 }
             }
             break;
@@ -615,6 +615,7 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                      * is used */
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
                 } else {
                     Accumulator_Scale_Integer_Set(
                         wp_data->object_instance, value.type.Signed_Int);
@@ -637,9 +638,9 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Accumulator_Units_Set(
                         wp_data->object_instance, value.type.Enumerated);
                 } else {
-                    status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
                 }
             }
             break;
@@ -664,7 +665,7 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
     }
 
-    return false;
+    return status;
 }
 
 /**
