@@ -37,9 +37,7 @@
 #include "bacnet/basic/object/mso.h"
 #include "bacnet/basic/object/ms-input.h"
 #include "bacnet/basic/object/trendlog.h"
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h" /* object list dependency */
-#endif
+#include "bacnet/basic/object/bacfile.h"
 /* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
 

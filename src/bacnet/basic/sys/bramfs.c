@@ -446,13 +446,11 @@ void bacfile_ramfs_deinit(void)
  */
 void bacfile_ramfs_init(void)
 {
-#if defined(BACFILE)
     bacfile_write_stream_data_callback_set(bacfile_ramfs_write_stream_data);
     bacfile_read_stream_data_callback_set(bacfile_ramfs_read_stream_data);
     bacfile_write_record_data_callback_set(bacfile_ramfs_write_record_data);
     bacfile_read_record_data_callback_set(bacfile_ramfs_read_record_data);
     bacfile_file_size_callback_set(bacfile_ramfs_file_size);
     bacfile_file_size_set_callback_set(bacfile_ramfs_file_size_set);
-#endif
     File_List = Keylist_Create();
 }

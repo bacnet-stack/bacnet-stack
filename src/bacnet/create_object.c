@@ -14,6 +14,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/create_object.h"
+#include "bacnet/proplist.h"
 
 /**
  * @brief Encode one value for CreateObject List-of-Initial-Values
@@ -29,6 +30,103 @@ int create_object_encode_initial_value(
         apdu += offset;
     }
     return bacapp_property_value_encode(apdu, value);
+}
+
+/**
+ * @brief Encode one value for CreateObject List-of-Initial-Values
+ *
+ *  BACnetPropertyValue ::= SEQUENCE {
+ *      property-identifier [0] BACnetPropertyIdentifier,
+ *      property-array-index [1] Unsigned OPTIONAL,
+ *      -- used only with array datatypes
+ *      -- if omitted with an array the entire array is referenced
+ *      property-value [2] ABSTRACT-SYNTAX.&Type,
+ *      -- any datatype appropriate for the specified property
+ *      priority [3] Unsigned (1..16) OPTIONAL
+ *      -- used only when property is commandable
+ *  }
+ *
+ * @param apdu Pointer to the buffer for encoded values
+ * @param offset Offset into the buffer to start encoding
+ * @param value Pointer to the property value used for encoding
+ * @return Bytes encoded or zero on error.
+ */
+int create_object_encode_initial_value_data(
+    uint8_t *apdu, int offset, BACNET_CREATE_OBJECT_PROPERTY_VALUE *value)
+{
+    int len = 0, apdu_len = 0, i = 0;
+
+    if (apdu) {
+        apdu += offset;
+    }
+    /* property-identifier [0] BACnetPropertyIdentifier */
+    len = encode_context_enumerated(apdu, 0, value->propertyIdentifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* property-array-index [1] Unsigned OPTIONAL */
+    if (value->propertyArrayIndex != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 1, value->propertyArrayIndex);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* property-value [2] ABSTRACT-SYNTAX.&Type */
+    len = encode_opening_tag(apdu, 2);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = value->application_data_len;
+    if (apdu) {
+        /* data */
+        for (i = 0; i < len; i++) {
+            apdu[i] = value->application_data[i];
+        }
+    }
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, 2);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* priority [3] Unsigned (1..16) OPTIONAL */
+    if (value->priority != BACNET_NO_PRIORITY) {
+        len = encode_context_unsigned(apdu, 3, value->priority);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode one value for CreateObject List-of-Initial-Values
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t create_object_initial_value_data_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    int offset,
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE *value)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = create_object_encode_initial_value_data(NULL, offset, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = create_object_encode_initial_value_data(apdu, offset, value);
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -644,10 +742,12 @@ bool create_object_initializer_list_process(
         }
         /* write the property - use the provided function */
         if (!write_property(&wp_data)) {
-            /* report the error */
-            data->error_class = wp_data.error_class;
-            data->error_code = wp_data.error_code;
-            return false;
+            if (!data->continue_on_error) {
+                /* report the error */
+                data->error_class = wp_data.error_class;
+                data->error_code = wp_data.error_code;
+                return false;
+            }
         }
         data->first_failed_element_number++;
         apdu_len += len;
@@ -684,20 +784,26 @@ bool create_object_process(
         /* The device does not support the specified object type. */
         data->error_class = ERROR_CLASS_OBJECT;
         data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
-    } else if (!create_object) {
+    } else if ((!create_object) && (!data->continue_on_error)) {
         /*  The device supports the object type and may have
             sufficient space, but does not support the creation of the
             object for some other reason.*/
         data->error_class = ERROR_CLASS_OBJECT;
         data->error_code = ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED;
-    } else if (object_exists) {
+    } else if ((object_exists) && (!data->continue_on_error)) {
         /* The object being created already exists */
         data->error_class = ERROR_CLASS_OBJECT;
         data->error_code = ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS;
     } else {
         if (data->application_data_len) {
             /* The optional 'List of Initial Values' parameter is included */
-            object_instance = create_object(data->object_instance);
+            if (create_object) {
+                /* dynamic creation supported */
+                object_instance = create_object(data->object_instance);
+            } else {
+                /* dynamic creation not supported, but used for restore */
+                object_instance = data->object_instance;
+            }
             if (object_instance == BACNET_MAX_INSTANCE) {
                 /* The device cannot allocate the space needed
                 for the new object.*/
@@ -732,7 +838,11 @@ bool create_object_process(
                 data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
         } else {
-            object_instance = create_object(data->object_instance);
+            if (create_object) {
+                object_instance = create_object(data->object_instance);
+            } else {
+                object_instance = data->object_instance;
+            }
             if (object_instance == BACNET_MAX_INSTANCE) {
                 /* The device cannot allocate the space needed
                 for the new object.*/
@@ -748,4 +858,150 @@ bool create_object_process(
     }
 
     return status;
+}
+
+/**
+ * @brief Encode the CreateObject service request with writable properties
+ *  encoded in the List of Initial Values.
+ * @param apdu [in] The APDU buffer.
+ * @param apdu_size [in] The size of the APDU buffer.
+ * @param data [in,out] The Create Object data containing the request details.
+ * @param optional_properties - list of optional properties
+ * @param proprietary_properties - list of proprietary properties
+ * @param writable_properties - list of writable properties
+ * @param read_property [in] Function pointer to the Read Property handler.
+ * @return Number of bytes encoded
+ */
+int create_object_writable_properties_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_CREATE_OBJECT_DATA *data,
+    const int32_t *required_properties,
+    const int32_t *optional_properties,
+    const int32_t *proprietary_properties,
+    const int32_t *writable_properties,
+    read_property_function read_property)
+{
+    int apdu_len = 0, len = 0;
+    size_t j = 0, priority = 0, a = 0;
+    BACNET_UNSIGNED_INTEGER array_count = 0;
+    uint32_t writable_property_count = 0;
+    uint8_t property_apdu[MAX_APDU] = { 0 };
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE property_value = { 0 };
+
+    if (!data) {
+        return 0;
+    }
+    writable_property_count = property_list_count(writable_properties);
+    if (writable_property_count == 0) {
+        /* no writable properties
+           create the object absent the List of Initial Values */
+        apdu_len = create_object_service_request_encode(apdu, apdu_size, data);
+    } else {
+        data->application_data_len = 0;
+        for (j = 0; j < writable_property_count; j++) {
+            /* read each writable property value from our device */
+            rpdata.application_data = property_apdu;
+            rpdata.application_data_len = sizeof(property_apdu);
+            rpdata.object_type = data->object_type;
+            rpdata.object_instance = data->object_instance;
+            rpdata.object_property = writable_properties[j];
+            if (property_list_bacnet_array_member(
+                    rpdata.object_type, rpdata.object_property)) {
+                /* array properties - get the size */
+                rpdata.array_index = 0;
+                len = 0;
+                if (read_property) {
+                    len = read_property(&rpdata);
+                }
+                if (len <= 0) {
+                    continue;
+                }
+                /* convert to integer */
+                len = bacnet_unsigned_application_decode(
+                    &property_apdu[0], (uint32_t)len, &array_count);
+                if (len <= 0) {
+                    continue;
+                }
+                for (a = 1; a <= array_count; a++) {
+                    rpdata.array_index = a;
+                    len = 0;
+                    if (read_property) {
+                        len = read_property(&rpdata);
+                    }
+                    if (len <= 0) {
+                        continue;
+                    }
+                    property_value.propertyIdentifier = writable_properties[j];
+                    property_value.propertyArrayIndex = a;
+                    property_value.priority = BACNET_NO_PRIORITY;
+                    property_value.application_data_len = len;
+                    property_value.application_data = property_apdu;
+                    len = create_object_initial_value_data_encode(
+                        data->application_data, sizeof(data->application_data),
+                        data->application_data_len, &property_value);
+                    if (len > 0) {
+                        data->application_data_len += len;
+                    }
+                }
+            } else if (
+                property_list_commandable_member(
+                    rpdata.object_type, rpdata.object_property) &&
+                property_lists_member(
+                    required_properties, optional_properties,
+                    proprietary_properties, PROP_PRIORITY_ARRAY)) {
+                /* convert the priority-array index to
+                   present-value and priority */
+                for (priority = 1; priority <= BACNET_MAX_PRIORITY;
+                     priority++) {
+                    rpdata.object_property = PROP_PRIORITY_ARRAY;
+                    rpdata.array_index = (uint32_t)priority;
+                    len = 0;
+                    if (read_property) {
+                        len = read_property(&rpdata);
+                    }
+                    if (len <= 0) {
+                        continue;
+                    }
+                    property_value.propertyIdentifier = PROP_PRESENT_VALUE;
+                    property_value.propertyArrayIndex = BACNET_ARRAY_ALL;
+                    property_value.priority = priority;
+                    property_value.application_data_len = len;
+                    property_value.application_data = property_apdu;
+                    len = create_object_initial_value_data_encode(
+                        data->application_data, sizeof(data->application_data),
+                        data->application_data_len, &property_value);
+                    if (len > 0) {
+                        data->application_data_len += len;
+                    }
+                }
+            } else {
+                /* non array, non-priority properties */
+                rpdata.array_index = BACNET_ARRAY_ALL;
+                len = 0;
+                if (read_property) {
+                    len = read_property(&rpdata);
+                }
+                if (len <= 0) {
+                    continue;
+                }
+                property_value.propertyIdentifier = rpdata.object_property;
+                property_value.propertyArrayIndex = BACNET_ARRAY_ALL;
+                property_value.priority = BACNET_NO_PRIORITY;
+                property_value.application_data_len = len;
+                property_value.application_data = property_apdu;
+                len = create_object_initial_value_data_encode(
+                    data->application_data, sizeof(data->application_data),
+                    data->application_data_len, &property_value);
+                if (len > 0) {
+                    data->application_data_len += len;
+                }
+            }
+        }
+        /* writable properties - create object with List of Initial Values  */
+        apdu_len = create_object_service_request_encode(apdu, apdu_size, data);
+    }
+
+    return apdu_len;
 }

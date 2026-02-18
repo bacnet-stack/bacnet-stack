@@ -3139,7 +3139,7 @@ bool event_notify_parse(
     BACNET_PROPERTY_STATES tag = PROP_STATE_BOOLEAN_VALUE;
     BACNET_BIT_STRING *pBitString = NULL;
 
-    for (argi = 1; argi < argc; argi++) {
+    for (argi = 0; argi < argc; argi++) {
         if (target_args == 1) {
             /* process-id */
             if (!bacnet_string_to_uint32(

@@ -1,13 +1,14 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2005
  * @brief Base "class" for handling all BACnet objects belonging
  * to a BACnet device, as well as Device-specific properties.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -34,10 +35,10 @@
 #include "bacnet/basic/object/access_rights.h"
 #include "bacnet/basic/object/access_user.h"
 #include "bacnet/basic/object/access_zone.h"
-#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/bv.h"
@@ -57,9 +58,7 @@
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
 #include "bacnet/basic/object/bitstring_value.h"
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/object/iv.h"
@@ -75,6 +74,9 @@
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
 #include "bacnet/basic/object/program.h"
+/* for testing */
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/bactext.h"
 
 /* external prototypes */
 extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -389,7 +391,6 @@ static object_functions_t My_Object_Table[] = {
         Color_Temperature_Create, Color_Temperature_Delete,
         Color_Temperature_Timer, Color_Temperature_Writable_Property_List },
 #endif
-#if defined(BACFILE)
     { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
         bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
         bacfile_write_property, BACfile_Property_Lists,
@@ -398,7 +399,6 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         bacfile_create, bacfile_delete, NULL /* Timer */,
         BACfile_Writable_Property_List },
-#endif
     { OBJECT_SCHEDULE, Schedule_Init, Schedule_Count,
         Schedule_Index_To_Instance, Schedule_Valid_Instance,
         Schedule_Object_Name, Schedule_Read_Property, Schedule_Write_Property,
@@ -699,10 +699,20 @@ static const int32_t Device_Properties_Optional[] = {
     PROP_ALIGN_INTERVALS,
     PROP_INTERVAL_OFFSET,
 #endif
+#if defined(BACNET_BACKUP_RESTORE)
+    PROP_CONFIGURATION_FILES,
+    PROP_BACKUP_FAILURE_TIMEOUT,
+    PROP_BACKUP_PREPARATION_TIME,
+    PROP_RESTORE_PREPARATION_TIME,
+    PROP_BACKUP_AND_RESTORE_STATE,
+#endif
     -1
 };
 
-static const int32_t Device_Properties_Proprietary[] = { -1 };
+static const int32_t Device_Properties_Proprietary[] = {
+    /* List of Proprietary properties in this object */
+    -1
+};
 
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
@@ -717,8 +727,6 @@ static const int32_t Writable_Properties[] = {
     PROP_MODEL_NAME,
     PROP_LOCATION,
     PROP_DESCRIPTION,
-    PROP_PROTOCOL_SERVICES_SUPPORTED,
-    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
     PROP_APDU_TIMEOUT,
     PROP_NUMBER_OF_APDU_RETRIES,
     PROP_UTC_OFFSET,
@@ -730,6 +738,12 @@ static const int32_t Writable_Properties[] = {
 #if defined(BACDL_MSTP)
     PROP_MAX_INFO_FRAMES,
     PROP_MAX_MASTER,
+#endif
+#if defined(BACNET_BACKUP_RESTORE)
+    PROP_CONFIGURATION_FILES,
+    PROP_BACKUP_FAILURE_TIMEOUT,
+    PROP_BACKUP_PREPARATION_TIME,
+    PROP_RESTORE_PREPARATION_TIME,
 #endif
     PROP_TIME_OF_DEVICE_RESTART,
     -1
@@ -824,6 +838,7 @@ static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
 static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 static char Serial_Number[MAX_DEV_DESC_LEN + 1] =
     "BACnetDMcN56RBkeDJuNfxn3M44tfC2Y";
+static uint8_t Device_UUID[16];
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -853,9 +868,6 @@ static uint32_t Interval_Offset_Minutes;
 /* Max_Info_Frames - rely on MS/TP subsystem, if there is one */
 /* Device_Address_Binding - required, but relies on binding cache */
 static uint32_t Database_Revision = 0;
-/* Configuration_Files */
-/* Last_Restore_Time */
-/* Backup_Failure_Timeout */
 /* Active_COV_Subscriptions */
 /* Slave_Proxy_Enable */
 /* Manual_Slave_Address_Binding */
@@ -867,6 +879,52 @@ static const char *Reinit_Password = "filister";
 static write_property_function Device_Write_Property_Store_Callback;
 static list_element_function Device_Add_List_Element_Callback;
 static list_element_function Device_Remove_List_Element_Callback;
+/* backup and restore */
+#if defined BACNET_BACKUP_RESTORE
+/* number of backup files */
+#ifndef BACNET_BACKUP_FILE_COUNT
+#define BACNET_BACKUP_FILE_COUNT 1
+#endif
+
+/* device A will read the Configuration_Files property of the Device object.
+   This property will be used to determine the files to read and in what
+   order the files will be read. The value of the Configuration_Files
+   property is not guaranteed to contain a complete or correct set of
+   configuration File object references before the backup request is
+   accepted by device B. */
+static uint32_t Configuration_Files[BACNET_BACKUP_FILE_COUNT];
+/* If the restore is successful, no other actions by device A shall
+   be required, and device B will update the Last_Restore_Time property
+   in its Device object. */
+static BACNET_TIMESTAMP Last_Restore_Time;
+/* If device B does not receive any messages related to the restore
+   procedure from device A for the number of seconds specified
+   in the Backup_Failure_Timeout property of its Device object,
+   device B should assume that the restore procedure has been aborted,
+   and device B should exit restore mode.*/
+static uint16_t Backup_Failure_Timeout;
+/* This property indicates the amount of time in seconds
+   that the device might remain unresponsive after the sending
+   of a ReinitializeDevice-ACK at the start of a backup procedure.
+   The device that initiated the backup shall either wait the
+   period of time specified by this property or be prepared
+   to encounter communication timeouts during this period. */
+static uint16_t Backup_Preparation_Time;
+/* This property indicates the amount of time in seconds that the device
+   is allowed to remain unresponsive after the sending of a
+   ReinitializeDevice-ACK at the start of a restore procedure.
+   The restoring device shall either wait or be prepared to
+   encounter communication timeouts during this period.*/
+static uint16_t Restore_Preparation_Time;
+/* This property indicates the amount of time in seconds that
+   the device is allowed to remain unresponsive after the sending
+   of a ReinitializeDevice-ACK at the end of a restore procedure.
+   The restoring device shall either wait or be prepared to
+   encounter communication timeouts during this period. */
+static uint16_t Restore_Completion_Time;
+/* This property indicates a server device's backup and restore state. */
+static BACNET_BACKUP_STATE Backup_State = BACKUP_STATE_IDLE;
+#endif
 
 #ifdef BAC_ROUTING
 static bool Device_Router_Mode = false;
@@ -957,9 +1015,27 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
+#if defined BACNET_BACKUP_RESTORE
             case BACNET_REINIT_STARTBACKUP:
-            case BACNET_REINIT_ENDBACKUP:
+                Device_Start_Backup();
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
             case BACNET_REINIT_STARTRESTORE:
+                Device_Start_Restore();
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_ENDBACKUP:
+            case BACNET_REINIT_ENDRESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+#else
+            case BACNET_REINIT_STARTBACKUP:
+            case BACNET_REINIT_STARTRESTORE:
+            case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ENDRESTORE:
             case BACNET_REINIT_ABORTRESTORE:
                 if (dcc_communication_disabled()) {
@@ -971,6 +1047,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                         ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }
                 break;
+#endif
             case BACNET_REINIT_ACTIVATE_CHANGES:
                 /* note: activate changes *after* the simple ack is sent */
                 for (i = 0; i < Network_Port_Count(); i++) {
@@ -1011,8 +1088,6 @@ uint32_t Device_Index_To_Instance(unsigned index)
     (void)index;
     return Object_Instance_Number;
 }
-
-/* methods to manipulate the data */
 
 /** Return the Object Instance number for our (single) Device Object.
  * This is a key function, widely invoked by the handler code, since
@@ -1097,6 +1172,71 @@ char *Device_Object_Name_ANSI(void)
     return (char *)characterstring_value(&My_Object_Name);
 }
 
+/**
+ * @brief Initialize a UUID for storing the unique identifier of this device
+ * @note A Universally Unique IDentifier (UUID) - also called a
+ * Global Unique IDentifier (GUID) - is a 128-bit value, see RFC 4122.
+ *
+ * 4.4.  Algorithms for Creating a UUID from Truly Random or
+ *      Pseudo-Random Numbers
+ *
+ *   The version 4 UUID is meant for generating UUIDs from truly-random or
+ *   pseudo-random numbers.
+ *
+ *   The algorithm is as follows:
+ *
+ *   o  Set the two most significant bits (bits 6 and 7) of the
+ *      clock_seq_hi_and_reserved to zero and one, respectively.
+ *
+ *   o  Set the four most significant bits (bits 12 through 15) of the
+ *      time_hi_and_version field to the 4-bit version number from
+ *      Section 4.1.3.
+ *
+ *   o  Set all the other bits to randomly (or pseudo-randomly) chosen
+ *      values.
+ */
+void Device_UUID_Init(void)
+{
+    unsigned i = 0;
+
+    /* 1. Generate 16 random bytes = 128 bits */
+    for (i = 0; i < sizeof(Device_UUID); i++) {
+        Device_UUID[i] = rand() % 256;
+    }
+    /* 2. Adjust certain bits according to RFC 4122 section 4.4.
+       This just means do the following
+       (a) set the high nibble of the 7th byte equal to 4 and
+       (b) set the two most significant bits of the 9th byte to 10'B,
+       so the high nibble will be one of {8,9,A,B}.
+       From http://www.cryptosys.net/pki/Uuid.c.html */
+    Device_UUID[6] = 0x40 | (Device_UUID[6] & 0x0f);
+    Device_UUID[8] = 0x80 | (Device_UUID[8] & 0x3f);
+}
+
+/**
+ * @brief Set the UUID for this device
+ * @param new_uuid [in] The new UUID to set
+ * @param length [in] The length of the new UUID
+ */
+void Device_UUID_Set(const uint8_t *new_uuid, size_t length)
+{
+    if (new_uuid && (length == sizeof(Device_UUID))) {
+        memcpy(Device_UUID, new_uuid, sizeof(Device_UUID));
+    }
+}
+
+/**
+ * @brief Get the UUID for this device
+ * @param uuid [out] The UUID of this device
+ * @param length [in] The length of the UUID
+ */
+void Device_UUID_Get(uint8_t *uuid, size_t length)
+{
+    if (uuid && (length == sizeof(Device_UUID))) {
+        memcpy(uuid, Device_UUID, sizeof(Device_UUID));
+    }
+}
+
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
     return System_Status;
@@ -1115,47 +1255,40 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
             case STATUS_DOWNLOAD_REQUIRED:
             case STATUS_DOWNLOAD_IN_PROGRESS:
             case STATUS_NON_OPERATIONAL:
+#if defined BACNET_BACKUP_RESTORE
+            case STATUS_BACKUP_IN_PROGRESS:
+#endif
                 System_Status = status;
                 break;
-
-                /* Don't support backup at present so don't allow setting */
+#ifndef BACNET_BACKUP_RESTORE
             case STATUS_BACKUP_IN_PROGRESS:
                 result = -2;
                 break;
-
+#endif
             default:
                 result = -1;
                 break;
         }
     } else {
         switch (status) {
-                /* Allow these for the moment as a way to easily alter
-                 * overall device operation. The lack of password protection
-                 * or other authentication makes allowing writes to this
-                 * property a risky facility to provide.
-                 */
             case STATUS_OPERATIONAL:
             case STATUS_OPERATIONAL_READ_ONLY:
             case STATUS_NON_OPERATIONAL:
+                /* Allow these for the moment as a way to easily alter
+                 * overall device operation. The lack of password protection
+                 * or other authentication makes allowing writes to this
+                 * property a risky facility to provide. */
                 System_Status = status;
                 break;
-
-                /* Don't allow outsider set this - it should probably
+            case STATUS_DOWNLOAD_REQUIRED:
+            case STATUS_DOWNLOAD_IN_PROGRESS:
+            case STATUS_BACKUP_IN_PROGRESS:
+                /* Don't allow outsider set these - they should probably
                  * be set if the device config is incomplete or
                  * corrupted or perhaps after some sort of operator
-                 * wipe operation.
-                 */
-            case STATUS_DOWNLOAD_REQUIRED:
-                /* Don't allow outsider set this - it should be set
-                 * internally at the start of a multi packet download
-                 * perhaps indirectly via PT or WF to a config file.
-                 */
-            case STATUS_DOWNLOAD_IN_PROGRESS:
-                /* Don't support backup at present so don't allow setting */
-            case STATUS_BACKUP_IN_PROGRESS:
+                 * wipe operation. */
                 result = -2;
                 break;
-
             default:
                 result = -1;
                 break;
@@ -1170,9 +1303,17 @@ const char *Device_Vendor_Name(void)
     return Vendor_Name;
 }
 
+bool Device_Set_Vendor_Name(const char *name, size_t length)
+{
+    (void)length;
+    Vendor_Name = name;
+
+    return true;
+}
+
 /** Returns the Vendor ID for this Device.
  * See the assignments at
- * http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+ * https://bacnet.org/assigned-vendor-ids/
  * @return The Vendor ID of this Device.
  */
 uint16_t Device_Vendor_Identifier(void)
@@ -1678,8 +1819,197 @@ uint32_t Device_Interval_Offset(void)
 }
 #endif
 
-/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
-   BACNET_STATUS_ABORT for abort message */
+bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
+{
+    bool status = false;
+#if BACNET_BACKUP_FILE_COUNT
+    if (index < BACNET_BACKUP_FILE_COUNT) {
+        Configuration_Files[index] = instance;
+        status = true;
+    }
+#else
+    (void)index;
+    (void)instance;
+#endif
+
+    return status;
+}
+
+uint32_t Device_Configuration_File(unsigned index)
+{
+    uint32_t instance = BACNET_MAX_INSTANCE + 1;
+
+#if BACNET_BACKUP_FILE_COUNT
+    if (index < BACNET_BACKUP_FILE_COUNT) {
+        instance = Configuration_Files[index];
+    }
+#else
+    (void)index;
+#endif
+
+    return instance;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int Device_Configuration_File_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+
+    (void)object_instance;
+#if BACNET_BACKUP_FILE_COUNT
+    if (array_index < BACNET_BACKUP_FILE_COUNT) {
+        apdu_len = encode_application_object_id(
+            apdu, OBJECT_FILE, Configuration_Files[array_index]);
+    }
+#else
+    (void)array_index;
+    (void)apdu;
+#endif
+
+    return apdu_len;
+}
+
+#if defined(BACNET_BACKUP_RESTORE)
+/**
+ * @brief Decode a BACnetLIST property element to determine the element length
+ * @param object_instance [in] BACnet object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Device_Configuration_File_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    (void)object_instance;
+    return bacnet_object_id_application_decode(apdu, apdu_size, NULL, NULL);
+}
+
+/**
+ * @brief Write a value to a BACnetLIST property element value
+ *  using a BACnetARRAY write utility function
+ * @param object_instance [in] BACnet object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Device_Configuration_File_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    uint32_t instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    int len = 0;
+
+    (void)object_instance;
+    if (array_index == 0) {
+        /* This array is not required to be resizable
+            through BACnet write services */
+        error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    } else if (array_index <= BACNET_BACKUP_FILE_COUNT) {
+        len = bacnet_object_id_application_decode(
+            application_data, application_data_len, &object_type, &instance);
+        if (len > 0) {
+            if ((object_type == OBJECT_FILE) &&
+                Device_Valid_Object_Id(object_type, instance)) {
+                if (Device_Configuration_File_Set(array_index - 1, instance)) {
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    } else {
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return error_code;
+}
+
+uint16_t Device_Backup_Failure_Timeout(void)
+{
+    return Backup_Failure_Timeout;
+}
+
+bool Device_Backup_Failure_Timeout_Set(uint16_t timeout)
+{
+    Backup_Failure_Timeout = timeout;
+    return true;
+}
+
+uint16_t Device_Backup_Preparation_Time(void)
+{
+    return Backup_Preparation_Time;
+}
+
+bool Device_Backup_Preparation_Time_Set(uint16_t time)
+{
+    Backup_Preparation_Time = time;
+    return true;
+}
+
+uint16_t Device_Restore_Preparation_Time(void)
+{
+    return Restore_Preparation_Time;
+}
+
+bool Device_Restore_Preparation_Time_Set(uint16_t time)
+{
+    Restore_Preparation_Time = time;
+    return true;
+}
+
+uint16_t Device_Restore_Completion_Time(void)
+{
+    return Restore_Completion_Time;
+}
+
+bool Device_Restore_Completion_Time_Set(uint16_t time)
+{
+    Restore_Completion_Time = time;
+    return true;
+}
+
+BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void)
+{
+    return Backup_State;
+}
+
+bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state)
+{
+    Backup_State = state;
+    return true;
+}
+#endif
+
+/**
+ * ReadProperty handler for this object.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -1870,6 +2200,45 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_unsigned(&apdu[0], Device_Interval_Offset());
             break;
 #endif
+#if defined(BACNET_BACKUP_RESTORE)
+        case PROP_CONFIGURATION_FILES:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Device_Configuration_File_Encode, BACNET_BACKUP_FILE_COUNT,
+                &apdu[0], apdu_max);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+#if BACNET_SEGMENTATION_ENABLED
+                rpdata->error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
+#else
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+#endif
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_BACKUP_FAILURE_TIMEOUT:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Backup_Failure_Timeout());
+            break;
+        case PROP_BACKUP_PREPARATION_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Backup_Preparation_Time());
+            break;
+        case PROP_RESTORE_PREPARATION_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Restore_Preparation_Time());
+            break;
+        case PROP_RESTORE_COMPLETION_TIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Restore_Completion_Time());
+            break;
+        case PROP_BACKUP_AND_RESTORE_STATE:
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Device_Backup_And_Restore_State());
+            break;
+#endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             if ((apdu_len = handler_cov_encode_subscriptions(
                      &apdu[0], apdu_max)) < 0) {
@@ -1902,7 +2271,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param pObject - object table
  * @param rpdata [in,out] Structure with the requested Object & Property info
  *  on entry, and APDU message on return.
- * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ * @return number of APDU bytes in the response, zero if no data, or
+ * BACNET_STATUS_ERROR on error.
  */
 static int Read_Property_Common(
     const struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
@@ -1914,7 +2284,7 @@ static int Read_Property_Common(
     struct special_property_list_t property_list;
 #endif
 
-    if ((rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -1956,6 +2326,9 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
 
+    if (!rpdata) {
+        return 0;
+    }
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -2008,8 +2381,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(
                         value.type.Object_Id.instance))) {
-                    /* FIXME: we could send an I-Am broadcast to let the world
-                     * know */
+                    /* success! */
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -2145,6 +2517,60 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            }
+            break;
+#endif
+#if defined(BACNET_BACKUP_RESTORE)
+        case PROP_BACKUP_FAILURE_TIMEOUT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Device_Backup_Failure_Timeout_Set(
+                        (uint16_t)value.type.Unsigned_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_BACKUP_PREPARATION_TIME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Device_Backup_Preparation_Time_Set(
+                        (uint16_t)value.type.Unsigned_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_RESTORE_PREPARATION_TIME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Device_Restore_Preparation_Time_Set(
+                        (uint16_t)value.type.Unsigned_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+        case PROP_CONFIGURATION_FILES:
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Device_Configuration_File_Length,
+                Device_Configuration_File_Write, BACNET_BACKUP_FILE_COUNT,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
 #endif
@@ -2387,7 +2813,9 @@ int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             if (pObject->Object_Add_List_Element) {
                 status = pObject->Object_Add_List_Element(list_element);
                 if (status) {
-                    Device_Add_List_Element_Callback(list_element);
+                    if (Device_Add_List_Element_Callback) {
+                        (void)Device_Add_List_Element_Callback(list_element);
+                    }
                 }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
@@ -2433,7 +2861,9 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             if (pObject->Object_Remove_List_Element) {
                 status = pObject->Object_Remove_List_Element(list_element);
                 if (status) {
-                    Device_Remove_List_Element_Callback(list_element);
+                    if (Device_Remove_List_Element_Callback) {
+                        (void)Device_Remove_List_Element_Callback(list_element);
+                    }
                 }
             } else {
                 list_element->error_class = ERROR_CLASS_PROPERTY;
@@ -2457,7 +2887,8 @@ int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
  * @param [in] The object type to be looked up.
  * @param [in] The object instance number to be looked up.
  * @param [out] The value list
- * @return True if the object instance supports this feature and value changed.
+ * @return True if the object instance supports this feature
+ *         and was encoded correctly
  */
 bool Device_Encode_Value_List(
     BACNET_OBJECT_TYPE object_type,
@@ -2603,6 +3034,105 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
     }
 
     return status;
+}
+
+/**
+ * @brief Loop through the Device object-list property and export to
+ *  a file as BACnet CreateObject services with List of Initial Values
+ *  for every writable property
+ */
+void Device_Start_Backup(void)
+{
+#if defined BACNET_BACKUP_RESTORE
+    size_t i = 0;
+    uint32_t object_count = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
+    const int32_t *writable_properties = NULL;
+    struct special_property_list_t property_list = { 0 };
+    uint8_t object_apdu[MAX_APDU] = { 0 };
+    BACNET_CREATE_OBJECT_DATA create_data = { 0 };
+    bool status = false;
+    int32_t len = 0, offset = 0;
+
+    Backup_State = BACKUP_STATE_PREPARING_FOR_BACKUP;
+    object_count = Device_Object_List_Count();
+    Backup_State = BACKUP_STATE_PERFORMING_A_BACKUP;
+    for (i = 0; i < object_count; i++) {
+        /* get the object type and instance from the device object list */
+        status = Device_Object_List_Identifier(
+            (uint32_t)(i + 1), &object_type, &object_instance);
+        if (status) {
+            Device_Objects_Property_List(
+                object_type, object_instance, &property_list);
+            (void)Device_Objects_Writable_Property_List(
+                object_type, object_instance, &writable_properties);
+            create_data.object_type = object_type;
+            create_data.object_instance = object_instance;
+            create_data.application_data_len = 0;
+            len = create_object_writable_properties_encode(
+                object_apdu, sizeof(object_apdu), &create_data,
+                property_list.Required.pList, property_list.Optional.pList,
+                property_list.Proprietary.pList, writable_properties,
+                Device_Read_Property);
+            if (len > 0) {
+                (void)bacfile_write_offset(
+                    Configuration_Files[0], offset, &object_apdu[0],
+                    (uint32_t)len);
+                offset += len;
+            }
+        }
+    }
+    Backup_State = BACKUP_STATE_IDLE;
+#endif
+}
+
+/**
+ * @brief Loop through the Device object-list property and export to
+ *  a file as BACnet CreateObject services with List of Initial Values
+ *  for every writable property
+ */
+void Device_Start_Restore(void)
+{
+#if defined BACNET_BACKUP_RESTORE
+    BACNET_DATE_TIME bdateTime = { 0 };
+    BACNET_CREATE_OBJECT_DATA create_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int32_t apdu_len = 0, offset = 0, file_size = 0;
+    int decoded_len = 0;
+
+    datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
+    bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
+    Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
+    /* create objects from the backup file */
+    file_size = bacfile_file_size(Configuration_Files[0]);
+    while (offset < file_size) {
+        apdu_len = bacfile_read_offset(
+            Configuration_Files[0], offset, &apdu[0], sizeof(apdu));
+        if (apdu_len > 0) {
+            decoded_len = create_object_decode_service_request(
+                apdu, apdu_len, &create_data);
+            if (decoded_len > 0) {
+                offset += decoded_len;
+                create_data.error_class = ERROR_CLASS_PROPERTY;
+                create_data.error_code = ERROR_CODE_SUCCESS;
+                create_data.continue_on_error = true;
+                if (Device_Create_Object(&create_data)) {
+                    /* object created and initialized successfully */
+                } else {
+                    /* error creating object - keep going */
+                }
+            } else {
+                /* error while decoding object  */
+                break;
+            }
+        } else {
+            /* error while reading file  */
+            break;
+        }
+    }
+    Backup_State = BACKUP_STATE_IDLE;
+#endif
 }
 
 #if defined(INTRINSIC_REPORTING)

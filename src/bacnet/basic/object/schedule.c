@@ -308,7 +308,7 @@ bool Schedule_Weekly_Schedule_Set(
     if (pObject && (array_index < BACNET_WEEKLY_SCHEDULE_SIZE)) {
         memcpy(
             &pObject->Weekly_Schedule[array_index], value,
-            sizeof(BACNET_WEEKLY_SCHEDULE));
+            sizeof(pObject->Weekly_Schedule[array_index]));
         return true;
     }
 

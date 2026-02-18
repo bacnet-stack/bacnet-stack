@@ -203,9 +203,7 @@ bool bacfile_sramfs_read_record_data(
  */
 void bacfile_sramfs_init(void)
 {
-#if defined(BACFILE)
     bacfile_read_stream_data_callback_set(bacfile_sramfs_read_stream_data);
     bacfile_read_record_data_callback_set(bacfile_sramfs_read_record_data);
     bacfile_file_size_callback_set(bacfile_sramfs_file_size);
-#endif
 }

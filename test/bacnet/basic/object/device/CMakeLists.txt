@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/arf.c
     ${SRC_DIR}/bacnet/assigned_access_rights.c
     ${SRC_DIR}/bacnet/authentication_factor.c
     ${SRC_DIR}/bacnet/authentication_factor_format.c
@@ -65,6 +66,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/ao.c
     ${SRC_DIR}/bacnet/basic/object/auditlog.c
     ${SRC_DIR}/bacnet/basic/object/av.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/bi.c
     ${SRC_DIR}/bacnet/basic/object/bitstring_value.c
     ${SRC_DIR}/bacnet/basic/object/blo.c

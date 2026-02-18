@@ -16,6 +16,9 @@ static uint32_t Test_Create_Object_Returned_Instance = BACNET_MAX_INSTANCE;
 static uint32_t Test_Delete_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_WRITE_PROPERTY_DATA Test_Write_Property_Data;
 static bool Test_Write_Property_Return_Status;
+static BACNET_READ_PROPERTY_DATA Test_Read_Property_Data;
+static bool Test_Read_Property_Return_Status;
+
 /**
  * @brief CreateObject service handler for an object
  * @ingroup ObjHelpers
@@ -55,6 +58,12 @@ static bool test_write_property_function(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     Test_Write_Property_Data = *wp_data;
     return Test_Write_Property_Return_Status;
+}
+
+static int test_read_property_function(BACNET_READ_PROPERTY_DATA *rp_data)
+{
+    Test_Read_Property_Data = *rp_data;
+    return Test_Read_Property_Return_Status;
 }
 
 static void test_CreateObjectCodec(BACNET_CREATE_OBJECT_DATA *data)
@@ -320,6 +329,108 @@ static void test_CreateObjectError(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(create_object_tests, test_create_object_writable)
+#else
+static void test_create_object_writable(void)
+#endif
+{
+    BACNET_CREATE_OBJECT_DATA data = {
+        .object_instance = 1,
+        .object_type = OBJECT_ANALOG_OUTPUT,
+        .application_data_len = 0,
+        .application_data = { 0 },
+        .error_class = ERROR_CLASS_PROPERTY,
+        .error_code = ERROR_CODE_SUCCESS,
+        .continue_on_error = true,
+    };
+    BACNET_PROPERTY_VALUE value[] = {
+        { .next = NULL,
+          .priority = BACNET_NO_PRIORITY,
+          .propertyArrayIndex = BACNET_ARRAY_ALL,
+          .propertyIdentifier = PROP_OBJECT_NAME,
+          .value = { .tag = BACNET_APPLICATION_TAG_CHARACTER_STRING,
+                     .type.Character_String = { .encoding = CHARACTER_UTF8,
+                                                .length = 4,
+                                                .value = "Test" } } },
+        { .next = NULL,
+          .priority = 1,
+          .propertyArrayIndex = BACNET_ARRAY_ALL,
+          .propertyIdentifier = PROP_PRESENT_VALUE,
+          .value = { .tag = BACNET_APPLICATION_TAG_REAL, .type.Real = 42.0 } },
+        { .next = NULL,
+          .priority = 1,
+          .propertyArrayIndex = BACNET_MAX_PRIORITY,
+          .propertyIdentifier = PROP_PRIORITY_ARRAY,
+          .value = { .tag = BACNET_APPLICATION_TAG_REAL, .type.Real = 42.0 } },
+        { .next = NULL,
+          .priority = BACNET_NO_PRIORITY,
+          .propertyArrayIndex = 0,
+          .propertyIdentifier = PROP_PROPERTY_LIST,
+          .value = { .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                     .type.Unsigned_Int = 4 } },
+    };
+    int len = 0, apdu_len = 0, i = 0;
+    uint8_t apdu[480] = { 0 };
+    size_t apdu_size = sizeof(apdu);
+    int32_t required_properties[] = {
+        /* unordered list of required properties */
+        PROP_OBJECT_NAME, PROP_PRESENT_VALUE, PROP_PRIORITY_ARRAY,
+        PROP_PROPERTY_LIST, -1
+    };
+    int32_t no_properties[] = { -1 };
+    int32_t writable_properties[] = {
+        /* unordered list of writable properties */
+        PROP_OBJECT_NAME, PROP_PRESENT_VALUE, PROP_PROPERTY_LIST, -1
+    };
+
+    /* encode  initial values */
+    for (i = 0; i < ARRAY_SIZE(value); i++) {
+        len = create_object_encode_initial_value(
+            data.application_data, len, &value[i]);
+        data.application_data_len += len;
+    }
+    /* test encoding and decoding of CreateObject service */
+    apdu_len = create_object_writable_properties_encode(
+        apdu, apdu_size, &data, required_properties, no_properties,
+        no_properties, writable_properties, test_read_property_function);
+    zassert_true(apdu_len > 0, NULL);
+    /* validate the last read */
+    i = ARRAY_SIZE(value) - 1;
+    zassert_equal(
+        Test_Read_Property_Data.object_instance, data.object_instance, NULL);
+    zassert_equal(Test_Read_Property_Data.object_type, data.object_type, NULL);
+    zassert_equal(
+        Test_Read_Property_Data.array_index, value[i].propertyArrayIndex,
+        "%s array_index=%u",
+        bactext_property_name(Test_Read_Property_Data.object_property),
+        Test_Read_Property_Data.array_index);
+    zassert_equal(
+        Test_Read_Property_Data.object_property, value[i].propertyIdentifier,
+        NULL);
+    /* test with some read-property length */
+    Test_Read_Property_Return_Status = 5;
+    apdu_len = create_object_writable_properties_encode(
+        apdu, apdu_size, &data, required_properties, no_properties,
+        no_properties, writable_properties, test_read_property_function);
+    zassert_true(apdu_len > 0, NULL);
+    /* with no writable properties */
+    apdu_len = create_object_writable_properties_encode(
+        apdu, apdu_size, &data, required_properties, no_properties,
+        no_properties, no_properties, test_read_property_function);
+    zassert_true(apdu_len > 0, NULL);
+    /* test with NULL apdu */
+    apdu_len = create_object_writable_properties_encode(
+        NULL, apdu_size, &data, required_properties, no_properties,
+        no_properties, no_properties, test_read_property_function);
+    zassert_true(apdu_len > 0, NULL);
+    /* negative tests */
+    apdu_len = create_object_writable_properties_encode(
+        apdu, apdu_size, NULL, required_properties, no_properties,
+        no_properties, writable_properties, NULL);
+    zassert_equal(apdu_len, 0, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(create_object_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
@@ -327,7 +438,8 @@ void test_main(void)
     ztest_test_suite(
         create_object_tests, ztest_unit_test(test_CreateObject),
         ztest_unit_test(test_CreateObjectACK),
-        ztest_unit_test(test_CreateObjectError));
+        ztest_unit_test(test_CreateObjectError),
+        ztest_unit_test(test_create_object_writable));
 
     ztest_run_test_suite(create_object_tests);
 }

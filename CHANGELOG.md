@@ -12,10 +12,18 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-02
+## [Unreleased] - 2026-02-13
 
 ### Security
 
+* Secured decoding length underflow in wp_decode_service_request() and
+  bacnet_action_command_decode() which had similar issue. (#1231)
+* Secured Schedule_Weekly_Schedule_Set() the example schedule object
+  by fixing stack buffer overflow. The memcpy was using
+  sizeof(BACNET_WEEKLY_SCHEDULE) instead of sizeof(BACNET_DAILY_SCHEDULE),
+  causing it to read 6784 bytes from a 968-byte source buffer, leading
+  to stack buffer overflow and segmentation fault in the test_schedule
+  unit test. (#1222)
 * Secured npdu_is_expected_reply() function where the MS/TP reply matcher
   could have an out-of-bounds read. (#1178)
 * Secured ubasic interpreter tokenizer_string() and tokenizer_label()
@@ -32,6 +40,20 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added segmentation support functions and example changes, but
+  no support for segmentation in the TSM or APDU handlers. (#1218)
+* Added CreateObject and DeleteObject for basic Accumulator objects and
+  WriteProperty handling for object-name, scale, out-of-service, units,
+  and max-pres-value. (#1234)
+* Added text and parser for BACnet ReinitializeDevice service states. (#1228)
+* Added Device Management-Backup and Restore-B to example object/device.c
+  and basic/server/bacnet-device.c so that when ReinitializeDevice STARTBACKUP
+  is requested a backup file is stored in CreateObject format for all the
+  writable properties in the device. When ReinitializeDevice STARTRESTORE
+  is requested a backup file is restored from CreateObject format for all the
+  writable properties in the device. (#1223)
+* Added apps/dmbrcap for Device Management-Backup and Restore to convert
+  a backup file encoded with CreateObject to Wireshark PCAP format. (#1223)
 * Added segmentation support functions and example changes, but
   no support for segmentation in the TSM or APDU handlers. (#1218)
 * Added channel and timer object write-property observers in blinkt app
@@ -102,6 +124,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed BACFILE define dependencies to reflect bacfile-posix.c dependence
+  since bacfile.c is now independent of any back end file system. (#1227)
 * Changed the default BACnet protocol revision to 28 to enable usage of
   special lighting output values. (#1211)
 * Changed bacnet_strtof and bacnet_strtold functions to use strtod to
@@ -122,6 +146,16 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed dlenv_init() for BACnet/SC. bsc_register_as_node() was blocking
+  when the hub was not reachable. Added API so that BACnet/SC
+  node can register via thread that is reponsible for connecting
+  BACnet/SC hub and the dlenv_init() can continue without waiting. (#1230)
+* Fixed bacfile-posix file write to return the number of bytes written. (#1223)
+* Fixed Event parsing and help text for the example uevent and event apps.
+  Fixed initialization of event data by adding static CharacterString for
+  message text. Fixed the event parsing to start at argument zero. (#1221)
+* Fixed You-Are-Request encoding and decoding to use object-id instead
+  of unsigned. (#1220)
 * Fixed handling for abort and reject errors in Write Property service. (#1216)
 * Fixed lighting output object lighting-commands for warn-off and
   warn-relinquish when an update at the specified priority slot

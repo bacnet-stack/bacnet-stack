@@ -49,9 +49,7 @@
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
@@ -139,7 +137,7 @@ static void Structured_View_Update(void)
         /* update the device instance to internal */
         Lighting_Subordinate[i].Device_Instance = device_id;
         /* update the common node data */
-        Lighting_Subordinate[i].Node_Type = BACNET_NODE_ROOM;
+        Lighting_Subordinate[i].Node_Type = BACNET_NODE_POINT;
         Lighting_Subordinate[i].Relationship = BACNET_RELATIONSHIP_CONTAINS;
     }
     instance = Structured_View_Index_To_Instance(0);
@@ -150,9 +148,11 @@ static void Structured_View_Update(void)
     represents.deviceIdentifier.type = OBJECT_NONE;
     represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
     represents.objectIdentifier.type = OBJECT_DEVICE;
-    represents.objectIdentifier.instance = Device_Object_Instance_Number();
+    represents.objectIdentifier.instance = device_id;
     Structured_View_Represents_Set(instance, &represents);
     Structured_View_Node_Type_Set(instance, BACNET_NODE_ROOM);
+    Structured_View_Default_Subordinate_Relationship_Set(
+        instance, BACNET_RELATIONSHIP_CONTAINS);
 }
 
 /** Initialize the handlers we will utilize.
@@ -166,12 +166,15 @@ static void Init_Service_Handlers(void)
     Device_Init(NULL);
     /* create some dynamically created objects as examples */
     object_data.object_instance = BACNET_MAX_INSTANCE;
-    for (i = 0; i <= BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
+    for (i = 0; i < BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
         object_data.object_type = i;
+        object_data.error_class = ERROR_CLASS_OBJECT;
+        object_data.error_code = ERROR_CODE_SUCCESS;
         if (Device_Create_Object(&object_data)) {
             printf(
-                "Created object %s-%u\n", bactext_object_type_name(i),
-                (unsigned)object_data.object_instance);
+                "CreateObject: %s-%u %s\n", bactext_object_type_name(i),
+                (unsigned)object_data.object_instance,
+                bactext_error_code_name(object_data.error_code));
         }
     }
 #if BACNET_SEGMENTATION_ENABLED
@@ -188,13 +191,25 @@ static void Init_Service_Handlers(void)
         }
     }
 #endif
+#if defined BACNET_BACKUP_RESTORE
+    /* file for backup and restore example */
+    object_data.object_instance = bacfile_create(BACNET_MAX_INSTANCE);
+    if (object_data.object_instance != BACNET_MAX_INSTANCE) {
+        bacfile_pathname_set(object_data.object_instance, "backup_1.bin");
+        Device_Configuration_File_Set(0, object_data.object_instance);
+        printf(
+            "Created %s-%u path=%s for backup and restore (%u files).\n",
+            bactext_object_type_name(OBJECT_FILE),
+            (unsigned)object_data.object_instance,
+            bacfile_pathname(object_data.object_instance), bacfile_count());
+    }
+#endif
+    /* set up our confirmed service unrecognized service handler - required! */
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_who_am_i_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
-    /* set the handler for all the services we don't implement */
-    /* It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(
@@ -207,7 +222,7 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
-#if defined(BACFILE)
+#if defined BACNET_BACKUP_RESTORE
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
     apdu_set_confirmed_handler(
