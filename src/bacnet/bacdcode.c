@@ -5205,7 +5205,7 @@ BACNET_ERROR_CODE bacnet_array_write(
         for (index = 1; index <= array_size; index++) {
             len = decode_function(
                 object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-            if (len > 0) {
+            if (len >= 0) {
                 apdu_len += len;
             } else {
                 error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
