@@ -177,6 +177,20 @@ static void Init_Service_Handlers(void)
                 bactext_error_code_name(object_data.error_code));
         }
     }
+#if BACNET_SEGMENTATION_ENABLED
+    printf("Segmentation is enabled.\n");
+    /* create extra object to stress the object list */
+    for (i = 0; i < 500; i++) {
+        object_data.object_instance = BACNET_MAX_INSTANCE;
+        object_data.object_type = OBJECT_ANALOG_INPUT;
+        if (Device_Create_Object(&object_data)) {
+            printf(
+                "Created object %s-%u\n",
+                bactext_object_type_name(object_data.object_type),
+                (unsigned)object_data.object_instance);
+        }
+    }
+#endif
 #if defined BACNET_BACKUP_RESTORE
     /* file for backup and restore example */
     object_data.object_instance = bacfile_create(BACNET_MAX_INSTANCE);

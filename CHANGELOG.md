@@ -40,6 +40,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added segmentation support functions and example changes, but
+  no support for segmentation in the TSM or APDU handlers. (#1218)
 * Added CreateObject and DeleteObject for basic Accumulator objects and
   WriteProperty handling for object-name, scale, out-of-service, units,
   and max-pres-value. (#1234)
