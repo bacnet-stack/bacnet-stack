@@ -8,11 +8,144 @@
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/device.h>
 #include <bacnet/bactext.h>
+#include <bacnet/proplist.h>
 
 /**
  * @addtogroup bacnet_tests
  * @{
  */
+static int32_t Proprietary_Properties[] = { 512, 513, -1 };
+static uint8_t Proprietary_Serial_Number[16] = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+};
+
+/**
+ * @brief Callback function type for fetching a property list for a given
+ * object instance.
+ * @param object_type [in] The BACNET_OBJECT_TYPE of the object instance
+ *  to fetch the property list for.
+ * @param object_instance [in] The object instance number of the object
+ *  to fetch the property list for.
+ * @param pPropertyList [out] Pointer to a property list to be
+ *  filled with the property list for this object instance.
+ * @return True if the object instance is valid and the property list has been
+ *  filled in, false if the object instance is not valid or the property list
+ *  could not be filled in.
+ */
+static bool Property_List_Proprietary(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **property_list)
+{
+    (void)object_type;
+    (void)object_instance;
+    *property_list = Proprietary_Properties;
+    return true;
+}
+
+/**
+ * @brief WriteProperty handler for this objects proprietary properties.
+ * For the given WriteProperty data, the application_data is loaded
+ * or the error code and class are set and the return value is false.
+ * @param  data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @return false if an error is loaded, true if no errors
+ */
+static bool Write_Property_Proprietary(BACNET_WRITE_PROPERTY_DATA *data)
+{
+    bool status = false;
+    int apdu_len = 0;
+    uint8_t *apdu = NULL;
+    size_t apdu_size = 0;
+    BACNET_OCTET_STRING octet_value = { 0 };
+
+    if ((data == NULL) || (data->application_data_len == 0)) {
+        return false;
+    }
+    /* none of our proprietary properties are arrays */
+    apdu = data->application_data;
+    apdu_size = data->application_data_len;
+    switch ((int)data->object_property) {
+        case 512:
+            apdu_len = bacnet_octet_string_application_decode(
+                apdu, apdu_size, &octet_value);
+            if (apdu_len > 0) {
+                octetstring_copy_value(
+                    Proprietary_Serial_Number,
+                    sizeof(Proprietary_Serial_Number), &octet_value);
+                status = true;
+            } else if (apdu_len == 0) {
+                status = false;
+                data->error_class = ERROR_CLASS_PROPERTY;
+                data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+
+            } else {
+                status = false;
+                data->error_class = ERROR_CLASS_PROPERTY;
+                data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+            }
+            break;
+        case 513:
+        default:
+            status = false;
+            data->error_class = ERROR_CLASS_PROPERTY;
+            data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+    }
+
+    return false;
+}
+
+/**
+ * @brief ReadProperty handler for this objects proprietary properties.
+ * For the given ReadProperty data, the application_data is loaded
+ * or the error code and class are set and the return value is
+ * BACNET_STATUS_ERROR.
+ * @param  data - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @return false if an error is loaded, true if no errors
+ */
+static int Read_Property_Proprietary(BACNET_READ_PROPERTY_DATA *data)
+{
+    int apdu_len = 0;
+    uint8_t *apdu = NULL;
+    size_t apdu_size = 0;
+    BACNET_OCTET_STRING octet_value = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 42;
+
+    if ((data == NULL) || (data->application_data == NULL) ||
+        (data->application_data_len == 0)) {
+        return 0;
+    }
+    /* none of our proprietary properties are arrays */
+    if (data->array_index != BACNET_ARRAY_ALL) {
+        data->error_class = ERROR_CLASS_PROPERTY;
+        data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return BACNET_STATUS_ERROR;
+    }
+    apdu = data->application_data;
+    apdu_size = data->application_data_len;
+    switch ((int)data->object_property) {
+        case 512:
+            octetstring_init(
+                &octet_value, Proprietary_Serial_Number,
+                sizeof(Proprietary_Serial_Number));
+            apdu_len = bacnet_octet_string_application_encode(
+                apdu, apdu_size, &octet_value);
+            break;
+        case 513:
+            apdu_len = bacnet_unsigned_application_encode(
+                apdu, apdu_size, unsigned_value);
+            break;
+        default:
+            data->error_class = ERROR_CLASS_PROPERTY;
+            data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            apdu_len = BACNET_STATUS_ERROR;
+            break;
+    }
+
+    return apdu_len;
+}
 
 /**
  * @brief Test ReadProperty API
@@ -35,6 +168,12 @@ static void test_Device_Data_Sharing(void)
     Device_Init(NULL);
     count = Device_Count();
     zassert_true(count > 0, NULL);
+
+    /* add some proprietary properties */
+    Device_Property_List_Proprietary_Callback_Set(Property_List_Proprietary);
+    Device_Read_Property_Proprietary_Callback_Set(Read_Property_Proprietary);
+    Device_Write_Property_Proprietary_Callback_Set(Write_Property_Proprietary);
+    /* configure for ReadProperty test */
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_DEVICE;
@@ -111,6 +250,40 @@ static void test_Device_Data_Sharing(void)
             }
         }
         pOptional++;
+    }
+    while ((*pProprietary) != -1) {
+        rpdata.object_property = *pProprietary;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = Device_Read_Property(&rpdata);
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
+            "property '%s': failed to ReadProperty!\n",
+            bactext_property_name(rpdata.object_property));
+        if (len > 0) {
+            test_len = bacapp_decode_known_property(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value, rpdata.object_type, rpdata.object_property);
+            zassert_equal(
+                test_len, len, "property '%s': ReadProperty decode failure!\n",
+                bactext_property_name(rpdata.object_property));
+            /* check WriteProperty properties */
+            wpdata.object_type = rpdata.object_type;
+            wpdata.object_instance = rpdata.object_instance;
+            wpdata.object_property = rpdata.object_property;
+            wpdata.array_index = rpdata.array_index;
+            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
+            wpdata.application_data_len = len;
+            wpdata.error_code = ERROR_CODE_SUCCESS;
+            status = Device_Write_Property(&wpdata);
+            if (!status) {
+                /* verify WriteProperty property is known */
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
+                    "property '%s': WriteProperty Unknown!\n",
+                    bactext_property_name(rpdata.object_property));
+            }
+        }
+        pProprietary++;
     }
 }
 
