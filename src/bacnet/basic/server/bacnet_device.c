@@ -979,7 +979,7 @@ bool Device_Property_Proprietary_Member(
     BACNET_PROPERTY_ID object_property)
 {
     bool status = false;
-    int32_t *proprietary_property_list = NULL;
+    const int32_t *proprietary_property_list = NULL;
 
     if (Property_List_Proprietary_Callback) {
         status = Property_List_Proprietary_Callback(
@@ -1054,7 +1054,7 @@ void Device_Objects_Property_List(
     struct special_property_list_t *pPropertyList)
 {
     struct object_functions *pObject = NULL;
-    int32_t *proprietary_property_list = NULL;
+    const int32_t *proprietary_property_list = NULL;
 
     (void)object_instance;
     pPropertyList->Required.pList = NULL;
@@ -1235,6 +1235,8 @@ void Device_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary)
 {
+    uint32_t instance;
+
     if (pRequired) {
         *pRequired = Device_Properties_Required;
     }
@@ -1242,7 +1244,16 @@ void Device_Property_Lists(
         *pOptional = Device_Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Device_Properties_Proprietary;
+        if (Property_List_Proprietary_Callback) {
+            instance = Device_Object_Instance_Number();
+            if (Property_List_Proprietary_Callback(
+                    OBJECT_DEVICE, instance, pProprietary)) {
+            } else {
+                *pProprietary = Device_Properties_Proprietary;
+            }
+        } else {
+            *pProprietary = Device_Properties_Proprietary;
+        }
     }
 
     return;
