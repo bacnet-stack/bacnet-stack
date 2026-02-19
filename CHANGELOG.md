@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-13
+## [Unreleased] - 2026-02-19
 
 ### Security
 
@@ -40,6 +40,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added octet and character string buffer codecs to used with fixed
+  size buffers that are not declared as BACNET_OCTET_STRING or BACNET_CHARACTER_STRING. (#1237)
 * Added CreateObject and DeleteObject for basic Accumulator objects and
   WriteProperty handling for object-name, scale, out-of-service, units,
   and max-pres-value. (#1234)
