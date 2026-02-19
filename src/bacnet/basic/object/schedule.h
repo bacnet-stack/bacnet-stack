@@ -147,6 +147,9 @@ BACNET_STACK_EXPORT
 void Schedule_Recalculate_PV(
     SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, const BACNET_TIME *time);
 
+BACNET_STACK_EXPORT
+void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

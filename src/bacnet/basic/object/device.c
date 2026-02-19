@@ -406,7 +406,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */, NULL /* Add_List_Element */,
         NULL /* Remove_List_Element */, NULL /* Create */, NULL /* Delete */,
-        NULL /* Timer */, Schedule_Writable_Property_List },
+        Schedule_Timer /* Timer */, Schedule_Writable_Property_List },
     { OBJECT_STRUCTURED_VIEW, Structured_View_Init, Structured_View_Count,
         Structured_View_Index_To_Instance, Structured_View_Valid_Instance,
         Structured_View_Object_Name, Structured_View_Read_Property,

@@ -16,8 +16,10 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/object/schedule.h"
+
+#define UNUSED(v) (void)(v)
 
 #ifndef MAX_SCHEDULES
 #define MAX_SCHEDULES 4
@@ -1027,30 +1029,58 @@ bool Schedule_In_Effective_Period(
 void Schedule_Recalculate_PV(
     SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, const BACNET_TIME *time)
 {
-    int i;
+    int i, current, diff;
+    BACNET_TIME *tmptime;
     desc->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
     /* for future development, here should be the loop for Exception Schedule */
 
     /*  Note to developers: please ping Edward at info@connect-ex.com
         for a more complete schedule object implementation. */
-    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count &&
-         desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL;
-         i++) {
-        int diff = datetime_wildcard_compare_time(
+    current = -1;
+    tmptime = NULL;
+    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count; i++) {
+        diff = datetime_wildcard_compare_time(
             time, &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time);
-        if (diff >= 0 &&
-            desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag !=
-                BACNET_APPLICATION_TAG_NULL) {
-            bacnet_primitive_to_application_data_value(
-                &desc->Present_Value,
-                &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value);
+        if (diff >= 0) {
+            if (tmptime == NULL) {
+                tmptime = &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time;
+                current = i;
+            } else {
+                diff = datetime_wildcard_compare_time(
+                    &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time,
+                    tmptime);
+                if (diff >= 0) {
+                    tmptime =
+                        &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time;
+                    current = i;
+                }
+            }
         }
     }
-
-    if (desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL) {
+    if (current >= 0) {
+        bacnet_primitive_to_application_data_value(
+            &desc->Present_Value,
+            &desc->Weekly_Schedule[wday - 1].Time_Values[current].Value);
+    } else {
         memcpy(
             &desc->Present_Value, &desc->Schedule_Default,
             sizeof(desc->Present_Value));
     }
+}
+
+/**
+ * @brief Updates the Present Value of the Schedule object
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - Unused parameter
+ */
+void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
+{
+    BACNET_DATE_TIME bdatetime;
+    UNUSED(milliseconds);
+
+    Device_getCurrentDateTime(&bdatetime);
+
+    Schedule_Recalculate_PV(
+        Schedule_Object(object_instance), bdatetime.date.wday, &bdatetime.time);
 }
