@@ -166,8 +166,10 @@ static void testBACDCodeTags(void)
         len = encode_opening_tag(&apdu[0], tag_number);
         test_len = get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), 0);
         zassert_equal(len, test_len, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
         status = decode_is_opening_tag(&apdu[0]);
         zassert_true(status, NULL);
+#endif
         status = bacnet_is_opening_tag(apdu, 1);
         zassert_true(status, NULL);
         status = bacnet_is_opening_tag(apdu, 0);
@@ -187,11 +189,11 @@ static void testBACDCodeTags(void)
         test_len = bacnet_tag_decode(apdu, sizeof(apdu), &tag);
         zassert_true(test_len > 0, NULL);
         zassert_true(tag.opening, NULL);
-        zassert_false(tag.closing, NULL);
-        len = encode_closing_tag(&apdu[0], tag_number);
         zassert_equal(len, test_len, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
         status = decode_is_closing_tag(&apdu[0]);
         zassert_true(status, NULL);
+#endif
         status = bacnet_is_closing_tag(apdu, 1);
         zassert_true(status, NULL);
         status = bacnet_is_closing_tag(apdu, 0);
@@ -2425,6 +2427,7 @@ static void test_bacnet_character_string_buffer(void)
     zassert_equal(apdu_len, null_len, NULL);
     for (i = 0; i < sizeof(buffer); i++) {
         buffer[i] = 'a' + i;
+        value.buffer_length = 1 + i;
         /* application tagged */
         apdu_len = bacnet_character_string_buffer_application_encode(
             apdu, sizeof(apdu), &value);

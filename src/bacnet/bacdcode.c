@@ -2404,20 +2404,23 @@ int bacnet_octet_string_buffer_decode(
     uint8_t *buffer,
     size_t buffer_size)
 {
-    uint32_t i;
+    size_t i;
+    size_t copy_len;
 
     if (len_value > apdu_size) {
         /* malformed */
         return BACNET_STATUS_ERROR;
     }
-    for (i = 0; i < buffer_size; i++) {
-        if (apdu && buffer) {
-            if (len_value <= apdu_size) {
-                buffer[i] = apdu[i];
-            } else {
-                /* pad the buffer */
-                buffer[i] = 0;
-            }
+
+    if (apdu && buffer && buffer_size > 0) {
+        /* copy only the available octets, up to the buffer size */
+        copy_len = (len_value < buffer_size) ? (size_t)len_value : buffer_size;
+        for (i = 0; i < copy_len; i++) {
+            buffer[i] = apdu[i];
+        }
+        /* pad any remaining buffer space with zeros */
+        for (i = copy_len; i < buffer_size; i++) {
+            buffer[i] = 0;
         }
     }
 
@@ -3204,6 +3207,10 @@ int encode_context_character_string_buffer(
     uint32_t tag_len;
 
     tag_len = encode_bacnet_character_string_buffer(NULL, char_string);
+    if (tag_len == 0) {
+        /* malformed, cannot be zero */
+        return 0;
+    }
     len = encode_tag(apdu, tag_number, true, tag_len);
     apdu_len += len;
     if (apdu) {
@@ -3221,7 +3228,6 @@ int encode_context_character_string_buffer(
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the bytes, or NULL for length
- * @param tag_number - context tag number to encode
  * @param char_string - the BACnet Character String to be encoded
  *
  * @return returns the number of apdu bytes consumed
@@ -3317,7 +3323,9 @@ int bacnet_character_string_buffer_context_encode(
  * @param len_value - number of bytes in the unsigned value encoding
  * @param value - the BACnetCharacterString buffer value to be encoded
  *
- * @return number of bytes decoded, or zero if malformed or overflow
+ * @return number of bytes decoded, or zero if malformed or APDU overflow.
+ *  String size overflow is detectable by the caller by comparing the
+ *  buffer size to the buffer length in the value.
  */
 int bacnet_character_string_buffer_decode(
     const uint8_t *apdu,
@@ -3389,7 +3397,7 @@ int bacnet_character_string_buffer_application_decode(
             apdu_len = len;
             len = bacnet_character_string_buffer_decode(
                 &apdu[len], apdu_size - apdu_len, tag.len_value_type, value);
-            if (len >= 0) {
+            if (len > 0) {
                 apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
@@ -3435,7 +3443,7 @@ int bacnet_character_string_buffer_context_decode(
             len = bacnet_character_string_buffer_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
                 value);
-            if (len >= 0) {
+            if (len > 0) {
                 apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
