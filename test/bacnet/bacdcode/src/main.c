@@ -190,6 +190,10 @@ static void testBACDCodeTags(void)
         zassert_true(test_len > 0, NULL);
         zassert_true(tag.opening, NULL);
         zassert_equal(len, test_len, NULL);
+        /* closing tag */
+        len = encode_closing_tag(&apdu[0], tag_number);
+        test_len = get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), 0);
+        zassert_equal(len, test_len, NULL);
 #if defined(BACNET_STACK_DEPRECATED_DISABLE)
         status = decode_is_closing_tag(&apdu[0]);
         zassert_true(status, NULL);
