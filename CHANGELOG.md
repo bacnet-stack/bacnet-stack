@@ -40,6 +40,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Add Host-N-Port minimal encode and decode which utilizes the octet
+  string and character string buffer encode and decode. (#1239)
 * Added octet and character string buffer codecs to used with fixed
   size buffers that are not declared as BACNET_OCTET_STRING or BACNET_CHARACTER_STRING. (#1237)
 * Added CreateObject and DeleteObject for basic Accumulator objects and
