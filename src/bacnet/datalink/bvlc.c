@@ -722,7 +722,6 @@ int bvlc_broadcast_distribution_table_decode(
             sizeof(bdt_entry->broadcast_mask.address));
         if (len > 0) {
             apdu_len += len;
-            bdt_entry->valid = true;
         } else {
             if (error_code) {
                 *error_code = ERROR_CODE_REJECT_INVALID_TAG;
