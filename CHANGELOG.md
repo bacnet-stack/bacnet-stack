@@ -40,6 +40,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Add Host-N-Port minimal encode and decode which utilizes the octet
+  string and character string buffer encode and decode. (#1239)
 * Added API for extending the basic Device object and children with
   proprietary properties for ReadProperty and WriteProperty services. (#1238)
 * Added octet and character string buffer codecs to used with fixed
