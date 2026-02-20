@@ -361,7 +361,8 @@ bool host_n_port_copy(BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT *src)
         dst->host_ip_address = src->host_ip_address;
         dst->host_name = src->host_name;
         if (src->host_ip_address) {
-            (void)octetstring_copy(&dst->host.ip_address, &src->host.ip_address);
+            (void)octetstring_copy(
+                &dst->host.ip_address, &src->host.ip_address);
         } else if (src->host_name) {
             (void)characterstring_copy(&dst->host.name, &src->host.name);
         }
