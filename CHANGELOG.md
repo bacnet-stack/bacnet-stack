@@ -16,6 +16,7 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BVLC decoder by replacing deprecated primitive decoder usage.(#1241)
 * Secured decoding length underflow in wp_decode_service_request() and
   bacnet_action_command_decode() which had similar issue. (#1231)
 * Secured Schedule_Weekly_Schedule_Set() the example schedule object
