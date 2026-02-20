@@ -141,9 +141,7 @@ void host_n_port_minimal_ip_init(
     size_t address_len);
 BACNET_STACK_EXPORT
 void host_n_port_minimal_hostname_init(
-    BACNET_HOST_N_PORT_MINIMAL *host,
-    uint16_t port,
-    const char *hostname);
+    BACNET_HOST_N_PORT_MINIMAL *host, uint16_t port, const char *hostname);
 BACNET_STACK_EXPORT
 int host_n_port_minimal_encode(
     uint8_t *apdu, const BACNET_HOST_N_PORT_MINIMAL *address);

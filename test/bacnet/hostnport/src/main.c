@@ -143,7 +143,6 @@ static void test_HostNPort(void)
     const char *dotted_ip = "192.168.1.1";
     const char *dotted_ip_port = "192.168.1.1:47808";
 
-
     /* none */
     test_HostNPortCodec(&data);
     /* IP Address */
@@ -162,7 +161,7 @@ static void test_HostNPort(void)
     test_HostNPortMinimal_Copy(&data);
 
     status = host_n_port_from_ascii(NULL, NULL);
-    zassert_false(status, NULL  );
+    zassert_false(status, NULL);
     status = host_n_port_from_ascii(NULL, dotted_ip);
     zassert_false(status, NULL);
     status = host_n_port_from_ascii(&data, NULL);
@@ -301,7 +300,7 @@ static void test_fdt_entry(void)
         apdu, apdu_len, 0, &error_code, &test_fdt_entry);
     zassert_equal(test_len, null_len, NULL);
     test_len = bacnet_fdt_entry_to_ascii(str, sizeof(str), &test_fdt_entry);
-    zassert_true(test_len > 0,"%s", str);
+    zassert_true(test_len > 0, "%s", str);
 
     status = bacnet_bdt_entry_from_ascii(NULL, NULL);
     zassert_false(status, NULL);
@@ -344,8 +343,8 @@ static void test_fdt_entry(void)
     apdu_len = bacnet_bdt_entry_context_encode(apdu, 0, &bdt_entry);
     zassert_equal(apdu_len, null_len, NULL);
     zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
-    null_len = bacnet_bdt_entry_context_decode(
-        apdu, apdu_len, 0, &error_code, NULL);
+    null_len =
+        bacnet_bdt_entry_context_decode(apdu, apdu_len, 0, &error_code, NULL);
     test_len = bacnet_bdt_entry_context_decode(
         apdu, apdu_len, 0, &error_code, &test_bdt_entry);
     zassert_equal(test_len, null_len, NULL);
