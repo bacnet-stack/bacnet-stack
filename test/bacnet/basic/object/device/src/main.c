@@ -20,8 +20,7 @@ static uint8_t Proprietary_Serial_Number[16] = {
 };
 
 /**
- * @brief Callback function type for fetching a property list for a given
- * object instance.
+ * @brief Test implementation that returns the proprietary properties list.
  * @param object_type [in] The BACNET_OBJECT_TYPE of the object instance
  *  to fetch the property list for.
  * @param object_instance [in] The object instance number of the object
@@ -75,25 +74,21 @@ static bool Write_Property_Proprietary(BACNET_WRITE_PROPERTY_DATA *data)
                     sizeof(Proprietary_Serial_Number), &octet_value);
                 status = true;
             } else if (apdu_len == 0) {
-                status = false;
                 data->error_class = ERROR_CLASS_PROPERTY;
                 data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-
             } else {
-                status = false;
                 data->error_class = ERROR_CLASS_PROPERTY;
                 data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
             }
             break;
         case 513:
         default:
-            status = false;
             data->error_class = ERROR_CLASS_PROPERTY;
             data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
-    return false;
+    return status;
 }
 
 /**
@@ -103,7 +98,7 @@ static bool Write_Property_Proprietary(BACNET_WRITE_PROPERTY_DATA *data)
  * BACNET_STATUS_ERROR.
  * @param  data - BACNET_READ_PROPERTY_DATA data, including
  * requested data and space for the reply, or error response.
- * @return false if an error is loaded, true if no errors
+ * @return number of bytes in the reply 0..N, or BACNET_STATUS_ERROR
  */
 static int Read_Property_Proprietary(BACNET_READ_PROPERTY_DATA *data)
 {
@@ -159,6 +154,7 @@ static void test_Device_Data_Sharing(void)
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     /* for decode value data */
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    struct special_property_list_t property_list = { 0 };
     const int32_t *pRequired = NULL;
     const int32_t *pOptional = NULL;
     const int32_t *pProprietary = NULL;
@@ -178,7 +174,13 @@ static void test_Device_Data_Sharing(void)
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_DEVICE;
     rpdata.object_instance = Device_Index_To_Instance(0);
-    Device_Property_Lists(&pRequired, &pOptional, &pProprietary);
+    /* get the property lists */
+    Device_Objects_Property_List(
+        OBJECT_DEVICE, rpdata.object_instance, &property_list);
+    pRequired = property_list.Required.pList;
+    pOptional = property_list.Optional.pList;
+    pProprietary = property_list.Proprietary.pList;
+    /* test the ReadProperty and WriteProperty handling for every property */
     while ((*pRequired) != -1) {
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;

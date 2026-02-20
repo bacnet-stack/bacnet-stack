@@ -835,8 +835,6 @@ void Device_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary)
 {
-    uint32_t instance;
-
     if (pRequired) {
         *pRequired = Device_Properties_Required;
     }
@@ -844,16 +842,7 @@ void Device_Property_Lists(
         *pOptional = Device_Properties_Optional;
     }
     if (pProprietary) {
-        if (Property_List_Proprietary_Callback) {
-            instance = Device_Object_Instance_Number();
-            if (Property_List_Proprietary_Callback(
-                    OBJECT_DEVICE, instance, pProprietary)) {
-            } else {
-                *pProprietary = Device_Properties_Proprietary;
-            }
-        } else {
-            *pProprietary = Device_Properties_Proprietary;
-        }
+        *pProprietary = Device_Properties_Proprietary;
     }
 
     return;
