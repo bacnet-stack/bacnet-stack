@@ -670,129 +670,65 @@ int bvlc_broadcast_distribution_table_encode(
 /**
  * @brief Decode the Broadcast-Distribution-Table for Network Port object
  * @param apdu - the APDU buffer
- * @param apdu_len - the APDU buffer length
+ * @param apdu_size - the APDU buffer length
  * @param bdt_head - head of a BDT linked list
  * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
  */
 int bvlc_broadcast_distribution_table_decode(
     const uint8_t *apdu,
-    uint16_t apdu_len,
+    uint16_t apdu_size,
     BACNET_ERROR_CODE *error_code,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
 {
-    int len = 0;
-    BACNET_OCTET_STRING octet_string = { 0 };
+    int len = 0, apdu_len = 0;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
-    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
 
     /* default reject code */
     if (error_code) {
         *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
     }
     /* check for value pointers */
-    if ((apdu_len == 0) || (!apdu)) {
+    if ((apdu_size == 0) || (!apdu)) {
         return BACNET_STATUS_REJECT;
     }
     bdt_entry = bdt_head;
     while (bdt_entry) {
-        /* bbmd-address [0] BACnetHostNPort - opening */
-        if (!decode_is_opening_tag_number(&apdu[len++], 0)) {
-            if (error_code) {
-                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        len = host_n_port_minimal_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, error_code, &host_n_port);
+        if (len > 0) {
+            apdu_len += len;
+            bdt_entry->dest_address.port = host_n_port.port;
+            if (host_n_port.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+                bdt_entry->valid = true;
+                bdt_entry->dest_address.address[0] =
+                    host_n_port.host.ip_address.address[0];
+                bdt_entry->dest_address.address[1] =
+                    host_n_port.host.ip_address.address[1];
+                bdt_entry->dest_address.address[2] =
+                    host_n_port.host.ip_address.address[2];
+                bdt_entry->dest_address.address[3] =
+                    host_n_port.host.ip_address.address[3];
+            } else {
+                bdt_entry->valid = false;
             }
-            return BACNET_STATUS_REJECT;
-        }
-        if (len > apdu_len) {
-            return BACNET_STATUS_REJECT;
-        }
-        /* host [0] BACnetHostAddress - opening */
-        if (!decode_is_opening_tag_number(&apdu[len++], 0)) {
-            if (error_code) {
-                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            }
-            return BACNET_STATUS_REJECT;
-        }
-        if (len > apdu_len) {
-            return BACNET_STATUS_REJECT;
-        }
-        /* CHOICE - ip-address [1] OCTET STRING */
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != 1) {
-            if (error_code) {
-                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            }
-            return BACNET_STATUS_REJECT;
-        }
-        len += decode_octet_string(&apdu[len], len_value_type, &octet_string);
-        if (len > apdu_len) {
-            return BACNET_STATUS_REJECT;
-        }
-        (void)octetstring_copy_value(
-            &bdt_entry->dest_address.address[0], IP_ADDRESS_MAX, &octet_string);
-        /*  host [0] BACnetHostAddress - closing */
-        if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
-            if (error_code) {
-                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            }
-            return BACNET_STATUS_REJECT;
-        }
-        if (len > apdu_len) {
-            return BACNET_STATUS_REJECT;
-        }
-        /* port [1] Unsigned16 */
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != 1) {
-            if (error_code) {
-                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            }
-            return BACNET_STATUS_REJECT;
-        }
-        len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
-        if (len > apdu_len) {
-            return BACNET_STATUS_REJECT;
-        }
-        if (unsigned_value <= UINT16_MAX) {
-            bdt_entry->dest_address.port = unsigned_value;
         } else {
-            if (error_code) {
-                *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
-            }
-            return BACNET_STATUS_REJECT;
-        }
-        /* bbmd-address [0] BACnetHostNPort - closing */
-        if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
-            if (error_code) {
-                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            }
-            return BACNET_STATUS_REJECT;
-        }
-        if (len > apdu_len) {
             return BACNET_STATUS_REJECT;
         }
         /* broadcast-mask [1] OCTET STRING */
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != 1) {
+        len = bacnet_octet_string_buffer_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 1,
+            bdt_entry->broadcast_mask.address,
+            sizeof(bdt_entry->broadcast_mask.address));
+        if (len > 0) {
+            apdu_len += len;
+            bdt_entry->valid = true;
+        } else {
             if (error_code) {
                 *error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
             return BACNET_STATUS_REJECT;
         }
-        if (len > apdu_len) {
-            return BACNET_STATUS_REJECT;
-        }
-        len += decode_octet_string(&apdu[len], len_value_type, &octet_string);
-        if (len > apdu_len) {
-            return BACNET_STATUS_REJECT;
-        }
-        (void)octetstring_copy_value(
-            &bdt_entry->broadcast_mask.address[0], IP_ADDRESS_MAX,
-            &octet_string);
-        bdt_entry->valid = true;
         /* next entry */
         bdt_entry = bdt_entry->next;
     }
