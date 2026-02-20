@@ -133,11 +133,39 @@ BACNET_STACK_EXPORT
 bool host_n_port_minimal_same(
     const BACNET_HOST_N_PORT_MINIMAL *dst,
     const BACNET_HOST_N_PORT_MINIMAL *src);
+BACNET_STACK_EXPORT
 void host_n_port_minimal_ip_init(
     BACNET_HOST_N_PORT_MINIMAL *host,
     uint16_t port,
     const uint8_t *address,
     size_t address_len);
+BACNET_STACK_EXPORT
+void host_n_port_minimal_hostname_init(
+    BACNET_HOST_N_PORT_MINIMAL *host,
+    uint16_t port,
+    const char *hostname);
+BACNET_STACK_EXPORT
+int host_n_port_minimal_encode(
+    uint8_t *apdu, const BACNET_HOST_N_PORT_MINIMAL *address);
+BACNET_STACK_EXPORT
+int host_n_port_minimal_address_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT_MINIMAL *address);
+BACNET_STACK_EXPORT
+int host_n_port_minimal_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT_MINIMAL *address);
+BACNET_STACK_EXPORT
+int host_n_port_minimal_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT_MINIMAL *address);
 
 BACNET_STACK_EXPORT
 bool host_n_port_same(

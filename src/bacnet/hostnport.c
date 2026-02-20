@@ -375,6 +375,296 @@ bool host_n_port_copy(BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT *src)
 }
 
 /**
+ * @brief Encode a BACnetHostNPort complex data type
+ *
+ *  BACnetHostNPort ::= SEQUENCE {
+ *      host [0] BACnetHostAddress,
+ *          BACnetHostAddress ::= CHOICE {
+ *              none [0] NULL,
+ *              ip-address [1] OCTET STRING,
+ *              -- 4 octets for B/IP or 16 octets for B/IPv6
+ *              name [2] CharacterString
+ *              -- Internet host name (see RFC 1123)
+ *          }
+ *      port [1] Unsigned16
+ *  }
+ *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param host - BACnetHostNPort SEQUENCE
+ * @return length of the encoded APDU buffer
+ */
+int host_n_port_minimal_encode(
+    uint8_t *apdu, const BACNET_HOST_N_PORT_MINIMAL *host)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_CHARACTER_STRING_BUFFER name = { 0 };
+
+    if (host) {
+        /*  host [0] BACnetHostAddress - opening */
+        len = encode_opening_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* BACnetHostAddress ::= CHOICE */
+        if (host->tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+            /* CHOICE - ip-address [1] OCTET STRING */
+            len = encode_context_octet_string_buffer(
+                apdu, 1, host->host.ip_address.address,
+                host->host.ip_address.length);
+        } else if (host->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+            /* CHOICE - name [2] CharacterString */
+            name.buffer = (char *)host->host.name.fqdn;
+            name.buffer_size = sizeof(host->host.name.fqdn);
+            name.buffer_length = host->host.name.length;
+            name.encoding = CHARACTER_ANSI_X34;
+            len = encode_context_character_string_buffer(apdu, 2, &name);
+        } else {
+            /* CHOICE - none [0] NULL */
+            len = encode_context_null(apdu, 0);
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /*  host [0] BACnetHostAddress - closing */
+        len = encode_closing_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* port [1] Unsigned16 */
+        len = encode_context_unsigned(apdu, 1, host->port);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief  Decode the BACnetHostAddress
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param error_code - error or reject or abort when error occurs
+ * @param address - BACnetHostAddress data
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_REJECT
+ */
+int host_n_port_minimal_address_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT_MINIMAL *address)
+{
+    int apdu_len = 0, len = 0;
+    uint8_t *buffer = NULL;
+    size_t buffer_size = 0;
+    BACNET_TAG tag = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER char_string = { 0 };
+
+    /* default reject code */
+    if (error_code) {
+        *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    }
+    len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
+    if (len <= 0) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    apdu_len += len;
+    if (tag.context && (tag.number == 0)) {
+        /* CHOICE - none [0] NULL */
+        if (address) {
+            address->tag = BACNET_HOST_ADDRESS_TAG_NONE;
+        }
+    } else if (tag.context && (tag.number == 1)) {
+        /* CHOICE - ip-address [1] OCTET STRING */
+        if (address) {
+            address->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
+            buffer = address->host.ip_address.address;
+            buffer_size = sizeof(address->host.ip_address.address);
+        }
+        len = bacnet_octet_string_buffer_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type, buffer,
+            buffer_size);
+        if (len < 0) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        if (address) {
+            address->host.ip_address.length = len;
+        }
+        apdu_len += len;
+    } else if (tag.context && (tag.number == 2)) {
+        if (address) {
+            address->tag = BACNET_HOST_ADDRESS_TAG_NAME;
+            char_string.buffer = address->host.name.fqdn;
+            char_string.buffer_size = sizeof(address->host.name.fqdn);
+            char_string.encoding = CHARACTER_ANSI_X34;
+            char_string.buffer_length = 0;
+        }
+        len = bacnet_character_string_buffer_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+            &char_string);
+        if (len == 0) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        apdu_len += len;
+    } else {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the BACnetHostNPort complex data
+ *
+ *  BACnetHostNPort ::= SEQUENCE {
+ *      host [0] BACnetHostAddress,
+ *          BACnetHostAddress ::= CHOICE {
+ *              none [0] NULL,
+ *              ip-address [1] OCTET STRING,
+ *              -- 4 octets for B/IP or 16 octets for B/IPv6
+ *              name [2] CharacterString
+ *              -- Internet host name (see RFC 1123)
+ *          }
+ *      port [1] Unsigned16
+ *  }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param error_code - error or reject or abort when error occurs
+ * @param host - BACnetHostNPort SEQUENCE
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
+int host_n_port_minimal_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT_MINIMAL *host)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+
+    /* default reject code */
+    if (error_code) {
+        *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    }
+    /* host [0] BACnetHostAddress - opening */
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    apdu_len += len;
+    /* BACnetHostAddress ::= CHOICE */
+    len = host_n_port_minimal_address_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, error_code, host);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_REJECT;
+    }
+    /*  host [0] BACnetHostAddress - closing */
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    apdu_len += len;
+    /* port [1] Unsigned16 */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+    if (len > 0) {
+        if (unsigned_value <= UINT16_MAX) {
+            if (host) {
+                host->port = unsigned_value;
+            }
+        } else {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+    } else {
+        if (error_code) {
+            if (len == 0) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            } else {
+                *error_code = ERROR_CODE_REJECT_OTHER;
+            }
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a context encoded BACnetHostNPort_Minimal complex data
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param tag_number - context tag number to be decoded
+ * @param error_code - error or reject or abort when error occurs
+ * @param value - BACnetHostNPort_Minimal structure
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
+int host_n_port_minimal_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT_MINIMAL *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = host_n_port_minimal_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, error_code, value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
  * @brief Initialize a BACnetHostNPort_Minimal structure for IP address
  * @param host - BACnetHostNPort_Minimal structure
  * @param port - port number
@@ -399,6 +689,32 @@ void host_n_port_minimal_ip_init(
         } else {
             for (i = 0; i < imax; i++) {
                 host->host.ip_address.address[i] = 0;
+            }
+        }
+        host->port = port;
+    }
+}
+
+/**
+ * @brief Initialize a BACnetHostNPort_Minimal structure for a FQDN hostname
+ * @param host - BACnetHostNPort_Minimal structure
+ * @param port - TCP/IP UDP port number
+ * @param hostname - FQDN hostname
+ */
+void host_n_port_minimal_hostname_init(
+    BACNET_HOST_N_PORT_MINIMAL *host, uint16_t port, const char *hostname)
+{
+    unsigned i;
+
+    if (host) {
+        host->tag = BACNET_HOST_ADDRESS_TAG_NAME;
+        host->host.name.length =
+            bacnet_strnlen(hostname, sizeof(host->host.name.fqdn));
+        for (i = 0; i < sizeof(host->host.name.fqdn); i++) {
+            if (hostname && (i < host->host.name.length)) {
+                host->host.name.fqdn[i] = hostname[i];
+            } else {
+                host->host.name.fqdn[i] = 0;
             }
         }
         host->port = port;
@@ -530,6 +846,12 @@ bool host_n_port_to_minimal(
     return status;
 }
 
+/**
+ * @brief Compare the BACnetHostNPort_Minimal complex data of src and dst
+ * @param dst - destination structure
+ * @param src - source structure
+ * @return true if both are the same
+ */
 bool host_n_port_minimal_same(
     const BACNET_HOST_N_PORT_MINIMAL *dst,
     const BACNET_HOST_N_PORT_MINIMAL *src)
@@ -625,6 +947,12 @@ bool host_n_port_from_ascii(BACNET_HOST_N_PORT *value, const char *argv)
     unsigned a[4] = { 0 }, p = 0;
     int count;
 
+    if (!argv) {
+        return false;
+    }
+    if (!value) {
+        return false;
+    }
     count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u", &a[0], &a[1], &a[2], &a[3], &p);
     if ((count == 4) || (count == 5)) {
         uint8_t address[4];
@@ -726,6 +1054,15 @@ int bacnet_bdt_entry_context_encode(
     return apdu_len;
 }
 
+/**
+ * @brief Decode a BDT entry
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param error_code - error or reject or abort when error occurs
+ * @param address - BDT entry
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
 int bacnet_bdt_entry_decode(
     const uint8_t *apdu,
     uint32_t apdu_size,
@@ -770,6 +1107,54 @@ int bacnet_bdt_entry_decode(
     if (len > 0) {
         apdu_len += len;
     }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a context tagged value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_number - context tag number to be encoded
+ * @param error_code - error or reject or abort when error occurs
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_bdt_entry_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_BDT_ENTRY *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_bdt_entry_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, error_code, value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
 
     return apdu_len;
 }
@@ -1098,7 +1483,9 @@ int bacnet_fdt_entry_decode(
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
     if ((len > 0) && (unsigned_value <= UINT16_MAX)) {
-        entry->time_to_live = unsigned_value;
+        if (entry) {
+            entry->time_to_live = unsigned_value;
+        }
         apdu_len += len;
     } else {
         if (error_code) {
@@ -1110,7 +1497,9 @@ int bacnet_fdt_entry_decode(
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
     if ((len > 0) && (unsigned_value <= UINT16_MAX)) {
-        entry->remaining_time_to_live = unsigned_value;
+        if (entry) {
+            entry->remaining_time_to_live = unsigned_value;
+        }
         apdu_len += len;
     } else {
         if (error_code) {
