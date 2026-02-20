@@ -26,6 +26,24 @@ struct special_property_list_t {
     struct property_list_t Proprietary;
 };
 
+/**
+ * @brief Callback function type for fetching a property list for a given
+ * object instance.
+ * @param object_type [in] The BACNET_OBJECT_TYPE of the object instance
+ *  to fetch the property list for.
+ * @param object_instance [in] The object instance number of the object
+ *  to fetch the property list for.
+ * @param pPropertyList [out] Pointer to a property list to be
+ *  filled with the property list for this object instance.
+ * @return True if the object instance is valid and the property list has been
+ *  filled in, false if the object instance is not valid or the property list
+ *  could not be filled in.
+ */
+typedef bool (*property_list_function)(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **property_list);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

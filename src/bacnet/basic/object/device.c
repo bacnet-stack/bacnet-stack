@@ -532,6 +532,69 @@ static object_functions_t My_Object_Table[] = {
 };
 /* clang-format on */
 
+/* Proprietary property callback functions to enable proprietary
+   properties while reusing the basic objects as-is. */
+static property_list_function Property_List_Proprietary_Callback;
+static write_property_function Write_Property_Proprietary_Callback;
+static read_property_function Read_Property_Proprietary_Callback;
+
+/**
+ * @brief Sets a callback used when the object supports proprietary properties.
+ * @param cb - callback used to provide proprietary properties service handling.
+ */
+void Device_Property_List_Proprietary_Callback_Set(property_list_function cb)
+{
+    Property_List_Proprietary_Callback = cb;
+}
+
+/**
+ * @brief Sets a callback used when the object supports proprietary properties.
+ * @param cb - callback used to provide proprietary properties service handling.
+ */
+void Device_Read_Property_Proprietary_Callback_Set(read_property_function cb)
+{
+    Read_Property_Proprietary_Callback = cb;
+}
+
+/**
+ * @brief Sets a callback used when the object supports proprietary properties.
+ * @param cb - callback used to provide proprietary properties service handling.
+ */
+void Device_Write_Property_Proprietary_Callback_Set(write_property_function cb)
+{
+    Write_Property_Proprietary_Callback = cb;
+}
+
+/**
+ * @brief Checks if the given property is a member of the proprietary property
+ *  list for the given object type and instance.
+ * @param object_type - the type of the object.
+ * @param object_instance - the instance number of the object.
+ * @param object_property - the property to check for membership in the
+ *  proprietary property list.
+ * @return true if the property is a member of the proprietary property list,
+ *  false otherwise.
+ */
+bool Device_Property_Proprietary_Member(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property)
+{
+    bool status = false;
+    const int32_t *proprietary_property_list = NULL;
+
+    if (Property_List_Proprietary_Callback) {
+        status = Property_List_Proprietary_Callback(
+            object_type, object_instance, &proprietary_property_list);
+    }
+    if (status) {
+        status =
+            property_list_member(proprietary_property_list, object_property);
+    }
+
+    return status;
+}
+
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
  * @ingroup ObjHelpers
@@ -593,6 +656,7 @@ void Device_Objects_Property_List(
     struct special_property_list_t *pPropertyList)
 {
     struct object_functions *pObject = NULL;
+    const int32_t *proprietary_property_list = NULL;
 
     (void)object_instance;
     pPropertyList->Required.pList = NULL;
@@ -620,6 +684,12 @@ void Device_Objects_Property_List(
         ? 0
         : property_list_count(pPropertyList->Optional.pList);
 
+    if (Property_List_Proprietary_Callback) {
+        if (Property_List_Proprietary_Callback(
+                object_type, object_instance, &proprietary_property_list)) {
+            pPropertyList->Proprietary.pList = proprietary_property_list;
+        }
+    }
     pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
         ? 0
         : property_list_count(pPropertyList->Proprietary.pList);
@@ -2305,8 +2375,17 @@ static int Read_Property_Common(
             rpdata, property_list.Required.pList, property_list.Optional.pList,
             property_list.Proprietary.pList);
 #endif
-    } else if (pObject->Object_Read_Property) {
-        apdu_len = pObject->Object_Read_Property(rpdata);
+    } else {
+        if (Read_Property_Proprietary_Callback &&
+            Device_Property_Proprietary_Member(
+                rpdata->object_type, rpdata->object_instance,
+                rpdata->object_property)) {
+            apdu_len = Read_Property_Proprietary_Callback(rpdata);
+        } else {
+            if (pObject->Object_Read_Property) {
+                apdu_len = pObject->Object_Read_Property(rpdata);
+            }
+        }
     }
 
     return apdu_len;
@@ -2755,7 +2834,14 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     status = Device_Write_Property_Object_Name(
                         wp_data, pObject->Object_Write_Property);
                 } else {
-                    status = pObject->Object_Write_Property(wp_data);
+                    if (Write_Property_Proprietary_Callback &&
+                        Device_Property_Proprietary_Member(
+                            wp_data->object_type, wp_data->object_instance,
+                            wp_data->object_property)) {
+                        status = Write_Property_Proprietary_Callback(wp_data);
+                    } else {
+                        status = pObject->Object_Write_Property(wp_data);
+                    }
                 }
                 if (status) {
                     Device_Write_Property_Store(wp_data);
