@@ -361,14 +361,12 @@ bool host_n_port_copy(BACNET_HOST_N_PORT *dst, const BACNET_HOST_N_PORT *src)
         dst->host_ip_address = src->host_ip_address;
         dst->host_name = src->host_name;
         if (src->host_ip_address) {
-            status =
-                octetstring_copy(&dst->host.ip_address, &src->host.ip_address);
+            (void)octetstring_copy(&dst->host.ip_address, &src->host.ip_address);
         } else if (src->host_name) {
-            status = characterstring_copy(&dst->host.name, &src->host.name);
-        } else {
-            status = true;
+            (void)characterstring_copy(&dst->host.name, &src->host.name);
         }
         dst->port = src->port;
+        status = true;
     }
 
     return status;
@@ -496,6 +494,12 @@ int host_n_port_minimal_address_decode(
             return BACNET_STATUS_REJECT;
         }
         if (address) {
+            if (len > buffer_size) {
+                if (error_code) {
+                    *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+                }
+                return BACNET_STATUS_REJECT;
+            }
             address->host.ip_address.length = len;
         }
         apdu_len += len;
@@ -515,6 +519,15 @@ int host_n_port_minimal_address_decode(
                 *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
             }
             return BACNET_STATUS_REJECT;
+        }
+        if (address) {
+            if (char_string.buffer_length > char_string.buffer_size) {
+                if (error_code) {
+                    *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+                }
+                return BACNET_STATUS_REJECT;
+            }
+            address->host.name.length = char_string.buffer_length;
         }
         apdu_len += len;
     } else {
@@ -680,8 +693,8 @@ void host_n_port_minimal_ip_init(
 
     if (host) {
         host->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
-        host->host.ip_address.length = address_len;
         imax = min(address_len, sizeof(host->host.ip_address.address));
+        host->host.ip_address.length = imax;
         if (address) {
             for (i = 0; i < imax; i++) {
                 host->host.ip_address.address[i] = address[i];
@@ -708,8 +721,12 @@ void host_n_port_minimal_hostname_init(
 
     if (host) {
         host->tag = BACNET_HOST_ADDRESS_TAG_NAME;
-        host->host.name.length =
-            bacnet_strnlen(hostname, sizeof(host->host.name.fqdn));
+        if (hostname) {
+            host->host.name.length =
+                bacnet_strnlen(hostname, sizeof(host->host.name.fqdn));
+        } else {
+            host->host.name.length = 0;
+        }
         for (i = 0; i < sizeof(host->host.name.fqdn); i++) {
             if (hostname && (i < host->host.name.length)) {
                 host->host.name.fqdn[i] = hostname[i];
@@ -825,22 +842,16 @@ bool host_n_port_to_minimal(
                 min(sizeof(dst->host.ip_address.address),
                     src->host.ip_address.length),
                 &src->host.ip_address);
-            if (dst->host.ip_address.length > 0) {
-                status = true;
-            }
         } else if (src->host_name) {
             dst->tag = BACNET_HOST_ADDRESS_TAG_NAME;
             dst->host.name.length = characterstring_copy_value(
                 dst->host.name.fqdn, sizeof(dst->host.name.fqdn),
                 &src->host.name);
-            if (dst->host.name.length > 0) {
-                status = true;
-            }
         } else {
             dst->tag = BACNET_HOST_ADDRESS_TAG_NONE;
-            status = true;
         }
         dst->port = src->port;
+        status = true;
     }
 
     return status;
@@ -1170,11 +1181,9 @@ bool bacnet_bdt_entry_copy(BACNET_BDT_ENTRY *dst, const BACNET_BDT_ENTRY *src)
     bool status = false;
 
     if (dst && src) {
-        status = host_n_port_copy(&dst->bbmd_address, &src->bbmd_address);
-        if (!status) {
-            status =
-                octetstring_copy(&dst->broadcast_mask, &src->broadcast_mask);
-        }
+        (void)host_n_port_copy(&dst->bbmd_address, &src->bbmd_address);
+        (void)octetstring_copy(&dst->broadcast_mask, &src->broadcast_mask);
+        status = true;
     }
 
     return status;
@@ -1575,10 +1584,10 @@ bool bacnet_fdt_entry_copy(BACNET_FDT_ENTRY *dst, const BACNET_FDT_ENTRY *src)
     bool status = false;
 
     if (dst && src) {
-        status =
-            octetstring_copy(&dst->bacnetip_address, &src->bacnetip_address);
+        octetstring_copy(&dst->bacnetip_address, &src->bacnetip_address);
         dst->time_to_live = src->time_to_live;
         dst->remaining_time_to_live = src->remaining_time_to_live;
+        status = true;
     }
 
     return status;

@@ -13,7 +13,7 @@
 #include <bacnet/hostnport.h>
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(create_object_tests, test_HostNPortMinimal_Init)
+ZTEST(host_n_port_tests, test_HostNPortMinimal_Init)
 #else
 static void test_HostNPortMinimal_Codec(void)
 #endif
@@ -51,6 +51,9 @@ static void test_HostNPortMinimal_Codec(void)
     zassert_equal(test_len, null_len, NULL);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    zassert_true(
+        host_n_port_minimal_same(&test_data_1, &test_data_2),
+        "test_data_1 != test_data_2");
     while (test_len) {
         test_len--;
         len = host_n_port_minimal_decode(apdu, test_len, NULL, NULL);
@@ -70,6 +73,9 @@ static void test_HostNPortMinimal_Codec(void)
     zassert_equal(test_len, null_len, NULL);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    zassert_true(
+        host_n_port_minimal_same(&test_data_1, &test_data_2),
+        "test_data_1 != test_data_2");
     while (test_len) {
         test_len--;
         len = host_n_port_minimal_decode(apdu, test_len, NULL, NULL);
@@ -133,7 +139,7 @@ static void test_HostNPortCodec(BACNET_HOST_N_PORT *data)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(create_object_tests, test_HostNPort)
+ZTEST(host_n_port_tests, test_HostNPort)
 #else
 static void test_HostNPort(void)
 #endif
@@ -175,7 +181,7 @@ static void test_HostNPort(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(create_object_tests, test_is_valid_hostname)
+ZTEST(host_n_port_tests, test_is_valid_hostname)
 #else
 static void test_is_valid_hostname(void)
 #endif
@@ -243,7 +249,7 @@ static void test_is_valid_hostname(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(create_object_tests, test_fdt_entry)
+ZTEST(host_n_port_tests, test_fdt_entry)
 #else
 static void test_fdt_entry(void)
 #endif
