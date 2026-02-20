@@ -1082,6 +1082,8 @@ int bacnet_bdt_entry_decode(
     BACNET_BDT_ENTRY *address)
 {
     int apdu_len = 0, len = 0;
+    BACNET_HOST_N_PORT *bbmd_address = NULL;
+    BACNET_OCTET_STRING *broadcast_mask = NULL;
 
     /* default reject code */
     if (error_code) {
@@ -1096,9 +1098,12 @@ int bacnet_bdt_entry_decode(
     }
     apdu_len += len;
     /* BACnetHostNPort ::= SEQUENCE */
+    if (address) {
+        bbmd_address = &address->bbmd_address;
+        broadcast_mask = &address->broadcast_mask;
+    }
     len = host_n_port_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, error_code,
-        &address->bbmd_address);
+        &apdu[apdu_len], apdu_size - apdu_len, error_code, bbmd_address);
     if (len > 0) {
         apdu_len += len;
     } else {
@@ -1115,7 +1120,7 @@ int bacnet_bdt_entry_decode(
     apdu_len += len;
     /* broadcast-mask [1] OCTET STRING */
     len = bacnet_octet_string_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 1, &address->broadcast_mask);
+        &apdu[apdu_len], apdu_size - apdu_len, 1, broadcast_mask);
     if (len > 0) {
         apdu_len += len;
     }
@@ -1476,14 +1481,18 @@ int bacnet_fdt_entry_decode(
 {
     int apdu_len = 0, len = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_OCTET_STRING *bacnetip_address = NULL;
 
     /* default reject code */
     if (error_code) {
         *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
     }
+    if (entry) {
+        bacnetip_address = &entry->bacnetip_address;
+    }
     /* bacnetip-address [0] OCTET STRING */
     len = bacnet_octet_string_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 0, &entry->bacnetip_address);
+        &apdu[apdu_len], apdu_size - apdu_len, 0, bacnetip_address);
     if (len > 0) {
         apdu_len += len;
     } else {
