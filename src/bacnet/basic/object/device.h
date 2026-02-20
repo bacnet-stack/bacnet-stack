@@ -16,11 +16,12 @@
 #include "bacnet/create_object.h"
 #include "bacnet/delete_object.h"
 #include "bacnet/list_element.h"
-#include "bacnet/wp.h"
+#include "bacnet/proplist.h"
 #include "bacnet/rd.h"
 #include "bacnet/rp.h"
 #include "bacnet/rpm.h"
 #include "bacnet/readrange.h"
+#include "bacnet/wp.h"
 
 /** Called so a BACnet object can perform any necessary initialization.
  * @ingroup ObjHelpers
@@ -455,6 +456,13 @@ BACNET_STACK_EXPORT
 bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 void Device_Write_Property_Store_Callback_Set(write_property_function cb);
+
+BACNET_STACK_EXPORT
+void Device_Property_List_Proprietary_Callback_Set(property_list_function cb);
+BACNET_STACK_EXPORT
+void Device_Read_Property_Proprietary_Callback_Set(read_property_function cb);
+BACNET_STACK_EXPORT
+void Device_Write_Property_Proprietary_Callback_Set(write_property_function cb);
 
 #if defined(INTRINSIC_REPORTING)
 BACNET_STACK_EXPORT

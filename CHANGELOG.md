@@ -42,8 +42,11 @@ The git repositories are hosted at the following sites:
 
 * Add Host-N-Port minimal encode and decode which utilizes the octet
   string and character string buffer encode and decode. (#1239)
+* Added API for extending the basic Device object and children with
+  proprietary properties for ReadProperty and WriteProperty services. (#1238)
 * Added octet and character string buffer codecs to used with fixed
-  size buffers that are not declared as BACNET_OCTET_STRING or BACNET_CHARACTER_STRING. (#1237)
+  size buffers that are not declared as BACNET_OCTET_STRING
+  or BACNET_CHARACTER_STRING. (#1237)
 * Added CreateObject and DeleteObject for basic Accumulator objects and
   WriteProperty handling for object-name, scale, out-of-service, units,
   and max-pres-value. (#1234)
@@ -148,6 +151,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the basic Schedule object to set the correct present-value
+  based on the Device object date and time. (#1236)
 * Fixed dlenv_init() for BACnet/SC. bsc_register_as_node() was blocking
   when the hub was not reachable. Added API so that BACnet/SC
   node can register via thread that is reponsible for connecting

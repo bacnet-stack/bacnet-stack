@@ -120,9 +120,6 @@ static const int32_t Properties_Optional[] = {
 
 /* handling for proprietary properties */
 static const int32_t Properties_Proprietary[] = { -1 };
-static const int32_t *Properties_Proprietary_Extended;
-static write_property_function Write_Property_Proprietary_Callback;
-static read_property_function Read_Property_Proprietary_Callback;
 
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
@@ -177,11 +174,7 @@ void Loop_Property_Lists(
         *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        if (Properties_Proprietary_Extended) {
-            *pProprietary = Properties_Proprietary_Extended;
-        } else {
-            *pProprietary = Properties_Proprietary;
-        }
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
@@ -215,35 +208,6 @@ static bool Loop_Property_Lists_Member(int object_property)
     Loop_Property_Lists(&pRequired, &pOptional, &pProprietary);
     return property_lists_member(
         pRequired, pOptional, pProprietary, object_property);
-}
-
-/**
- * @brief Set a  list of proprietary properties.
- * Used by ReadProperty/WriteProperty and Multiple services.
- * @param pProprietary - pointer to list of int terminated by -1, of
- * BACnet proprietary properties for this object.
- */
-void Loop_Proprietary_Property_List_Set(const int32_t *pProprietary)
-{
-    Properties_Proprietary_Extended = pProprietary;
-}
-
-/**
- * @brief Sets a callback used when the object supports proprietary properties.
- * @param cb - callback used to provide proprietary properties service handling.
- */
-void Loop_Read_Property_Proprietary_Callback_Set(read_property_function cb)
-{
-    Read_Property_Proprietary_Callback = cb;
-}
-
-/**
- * @brief Sets a callback used when the object supports proprietary properties.
- * @param cb - callback used to provide proprietary properties service handling.
- */
-void Loop_Write_Property_Proprietary_Callback_Set(write_property_function cb)
-{
-    Write_Property_Proprietary_Callback = cb;
 }
 
 /**
@@ -1627,13 +1591,9 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         default:
-            if (Read_Property_Proprietary_Callback) {
-                apdu_len = Read_Property_Proprietary_Callback(rpdata);
-            } else {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-                apdu_len = BACNET_STATUS_ERROR;
-            }
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
     }
 
@@ -1958,12 +1918,8 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (Loop_Property_Lists_Member(wp_data->object_property)) {
-                if (Write_Property_Proprietary_Callback) {
-                    status = Write_Property_Proprietary_Callback(wp_data);
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                }
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
