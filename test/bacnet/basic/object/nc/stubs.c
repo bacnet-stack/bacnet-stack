@@ -11,12 +11,8 @@
 #include "bacnet/datetime.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
+#include "bacnet/basic/npdu/h_npdu.h"
 #include "bacnet/basic/object/nc.h"
-
-uint32_t Device_Object_Instance_Number(void)
-{
-    return 0;
-}
 
 int Send_UEvent_Notify(
     uint8_t *buffer,
@@ -43,15 +39,14 @@ void Send_WhoIs(int32_t low_limit, int32_t high_limit)
     (void)high_limit;
 }
 
-bool datetime_local(
-    BACNET_DATE *bdate,
-    BACNET_TIME *btime,
-    int16_t *utc_offset_minutes,
-    bool *dst_active)
+void Send_Who_Is_Router_To_Network(BACNET_ADDRESS *dst, int dnet)
 {
-    (void)bdate;
-    (void)btime;
-    (void)utc_offset_minutes;
-    (void)dst_active;
-    return true;
+    (void)dst;
+    (void)dnet;
+}
+
+void npdu_set_i_am_router_to_network_handler(
+    i_am_router_to_network_function pFunction)
+{
+    (void)pFunction;
 }
