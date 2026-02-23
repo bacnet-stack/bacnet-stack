@@ -238,6 +238,11 @@ static void test_BACnetRecipient_ASCII(void)
     zassert_true(status, "ascii=%s", ascii);
     status = bacnet_recipient_same(&value, &test_value);
     zassert_true(status, NULL);
+    status = bacnet_recipient_address_router_unknown(&value);
+    zassert_false(status, NULL);
+    value.type.address.len = 0;
+    status = bacnet_recipient_address_router_unknown(&value);
+    zassert_true(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

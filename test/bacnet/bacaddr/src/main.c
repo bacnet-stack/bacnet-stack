@@ -150,6 +150,11 @@ static void test_BACNET_ADDRESS(void)
     zassert_equal(dest.mac_len, 0, NULL);
     zassert_equal(dest.len, 0, NULL);
     zassert_equal(dest.net, 0, NULL);
+    /* copy the MAC to the ADR */
+    bacnet_address_from_ascii(&src, "{192.168.1.1:47808,0,0}");
+    zassert_equal(src.mac_len, 6, "len=%d", src.mac_len);
+    bacnet_address_mac_to_adr(&dest, &src);
+    zassert_equal(dest.len, 6, "len=%d", dest.len);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
