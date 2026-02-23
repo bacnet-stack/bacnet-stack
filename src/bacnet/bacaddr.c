@@ -204,6 +204,23 @@ bool bacnet_address_init(
 }
 
 /**
+ * @brief Copy a #BACNET_ADDRESS MAC of the src to the ADR of the dest
+ * @param dest - #BACNET_ADDRESS ADR to be copied into
+ * @param src -  #BACNET_ADDRESS MAC to be copied from
+ */
+void bacnet_address_mac_to_adr(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
+{
+    int i = 0;
+
+    if (dest && src) {
+        dest->len = src->mac_len;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->adr[i] = src->mac[i];
+        }
+    }
+}
+
+/**
  * @brief Compare two #BACNET_MAC_ADDRESS values
  * @param dest - #BACNET_MAC_ADDRESS to be compared
  * @param src -  #BACNET_MAC_ADDRESS to be compared

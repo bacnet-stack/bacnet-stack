@@ -90,6 +90,33 @@ void Notification_Class_Writable_Property_List(
     }
 }
 
+/**
+ * @brief Handle I-Am router to network for out of network recipients
+ * @param src - source address of the router
+ * @param network - network number of the router
+ */
+static void Notification_Class_I_Am_Router_To_Network_Handler(
+    BACNET_ADDRESS *src, uint16_t network)
+{
+    NOTIFICATION_CLASS_INFO *notification;
+    BACNET_DESTINATION *destination;
+    BACNET_RECIPIENT *recipient;
+    unsigned i, j;
+
+    for (i = 0; i < MAX_NOTIFICATION_CLASSES; i++) {
+        notification = &NC_Info[i];
+        for (j = 0; j < NC_MAX_RECIPIENTS; j++) {
+            destination = &notification->Recipient_List[j];
+            recipient = &destination->Recipient;
+            /* update recipient addresses for this network */
+            if ((recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) &&
+                (recipient->type.address.net == network)) {
+                bacnet_address_mac_to_adr(&recipient->type.address, src);
+            }
+        }
+    }
+}
+
 void Notification_Class_Init(void)
 {
     uint8_t NotifyIdx = 0;
@@ -111,6 +138,8 @@ void Notification_Class_Init(void)
             bacnet_destination_default_init(destination);
         }
     }
+    npdu_set_i_am_router_to_network_handler(
+        Notification_Class_I_Am_Router_To_Network_Handler);
 
     return;
 }
@@ -764,6 +793,9 @@ void Notification_Class_find_recipient(void)
                         address of device is unknown. */
                     Send_WhoIs(device_id, device_id);
                 }
+            } else if (bacnet_recipient_address_router_unknown(recipient)) {
+                Send_Who_Is_Router_To_Network(
+                    NULL, recipient->type.address.net);
             }
         }
     }

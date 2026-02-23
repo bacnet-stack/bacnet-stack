@@ -126,6 +126,27 @@ void bacnet_recipient_address_set(
 }
 
 /**
+ * @brief Inspect the BACnetRecipient data structure for valid router address
+ * @param recipient - BACnetRecipient structure
+ * @return true if BACnetRecipient is a valid address
+ */
+bool bacnet_recipient_address_router_unknown(const BACNET_RECIPIENT *recipient)
+{
+    bool status = false;
+
+    if (recipient) {
+        if ((recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) &&
+            (recipient->type.address.net != 0) &&
+            (recipient->type.address.net != BACNET_BROADCAST_NETWORK) &&
+            (recipient->type.address.len == 0)) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief Copy the BACnetRecipient complex data from src to dest
  * @param src - BACnetRecipient 1 structure
  * @param dest - BACnetRecipient 2 structure
