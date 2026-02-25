@@ -111,7 +111,7 @@ static void Notification_Class_I_Am_Router_To_Network_Handler(
             /* update recipient addresses for this network */
             if ((recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) &&
                 (recipient->type.address.net == network)) {
-                bacnet_address_mac_to_adr(&recipient->type.address, src);
+                bacnet_address_router_set(&recipient->type.address, src);
             }
         }
     }
@@ -756,12 +756,11 @@ void Notification_Class_common_reporting_function(
                     "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */
+                bacnet_address_copy(&dest, &pBacDest->Recipient.type.address);
                 if (pBacDest->ConfirmedNotify == true) {
-                    if (address_get_device_id(&dest, &device_id)) {
-                        Send_CEvent_Notify(device_id, event_data);
-                    }
+                    Send_CEvent_Notify_Address(
+                        Event_Buffer, sizeof(Event_Buffer), event_data, &dest);
                 } else {
-                    dest = pBacDest->Recipient.type.address;
                     Send_UEvent_Notify(Event_Buffer, event_data, &dest);
                 }
             }

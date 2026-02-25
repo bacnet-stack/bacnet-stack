@@ -2438,6 +2438,7 @@ int bacnet_octet_string_buffer_decode(
  *  or NULL for length only.
  * @param buffer_size - number of bytes in the buffer where the
  *  decoded value is stored
+ * @param buffer_length - number of bytes decoded into the buffer
  *
  * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
@@ -2446,7 +2447,8 @@ int bacnet_octet_string_buffer_application_decode(
     const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t *buffer,
-    size_t buffer_size)
+    size_t buffer_size,
+    uint32_t *buffer_length)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     int len = 0;
@@ -2464,6 +2466,9 @@ int bacnet_octet_string_buffer_application_decode(
                 &apdu[len], apdu_size - apdu_len, tag.len_value_type, buffer,
                 buffer_size);
             if (len >= 0) {
+                if (buffer_length) {
+                    *buffer_length = tag.len_value_type;
+                }
                 apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
@@ -2488,6 +2493,7 @@ int bacnet_octet_string_buffer_application_decode(
  *  or NULL for length only.
  * @param buffer_size - number of bytes in the buffer where the
  *  decoded value is stored
+ * @param buffer_length - number of bytes decoded into the buffer
  *
  * @return  number of bytes decoded, or zero if tag mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
@@ -2497,7 +2503,8 @@ int bacnet_octet_string_buffer_context_decode(
     uint32_t apdu_size,
     uint8_t tag_value,
     uint8_t *buffer,
-    size_t buffer_size)
+    size_t buffer_size,
+    uint32_t *buffer_length)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     int len = 0;
@@ -2514,6 +2521,9 @@ int bacnet_octet_string_buffer_context_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
                 buffer, buffer_size);
             if (len >= 0) {
+                if (buffer_length) {
+                    *buffer_length = tag.len_value_type;
+                }
                 apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
@@ -3454,6 +3464,65 @@ int bacnet_character_string_buffer_context_decode(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Initializes a BACnet Character String buffer value
+ *
+ * @param value - the BACnet Character String buffer value to be initialized
+ * @param encoding - pointer to the BACnet Character String encoding value
+ * @param buffer - pointer to the buffer to hold the string value
+ * @param buffer_length - pointer to hold the buffer length
+ * @param buffer_size - size of the buffer in bytes
+ */
+void bacnet_character_string_buffer_init(
+    BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t encoding,
+    char *buffer,
+    size_t buffer_size)
+{
+    if (value) {
+        value->encoding = encoding;
+        value->buffer = buffer;
+        value->buffer_size = buffer_size;
+        value->buffer_length = 0;
+    }
+}
+
+/**
+ * @brief Unpacks a BACnet Character String buffer value from bytes
+ *
+ * @param value - the BACnet Character String buffer value to be unpacked
+ * @param encoding - pointer to the BACnet Character String encoding value
+ * @param buffer - pointer to the buffer to hold the string value
+ * @param buffer_length - pointer to hold the buffer length
+ *
+ * @return true if unpacked successfully, false if errors occur
+ */
+bool bacnet_character_string_buffer_unpack(
+    const BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t *encoding,
+    char *buffer,
+    uint32_t *buffer_length)
+{
+    if (value) {
+        if (value->buffer_length > value->buffer_size) {
+            /* fail if buffer length is greater than buffer size */
+            return false;
+        }
+        if (encoding) {
+            *encoding = value->encoding;
+        }
+        if (buffer_length) {
+            *buffer_length = value->buffer_length;
+        }
+        if (buffer && value->buffer && value->buffer_length) {
+            memcpy(buffer, value->buffer, value->buffer_length);
+        }
+        return true;
+    }
+
+    return false;
 }
 
 /**

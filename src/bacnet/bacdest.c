@@ -138,7 +138,8 @@ bool bacnet_recipient_address_router_unknown(const BACNET_RECIPIENT *recipient)
         if ((recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) &&
             (recipient->type.address.net != 0) &&
             (recipient->type.address.net != BACNET_BROADCAST_NETWORK) &&
-            (recipient->type.address.len == 0)) {
+            (recipient->type.address.len != 0) &&
+            (recipient->type.address.mac_len == 0)) {
             status = true;
         }
     }

@@ -153,8 +153,9 @@ static void test_BACNET_ADDRESS(void)
     /* copy the MAC to the ADR */
     bacnet_address_from_ascii(&src, "{192.168.1.1:47808,0,0}");
     zassert_equal(src.mac_len, 6, "len=%d", src.mac_len);
-    bacnet_address_mac_to_adr(&dest, &src);
-    zassert_equal(dest.len, 6, "len=%d", dest.len);
+    bacnet_address_router_set(&dest, &src);
+    zassert_equal(dest.mac_len, 6, "len=%d", dest.mac_len);
+    zassert_equal(dest.len, 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -287,13 +288,13 @@ static void test_BACnetAddress_Codec(void)
     zassert_equal(len, test_len, "len=%d test_len=%d", len, test_len);
     test_len = bacnet_address_decode(apdu, sizeof(apdu), &test_value);
     zassert_equal(len, test_len, NULL);
-    zassert_equal(value.net, test_value.net, NULL);
-    zassert_equal(value.mac_len, test_value.mac_len, NULL);
-    zassert_equal(value.len, test_value.len, NULL);
-    zassert_equal(value.len, 3, NULL);
-    zassert_equal(value.adr[0], test_value.adr[0], NULL);
-    zassert_equal(value.adr[1], test_value.adr[1], NULL);
-    zassert_equal(value.adr[2], test_value.adr[2], NULL);
+    zassert_equal(test_value.net, value.net, NULL);
+    zassert_equal(test_value.len, value.len, NULL);
+    zassert_equal(test_value.len, 3, NULL);
+    zassert_equal(test_value.adr[0], value.adr[0], NULL);
+    zassert_equal(test_value.adr[1], value.adr[1], NULL);
+    zassert_equal(test_value.adr[2], value.adr[2], NULL);
+    zassert_equal(test_value.mac_len, 0, NULL);
     /* context tagged */
     tag_number = 1;
     len = encode_context_bacnet_address(NULL, tag_number, &value);
@@ -304,17 +305,21 @@ static void test_BACnetAddress_Codec(void)
     test_len = bacnet_address_context_decode(
         apdu, sizeof(apdu), tag_number, &test_value);
     zassert_equal(len, test_len, NULL);
-    zassert_equal(value.net, test_value.net, NULL);
-    zassert_equal(value.mac_len, test_value.mac_len, NULL);
-    zassert_equal(value.mac_len, 6, NULL);
+    zassert_equal(test_value.len, value.len, NULL);
+    zassert_equal(test_value.len, 3, NULL);
+    zassert_equal(test_value.adr[0], value.adr[0], NULL);
+    zassert_equal(test_value.adr[1], value.adr[1], NULL);
+    zassert_equal(test_value.adr[2], value.adr[2], NULL);
+    zassert_equal(test_value.mac_len, 0, NULL);
     /* validate deprecated function */
     test_len = decode_context_bacnet_address(apdu, tag_number, &test_value);
     zassert_equal(len, test_len, NULL);
-    zassert_equal(value.net, test_value.net, NULL);
-    zassert_equal(value.mac_len, test_value.mac_len, NULL);
-    zassert_equal(value.mac_len, 6, NULL);
-    test_len = bacnet_address_context_decode(
-        apdu, sizeof(apdu), tag_number, &test_value);
+    zassert_equal(test_value.len, value.len, NULL);
+    zassert_equal(test_value.len, 3, NULL);
+    zassert_equal(test_value.adr[0], value.adr[0], NULL);
+    zassert_equal(test_value.adr[1], value.adr[1], NULL);
+    zassert_equal(test_value.adr[2], value.adr[2], NULL);
+    zassert_equal(test_value.mac_len, 0, NULL);
     /* negative tests - NULL value */
     test_len =
         bacnet_address_context_decode(apdu, sizeof(apdu), tag_number, NULL);

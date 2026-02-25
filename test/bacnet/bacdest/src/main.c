@@ -240,7 +240,7 @@ static void test_BACnetRecipient_ASCII(void)
     zassert_true(status, NULL);
     status = bacnet_recipient_address_router_unknown(&value);
     zassert_false(status, NULL);
-    value.type.address.len = 0;
+    value.type.address.mac_len = 0;
     status = bacnet_recipient_address_router_unknown(&value);
     zassert_true(status, NULL);
 }
