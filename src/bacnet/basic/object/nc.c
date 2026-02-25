@@ -111,7 +111,7 @@ static void Notification_Class_I_Am_Router_To_Network_Handler(
             /* update recipient addresses for this network */
             if ((recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) &&
                 (recipient->type.address.net == network)) {
-                bacnet_address_mac_to_adr(&recipient->type.address, src);
+                bacnet_address_router_set(&recipient->type.address, src);
             }
         }
     }
