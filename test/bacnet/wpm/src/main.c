@@ -54,7 +54,7 @@ static void testWritePropertyMultiple(void)
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     uint8_t invoke_id = 1;
     uint8_t test_invoke_id = 0;
-    int apdu_len = 0;
+    int apdu_len = 0, null_len = 0;
     int len = 0;
     uint8_t apdu[480] = { 0 };
     int offset = 0;
@@ -125,8 +125,11 @@ static void testWritePropertyMultiple(void)
                 (3) an optional 'Property Array Index'
                 (4) a 'Property Value'
                 (5) an optional 'Priority' */
+            null_len = wpm_decode_object_property(
+                &apdu[offset], apdu_len - offset, NULL);
             len = wpm_decode_object_property(
                 &apdu[offset], apdu_len - offset, &wp_data);
+            zassert_equal(len, null_len, NULL);
             zassert_not_equal(len, 0, NULL);
             offset += len;
             printf(

@@ -183,9 +183,13 @@ int wpm_decode_object_property(
         imax = (apdu_size - apdu_len);
     }
     for (i = 0; i < imax; i++) {
-        wp_data->application_data[i] = apdu[apdu_len + i];
+        if (wp_data) {
+            wp_data->application_data[i] = apdu[apdu_len + i];
+        }
     }
-    wp_data->application_data_len = imax;
+    if (wp_data) {
+        wp_data->application_data_len = imax;
+    }
     apdu_len += imax;
     len = bacnet_is_closing_tag_number(
         &apdu[apdu_len], apdu_size - apdu_len, 2, &len);
