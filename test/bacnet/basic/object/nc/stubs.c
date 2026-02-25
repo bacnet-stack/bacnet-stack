@@ -14,6 +14,19 @@
 #include "bacnet/basic/npdu/h_npdu.h"
 #include "bacnet/basic/object/nc.h"
 
+uint8_t Send_CEvent_Notify_Address(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
+    BACNET_ADDRESS *dest)
+{
+    (void)pdu;
+    (void)pdu_size;
+    (void)data;
+    (void)dest;
+    return 0;
+}
+
 int Send_UEvent_Notify(
     uint8_t *buffer,
     const BACNET_EVENT_NOTIFICATION_DATA *data,
