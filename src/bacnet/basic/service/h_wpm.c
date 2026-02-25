@@ -45,6 +45,7 @@ static int write_property_multiple_decode(
 {
     int len = 0;
     int offset = 0;
+    int tag_len = 0;
     uint8_t tag_number = 0;
 
     /* decode service request */
@@ -54,7 +55,9 @@ static int write_property_multiple_decode(
         if (len > 0) {
             offset += len;
             /* Opening tag 1 - List of Properties */
-            if (decode_is_opening_tag_number(&apdu[offset++], 1)) {
+            if (bacnet_is_opening_tag_number(
+                    &apdu[offset], apdu_len - offset, 1, &tag_len)) {
+                offset += tag_len;
                 do {
                     /* decode a 'Property Identifier':
                       (3) an optional 'Property Array Index'
@@ -85,9 +88,10 @@ static int write_property_multiple_decode(
                         return len;
                     }
                     /* Closing tag 1 - List of Properties */
-                    if (decode_is_closing_tag_number(&apdu[offset], 1)) {
+                    if (bacnet_is_closing_tag_number(
+                            &apdu[offset], apdu_len - offset, 1, &len)) {
                         tag_number = 1;
-                        offset++;
+                        offset += len;
                     } else {
                         /* it was not tag 1, decode next Property Identifier */
                         tag_number = 0;
@@ -101,7 +105,7 @@ static int write_property_multiple_decode(
         }
     } while (offset < apdu_len);
 
-    return len;
+    return offset;
 }
 
 /** Handler for a WriteProperty Service request.

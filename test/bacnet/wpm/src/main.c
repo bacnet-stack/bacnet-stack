@@ -148,6 +148,43 @@ static void testWritePropertyMultiple(void)
         } while (tag_number != 1);
     } while (offset < apdu_len);
 }
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyMultiple_ACK)
+#else
+static void testWritePropertyMultiple_ACK(void)
+#endif
+{
+    uint8_t invoke_id = 1;
+    int len = 0, apdu_len = 0, null_len = 0;
+    uint8_t apdu[480] = { 0 };
+    BACNET_WRITE_PROPERTY_DATA data = { 0 }, test_data = { 0 };
+
+    len = wpm_ack_encode_apdu_init(apdu, invoke_id);
+    zassert_equal(len, 3, NULL);
+    zassert_equal(apdu[0], PDU_TYPE_SIMPLE_ACK, NULL);
+    zassert_equal(apdu[1], invoke_id, NULL);
+
+    null_len = wpm_error_ack_encode_apdu(NULL, invoke_id, &data);
+    apdu_len = wpm_error_ack_encode_apdu(apdu, invoke_id, &data);
+    zassert_not_equal(apdu_len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_equal(apdu[0], PDU_TYPE_ERROR, NULL);
+    zassert_equal(apdu[1], invoke_id, NULL);
+
+    null_len = wpm_error_ack_service_encode(NULL, &data);
+    apdu_len = wpm_error_ack_service_encode(apdu, &data);
+    zassert_not_equal(apdu_len, BACNET_STATUS_ERROR, NULL);
+    len = wpm_error_ack_decode_apdu(apdu, apdu_len, &test_data);
+    zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(
+        test_data.error_class, data.error_class, "class=%u test-class=%u",
+        test_data.error_class, data.error_class);
+    zassert_equal(
+        test_data.error_code, data.error_code, "code=%u test-code=%u",
+        test_data.error_code, data.error_code);
+}
+
 /**
  * @}
  */
@@ -157,7 +194,9 @@ ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(wp_tests, ztest_unit_test(testWritePropertyMultiple));
+    ztest_test_suite(
+        wp_tests, ztest_unit_test(testWritePropertyMultiple),
+        ztest_unit_test(testWritePropertyMultiple_ACK));
 
     ztest_run_test_suite(wp_tests);
 }
