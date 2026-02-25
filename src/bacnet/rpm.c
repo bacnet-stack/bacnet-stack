@@ -372,6 +372,7 @@ int rpm_decode_object_property(
             if (rpmdata) {
                 rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
+            return BACNET_STATUS_REJECT;
         }
     }
 
