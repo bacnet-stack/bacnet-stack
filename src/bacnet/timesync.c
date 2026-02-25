@@ -15,6 +15,38 @@
 #include "bacnet/timesync.h"
 
 #if BACNET_SVC_TS_A
+/**
+ * @brief Encode the time synchronisation service.
+ *
+ * TimeSynchronization-Request ::= SEQUENCE {
+ *   time BACnetDateTime
+ * }
+ *
+ * @param apdu [in] Buffer in which the APDU contents are written
+ * @param service [in] Time service that shall be encoded, like
+ *                     SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION.
+ * @param my_date [in] Pointer to the date structure used to encode.
+ * @param my_time [in] Pointer to the time structure used to encode.
+ *
+ * @return Count of encoded bytes.
+ */
+int timesync_encode_apdu_service_paramters(
+    uint8_t *apdu, const BACNET_DATE *my_date, const BACNET_TIME *my_time)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    len = encode_application_date(apdu, my_date);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_application_time(apdu, my_time);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
 /** Encode the time synchronisation service.
  *
  * @param apdu [in] Buffer in which the APDU contents are written
@@ -34,15 +66,17 @@ int timesync_encode_apdu_service(
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    if (apdu && my_date && my_time) {
+    if (apdu) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = service;
-        apdu_len = 2;
-        len = encode_application_date(&apdu[apdu_len], my_date);
-        apdu_len += len;
-        len = encode_application_time(&apdu[apdu_len], my_time);
-        apdu_len += len;
     }
+    len = 2;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = timesync_encode_apdu_service_paramters(apdu, my_date, my_time);
+    apdu_len += len;
 
     return apdu_len;
 }
@@ -81,7 +115,7 @@ int timesync_encode_apdu(
 /** Decode the service request only.
  *
  * @param apdu [in] Buffer in which the APDU contents are read
- * @param apdu_len [in] length of the APDU buffer.
+ * @param apdu_size [in] length of the APDU buffer.
  * @param my_date [in] Pointer to the date structure filled in.
  * @param my_time [in] Pointer to the time structure filled in.
  *
@@ -89,40 +123,29 @@ int timesync_encode_apdu(
  */
 int timesync_decode_service_request(
     const uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_size,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
 {
-    int len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value = 0;
+    int len = 0, apdu_len = 0;
 
-    if (apdu_len && my_date && my_time) {
-        /* date */
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if (tag_number == BACNET_APPLICATION_TAG_DATE) {
-            if ((unsigned)(len + 4) <= apdu_len) {
-                len += decode_date(&apdu[len], my_date);
-            } else {
-                return -1;
-            }
-        } else {
-            return -1;
-        }
-        /* time */
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if (tag_number == BACNET_APPLICATION_TAG_TIME) {
-            if ((unsigned)(len + 4) <= apdu_len) {
-                len += decode_bacnet_time(&apdu[len], my_time);
-            } else {
-                return -1;
-            }
-        } else {
-            return -1;
-        }
+    if (!(apdu && apdu_size)) {
+        return BACNET_STATUS_ERROR;
     }
+    len = bacnet_date_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, my_date);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_time_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, my_time);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
 
-    return len;
+    return apdu_len;
 }
 
 /** Handle a request to encode the list of timesync recipients.
@@ -244,89 +267,103 @@ int timesync_encode_timesync_recipients(
  *   BACNET_STATUS_ABORT if there was a problem decoding the buffer
  */
 int timesync_decode_timesync_recipients(
-    const uint8_t *apdu, unsigned max_apdu, BACNET_RECIPIENT_LIST *recipient)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_RECIPIENT_LIST *recipient)
 {
     int len = 0;
     int apdu_len = 0;
-    int tag_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    uint16_t network_number = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-    BACNET_OCTET_STRING octet_string;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_OCTET_STRING_BUFFER octet_string;
     BACNET_RECIPIENT_LIST *pRecipient;
 
-    if ((!apdu) || (max_apdu < 1) || (!recipient)) {
+    if ((!apdu) || (apdu_size < 1) || (!recipient)) {
         return BACNET_STATUS_ABORT;
     }
-
     pRecipient = recipient;
-    while (pRecipient != NULL) {
-        /* device [0] BACnetObjectIdentifier */
-        if (decode_is_context_tag(&apdu[apdu_len], 0)) {
-            pRecipient->tag = 0;
-            if ((unsigned)(apdu_len + 4) > max_apdu) {
-                return BACNET_STATUS_ABORT;
+    while (apdu_len < apdu_size) {
+        /* device [0] BACnetObjectIdentifier CHOICE */
+        len = bacnet_object_id_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &object_type,
+            &object_instance);
+        if (len > 0) {
+            if (pRecipient) {
+                pRecipient->tag = 0;
+                pRecipient->type.device.type = object_type;
+                pRecipient->type.device.instance = object_instance;
             }
-            len = decode_context_object_id(
-                &apdu[apdu_len], 0, &pRecipient->type.device.type,
-                &pRecipient->type.device.instance);
+            apdu_len += len;
+        } else if (len < 0) {
+            /* malformed */
+            return BACNET_STATUS_ABORT;
+        } else if (bacnet_is_opening_tag_number(
+                       &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
+            apdu_len += len;
+            if (pRecipient) {
+                pRecipient->tag = 1;
+            }
+            /* network-number Unsigned16 */
+            len = bacnet_unsigned_application_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, &unsigned_value);
             if (len < 0) {
                 return BACNET_STATUS_ABORT;
             }
             apdu_len += len;
-        } else if (decode_is_opening_tag_number(&apdu[apdu_len], 1)) {
-            apdu_len += 1;
-            pRecipient->tag = 1;
-            /* network-number Unsigned16 */
-            tag_len = decode_tag_number_and_value(
-                &apdu[apdu_len], &tag_number, &len_value_type);
-            apdu_len += tag_len;
-            if ((unsigned)apdu_len > max_apdu) {
+            if (unsigned_value > UINT16_MAX) {
                 return BACNET_STATUS_ABORT;
             }
-            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                return BACNET_STATUS_ABORT;
-            }
-            len = decode_unsigned(
-                &apdu[apdu_len], len_value_type, &unsigned_value);
-            pRecipient->type.address.net = (uint16_t)unsigned_value;
-            apdu_len += len;
-            if ((unsigned)apdu_len > max_apdu) {
-                return BACNET_STATUS_ABORT;
+            network_number = (uint16_t)unsigned_value;
+            if (pRecipient) {
+                pRecipient->type.address.net = network_number;
             }
             /* mac-address OCTET STRING */
-            tag_len = decode_tag_number_and_value(
-                &apdu[apdu_len], &tag_number, &len_value_type);
-            apdu_len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
-                return BACNET_STATUS_ABORT;
+            if (pRecipient) {
+                octet_string.buffer = pRecipient->type.address.mac;
+                octet_string.buffer_size = sizeof(pRecipient->type.address.mac);
+            } else {
+                octet_string.buffer = NULL;
+                octet_string.buffer_size = 0;
             }
-            len = bacnet_octet_string_decode(
-                &apdu[apdu_len], max_apdu - apdu_len, len_value_type,
-                &octet_string);
+            len = bacnet_octet_string_buffer_application_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, octet_string.buffer,
+                octet_string.buffer_size);
             if (len < 0) {
                 return BACNET_STATUS_ERROR;
             }
             apdu_len += len;
-            if (octetstring_length(&octet_string) == 0) {
-                /* -- A string of length 0 indicates a broadcast */
-            } else if (pRecipient->type.address.net) {
-                pRecipient->type.address.len = octetstring_copy_value(
-                    &pRecipient->type.address.adr[0],
-                    sizeof(pRecipient->type.address.adr), &octet_string);
-            } else {
-                pRecipient->type.address.mac_len = octetstring_copy_value(
-                    &pRecipient->type.address.mac[0],
-                    sizeof(pRecipient->type.address.mac), &octet_string);
+            octet_string.buffer_length = (uint32_t)len;
+            if (pRecipient) {
+                pRecipient->type.address.mac_len =
+                    (uint8_t)octet_string.buffer_length;
             }
-            if (!decode_is_closing_tag_number(&apdu[apdu_len], 1)) {
+            if (octet_string.buffer_length == 0) {
+                if (pRecipient) {
+                    pRecipient->type.address.net = BACNET_BROADCAST_NETWORK;
+                }
+            } else if (network_number) {
+                /* A network number indicates a remote network */
+                if (pRecipient) {
+                    bacnet_address_mac_to_adr(
+                        &pRecipient->type.address, &pRecipient->type.address);
+                    /* another process will need to fill the router MAC for
+                       this network using Who-Is-Router-To-Network */
+                    pRecipient->type.address.mac_len = 0;
+                }
+            } else {
+                /* MAC local addresss: already decoded in place */
+            }
+            if (!bacnet_is_closing_tag_number(
+                    &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
                 return BACNET_STATUS_ABORT;
             }
-            apdu_len += 1;
+            apdu_len += len;
         } else {
             return BACNET_STATUS_ABORT;
         }
-        pRecipient = pRecipient->next;
+        if (pRecipient) {
+            pRecipient = pRecipient->next;
+        }
     }
 
     return apdu_len;

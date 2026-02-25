@@ -72,7 +72,7 @@ static void testTimeSyncRecipient(void)
 #endif
 {
     uint8_t apdu[480] = { 0 };
-    int len = 0;
+    int apdu_len = 0, test_len = 0;
     BACNET_RECIPIENT_LIST recipient[4] = { 0 };
     BACNET_RECIPIENT_LIST test_recipient[4] = { 0 };
 
@@ -111,14 +111,14 @@ static void testTimeSyncRecipient(void)
     recipient[3].type.address.mac[5] = 0xC1;
     recipient[3].type.address.mac_len = 6;
     /* perform positive test */
-    len = timesync_encode_timesync_recipients(
+    apdu_len = timesync_encode_timesync_recipients(
         &apdu[0], sizeof(apdu), &recipient[0]);
-    zassert_not_equal(len, BACNET_STATUS_ABORT, NULL);
-    zassert_true(len > 0, NULL);
-    len = timesync_decode_timesync_recipients(
-        &apdu[0], sizeof(apdu), &test_recipient[0]);
-    zassert_not_equal(len, BACNET_STATUS_ABORT, NULL);
-    zassert_true(len > 0, NULL);
+    zassert_not_equal(apdu_len, BACNET_STATUS_ABORT, NULL);
+    zassert_true(apdu_len > 0, NULL);
+    test_len = timesync_decode_timesync_recipients(
+        &apdu[0], apdu_len, &test_recipient[0]);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_true(test_len > 0, NULL);
     testTimeSyncRecipientData(&recipient[0], &test_recipient[0]);
 }
 
