@@ -323,7 +323,8 @@ int bacapp_property_state_context_decode(
     } else {
         return BACNET_STATUS_ERROR;
     }
-    len = bacapp_decode_property_state(&apdu[apdu_len], value);
+    len = bacapp_property_state_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, value);
     if (len > 0) {
         apdu_len += len;
     } else {
