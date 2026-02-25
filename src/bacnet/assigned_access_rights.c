@@ -94,7 +94,7 @@ int bacapp_decode_assigned_access_rights(
     }
     len = bacnet_device_object_reference_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, reference);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     } else {
         apdu_len += len;
@@ -102,7 +102,7 @@ int bacapp_decode_assigned_access_rights(
     }
     len = bacnet_boolean_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 1, &enable);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     } else {
         apdu_len += len;

@@ -21,7 +21,7 @@ extern "C" {
 
 /* encode service */
 BACNET_STACK_EXPORT
-int timesync_encode_apdu_service_paramters(
+int timesync_encode_apdu_service_parameters(
     uint8_t *apdu, const BACNET_DATE *my_date, const BACNET_TIME *my_time);
 BACNET_STACK_EXPORT
 int timesync_utc_encode_apdu(

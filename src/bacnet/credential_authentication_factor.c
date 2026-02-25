@@ -114,8 +114,9 @@ int bacapp_decode_credential_authentication_factor(
     } else {
         return BACNET_STATUS_ERROR;
     }
-    len = bacapp_decode_context_authentication_factor(
-        &apdu[apdu_len], 1, &factor->authentication_factor);
+    len = bacnet_authentication_factor_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1,
+        &factor->authentication_factor);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     } else {

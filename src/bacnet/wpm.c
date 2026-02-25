@@ -178,18 +178,25 @@ int wpm_decode_object_property(
     }
     /* add the tag length */
     apdu_len += len;
-    /* copy application data, check max length */
     if (imax > (apdu_size - apdu_len)) {
-        imax = (apdu_size - apdu_len);
-    }
-    for (i = 0; i < imax; i++) {
+        /* bigger than the buffer we are reading from */
         if (wp_data) {
-            wp_data->application_data[i] = apdu[apdu_len + i];
+            wp_data->error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
         }
+        return BACNET_STATUS_REJECT;
     }
     if (wp_data) {
+        if (imax > sizeof(wp_data->application_data)) {
+            /* bigger than the buffer we are writing to */
+            wp_data->error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+            return BACNET_STATUS_REJECT;
+        }
+        for (i = 0; i < imax; i++) {
+            wp_data->application_data[i] = apdu[apdu_len + i];
+        }
         wp_data->application_data_len = imax;
     }
+    /* add the application data length */
     apdu_len += imax;
     if (bacnet_is_closing_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {

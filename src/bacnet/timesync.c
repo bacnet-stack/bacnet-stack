@@ -30,19 +30,22 @@
  *
  * @return Count of encoded bytes.
  */
-int timesync_encode_apdu_service_paramters(
+int timesync_encode_apdu_service_parameters(
     uint8_t *apdu, const BACNET_DATE *my_date, const BACNET_TIME *my_time)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    len = encode_application_date(apdu, my_date);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
+    if (my_date && my_time) {
+        /* encode the date and time */
+        len = encode_application_date(apdu, my_date);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_application_time(apdu, my_time);
+        apdu_len += len;
     }
-    len = encode_application_time(apdu, my_time);
-    apdu_len += len;
 
     return apdu_len;
 }
@@ -75,7 +78,7 @@ int timesync_encode_apdu_service(
     if (apdu) {
         apdu += len;
     }
-    len = timesync_encode_apdu_service_paramters(apdu, my_date, my_time);
+    len = timesync_encode_apdu_service_parameters(apdu, my_date, my_time);
     apdu_len += len;
 
     return apdu_len;
