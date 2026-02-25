@@ -25,21 +25,32 @@ int ihave_encode_apdu(uint8_t *apdu, const BACNET_I_HAVE_DATA *data)
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    if (apdu && data) {
+    if (apdu) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_I_HAVE;
-        apdu_len = 2;
+    }
+    len = 2;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if (data) {
         /* deviceIdentifier */
         len = encode_application_object_id(
-            &apdu[apdu_len], data->device_id.type, data->device_id.instance);
+            apdu, data->device_id.type, data->device_id.instance);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* objectIdentifier */
         len = encode_application_object_id(
-            &apdu[apdu_len], data->object_id.type, data->object_id.instance);
+            apdu, data->object_id.type, data->object_id.instance);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* objectName */
-        len = encode_application_character_string(
-            &apdu[apdu_len], &data->object_name);
+        len = encode_application_character_string(apdu, &data->object_name);
         apdu_len += len;
     }
 
@@ -51,85 +62,96 @@ int ihave_encode_apdu(uint8_t *apdu, const BACNET_I_HAVE_DATA *data)
 /**
  * Decode the I Have request only
  *
+ * I-Have-Request ::= SEQUENCE {
+ *   device-identifierBACnetObjectIdentifier,
+ *   object-identifierBACnetObjectIdentifier,
+ *   object-nameCharacterString
+ * }
+ *
  * @param apdu  Pointer to the APDU buffer
- * @param apdu_len  Valid bytes in the buffer
+ * @param apdu_size Number of valid bytes in the buffer
  * @param data  Pointer to the I Have data structure.
  *
  * @return Bytes decoded.
  */
 int ihave_decode_service_request(
-    const uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_I_HAVE_DATA *data)
 {
-    int len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value = 0;
+    int len = 0, apdu_len = 0;
     BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
+    uint32_t decoded_instance = 0; /* for decoding */
+    BACNET_CHARACTER_STRING *decoded_string = NULL; /* for decoding */
 
-    if ((apdu_len >= 2) && data) {
-        /* deviceIdentifier */
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len += decode_object_id(
-                &apdu[len], &decoded_type, &data->device_id.instance);
-            data->device_id.type = decoded_type;
-        } else {
-            return -1;
-        }
-        /* objectIdentifier */
-        if ((unsigned)len >= apdu_len) {
-            return -1;
-        }
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len += decode_object_id(
-                &apdu[len], &decoded_type, &data->object_id.instance);
-            data->object_id.type = decoded_type;
-        } else {
-            return -1;
-        }
-        /* objectName */
-        if ((unsigned)len >= apdu_len) {
-            return -1;
-        }
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-            len += decode_character_string(
-                &apdu[len], len_value, &data->object_name);
-        } else {
-            return -1;
-        }
-    } else {
+    if (!apdu || (apdu_size < 2)) {
         return -1;
     }
+    /* deviceIdentifier */
+    len = bacnet_object_id_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &decoded_type,
+        &decoded_instance);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        if (data) {
+            data->device_id.type = decoded_type;
+            data->device_id.instance = decoded_instance;
+        }
+    }
+    apdu_len += len;
+    /* objectIdentifier */
+    len = bacnet_object_id_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &decoded_type,
+        &decoded_instance);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        if (data) {
+            data->object_id.type = decoded_type;
+            data->object_id.instance = decoded_instance;
+        }
+    }
+    apdu_len += len;
+    /* objectName */
+    if (data) {
+        decoded_string = &data->object_name;
+    }
+    len = bacnet_character_string_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, decoded_string);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        /* nothing else to do, the string is already decoded in place */
+    }
+    apdu_len += len;
 
-    return len;
+    return apdu_len;
 }
 
 /**
  * Decode the I Have
  *
  * @param apdu  Pointer to the APDU buffer
- * @param apdu_len  Valid bytes in the buffer
+ * @param apdu_size Number of valid bytes in the buffer
  * @param data  Pointer to the I Have data structure.
  *
  * @return Bytes decoded.
  */
 int ihave_decode_apdu(
-    const uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
 
-    if ((!apdu) || (apdu_len < 2)) {
-        return -1;
+    if ((!apdu) || (apdu_size < 2)) {
+        return BACNET_STATUS_ERROR;
     }
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     if (apdu[1] != SERVICE_UNCONFIRMED_I_HAVE) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
-    len = ihave_decode_service_request(&apdu[2], apdu_len - 2, data);
+    len = ihave_decode_service_request(&apdu[2], apdu_size - 2, data);
 
     return len;
 }
