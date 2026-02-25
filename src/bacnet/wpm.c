@@ -591,7 +591,7 @@ int wpm_error_ack_decode_apdu(
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     BACNET_OBJECT_PROPERTY_REFERENCE value;
 
-    if (!apdu) {
+    if (!apdu || (apdu_size == 0)) {
         if (wp_data) {
             wp_data->error_class = ERROR_CLASS_SERVICES;
             wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
@@ -601,9 +601,6 @@ int wpm_error_ack_decode_apdu(
     if (wp_data) {
         wp_data->error_class = ERROR_CLASS_SERVICES;
         wp_data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
-    }
-    if (apdu_size == 0) {
-        return 0;
     }
     /* Context tag 0 - Error */
     if (bacnet_is_opening_tag_number(
@@ -621,9 +618,6 @@ int wpm_error_ack_decode_apdu(
         }
         apdu_len += len;
     } else {
-        return 0;
-    }
-    if (apdu_size == 0) {
         return 0;
     }
     if (bacnet_is_closing_tag_number(
