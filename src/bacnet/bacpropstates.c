@@ -300,36 +300,97 @@ int bacapp_property_state_decode(
     return apdu_len;
 }
 
+/**
+ * @brief Decodes BACnetPropertyState from bytes into a data structure, with
+ *        opening and closing tags
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number - expected tag number for the opening and closing tags
+ * @param value - decoded value, if decoded
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ */
+int bacapp_property_state_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_PROPERTY_STATE *value)
+{
+    int len = 0, apdu_len = 0;
+
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacapp_decode_property_state(&apdu[apdu_len], value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes BACnetPropertyState from bytes into a data structure, with
+ *        opening and closing tags
+ * @param apdu - buffer of data to be decoded
+ * @param value - decoded value, if decoded
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ * @deprecated This function is deprecated.
+ *  Use bacapp_property_state_decode() instead.
+ */
 int bacapp_decode_property_state(
     const uint8_t *apdu, BACNET_PROPERTY_STATE *value)
 {
     return bacapp_property_state_decode(apdu, MAX_APDU, value);
 }
 
+/**
+ * @brief Decodes BACnetPropertyState from bytes into a data structure, with
+ *        opening and closing tags
+ * @param apdu - buffer of data to be decoded
+ * @param tag_number - expected tag number for the opening and closing tags
+ * @param value - decoded value, if decoded
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ * @deprecated This function is deprecated.
+ *  Use bacapp_property_state_context_decode() instead.
+ */
 int bacapp_decode_context_property_state(
     const uint8_t *apdu, uint8_t tag_number, BACNET_PROPERTY_STATE *value)
 {
-    int len = 0;
-    int section_length;
+    int len = 0, apdu_len = 0;
+    int apdu_size = MAX_APDU;
 
-    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
-        len++;
-        section_length = bacapp_decode_property_state(&apdu[len], value);
-
-        if (section_length == -1) {
-            len = -1;
-        } else {
-            len += section_length;
-            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-                len++;
-            } else {
-                len = -1;
-            }
-        }
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
     } else {
-        len = -1;
+        return BACNET_STATUS_ERROR;
     }
-    return len;
+    len = bacapp_property_state_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
 }
 
 /**
