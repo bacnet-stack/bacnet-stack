@@ -207,8 +207,6 @@ int rp_ack_fully_decode_service_request(
             if (vlen &&
                 bacnet_is_closing_tag_number(vdata, vlen, 3, &tag_len)) {
                 decoded_len += tag_len;
-                vlen -= tag_len;
-                vdata += tag_len;
                 break;
             } else {
                 if (len == 0) {
