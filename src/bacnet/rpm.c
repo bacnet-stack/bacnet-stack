@@ -260,50 +260,60 @@ int rpm_encode_apdu(
  * @return number of decoded bytes, or negative on failure.
  */
 int rpm_decode_object_id(
-    const uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_RPM_DATA *rpmdata)
 {
-    int len = 0;
+    int len = 0, apdu_len = 0;
+    uint32_t instance = 0;
     BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
 
     /* check for value pointers */
-    if (apdu && apdu_len && rpmdata) {
-        if (apdu_len < 5) { /* Must be at least 2 tags and an object id */
-            rpmdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    if (apdu && apdu_size) {
+        if (apdu_size < 6) { /* Must be at least 2 tags and an object id */
+            if (rpmdata) {
+                rpmdata->error_code =
+                    ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+            }
             return BACNET_STATUS_REJECT;
         }
         /* Tag 0: Object ID */
-        if (!decode_is_context_tag(&apdu[len++], 0)) {
-            rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        len = bacnet_object_id_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &type, &instance);
+        if (len <= 0) {
+            if (rpmdata) {
+                rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
             return BACNET_STATUS_REJECT;
         }
-        len += decode_object_id(&apdu[len], &type, &rpmdata->object_instance);
-        rpmdata->object_type = type;
+        if (rpmdata) {
+            rpmdata->object_type = type;
+            rpmdata->object_instance = instance;
+        }
+        apdu_len += len;
         /* Tag 1: sequence of ReadAccessSpecification */
-        if (!decode_is_opening_tag_number(&apdu[len], 1)) {
-            rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        if (!bacnet_is_opening_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
+            if (rpmdata) {
+                rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
             return BACNET_STATUS_REJECT;
         }
-        len++; /* opening tag is only one octet */
+        apdu_len += len;
     }
 
-    return len;
+    return apdu_len;
 }
 
 /**
  * @brief Decode the end portion of the service request only.
  * @param apdu application data unit buffer for decoding
- * @param apdu_len [in] Count of valid bytes in the buffer.
+ * @param apdu_size [in] Count of valid bytes in the buffer.
  * @return number of decoded bytes, or negative on failure.
  */
-int rpm_decode_object_end(const uint8_t *apdu, unsigned apdu_len)
+int rpm_decode_object_end(const uint8_t *apdu, unsigned apdu_size)
 {
     int len = 0; /* total length of the apdu, return value */
 
-    if (apdu && apdu_len) {
-        if (decode_is_closing_tag_number(apdu, 1) == true) {
-            len = 1;
-        }
-    }
+    (void)bacnet_is_closing_tag_number(apdu, apdu_size, 1, &len);
 
     return len;
 }
@@ -319,63 +329,53 @@ int rpm_decode_object_end(const uint8_t *apdu, unsigned apdu_len)
  *  }
  *
  * @param apdu application data unit buffer for decoding
- * @param apdu_len  Count of received bytes.
+ * @param apdu_size  Count of received bytes.
  * @param rpmdata  Pointer to the data structure to be filled.
  * @return number of decoded bytes, or negative on failure.
  */
 int rpm_decode_object_property(
-    const uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_RPM_DATA *rpmdata)
 {
-    int len = 0;
-    int option_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    int len = 0, apdu_len = 0;
     uint32_t property = 0; /* for decoding */
     BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding */
 
-    /* check for valid pointers */
-    if (apdu && apdu_len && rpmdata) {
-        /* Tag 0: propertyIdentifier */
-        if (!IS_CONTEXT_SPECIFIC(apdu[len])) {
-            rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+    /* check for valid pointer and minimum size */
+    if (apdu && apdu_size) {
+        /* propertyIdentifier [0] BACnetPropertyIdentifier */
+        len = bacnet_enumerated_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &property);
+        if (len <= 0) {
+            if (rpmdata) {
+                rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
             return BACNET_STATUS_REJECT;
         }
-
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != 0) {
-            rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            return BACNET_STATUS_REJECT;
+        if (rpmdata) {
+            rpmdata->object_property = (BACNET_PROPERTY_ID)property;
         }
-        /* Should be at least the unsigned value + 1 tag left */
-        if ((len + len_value_type) >= apdu_len) {
-            rpmdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
-            return BACNET_STATUS_REJECT;
-        }
-        len += decode_enumerated(&apdu[len], len_value_type, &property);
-        rpmdata->object_property = (BACNET_PROPERTY_ID)property;
-        /* Assume most probable outcome */
-        rpmdata->array_index = BACNET_ARRAY_ALL;
-        /* Tag 1: Optional propertyArrayIndex */
-        if (IS_CONTEXT_SPECIFIC(apdu[len]) && !IS_CLOSING_TAG(apdu[len])) {
-            option_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            if (tag_number == 1) {
-                len += option_len;
-                /* Should be at least the unsigned array index + 1 tag left */
-                if ((len + len_value_type) >= apdu_len) {
-                    rpmdata->error_code =
-                        ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
-                    return BACNET_STATUS_REJECT;
-                }
-                len += decode_unsigned(
-                    &apdu[len], len_value_type, &unsigned_value);
+        apdu_len += len;
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+        if (len > 0) {
+            /* propertyArrayIndex [1] Unsigned OPTIONAL */
+            apdu_len += len;
+            if (rpmdata) {
                 rpmdata->array_index = unsigned_value;
+            }
+        } else if (len == 0) {
+            /* optional - assume ALL array elements */
+            if (rpmdata) {
+                rpmdata->array_index = BACNET_ARRAY_ALL;
+            }
+        } else {
+            if (rpmdata) {
+                rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
         }
     }
 
-    return len;
+    return apdu_len;
 }
 
 /**

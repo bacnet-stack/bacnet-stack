@@ -45,8 +45,8 @@ int rpm_ack_decode_service_request(
     uint32_t error_value = 0; /* decoded error value */
     int len = 0; /* number of bytes returned from decoding */
     uint8_t tag_number = 0; /* decoded tag number */
-    uint32_t len_value = 0; /* decoded length value */
     int data_len = 0; /* data blob length */
+    int tag_len = 0; /* length of the tag portion of the data */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -95,23 +95,25 @@ int rpm_ack_decode_service_request(
             decoded_len += len;
             apdu_len -= len;
             apdu += len;
-            if (apdu_len && decode_is_opening_tag_number(apdu, 4)) {
+            if (apdu_len &&
+                bacnet_is_opening_tag_number(apdu, apdu_len, 4, &tag_len)) {
                 data_len = bacnet_enclosed_data_length(apdu, apdu_len);
                 /* propertyValue */
-                decoded_len++;
-                apdu_len--;
-                apdu++;
+                decoded_len += tag_len;
+                apdu_len -= tag_len;
+                apdu += tag_len;
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
-                if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
+                if (apdu_len &&
+                    bacnet_is_closing_tag_number(apdu, apdu_len, 4, &tag_len)) {
                     /* Special case for an empty array or list */
                     if (value) {
                         bacapp_value_list_init(value, 1);
                         value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
                     }
-                    decoded_len++;
-                    apdu_len--;
-                    apdu++;
+                    decoded_len += tag_len;
+                    apdu_len -= tag_len;
+                    apdu += tag_len;
                 } else {
                     /* one or more (array or list) elements to decode */
                     while (value && (apdu_len > 0)) {
@@ -142,10 +144,12 @@ int rpm_ack_decode_service_request(
                         decoded_len += len;
                         apdu_len -= len;
                         apdu += len;
-                        if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
-                            decoded_len++;
-                            apdu_len--;
-                            apdu++;
+                        if (apdu_len &&
+                            bacnet_is_closing_tag_number(
+                                apdu, apdu_len, 4, &tag_len)) {
+                            decoded_len += tag_len;
+                            apdu_len -= tag_len;
+                            apdu += tag_len;
                             break;
                         } else if (len > 0) {
                             old_value = value;
@@ -164,39 +168,51 @@ int rpm_ack_decode_service_request(
                         }
                     }
                 }
-            } else if (apdu_len && decode_is_opening_tag_number(apdu, 5)) {
+            } else if (
+                apdu_len &&
+                bacnet_is_opening_tag_number(apdu, apdu_len, 5, &tag_len)) {
                 /* propertyAccessError */
-                decoded_len++;
-                apdu_len--;
-                apdu++;
+                decoded_len += tag_len;
+                apdu_len -= tag_len;
+                apdu += tag_len;
                 /* decode the class and code sequence */
-                len =
-                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
+                len = bacnet_enumerated_application_decode(
+                    apdu, apdu_len, &error_value);
+                if (len <= 0) {
+                    PERROR("RPM Ack: unable to decode error class!\n");
+                    return BACNET_STATUS_ERROR;
+                }
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
-                /* FIXME: we could validate that the tag is enumerated... */
-                len = decode_enumerated(apdu, len_value, &error_value);
                 rpm_property->error.error_class =
                     (BACNET_ERROR_CLASS)error_value;
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
-                len =
-                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
+                len = bacnet_enumerated_application_decode(
+                    apdu, apdu_len, &error_value);
+                if (len <= 0) {
+                    PERROR("RPM Ack: unable to decode error code!\n");
+                    return BACNET_STATUS_ERROR;
+                }
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
-                /* FIXME: we could validate that the tag is enumerated... */
-                len = decode_enumerated(apdu, len_value, &error_value);
                 rpm_property->error.error_code = (BACNET_ERROR_CODE)error_value;
-                decoded_len += len;
-                apdu_len -= len;
-                apdu += len;
-                if (apdu_len && decode_is_closing_tag_number(apdu, 5)) {
-                    decoded_len++;
-                    apdu_len--;
-                    apdu++;
+                if (apdu_len) {
+                    if (bacnet_is_closing_tag_number(
+                            apdu, apdu_len, 5, &tag_len)) {
+                        decoded_len += tag_len;
+                        apdu_len -= tag_len;
+                        apdu += tag_len;
+                    } else {
+                        PERROR(
+                            "RPM Ack: expected closing tag for error code, got "
+                            "%d\n",
+                            tag_number);
+                        return BACNET_STATUS_ERROR;
+                    }
                 }
             }
             old_rpm_property = rpm_property;
@@ -204,7 +220,7 @@ int rpm_ack_decode_service_request(
             old_rpm_property->next = rpm_property;
         }
         len = rpm_decode_object_end(apdu, apdu_len);
-        if (len) {
+        if (len > 0) {
             decoded_len += len;
             apdu_len -= len;
             apdu += len;
