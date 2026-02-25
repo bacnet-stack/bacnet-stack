@@ -187,9 +187,6 @@ int rpm_ack_decode_service_request(
                 apdu += len;
                 rpm_property->error.error_class =
                     (BACNET_ERROR_CLASS)error_value;
-                decoded_len += len;
-                apdu_len -= len;
-                apdu += len;
                 len = bacnet_enumerated_application_decode(
                     apdu, apdu_len, &error_value);
                 if (len <= 0) {
