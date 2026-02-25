@@ -524,6 +524,18 @@ int bacnet_character_string_buffer_context_decode(
     uint32_t apdu_size,
     uint8_t tag_value,
     BACNET_CHARACTER_STRING_BUFFER *value);
+BACNET_STACK_EXPORT
+void bacnet_character_string_buffer_init(
+    BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t encoding,
+    char *buffer,
+    size_t buffer_size);
+BACNET_STACK_EXPORT
+bool bacnet_character_string_buffer_unpack(
+    const BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t *encoding,
+    char *buffer,
+    uint32_t *buffer_length);
 
 BACNET_STACK_EXPORT
 int encode_bacnet_character_string(

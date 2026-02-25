@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-19
+## [Unreleased] - 2026-02-23
 
 ### Security
 
@@ -41,6 +41,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Add initialization and unpacking functions for BACnet Character
+  String buffer structure. (#1242)
 * Add Host-N-Port minimal encode and decode which utilizes the octet
   string and character string buffer encode and decode. (#1239)
 * Added API for extending the basic Device object and children with

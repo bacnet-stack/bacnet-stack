@@ -457,9 +457,11 @@ int host_n_port_minimal_address_decode(
 {
     int apdu_len = 0, len = 0;
     uint8_t *buffer = NULL;
+    uint32_t buffer_length = 0;
     size_t buffer_size = 0;
     BACNET_TAG tag = { 0 };
     BACNET_CHARACTER_STRING_BUFFER char_string = { 0 };
+    bool status = false;
 
     /* default reject code */
     if (error_code) {
@@ -507,10 +509,9 @@ int host_n_port_minimal_address_decode(
     } else if (tag.context && (tag.number == 2)) {
         if (address) {
             address->tag = BACNET_HOST_ADDRESS_TAG_NAME;
-            char_string.buffer = address->host.name.fqdn;
-            char_string.buffer_size = sizeof(address->host.name.fqdn);
-            char_string.encoding = CHARACTER_ANSI_X34;
-            char_string.buffer_length = 0;
+            bacnet_character_string_buffer_init(
+                &char_string, CHARACTER_ANSI_X34, address->host.name.fqdn,
+                sizeof(address->host.name.fqdn));
         }
         len = bacnet_character_string_buffer_decode(
             &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
@@ -522,13 +523,16 @@ int host_n_port_minimal_address_decode(
             return BACNET_STATUS_REJECT;
         }
         if (address) {
-            if (char_string.buffer_length > char_string.buffer_size) {
+            status = bacnet_character_string_buffer_unpack(
+                &char_string, NULL, NULL, &buffer_length);
+            if (status) {
+                address->host.name.length = buffer_length;
+            } else {
                 if (error_code) {
                     *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
                 }
                 return BACNET_STATUS_REJECT;
             }
-            address->host.name.length = char_string.buffer_length;
         }
         apdu_len += len;
     } else {
