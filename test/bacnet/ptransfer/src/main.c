@@ -20,12 +20,11 @@
  */
 static int ptransfer_decode_apdu(
     uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
-    int len = 0;
-    unsigned offset = 0;
+    int len = 0, apdu_len = 0;
 
     if (!apdu) {
         return -1;
@@ -40,23 +39,27 @@ static int ptransfer_decode_apdu(
     if (apdu[3] != SERVICE_CONFIRMED_PRIVATE_TRANSFER) {
         return -1;
     }
-    offset = 4;
+    apdu_len = 4;
 
-    if (apdu_len > offset) {
+    if (apdu_size > apdu_len) {
         len = ptransfer_decode_service_request(
-            &apdu[offset], apdu_len - offset, private_data);
+            &apdu[apdu_len], apdu_size - apdu_len, private_data);
+        if (len < 0) {
+            return -1;
+        }
+        apdu_len += len;
     }
 
-    return len;
+    return apdu_len;
 }
 
 static int uptransfer_decode_apdu(
     uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_size,
     BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int len = 0;
-    unsigned offset = 0;
+    unsigned apdu_len = 0;
 
     if (!apdu) {
         return -1;
@@ -68,13 +71,17 @@ static int uptransfer_decode_apdu(
     if (apdu[1] != SERVICE_UNCONFIRMED_PRIVATE_TRANSFER) {
         return -1;
     }
-    offset = 2;
-    if (apdu_len > offset) {
+    apdu_len = 2;
+    if (apdu_size > apdu_len) {
         len = ptransfer_decode_service_request(
-            &apdu[offset], apdu_len - offset, private_data);
+            &apdu[apdu_len], apdu_size - apdu_len, private_data);
+        if (len < 0) {
+            return -1;
+        }
+        apdu_len += len;
     }
 
-    return len;
+    return apdu_len;
 }
 
 static int ptransfer_ack_decode_apdu(
@@ -257,7 +264,7 @@ static void test_Private_Transfer_Request(void)
 {
     uint8_t apdu[480] = { 0 };
     uint8_t test_value[480] = { 0 };
-    int len = 0;
+    int len = 0, test_len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
@@ -281,12 +288,12 @@ static void test_Private_Transfer_Request(void)
     private_data.serviceParameters = &test_value[0];
     private_data.serviceParametersLen = private_data_len;
 
-    len = ptransfer_encode_apdu(&apdu[0], invoke_id, &private_data);
-    zassert_not_equal(len, 0, NULL);
-    apdu_len = len;
-    len =
+    apdu_len = ptransfer_encode_apdu(&apdu[0], invoke_id, &private_data);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len =
         ptransfer_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
-    zassert_not_equal(len, -1, NULL);
+    zassert_not_equal(test_len, -1, NULL);
+    zassert_equal(apdu_len, test_len, NULL);
     zassert_equal(test_data.vendorID, private_data.vendorID, NULL);
     zassert_equal(test_data.serviceNumber, private_data.serviceNumber, NULL);
     zassert_equal(
@@ -295,6 +302,7 @@ static void test_Private_Transfer_Request(void)
     len = bacapp_decode_application_data(
         test_data.serviceParameters, test_data.serviceParametersLen,
         &test_data_value);
+    zassert_not_equal(len, -1, NULL);
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 
     return;
@@ -309,7 +317,7 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
     uint8_t apdu[480] = { 0 };
     uint8_t test_value[480] = { 0 };
     int len = 0;
-    int apdu_len = 0;
+    int apdu_len = 0, test_len = 0;
     int private_data_len = 0;
     char private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value = { 0 };
@@ -330,11 +338,12 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
     private_data.serviceParameters = &test_value[0];
     private_data.serviceParametersLen = private_data_len;
 
-    len = uptransfer_encode_apdu(&apdu[0], &private_data);
-    zassert_not_equal(len, 0, NULL);
-    apdu_len = len;
-    len = uptransfer_decode_apdu(&apdu[0], apdu_len, &test_data);
-    zassert_not_equal(len, -1, NULL);
+    apdu_len = uptransfer_encode_apdu(&apdu[0], &private_data);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_len = uptransfer_decode_apdu(&apdu[0], apdu_len, &test_data);
+    zassert_not_equal(test_len, -1, NULL);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     zassert_equal(test_data.vendorID, private_data.vendorID, NULL);
     zassert_equal(test_data.serviceNumber, private_data.serviceNumber, NULL);
     zassert_equal(
@@ -343,6 +352,7 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
     len = bacapp_decode_application_data(
         test_data.serviceParameters, test_data.serviceParametersLen,
         &test_data_value);
+    zassert_not_equal(len, -1, NULL);
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 
     return;
