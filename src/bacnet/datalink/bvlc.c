@@ -683,6 +683,7 @@ int bvlc_broadcast_distribution_table_decode(
     int len = 0, apdu_len = 0;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
     BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
+    uint32_t address_length = 0;
 
     /* default reject code */
     if (error_code) {
@@ -700,7 +701,6 @@ int bvlc_broadcast_distribution_table_decode(
             apdu_len += len;
             bdt_entry->dest_address.port = host_n_port.port;
             if (host_n_port.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
-                bdt_entry->valid = true;
                 bdt_entry->dest_address.address[0] =
                     host_n_port.host.ip_address.address[0];
                 bdt_entry->dest_address.address[1] =
@@ -719,8 +719,13 @@ int bvlc_broadcast_distribution_table_decode(
         len = bacnet_octet_string_buffer_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 1,
             bdt_entry->broadcast_mask.address,
-            sizeof(bdt_entry->broadcast_mask.address));
+            sizeof(bdt_entry->broadcast_mask.address), &address_length);
         if (len > 0) {
+            if (address_length == sizeof(bdt_entry->broadcast_mask.address)) {
+                bdt_entry->valid = true;
+            } else {
+                bdt_entry->valid = false;
+            }
             apdu_len += len;
         } else {
             if (error_code) {

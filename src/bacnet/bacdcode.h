@@ -433,14 +433,16 @@ int bacnet_octet_string_buffer_application_decode(
     const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t *buffer,
-    size_t buffer_size);
+    size_t buffer_size,
+    uint32_t *buffer_length);
 BACNET_STACK_EXPORT
 int bacnet_octet_string_buffer_context_decode(
     const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_value,
     uint8_t *buffer,
-    size_t buffer_size);
+    size_t buffer_size,
+    uint32_t *buffer_length);
 
 BACNET_STACK_EXPORT
 int encode_octet_string(uint8_t *apdu, const BACNET_OCTET_STRING *octet_string);

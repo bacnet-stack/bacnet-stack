@@ -2438,6 +2438,7 @@ int bacnet_octet_string_buffer_decode(
  *  or NULL for length only.
  * @param buffer_size - number of bytes in the buffer where the
  *  decoded value is stored
+ * @param buffer_length - number of bytes decoded into the buffer
  *
  * @return number of bytes decoded, zero if tag mismatch,
  * or #BACNET_STATUS_ERROR (-1) if malformed
@@ -2446,7 +2447,8 @@ int bacnet_octet_string_buffer_application_decode(
     const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t *buffer,
-    size_t buffer_size)
+    size_t buffer_size,
+    uint32_t *buffer_length)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     int len = 0;
@@ -2464,6 +2466,9 @@ int bacnet_octet_string_buffer_application_decode(
                 &apdu[len], apdu_size - apdu_len, tag.len_value_type, buffer,
                 buffer_size);
             if (len >= 0) {
+                if (buffer_length) {
+                    *buffer_length = tag.len_value_type;
+                }
                 apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
@@ -2488,6 +2493,7 @@ int bacnet_octet_string_buffer_application_decode(
  *  or NULL for length only.
  * @param buffer_size - number of bytes in the buffer where the
  *  decoded value is stored
+ * @param buffer_length - number of bytes decoded into the buffer
  *
  * @return  number of bytes decoded, or zero if tag mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
@@ -2497,7 +2503,8 @@ int bacnet_octet_string_buffer_context_decode(
     uint32_t apdu_size,
     uint8_t tag_value,
     uint8_t *buffer,
-    size_t buffer_size)
+    size_t buffer_size,
+    uint32_t *buffer_length)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     int len = 0;
@@ -2514,6 +2521,9 @@ int bacnet_octet_string_buffer_context_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
                 buffer, buffer_size);
             if (len >= 0) {
+                if (buffer_length) {
+                    *buffer_length = tag.len_value_type;
+                }
                 apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;

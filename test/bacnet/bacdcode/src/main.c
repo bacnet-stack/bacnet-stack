@@ -2358,6 +2358,7 @@ static void test_octet_string_buffer(void)
     uint8_t buffer[32] = { 0 }, test_buffer[32] = { 0 };
     int apdu_len = 0, null_len = 0, test_len = 0;
     size_t buffer_size = 0;
+    uint32_t buffer_length = 0;
     uint8_t tag_number = 0;
     unsigned i;
     int diff = 0; /* for memcmp */
@@ -2381,10 +2382,11 @@ static void test_octet_string_buffer(void)
             NULL, 0, buffer, buffer_size);
         zassert_equal(null_len, 0, NULL);
         test_len = bacnet_octet_string_buffer_application_decode(
-            apdu, apdu_len, test_buffer, sizeof(test_buffer));
+            apdu, apdu_len, test_buffer, sizeof(test_buffer), &buffer_length);
         zassert_equal(
             apdu_len, test_len, "apdu_len=%d test_len=%d i=%d", apdu_len,
             test_len, i);
+        zassert_equal(buffer_size, buffer_length, NULL);
         diff = memcmp(buffer, test_buffer, buffer_size);
         zassert_equal(diff, 0, NULL);
         /* context tagged */
@@ -2398,10 +2400,12 @@ static void test_octet_string_buffer(void)
             NULL, 0, tag_number, buffer, buffer_size);
         zassert_equal(null_len, 0, NULL);
         test_len = bacnet_octet_string_buffer_context_decode(
-            apdu, apdu_len, tag_number, test_buffer, sizeof(test_buffer));
+            apdu, apdu_len, tag_number, test_buffer, sizeof(test_buffer),
+            &buffer_length);
         zassert_equal(
             apdu_len, test_len, "apdu_len=%d test_len=%d i=%d", apdu_len,
             test_len, i);
+        zassert_equal(buffer_size, buffer_length, NULL);
         diff = memcmp(buffer, test_buffer, buffer_size);
         zassert_equal(diff, 0, NULL);
     }
