@@ -10,6 +10,20 @@
 #include "bacnet/credential_authentication_factor.h"
 #include "bacnet/bacdcode.h"
 
+/**
+ * @brief Encode a BACnetCredentialAuthenticationFactor structure into an APDU
+ * buffer.
+ *
+ * BACnetCredentialAuthenticationFactor ::= SEQUENCE {
+ *   disable[0] BACnetAccessAuthenticationFactorDisable,
+ *   authentication-factor[1] BACnetAuthenticationFactor
+ * }
+ *
+ * @param apdu [in] The APDU buffer, or NULL for length
+ * @param factor [in] The BACnetCredentialAuthenticationFactor structure to
+ * encode
+ * @return number of bytes encoded, or negative on error
+ */
 int bacapp_encode_credential_authentication_factor(
     uint8_t *apdu, const BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
 {
@@ -34,6 +48,16 @@ int bacapp_encode_credential_authentication_factor(
     return apdu_len;
 }
 
+/**
+ * @brief Encode a BACnetCredentialAuthenticationFactor structure into an APDU
+ * buffer, with context tag.
+ *
+ * @param apdu [in] The APDU buffer, or NULL for length
+ * @param tag [in] The context tag number
+ * @param factor [in] The BACnetCredentialAuthenticationFactor structure to
+ * encode
+ * @return number of bytes encoded, or negative on error
+ */
 int bacapp_encode_context_credential_authentication_factor(
     uint8_t *apdu,
     uint8_t tag,
@@ -55,68 +79,89 @@ int bacapp_encode_context_credential_authentication_factor(
     return apdu_len;
 }
 
+/**
+ * @brief Decode a BACnetCredentialAuthenticationFactor structure from an APDU
+ * buffer.
+ *
+ * BACnetCredentialAuthenticationFactor ::= SEQUENCE {
+ *   disable[0] BACnetAccessAuthenticationFactorDisable,
+ *   authentication-factor[1] BACnetAuthenticationFactor
+ * }
+ *
+ * @param apdu [in] The APDU buffer
+ * @param apdu_size [in] The size of the APDU buffer
+ * @param factor [out] The BACnetCredentialAuthenticationFactor structure to
+ * decode
+ * @return number of bytes decoded, or negative on error
+ */
 int bacapp_decode_credential_authentication_factor(
-    const uint8_t *apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
+    const uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
 {
     int len;
     int apdu_len = 0;
     uint32_t disable = factor->disable;
 
-    if (decode_is_context_tag(&apdu[apdu_len], 0)) {
-        len = decode_context_enumerated(&apdu[apdu_len], 0, &disable);
-        if (len < 0) {
-            return -1;
-        } else if (disable < UINT16_MAX) {
-            apdu_len += len;
-            factor->disable =
-                (BACNET_ACCESS_AUTHENTICATION_FACTOR_DISABLE)disable;
-        } else {
-            return -1;
-        }
+    /* disable[0] BACnetAccessAuthenticationFactorDisable */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &disable);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    } else if (disable < UINT16_MAX) {
+        apdu_len += len;
+        factor->disable = (BACNET_ACCESS_AUTHENTICATION_FACTOR_DISABLE)disable;
     } else {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
-
-    if (decode_is_context_tag(&apdu[apdu_len], 1)) {
-        len = bacapp_decode_context_authentication_factor(
-            &apdu[apdu_len], 1, &factor->authentication_factor);
-        if (len < 0) {
-            return -1;
-        } else {
-            apdu_len += len;
-        }
+    len = bacapp_decode_context_authentication_factor(
+        &apdu[apdu_len], 1, &factor->authentication_factor);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
     } else {
-        return -1;
+        apdu_len += len;
     }
 
     return apdu_len;
 }
 
+/**
+ * @brief Decode a BACnetCredentialAuthenticationFactor structure from an APDU
+ * buffer, with context tag.
+ * @param apdu [in] The APDU buffer
+ * @param apdu_size [in] The size of the APDU buffer
+ * @param tag [in] The context tag number
+ * @param factor [out] The BACnetCredentialAuthenticationFactor structure to
+ * decode
+ * @return number of bytes decoded, or negative on error
+ */
 int bacapp_decode_context_credential_authentication_factor(
     const uint8_t *apdu,
+    size_t apdu_size,
     uint8_t tag,
     BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *factor)
 {
-    int len = 0;
-    int section_length;
+    int len = 0, apdu_len = 0;
 
-    if (decode_is_opening_tag_number(&apdu[len], tag)) {
-        len++;
-        section_length =
-            bacapp_decode_credential_authentication_factor(&apdu[len], factor);
-
-        if (section_length == -1) {
-            len = -1;
-        } else {
-            len += section_length;
-            if (decode_is_closing_tag_number(&apdu[len], tag)) {
-                len++;
-            } else {
-                len = -1;
-            }
-        }
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag, &len)) {
+        apdu_len += len;
     } else {
-        len = -1;
+        return BACNET_STATUS_ERROR;
     }
-    return len;
+    len = bacapp_decode_credential_authentication_factor(
+        &apdu[apdu_len], apdu_size - apdu_len, factor);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
 }
