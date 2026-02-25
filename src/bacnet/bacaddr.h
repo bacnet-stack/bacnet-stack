@@ -58,6 +58,9 @@ bool bacnet_address_init(
     const BACNET_MAC_ADDRESS *mac,
     uint16_t dnet,
     const BACNET_MAC_ADDRESS *adr);
+BACNET_STACK_EXPORT
+void bacnet_address_router_set(
+    BACNET_ADDRESS *dest, const BACNET_ADDRESS *router);
 
 BACNET_STACK_EXPORT
 bool bacnet_address_mac_same(
