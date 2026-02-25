@@ -2415,17 +2415,19 @@ static void test_bacnet_character_string_buffer(void)
 {
     uint8_t apdu[50] = { 0 };
     char buffer[26] = { 0 }, test_buffer[26] = { 0 };
+    char unpack_buffer[26] = { 0 };
     BACNET_CHARACTER_STRING_BUFFER value = { 0 }, test_value = { 0 };
     int apdu_len = 0, null_len = 0, test_len = 0;
     uint8_t tag_number = 0;
+    uint8_t unpack_encoding = 0;
+    uint32_t unpack_buffer_length = 0;
     unsigned i;
     int diff = 0; /* for memcmp */
 
-    value.buffer = buffer;
-    value.buffer_size = sizeof(buffer);
-    value.encoding = CHARACTER_ANSI_X34;
-    test_value.buffer = test_buffer;
-    test_value.buffer_size = sizeof(test_buffer);
+    bacnet_character_string_buffer_init(
+        &value, CHARACTER_ANSI_X34, buffer, sizeof(buffer));
+    bacnet_character_string_buffer_init(
+        &test_value, CHARACTER_ANSI_X34, test_buffer, sizeof(test_buffer));
     apdu_len = encode_application_character_string_buffer(apdu, &value);
     null_len = encode_application_character_string_buffer(NULL, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -2450,6 +2452,12 @@ static void test_bacnet_character_string_buffer(void)
         zassert_equal(diff, 0, NULL);
         zassert_equal(value.buffer_length, test_value.buffer_length, NULL);
         zassert_equal(value.encoding, test_value.encoding, NULL);
+        bacnet_character_string_buffer_unpack(
+            &value, &unpack_encoding, unpack_buffer, &unpack_buffer_length);
+        zassert_equal(value.buffer_length, unpack_buffer_length, NULL);
+        zassert_equal(value.encoding, unpack_encoding, NULL);
+        diff = memcmp(buffer, unpack_buffer, value.buffer_length);
+        zassert_equal(diff, 0, NULL);
         /* context tagged */
         tag_number = i;
         apdu_len = bacnet_character_string_buffer_context_encode(
@@ -2469,6 +2477,12 @@ static void test_bacnet_character_string_buffer(void)
         zassert_equal(diff, 0, NULL);
         zassert_equal(value.buffer_length, test_value.buffer_length, NULL);
         zassert_equal(value.encoding, test_value.encoding, NULL);
+        bacnet_character_string_buffer_unpack(
+            &value, &unpack_encoding, unpack_buffer, &unpack_buffer_length);
+        zassert_equal(value.buffer_length, unpack_buffer_length, NULL);
+        zassert_equal(value.encoding, unpack_encoding, NULL);
+        diff = memcmp(buffer, unpack_buffer, value.buffer_length);
+        zassert_equal(diff, 0, NULL);
     }
 }
 

@@ -3457,6 +3457,65 @@ int bacnet_character_string_buffer_context_decode(
 }
 
 /**
+ * @brief Initializes a BACnet Character String buffer value
+ *
+ * @param value - the BACnet Character String buffer value to be initialized
+ * @param encoding - pointer to the BACnet Character String encoding value
+ * @param buffer - pointer to the buffer to hold the string value
+ * @param buffer_length - pointer to hold the buffer length
+ * @param buffer_size - size of the buffer in bytes
+ */
+void bacnet_character_string_buffer_init(
+    BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t encoding,
+    char *buffer,
+    size_t buffer_size)
+{
+    if (value) {
+        value->encoding = encoding;
+        value->buffer = buffer;
+        value->buffer_size = buffer_size;
+        value->buffer_length = 0;
+    }
+}
+
+/**
+ * @brief Unpacks a BACnet Character String buffer value from bytes
+ *
+ * @param value - the BACnet Character String buffer value to be unpacked
+ * @param encoding - pointer to the BACnet Character String encoding value
+ * @param buffer - pointer to the buffer to hold the string value
+ * @param buffer_length - pointer to hold the buffer length
+ *
+ * @return true if unpacked successfully, false if errors occur
+ */
+bool bacnet_character_string_buffer_unpack(
+    const BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t *encoding,
+    char *buffer,
+    uint32_t *buffer_length)
+{
+    if (value) {
+        if (value->buffer_length > value->buffer_size) {
+            /* fail if buffer length is greater than buffer size */
+            return false;
+        }
+        if (encoding) {
+            *encoding = value->encoding;
+        }
+        if (buffer_length) {
+            *buffer_length = value->buffer_length;
+        }
+        if (buffer && value->buffer && value->buffer_length) {
+            memcpy(buffer, value->buffer, value->buffer_length);
+        }
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Decodes from bytes into a BACnet Unsigned value
  * from clause 20.2.4 Encoding of an Unsigned Integer Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
