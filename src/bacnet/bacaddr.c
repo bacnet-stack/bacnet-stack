@@ -204,18 +204,28 @@ bool bacnet_address_init(
 }
 
 /**
- * @brief Copy a #BACNET_ADDRESS MAC of the src to the ADR of the dest
- * @param dest - #BACNET_ADDRESS ADR to be copied into
- * @param src -  #BACNET_ADDRESS MAC to be copied from
+ * @brief Set the #BACNET_ADDRESS of the next-hop router to the MAC of the dest
+ * @param dest - #BACNET_ADDRESS to be configured
+ * @param router -  #BACNET_ADDRESS MAC to be copied from
  */
-void bacnet_address_mac_to_adr(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
+void bacnet_address_router_set(
+    BACNET_ADDRESS *dest, const BACNET_ADDRESS *router)
 {
-    int i = 0;
+    uint8_t i = 0;
+    uint8_t mac_len = 0;
 
-    if (dest && src) {
-        dest->len = src->mac_len;
+    if (dest && router) {
+        mac_len = router->mac_len;
+        if (mac_len > MAX_MAC_LEN) {
+            mac_len = MAX_MAC_LEN;
+        }
+        dest->mac_len = mac_len;
         for (i = 0; i < MAX_MAC_LEN; i++) {
-            dest->adr[i] = src->mac[i];
+            if (i < mac_len) {
+                dest->mac[i] = router->mac[i];
+            } else {
+                dest->mac[i] = 0;
+            }
         }
     }
 }
@@ -402,7 +412,8 @@ int bacnet_address_decode(
     int apdu_len = 0;
     uint8_t i = 0;
     BACNET_UNSIGNED_INTEGER snet = 0;
-    BACNET_OCTET_STRING mac_addr = { 0 };
+    uint32_t mac_addr_len = 0;
+    uint8_t mac_addr[MAX_MAC_LEN] = { 0 };
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
@@ -423,33 +434,47 @@ int bacnet_address_decode(
     }
     apdu_len += len;
     /* mac address as an octet-string */
-    len = bacnet_octet_string_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &mac_addr);
+    len = bacnet_octet_string_buffer_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &mac_addr[0], sizeof(mac_addr),
+        &mac_addr_len);
     if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (mac_addr_len > MAX_MAC_LEN) {
         return BACNET_STATUS_ERROR;
     }
     if (snet) {
         if (value) {
-            if (mac_addr.length > sizeof(value->adr)) {
+            if (mac_addr_len > sizeof(value->adr)) {
                 return BACNET_STATUS_ERROR;
             }
             /* bounds checking - passed! */
-            value->len = mac_addr.length;
+            value->len = (uint8_t)mac_addr_len;
             /* copy address */
             for (i = 0; i < value->len; i++) {
-                value->adr[i] = mac_addr.value[i];
+                value->adr[i] = mac_addr[i];
+            }
+            /* zero the router address */
+            value->mac_len = 0;
+            for (i = 0; i < MAX_MAC_LEN; i++) {
+                value->mac[i] = 0;
             }
         }
     } else {
         if (value) {
-            if (mac_addr.length > sizeof(value->mac)) {
+            if (mac_addr_len > sizeof(value->mac)) {
                 return BACNET_STATUS_ERROR;
             }
             /* bounds checking - passed! */
-            value->mac_len = mac_addr.length;
+            value->mac_len = (uint8_t)mac_addr_len;
             /* copy address */
             for (i = 0; i < value->mac_len; i++) {
-                value->mac[i] = mac_addr.value[i];
+                value->mac[i] = mac_addr[i];
+            }
+            /* zero the device behind a router address */
+            value->len = 0;
+            for (i = 0; i < MAX_MAC_LEN; i++) {
+                value->adr[i] = 0;
             }
         }
     }

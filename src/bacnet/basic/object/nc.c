@@ -756,12 +756,10 @@ void Notification_Class_common_reporting_function(
                     "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */
+                dest = pBacDest->Recipient.type.address;
                 if (pBacDest->ConfirmedNotify == true) {
-                    if (address_get_device_id(&dest, &device_id)) {
-                        Send_CEvent_Notify(device_id, event_data);
-                    }
+                    Send_CEvent_Notify_Address(Event_Buffer, event_data, &dest);
                 } else {
-                    dest = pBacDest->Recipient.type.address;
                     Send_UEvent_Notify(Event_Buffer, event_data, &dest);
                 }
             }
