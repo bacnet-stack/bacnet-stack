@@ -191,9 +191,8 @@ int wpm_decode_object_property(
         wp_data->application_data_len = imax;
     }
     apdu_len += imax;
-    len = bacnet_is_closing_tag_number(
-        &apdu[apdu_len], apdu_size - apdu_len, 2, &len);
-    if (len > 0) {
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
         apdu_len += len;
     } else {
         if (wp_data) {
