@@ -13,23 +13,7 @@
 #include <stdbool.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-
-struct BACnet_Recipient_List;
-typedef struct BACnet_Recipient_List {
-    /*
-       BACnetRecipient ::= CHOICE {
-       device [0] BACnetObjectIdentifier,
-       address [1] BACnetAddress
-       }
-     */
-    uint8_t tag;
-    union {
-        BACNET_OBJECT_ID device;
-        BACNET_ADDRESS address;
-    } type;
-    /* simple linked list */
-    struct BACnet_Recipient_List *next;
-} BACNET_RECIPIENT_LIST;
+#include "bacnet/bacdest.h"
 
 #ifdef __cplusplus
 extern "C" {

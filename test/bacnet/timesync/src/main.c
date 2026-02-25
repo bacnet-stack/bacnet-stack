@@ -17,52 +17,23 @@
 /**
  * @brief Test
  */
-static void testTimeSyncRecipientData(
-    const BACNET_RECIPIENT_LIST *recipient1,
-    const BACNET_RECIPIENT_LIST *recipient2)
+static void testTimeSyncRecipientListData(
+    const BACNET_RECIPIENT_LIST *list_head_a,
+    const BACNET_RECIPIENT_LIST *list_head_b)
 {
-    unsigned i = 0;
+    bool status = false;
+    const BACNET_RECIPIENT_LIST *list_a;
+    const BACNET_RECIPIENT_LIST *list_b;
 
-    if (recipient1 && recipient2) {
-        zassert_equal(recipient1->tag, recipient2->tag, NULL);
-        if (recipient1->tag == 0) {
-            zassert_equal(
-                recipient1->type.device.type, recipient2->type.device.type,
-                NULL);
-            zassert_equal(
-                recipient1->type.device.instance,
-                recipient2->type.device.instance, NULL);
-        } else if (recipient1->tag == 1) {
-            zassert_equal(
-                recipient1->type.address.net, recipient2->type.address.net,
-                NULL);
-            if (recipient1->type.address.net == BACNET_BROADCAST_NETWORK) {
-                zassert_equal(
-                    recipient1->type.address.mac_len,
-                    recipient2->type.address.mac_len, NULL);
-            } else if (recipient1->type.address.net) {
-                zassert_equal(
-                    recipient1->type.address.len, recipient2->type.address.len,
-                    NULL);
-                for (i = 0; i < recipient1->type.address.len; i++) {
-                    zassert_equal(
-                        recipient1->type.address.adr[i],
-                        recipient2->type.address.adr[i], NULL);
-                }
-            } else {
-                zassert_equal(
-                    recipient1->type.address.mac_len,
-                    recipient2->type.address.mac_len, NULL);
-                for (i = 0; i < recipient1->type.address.mac_len; i++) {
-                    zassert_equal(
-                        recipient1->type.address.mac[i],
-                        recipient2->type.address.mac[i], NULL);
-                }
-            }
-        } else {
-            zassert_true(recipient1->tag <= 1, NULL);
-        }
+    list_a = list_head_a;
+    list_b = list_head_b;
+    while (list_a && list_b) {
+        status = bacnet_recipient_same(&list_a->recipient, &list_b->recipient);
+        zassert_true(status, NULL);
+        list_a = list_a->next;
+        list_b = list_b->next;
     }
+    zassert_true(list_a == NULL && list_b == NULL, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -77,39 +48,33 @@ static void testTimeSyncRecipient(void)
     BACNET_RECIPIENT_LIST test_recipient[4] = { 0 };
 
     /* link the recipient list */
-    recipient[0].next = &recipient[1];
-    recipient[1].next = &recipient[2];
-    recipient[2].next = &recipient[3];
-    recipient[3].next = NULL;
-    /* link the test recipient list */
-    test_recipient[0].next = &test_recipient[1];
-    test_recipient[1].next = &test_recipient[2];
-    test_recipient[2].next = &test_recipient[3];
-    test_recipient[3].next = NULL;
+    bacnet_recipient_list_link_array(recipient, ARRAY_SIZE(recipient));
+    bacnet_recipient_list_link_array(
+        test_recipient, ARRAY_SIZE(test_recipient));
     /* load the test data - device */
-    recipient[0].tag = 0;
-    recipient[0].type.device.type = OBJECT_DEVICE;
-    recipient[0].type.device.instance = 1234;
+    recipient[0].recipient.tag = BACNET_RECIPIENT_TAG_DEVICE;
+    recipient[0].recipient.type.device.type = OBJECT_DEVICE;
+    recipient[0].recipient.type.device.instance = 1234;
     /* load the test data - address */
     /* network = broadcast */
-    recipient[1].tag = 1;
-    recipient[1].type.address.net = BACNET_BROADCAST_NETWORK;
-    recipient[1].type.address.mac_len = 0;
+    recipient[1].recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+    recipient[1].recipient.type.address.net = BACNET_BROADCAST_NETWORK;
+    recipient[1].recipient.type.address.mac_len = 0;
     /* network = non-zero */
-    recipient[2].tag = 1;
-    recipient[2].type.address.net = 4201;
-    recipient[2].type.address.adr[0] = 127;
-    recipient[2].type.address.len = 1;
+    recipient[2].recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+    recipient[2].recipient.type.address.net = 4201;
+    recipient[2].recipient.type.address.adr[0] = 127;
+    recipient[2].recipient.type.address.len = 1;
     /* network = zero */
-    recipient[3].tag = 1;
-    recipient[3].type.address.net = 0;
-    recipient[3].type.address.mac[0] = 10;
-    recipient[3].type.address.mac[1] = 1;
-    recipient[3].type.address.mac[2] = 0;
-    recipient[3].type.address.mac[3] = 86;
-    recipient[3].type.address.mac[4] = 0xBA;
-    recipient[3].type.address.mac[5] = 0xC1;
-    recipient[3].type.address.mac_len = 6;
+    recipient[3].recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+    recipient[3].recipient.type.address.net = 0;
+    recipient[3].recipient.type.address.mac[0] = 10;
+    recipient[3].recipient.type.address.mac[1] = 1;
+    recipient[3].recipient.type.address.mac[2] = 0;
+    recipient[3].recipient.type.address.mac[3] = 86;
+    recipient[3].recipient.type.address.mac[4] = 0xBA;
+    recipient[3].recipient.type.address.mac[5] = 0xC1;
+    recipient[3].recipient.type.address.mac_len = 6;
     /* perform positive test */
     apdu_len = timesync_encode_timesync_recipients(
         &apdu[0], sizeof(apdu), &recipient[0]);
@@ -119,7 +84,25 @@ static void testTimeSyncRecipient(void)
         &apdu[0], apdu_len, &test_recipient[0]);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_true(test_len > 0, NULL);
-    testTimeSyncRecipientData(&recipient[0], &test_recipient[0]);
+    testTimeSyncRecipientListData(&recipient[0], &test_recipient[0]);
+    while (apdu_len) {
+        apdu_len--;
+        test_len = timesync_decode_timesync_recipients(
+            &apdu[0], apdu_len, &test_recipient[0]);
+        if ((apdu_len == 18) || (apdu_len == 11) || (apdu_len == 5)) {
+            /* some valid shorter lists */
+            zassert_equal(test_len, apdu_len, NULL);
+        } else {
+            zassert_equal(
+                test_len, BACNET_STATUS_ABORT, "apdu_len=%d test_len=%d",
+                apdu_len, test_len);
+        }
+    }
+    /* negative test */
+    apdu_len = timesync_encode_timesync_recipients(
+        &apdu[0], sizeof(apdu), &recipient[0]);
+    test_len = timesync_decode_timesync_recipients(&apdu[0], apdu_len, NULL);
+    zassert_equal(test_len, apdu_len, NULL);
 }
 
 static int timesync_decode_apdu_service(

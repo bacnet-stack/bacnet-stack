@@ -559,6 +559,53 @@ int bacnet_recipient_encode(uint8_t *apdu, const BACNET_RECIPIENT *recipient)
 }
 
 /**
+ * @brief Encode a list of BACnetRecipient complex data types
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param list_head  Pointer to the head of the linked list of BACnetRecipient
+ * @return bytes encoded or zero if nothing is encoded
+ */
+int bacnet_recipient_list_encode(
+    uint8_t *apdu, BACNET_RECIPIENT_LIST *list_head)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_RECIPIENT_LIST *list_entry;
+
+    if (!list_head) {
+        /* encoded nothing */
+        return 0;
+    }
+    /* how big? */
+    list_entry = list_head;
+    while (list_entry != NULL) {
+        len = bacnet_recipient_encode(apdu, &list_entry->recipient);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        list_entry = list_entry->next;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Convert an array of BACnetRecipient to linked list
+ * @param array pointer to element zero of the array
+ * @param size number of elements in the array
+ */
+void bacnet_recipient_list_link_array(BACNET_RECIPIENT_LIST *array, size_t size)
+{
+    size_t i = 0;
+
+    for (i = 0; i < size; i++) {
+        if (i > 0) {
+            array[i - 1].next = &array[i];
+        }
+        array[i].next = NULL;
+    }
+}
+
+/**
  * @brief Encode a BACnetRecipient complex data type
  * @param apdu - the APDU buffer
  * @param tag_number - context tag number
