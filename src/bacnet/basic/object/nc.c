@@ -756,9 +756,10 @@ void Notification_Class_common_reporting_function(
                     "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */
-                dest = pBacDest->Recipient.type.address;
+                bacnet_address_copy(&dest, &pBacDest->Recipient.type.address);
                 if (pBacDest->ConfirmedNotify == true) {
-                    Send_CEvent_Notify_Address(Event_Buffer, event_data, &dest);
+                    Send_CEvent_Notify_Address(
+                        Event_Buffer, sizeof(Event_Buffer), event_data, &dest);
                 } else {
                     Send_UEvent_Notify(Event_Buffer, event_data, &dest);
                 }
