@@ -1288,6 +1288,7 @@ int bacnet_datetime_context_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes a context tagged BACnetDateTime value from APDU buffer
  * @param apdu - the APDU buffer
@@ -1301,6 +1302,7 @@ int bacapp_decode_context_datetime(
 {
     return bacnet_datetime_context_decode(apdu, MAX_APDU, tag_number, value);
 }
+#endif
 
 /**
  * @brief Compare BACnetDateRange complex data types

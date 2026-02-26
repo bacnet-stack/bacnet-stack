@@ -282,6 +282,7 @@ int bacnet_timestamp_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode a time stamp from the given buffer.
  * @param apdu  Pointer to the APDU buffer.
@@ -294,6 +295,7 @@ int bacapp_decode_timestamp(const uint8_t *apdu, BACNET_TIMESTAMP *value)
 {
     return bacnet_timestamp_decode(apdu, MAX_APDU, value);
 }
+#endif
 
 /**
  * @brief Decode a time stamp and check for opening and closing tags.
@@ -337,6 +339,7 @@ int bacnet_timestamp_context_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode a time stamp and check for opening and closing tags.
  * @param apdu  Pointer to the APDU buffer.
@@ -360,6 +363,7 @@ int bacapp_decode_context_timestamp(
 
     return len;
 }
+#endif
 
 /**
  * @brief Parse an ascii string for the timestamp

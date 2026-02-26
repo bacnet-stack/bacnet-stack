@@ -71,6 +71,9 @@ BACNET_STACK_EXPORT
 int wpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id);
 
 BACNET_STACK_EXPORT
+int wpm_error_ack_service_encode(
+    uint8_t *apdu, const BACNET_WRITE_PROPERTY_DATA *wp_data);
+BACNET_STACK_EXPORT
 int wpm_error_ack_encode_apdu(
     uint8_t *apdu,
     uint8_t invoke_id,

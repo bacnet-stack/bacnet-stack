@@ -13,6 +13,7 @@
 /* BACnet Stack API */
 #include "bacnet/datetime.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacdest.h"
 #include "bacnet/timesync.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/npdu.h"
@@ -146,9 +147,10 @@ static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
     unsigned index = 0;
 
     for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
-        if (Time_Sync_Recipients[index].tag == 1) {
+        if (Time_Sync_Recipients[index].recipient.tag ==
+            BACNET_RECIPIENT_TAG_ADDRESS) {
             Send_TimeSync_Remote(
-                &Time_Sync_Recipients[index].type.address,
+                &Time_Sync_Recipients[index].recipient.type.address,
                 &current_date_time->date, &current_date_time->time);
         }
     }
@@ -221,8 +223,10 @@ bool handler_timesync_recipient_address_set(
     bool status = false;
 
     if (address && (index < MAX_TIME_SYNC_RECIPIENTS)) {
-        Time_Sync_Recipients[index].tag = 1;
-        bacnet_address_copy(&Time_Sync_Recipients[index].type.address, address);
+        Time_Sync_Recipients[index].recipient.tag =
+            BACNET_RECIPIENT_TAG_ADDRESS;
+        bacnet_address_copy(
+            &Time_Sync_Recipients[index].recipient.type.address, address);
         status = true;
     }
 
@@ -256,12 +260,10 @@ void handler_timesync_init(void)
     unsigned i = 0;
 
     /* connect linked list */
-    for (; i < (MAX_TIME_SYNC_RECIPIENTS - 1); i++) {
-        Time_Sync_Recipients[i].next = &Time_Sync_Recipients[i + 1];
-        Time_Sync_Recipients[i + 1].next = NULL;
-    }
+    bacnet_recipient_list_link_array(
+        Time_Sync_Recipients, MAX_TIME_SYNC_RECIPIENTS);
     for (i = 0; i < MAX_TIME_SYNC_RECIPIENTS; i++) {
-        Time_Sync_Recipients[i].tag = 0xFF;
+        Time_Sync_Recipients[i].recipient.tag = BACNET_RECIPIENT_TAG_MAX;
     }
 }
 #endif

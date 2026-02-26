@@ -366,6 +366,7 @@ int encode_bacnet_address(uint8_t *apdu, const BACNET_ADDRESS *destination)
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode a BACnetAddress and returns the number of apdu bytes consumed.
  * @param apdu  Receive buffer
@@ -377,6 +378,7 @@ int decode_bacnet_address(const uint8_t *apdu, BACNET_ADDRESS *value)
 {
     return bacnet_address_decode(apdu, MAX_APDU, value);
 }
+#endif
 
 /**
  * @brief Encode a context encoded BACnetAddress
@@ -402,6 +404,7 @@ int encode_context_bacnet_address(
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /*
  * @brief Decodes a context tagged BACnetAddress value from APDU buffer
  * @param apdu - the APDU buffer
@@ -415,6 +418,7 @@ int decode_context_bacnet_address(
 {
     return bacnet_address_context_decode(apdu, MAX_APDU, tag_number, value);
 }
+#endif
 
 /**
  * @brief Encode a BACnetVMACEntry value
