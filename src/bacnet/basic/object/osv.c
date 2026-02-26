@@ -277,8 +277,8 @@ bool OctetString_Value_Object_Name(
             snprintf(
                 text, sizeof(text), "OCTETSTRING VALUE %lu",
                 (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text);
         }
-        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
