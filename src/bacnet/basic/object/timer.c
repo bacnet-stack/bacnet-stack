@@ -104,6 +104,7 @@ static const int32_t Properties_Proprietary[] = { -1 };
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
     PROP_PRESENT_VALUE,
+    PROP_TIMER_RUNNING,
     PROP_OUT_OF_SERVICE,
     PROP_DEFAULT_TIMEOUT,
     PROP_MIN_PRES_VALUE,
@@ -1953,6 +1954,13 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            }
+            break;
+        case PROP_TIMER_RUNNING:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Timer_Running_Set(wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_OUT_OF_SERVICE:

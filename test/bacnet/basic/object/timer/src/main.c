@@ -55,6 +55,7 @@ static void test_Timer_Read_Write(void)
     uint32_t test_instance = 0;
     bool status = false;
     const int32_t skip_fail_property_list[] = { -1 };
+    const int32_t *writable_properties = NULL;
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 }, *test_member = NULL;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
@@ -497,6 +498,8 @@ static void test_Timer_Read_Write(void)
     zassert_true(status, NULL);
     status = Timer_Description_Set(instance, NULL);
     zassert_true(status, NULL);
+    Timer_Writable_Property_List(instance, &writable_properties);
+    zassert_not_null(writable_properties, NULL);
     status = characterstring_init_ansi(&cstring, "");
     zassert_true(status, NULL);
     status =
