@@ -1572,10 +1572,10 @@ bool bacnet_strtol(const char *str, long *long_value)
 bool bacnet_strtof(const char *str, float *float_value)
 {
     char *endptr;
-    double value;
+    double double_value;
 
     errno = 0;
-    value = strtod(str, &endptr);
+    double_value = strtod(str, &endptr);
     if (endptr == str) {
         /* No digits found */
         return false;
@@ -1589,15 +1589,15 @@ bool bacnet_strtof(const char *str, float *float_value)
         /* Extra text found */
         return false;
     }
-    if (fabs(value) > FLT_MAX) {
-        /* Value exceeds float range */
-        return false;
-    }
-    if (float_value) {
-        *float_value = (float)value;
+    if (isgreaterequal(double_value, -FLT_MAX) &&
+        islessequal(double_value, FLT_MAX)) {
+        if (float_value) {
+            *float_value = (float)double_value;
+        }
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 /**

@@ -31,6 +31,12 @@ int Send_UEvent_Notify(
     const BACNET_EVENT_NOTIFICATION_DATA *data,
     BACNET_ADDRESS *dest);
 
+BACNET_STACK_EXPORT
+int Send_UEvent_Notify_Device(
+    uint8_t *buffer,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
+    uint32_t device_id);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

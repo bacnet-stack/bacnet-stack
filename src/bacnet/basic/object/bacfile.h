@@ -119,8 +119,20 @@ BACNET_STACK_EXPORT
 uint32_t
 bacfile_read(uint32_t object_instance, uint8_t *buffer, uint32_t buffer_size);
 BACNET_STACK_EXPORT
+uint32_t bacfile_read_offset(
+    uint32_t object_instance,
+    int32_t offset,
+    uint8_t *buffer,
+    uint32_t buffer_size);
+BACNET_STACK_EXPORT
 uint32_t bacfile_write(
     uint32_t object_instance, const uint8_t *buffer, uint32_t buffer_size);
+BACNET_STACK_EXPORT
+uint32_t bacfile_write_offset(
+    uint32_t object_instance,
+    int32_t offset,
+    const uint8_t *buffer,
+    uint32_t buffer_size);
 
 BACNET_STACK_EXPORT
 void bacfile_write_stream_data_callback_set(

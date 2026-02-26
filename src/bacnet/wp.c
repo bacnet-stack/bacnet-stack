@@ -198,21 +198,30 @@ int wp_decode_service_request(
 
     /* check for value pointers */
     if (!apdu) {
+        if (wpdata) {
+            wpdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        }
         return BACNET_STATUS_ERROR;
+    }
+    if (wpdata) {
+        wpdata->error_code = ERROR_CODE_OTHER;
+        wpdata->array_index = BACNET_ARRAY_ALL;
+        wpdata->priority = BACNET_MAX_PRIORITY;
+        wpdata->application_data_len = 0;
     }
     /* object-identifier [0] BACnetObjectIdentifier */
     len = bacnet_object_id_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &type, &instance);
     if (len > 0) {
-        if (instance > BACNET_MAX_INSTANCE) {
-            return BACNET_STATUS_ERROR;
-        }
         apdu_len += len;
         if (wpdata) {
             wpdata->object_type = type;
             wpdata->object_instance = instance;
         }
     } else {
+        if (wpdata) {
+            wpdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        }
         return BACNET_STATUS_ERROR;
     }
     /* property-identifier [1] BACnetPropertyIdentifier */
@@ -224,6 +233,9 @@ int wp_decode_service_request(
             wpdata->object_property = (BACNET_PROPERTY_ID)property;
         }
     } else {
+        if (wpdata) {
+            wpdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        }
         return BACNET_STATUS_ERROR;
     }
     /* property-array-index [2] Unsigned OPTIONAL */
@@ -235,7 +247,7 @@ int wp_decode_service_request(
             wpdata->array_index = unsigned_value;
         }
     } else {
-        /* wrong tag - skip apdu_len increment and go to next field */
+        /* wrong tag, OPTIONAL, skip apdu_len increment and go to next field */
         if (wpdata) {
             wpdata->array_index = BACNET_ARRAY_ALL;
         }
@@ -243,20 +255,35 @@ int wp_decode_service_request(
     /* property-value [3] ABSTRACT-SYNTAX.&Type */
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
+        if (wpdata) {
+            wpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
         return BACNET_STATUS_ERROR;
     }
     /* determine the length of the data blob */
     imax = bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
-    if (imax == BACNET_STATUS_ERROR) {
+    if (imax < 0) {
+        if (wpdata) {
+            wpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
         return BACNET_STATUS_ERROR;
     }
     /* count the opening tag number length */
     apdu_len += len;
     /* copy the data from the APDU */
-    if (imax > MAX_APDU) {
-        /* not enough size in application_data to store the data chunk */
+    if (imax > (apdu_size - apdu_len)) {
+        /* not enough bytes in APDU to avoid buffer overrun */
+        if (wpdata) {
+            wpdata->error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+        }
         return BACNET_STATUS_ERROR;
-    } else if (wpdata) {
+    }
+    if (wpdata) {
+        if (imax > sizeof(wpdata->application_data)) {
+            /* not enough bytes in application_data to store the data chunk */
+            wpdata->error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+            return BACNET_STATUS_ERROR;
+        }
         for (i = 0; i < imax; i++) {
             wpdata->application_data[i] = apdu[apdu_len + i];
         }
@@ -266,6 +293,9 @@ int wp_decode_service_request(
     apdu_len += imax;
     if (!bacnet_is_closing_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
+        if (wpdata) {
+            wpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
         return BACNET_STATUS_ERROR;
     }
     /* count the closing tag number length */
@@ -277,7 +307,7 @@ int wp_decode_service_request(
     }
     if ((unsigned)apdu_len < apdu_size) {
         len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_len - apdu_size, 4, &unsigned_value);
+            &apdu[apdu_len], apdu_size - apdu_len, 4, &unsigned_value);
         if (len > 0) {
             apdu_len += len;
             if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
@@ -286,9 +316,17 @@ int wp_decode_service_request(
                     wpdata->priority = (uint8_t)unsigned_value;
                 }
             } else {
+                if (wpdata) {
+                    wpdata->error_code =
+                        ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+                }
                 return BACNET_STATUS_ERROR;
             }
         } else {
+            if (wpdata) {
+                wpdata->error_code =
+                    ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+            }
             return BACNET_STATUS_ERROR;
         }
     }

@@ -16,6 +16,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/delete_object.h"
+#include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
 #ifndef BACNET_CREATE_OBJECT_LIST_VALUES_ENABLED
@@ -49,6 +50,8 @@ typedef struct BACnet_Create_Object_Data {
        Initial Values' parameter, the 'First Failed Element Number' shall
        be equal to zero. */
     BACNET_UNSIGNED_INTEGER first_failed_element_number;
+    /* bypass error and continue initializing values */
+    bool continue_on_error;
 } BACNET_CREATE_OBJECT_DATA;
 
 /**
@@ -87,6 +90,20 @@ extern "C" {
 BACNET_STACK_EXPORT
 int create_object_encode_initial_value(
     uint8_t *apdu, int offset, const BACNET_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+int create_object_encode_initial_value_data(
+    uint8_t *apdu, int offset, BACNET_CREATE_OBJECT_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+size_t create_object_initial_value_data_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    int offset,
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE *value);
+BACNET_STACK_EXPORT
+int create_object_decode_initial_value(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE *value);
 
 BACNET_STACK_EXPORT
 size_t create_object_service_request_encode(
@@ -132,6 +149,16 @@ bool create_object_process(
     create_object_function create_object,
     delete_object_function delete_object,
     write_property_function write_property);
+BACNET_STACK_EXPORT
+int create_object_writable_properties_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_CREATE_OBJECT_DATA *data,
+    const int32_t *required_properties,
+    const int32_t *optional_properties,
+    const int32_t *proprietary_properties,
+    const int32_t *writable_properties,
+    read_property_function read_property);
 
 #ifdef __cplusplus
 }

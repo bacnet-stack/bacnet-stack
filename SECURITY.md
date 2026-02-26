@@ -26,6 +26,18 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records:
 
+[CVE-2026-26264](https://www.cve.org/CVERecord?id=CVE-2026-26264) -
+WriteProperty decoding length underflow leads to OOB read and crash
+[GHSA-phjh-v45p-gmjj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-phjh-v45p-gmjj)
+
+[CVE-2026-21870](https://www.cve.org/CVERecord?id=CVE-2026-21870) -
+Off-by-one Stack-based Buffer Overflow in tokenizer_string
+[GHSA-pc83-wp6w-93mx](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-pc83-wp6w-93mx)
+
+[CVE-2026-21878](https://www.cve.org/CVERecord?id=CVE-2026-21878) -
+Improper Limitation of a Pathname to a Restricted Directory
+[GHSA-p8rx-c26w-545j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-p8rx-c26w-545j)
+
 [CVE-2025-66624](https://www.cve.org/CVERecord?id=CVE-2025-66624) -
 BACnet-stack MS/TP reply matcher OOB read
 [GHSA-8wgw-5h6x-qgqg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8wgw-5h6x-qgqg)

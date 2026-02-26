@@ -15,7 +15,6 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
-#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/bacaddr.h"
 
@@ -204,6 +203,33 @@ bool bacnet_address_init(
 }
 
 /**
+ * @brief Set the #BACNET_ADDRESS of the next-hop router to the MAC of the dest
+ * @param dest - #BACNET_ADDRESS to be configured
+ * @param router -  #BACNET_ADDRESS MAC to be copied from
+ */
+void bacnet_address_router_set(
+    BACNET_ADDRESS *dest, const BACNET_ADDRESS *router)
+{
+    uint8_t i = 0;
+    uint8_t mac_len = 0;
+
+    if (dest && router) {
+        mac_len = router->mac_len;
+        if (mac_len > MAX_MAC_LEN) {
+            mac_len = MAX_MAC_LEN;
+        }
+        dest->mac_len = mac_len;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            if (i < mac_len) {
+                dest->mac[i] = router->mac[i];
+            } else {
+                dest->mac[i] = 0;
+            }
+        }
+    }
+}
+
+/**
  * @brief Compare two #BACNET_MAC_ADDRESS values
  * @param dest - #BACNET_MAC_ADDRESS to be compared
  * @param src -  #BACNET_MAC_ADDRESS to be compared
@@ -385,7 +411,8 @@ int bacnet_address_decode(
     int apdu_len = 0;
     uint8_t i = 0;
     BACNET_UNSIGNED_INTEGER snet = 0;
-    BACNET_OCTET_STRING mac_addr = { 0 };
+    uint32_t mac_addr_len = 0;
+    uint8_t mac_addr[MAX_MAC_LEN] = { 0 };
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
@@ -406,33 +433,47 @@ int bacnet_address_decode(
     }
     apdu_len += len;
     /* mac address as an octet-string */
-    len = bacnet_octet_string_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &mac_addr);
+    len = bacnet_octet_string_buffer_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &mac_addr[0], sizeof(mac_addr),
+        &mac_addr_len);
     if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (mac_addr_len > MAX_MAC_LEN) {
         return BACNET_STATUS_ERROR;
     }
     if (snet) {
         if (value) {
-            if (mac_addr.length > sizeof(value->adr)) {
+            if (mac_addr_len > sizeof(value->adr)) {
                 return BACNET_STATUS_ERROR;
             }
             /* bounds checking - passed! */
-            value->len = mac_addr.length;
+            value->len = (uint8_t)mac_addr_len;
             /* copy address */
             for (i = 0; i < value->len; i++) {
-                value->adr[i] = mac_addr.value[i];
+                value->adr[i] = mac_addr[i];
+            }
+            /* zero the router address */
+            value->mac_len = 0;
+            for (i = 0; i < MAX_MAC_LEN; i++) {
+                value->mac[i] = 0;
             }
         }
     } else {
         if (value) {
-            if (mac_addr.length > sizeof(value->mac)) {
+            if (mac_addr_len > sizeof(value->mac)) {
                 return BACNET_STATUS_ERROR;
             }
             /* bounds checking - passed! */
-            value->mac_len = mac_addr.length;
+            value->mac_len = (uint8_t)mac_addr_len;
             /* copy address */
             for (i = 0; i < value->mac_len; i++) {
-                value->mac[i] = mac_addr.value[i];
+                value->mac[i] = mac_addr[i];
+            }
+            /* zero the device behind a router address */
+            value->len = 0;
+            for (i = 0; i < MAX_MAC_LEN; i++) {
+                value->adr[i] = 0;
             }
         }
     }
@@ -515,6 +556,7 @@ int encode_bacnet_address(uint8_t *apdu, const BACNET_ADDRESS *destination)
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode a BACnetAddress and returns the number of apdu bytes consumed.
  * @param apdu  Receive buffer
@@ -526,6 +568,7 @@ int decode_bacnet_address(const uint8_t *apdu, BACNET_ADDRESS *value)
 {
     return bacnet_address_decode(apdu, MAX_APDU, value);
 }
+#endif
 
 /**
  * @brief Encode a context encoded BACnetAddress
@@ -551,6 +594,7 @@ int encode_context_bacnet_address(
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /*
  * @brief Decodes a context tagged BACnetAddress value from APDU buffer
  * @param apdu - the APDU buffer
@@ -564,6 +608,7 @@ int decode_context_bacnet_address(
 {
     return bacnet_address_context_decode(apdu, MAX_APDU, tag_number, value);
 }
+#endif
 
 /**
  * @brief Encode a BACnetVMACEntry value
@@ -581,24 +626,21 @@ int decode_context_bacnet_address(
 int bacnet_vmac_entry_data_encode(uint8_t *apdu, const BACNET_VMAC_ENTRY *value)
 {
     int apdu_len = 0, len;
-    BACNET_OCTET_STRING address = { 0 };
 
     if (!value) {
         return 0;
     }
     /* virtual-mac-address [0] OctetString */
-    octetstring_init(
-        &address, value->virtual_mac_address.adr,
+    len = encode_context_octet_string_buffer(
+        apdu, 0, value->virtual_mac_address.adr,
         value->virtual_mac_address.len);
-    len = encode_context_octet_string(apdu, 0, &address);
     apdu_len += len;
     if (apdu) {
         apdu += len;
     }
     /* native-mac-address */
-    octetstring_init(
-        &address, value->native_mac_address, value->native_mac_address_len);
-    len = encode_context_octet_string(apdu, 1, &address);
+    len = encode_context_octet_string_buffer(
+        apdu, 1, value->native_mac_address, value->native_mac_address_len);
     apdu_len += len;
 
     return apdu_len;
@@ -647,44 +689,56 @@ int bacnet_vmac_entry_decode(
     int len = 0;
     int apdu_len = 0;
     size_t i = 0;
-    BACNET_OCTET_STRING mac_addr = { 0 };
+    BACNET_VMAC_ENTRY entry = { 0 };
+    uint32_t mac_addr_len = 0;
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
     /* virtual-mac-address [0] OctetString */
-    len = bacnet_octet_string_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 0, &mac_addr);
+    len = bacnet_octet_string_buffer_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, entry.virtual_mac_address.adr,
+        sizeof(entry.virtual_mac_address.adr), &mac_addr_len);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     if (value) {
-        if (mac_addr.length > sizeof(value->virtual_mac_address.adr)) {
+        if (mac_addr_len > sizeof(value->virtual_mac_address.adr)) {
             return BACNET_STATUS_ERROR;
         }
         /* bounds checking - passed! */
-        value->virtual_mac_address.len = mac_addr.length;
+        value->virtual_mac_address.len = mac_addr_len;
         /* copy address */
-        for (i = 0; i < mac_addr.length; i++) {
-            value->virtual_mac_address.adr[i] = mac_addr.value[i];
+        for (i = 0; i < sizeof(value->virtual_mac_address.adr); i++) {
+            if (i < mac_addr_len) {
+                value->virtual_mac_address.adr[i] =
+                    entry.virtual_mac_address.adr[i];
+            } else {
+                value->virtual_mac_address.adr[i] = 0;
+            }
         }
     }
     apdu_len += len;
     /* native-mac-address [1] OctetString */
-    len = bacnet_octet_string_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 1, &mac_addr);
+    len = bacnet_octet_string_buffer_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, entry.native_mac_address,
+        sizeof(entry.native_mac_address), &mac_addr_len);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     if (value) {
-        if (mac_addr.length > sizeof(value->native_mac_address)) {
+        if (mac_addr_len > sizeof(value->native_mac_address)) {
             return BACNET_STATUS_ERROR;
         }
         /* bounds checking - passed! */
-        value->native_mac_address_len = mac_addr.length;
+        value->native_mac_address_len = mac_addr_len;
         /* copy address */
-        for (i = 0; i < mac_addr.length; i++) {
-            value->native_mac_address[i] = mac_addr.value[i];
+        for (i = 0; i < sizeof(value->native_mac_address); i++) {
+            if (i < mac_addr_len) {
+                value->native_mac_address[i] = entry.native_mac_address[i];
+            } else {
+                value->native_mac_address[i] = 0;
+            }
         }
     }
     apdu_len += len;

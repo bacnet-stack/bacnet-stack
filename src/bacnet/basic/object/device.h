@@ -16,11 +16,12 @@
 #include "bacnet/create_object.h"
 #include "bacnet/delete_object.h"
 #include "bacnet/list_element.h"
-#include "bacnet/wp.h"
+#include "bacnet/proplist.h"
 #include "bacnet/rd.h"
 #include "bacnet/rp.h"
 #include "bacnet/rpm.h"
 #include "bacnet/readrange.h"
+#include "bacnet/wp.h"
 
 /** Called so a BACnet object can perform any necessary initialization.
  * @ingroup ObjHelpers
@@ -242,6 +243,31 @@ BACNET_STACK_EXPORT
 bool Device_Interval_Offset_Set(uint32_t value);
 
 BACNET_STACK_EXPORT
+bool Device_Configuration_File_Set(unsigned index, uint32_t instance);
+BACNET_STACK_EXPORT
+uint32_t Device_Configuration_File(unsigned index);
+BACNET_STACK_EXPORT
+uint16_t Device_Backup_Failure_Timeout(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_Failure_Timeout_Set(uint16_t timeout);
+BACNET_STACK_EXPORT
+uint16_t Device_Backup_Preparation_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_Preparation_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+uint16_t Device_Restore_Preparation_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Restore_Preparation_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+uint16_t Device_Restore_Completion_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Restore_Completion_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state);
+
+BACNET_STACK_EXPORT
 void Device_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -304,6 +330,11 @@ BACNET_STACK_EXPORT
 bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data);
+
+BACNET_STACK_EXPORT
+void Device_Start_Backup(void);
+BACNET_STACK_EXPORT
+void Device_Start_Restore(void);
 
 BACNET_STACK_EXPORT
 unsigned Device_Count(void);
@@ -425,6 +456,13 @@ BACNET_STACK_EXPORT
 bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 void Device_Write_Property_Store_Callback_Set(write_property_function cb);
+
+BACNET_STACK_EXPORT
+void Device_Property_List_Proprietary_Callback_Set(property_list_function cb);
+BACNET_STACK_EXPORT
+void Device_Read_Property_Proprietary_Callback_Set(read_property_function cb);
+BACNET_STACK_EXPORT
+void Device_Write_Property_Proprietary_Callback_Set(write_property_function cb);
 
 #if defined(INTRINSIC_REPORTING)
 BACNET_STACK_EXPORT

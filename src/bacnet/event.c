@@ -1898,8 +1898,9 @@ int event_notify_decode_service_request(
                     } else {
                         property_state = NULL;
                     }
-                    len = bacapp_decode_context_property_state(
-                        &apdu[apdu_len], 0, property_state);
+                    len = bacapp_property_state_context_decode(
+                        &apdu[apdu_len], apdu_size - apdu_len, 0,
+                        property_state);
                     if (len > 0) {
                         apdu_len += len;
                     } else {
@@ -3139,7 +3140,7 @@ bool event_notify_parse(
     BACNET_PROPERTY_STATES tag = PROP_STATE_BOOLEAN_VALUE;
     BACNET_BIT_STRING *pBitString = NULL;
 
-    for (argi = 1; argi < argc; argi++) {
+    for (argi = 0; argi < argc; argi++) {
         if (target_args == 1) {
             /* process-id */
             if (!bacnet_string_to_uint32(

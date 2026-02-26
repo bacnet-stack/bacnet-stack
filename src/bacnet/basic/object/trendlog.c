@@ -23,9 +23,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/trendlog.h"
 #include "bacnet/datalink/datalink.h"
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h" /* object list dependency */
-#endif
+#include "bacnet/basic/object/bacfile.h"
 
 /* number of demo objects */
 #ifndef MAX_TREND_LOGS
@@ -1642,10 +1640,9 @@ static void TL_fetch_property(int iLog)
     uint8_t ucCount;
     TL_LOG_INFO *CurrentLog;
     TL_DATA_REC TempRec;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
     BACNET_BIT_STRING TempBits;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_TAG tag = { 0 };
 
     CurrentLog = &LogInfo[iLog];
 
@@ -1664,40 +1661,46 @@ static void TL_fetch_property(int iLog)
         TempRec.ucRecType = TL_TYPE_ERROR;
     } else {
         /* Decode data returned and see if we can fit it into the log */
-        iLen =
-            decode_tag_number_and_value(ValueBuf, &tag_number, &len_value_type);
-        switch (tag_number) {
+        iLen = bacnet_tag_decode(ValueBuf, sizeof(ValueBuf), &tag);
+    }
+    if ((iLen > 0) && (tag.application)) {
+        switch (tag.number) {
             case BACNET_APPLICATION_TAG_NULL:
                 TempRec.ucRecType = TL_TYPE_NULL;
                 break;
 
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 TempRec.ucRecType = TL_TYPE_BOOL;
-                TempRec.Datum.ucBoolean = decode_boolean(len_value_type);
+                TempRec.Datum.ucBoolean = decode_boolean(tag.len_value_type);
                 break;
 
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 TempRec.ucRecType = TL_TYPE_UNSIGN;
-                decode_unsigned(
-                    &ValueBuf[iLen], len_value_type, &unsigned_value);
+                bacnet_unsigned_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &unsigned_value);
                 TempRec.Datum.ulUValue = unsigned_value;
                 break;
 
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 TempRec.ucRecType = TL_TYPE_SIGN;
-                decode_signed(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.lSValue);
+                bacnet_signed_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempRec.Datum.lSValue);
                 break;
 
             case BACNET_APPLICATION_TAG_REAL:
                 TempRec.ucRecType = TL_TYPE_REAL;
-                decode_real_safe(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.fReal);
+                bacnet_real_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempRec.Datum.fReal);
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:
                 TempRec.ucRecType = TL_TYPE_BITS;
-                decode_bitstring(&ValueBuf[iLen], len_value_type, &TempBits);
+                bacnet_bitstring_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempBits);
                 /* We truncate any bitstrings at 32 bits to conserve space */
                 if (bitstring_bits_used(&TempBits) < 32) {
                     /* Store the bytes used and the bits free
@@ -1724,8 +1727,9 @@ static void TL_fetch_property(int iLog)
 
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 TempRec.ucRecType = TL_TYPE_ENUM;
-                decode_enumerated(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.ulEnum);
+                bacnet_enumerated_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempRec.Datum.ulEnum);
                 break;
 
             default:
@@ -1736,12 +1740,22 @@ static void TL_fetch_property(int iLog)
                 break;
         }
         /* Finally insert the status flags into the record */
-        iLen = decode_tag_number_and_value(
-            StatusBuf, &tag_number, &len_value_type);
-        decode_bitstring(&StatusBuf[iLen], len_value_type, &TempBits);
-        TempRec.ucStatus = 128 | bitstring_octet(&TempBits, 0);
+        iLen = bacnet_bitstring_application_decode(
+            StatusBuf, sizeof(StatusBuf), &TempBits);
+        if (iLen > 0) {
+            TempRec.ucStatus = 128 | bitstring_octet(&TempBits, 0);
+        } else {
+            /* If we couldn't decode the status flags, just set the bit to
+             * say they are not present */
+            TempRec.ucStatus = 0;
+        }
+    } else {
+        /* We couldn't decode the value, so we will just log an error with
+         * the error code for the value read attempt */
+        TempRec.Datum.Error.usClass = ERROR_CLASS_SERVICES;
+        TempRec.Datum.Error.usCode = ERROR_CODE_OTHER;
+        TempRec.ucRecType = TL_TYPE_ERROR;
     }
-
     Logs[iLog][CurrentLog->iIndex++] = TempRec;
     if (CurrentLog->iIndex >= TL_MAX_ENTRIES) {
         CurrentLog->iIndex = 0;

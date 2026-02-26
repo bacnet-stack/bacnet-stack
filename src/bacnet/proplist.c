@@ -95,6 +95,9 @@ bool property_lists_member(
  *
  * @param  rpdata - ReadProperty data, including requested data and
  * data for the reply, or error response.
+ * @param pListRequired - list of required properties
+ * @param pListOptional - list of optional properties
+ * @param pListProprietary - list of proprietary properties
  *
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.

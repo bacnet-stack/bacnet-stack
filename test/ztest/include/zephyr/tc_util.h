@@ -12,6 +12,7 @@
 #include <zephyr/kernel.h>
 
 #include <string.h>
+#include <time.h>
 #ifdef CONFIG_SHELL
 #include <zephyr/shell/shell.h>
 #endif
@@ -92,9 +93,7 @@ static inline const char *TC_RESULT_TO_STR(int result)
 	}
 }
 
-#if 0
 static uint32_t tc_start_time;
-#endif
 static uint32_t tc_spend_time;
 
 static inline void get_start_time_cyc(void)
@@ -103,22 +102,17 @@ static inline void get_start_time_cyc(void)
 	 * TC_START() in their code. But the caller thread cannot be
 	 * in userspace.
 	 */
-#if 0
-	if (!k_is_user_context()) {
-		tc_start_time = k_cycle_get_32();
-	}
-#endif
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    tc_start_time = (uint32_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
 }
 
 static inline void test_time_ms(void)
 {
-#if 0
-	uint32_t spend_cycle = k_cycle_get_32() - tc_start_time;
-
-	tc_spend_time = k_cyc_to_ms_ceil32(spend_cycle);
-#else
-	tc_spend_time = 0;
-#endif
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint32_t now = (uint32_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
+    tc_spend_time = now - tc_start_time;
 }
 
 #ifndef TC_ERROR

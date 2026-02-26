@@ -224,6 +224,10 @@ server-discover:
 server-mini:
 	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
 
+.PHONY: server-segmentation
+server-segmentation:
+	$(MAKE) LEGACY=true SEGMENT=true -s -C apps server
+
 .PHONY: sc-hub
 sc-hub:
 	$(MAKE) LEGACY=true BACDL=bsc -s -C apps $@
@@ -231,6 +235,10 @@ sc-hub:
 .PHONY: sc-hub-debug
 sc-hub-debug:
 	$(MAKE) LEGACY=true BACDL=bsc BUILD=debug -s -C apps sc-hub
+
+.PHONY: dmbrcap
+dmbrcap:
+	$(MAKE) -s -C apps $@
 
 .PHONY: mstpcap
 mstpcap:

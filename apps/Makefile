@@ -223,6 +223,11 @@ ifeq (${LEGACY},true)
 BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
+ifeq (${SEGMENT},true)
+# enable segmentation support
+BACNET_DEFINES += -DBACNET_SEGMENTATION_ENABLED=1
+endif
+
 ifeq (${NOTIFY},false)
 # disable intrinsic reporting
 else
@@ -232,6 +237,7 @@ endif
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
 BACNET_DEFINES += -DBACNET_TIME_MASTER
+BACNET_DEFINES += -DBACNET_BACKUP_RESTORE
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=28
 
@@ -261,7 +267,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	who-am-i you-are apdu writegroup \
+	who-am-i you-are apdu writegroup dmbrcap \
 	delete-object server-discover server-basic server-mini
 
 ifneq (,$(filter $(BACDL),bip all))
@@ -394,6 +400,10 @@ whatisnetnum: $(BACNET_LIB_TARGET)
 
 .PHONY: netnumis
 netnumis: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: dmbrcap
+dmbrcap:
 	$(MAKE) -B -C $@
 
 .PHONY: mstpcap

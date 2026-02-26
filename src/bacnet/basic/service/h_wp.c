@@ -70,8 +70,10 @@ handler_write_property_relinquish_bypass(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
+ *   - the WriteProperty fails and error code is an Abort
+ * - a Reject if the WriteProperty fails and error code is a Reject
  * - an ACK if Device_Write_Property() succeeds
- * - an Error if Device_Write_Property() fails
+ * - an Error if Device_Write_Property() fails and error code is an Error
  *   or there isn't enough room in the APDU to fit the data.
  *
  * @param service_request [in] The contents of the service request.
@@ -86,9 +88,8 @@ void handler_write_property(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_WRITE_PROPERTY_DATA wp_data;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     int len = 0;
-    bool bcontinue = true;
     bool success = false;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
@@ -102,65 +103,69 @@ void handler_write_property(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     debug_print("WP: Received Request!\n");
     if (service_len == 0) {
-        len = reject_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        wp_data.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        len = BACNET_STATUS_REJECT;
         debug_print("WP: Missing Required Parameter. Sending Reject!\n");
-        bcontinue = false;
     } else if (service_data->segmented_message) {
-        len = abort_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        wp_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+        len = BACNET_STATUS_ABORT;
         debug_print("WP: Segmented message.  Sending Abort!\n");
-        bcontinue = false;
-    }
-    if (bcontinue) {
+    } else {
         /* decode the service request only */
+        wp_data.error_class = ERROR_CLASS_PROPERTY;
+        wp_data.error_code = ERROR_CODE_SUCCESS;
         len = wp_decode_service_request(service_request, service_len, &wp_data);
-        if (len > 0) {
-            debug_fprintf(
-                stderr,
-                "WP: type=%lu instance=%lu property=%lu priority=%lu "
-                "index=%ld\n",
-                (unsigned long)wp_data.object_type,
-                (unsigned long)wp_data.object_instance,
-                (unsigned long)wp_data.object_property,
-                (unsigned long)wp_data.priority, (long)wp_data.array_index);
+    }
+    if (len > 0) {
+        debug_fprintf(
+            stderr,
+            "WP: type=%lu instance=%lu property=%lu priority=%lu "
+            "index=%ld\n",
+            (unsigned long)wp_data.object_type,
+            (unsigned long)wp_data.object_instance,
+            (unsigned long)wp_data.object_property,
+            (unsigned long)wp_data.priority, (long)wp_data.array_index);
+    } else {
+        debug_print("WP: Unable to decode Request!\n");
+    }
+    if (len > 0) {
+        success = handler_write_property_relinquish_bypass(&wp_data);
+        if (success) {
+            /* this object property is not commandable,
+                and therefore, not able to be relinquished,
+                so it "shall not be changed, and
+                the write shall be considered successful." */
         } else {
-            debug_print("WP: Unable to decode Request!\n");
+            if (write_property_bacnet_array_valid(&wp_data)) {
+                success = Device_Write_Property(&wp_data);
+            }
         }
-        /* bad decoding or something we didn't understand - send an abort */
-        if (len <= 0) {
+        if (success) {
+            len = encode_simple_ack(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_WRITE_PROPERTY);
+            debug_print("WP: Sending Simple Ack!\n");
+        } else {
+            len = BACNET_STATUS_ERROR;
+        }
+    }
+    if (len < 0) {
+        if (abort_valid_error_code(wp_data.error_code)) {
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                ABORT_REASON_OTHER, true);
-            debug_print("WP: Bad Encoding. Sending Abort!\n");
-            bcontinue = false;
-        }
-        if (bcontinue) {
-            success = handler_write_property_relinquish_bypass(&wp_data);
-            if (success) {
-                /* this object property is not commandable,
-                   and therefore, not able to be relinquished,
-                   so it "shall not be changed, and
-                   the write shall be considered successful." */
-            } else {
-                if (write_property_bacnet_array_valid(&wp_data)) {
-                    success = Device_Write_Property(&wp_data);
-                }
-            }
-            if (success) {
-                len = encode_simple_ack(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-                debug_print("WP: Sending Simple Ack!\n");
-            } else {
-                len = bacerror_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
-                    wp_data.error_code);
-                debug_print("WP: Sending Error!\n");
-            }
+                abort_convert_error_code(wp_data.error_code), true);
+            debug_print("WP: Sending Abort!\n");
+        } else if (reject_valid_error_code(wp_data.error_code)) {
+            len = reject_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                reject_convert_error_code(wp_data.error_code));
+            debug_print("WP: Sending Reject!\n");
+        } else {
+            len = bacerror_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
+                wp_data.error_code);
+            debug_print("WP: Sending Error!\n");
         }
     }
     /* Send PDU */

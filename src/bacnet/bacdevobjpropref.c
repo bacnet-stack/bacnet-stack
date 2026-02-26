@@ -311,6 +311,7 @@ bool bacnet_device_object_property_reference_copy(
     return status;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * Decode a property reference of a device object.
  *
@@ -337,7 +338,9 @@ int bacapp_decode_device_obj_property_ref(
     return bacnet_device_object_property_reference_decode(
         apdu, MAX_APDU, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * Decode the opening tag and the property reference of
  * an device object and check for the closing tag as well.
@@ -359,6 +362,7 @@ int bacapp_decode_context_device_obj_property_ref(
     return bacnet_device_object_property_reference_context_decode(
         apdu, MAX_APDU, tag_number, value);
 }
+#endif
 
 /**
  * Encode the opening tag and the device object reference
@@ -599,6 +603,7 @@ bool bacnet_device_object_reference_copy(
     return status;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * Decode the device object reference.
  *
@@ -619,7 +624,9 @@ int bacapp_decode_device_obj_ref(
 {
     return bacnet_device_object_reference_decode(apdu, MAX_APDU, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * Decode the context device object reference. Check for
  * an opening tag and a closing tag as well.
@@ -640,6 +647,7 @@ int bacapp_decode_context_device_obj_ref(
     return bacnet_device_object_reference_context_decode(
         apdu, MAX_APDU, tag_number, value);
 }
+#endif
 
 /**
  * @brief Encode a BACnetObjectPropertyReference

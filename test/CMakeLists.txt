@@ -268,8 +268,8 @@ foreach(testdir IN ITEMS ${testdirs})
     --target test_${basename}
     )
   add_test(test_${basename} ${testdir}/test_${basename})
-  set_tests_properties(test_${basename}  PROPERTIES FIXTURES_REQUIRED test_fixture)
-  set_tests_properties(build_${basename} PROPERTIES FIXTURES_SETUP    test_fixture)
+  set_tests_properties(test_${basename}  PROPERTIES FIXTURES_REQUIRED fixture_${basename})
+  set_tests_properties(build_${basename} PROPERTIES FIXTURES_SETUP    fixture_${basename})
 endforeach()
 
 message(STATUS "BACNET: using cmake:....................\"${CMAKE_VERSION}\"")

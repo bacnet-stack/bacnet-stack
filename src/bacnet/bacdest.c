@@ -126,6 +126,28 @@ void bacnet_recipient_address_set(
 }
 
 /**
+ * @brief Inspect the BACnetRecipient data structure for valid router address
+ * @param recipient - BACnetRecipient structure
+ * @return true if BACnetRecipient is a valid address
+ */
+bool bacnet_recipient_address_router_unknown(const BACNET_RECIPIENT *recipient)
+{
+    bool status = false;
+
+    if (recipient) {
+        if ((recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) &&
+            (recipient->type.address.net != 0) &&
+            (recipient->type.address.net != BACNET_BROADCAST_NETWORK) &&
+            (recipient->type.address.len != 0) &&
+            (recipient->type.address.mac_len == 0)) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief Copy the BACnetRecipient complex data from src to dest
  * @param src - BACnetRecipient 1 structure
  * @param dest - BACnetRecipient 2 structure
@@ -534,6 +556,53 @@ int bacnet_recipient_encode(uint8_t *apdu, const BACNET_RECIPIENT *recipient)
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Encode a list of BACnetRecipient complex data types
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param list_head  Pointer to the head of the linked list of BACnetRecipient
+ * @return bytes encoded or zero if nothing is encoded
+ */
+int bacnet_recipient_list_encode(
+    uint8_t *apdu, BACNET_RECIPIENT_LIST *list_head)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_RECIPIENT_LIST *list_entry;
+
+    if (!list_head) {
+        /* encoded nothing */
+        return 0;
+    }
+    /* how big? */
+    list_entry = list_head;
+    while (list_entry != NULL) {
+        len = bacnet_recipient_encode(apdu, &list_entry->recipient);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        list_entry = list_entry->next;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Convert an array of BACnetRecipient to linked list
+ * @param array pointer to element zero of the array
+ * @param size number of elements in the array
+ */
+void bacnet_recipient_list_link_array(BACNET_RECIPIENT_LIST *array, size_t size)
+{
+    size_t i = 0;
+
+    for (i = 0; i < size; i++) {
+        if (i > 0) {
+            array[i - 1].next = &array[i];
+        }
+        array[i].next = NULL;
+    }
 }
 
 /**

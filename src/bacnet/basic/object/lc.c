@@ -133,6 +133,12 @@ static const int32_t Load_Control_Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
+    PROP_REQUESTED_SHED_LEVEL,
+    PROP_START_TIME,
+    PROP_SHED_DURATION,
+    PROP_DUTY_WINDOW,
+    PROP_SHED_LEVELS,
+    PROP_ENABLE,
     -1
 };
 
@@ -1606,10 +1612,17 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            debug_printf(
-                "Load_Control_Write_Property() failure detected point Z\n");
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            if (property_lists_member(
+                    Load_Control_Properties_Required,
+                    Load_Control_Properties_Optional,
+                    Load_Control_Properties_Proprietary,
+                    wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

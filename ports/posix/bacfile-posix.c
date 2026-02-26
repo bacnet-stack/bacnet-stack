@@ -151,7 +151,7 @@ size_t bacfile_posix_write_stream_data(
             if (fileStartPosition != -1) {
                 (void)fseek(pFile, fileStartPosition, SEEK_SET);
             }
-            bytes_written = fwrite(fileData, fileDataLen, 1, pFile);
+            bytes_written = fwrite(fileData, 1, fileDataLen, pFile);
             fclose(pFile);
         } else {
             debug_printf_stderr("Failed to open %s for writing!\n", pathname);
@@ -275,14 +275,10 @@ bool bacfile_posix_read_record_data(
  */
 void bacfile_posix_init(void)
 {
-#if defined(BACFILE)
     bacfile_write_stream_data_callback_set(bacfile_posix_write_stream_data);
     bacfile_read_stream_data_callback_set(bacfile_posix_read_stream_data);
     bacfile_write_record_data_callback_set(bacfile_posix_write_record_data);
     bacfile_read_record_data_callback_set(bacfile_posix_read_record_data);
     bacfile_file_size_callback_set(bacfile_posix_file_size);
     bacfile_file_size_set_callback_set(bacfile_posix_file_size_set);
-#elif defined(BACDL_BSC)
-#error BACFILE is not defined for BACnet/SC!
-#endif
 }
