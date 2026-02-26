@@ -170,21 +170,21 @@ void handler_write_property_multiple(
         debug_print("WPM: Sending Ack!\n");
     } else {
         /* handle any errors */
-        if (len == BACNET_STATUS_ABORT) {
+        if (abort_valid_error_code(wp_data.error_code)) {
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(wp_data.error_code), true);
             debug_print("WPM: Sending Abort!\n");
-        } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len = wpm_error_ack_encode_apdu(
-                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
-                &wp_data);
-            debug_print("WPM: Sending Error!\n");
-        } else if (len == BACNET_STATUS_REJECT) {
+        } else if (reject_valid_error_code(wp_data.error_code)) {
             apdu_len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(wp_data.error_code));
             debug_print("WPM: Sending Reject!\n");
+        } else {
+            apdu_len = wpm_error_ack_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+                &wp_data);
+            debug_print("WPM: Sending Error!\n");
         }
     }
     pdu_len = npdu_len + apdu_len;
