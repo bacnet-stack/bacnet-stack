@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -17,13 +18,13 @@
 #include "bacnet/bactext.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/piv.h"
 
-#ifndef MAX_POSITIVEINTEGER_VALUES
-#define MAX_POSITIVEINTEGER_VALUES 4
-#endif
-
-static POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
+/* Key List for storing object data sorted by instance number */
+static OS_Keylist Object_List = NULL;
+/* common object type */
+static const BACNET_OBJECT_TYPE Object_Type = OBJECT_POSITIVE_INTEGER_VALUE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -97,56 +98,131 @@ void PositiveInteger_Value_Writable_Property_List(
 }
 
 /**
- * @brief Initializes the Positive Integer Value objects
+ * @brief Finds a Positive Integer Value object descriptor by instance number.
+ * @param object_instance Object instance number.
+ * @return Pointer to object descriptor, or NULL if not found.
  */
-void PositiveInteger_Value_Init(void)
+static POSITIVEINTEGER_VALUE_DESCR *
+PositiveInteger_Value_Object(uint32_t object_instance)
 {
-    unsigned i;
-
-    for (i = 0; i < MAX_POSITIVEINTEGER_VALUES; i++) {
-        memset(&PIV_Descr[i], 0x00, sizeof(POSITIVEINTEGER_VALUE_DESCR));
-    }
+    return Keylist_Data(Object_List, object_instance);
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
-bool PositiveInteger_Value_Valid_Instance(uint32_t object_instance)
+/**
+ * @brief Creates a Positive Integer Value object instance.
+ * @param object_instance Requested object instance number, or
+ * BACNET_MAX_INSTANCE for auto-allocation.
+ * @return Created instance number, or BACNET_MAX_INSTANCE on failure.
+ */
+uint32_t PositiveInteger_Value_Create(uint32_t object_instance)
 {
-    if (object_instance < MAX_POSITIVEINTEGER_VALUES) {
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+    int index = 0;
+
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (!pObject) {
+        pObject = calloc(1, sizeof(POSITIVEINTEGER_VALUE_DESCR));
+        if (!pObject) {
+            return BACNET_MAX_INSTANCE;
+        }
+        index = Keylist_Data_Add(Object_List, object_instance, pObject);
+        if (index < 0) {
+            free(pObject);
+            return BACNET_MAX_INSTANCE;
+        }
+        pObject->Out_Of_Service = false;
+        pObject->Present_Value = 0;
+        pObject->Units = UNITS_NO_UNITS;
+        pObject->Object_Name = NULL;
+    }
+
+    return object_instance;
+}
+
+/**
+ * @brief Deletes a Positive Integer Value object instance.
+ * @param object_instance Object instance number.
+ * @return true if object existed and was deleted.
+ */
+bool PositiveInteger_Value_Delete(uint32_t object_instance)
+{
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = Keylist_Data_Delete(Object_List, object_instance);
+    if (pObject) {
+        free(pObject);
         return true;
     }
 
     return false;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * @brief Initializes the Positive Integer Value objects
+ */
+void PositiveInteger_Value_Init(void)
+{
+#ifdef MAX_POSITIVEINTEGER_VALUES
+    unsigned i = 0;
+
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
+    for (i = 0; i < MAX_POSITIVEINTEGER_VALUES; i++) {
+        PositiveInteger_Value_Create(i);
+    }
+#endif
+}
+
+/**
+ * @brief Checks whether a Positive Integer Value instance exists.
+ * @param object_instance Object instance number.
+ * @return true if the instance exists.
+ */
+bool PositiveInteger_Value_Valid_Instance(uint32_t object_instance)
+{
+    return (PositiveInteger_Value_Object(object_instance) != NULL);
+}
+
+/**
+ * @brief Gets the number of Positive Integer Value instances.
+ * @return Number of object instances.
+ */
 unsigned PositiveInteger_Value_Count(void)
 {
-    return MAX_POSITIVEINTEGER_VALUES;
+    return Keylist_Count(Object_List);
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Maps an object list index to an instance number.
+ * @param index Zero-based object index.
+ * @return Object instance number, or UINT32_MAX if index is invalid.
+ */
 uint32_t PositiveInteger_Value_Index_To_Instance(unsigned index)
 {
-    return index;
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * @brief Maps an instance number to object list index.
+ * @param object_instance Object instance number.
+ * @return Zero-based object index.
+ */
 unsigned PositiveInteger_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_POSITIVEINTEGER_VALUES;
-
-    if (object_instance < MAX_POSITIVEINTEGER_VALUES) {
-        index = object_instance;
-    }
-
-    return index;
+    return Keylist_Index(Object_List, object_instance);
 }
 
 /**
@@ -160,49 +236,107 @@ unsigned PositiveInteger_Value_Instance_To_Index(uint32_t object_instance)
  * @return  true if values are within range and present-value is set.
  */
 bool PositiveInteger_Value_Present_Value_Set(
-    uint32_t object_instance, uint32_t value, uint8_t priority)
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value, uint8_t priority)
 {
-    unsigned index = 0;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
     bool status = false;
 
     (void)priority;
-    index = PositiveInteger_Value_Instance_To_Index(object_instance);
-    if (index < MAX_POSITIVEINTEGER_VALUES) {
-        PIV_Descr[index].Present_Value = value;
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Present_Value = value;
         status = true;
     }
 
     return status;
 }
 
-uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance)
+/**
+ * @brief Gets the present value for a Positive Integer Value object.
+ * @param object_instance Object instance number.
+ * @return Present value, or 0 if object does not exist.
+ */
+BACNET_UNSIGNED_INTEGER
+PositiveInteger_Value_Present_Value(uint32_t object_instance)
 {
-    uint32_t value = 0;
-    unsigned index = 0;
+    BACNET_UNSIGNED_INTEGER value = 0;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
 
-    index = PositiveInteger_Value_Instance_To_Index(object_instance);
-    if (index < MAX_POSITIVEINTEGER_VALUES) {
-        value = PIV_Descr[index].Present_Value;
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Present_Value;
     }
 
     return value;
 }
 
-/* note: the object name must be unique within this device */
+/**
+ * @brief Gets the object name for a Positive Integer Value object.
+ * @param object_instance Object instance number.
+ * @param object_name Pointer to string storage for resulting object name.
+ * @return true if object name is generated successfully.
+ */
 bool PositiveInteger_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
+    char text[48] = "";
     bool status = false;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
 
-    if (object_instance < MAX_POSITIVEINTEGER_VALUES) {
-        snprintf(
-            text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
-            (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text);
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        if (pObject->Object_Name) {
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
+        } else {
+            snprintf(
+                text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
+                (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text);
+        }
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ *  Note that the object name must be unique within this device.
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool PositiveInteger_Value_Name_Set(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    POSITIVEINTEGER_VALUE_DESCR *pObject;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *PositiveInteger_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    POSITIVEINTEGER_VALUE_DESCR *pObject;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -220,10 +354,9 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    unsigned object_index = 0;
     bool state = false;
     uint8_t *apdu = NULL;
-    POSITIVEINTEGER_VALUE_DESCR *CurrentAV;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -232,19 +365,17 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     apdu = rpdata->application_data;
 
-    object_index =
-        PositiveInteger_Value_Instance_To_Index(rpdata->object_instance);
-    if (object_index < MAX_POSITIVEINTEGER_VALUES) {
-        CurrentAV = &PIV_Descr[object_index];
-    } else {
+    pObject = PositiveInteger_Value_Object(rpdata->object_instance);
+    if (!pObject) {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return BACNET_STATUS_ERROR;
     }
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], OBJECT_POSITIVE_INTEGER_VALUE,
-                rpdata->object_instance);
+                &apdu[0], Object_Type, rpdata->object_instance);
             break;
 
         case PROP_OBJECT_NAME:
@@ -255,8 +386,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(
-                &apdu[0], OBJECT_POSITIVE_INTEGER_VALUE);
+            apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
             break;
 
         case PROP_PRESENT_VALUE:
@@ -272,14 +402,14 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                CurrentAV->Out_Of_Service);
+                pObject->Out_Of_Service);
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
 
         case PROP_UNITS:
             apdu_len = encode_application_enumerated(
-                &apdu[0], (uint32_t)CurrentAV->Units);
+                &apdu[0], (uint32_t)pObject->Units);
             break;
             /* BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -
@@ -291,7 +421,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                parties. Say 6 months -> September 2016 */
 
         case PROP_OUT_OF_SERVICE:
-            state = CurrentAV->Out_Of_Service;
+            state = pObject->Out_Of_Service;
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         default:
@@ -316,10 +446,16 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    POSITIVEINTEGER_VALUE_DESCR *CurrentAV;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    if (wp_data == NULL) {
+        return false;
+    }
+    if (wp_data->application_data_len == 0) {
+        return false;
+    }
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -331,11 +467,10 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    object_index =
-        PositiveInteger_Value_Instance_To_Index(wp_data->object_instance);
-    if (object_index < MAX_POSITIVEINTEGER_VALUES) {
-        CurrentAV = &PIV_Descr[object_index];
-    } else {
+    pObject = PositiveInteger_Value_Object(wp_data->object_instance);
+    if (!pObject) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
     switch (wp_data->object_property) {
@@ -366,7 +501,7 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                CurrentAV->Out_Of_Service = value.type.Boolean;
+                pObject->Out_Of_Service = value.type.Boolean;
             }
             break;
         case PROP_UNITS:
@@ -374,7 +509,7 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= UINT16_MAX) {
-                    CurrentAV->Units = (uint16_t)value.type.Enumerated;
+                    pObject->Units = (uint16_t)value.type.Enumerated;
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -396,9 +531,4 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
-}
-
-void PositiveInteger_Value_Intrinsic_Reporting(uint32_t object_instance)
-{
-    (void)object_instance;
 }

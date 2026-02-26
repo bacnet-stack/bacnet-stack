@@ -24,6 +24,7 @@ typedef struct octetstring_value_descr {
     unsigned Event_State : 3;
     bool Out_Of_Service;
     BACNET_OCTET_STRING Present_Value;
+    const char *Object_Name;
 } OCTETSTRING_VALUE_DESCR;
 
 BACNET_STACK_EXPORT
@@ -47,6 +48,10 @@ unsigned OctetString_Value_Instance_To_Index(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool OctetString_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
+BACNET_STACK_EXPORT
+bool OctetString_Value_Name_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *OctetString_Value_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -80,8 +85,11 @@ bool OctetString_Value_Out_Of_Service(uint32_t instance);
 BACNET_STACK_EXPORT
 void OctetString_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
-/* note: header of Intrinsic_Reporting function is required
-   even when INTRINSIC_REPORTING is not defined */
+BACNET_STACK_EXPORT
+uint32_t OctetString_Value_Create(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool OctetString_Value_Delete(uint32_t object_instance);
+
 BACNET_STACK_EXPORT
 void OctetString_Value_Intrinsic_Reporting(uint32_t object_instance);
 

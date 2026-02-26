@@ -52,6 +52,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added CreateObject and DeleteObject for Octet StringValue and
+  PositiveInteger Value objects. (#1246)
 * Added PROP_TIMER_RUNNING to writable properties and implement
   Timer_Running_Set functionality. (#1245)
 * Added BACNET_STACK_DEPRECATED_DISABLE guards around all of the deprecated
@@ -150,6 +152,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed PositiveInteger present-value datatype to
+  BACNET_UNSIGNED_INTEGER. (#1246)
 * Changed BACFILE define dependencies to reflect bacfile-posix.c dependence
   since bacfile.c is now independent of any back end file system. (#1227)
 * Changed the default BACnet protocol revision to 28 to enable usage of
