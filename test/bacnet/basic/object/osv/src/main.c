@@ -20,9 +20,9 @@
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(osv_tests, testOctetString_Value_Value)
+ZTEST(osv_tests, testOctetString_Value)
 #else
-static void testOctetString_Value_Value(void)
+static void testOctetString_Value(void)
 #endif
 {
     bool status = false;
@@ -76,7 +76,7 @@ ZTEST_SUITE(osv_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(osv_tests, ztest_unit_test(testOctetString_Value_Value));
+    ztest_test_suite(osv_tests, ztest_unit_test(testOctetString_Value));
 
     ztest_run_test_suite(osv_tests);
 }
