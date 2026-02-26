@@ -78,6 +78,11 @@ bool PositiveInteger_Value_Out_Of_Service(uint32_t instance);
 BACNET_STACK_EXPORT
 void PositiveInteger_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
+BACNET_STACK_EXPORT
+uint32_t PositiveInteger_Value_Create(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool PositiveInteger_Value_Delete(uint32_t object_instance);
+
 /* note: header of Intrinsic_Reporting function is required
    even when INTRINSIC_REPORTING is not defined */
 BACNET_STACK_EXPORT

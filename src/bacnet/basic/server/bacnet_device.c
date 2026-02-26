@@ -45,6 +45,8 @@
 #include "bacnet/basic/object/ms-input.h"
 #include "bacnet/basic/object/mso.h"
 #include "bacnet/basic/object/msv.h"
+#include "bacnet/basic/object/osv.h"
+#include "bacnet/basic/object/piv.h"
 #include "bacnet/basic/object/schedule.h"
 #include "bacnet/basic/object/structured_view.h"
 #include "bacnet/basic/object/trendlog.h"
@@ -122,6 +124,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_CALENDAR) ||               \
     defined(CONFIG_BACNET_BASIC_OBJECT_INTEGER_VALUE) ||          \
+    defined(CONFIG_BACNET_BASIC_OBJECT_POSITIVE_INTEGER_VALUE) || \
     defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT) ||      \
     defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE) ||       \
     defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT) ||        \
@@ -133,6 +136,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
+    defined(CONFIG_BACNET_BASIC_OBJECT_OCTETSTRING_VALUE) ||      \
     defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE) ||             \
     defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                  \
     defined(CONFIG_BACNET_BASIC_OBJECT_LOOP) ||                   \
@@ -155,6 +159,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT
 #define CONFIG_BACNET_BASIC_OBJECT_CALENDAR
 #define CONFIG_BACNET_BASIC_OBJECT_INTEGER_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_POSITIVE_INTEGER_VALUE
 #define CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT
 #define CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE
 #define CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT
@@ -166,6 +171,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_FILE
 #define CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW
 #define CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE
+#define CONFIG_BACNET_BASIC_OBJECT_OCTETSTRING_VALUE
 #define CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE
 #define CONFIG_BACNET_BASIC_OBJECT_TIMER
 #define CONFIG_BACNET_BASIC_OBJECT_LOOP
@@ -812,6 +818,52 @@ static object_functions_t My_Object_Table[] = {
       CharacterString_Value_Delete,
       NULL /* Timer */,
       CharacterString_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_OCTETSTRING_VALUE)
+    { OBJECT_OCTETSTRING_VALUE,
+      OctetString_Value_Init,
+      OctetString_Value_Count,
+      OctetString_Value_Index_To_Instance,
+      OctetString_Value_Valid_Instance,
+      OctetString_Value_Object_Name,
+      OctetString_Value_Read_Property,
+      OctetString_Value_Write_Property,
+      OctetString_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      OctetString_Value_Create,
+      OctetString_Value_Delete,
+      NULL /* Timer */,
+      OctetString_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_POSITIVE_INTEGER_VALUE)
+    { OBJECT_POSITIVE_INTEGER_VALUE,
+      PositiveInteger_Value_Init,
+      PositiveInteger_Value_Count,
+      PositiveInteger_Value_Index_To_Instance,
+      PositiveInteger_Value_Valid_Instance,
+      PositiveInteger_Value_Object_Name,
+      PositiveInteger_Value_Read_Property,
+      PositiveInteger_Value_Write_Property,
+      PositiveInteger_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      PositiveInteger_Value_Create,
+      PositiveInteger_Value_Delete,
+      NULL /* Timer */,
+      PositiveInteger_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE)
     { OBJECT_TIME_VALUE,
