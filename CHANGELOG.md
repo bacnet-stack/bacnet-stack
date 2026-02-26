@@ -52,6 +52,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added CreateObject and DeleteObject for Octet StringValue and
+  PositiveInteger Value objects. (#1246)
 * Added PROP_TIMER_RUNNING to writable properties and implement
   Timer_Running_Set functionality. (#1245)
 * Added BACNET_STACK_DEPRECATED_DISABLE guards around all of the deprecated
