@@ -52,6 +52,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACNET_STACK_DEPRECATED_DISABLE guards around all of the deprecated
+  decoding functions to ensure they are not used except intentionally for
+  legacy code bases. (#1244)
 * Added Who-Is-Router-To-Network process in basic Notification Class when
   recipient address router MAC address is unknown. (#1243)
 * Add initialization and unpacking functions for BACnet Character
