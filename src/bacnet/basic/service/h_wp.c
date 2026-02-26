@@ -88,7 +88,7 @@ void handler_write_property(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_WRITE_PROPERTY_DATA wp_data;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     int len = 0;
     bool success = false;
     int pdu_len = 0;
@@ -112,6 +112,7 @@ void handler_write_property(
         debug_print("WP: Segmented message.  Sending Abort!\n");
     } else {
         /* decode the service request only */
+        wp_data.error_class = ERROR_CLASS_PROPERTY;
         wp_data.error_code = ERROR_CODE_SUCCESS;
         len = wp_decode_service_request(service_request, service_len, &wp_data);
     }
