@@ -13,6 +13,14 @@
 
 /**
  * @brief Encode APDU for LifeSafetyOperation-Request
+ *
+ * LifeSafetyOperation-Request ::= SEQUENCE {
+ *     requesting-process-identifier[0] Unsigned32,
+ *     requesting-source[1] CharacterString,
+ *     request[2] BACnetLifeSafetyOperation,
+ *     object-identifier[3] BACnetObjectIdentifier OPTIONAL
+ * }
+ *
  * @param apdu  Pointer to the buffer, or NULL for length
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
@@ -108,55 +116,86 @@ size_t life_safety_operation_request_encode(
     return apdu_len;
 }
 
+/**
+ * @brief Decode the LifeSafetyOperation-Request
+ *
+ *  * LifeSafetyOperation-Request ::= SEQUENCE {
+ *     requesting-process-identifier[0] Unsigned32,
+ *     requesting-source[1] CharacterString,
+ *     request[2] BACnetLifeSafetyOperation,
+ *     object-identifier[3] BACnetObjectIdentifier OPTIONAL
+ * }
+
+ * @param apdu  Pointer to the buffer to decode from
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the data to decode into.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR on error.
+ */
 int lso_decode_service_request(
-    const uint8_t *apdu, unsigned apdu_len, BACNET_LSO_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_LSO_DATA *data)
 {
-    int len = 0; /* return value */
-    int section_length = 0; /* length returned from decoding */
+    int len = 0; /* length returned from decoding */
+    int apdu_len = 0; /* return value */
     uint32_t operation = 0; /* handles decoded value */
-    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding*/
+    BACNET_CHARACTER_STRING *decoded_string = NULL; /* for decoding */
+    BACNET_OBJECT_TYPE object_type = 0;
+    uint32_t instance = 0;
 
     /* check for value pointers */
-    if (apdu_len && data) {
-        /* Tag 0: Object ID          */
-        section_length =
-            decode_context_unsigned(&apdu[len], 0, &unsigned_value);
-        if (section_length == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_ERROR;
-        }
+    if (!apdu && !apdu_size) {
+        return 0;
+    }
+    /* requesting-process-identifier[0] Unsigned32 */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &unsigned_value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (data) {
         data->processId = (uint32_t)unsigned_value;
-        len += section_length;
-        section_length = decode_context_character_string(
-            &apdu[len], 1, &data->requestingSrc);
-        if (section_length == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_ERROR;
-        }
-        len += section_length;
-        section_length = decode_context_enumerated(&apdu[len], 2, &operation);
-        if (section_length == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_ERROR;
-        }
+    }
+    apdu_len += len;
+    if (data) {
+        decoded_string = &data->requestingSrc;
+    }
+    /* requesting-source[1] CharacterString */
+    len = bacnet_character_string_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, decoded_string);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /* request[2] BACnetLifeSafetyOperation */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &operation);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (operation > LIFE_SAFETY_OP_PROPRIETARY_MAX) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (data) {
         data->operation = (BACNET_LIFE_SAFETY_OPERATION)operation;
-        len += section_length;
-        /*
-         ** This is an optional parameter, so don't fail if it doesn't exist
-         */
-        if (decode_is_context_tag(&apdu[len], 3)) {
-            section_length = decode_context_object_id(
-                &apdu[len], 3, &data->targetObject.type,
-                &data->targetObject.instance);
-            if (section_length == BACNET_STATUS_ERROR) {
-                return BACNET_STATUS_ERROR;
-            }
+    }
+    apdu_len += len;
+    /* object-identifier[3] BACnetObjectIdentifier OPTIONAL */
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 3, &object_type, &instance);
+    if (len > 0) {
+        if (data) {
+            data->targetObject.type = object_type;
+            data->targetObject.instance = instance;
             data->use_target = true;
-            len += section_length;
-        } else {
+        }
+        apdu_len += len;
+    } else {
+        if (data) {
             data->use_target = false;
             data->targetObject.type = OBJECT_NONE;
             data->targetObject.instance = 0;
         }
-        return len;
     }
 
-    return 0;
+    return apdu_len;
 }

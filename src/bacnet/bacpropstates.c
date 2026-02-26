@@ -49,6 +49,7 @@ int bacapp_property_state_decode(
     BACNET_TAG tag = { 0 };
     uint32_t enum_value = 0;
     int32_t integer_value = 0;
+    bool boolean_value = false;
     int apdu_len = 0;
     int len = 0;
 
@@ -68,8 +69,13 @@ int bacapp_property_state_decode(
             return BACNET_STATUS_ERROR;
         }
         if (value) {
-            value->state.booleanValue = decode_context_boolean(&apdu[apdu_len]);
-            apdu_len++;
+            len = bacnet_boolean_context_value_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, &boolean_value);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            value->state.booleanValue = boolean_value;
+            apdu_len += len;
         }
     } else if (tag.number == PROP_STATE_INTEGER_VALUE) {
         len = bacnet_signed_decode(
