@@ -20,12 +20,13 @@ The git repositories are hosted at the following sites:
   deprecated decoders. Secured ReadProperty-Ack decoder, Trend Log object
   TL_fetch_property() function, WritePropertyMultiple service decoders,
   TimeSynchronization-Request decoder, ReadPropertyMultiple-Request and
-  ReadPropertyMultiple--Ack decoders, ConfirmedPrivateTransfer-Request
+  ReadPropertyMultiple-Ack decoders, ConfirmedPrivateTransfer-Request
   and UnconfirmedPrivateTransfer-Request decoders, Add/Remove ListElement
   service request decoder, I-Have-Request service decoder, BACnetEventState
-  change-of-state [1] SEQUENCE decoder, BACnetCredentialAuthenticationFactor
-  decoder, BACnetPropertyState decoder, BACnetAssignedAccessRights
-  decoder. (#1244)
+  change-of-state decoder, BACnetCredentialAuthenticationFactor decoder,
+  BACnetPropertyState decoder, BACnetAssignedAccessRights decoder,
+  LifeSafetyOperation-Request service decoder, BACnetAuthenticationFactor
+  decoder in the Crediential Data Input object. (#1244)
 * Secured BVLC decoder by replacing deprecated primitive decoder usage. (#1241)
 * Secured decoding length underflow in wp_decode_service_request() and
   bacnet_action_command_decode() which had similar issue. (#1231)
