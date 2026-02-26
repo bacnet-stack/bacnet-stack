@@ -141,6 +141,7 @@ uint32_t PositiveInteger_Value_Create(uint32_t object_instance)
         pObject->Out_Of_Service = false;
         pObject->Present_Value = 0;
         pObject->Units = UNITS_NO_UNITS;
+        pObject->Object_Name = NULL;
     }
 
     return object_instance;
@@ -235,7 +236,7 @@ unsigned PositiveInteger_Value_Instance_To_Index(uint32_t object_instance)
  * @return  true if values are within range and present-value is set.
  */
 bool PositiveInteger_Value_Present_Value_Set(
-    uint32_t object_instance, uint32_t value, uint8_t priority)
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value, uint8_t priority)
 {
     POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
     bool status = false;
@@ -255,9 +256,10 @@ bool PositiveInteger_Value_Present_Value_Set(
  * @param object_instance Object instance number.
  * @return Present value, or 0 if object does not exist.
  */
-uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance)
+BACNET_UNSIGNED_INTEGER
+PositiveInteger_Value_Present_Value(uint32_t object_instance)
 {
-    uint32_t value = 0;
+    BACNET_UNSIGNED_INTEGER value = 0;
     POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
 
     pObject = PositiveInteger_Value_Object(object_instance);

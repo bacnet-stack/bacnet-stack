@@ -22,7 +22,7 @@ extern "C" {
 
 typedef struct positiveinteger_value_descr {
     bool Out_Of_Service : 1;
-    uint32_t Present_Value;
+    BACNET_UNSIGNED_INTEGER Present_Value;
     BACNET_ENGINEERING_UNITS Units;
     const char *Object_Name;
 } POSITIVEINTEGER_VALUE_DESCR;
@@ -61,9 +61,10 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Present_Value_Set(
-    uint32_t object_instance, uint32_t value, uint8_t priority);
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value, uint8_t priority);
 BACNET_STACK_EXPORT
-uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+PositiveInteger_Value_Present_Value(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Change_Of_Value(uint32_t instance);
