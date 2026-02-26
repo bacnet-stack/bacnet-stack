@@ -564,6 +564,7 @@ int bacapp_data_decode(
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the data and store it into value.
  * @param apdu  Receive buffer
@@ -584,6 +585,7 @@ int bacapp_decode_data(
     return bacapp_data_decode(
         apdu, MAX_APDU, tag_data_type, len_value_type, value);
 }
+#endif
 
 /**
  * @brief Decode the BACnet Application Data
@@ -694,6 +696,7 @@ bool bacapp_decode_application_data_safe(
     return ret;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the data to determine the data length
  * @param apdu  Pointer to the received data.
@@ -708,7 +711,9 @@ int bacapp_decode_data_len(
     (void)apdu;
     return bacnet_application_data_length(tag_number, len_value_type);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Determine the BACnet Application Data number of APDU bytes consumed
  * @param apdu - buffer of data to be decoded
@@ -735,6 +740,7 @@ int bacapp_decode_application_data_len(const uint8_t *apdu, unsigned apdu_size)
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode a BACnet Context tagged data,
@@ -853,6 +859,7 @@ int bacapp_encode_context_data_value(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Lookup an application tag for specific context tagged data
  * @param property - object property identifier
@@ -875,6 +882,7 @@ bacapp_context_tag_type(BACNET_PROPERTY_ID property, uint8_t tag_number)
 
     return (BACNET_APPLICATION_TAG)tag;
 }
+#endif
 
 /**
  * @brief Encode a BACnet Context tagged data

@@ -88,6 +88,9 @@ void Credential_Data_Input_Writable_Property_List(
     }
 }
 
+/**
+ * @brief Initialize the Credential Data Input object data structures.
+ */
 void Credential_Data_Input_Init(void)
 {
     unsigned i;
@@ -112,9 +115,11 @@ void Credential_Data_Input_Init(void)
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
+/**
+ * @brief Check if the given object instance is valid.
+ * @param object_instance - object-instance number of the object
+ * @return true if the instance is valid, false otherwise
+ */
 bool Credential_Data_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_CREDENTIAL_DATA_INPUTS) {
@@ -124,24 +129,32 @@ bool Credential_Data_Input_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * @brief Get the total count of Credential Data Input objects.
+ * @return The count of Credential Data Input objects.
+ */
 unsigned Credential_Data_Input_Count(void)
 {
     return MAX_CREDENTIAL_DATA_INPUTS;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Convert an object instance number to an index in the object array.
+ * @param object_instance - object-instance number of the object
+ * @return The index corresponding to the given object instance, or
+ * MAX_CREDENTIAL_DATA_INPUTS if the instance is invalid.
+ */
 uint32_t Credential_Data_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * @brief Convert an object instance number to an index in the object array.
+ * @param object_instance - object-instance number of the object
+ * @return The index corresponding to the given object instance, or
+ * MAX_CREDENTIAL_DATA_INPUTS if the instance is invalid.
+ */
 unsigned Credential_Data_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_CREDENTIAL_DATA_INPUTS;
@@ -153,7 +166,13 @@ unsigned Credential_Data_Input_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-/* note: the object name must be unique within this device */
+/**
+ * @brief Get the object name for a given Credential Data Input object instance.
+ * @param object_instance - object-instance number of the object
+ * @param object_name - pointer to a BACNET_CHARACTER_STRING to receive the
+ * object name
+ * @return true if the object name was successfully retrieved, false otherwise
+ */
 bool Credential_Data_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -170,6 +189,11 @@ bool Credential_Data_Input_Object_Name(
     return status;
 }
 
+/**
+ * @brief Check if the Credential Data Input object instance is out of service.
+ * @param object_instance - object-instance number of the object
+ * @return true if the object instance is out of service, false otherwise
+ */
 bool Credential_Data_Input_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
@@ -183,6 +207,13 @@ bool Credential_Data_Input_Out_Of_Service(uint32_t instance)
     return oos_flag;
 }
 
+/**
+ * @brief Set the out of service flag for a given Credential Data Input object
+ * instance.
+ * @param instance - object-instance number of the object
+ * @param oos_flag - true to set the object instance as out of service, false to
+ * set it as in service
+ */
 void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
@@ -193,7 +224,14 @@ void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
     }
 }
 
-/* return apdu len, or BACNET_STATUS_ERROR on error */
+/**
+ * @brief Read a property value for a given Credential Data Input object
+ * instance.
+ * @param rpdata - pointer to a BACNET_READ_PROPERTY_DATA structure containing
+ * the read request data
+ * @return The number of bytes encoded in the response, or BACNET_STATUS_ERROR
+ * on error.
+ */
 int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
@@ -299,7 +337,13 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/* returns true if successful */
+/**
+ * @brief Write a property value for a given Credential Data Input object
+ * instance.
+ * @param wp_data - pointer to a BACNET_WRITE_PROPERTY_DATA structure containing
+ * the write request data
+ * @return true if the property was successfully written, false otherwise
+ */
 bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -324,8 +368,9 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (Credential_Data_Input_Out_Of_Service(
                     wp_data->object_instance)) {
                 BACNET_AUTHENTICATION_FACTOR tmp;
-                len = bacapp_decode_authentication_factor(
-                    wp_data->application_data, &tmp);
+                len = bacnet_authentication_factor_decode(
+                    wp_data->application_data, wp_data->application_data_len,
+                    &tmp);
                 if (len > 0) {
                     memcpy(
                         &cdi_descr[object_index].present_value, &tmp,

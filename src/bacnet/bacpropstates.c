@@ -49,6 +49,7 @@ int bacapp_property_state_decode(
     BACNET_TAG tag = { 0 };
     uint32_t enum_value = 0;
     int32_t integer_value = 0;
+    bool boolean_value = false;
     int apdu_len = 0;
     int len = 0;
 
@@ -68,8 +69,13 @@ int bacapp_property_state_decode(
             return BACNET_STATUS_ERROR;
         }
         if (value) {
-            value->state.booleanValue = decode_context_boolean(&apdu[apdu_len]);
-            apdu_len++;
+            len = bacnet_boolean_context_value_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, &boolean_value);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            value->state.booleanValue = boolean_value;
+            apdu_len += len;
         }
     } else if (tag.number == PROP_STATE_INTEGER_VALUE) {
         len = bacnet_signed_decode(
@@ -300,37 +306,103 @@ int bacapp_property_state_decode(
     return apdu_len;
 }
 
+/**
+ * @brief Decodes BACnetPropertyState from bytes into a data structure, with
+ *        opening and closing tags
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number - expected tag number for the opening and closing tags
+ * @param value - decoded value, if decoded
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ */
+int bacapp_property_state_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_PROPERTY_STATE *value)
+{
+    int len = 0, apdu_len = 0;
+
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacapp_property_state_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+/**
+ * @brief Decodes BACnetPropertyState from bytes into a data structure, with
+ *        opening and closing tags
+ * @param apdu - buffer of data to be decoded
+ * @param value - decoded value, if decoded
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ * @deprecated This function is deprecated.
+ *  Use bacapp_property_state_decode() instead.
+ */
 int bacapp_decode_property_state(
     const uint8_t *apdu, BACNET_PROPERTY_STATE *value)
 {
     return bacapp_property_state_decode(apdu, MAX_APDU, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+/**
+ * @brief Decodes BACnetPropertyState from bytes into a data structure, with
+ *        opening and closing tags
+ * @param apdu - buffer of data to be decoded
+ * @param tag_number - expected tag number for the opening and closing tags
+ * @param value - decoded value, if decoded
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ * @deprecated This function is deprecated.
+ *  Use bacapp_property_state_context_decode() instead.
+ */
 int bacapp_decode_context_property_state(
     const uint8_t *apdu, uint8_t tag_number, BACNET_PROPERTY_STATE *value)
 {
-    int len = 0;
-    int section_length;
+    int len = 0, apdu_len = 0;
+    int apdu_size = MAX_APDU;
 
-    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
-        len++;
-        section_length = bacapp_decode_property_state(&apdu[len], value);
-
-        if (section_length == -1) {
-            len = -1;
-        } else {
-            len += section_length;
-            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-                len++;
-            } else {
-                len = -1;
-            }
-        }
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
     } else {
-        len = -1;
+        return BACNET_STATUS_ERROR;
     }
-    return len;
+    len = bacapp_property_state_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
 }
+#endif
 
 /**
  * @brief Encode the BACnetPropertyState

@@ -167,6 +167,7 @@ int bacnet_access_rule_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the BACnetAccessRule
  * @param apdu  Pointer to the buffer for decoding.
@@ -178,6 +179,7 @@ int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *data)
 {
     return bacnet_access_rule_decode(apdu, MAX_APDU, data);
 }
+#endif
 
 /**
  * @brief Parse a string into a BACnetAccessRule value

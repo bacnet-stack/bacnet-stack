@@ -361,6 +361,7 @@ int encode_closing_tag(uint8_t *apdu, uint8_t tag_number)
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * Decode a BACnet tag and returns the number of bytes consumed.
  *
@@ -390,6 +391,7 @@ int decode_tag_number(const uint8_t *apdu, uint8_t *tag_number)
 
     return len;
 }
+#endif
 
 /**
  * @brief Decode the BACnet Tag Number
@@ -577,6 +579,7 @@ int bacnet_tag_decode(const uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag)
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Returns if at the given pointer a
  *  opening tag has been found.
@@ -588,6 +591,7 @@ bool decode_is_opening_tag(const uint8_t *apdu)
 {
     return (bool)((apdu[0] & 0x07) == 6);
 }
+#endif
 
 /**
  * @brief Returns true if an opening tag has been found.
@@ -610,6 +614,7 @@ bool bacnet_is_opening_tag(const uint8_t *apdu, uint32_t apdu_size)
     return tag;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Returns if at the given pointer a
  *  closing tag has been found.
@@ -621,6 +626,7 @@ bool decode_is_closing_tag(const uint8_t *apdu)
 {
     return (bool)((apdu[0] & 0x07) == 7);
 }
+#endif
 
 /**
  * @brief Returns true if a closing tag has been found.
@@ -664,6 +670,7 @@ bool bacnet_is_context_specific(const uint8_t *apdu, uint32_t apdu_size)
     return tag;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes the tag number and the value,
  * that the APDU pointer is addressing.
@@ -725,7 +732,9 @@ int decode_tag_number_and_value(
 
     return len;
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the BACnet Tag Number and Value
  * as defined in clause 20.2.1.3.2 Constructed Data
@@ -759,6 +768,7 @@ int bacnet_tag_number_and_value_decode(
 
     return len;
 }
+#endif
 
 /**
  * @brief Determine the data length from the application tag number
@@ -889,6 +899,7 @@ int bacnet_enclosed_data_length(const uint8_t *apdu, size_t apdu_size)
     return total_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Returns true if the tag is context specific
  * and matches, as defined in clause 20.2.1.3.2 Constructed
@@ -908,7 +919,9 @@ bool decode_is_context_tag(const uint8_t *apdu, uint8_t tag_number)
 
     return (bool)(IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Returns true if the tag is context specific
  * and matches, as defined in clause 20.2.1.3.2 Constructed
@@ -931,6 +944,7 @@ bool decode_is_context_tag_with_length(
 
     return (bool)(IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
 }
+#endif
 
 /**
  * @brief Returns true if the tag is context specific
@@ -974,6 +988,7 @@ bool bacnet_is_context_tag_number(
     return match;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Returns true if the tag does match and it
  * is an opening tag as well.
@@ -993,6 +1008,7 @@ bool decode_is_opening_tag_number(const uint8_t *apdu, uint8_t tag_number)
 
     return (bool)(IS_OPENING_TAG(apdu[0]) && (my_tag_number == tag_number));
 }
+#endif
 
 /**
  * @brief Returns true if the tag number matches is an opening tag.
@@ -1033,6 +1049,7 @@ bool bacnet_is_opening_tag_number(
     return match;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Returns true if the tag does match and it
  * is an closing tag as well.
@@ -1051,6 +1068,7 @@ bool decode_is_closing_tag_number(const uint8_t *apdu, uint8_t tag_number)
     decode_tag_number(apdu, &my_tag_number);
     return (bool)(IS_CLOSING_TAG(apdu[0]) && (my_tag_number == tag_number));
 }
+#endif
 
 /**
  * @brief Returns true if the tag number matches is an closing tag.
@@ -1141,11 +1159,12 @@ int encode_context_boolean(
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode an boolean value.
  * @param apdu  Pointer to the encode buffer.
  * @return true/false
- * @deprecated Use bacnet_boolean_context_decode() instead
+ * @deprecated Use bacnet_boolean_context_value_decode() instead
  */
 bool decode_context_boolean(const uint8_t *apdu)
 {
@@ -1157,7 +1176,9 @@ bool decode_context_boolean(const uint8_t *apdu)
 
     return boolean_value;
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode an boolean value in the context of a tag.
  *
@@ -1187,6 +1208,7 @@ int decode_context_boolean2(
 
     return len;
 }
+#endif
 
 /**
  * @brief Check the length value and return the boolean meaning.
@@ -1526,6 +1548,7 @@ uint8_t bacnet_byte_reverse_bits(uint8_t in_byte)
     return out_byte;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode a bit string value.
  * (From clause 20.2.10 Encoding of a Bit String Value.)
@@ -1570,6 +1593,7 @@ int decode_bitstring(
 
     return len;
 }
+#endif
 
 /**
  * @brief Decodes from bytes into a BACnet bit string value.
@@ -1735,6 +1759,7 @@ int bacnet_bitstring_context_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode a bit string value in the given context.
  * (From clause 20.2.10 Encoding of a Bit String Value.)
@@ -1764,6 +1789,7 @@ int decode_context_bitstring(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode the BACnet Bit String Value
@@ -2131,6 +2157,7 @@ bool bacnet_object_id_same(
     return status;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the BACnet Object Identifier Value when context encoded
  * as defined in clause 20.2.14 Encoding of an Object Identifier Value
@@ -2161,6 +2188,7 @@ int decode_context_object_id(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode the BACnet Object Identifier Value
@@ -2654,6 +2682,7 @@ int bacnet_octet_string_decode(
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the BACnet Octet String Value
  * from clause 20.2.8 Encoding of an Octet String Value
@@ -2673,7 +2702,9 @@ int decode_octet_string(
 
     return bacnet_octet_string_decode(apdu, apdu_len_max, len_value, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Octet String context encoding
  * from clause 20.2.8 Encoding of an Octet String Value
@@ -2712,6 +2743,7 @@ int decode_context_octet_string(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode an application tagged BACnet Octet String Value
@@ -2829,6 +2861,7 @@ int bacnet_octet_string_context_decode(
 }
 #endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Encode the BACnet Character String Value
  *  from 20.2.9 Encoding of a Character String Value
@@ -2867,6 +2900,7 @@ uint32_t encode_bacnet_character_string_safe(
 
     return apdu_len;
 }
+#endif
 
 /**
  * @brief Encode the BACnet Character String Value
@@ -3000,6 +3034,7 @@ int bacnet_character_string_decode(
     return len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Character String value
  * from clause 20.2.9 Encoding of a Character String Value
@@ -3019,6 +3054,7 @@ int decode_character_string(
 
     return bacnet_character_string_decode(apdu, apdu_size, len_value, value);
 }
+#endif
 
 /**
  * @brief Encode an application tagged BACnet Character String value
@@ -3135,6 +3171,7 @@ int bacnet_character_string_context_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Character String value
  * from clause 20.2.9 Encoding of a Character String Value
@@ -3162,6 +3199,7 @@ int decode_context_character_string(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode the BACnet Character String Value
@@ -3737,6 +3775,7 @@ int bacnet_unsigned_application_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Unsigned value
  * from clause 20.2.4 Encoding of an Unsigned Integer Value
@@ -3760,7 +3799,9 @@ int decode_unsigned(
 
     return bacnet_unsigned_decode(apdu, apdu_size, len_value, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Unsigned value
  * from clause 20.2.4 Encoding of an Unsigned Integer Value
@@ -3791,6 +3832,7 @@ int decode_context_unsigned(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode the BACnet Unsigned value
@@ -4061,6 +4103,7 @@ int bacnet_enumerated_context_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Enumerated value
  * from clause 20.2.11 Encoding of an Enumerated Value
@@ -4087,6 +4130,7 @@ int decode_context_enumerated(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode the BACnet Enumerated Value
@@ -4315,6 +4359,7 @@ int bacnet_signed_application_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Signed Integer
  * from clause 20.2.5 Encoding of an Signed Integer Value
@@ -4334,7 +4379,9 @@ int decode_signed(const uint8_t *apdu, uint32_t len_value, int32_t *value)
 
     return bacnet_signed_decode(apdu, apdu_size, len_value, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Signed Integer
  * from clause 20.2.5 Encoding of an Signed Integer Value
@@ -4361,6 +4408,7 @@ int decode_context_signed(
 
     return len;
 }
+#endif
 
 /**
  * @brief Decodes from bytes into a BACnet Signed Integer
@@ -4640,6 +4688,7 @@ int bacnet_real_application_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode a context tagged single precision floating value.
  *  From clause 20.2.6 Encoding of a Real Number Value
@@ -4668,6 +4717,7 @@ int decode_context_real(
 
     return len;
 }
+#endif
 
 #if BACNET_USE_DOUBLE
 /**
@@ -4874,6 +4924,7 @@ int bacnet_double_application_decode(
  *  if wrong tag number or malformed
  * @deprecated use bacnet_double_context_decode() instead
  */
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 int decode_context_double(
     const uint8_t *apdu, uint8_t tag_number, double *double_value)
 {
@@ -4888,6 +4939,7 @@ int decode_context_double(
     }
     return len;
 }
+#endif
 #endif
 
 /**
@@ -5117,6 +5169,7 @@ int bacnet_time_application_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Time Value
  * from clause 20.2.13 Encoding of a Time Value
@@ -5135,7 +5188,9 @@ int decode_bacnet_time(const uint8_t *apdu, BACNET_TIME *value)
 
     return bacnet_time_decode(apdu, apdu_size, len_value, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Time Value
  * from clause 20.2.13 Encoding of a Time Value
@@ -5162,7 +5217,9 @@ int decode_bacnet_time_safe(
         return decode_bacnet_time(apdu, btime);
     }
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Time Value application encoded
  * from clause 20.2.13 Encoding of a Time Value
@@ -5190,7 +5247,9 @@ int decode_application_time(const uint8_t *apdu, BACNET_TIME *btime)
 
     return len;
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Time Value context encoded
  * from clause 20.2.13 Encoding of a Time Value
@@ -5216,6 +5275,7 @@ int decode_context_bacnet_time(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode a Date value
@@ -5309,6 +5369,7 @@ int encode_context_date(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Date Value
  *  From clause 20.2.12 Encoding of a Date Value
@@ -5329,7 +5390,9 @@ int decode_date(const uint8_t *apdu, BACNET_DATE *bdate)
 
     return 4;
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Date Value
  *  From clause 20.2.12 Encoding of a Date Value
@@ -5355,6 +5418,7 @@ int decode_date_safe(
         return decode_date(apdu, bdate);
     }
 }
+#endif
 
 /**
  * @brief Decodes from bytes into a BACnet Date Value
@@ -5504,6 +5568,7 @@ int bacnet_date_application_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Date Value application encoded
  *  From clause 20.2.12 Encoding of a Date Value
@@ -5528,7 +5593,9 @@ int decode_application_date(const uint8_t *apdu, BACNET_DATE *value)
 
     return len;
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes from bytes into a BACnet Date Value context encoded
  *  From clause 20.2.12 Encoding of a Date Value
@@ -5556,6 +5623,7 @@ int decode_context_date(
 
     return len;
 }
+#endif
 
 /**
  * @brief Encode a context tagged BACnetTimerStateChangeValue

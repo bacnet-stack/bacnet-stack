@@ -153,7 +153,7 @@ int rp_ack_fully_decode_service_request(
     BACNET_PROPERTY_REFERENCE *rp1_property; /* single property */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     uint8_t *vdata;
-    int vlen, len;
+    int vlen, len, tag_len;
 
     decoded_len = rp_ack_decode_service_request(apdu, apdu_len, &rp1data);
     if (decoded_len > 0) {
@@ -204,10 +204,9 @@ int rp_ack_fully_decode_service_request(
             vlen -= len;
             vdata += len;
             /* If unexpected closing tag here: */
-            if (vlen && decode_is_closing_tag_number(vdata, 3)) {
-                decoded_len++;
-                vlen--;
-                vdata++;
+            if (vlen &&
+                bacnet_is_closing_tag_number(vdata, vlen, 3, &tag_len)) {
+                decoded_len += tag_len;
                 break;
             } else {
                 if (len == 0) {

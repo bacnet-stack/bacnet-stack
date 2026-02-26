@@ -36,6 +36,13 @@ typedef struct BACnet_Recipient {
     } type;
 } BACNET_RECIPIENT;
 
+struct BACnet_Recipient_List;
+typedef struct BACnet_Recipient_List {
+    BACNET_RECIPIENT recipient;
+    /* simple linked list */
+    struct BACnet_Recipient_List *next;
+} BACNET_RECIPIENT_LIST;
+
 typedef struct BACnet_Destination {
     /**
      *  BACnetDestination ::= SEQUENCE {
@@ -110,6 +117,12 @@ bool bacnet_recipient_device_valid(const BACNET_RECIPIENT *recipient);
 
 BACNET_STACK_EXPORT
 int bacnet_recipient_encode(uint8_t *apdu, const BACNET_RECIPIENT *recipient);
+BACNET_STACK_EXPORT
+int bacnet_recipient_list_encode(
+    uint8_t *apdu, BACNET_RECIPIENT_LIST *list_head);
+BACNET_STACK_EXPORT
+void bacnet_recipient_list_link_array(
+    BACNET_RECIPIENT_LIST *array, size_t size);
 BACNET_STACK_EXPORT
 int bacnet_recipient_context_encode(
     uint8_t *apdu, uint8_t tag_number, const BACNET_RECIPIENT *recipient);
