@@ -24,6 +24,7 @@ typedef struct positiveinteger_value_descr {
     bool Out_Of_Service : 1;
     uint32_t Present_Value;
     BACNET_ENGINEERING_UNITS Units;
+    const char *Object_Name;
 } POSITIVEINTEGER_VALUE_DESCR;
 
 BACNET_STACK_EXPORT
@@ -46,6 +47,11 @@ unsigned PositiveInteger_Value_Instance_To_Index(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
+BACNET_STACK_EXPORT
+bool PositiveInteger_Value_Name_Set(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *PositiveInteger_Value_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -83,8 +89,6 @@ uint32_t PositiveInteger_Value_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Delete(uint32_t object_instance);
 
-/* note: header of Intrinsic_Reporting function is required
-   even when INTRINSIC_REPORTING is not defined */
 BACNET_STACK_EXPORT
 void PositiveInteger_Value_Intrinsic_Reporting(uint32_t object_instance);
 

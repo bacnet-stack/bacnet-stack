@@ -21,10 +21,6 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/piv.h"
 
-#ifndef MAX_POSITIVEINTEGER_VALUES
-#define MAX_POSITIVEINTEGER_VALUES 4
-#endif
-
 /* Key List for storing object data sorted by instance number */
 static OS_Keylist Object_List = NULL;
 /* common object type */
@@ -106,15 +102,16 @@ void PositiveInteger_Value_Writable_Property_List(
  * @param object_instance Object instance number.
  * @return Pointer to object descriptor, or NULL if not found.
  */
-static POSITIVEINTEGER_VALUE_DESCR *PositiveInteger_Value_Object(
-    uint32_t object_instance)
+static POSITIVEINTEGER_VALUE_DESCR *
+PositiveInteger_Value_Object(uint32_t object_instance)
 {
     return Keylist_Data(Object_List, object_instance);
 }
 
 /**
  * @brief Creates a Positive Integer Value object instance.
- * @param object_instance Requested object instance number, or BACNET_MAX_INSTANCE for auto-allocation.
+ * @param object_instance Requested object instance number, or
+ * BACNET_MAX_INSTANCE for auto-allocation.
  * @return Created instance number, or BACNET_MAX_INSTANCE on failure.
  */
 uint32_t PositiveInteger_Value_Create(uint32_t object_instance)
@@ -172,6 +169,7 @@ bool PositiveInteger_Value_Delete(uint32_t object_instance)
  */
 void PositiveInteger_Value_Init(void)
 {
+#ifdef MAX_POSITIVEINTEGER_VALUES
     unsigned i = 0;
 
     if (!Object_List) {
@@ -180,6 +178,7 @@ void PositiveInteger_Value_Init(void)
     for (i = 0; i < MAX_POSITIVEINTEGER_VALUES; i++) {
         PositiveInteger_Value_Create(i);
     }
+#endif
 }
 
 /**
@@ -278,19 +277,64 @@ uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance)
 bool PositiveInteger_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
+    char text[48] = "";
     bool status = false;
     POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
 
     pObject = PositiveInteger_Value_Object(object_instance);
     if (pObject) {
-        snprintf(
-            text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
-            (unsigned long)object_instance);
+        if (pObject->Object_Name) {
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
+        } else {
+            snprintf(
+                text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
+                (unsigned long)object_instance);
+        }
         status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ *  Note that the object name must be unique within this device.
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool PositiveInteger_Value_Name_Set(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    POSITIVEINTEGER_VALUE_DESCR *pObject;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *PositiveInteger_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    POSITIVEINTEGER_VALUE_DESCR *pObject;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -329,8 +373,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], Object_Type,
-                rpdata->object_instance);
+                &apdu[0], Object_Type, rpdata->object_instance);
             break;
 
         case PROP_OBJECT_NAME:
@@ -341,8 +384,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(
-                &apdu[0], Object_Type);
+            apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
             break;
 
         case PROP_PRESENT_VALUE:
@@ -487,13 +529,4 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
-}
-
-/**
- * @brief Performs intrinsic reporting for a Positive Integer Value object.
- * @param object_instance Object instance number.
- */
-void PositiveInteger_Value_Intrinsic_Reporting(uint32_t object_instance)
-{
-    (void)object_instance;
 }

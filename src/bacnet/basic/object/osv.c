@@ -90,14 +90,16 @@ void OctetString_Value_Writable_Property_List(
  * @param object_instance Object instance number.
  * @return Pointer to object descriptor, or NULL if not found.
  */
-static OCTETSTRING_VALUE_DESCR *OctetString_Value_Object(uint32_t object_instance)
+static OCTETSTRING_VALUE_DESCR *
+OctetString_Value_Object(uint32_t object_instance)
 {
     return Keylist_Data(Object_List, object_instance);
 }
 
 /**
  * @brief Creates an Octet String Value object instance.
- * @param object_instance Requested object instance number, or BACNET_MAX_INSTANCE for auto-allocation.
+ * @param object_instance Requested object instance number, or
+ * BACNET_MAX_INSTANCE for auto-allocation.
  * @return Created instance number, or BACNET_MAX_INSTANCE on failure.
  */
 uint32_t OctetString_Value_Create(uint32_t object_instance)
@@ -268,13 +270,57 @@ bool OctetString_Value_Object_Name(
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
-        snprintf(
-            text, sizeof(text), "OCTETSTRING VALUE %lu",
-            (unsigned long)object_instance);
+        if (pObject->Object_Name) {
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
+        } else {
+            snprintf(
+                text, sizeof(text), "OCTETSTRING VALUE %lu",
+                (unsigned long)object_instance);
+        }
         status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ *  Note that the object name must be unique within this device.
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool OctetString_Value_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    OCTETSTRING_VALUE_DESCR *pObject;
+
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *OctetString_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    OCTETSTRING_VALUE_DESCR *pObject;
+
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -444,13 +490,4 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
-}
-
-/**
- * @brief Performs intrinsic reporting for an Octet String Value object.
- * @param object_instance Object instance number.
- */
-void OctetString_Value_Intrinsic_Reporting(uint32_t object_instance)
-{
-    (void)object_instance;
 }
