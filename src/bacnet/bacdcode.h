@@ -211,7 +211,7 @@ bool decode_boolean(uint32_t len_value);
 BACNET_STACK_EXPORT
 int encode_context_boolean(
     uint8_t *apdu, uint8_t tag_number, bool boolean_value);
-BACNET_STACK_DEPRECATED("Use bacnet_boolean_context_decode() instead")
+BACNET_STACK_DEPRECATED("Use bacnet_boolean_context_value_decode() instead")
 BACNET_STACK_EXPORT
 bool decode_context_boolean(const uint8_t *apdu);
 BACNET_STACK_EXPORT

@@ -1145,7 +1145,7 @@ int encode_context_boolean(
  * @brief Decode an boolean value.
  * @param apdu  Pointer to the encode buffer.
  * @return true/false
- * @deprecated Use bacnet_boolean_context_decode() instead
+ * @deprecated Use bacnet_boolean_context_value_decode() instead
  */
 bool decode_context_boolean(const uint8_t *apdu)
 {

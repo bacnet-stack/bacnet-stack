@@ -42,7 +42,6 @@ BACNET_STACK_EXPORT
 int getevent_apdu_encode(
     uint8_t *apdu, const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
 
-BACNET_STACK_DEPRECATED("Use getevent_apdu_encode() instead")
 BACNET_STACK_EXPORT
 int getevent_encode_apdu(
     uint8_t *apdu,
