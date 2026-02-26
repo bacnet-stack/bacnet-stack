@@ -52,6 +52,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added PROP_TIMER_RUNNING to writable properties and implement
+  Timer_Running_Set functionality. (#1245)
 * Added BACNET_STACK_DEPRECATED_DISABLE guards around all of the deprecated
   decoding functions to ensure they are not used except intentionally for
   legacy code bases. (#1244)
