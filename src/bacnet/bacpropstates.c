@@ -346,6 +346,7 @@ int bacapp_property_state_context_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes BACnetPropertyState from bytes into a data structure, with
  *        opening and closing tags
@@ -360,7 +361,9 @@ int bacapp_decode_property_state(
 {
     return bacapp_property_state_decode(apdu, MAX_APDU, value);
 }
+#endif
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decodes BACnetPropertyState from bytes into a data structure, with
  *        opening and closing tags
@@ -399,6 +402,7 @@ int bacapp_decode_context_property_state(
 
     return apdu_len;
 }
+#endif
 
 /**
  * @brief Encode the BACnetPropertyState
