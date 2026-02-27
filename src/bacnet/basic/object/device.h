@@ -272,6 +272,8 @@ BACNET_STACK_EXPORT
 BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void);
 BACNET_STACK_EXPORT
 bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state);
+BACNET_STACK_EXPORT
+bool Device_Backup_State_In_Progress(BACNET_BACKUP_STATE state);
 
 BACNET_STACK_EXPORT
 void Device_Property_Lists(

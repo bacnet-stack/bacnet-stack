@@ -1089,7 +1089,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
 #if defined BACNET_BACKUP_RESTORE
             case BACNET_REINIT_STARTBACKUP:
-                if (Backup_State != BACKUP_STATE_IDLE) {
+                if (Device_Backup_State_In_Progress(Backup_State)) {
                     rd_data->error_class = ERROR_CLASS_DEVICE;
                     rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
                     break;
@@ -1100,7 +1100,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 status = true;
                 break;
             case BACNET_REINIT_STARTRESTORE:
-                if (Backup_State != BACKUP_STATE_IDLE) {
+                if (Device_Backup_State_In_Progress(Backup_State)) {
                     rd_data->error_class = ERROR_CLASS_DEVICE;
                     rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
                     break;
@@ -2102,6 +2102,21 @@ void Device_Backup_Failure_Timeout_Reset(void)
 #endif
 
 /**
+ * @brief Determine if a backup or restore operation is currently in progress
+ * @param state The current backup state to check
+ * @return True if a backup or restore operation is in progress, else False
+ */
+bool Device_Backup_State_In_Progress(BACNET_BACKUP_STATE state)
+{
+    if ((state != BACKUP_STATE_IDLE) &&
+        (state != BACKUP_STATE_BACKUP_FAILURE) &&
+        (state != BACKUP_STATE_RESTORE_FAILURE)) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * @brief Start the backup failure timeout countdown by converting the value to
  *  milliseconds
  * @note This should be called when starting a backup or restore operation, and
@@ -2111,9 +2126,7 @@ void Device_Backup_Failure_Timeout_Reset(void)
 void Device_Backup_Failure_Timeout_Restart(void)
 {
 #if defined(BACNET_BACKUP_RESTORE)
-    if ((Backup_State != BACKUP_STATE_IDLE) &&
-        (Backup_State != BACKUP_STATE_BACKUP_FAILURE) &&
-        (Backup_State != BACKUP_STATE_RESTORE_FAILURE)) {
+    if (Device_Backup_State_In_Progress(Backup_State)) {
         /* service related to backup & restore will reset the backup failure
            timeout during a backup or restore operation */
         Backup_Failure_Timeout_Milliseconds = Backup_Failure_Timeout * 1000UL;
@@ -2138,9 +2151,7 @@ void Device_Backup_Failure_Timeout_Restart(void)
 void Device_Backup_Failure_Timeout_Countdown(uint32_t milliseconds)
 {
 #if defined(BACNET_BACKUP_RESTORE)
-    if ((Backup_State != BACKUP_STATE_IDLE) &&
-        (Backup_State != BACKUP_STATE_BACKUP_FAILURE) &&
-        (Backup_State != BACKUP_STATE_RESTORE_FAILURE)) {
+    if (Device_Backup_State_In_Progress(Backup_State)) {
         /* service related to backup & restore will restart the backup
            failure timer during a backup or restore operation */
         if (Backup_Failure_Timeout_Milliseconds > 0) {
@@ -2158,6 +2169,8 @@ void Device_Backup_Failure_Timeout_Countdown(uint32_t milliseconds)
             }
         }
     }
+#else
+    (void)milliseconds;
 #endif
 }
 
