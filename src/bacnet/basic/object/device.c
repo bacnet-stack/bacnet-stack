@@ -1628,6 +1628,11 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 status = true;
                 break;
             case BACNET_REINIT_ENDRESTORE:
+                if (Backup_State != BACKUP_STATE_PERFORMING_A_RESTORE) {
+                    rd_data->error_class = ERROR_CLASS_DEVICE;
+                    rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
+                    break;
+                }
                 Device_Backup_Failure_Timeout_Restart();
                 Device_End_Restore();
                 Reinitialize_State = rd_data->state;
@@ -3752,8 +3757,6 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
 /**
  * @brief Loops through all the objects and deletes them,
  *  if DeleteObject service is supported by the object type.
- * @return true
- * @return false
  */
 void Device_Delete_Objects(void)
 {
