@@ -251,6 +251,12 @@ uint16_t Device_Backup_Failure_Timeout(void);
 BACNET_STACK_EXPORT
 bool Device_Backup_Failure_Timeout_Set(uint16_t timeout);
 BACNET_STACK_EXPORT
+void Device_Backup_Failure_Timeout_Reset(void);
+BACNET_STACK_EXPORT
+void Device_Backup_Failure_Timeout_Restart(void);
+BACNET_STACK_EXPORT
+void Device_Backup_Failure_Timeout_Countdown(uint32_t milliseconds);
+BACNET_STACK_EXPORT
 uint16_t Device_Backup_Preparation_Time(void);
 BACNET_STACK_EXPORT
 bool Device_Backup_Preparation_Time_Set(uint16_t time);
@@ -266,6 +272,8 @@ BACNET_STACK_EXPORT
 BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void);
 BACNET_STACK_EXPORT
 bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state);
+BACNET_STACK_EXPORT
+bool Device_Backup_State_In_Progress(BACNET_BACKUP_STATE state);
 
 BACNET_STACK_EXPORT
 void Device_Property_Lists(
@@ -330,11 +338,15 @@ BACNET_STACK_EXPORT
 bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data);
+BACNET_STACK_EXPORT
+void Device_Delete_Objects(void);
 
 BACNET_STACK_EXPORT
 void Device_Start_Backup(void);
 BACNET_STACK_EXPORT
 void Device_Start_Restore(void);
+BACNET_STACK_EXPORT
+void Device_End_Restore(void);
 
 BACNET_STACK_EXPORT
 unsigned Device_Count(void);

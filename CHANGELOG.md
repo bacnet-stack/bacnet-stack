@@ -176,6 +176,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Device Management-Backup and Restore-B Backup_Failure_Timeout
+  to count down and abort at BACKUP_FAILURE or RESTORE_FAILURE states,
+  successful STARTBACKUP to end in PERFORMING_A_BACKUP state,
+  and moved STARTRESTORE functionality into ENDRESTORE. (#1247)
 * Fixed the basic Schedule object to set the correct present-value
   based on the Device object date and time. (#1236)
 * Fixed dlenv_init() for BACnet/SC. bsc_register_as_node() was blocking

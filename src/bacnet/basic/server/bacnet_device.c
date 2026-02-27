@@ -65,7 +65,6 @@
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
-#include "bacnet/basic/object/program.h"
 
 #ifdef CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION
 #define BACNET_DEVICE_VERSION CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION
@@ -221,9 +220,10 @@
 
 /* may be overridden by outside table */
 static object_functions_t *Object_Table;
+
 static object_functions_t My_Object_Table[] = {
     { OBJECT_DEVICE,
-      NULL, /* don't init - recursive! */
+      NULL /* Init - don't init Device or it will recourse! */,
       Device_Count,
       Device_Index_To_Instance,
       Device_Valid_Object_Instance_Number,
@@ -231,7 +231,7 @@ static object_functions_t My_Object_Table[] = {
       Device_Read_Property_Local,
       Device_Write_Property_Local,
       Device_Property_Lists,
-      NULL /* ReadRangeInfo */,
+      DeviceGetRRInfo,
       NULL /* Iterator */,
       NULL /* Value_Lists */,
       NULL /* COV */,
@@ -243,6 +243,52 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Delete */,
       NULL /* Timer */,
       Device_Writable_Property_List },
+#if defined(CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT)
+    { OBJECT_NETWORK_PORT,
+      Network_Port_Init,
+      Network_Port_Count,
+      Network_Port_Index_To_Instance,
+      Network_Port_Valid_Instance,
+      Network_Port_Object_Name,
+      Network_Port_Read_Property,
+      Network_Port_Write_Property,
+      Network_Port_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      NULL /* Create */,
+      NULL /* Delete */,
+      NULL /* Timer */,
+      Network_Port_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIMER)
+    { OBJECT_TIMER,
+      Timer_Init,
+      Timer_Count,
+      Timer_Index_To_Instance,
+      Timer_Valid_Instance,
+      Timer_Object_Name,
+      Timer_Read_Property,
+      Timer_Write_Property,
+      Timer_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      Timer_Add_List_Element,
+      Timer_Remove_List_Element,
+      Timer_Create,
+      Timer_Delete,
+      Timer_Task,
+      Timer_Writable_Property_List },
+#endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_INPUT)
     { OBJECT_ANALOG_INPUT,
       Analog_Input_Init,
@@ -311,29 +357,6 @@ static object_functions_t My_Object_Table[] = {
       Analog_Value_Delete,
       NULL /* Timer */,
       Analog_Value_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG)
-    { OBJECT_AUDIT_LOG,
-      Audit_Log_Init,
-      Audit_Log_Count,
-      Audit_Log_Index_To_Instance,
-      Audit_Log_Valid_Instance,
-      Audit_Log_Object_Name,
-      Audit_Log_Read_Property,
-      Audit_Log_Write_Property,
-      Audit_Log_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      NULL /* Value_Lists */,
-      NULL /* COV */,
-      NULL /* COV Clear */,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      Audit_Log_Create,
-      Audit_Log_Delete,
-      NULL /* Timer */,
-      Audit_Log_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT)
     { OBJECT_BINARY_INPUT,
@@ -404,98 +427,6 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Timer */,
       Binary_Value_Writable_Property_List },
 #endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_INPUT)
-    { OBJECT_MULTI_STATE_INPUT,
-      Multistate_Input_Init,
-      Multistate_Input_Count,
-      Multistate_Input_Index_To_Instance,
-      Multistate_Input_Valid_Instance,
-      Multistate_Input_Object_Name,
-      Multistate_Input_Read_Property,
-      Multistate_Input_Write_Property,
-      Multistate_Input_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      Multistate_Input_Encode_Value_List,
-      Multistate_Input_Change_Of_Value,
-      Multistate_Input_Change_Of_Value_Clear,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      Multistate_Input_Create,
-      Multistate_Input_Delete,
-      NULL /* Timer */,
-      Multistate_Input_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_OUTPUT)
-    { OBJECT_MULTI_STATE_OUTPUT,
-      Multistate_Output_Init,
-      Multistate_Output_Count,
-      Multistate_Output_Index_To_Instance,
-      Multistate_Output_Valid_Instance,
-      Multistate_Output_Object_Name,
-      Multistate_Output_Read_Property,
-      Multistate_Output_Write_Property,
-      Multistate_Output_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      Multistate_Output_Encode_Value_List,
-      Multistate_Output_Change_Of_Value,
-      Multistate_Output_Change_Of_Value_Clear,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      Multistate_Output_Create,
-      Multistate_Output_Delete,
-      NULL /* Timer */,
-      Multistate_Output_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_VALUE)
-    { OBJECT_MULTI_STATE_VALUE,
-      Multistate_Value_Init,
-      Multistate_Value_Count,
-      Multistate_Value_Index_To_Instance,
-      Multistate_Value_Valid_Instance,
-      Multistate_Value_Object_Name,
-      Multistate_Value_Read_Property,
-      Multistate_Value_Write_Property,
-      Multistate_Value_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      Multistate_Value_Encode_Value_List,
-      Multistate_Value_Change_Of_Value,
-      Multistate_Value_Change_Of_Value_Clear,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      Multistate_Value_Create,
-      Multistate_Value_Delete,
-      NULL /* Timer */,
-      Multistate_Value_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT)
-    { OBJECT_NETWORK_PORT,
-      Network_Port_Init,
-      Network_Port_Count,
-      Network_Port_Index_To_Instance,
-      Network_Port_Valid_Instance,
-      Network_Port_Object_Name,
-      Network_Port_Read_Property,
-      Network_Port_Write_Property,
-      Network_Port_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      NULL /* Value_Lists */,
-      NULL /* COV */,
-      NULL /* COV Clear */,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      NULL /* Create */,
-      NULL /* Delete */,
-      NULL /* Timer */,
-      Network_Port_Writable_Property_List },
-#endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_CALENDAR)
     { OBJECT_CALENDAR,
       Calendar_Init,
@@ -518,6 +449,121 @@ static object_functions_t My_Object_Table[] = {
       Calendar_Delete,
       NULL /* Timer */,
       Calendar_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE)
+    { OBJECT_BITSTRING_VALUE,
+      BitString_Value_Init,
+      BitString_Value_Count,
+      BitString_Value_Index_To_Instance,
+      BitString_Value_Valid_Instance,
+      BitString_Value_Object_Name,
+      BitString_Value_Read_Property,
+      BitString_Value_Write_Property,
+      BitString_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      BitString_Value_Encode_Value_List,
+      BitString_Value_Change_Of_Value,
+      BitString_Value_Change_Of_Value_Clear,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      BitString_Value_Create,
+      BitString_Value_Delete,
+      NULL /* Timer */,
+      BitString_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE)
+    { OBJECT_CHARACTERSTRING_VALUE,
+      CharacterString_Value_Init,
+      CharacterString_Value_Count,
+      CharacterString_Value_Index_To_Instance,
+      CharacterString_Value_Valid_Instance,
+      CharacterString_Value_Object_Name,
+      CharacterString_Value_Read_Property,
+      CharacterString_Value_Write_Property,
+      CharacterString_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      CharacterString_Value_Encode_Value_List,
+      CharacterString_Value_Change_Of_Value,
+      CharacterString_Value_Change_Of_Value_Clear,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      CharacterString_Value_Create,
+      CharacterString_Value_Delete,
+      NULL /* Timer */,
+      CharacterString_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_OCTETSTRING_VALUE)
+    { OBJECT_OCTETSTRING_VALUE,
+      OctetString_Value_Init,
+      OctetString_Value_Count,
+      OctetString_Value_Index_To_Instance,
+      OctetString_Value_Valid_Instance,
+      OctetString_Value_Object_Name,
+      OctetString_Value_Read_Property,
+      OctetString_Value_Write_Property,
+      OctetString_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      OctetString_Value_Create,
+      OctetString_Value_Delete,
+      NULL /* Timer */,
+      OctetString_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_POSITIVE_INTEGER_VALUE)
+    { OBJECT_POSITIVE_INTEGER_VALUE,
+      PositiveInteger_Value_Init,
+      PositiveInteger_Value_Count,
+      PositiveInteger_Value_Index_To_Instance,
+      PositiveInteger_Value_Valid_Instance,
+      PositiveInteger_Value_Object_Name,
+      PositiveInteger_Value_Read_Property,
+      PositiveInteger_Value_Write_Property,
+      PositiveInteger_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      PositiveInteger_Value_Create,
+      PositiveInteger_Value_Delete,
+      NULL /* Timer */,
+      PositiveInteger_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE)
+    { OBJECT_TIME_VALUE,
+      Time_Value_Init,
+      Time_Value_Count,
+      Time_Value_Index_To_Instance,
+      Time_Value_Valid_Instance,
+      Time_Value_Object_Name,
+      Time_Value_Read_Property,
+      Time_Value_Write_Property,
+      Time_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Time_Value_Create,
+      Time_Value_Delete,
+      NULL /* Timer */,
+      Time_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_INTEGER_VALUE)
     { OBJECT_INTEGER_VALUE,
@@ -611,6 +657,75 @@ static object_functions_t My_Object_Table[] = {
       Load_Control_Delete,
       Load_Control_Timer,
       Load_Control_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_INPUT)
+    { OBJECT_MULTI_STATE_INPUT,
+      Multistate_Input_Init,
+      Multistate_Input_Count,
+      Multistate_Input_Index_To_Instance,
+      Multistate_Input_Valid_Instance,
+      Multistate_Input_Object_Name,
+      Multistate_Input_Read_Property,
+      Multistate_Input_Write_Property,
+      Multistate_Input_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      Multistate_Input_Encode_Value_List,
+      Multistate_Input_Change_Of_Value,
+      Multistate_Input_Change_Of_Value_Clear,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Multistate_Input_Create,
+      Multistate_Input_Delete,
+      NULL /* Timer */,
+      Multistate_Input_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_OUTPUT)
+    { OBJECT_MULTI_STATE_OUTPUT,
+      Multistate_Output_Init,
+      Multistate_Output_Count,
+      Multistate_Output_Index_To_Instance,
+      Multistate_Output_Valid_Instance,
+      Multistate_Output_Object_Name,
+      Multistate_Output_Read_Property,
+      Multistate_Output_Write_Property,
+      Multistate_Output_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      Multistate_Output_Encode_Value_List,
+      Multistate_Output_Change_Of_Value,
+      Multistate_Output_Change_Of_Value_Clear,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Multistate_Output_Create,
+      Multistate_Output_Delete,
+      NULL /* Timer */,
+      Multistate_Output_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_VALUE)
+    { OBJECT_MULTI_STATE_VALUE,
+      Multistate_Value_Init,
+      Multistate_Value_Count,
+      Multistate_Value_Index_To_Instance,
+      Multistate_Value_Valid_Instance,
+      Multistate_Value_Object_Name,
+      Multistate_Value_Read_Property,
+      Multistate_Value_Write_Property,
+      Multistate_Value_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      Multistate_Value_Encode_Value_List,
+      Multistate_Value_Change_Of_Value,
+      Multistate_Value_Change_Of_Value_Clear,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Multistate_Value_Create,
+      Multistate_Value_Delete,
+      NULL /* Timer */,
+      Multistate_Value_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT)
     { OBJECT_LIGHTING_OUTPUT,
@@ -773,144 +888,6 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Timer */,
       NULL /* Writable_Property_List */ },
 #endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE)
-    { OBJECT_BITSTRING_VALUE,
-      BitString_Value_Init,
-      BitString_Value_Count,
-      BitString_Value_Index_To_Instance,
-      BitString_Value_Valid_Instance,
-      BitString_Value_Object_Name,
-      BitString_Value_Read_Property,
-      BitString_Value_Write_Property,
-      BitString_Value_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      BitString_Value_Encode_Value_List,
-      BitString_Value_Change_Of_Value,
-      BitString_Value_Change_Of_Value_Clear,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      BitString_Value_Create,
-      BitString_Value_Delete,
-      NULL /* Timer */,
-      BitString_Value_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE)
-    { OBJECT_CHARACTERSTRING_VALUE,
-      CharacterString_Value_Init,
-      CharacterString_Value_Count,
-      CharacterString_Value_Index_To_Instance,
-      CharacterString_Value_Valid_Instance,
-      CharacterString_Value_Object_Name,
-      CharacterString_Value_Read_Property,
-      CharacterString_Value_Write_Property,
-      CharacterString_Value_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      CharacterString_Value_Encode_Value_List,
-      CharacterString_Value_Change_Of_Value,
-      CharacterString_Value_Change_Of_Value_Clear,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      CharacterString_Value_Create,
-      CharacterString_Value_Delete,
-      NULL /* Timer */,
-      CharacterString_Value_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_OCTETSTRING_VALUE)
-    { OBJECT_OCTETSTRING_VALUE,
-      OctetString_Value_Init,
-      OctetString_Value_Count,
-      OctetString_Value_Index_To_Instance,
-      OctetString_Value_Valid_Instance,
-      OctetString_Value_Object_Name,
-      OctetString_Value_Read_Property,
-      OctetString_Value_Write_Property,
-      OctetString_Value_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      NULL /* Value_Lists */,
-      NULL /* COV */,
-      NULL /* COV Clear */,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      OctetString_Value_Create,
-      OctetString_Value_Delete,
-      NULL /* Timer */,
-      OctetString_Value_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_POSITIVE_INTEGER_VALUE)
-    { OBJECT_POSITIVE_INTEGER_VALUE,
-      PositiveInteger_Value_Init,
-      PositiveInteger_Value_Count,
-      PositiveInteger_Value_Index_To_Instance,
-      PositiveInteger_Value_Valid_Instance,
-      PositiveInteger_Value_Object_Name,
-      PositiveInteger_Value_Read_Property,
-      PositiveInteger_Value_Write_Property,
-      PositiveInteger_Value_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      NULL /* Value_Lists */,
-      NULL /* COV */,
-      NULL /* COV Clear */,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      PositiveInteger_Value_Create,
-      PositiveInteger_Value_Delete,
-      NULL /* Timer */,
-      PositiveInteger_Value_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE)
-    { OBJECT_TIME_VALUE,
-      Time_Value_Init,
-      Time_Value_Count,
-      Time_Value_Index_To_Instance,
-      Time_Value_Valid_Instance,
-      Time_Value_Object_Name,
-      Time_Value_Read_Property,
-      Time_Value_Write_Property,
-      Time_Value_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      NULL /* Value_Lists */,
-      NULL /* COV */,
-      NULL /* COV Clear */,
-      NULL /* Intrinsic Reporting */,
-      NULL /* Add_List_Element */,
-      NULL /* Remove_List_Element */,
-      Time_Value_Create,
-      Time_Value_Delete,
-      NULL /* Timer */,
-      Time_Value_Writable_Property_List },
-#endif
-#if defined(CONFIG_BACNET_BASIC_OBJECT_TIMER)
-    { OBJECT_TIMER,
-      Timer_Init,
-      Timer_Count,
-      Timer_Index_To_Instance,
-      Timer_Valid_Instance,
-      Timer_Object_Name,
-      Timer_Read_Property,
-      Timer_Write_Property,
-      Timer_Property_Lists,
-      NULL /* ReadRangeInfo */,
-      NULL /* Iterator */,
-      NULL /* Value_Lists */,
-      NULL /* COV */,
-      NULL /* COV Clear */,
-      NULL /* Intrinsic Reporting */,
-      Timer_Add_List_Element,
-      Timer_Remove_List_Element,
-      Timer_Create,
-      Timer_Delete,
-      Timer_Task,
-      Timer_Writable_Property_List },
-#endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LOOP)
     { OBJECT_LOOP,
       Loop_Init,
@@ -935,7 +912,7 @@ static object_functions_t My_Object_Table[] = {
       Loop_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_PROGRAM)
-    { OBJECT_BITSTRING_VALUE,
+    { OBJECT_PROGRAM,
       Program_Init,
       Program_Count,
       Program_Index_To_Instance,
@@ -956,6 +933,29 @@ static object_functions_t My_Object_Table[] = {
       Program_Delete,
       Program_Timer,
       Program_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG)
+    { OBJECT_AUDIT_LOG,
+      Audit_Log_Init,
+      Audit_Log_Count,
+      Audit_Log_Index_To_Instance,
+      Audit_Log_Valid_Instance,
+      Audit_Log_Object_Name,
+      Audit_Log_Read_Property,
+      Audit_Log_Write_Property,
+      Audit_Log_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Audit_Log_Create,
+      Audit_Log_Delete,
+      NULL /* Timer */,
+      Audit_Log_Writable_Property_List },
 #endif
     {
         MAX_BACNET_OBJECT_TYPE,
@@ -1287,8 +1287,6 @@ void Device_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary)
 {
-    uint32_t instance;
-
     if (pRequired) {
         *pRequired = Device_Properties_Required;
     }
@@ -1296,16 +1294,7 @@ void Device_Property_Lists(
         *pOptional = Device_Properties_Optional;
     }
     if (pProprietary) {
-        if (Property_List_Proprietary_Callback) {
-            instance = Device_Object_Instance_Number();
-            if (Property_List_Proprietary_Callback(
-                    OBJECT_DEVICE, instance, pProprietary)) {
-            } else {
-                *pProprietary = Device_Properties_Proprietary;
-            }
-        } else {
-            *pProprietary = Device_Properties_Proprietary;
-        }
+        *pProprietary = Device_Properties_Proprietary;
     }
 
     return;
@@ -1418,7 +1407,8 @@ static BACNET_TIMESTAMP Last_Restore_Time;
    in the Backup_Failure_Timeout property of its Device object,
    device B should assume that the restore procedure has been aborted,
    and device B should exit restore mode.*/
-static uint16_t Backup_Failure_Timeout;
+static uint16_t Backup_Failure_Timeout = 60 * 60;
+static uint32_t Backup_Failure_Timeout_Milliseconds;
 /* This property indicates the amount of time in seconds
    that the device might remain unresponsive after the sending
    of a ReinitializeDevice-ACK at the start of a backup procedure.
@@ -1529,18 +1519,44 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
 #if defined BACNET_BACKUP_RESTORE
             case BACNET_REINIT_STARTBACKUP:
+                if (Device_Backup_State_In_Progress(Backup_State)) {
+                    rd_data->error_class = ERROR_CLASS_DEVICE;
+                    rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
+                    break;
+                }
+                Backup_State = BACKUP_STATE_PREPARING_FOR_BACKUP;
+                Device_Backup_Failure_Timeout_Restart();
                 Device_Start_Backup();
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_STARTRESTORE:
+                if (Device_Backup_State_In_Progress(Backup_State)) {
+                    rd_data->error_class = ERROR_CLASS_DEVICE;
+                    rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
+                    break;
+                }
+                Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
+                Device_Backup_Failure_Timeout_Restart();
                 Device_Start_Restore();
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
-            case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ENDRESTORE:
+                if (Backup_State != BACKUP_STATE_PERFORMING_A_RESTORE) {
+                    rd_data->error_class = ERROR_CLASS_DEVICE;
+                    rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
+                    break;
+                }
+                Device_Backup_Failure_Timeout_Restart();
+                Device_End_Restore();
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ABORTRESTORE:
+                Backup_State = BACKUP_STATE_IDLE;
+                Device_Backup_Failure_Timeout_Reset();
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
@@ -2453,7 +2469,90 @@ bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state)
     Backup_State = state;
     return true;
 }
+
+/**
+ * @brief Reset the backup failure timeout countdown to zero
+ * @note This should be called when the backup failure timeout is no longer
+ *  needed, such as when a backup or restore operation has completed or failed.
+ */
+void Device_Backup_Failure_Timeout_Reset(void)
+{
+    Backup_Failure_Timeout_Milliseconds = 0;
+}
 #endif
+
+/**
+ * @brief Determine if a backup or restore operation is currently in progress
+ * @param state The current backup state to check
+ * @return True if a backup or restore operation is in progress, else False
+ */
+bool Device_Backup_State_In_Progress(BACNET_BACKUP_STATE state)
+{
+    if ((state != BACKUP_STATE_IDLE) &&
+        (state != BACKUP_STATE_BACKUP_FAILURE) &&
+        (state != BACKUP_STATE_RESTORE_FAILURE)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief Start the backup failure timeout countdown by converting the value to
+ *  milliseconds
+ * @note This should be called when starting a backup or restore operation, and
+ *  the Backup_Failure_Timeout_Milliseconds variable should be decremented in
+ * the main loop or a timer interrupt to track the timeout.
+ */
+void Device_Backup_Failure_Timeout_Restart(void)
+{
+#if defined(BACNET_BACKUP_RESTORE)
+    if (Device_Backup_State_In_Progress(Backup_State)) {
+        /* service related to backup & restore will reset the backup failure
+           timeout during a backup or restore operation */
+        Backup_Failure_Timeout_Milliseconds = Backup_Failure_Timeout * 1000UL;
+    }
+#endif
+}
+
+/**
+ * @brief Decrement the backup failure timeout countdown by the given number of
+ *  milliseconds, and update the backup state if the timeout has expired.
+ * @param milliseconds The number of milliseconds to decrement from the backup
+ *  failure timeout countdown.
+ * @details If device B does not receive any messages related to the backup
+ *  procedure from device A for the number of seconds specified in the
+ *  Backup_Failure_Timeout property of its Device object, device B should
+ *  assume that the backup procedure has been aborted, and device B should
+ *  exit backup mode. A message related to the backup procedure is defined
+ *  to be any ReadProperty, ReadPropertyMultiple, WriteProperty,
+ *  WritePropertyMultiple, CreateObject, or AtomicReadFile request
+ *  that directly accesses a configuration File object.
+ */
+void Device_Backup_Failure_Timeout_Countdown(uint32_t milliseconds)
+{
+#if defined(BACNET_BACKUP_RESTORE)
+    if (Device_Backup_State_In_Progress(Backup_State)) {
+        /* service related to backup & restore will restart the backup
+           failure timer during a backup or restore operation */
+        if (Backup_Failure_Timeout_Milliseconds > 0) {
+            if (milliseconds >= Backup_Failure_Timeout_Milliseconds) {
+                Backup_Failure_Timeout_Milliseconds = 0;
+            } else {
+                Backup_Failure_Timeout_Milliseconds -= milliseconds;
+            }
+            if (Backup_Failure_Timeout_Milliseconds == 0) {
+                if (Backup_State == BACKUP_STATE_PERFORMING_A_BACKUP) {
+                    Backup_State = BACKUP_STATE_BACKUP_FAILURE;
+                } else if (Backup_State == BACKUP_STATE_PERFORMING_A_RESTORE) {
+                    Backup_State = BACKUP_STATE_RESTORE_FAILURE;
+                }
+            }
+        }
+    }
+#else
+    (void)milliseconds;
+#endif
+}
 
 /**
  * ReadProperty handler for this object.  For the given ReadProperty
@@ -2797,6 +2896,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     if (!rpdata) {
         return 0;
     }
+    Device_Backup_Failure_Timeout_Restart();
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -3206,6 +3306,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
+    Device_Backup_Failure_Timeout_Restart();
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -3446,6 +3547,7 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
     bool object_exists = false;
     bool object_supported = false;
 
+    Device_Backup_Failure_Timeout_Restart();
     pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
@@ -3479,6 +3581,7 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
     bool status = false;
     struct object_functions *pObject = NULL;
 
+    Device_Backup_Failure_Timeout_Restart();
     pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Delete) {
@@ -3514,6 +3617,34 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
 }
 
 /**
+ * @brief Loops through all the objects and deletes them,
+ *  if DeleteObject service is supported by the object type.
+ */
+void Device_Delete_Objects(void)
+{
+    struct object_functions *pObject = NULL;
+    uint32_t instance = 0;
+    unsigned count = 0;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        count = 0;
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
+        }
+        while (count) {
+            count--;
+            if ((pObject->Object_Delete) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Delete(instance);
+            }
+        }
+        pObject++;
+    }
+}
+
+/**
  * @brief Loop through the Device object-list property and export to
  *  a file as BACnet CreateObject services with List of Initial Values
  *  for every writable property
@@ -3532,9 +3663,7 @@ void Device_Start_Backup(void)
     bool status = false;
     int32_t len = 0, offset = 0;
 
-    Backup_State = BACKUP_STATE_PREPARING_FOR_BACKUP;
     object_count = Device_Object_List_Count();
-    Backup_State = BACKUP_STATE_PERFORMING_A_BACKUP;
     for (i = 0; i < object_count; i++) {
         /* get the object type and instance from the device object list */
         status = Device_Object_List_Identifier(
@@ -3560,7 +3689,18 @@ void Device_Start_Backup(void)
             }
         }
     }
-    Backup_State = BACKUP_STATE_IDLE;
+    Backup_State = BACKUP_STATE_PERFORMING_A_BACKUP;
+#endif
+}
+
+/**
+ * @brief Create files for backup and restore, if supported, and set the state
+ * to performing a restore
+ */
+void Device_Start_Restore(void)
+{
+#if defined BACNET_BACKUP_RESTORE
+    Backup_State = BACKUP_STATE_PERFORMING_A_RESTORE;
 #endif
 }
 
@@ -3569,7 +3709,7 @@ void Device_Start_Backup(void)
  *  a file as BACnet CreateObject services with List of Initial Values
  *  for every writable property
  */
-void Device_Start_Restore(void)
+void Device_End_Restore(void)
 {
 #if defined BACNET_BACKUP_RESTORE
     BACNET_DATE_TIME bdateTime = { 0 };
@@ -3580,7 +3720,8 @@ void Device_Start_Restore(void)
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
-    Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
+    /* delete all existing objects before restore */
+    Device_Delete_Objects();
     /* create objects from the backup file */
     file_size = bacfile_file_size(Configuration_Files[0]);
     while (offset < file_size) {
@@ -3600,15 +3741,19 @@ void Device_Start_Restore(void)
                     /* error creating object - keep going */
                 }
             } else {
+                Backup_State = BACKUP_STATE_RESTORE_FAILURE;
                 /* error while decoding object  */
                 break;
             }
         } else {
+            Backup_State = BACKUP_STATE_RESTORE_FAILURE;
             /* error while reading file  */
             break;
         }
     }
-    Backup_State = BACKUP_STATE_IDLE;
+    if (Backup_State != BACKUP_STATE_RESTORE_FAILURE) {
+        Backup_State = BACKUP_STATE_IDLE;
+    }
 #endif
 }
 
@@ -3778,8 +3923,10 @@ void Device_Timer(uint16_t milliseconds)
     unsigned count = 0;
     uint32_t instance;
 
+    Device_Backup_Failure_Timeout_Countdown(milliseconds);
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        count = 0;
         if (pObject->Object_Count) {
             count = pObject->Object_Count();
         }
