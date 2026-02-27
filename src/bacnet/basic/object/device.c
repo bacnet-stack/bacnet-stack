@@ -904,7 +904,7 @@ static const char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
 static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
-static char Firmware_Version[MAX_DEV_VER_LEN + 1] = BACNET_VERSION_TEXT;
+static char Firmware_Revision[MAX_DEV_VER_LEN + 1] = BACNET_VERSION_TEXT;
 static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
 static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 static char Serial_Number[MAX_DEV_DESC_LEN + 1] =
@@ -973,7 +973,8 @@ static BACNET_TIMESTAMP Last_Restore_Time;
    in the Backup_Failure_Timeout property of its Device object,
    device B should assume that the restore procedure has been aborted,
    and device B should exit restore mode.*/
-static uint16_t Backup_Failure_Timeout;
+static uint16_t Backup_Failure_Timeout = 60 * 60;
+static uint32_t Backup_Failure_Timeout_Milliseconds;
 /* This property indicates the amount of time in seconds
    that the device might remain unresponsive after the sending
    of a ReinitializeDevice-ACK at the start of a backup procedure.
@@ -1088,18 +1089,37 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
 #if defined BACNET_BACKUP_RESTORE
             case BACNET_REINIT_STARTBACKUP:
+                if (Backup_State != BACKUP_STATE_IDLE) {
+                    rd_data->error_class = ERROR_CLASS_DEVICE;
+                    rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
+                    break;
+                }
                 Device_Start_Backup();
                 Reinitialize_State = rd_data->state;
+                Device_Backup_Failure_Timeout_Restart();
                 status = true;
                 break;
             case BACNET_REINIT_STARTRESTORE:
-                Device_Start_Restore();
+                if (Backup_State != BACKUP_STATE_IDLE) {
+                    rd_data->error_class = ERROR_CLASS_DEVICE;
+                    rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
+                    break;
+                }
+                Backup_State = BACKUP_STATE_PERFORMING_A_RESTORE;
+                Device_Backup_Failure_Timeout_Restart();
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
-            case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ENDRESTORE:
+                Device_End_Restore();
+                Reinitialize_State = rd_data->state;
+                Device_Backup_Failure_Timeout_Restart();
+                status = true;
+                break;
+            case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ABORTRESTORE:
+                Backup_State = BACKUP_STATE_IDLE;
+                Device_Backup_Failure_Timeout_Reset();
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
@@ -1417,16 +1437,16 @@ bool Device_Set_Model_Name(const char *name, size_t length)
 
 const char *Device_Firmware_Revision(void)
 {
-    return Firmware_Version;
+    return Firmware_Revision;
 }
 
 bool Device_Set_Firmware_Revision(const char *name, size_t length)
 {
     bool status = false; /*return value */
 
-    if (length < sizeof(Firmware_Version)) {
-        memmove(Firmware_Version, name, length);
-        Firmware_Version[length] = 0;
+    if (length < sizeof(Firmware_Revision)) {
+        memmove(Firmware_Revision, name, length);
+        Firmware_Revision[length] = 0;
         status = true;
     }
 
@@ -2069,7 +2089,77 @@ bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state)
     Backup_State = state;
     return true;
 }
+
+/**
+ * @brief Reset the backup failure timeout countdown to zero
+ * @note This should be called when the backup failure timeout is no longer
+ *  needed, such as when a backup or restore operation has completed or failed.
+ */
+void Device_Backup_Failure_Timeout_Reset(void)
+{
+    Backup_Failure_Timeout_Milliseconds = 0;
+}
 #endif
+
+/**
+ * @brief Start the backup failure timeout countdown by converting the value to
+ *  milliseconds
+ * @note This should be called when starting a backup or restore operation, and
+ *  the Backup_Failure_Timeout_Milliseconds variable should be decremented in
+ * the main loop or a timer interrupt to track the timeout.
+ */
+void Device_Backup_Failure_Timeout_Restart(void)
+{
+#if defined(BACNET_BACKUP_RESTORE)
+    if ((Backup_State != BACKUP_STATE_IDLE) &&
+        (Backup_State != BACKUP_STATE_BACKUP_FAILURE) &&
+        (Backup_State != BACKUP_STATE_RESTORE_FAILURE)) {
+        /* service related to backup & restore will reset the backup failure
+           timeout during a backup or restore operation */
+        Backup_Failure_Timeout_Milliseconds = Backup_Failure_Timeout * 1000UL;
+    }
+#endif
+}
+
+/**
+ * @brief Decrement the backup failure timeout countdown by the given number of
+ *  milliseconds, and update the backup state if the timeout has expired.
+ * @param milliseconds The number of milliseconds to decrement from the backup
+ *  failure timeout countdown.
+ * @details If device B does not receive any messages related to the backup
+ *  procedure from device A for the number of seconds specified in the
+ *  Backup_Failure_Timeout property of its Device object, device B should
+ *  assume that the backup procedure has been aborted, and device B should
+ *  exit backup mode. A message related to the backup procedure is defined
+ *  to be any ReadProperty, ReadPropertyMultiple, WriteProperty,
+ *  WritePropertyMultiple, CreateObject, or AtomicReadFile request
+ *  that directly accesses a configuration File object.
+ */
+void Device_Backup_Failure_Timeout_Countdown(uint32_t milliseconds)
+{
+#if defined(BACNET_BACKUP_RESTORE)
+    if ((Backup_State != BACKUP_STATE_IDLE) &&
+        (Backup_State != BACKUP_STATE_BACKUP_FAILURE) &&
+        (Backup_State != BACKUP_STATE_RESTORE_FAILURE)) {
+        /* service related to backup & restore will restart the backup
+           failure timer during a backup or restore operation */
+        if (Backup_Failure_Timeout_Milliseconds > 0) {
+            if (milliseconds >= Backup_Failure_Timeout_Milliseconds) {
+                Backup_Failure_Timeout_Milliseconds = 0;
+            } else {
+                Backup_Failure_Timeout_Milliseconds -= milliseconds;
+            }
+            if (Backup_Failure_Timeout_Milliseconds == 0) {
+                if (Backup_State == BACKUP_STATE_PERFORMING_A_BACKUP) {
+                    Backup_State = BACKUP_STATE_BACKUP_FAILURE;
+                } else if (Backup_State == BACKUP_STATE_PERFORMING_A_RESTORE) {
+                    Backup_State = BACKUP_STATE_RESTORE_FAILURE;
+                }
+            }
+        }
+    }
+#endif
+}
 
 /**
  * ReadProperty handler for this object.  For the given ReadProperty
@@ -2132,7 +2222,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, Firmware_Version);
+            characterstring_init_ansi(&char_string, Firmware_Revision);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -2409,6 +2499,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     if (!rpdata) {
         return 0;
     }
+    Device_Backup_Failure_Timeout_Restart();
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -2702,8 +2793,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
             if (status) {
+#if defined(BACAPP_TIMESTAMP)
                 bacapp_timestamp_copy(
                     &Time_Of_Device_Restart, &value.type.Time_Stamp);
+#endif
             }
             break;
         default:
@@ -2816,6 +2909,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
+    Device_Backup_Failure_Timeout_Restart();
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -3056,6 +3150,7 @@ bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
     bool object_exists = false;
     bool object_supported = false;
 
+    Device_Backup_Failure_Timeout_Restart();
     pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
@@ -3089,6 +3184,7 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
     bool status = false;
     struct object_functions *pObject = NULL;
 
+    Device_Backup_Failure_Timeout_Restart();
     pObject = Device_Object_Functions_Find(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Delete) {
@@ -3124,6 +3220,36 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
 }
 
 /**
+ * @brief Loops through all the objects and deletes them,
+ *  if DeleteObject service is supported by the object type.
+ * @return true
+ * @return false
+ */
+void Device_Delete_Objects(void)
+{
+    struct object_functions *pObject = NULL;
+    uint32_t instance = 0;
+    unsigned count = 0;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        count = 0;
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
+        }
+        while (count) {
+            count--;
+            if ((pObject->Object_Delete) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Delete(instance);
+            }
+        }
+        pObject++;
+    }
+}
+
+/**
  * @brief Loop through the Device object-list property and export to
  *  a file as BACnet CreateObject services with List of Initial Values
  *  for every writable property
@@ -3144,7 +3270,6 @@ void Device_Start_Backup(void)
 
     Backup_State = BACKUP_STATE_PREPARING_FOR_BACKUP;
     object_count = Device_Object_List_Count();
-    Backup_State = BACKUP_STATE_PERFORMING_A_BACKUP;
     for (i = 0; i < object_count; i++) {
         /* get the object type and instance from the device object list */
         status = Device_Object_List_Identifier(
@@ -3170,7 +3295,7 @@ void Device_Start_Backup(void)
             }
         }
     }
-    Backup_State = BACKUP_STATE_IDLE;
+    Backup_State = BACKUP_STATE_PERFORMING_A_BACKUP;
 #endif
 }
 
@@ -3179,7 +3304,7 @@ void Device_Start_Backup(void)
  *  a file as BACnet CreateObject services with List of Initial Values
  *  for every writable property
  */
-void Device_Start_Restore(void)
+void Device_End_Restore(void)
 {
 #if defined BACNET_BACKUP_RESTORE
     BACNET_DATE_TIME bdateTime = { 0 };
@@ -3190,7 +3315,8 @@ void Device_Start_Restore(void)
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
-    Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
+    /* delete all existing objects before restore */
+    Device_Delete_Objects();
     /* create objects from the backup file */
     file_size = bacfile_file_size(Configuration_Files[0]);
     while (offset < file_size) {
@@ -3210,15 +3336,19 @@ void Device_Start_Restore(void)
                     /* error creating object - keep going */
                 }
             } else {
+                Backup_State = BACKUP_STATE_RESTORE_FAILURE;
                 /* error while decoding object  */
                 break;
             }
         } else {
+            Backup_State = BACKUP_STATE_RESTORE_FAILURE;
             /* error while reading file  */
             break;
         }
     }
-    Backup_State = BACKUP_STATE_IDLE;
+    if (Backup_State != BACKUP_STATE_RESTORE_FAILURE) {
+        Backup_State = BACKUP_STATE_IDLE;
+    }
 #endif
 }
 
@@ -3379,8 +3509,10 @@ void Device_Timer(uint16_t milliseconds)
     unsigned count = 0;
     uint32_t instance;
 
+    Device_Backup_Failure_Timeout_Countdown(milliseconds);
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        count = 0;
         if (pObject->Object_Count) {
             count = pObject->Object_Count();
         }
