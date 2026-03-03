@@ -176,7 +176,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Prevent deletion of backup files during restore process. (#1249)
+* Fixed Device Management-Backup and Restore-B functionality to keep
+  configuration files during the restore operation. (#1250)
 * Fixed Device Management-Backup and Restore-B Backup_Failure_Timeout
   to count down and abort at BACKUP_FAILURE or RESTORE_FAILURE states,
   successful STARTBACKUP to end in PERFORMING_A_BACKUP state,

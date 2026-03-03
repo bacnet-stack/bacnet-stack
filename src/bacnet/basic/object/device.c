@@ -2464,6 +2464,32 @@ uint32_t Device_Configuration_File(unsigned index)
 }
 
 /**
+ * @brief Determine if the given file instance number is one of the configured
+ *  configuration file object instances.
+ * @param instance [in] The object instance number to check
+ * @return True if the given instance is one of the configured configuration
+ *  file object instances, else False.
+ */
+bool Device_Is_Configuration_File(uint32_t instance)
+{
+    bool status = false;
+
+#if BACNET_BACKUP_FILE_COUNT
+    unsigned i;
+    for (i = 0; i < BACNET_BACKUP_FILE_COUNT; i++) {
+        if (Configuration_Files[i] == instance) {
+            status = true;
+            break;
+        }
+    }
+#else
+    (void)instance;
+#endif
+
+    return status;
+}
+
+/**
  * @brief Encode a BACnetARRAY property element
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index requested:
@@ -3755,8 +3781,9 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
 }
 
 /**
- * @brief Loops through all the objects and deletes them,
+ * @brief Loops through all the children objects and deletes them,
  *  if DeleteObject service is supported by the object type.
+ *  Skips the Device object itself and any configuration files.
  */
 void Device_Delete_Objects(void)
 {
@@ -3766,6 +3793,10 @@ void Device_Delete_Objects(void)
 
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Type == OBJECT_DEVICE) {
+            pObject++;
+            continue;
+        }
         count = 0;
         if (pObject->Object_Count) {
             count = pObject->Object_Count();
@@ -3775,6 +3806,12 @@ void Device_Delete_Objects(void)
             if ((pObject->Object_Delete) &&
                 (pObject->Object_Index_To_Instance)) {
                 instance = pObject->Object_Index_To_Instance(count);
+                /* keep Backup-Restore Configuration files */
+                if (pObject->Object_Type == OBJECT_FILE) {
+                    if (Device_Is_Configuration_File(instance)) {
+                        continue;
+                    }
+                }
                 pObject->Object_Delete(instance);
             }
         }
@@ -3852,20 +3889,12 @@ void Device_End_Restore(void)
 #if defined BACNET_BACKUP_RESTORE
     BACNET_DATE_TIME bdateTime = { 0 };
     BACNET_CREATE_OBJECT_DATA create_data = { 0 };
-    struct object_functions *device_functions = NULL;
-    delete_object_function file_function = NULL;
     uint8_t apdu[MAX_APDU] = { 0 };
     int32_t apdu_len = 0, offset = 0, file_size = 0;
     int decoded_len = 0;
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
-    /* avoid deleting our backup file - don't delete files  */
-    device_functions = Device_Object_Functions_Find(OBJECT_FILE);
-    if (device_functions) {
-        file_function = device_functions->Object_Delete;
-        device_functions->Object_Delete = NULL;
-    }
     /* delete all existing objects before restore */
     Device_Delete_Objects();
     /* create objects from the backup file */
@@ -3899,10 +3928,6 @@ void Device_End_Restore(void)
     }
     if (Backup_State != BACKUP_STATE_RESTORE_FAILURE) {
         Backup_State = BACKUP_STATE_IDLE;
-    }
-    if (device_functions) {
-        /* restore the delete-object for file objects */
-        device_functions->Object_Delete = file_function;
     }
 #endif
 }

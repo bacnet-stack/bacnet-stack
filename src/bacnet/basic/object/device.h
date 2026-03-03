@@ -247,6 +247,9 @@ bool Device_Configuration_File_Set(unsigned index, uint32_t instance);
 BACNET_STACK_EXPORT
 uint32_t Device_Configuration_File(unsigned index);
 BACNET_STACK_EXPORT
+bool Device_Is_Configuration_File(uint32_t instance);
+
+BACNET_STACK_EXPORT
 uint16_t Device_Backup_Failure_Timeout(void);
 BACNET_STACK_EXPORT
 bool Device_Backup_Failure_Timeout_Set(uint16_t timeout);
