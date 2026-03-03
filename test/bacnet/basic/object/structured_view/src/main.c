@@ -28,12 +28,16 @@ static void test_object_structured_view(void)
     int diff = 0;
     unsigned count = 0, index = 0;
     const uint32_t instance = 123;
+    uint32_t test_instance = 0;
     const int32_t skip_fail_property_list[] = { -1 };
+    const int32_t *writable_properties;
     const char *test_name = "name-1234";
     const char *test_description = "description-1234";
     const char *test_node_subtype = "node-subtype-1234";
+    char *sample_context = "context";
     BACNET_NODE_TYPE test_node_type = BACNET_NODE_UNKNOWN;
     BACNET_RELATIONSHIP test_relationship = BACNET_RELATIONSHIP_DEFAULT;
+    BACNET_SUBORDINATE_DATA *test_list_member = NULL;
     BACNET_DEVICE_OBJECT_REFERENCE test_represents = {
         { OBJECT_DEVICE, 1234 }, { OBJECT_DEVICE, 1234 }
     };
@@ -53,11 +57,14 @@ static void test_object_structured_view(void)
     zassert_true(status, NULL);
     index = Structured_View_Instance_To_Index(instance);
     zassert_equal(index, 0, NULL);
+    test_instance = Structured_View_Index_To_Instance(index);
+    zassert_equal(test_instance, instance, NULL);
     count = Structured_View_Count();
     zassert_true(count > 0, NULL);
     bacnet_object_properties_read_write_test(
         OBJECT_STRUCTURED_VIEW, instance, Structured_View_Property_Lists,
-        Structured_View_Read_Property, NULL, skip_fail_property_list);
+        Structured_View_Read_Property, Structured_View_Write_Property,
+        skip_fail_property_list);
     bacnet_object_name_ascii_test(
         instance, Structured_View_Name_Set, Structured_View_Name_ASCII);
     /* there is no WriteProperty test for structured view - use get/set */
@@ -99,6 +106,27 @@ static void test_object_structured_view(void)
         Structured_View_Subordinate_List(instance), &test_subordinate_data,
         sizeof(test_subordinate_data));
     zassert_equal(diff, 0, NULL);
+
+    /* WriteProperty test */
+    Structured_View_Writable_Property_List(instance, &writable_properties);
+    zassert_not_null(writable_properties, NULL);
+
+    /* property specific API */
+    test_list_member = Structured_View_Subordinate_List_Member(instance, 0);
+    diff = memcmp(
+        test_list_member, &test_subordinate_data,
+        sizeof(test_subordinate_data));
+
+    /* context API */
+    Structured_View_Context_Set(instance, sample_context);
+    zassert_true(sample_context == Structured_View_Context_Get(instance), NULL);
+    zassert_true(NULL == Structured_View_Context_Get(instance + 1), NULL);
+
+    Structured_View_Delete(instance);
+    status = Structured_View_Valid_Instance(instance);
+    zassert_false(status, NULL);
+
+    Structured_View_Cleanup();
 }
 /**
  * @}

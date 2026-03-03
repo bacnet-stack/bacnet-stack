@@ -776,7 +776,7 @@ static object_functions_t My_Object_Table[] = {
       Structured_View_Valid_Instance,
       Structured_View_Object_Name,
       Structured_View_Read_Property,
-      NULL /* Write_Property */,
+      Structured_View_Write_Property,
       Structured_View_Property_Lists,
       NULL /* ReadRangeInfo */,
       NULL /* Iterator */,

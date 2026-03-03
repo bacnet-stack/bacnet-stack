@@ -70,10 +70,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
-   that is always writable.  */
+   that is writable.  */
 static const int32_t Writable_Properties[] = {
-    /* unordered list of always writable properties */
-    -1
+    /* unordered list of writable properties */
+    PROP_NODE_TYPE, PROP_DEFAULT_SUBORDINATE_RELATIONSHIP, PROP_REPRESENTS, -1
 };
 
 /**
@@ -804,6 +804,90 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * WriteProperty handler for this object.  For the given WriteProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return false if an error is loaded, true if no errors
+ */
+bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false; /* return value */
+    int len = 0;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+
+    /* decode the some of the request */
+    len = bacapp_decode_known_array_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property, wp_data->array_index);
+    /* FIXME: len < application_data_len: more data? */
+    if (len < 0) {
+        /* error while decoding - a value larger than we can handle */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
+    switch (wp_data->object_property) {
+        case PROP_NODE_TYPE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated > BACNET_NODE_TYPE_MAX) {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    status = Structured_View_Node_Type_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                }
+                break;
+                case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
+                    status = write_property_type_valid(
+                        wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+                    if (status) {
+                        if (value.type.Enumerated >
+                            BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
+                            status = false;
+                            wp_data->error_class = ERROR_CLASS_PROPERTY;
+                            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        } else {
+                            status =
+                                Structured_View_Default_Subordinate_Relationship_Set(
+                                    wp_data->object_instance,
+                                    value.type.Enumerated);
+                        }
+                    }
+                    break;
+                case PROP_REPRESENTS:
+                    status = write_property_type_valid(
+                        wp_data, &value,
+                        BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE);
+                    if (status) {
+                        status = Structured_View_Represents_Set(
+                            wp_data->object_instance,
+                            &value.type.Device_Object_Reference);
+                    }
+                    break;
+                default:
+                    if (property_lists_member(
+                            Properties_Required, Properties_Optional,
+                            Properties_Proprietary, wp_data->object_property)) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    } else {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                    }
+                    break;
+            }
+    }
+
+    return status;
+}
+
+/**
  * @brief Set the context used with a specific object instance
  * @param object_instance [in] BACnet object instance number
  * @param context [in] pointer to the context
@@ -838,7 +922,8 @@ void Structured_View_Context_Set(uint32_t object_instance, void *context)
 /**
  * Creates a Structured View object
  * @param object_instance - object-instance number of the object
- * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
+ * @return object_instance if the object is created, else
+ * BACNET_MAX_INSTANCE
  */
 uint32_t Structured_View_Create(uint32_t object_instance)
 {

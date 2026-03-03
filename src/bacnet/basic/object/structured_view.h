@@ -16,6 +16,7 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/rp.h"
+#include "bacnet/wp.h"
 
 struct BACnetSubordinateData;
 typedef struct BACnetSubordinateData {
@@ -61,6 +62,8 @@ const char *Structured_View_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
+BACNET_STACK_EXPORT
+bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 const char *Structured_View_Description(uint32_t object_instance);
