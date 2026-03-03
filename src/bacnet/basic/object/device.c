@@ -3781,8 +3781,9 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
 }
 
 /**
- * @brief Loops through all the objects and deletes them,
+ * @brief Loops through all the children objects and deletes them,
  *  if DeleteObject service is supported by the object type.
+ *  Skips the Device object itself and any configuration files.
  */
 void Device_Delete_Objects(void)
 {
