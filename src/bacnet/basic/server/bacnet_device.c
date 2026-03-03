@@ -135,7 +135,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_FILE) ||                   \
     defined(CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_BITSTRING_VALUE) ||        \
-    defined(CONFIG_BACNET_BASIC_OBJECT_OCTET_STRING_VALUE) ||      \
+    defined(CONFIG_BACNET_BASIC_OBJECT_OCTET_STRING_VALUE) ||     \
     defined(CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE) ||             \
     defined(CONFIG_BACNET_BASIC_OBJECT_TIMER) ||                  \
     defined(CONFIG_BACNET_BASIC_OBJECT_LOOP) ||                   \
@@ -3714,12 +3714,20 @@ void Device_End_Restore(void)
 #if defined BACNET_BACKUP_RESTORE
     BACNET_DATE_TIME bdateTime = { 0 };
     BACNET_CREATE_OBJECT_DATA create_data = { 0 };
+    struct object_functions *device_functions = NULL;
+    delete_object_function file_function = NULL;
     uint8_t apdu[MAX_APDU] = { 0 };
     int32_t apdu_len = 0, offset = 0, file_size = 0;
     int decoded_len = 0;
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
+    /* avoid deleting our backup file - don't delete files  */
+    device_functions = Device_Object_Functions_Find(OBJECT_FILE);
+    if (device_functions) {
+        file_function = device_functions->Object_Delete;
+        device_functions->Object_Delete = NULL;
+    }
     /* delete all existing objects before restore */
     Device_Delete_Objects();
     /* create objects from the backup file */
@@ -3753,6 +3761,10 @@ void Device_End_Restore(void)
     }
     if (Backup_State != BACKUP_STATE_RESTORE_FAILURE) {
         Backup_State = BACKUP_STATE_IDLE;
+    }
+    if (device_functions) {
+        /* restore the delete-object for file objects */
+        device_functions->Object_Delete = file_function;
     }
 #endif
 }
