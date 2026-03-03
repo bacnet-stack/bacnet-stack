@@ -3715,7 +3715,7 @@ void Device_End_Restore(void)
     BACNET_DATE_TIME bdateTime = { 0 };
     BACNET_CREATE_OBJECT_DATA create_data = { 0 };
     struct object_functions *device_functions = NULL;
-    delete_object_function file_function;
+    delete_object_function file_function = NULL;
     uint8_t apdu[MAX_APDU] = { 0 };
     int32_t apdu_len = 0, offset = 0, file_size = 0;
     int decoded_len = 0;
