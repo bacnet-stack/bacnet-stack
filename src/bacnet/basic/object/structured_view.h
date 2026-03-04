@@ -135,6 +135,8 @@ bool Structured_View_Delete(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Structured_View_Cleanup(void);
 BACNET_STACK_EXPORT
+size_t Structured_View_Size(void);
+BACNET_STACK_EXPORT
 void Structured_View_Init(void);
 
 #ifdef __cplusplus

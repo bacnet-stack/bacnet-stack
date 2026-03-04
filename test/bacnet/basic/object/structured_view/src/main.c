@@ -31,6 +31,7 @@ static void test_object_structured_view(void)
     uint32_t test_instance = 0;
     const int32_t skip_fail_property_list[] = { -1 };
     const int32_t *writable_properties;
+    size_t test_size = 0;
     const char *test_name = "name-1234";
     const char *test_description = "description-1234";
     const char *test_node_subtype = "node-subtype-1234";
@@ -61,6 +62,11 @@ static void test_object_structured_view(void)
     zassert_equal(test_instance, instance, NULL);
     count = Structured_View_Count();
     zassert_true(count > 0, NULL);
+    Structured_View_Subordinate_List_Set(instance, &test_subordinate_data);
+    diff = memcmp(
+        Structured_View_Subordinate_List(instance), &test_subordinate_data,
+        sizeof(test_subordinate_data));
+    zassert_equal(diff, 0, NULL);
     bacnet_object_properties_read_write_test(
         OBJECT_STRUCTURED_VIEW, instance, Structured_View_Property_Lists,
         Structured_View_Read_Property, Structured_View_Write_Property,
@@ -101,12 +107,6 @@ static void test_object_structured_view(void)
         sizeof(test_represents));
     zassert_equal(diff, 0, NULL);
 
-    Structured_View_Subordinate_List_Set(instance, &test_subordinate_data);
-    diff = memcmp(
-        Structured_View_Subordinate_List(instance), &test_subordinate_data,
-        sizeof(test_subordinate_data));
-    zassert_equal(diff, 0, NULL);
-
     /* WriteProperty test */
     Structured_View_Writable_Property_List(instance, &writable_properties);
     zassert_not_null(writable_properties, NULL);
@@ -121,6 +121,10 @@ static void test_object_structured_view(void)
     Structured_View_Context_Set(instance, sample_context);
     zassert_true(sample_context == Structured_View_Context_Get(instance), NULL);
     zassert_true(NULL == Structured_View_Context_Get(instance + 1), NULL);
+
+    test_size = Structured_View_Size();
+    zassert_true(test_size > 0, NULL);
+    printf("Structured_View_Size: %zu bytes\n", test_size);
 
     Structured_View_Delete(instance);
     status = Structured_View_Valid_Instance(instance);

@@ -33,10 +33,10 @@
 #include "structured_view.h"
 
 struct object_data {
-    const char *Object_Name;
-    const char *Description;
+    char *Object_Name;
+    char *Description;
     BACNET_NODE_TYPE Node_Type;
-    const char *Node_Subtype;
+    char *Node_Subtype;
     void *Context;
     BACNET_SUBORDINATE_DATA *Subordinate_List;
     BACNET_RELATIONSHIP Default_Subordinate_Relationship;
@@ -229,7 +229,8 @@ bool Structured_View_Name_Set(uint32_t object_instance, const char *new_name)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Object_Name = new_name;
+        free(pObject->Object_Name);
+        pObject->Object_Name = bacnet_strdup(new_name);
     }
 
     return status;
@@ -294,7 +295,8 @@ bool Structured_View_Description_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Description = new_name;
+        free(pObject->Description);
+        pObject->Description = bacnet_strdup(new_name);
     }
 
     return status;
@@ -376,7 +378,8 @@ bool Structured_View_Node_Subtype_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Node_Subtype = new_name;
+        free(pObject->Node_Subtype);
+        pObject->Node_Subtype = bacnet_strdup(new_name);
     }
 
     return status;
@@ -830,6 +833,15 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Structured_View_Name_Set(
+                    wp_data->object_instance,
+                    value.type.Character_String.value);
+            }
+            break;
         case PROP_NODE_TYPE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
@@ -982,6 +994,9 @@ bool Structured_View_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        free(pObject->Description);
+        free(pObject->Node_Subtype);
+        free(pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -990,7 +1005,7 @@ bool Structured_View_Delete(uint32_t object_instance)
 }
 
 /**
- * Deletes all the Time Values and their data
+ * Deletes all the Structured View objects and their data
  */
 void Structured_View_Cleanup(void)
 {
@@ -1000,12 +1015,23 @@ void Structured_View_Cleanup(void)
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
+                free(pObject->Description);
+                free(pObject->Node_Subtype);
+                free(pObject->Object_Name);
                 free(pObject);
             }
         } while (pObject);
         Keylist_Delete(Object_List);
         Object_List = NULL;
     }
+}
+
+/**
+ * @brief Returns the approximate size of each Structured View object data
+ */
+size_t Structured_View_Size(void)
+{
+    return sizeof(struct object_data);
 }
 
 /**
