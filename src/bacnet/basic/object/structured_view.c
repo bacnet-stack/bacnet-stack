@@ -386,6 +386,117 @@ bool Structured_View_Node_Subtype_Set(
 }
 
 /**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Structured_View_Subordinate_List_Member_Decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        len = bacnet_device_object_reference_decode(
+            apdu, apdu_size, NULL);
+    }
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param apdu [in] encoded element value
+ * @param apdu_size [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_UNSIGNED_INTEGER array_size = 0;
+    BACNET_DEVICE_OBJECT_REFERENCE reference = { 0 };
+    BACNET_SUBORDINATE_DATA *element = NULL;
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            /* Array element zero is the number of objects in the list */
+            /* dynamically create the array of this size */
+            len = bacnet_unsigned_application_decode(
+                apdu, apdu_size, &array_size);
+            if (len > 0) {
+                if (array_size == 0) {
+                    /* free the list */
+                    element = pObject->Subordinate_List;
+                    while (element) {
+                        BACNET_SUBORDINATE_DATA *next = element->next;
+                        free(element);
+                        element = next;
+                    }
+                    pObject->Subordinate_List = NULL;
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    /* create list */
+                    while (array_size) {
+                        element = calloc(1, sizeof(BACNET_SUBORDINATE_DATA));
+                        if (element) {
+                            element->next = pObject->Subordinate_List;
+                            pObject->Subordinate_List = element;
+                        } else {
+                            error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                            break;
+                        }
+                        array_size--;
+                    }
+
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        } else {
+            array_size = Structured_View_Subordinate_List_Count(object_instance);
+            if (array_index <= array_size) {
+                len = bacnet_device_object_reference_decode(
+                    apdu, apdu_size, &reference);
+                if (len > 0) {
+                    element = Structured_View_Subordinate_List_Member(
+                        object_instance, array_index);
+                    if (element) {
+                        element->Device_Instance =
+                            reference.deviceIdentifier.instance;
+                        element->Object_Type =
+                            reference.objectIdentifier.type;
+                        element->Object_Instance =
+                            reference.objectIdentifier.instance;
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_OTHER;
+                    }
+                } else {
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+        }
+    }
+
+    return error_code;
+}
+
+/**
  * @brief For a given object instance-number, returns the Subordinate_List
  * @param  object_instance - object-instance number of the object
  * @return Subordinate_List or NULL if not found
@@ -819,6 +930,7 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    BACNET_UNSIGNED_INTEGER array_size = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
@@ -854,46 +966,57 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     status = Structured_View_Node_Type_Set(
                         wp_data->object_instance, value.type.Enumerated);
                 }
-                break;
-                case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
-                    status = write_property_type_valid(
-                        wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
-                    if (status) {
-                        if (value.type.Enumerated >
-                            BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
-                            status = false;
-                            wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                        } else {
-                            status =
-                                Structured_View_Default_Subordinate_Relationship_Set(
-                                    wp_data->object_instance,
-                                    value.type.Enumerated);
-                        }
-                    }
-                    break;
-                case PROP_REPRESENTS:
-                    status = write_property_type_valid(
-                        wp_data, &value,
-                        BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE);
-                    if (status) {
-                        status = Structured_View_Represents_Set(
-                            wp_data->object_instance,
-                            &value.type.Device_Object_Reference);
-                    }
-                    break;
-                default:
-                    if (property_lists_member(
-                            Properties_Required, Properties_Optional,
-                            Properties_Proprietary, wp_data->object_property)) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                    } else {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-                    }
-                    break;
             }
+            break;
+        case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated >
+                    BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    status =
+                        Structured_View_Default_Subordinate_Relationship_Set(
+                            wp_data->object_instance, value.type.Enumerated);
+                }
+            }
+            break;
+        case PROP_REPRESENTS:
+            status = write_property_type_valid(
+                wp_data, &value,
+                BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE);
+            if (status) {
+                status = Structured_View_Represents_Set(
+                    wp_data->object_instance,
+                    &value.type.Device_Object_Reference);
+            }
+            break;
+        case PROP_SUBORDINATE_LIST:
+            array_size = Structured_View_Subordinate_List_Count(wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Structured_View_Subordinate_List_Member_Decode,
+                Structured_View_Subordinate_List_Member_Write,
+                array_size, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+        default:
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
+            break;
     }
 
     return status;
@@ -1010,14 +1133,25 @@ bool Structured_View_Delete(uint32_t object_instance)
 void Structured_View_Cleanup(void)
 {
     struct object_data *pObject;
+    BACNET_SUBORDINATE_DATA *head, *next;
 
     if (Object_List) {
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
+                /* free the list */
+                head = pObject->Subordinate_List;
+                while (head) {
+                    next = head->next;
+                    free(head);
+                    head = next;
+                }
+                pObject->Subordinate_List = NULL;
+                /* free the strings */
                 free(pObject->Description);
                 free(pObject->Node_Subtype);
                 free(pObject->Object_Name);
+                /* free the object data */
                 free(pObject);
             }
         } while (pObject);
