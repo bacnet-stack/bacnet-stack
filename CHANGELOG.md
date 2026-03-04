@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-23
+## [Unreleased] - 2026-03-04
 
 ### Security
 
@@ -152,6 +152,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed bacfile_strdup to bacnet_strdup function to replace POSIX strdup
+  and update bacfile to use bacnet_strdup. (#1251)
 * Changed PositiveInteger present-value datatype to
   BACNET_UNSIGNED_INTEGER. (#1246)
 * Changed BACFILE define dependencies to reflect bacfile-posix.c dependence

@@ -2136,3 +2136,18 @@ int bacnet_snprintf(
 
     return write_length;
 }
+
+/**
+ * @brief duplicate a string (replacement for POSIX strdup)
+ * @param  s - string to duplicate
+ * @return a pointer to a new string on success, or a null pointer
+ */
+char *bacnet_strdup(const char *s)
+{
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p != NULL) {
+        memcpy(p, s, size);
+    }
+    return p;
+}
