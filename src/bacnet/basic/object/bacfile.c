@@ -117,21 +117,6 @@ void BACfile_Writable_Property_List(
 }
 
 /**
- * @brief duplicate a string (replacement for POSIX strdup)
- * @param  s - string to duplicate
- * @return a pointer to a new string on success, or a null pointer
- */
-static char *bacfile_strdup(const char *s)
-{
-    size_t size = strlen(s) + 1;
-    char *p = malloc(size);
-    if (p != NULL) {
-        memcpy(p, s, size);
-    }
-    return p;
-}
-
-/**
  * @brief For a given object instance-number, returns the pathname
  * @param  object_instance - object-instance number of the object
  * @return  internal file system path and name, or NULL if not set
@@ -161,7 +146,7 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         free(pObject->Pathname);
-        pObject->Pathname = bacfile_strdup(pathname);
+        pObject->Pathname = bacnet_strdup(pathname);
     }
 }
 
@@ -245,7 +230,7 @@ bool bacfile_object_name_set(uint32_t object_instance, const char *new_name)
     if (pObject) {
         status = true;
         free(pObject->Object_Name);
-        pObject->Object_Name = bacfile_strdup(new_name);
+        pObject->Object_Name = bacnet_strdup(new_name);
     }
 
     return status;
@@ -698,7 +683,7 @@ void bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         free(pObject->File_Type);
-        pObject->File_Type = bacfile_strdup(mime_type);
+        pObject->File_Type = bacnet_strdup(mime_type);
     }
 }
 
@@ -1314,6 +1299,9 @@ bool bacfile_delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        free(pObject->Pathname);
+        free(pObject->File_Type);
+        free(pObject->Object_Name);
         free(pObject);
         status = true;
     }

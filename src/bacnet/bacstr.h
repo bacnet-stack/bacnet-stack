@@ -238,6 +238,8 @@ char *bacnet_trim(char *str, const char *trimmedchars);
 
 BACNET_STACK_EXPORT
 char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk);
+BACNET_STACK_EXPORT
+char *bacnet_strdup(const char *s);
 
 #ifdef __cplusplus
 }
