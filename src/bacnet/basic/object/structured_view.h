@@ -90,6 +90,9 @@ BACNET_STACK_EXPORT
 void Structured_View_Subordinate_List_Set(
     uint32_t object_instance, BACNET_SUBORDINATE_DATA *subordinate_list);
 BACNET_STACK_EXPORT
+void Structured_View_Subordinate_List_Link_Array(
+    BACNET_SUBORDINATE_DATA *array, size_t size);
+BACNET_STACK_EXPORT
 BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Member(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index);
 BACNET_STACK_EXPORT

@@ -132,6 +132,8 @@ BACNET_STACK_EXPORT
 bool characterstring_valid(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 bool utf8_isvalid(const char *str, size_t length);
+BACNET_STACK_EXPORT
+char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */

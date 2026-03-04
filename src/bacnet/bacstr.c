@@ -995,6 +995,29 @@ bool characterstring_valid(const BACNET_CHARACTER_STRING *char_string)
     return valid;
 }
 
+/**
+ * Check if the character string is valid or not.
+ *
+ * @param char_string  Pointer to the character string.
+ *
+ * @return true if the string is valid, false otherwise.
+ */
+char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string)
+{
+    char *str = NULL; /* return value */
+
+    if (char_string) {
+        if (char_string->encoding == CHARACTER_UTF8) {
+            str = calloc(char_string->length + 1, 1);
+            if (str != NULL) {
+                memcpy(str, char_string->value, char_string->length);
+            }
+        }
+    }
+
+    return str;
+}
+
 #if BACNET_USE_OCTETSTRING
 /**
  * @brief Initialize an octet string with the given bytes or

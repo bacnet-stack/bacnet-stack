@@ -42,15 +42,25 @@ static void test_object_structured_view(void)
     BACNET_DEVICE_OBJECT_REFERENCE test_represents = {
         { OBJECT_DEVICE, 1234 }, { OBJECT_DEVICE, 1234 }
     };
-    BACNET_SUBORDINATE_DATA test_subordinate_data = {
-        1234,
-        OBJECT_DEVICE,
-        1234,
-        "annotations-1234",
-        BACNET_NODE_UNKNOWN,
-        BACNET_RELATIONSHIP_DEFAULT,
-        NULL
+    BACNET_SUBORDINATE_DATA test_subordinate_data[] = {
+        { 0, OBJECT_ACCUMULATOR, 1, "watt-hours", BACNET_NODE_COLLECTION,
+          BACNET_RELATIONSHIP_CONTAINS, NULL },
+        { 0, OBJECT_LOAD_CONTROL, 1, "demand-response", BACNET_NODE_COLLECTION,
+          BACNET_RELATIONSHIP_CONTAINS, NULL },
+        { 0, OBJECT_CHANNEL, 1, "scene", BACNET_NODE_COLLECTION,
+          BACNET_RELATIONSHIP_CONTAINS, NULL },
+        { 0, OBJECT_LIGHTING_OUTPUT, 1, "light", BACNET_NODE_COLLECTION,
+          BACNET_RELATIONSHIP_CONTAINS, NULL },
+        { 0, OBJECT_BINARY_LIGHTING_OUTPUT, 1, "relay", BACNET_NODE_COLLECTION,
+          BACNET_RELATIONSHIP_CONTAINS, NULL },
+        { 0, OBJECT_COLOR, 1, "color", BACNET_NODE_COLLECTION,
+          BACNET_RELATIONSHIP_CONTAINS, NULL },
+        { 0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature",
+          BACNET_NODE_COLLECTION, BACNET_RELATIONSHIP_CONTAINS, NULL },
     };
+
+    Structured_View_Subordinate_List_Link_Array(
+        test_subordinate_data, ARRAY_SIZE(test_subordinate_data));
 
     Structured_View_Init();
     Structured_View_Create(instance);
@@ -62,7 +72,7 @@ static void test_object_structured_view(void)
     zassert_equal(test_instance, instance, NULL);
     count = Structured_View_Count();
     zassert_true(count > 0, NULL);
-    Structured_View_Subordinate_List_Set(instance, &test_subordinate_data);
+    Structured_View_Subordinate_List_Set(instance, &test_subordinate_data[0]);
     diff = memcmp(
         Structured_View_Subordinate_List(instance), &test_subordinate_data,
         sizeof(test_subordinate_data));
