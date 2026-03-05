@@ -47,6 +47,7 @@ typedef int (*bacnet_array_property_element_decode_function)(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -54,6 +55,7 @@ typedef int (*bacnet_array_property_element_decode_function)(
 typedef BACNET_ERROR_CODE (*bacnet_array_property_element_write_function)(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len);
 

@@ -2397,6 +2397,7 @@ static int Device_Configuration_File_Length(
  * @param object_instance [in] BACnet object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total size of the array, if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -2404,6 +2405,7 @@ static int Device_Configuration_File_Length(
 static BACNET_ERROR_CODE Device_Configuration_File_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -2415,7 +2417,8 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
     (void)object_instance;
     if (array_index == 0) {
         /* This array is not required to be resizable
-            through BACnet write services */
+           through BACnet write services */
+        (void)array_size;
         error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
     } else if (array_index <= BACNET_BACKUP_FILE_COUNT) {
         len = bacnet_object_id_application_decode(
