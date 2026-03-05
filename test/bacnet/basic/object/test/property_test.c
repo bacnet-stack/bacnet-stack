@@ -32,12 +32,15 @@ bool bacnet_object_property_write_test(
 {
     bool status = false;
     bool is_array, is_list;
+    uint32_t array_size = 0;
 
     if (property_list_member(
             skip_fail_property_list, wp_data->object_property)) {
         return true;
     }
     if (wp_data && write_property) {
+        array_size = wp_data->array_index;
+        wp_data->array_index = BACNET_ARRAY_ALL;
         status = write_property(wp_data);
         if (!status) {
             /* verify WriteProperty property is known */
@@ -51,13 +54,42 @@ bool bacnet_object_property_write_test(
         is_list = property_list_bacnet_list_member(
             wp_data->object_type, wp_data->object_property);
         if (is_array) {
-            wp_data->array_index = 0;
-            status = write_property(wp_data);
             if (!status) {
                 zassert_not_equal(
                     wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
                     "property=%s array_index=0: error code=%s.\n",
                     bactext_property_name(wp_data->object_property),
+                    bactext_error_code_name(wp_data->error_code));
+            }
+            /* write the first element of the array */
+            if (array_size > 0) {
+                wp_data->array_index = 1;
+                status = write_property(wp_data);
+                if (status) {
+                    zassert_equal(
+                        wp_data->error_code, ERROR_CODE_SUCCESS, NULL);
+                } else {
+                    zassert_not_equal(
+                        wp_data->error_code, ERROR_CODE_NO_SPACE_FOR_OBJECT,
+                        "property=%s array_index=1: error code=%s.\n",
+                        bactext_property_name(wp_data->object_property),
+                        bactext_error_code_name(wp_data->error_code));
+                }
+            }
+            /* attempt to resize the array to the existing size */
+            wp_data->application_data_len = bacnet_unsigned_application_encode(
+                wp_data->application_data, sizeof(wp_data->application_data),
+                wp_data->array_index);
+            wp_data->array_index = 0;
+            status = write_property(wp_data);
+            if (status) {
+                zassert_equal(wp_data->error_code, ERROR_CODE_SUCCESS, NULL);
+            } else {
+                zassert_not_equal(
+                    wp_data->error_code, ERROR_CODE_NO_SPACE_FOR_OBJECT,
+                    "property=%s array_index=%u: error code=%s.\n",
+                    bactext_property_name(wp_data->object_property),
+                    wp_data->array_index,
                     bactext_error_code_name(wp_data->error_code));
             }
         }
@@ -271,6 +303,18 @@ int bacnet_object_property_read_test(
             "property '%s' array_index=%u: error code is %s.\n",
             bactext_property_name(rpdata->object_property), rpdata->array_index,
             bactext_error_code_name(rpdata->error_code));
+        /* exit the test for array properties with the array index
+           set to the size and the ALL array elements in
+           the application data */
+        rpdata->array_index = BACNET_ARRAY_ALL;
+        read_len = read_property(rpdata);
+        zassert_not_equal(
+            read_len, BACNET_STATUS_ERROR,
+            "property '%s' array_index=%u: error code is %s.\n",
+            bactext_property_name(rpdata->object_property), rpdata->array_index,
+            bactext_error_code_name(rpdata->error_code));
+        rpdata->array_index = array_size;
+        len = read_len;
     }
 
     return len;
