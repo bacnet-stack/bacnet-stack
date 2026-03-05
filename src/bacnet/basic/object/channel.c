@@ -1111,6 +1111,7 @@ static int Channel_List_Of_Object_Property_References_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -1118,6 +1119,7 @@ static int Channel_List_Of_Object_Property_References_Length(
 static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -1130,8 +1132,11 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
     pObject = Object_Data(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+                through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= CHANNEL_MEMBERS_MAX) {
+        } else {
             len = bacapp_decode_known_property(
                 application_data, application_data_len, &value, OBJECT_CHANNEL,
                 PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
@@ -1152,8 +1157,6 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -1188,6 +1191,7 @@ static int Channel_Control_Groups_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -1195,6 +1199,7 @@ static int Channel_Control_Groups_Length(
 static BACNET_ERROR_CODE Channel_Control_Groups_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -1208,8 +1213,11 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
     pObject = Object_Data(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+                through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= CHANNEL_MEMBERS_MAX) {
+        } else {
             len = bacapp_decode_known_property(
                 application_data, application_data_len, &value, OBJECT_CHANNEL,
                 PROP_CONTROL_GROUPS);
@@ -1233,8 +1241,6 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
