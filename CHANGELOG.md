@@ -152,6 +152,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed bacnet_array_write() write_function callback API by adding
+  array size parameter to avoid a duplicate decoding operation.
+  Removed duplicate checking of array size in object handlers. (#1253)
 * Changed bacfile_strdup to bacnet_strdup function to replace POSIX strdup
   and update bacfile to use bacnet_strdup. (#1251)
 * Changed PositiveInteger present-value datatype to
