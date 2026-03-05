@@ -466,6 +466,9 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
                         }
                         array_size++;
                     }
+                } else {
+                    /* same size, do nothing */
+                    error_code = ERROR_CODE_SUCCESS;
                 }
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
