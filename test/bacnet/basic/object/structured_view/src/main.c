@@ -59,9 +59,6 @@ static void test_object_structured_view(void)
           BACNET_NODE_COLLECTION, BACNET_RELATIONSHIP_CONTAINS, NULL },
     };
 
-    Structured_View_Subordinate_List_Link_Array(
-        test_subordinate_data, ARRAY_SIZE(test_subordinate_data));
-
     Structured_View_Init();
     Structured_View_Create(instance);
     status = Structured_View_Valid_Instance(instance);
@@ -72,11 +69,36 @@ static void test_object_structured_view(void)
     zassert_equal(test_instance, instance, NULL);
     count = Structured_View_Count();
     zassert_true(count > 0, NULL);
+    Structured_View_Subordinate_List_Link_Array(
+        test_subordinate_data, ARRAY_SIZE(test_subordinate_data));
     Structured_View_Subordinate_List_Set(instance, &test_subordinate_data[0]);
-    diff = memcmp(
-        Structured_View_Subordinate_List(instance), &test_subordinate_data,
-        sizeof(test_subordinate_data));
-    zassert_equal(diff, 0, NULL);
+    count = Structured_View_Subordinate_List_Count(instance);
+    zassert_equal(count, ARRAY_SIZE(test_subordinate_data), NULL);
+    for (index = 0; index < count; index++) {
+        test_list_member =
+            Structured_View_Subordinate_List_Member(instance, index);
+        zassert_not_null(test_list_member, NULL);
+        zassert_equal(
+            test_list_member->Device_Instance,
+            test_subordinate_data[index].Device_Instance, NULL);
+        zassert_equal(
+            test_list_member->Object_Type,
+            test_subordinate_data[index].Object_Type, NULL);
+        zassert_equal(
+            test_list_member->Object_Instance,
+            test_subordinate_data[index].Object_Instance, NULL);
+        zassert_equal(
+            test_list_member->Node_Type, test_subordinate_data[index].Node_Type,
+            NULL);
+        zassert_equal(
+            test_list_member->Relationship,
+            test_subordinate_data[index].Relationship, NULL);
+        zassert_equal(
+            strcmp(
+                test_list_member->Annotations,
+                test_subordinate_data[index].Annotations),
+            0, NULL);
+    }
     bacnet_object_properties_read_write_test(
         OBJECT_STRUCTURED_VIEW, instance, Structured_View_Property_Lists,
         Structured_View_Read_Property, Structured_View_Write_Property,

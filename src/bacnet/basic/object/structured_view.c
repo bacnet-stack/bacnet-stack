@@ -38,7 +38,7 @@ struct object_data {
     BACNET_NODE_TYPE Node_Type;
     char *Node_Subtype;
     void *Context;
-    BACNET_SUBORDINATE_DATA *Subordinate_List;
+    OS_Keylist Subordinate_List;
     BACNET_RELATIONSHIP Default_Subordinate_Relationship;
     BACNET_DEVICE_OBJECT_REFERENCE Represents;
 };
@@ -417,6 +417,8 @@ static int Structured_View_Subordinate_List_Member_Decode(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, used writing array
+ * element 0
  * @param apdu [in] encoded element value
  * @param apdu_size [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -424,79 +426,74 @@ static int Structured_View_Subordinate_List_Member_Decode(
 static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *apdu,
     size_t apdu_size)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_UNSIGNED_INTEGER array_size = 0, new_array_size = 0;
+    BACNET_UNSIGNED_INTEGER old_array_size = 0;
     BACNET_DEVICE_OBJECT_REFERENCE reference = { 0 };
     BACNET_SUBORDINATE_DATA *element = NULL;
     int len = 0;
     struct object_data *pObject;
+    KEY key;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        array_size = Structured_View_Subordinate_List_Count(object_instance);
         if (array_index == 0) {
-            /* Array element zero is the number of objects in the list */
-            /* dynamically create the array of this size */
-            len = bacnet_unsigned_application_decode(
-                apdu, apdu_size, &new_array_size);
-            if (len > 0) {
-                if (new_array_size == 0) {
-                    /* free the list */
-                    element = pObject->Subordinate_List;
-                    while (element) {
-                        BACNET_SUBORDINATE_DATA *next = element->next;
+            /* Array element zero is the number of elements in the list. */
+            old_array_size =
+                Structured_View_Subordinate_List_Count(object_instance);
+            if (array_size < old_array_size) {
+                /* free the elements at the tail of the list */
+                key = array_size;
+                while (key < old_array_size) {
+                    element = Keylist_Data_Pop(pObject->Subordinate_List);
+                    if (element) {
                         free(element);
-                        element = next;
                     }
-                    pObject->Subordinate_List = NULL;
+                    key++;
+                }
+                error_code = ERROR_CODE_SUCCESS;
+            } else if (array_size > old_array_size) {
+                /* extend the list */
+                key = old_array_size;
+                while (key < array_size) {
+                    element = calloc(1, sizeof(BACNET_SUBORDINATE_DATA));
+                    if (element) {
+                        element->next = NULL;
+                        Keylist_Data_Add(
+                            pObject->Subordinate_List, key, element);
+                    } else {
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        break;
+                    }
+                    key++;
+                }
+
+            } else {
+                /* same size, do nothing */
+                error_code = ERROR_CODE_SUCCESS;
+            }
+        } else {
+            array_index--; /* array index is 1..N, but we want 0..(N-1) */
+            len = bacnet_device_object_reference_decode(
+                apdu, apdu_size, &reference);
+            if (len > 0) {
+                element = Structured_View_Subordinate_List_Member(
+                    object_instance, array_index);
+                if (element) {
+                    element->Device_Instance =
+                        reference.deviceIdentifier.instance;
+                    element->Object_Type = reference.objectIdentifier.type;
+                    element->Object_Instance =
+                        reference.objectIdentifier.instance;
                     error_code = ERROR_CODE_SUCCESS;
-                } else if (new_array_size > array_size) {
-                    /* extend the list */
-                    while (array_size < new_array_size) {
-                        element = calloc(1, sizeof(BACNET_SUBORDINATE_DATA));
-                        if (element) {
-                            element->next = pObject->Subordinate_List;
-                            pObject->Subordinate_List = element;
-                        } else {
-                            error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                            break;
-                        }
-                        array_size++;
-                    }
                 } else {
-                    /* same size, do nothing */
-                    error_code = ERROR_CODE_SUCCESS;
+                    error_code = ERROR_CODE_OTHER;
                 }
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-        } else {
-            array_size =
-                Structured_View_Subordinate_List_Count(object_instance);
-            if (array_index <= array_size) {
-                len = bacnet_device_object_reference_decode(
-                    apdu, apdu_size, &reference);
-                if (len > 0) {
-                    element = Structured_View_Subordinate_List_Member(
-                        object_instance, array_index);
-                    if (element) {
-                        element->Device_Instance =
-                            reference.deviceIdentifier.instance;
-                        element->Object_Type = reference.objectIdentifier.type;
-                        element->Object_Instance =
-                            reference.objectIdentifier.instance;
-                        error_code = ERROR_CODE_SUCCESS;
-                    } else {
-                        error_code = ERROR_CODE_OTHER;
-                    }
-                } else {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
-            } else {
-                error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
         }
     }
@@ -509,18 +506,17 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
  * @param  object_instance - object-instance number of the object
  * @return Subordinate_List or NULL if not found
  */
-BACNET_SUBORDINATE_DATA *
-Structured_View_Subordinate_List(uint32_t object_instance)
+static void Structured_View_Subordinate_List_Free(struct object_data *pObject)
 {
-    BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
-    struct object_data *pObject;
+    BACNET_SUBORDINATE_DATA *head;
 
-    pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        subordinate_list = pObject->Subordinate_List;
+        /* free the subordinate list */
+        do {
+            head = Keylist_Data_Pop(pObject->Subordinate_List);
+            free(head);
+        } while (head);
     }
-
-    return subordinate_list;
 }
 
 /**
@@ -532,10 +528,25 @@ void Structured_View_Subordinate_List_Set(
     uint32_t object_instance, BACNET_SUBORDINATE_DATA *subordinate_list)
 {
     struct object_data *pObject;
+    BACNET_SUBORDINATE_DATA *element, *data, *data_next;
+    KEY key;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Subordinate_List = subordinate_list;
+        Structured_View_Subordinate_List_Free(pObject);
+        /* walk the linked list and add to Keylist */
+        key = 0;
+        element = subordinate_list;
+        while (element) {
+            data = calloc(1, sizeof(BACNET_SUBORDINATE_DATA));
+            if (data) {
+                memmove(data, element, sizeof(BACNET_SUBORDINATE_DATA));
+                data->next = NULL;
+                Keylist_Data_Add(pObject->Subordinate_List, key, data);
+            }
+            element = element->next;
+            key++;
+        }
     }
 }
 
@@ -651,16 +662,11 @@ bool Structured_View_Represents_Set(
 unsigned int Structured_View_Subordinate_List_Count(uint32_t object_instance)
 {
     unsigned int count = 0;
-    BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        subordinate_list = pObject->Subordinate_List;
-        while (subordinate_list) {
-            count++;
-            subordinate_list = subordinate_list->next;
-        }
+        count = Keylist_Count(pObject->Subordinate_List);
     }
 
     return count;
@@ -677,20 +683,14 @@ unsigned int Structured_View_Subordinate_List_Count(uint32_t object_instance)
 BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Member(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index)
 {
-    BACNET_ARRAY_INDEX index = 0;
     BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
+    KEY key = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        subordinate_list = pObject->Subordinate_List;
-        while (subordinate_list) {
-            if (index == array_index) {
-                break;
-            }
-            index++;
-            subordinate_list = subordinate_list->next;
-        }
+        key = array_index;
+        subordinate_list = Keylist_Data(pObject->Subordinate_List, key);
     }
 
     return subordinate_list;
@@ -1224,7 +1224,7 @@ uint32_t Structured_View_Create(uint32_t object_instance)
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
         pObject->Node_Subtype = NULL;
-        pObject->Subordinate_List = NULL;
+        pObject->Subordinate_List = Keylist_Create();
         pObject->Default_Subordinate_Relationship = BACNET_RELATIONSHIP_DEFAULT;
         pObject->Represents.deviceIdentifier.type = OBJECT_NONE;
         pObject->Represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
@@ -1243,6 +1243,22 @@ uint32_t Structured_View_Create(uint32_t object_instance)
 }
 
 /**
+ * @brief Free the memory used by a Structured View object
+ * @param pObject pointer to the object data to free
+ */
+static void Structured_View_Object_Free(struct object_data *pObject)
+{
+    if (pObject) {
+        free(pObject->Description);
+        free(pObject->Node_Subtype);
+        free(pObject->Object_Name);
+        Structured_View_Subordinate_List_Free(pObject);
+        Keylist_Delete(pObject->Subordinate_List);
+        free(pObject);
+    }
+}
+
+/**
  * Deletes a Structured View object
  * @param object_instance - object-instance number of the object
  * @return true if the object is deleted
@@ -1254,10 +1270,7 @@ bool Structured_View_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        free(pObject->Description);
-        free(pObject->Node_Subtype);
-        free(pObject->Object_Name);
-        free(pObject);
+        Structured_View_Object_Free(pObject);
         status = true;
     }
 
@@ -1270,27 +1283,12 @@ bool Structured_View_Delete(uint32_t object_instance)
 void Structured_View_Cleanup(void)
 {
     struct object_data *pObject;
-    BACNET_SUBORDINATE_DATA *head, *next;
+    BACNET_SUBORDINATE_DATA *head;
 
     if (Object_List) {
         do {
             pObject = Keylist_Data_Pop(Object_List);
-            if (pObject) {
-                /* free the list */
-                head = pObject->Subordinate_List;
-                while (head) {
-                    next = head->next;
-                    free(head);
-                    head = next;
-                }
-                pObject->Subordinate_List = NULL;
-                /* free the strings */
-                free(pObject->Description);
-                free(pObject->Node_Subtype);
-                free(pObject->Object_Name);
-                /* free the object data */
-                free(pObject);
-            }
+            Structured_View_Object_Free(pObject);
         } while (pObject);
         Keylist_Delete(Object_List);
         Object_List = NULL;
