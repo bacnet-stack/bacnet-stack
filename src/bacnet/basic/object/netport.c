@@ -2123,7 +2123,6 @@ static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Write(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list;
-    uint16_t capacity = 0;
     int len;
     bool status = false;
     unsigned index = 0;
@@ -2339,7 +2338,6 @@ static BACNET_ERROR_CODE BBMD_Foreign_Device_Table_Element_Write(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list;
-    uint16_t capacity = 0;
     int len;
     bool status = false;
     unsigned index = 0;
