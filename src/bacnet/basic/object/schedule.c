@@ -678,6 +678,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ *  if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -685,6 +687,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -697,8 +700,11 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+                through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
+        } else {
             array_index--;
             len = bacnet_dailyschedule_context_decode(
                 application_data, application_data_len, 0, &daily_schedule);
@@ -718,8 +724,6 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -755,6 +759,8 @@ static int Schedule_Weekly_Schedule_Element_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ * if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -762,6 +768,7 @@ static int Schedule_Weekly_Schedule_Element_Length(
 static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -773,8 +780,11 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+               through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
+        } else {
             array_index--;
             len = bacnet_special_event_decode(
                 application_data, application_data_len, &special_event);
@@ -785,8 +795,6 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -822,6 +830,8 @@ static int Schedule_Exception_Schedule_Element_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ * if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -829,6 +839,7 @@ static int Schedule_Exception_Schedule_Element_Length(
 static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -841,8 +852,11 @@ static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
-            error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        } else if (array_index <= BACNET_SCHEDULE_OBJ_PROP_REF_SIZE) {
+            /* This array is not required to be resizable
+               through BACnet write services */
+            (void)array_size;
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else {
             len = bacapp_decode_known_property(
                 application_data, application_data_len, &value, OBJECT_SCHEDULE,
                 PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
@@ -864,8 +878,6 @@ static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 

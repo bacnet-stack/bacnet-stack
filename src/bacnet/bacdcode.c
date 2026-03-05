@@ -5904,8 +5904,8 @@ BACNET_ERROR_CODE bacnet_array_write(
         len = bacnet_unsigned_application_decode(
             apdu, apdu_size, &unsigned_value);
         if (len > 0) {
-            error_code =
-                write_function(object_instance, array_index, apdu, apdu_size);
+            error_code = write_function(
+                object_instance, array_index, unsigned_value, apdu, apdu_size);
         } else if (len == 0) {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         } else {
@@ -5931,7 +5931,7 @@ BACNET_ERROR_CODE bacnet_array_write(
                 len = decode_function(
                     object_instance, &apdu[apdu_len], apdu_size - apdu_len);
                 error_code = write_function(
-                    object_instance, index, &apdu[apdu_len], len);
+                    object_instance, index, array_size, &apdu[apdu_len], len);
                 if (error_code != ERROR_CODE_SUCCESS) {
                     break;
                 }
@@ -5940,8 +5940,8 @@ BACNET_ERROR_CODE bacnet_array_write(
         }
     } else if (array_index <= array_size) {
         /* index was specified; write a single array element */
-        error_code =
-            write_function(object_instance, array_index, apdu, apdu_size);
+        error_code = write_function(
+            object_instance, array_index, array_size, apdu, apdu_size);
     } else {
         /* array_index was specified out of range */
         error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
