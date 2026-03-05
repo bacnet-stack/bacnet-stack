@@ -18,12 +18,17 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+/* 12.29.7 Subordinate_List
+   If the size of the Subordinate_List array is changed,
+   the size of the Subordinate_Annotations, Subordinate_Tags,
+   Subordinate_Relationships, and Subordinate_Node_Types arrays,
+   if present, shall also be changed to the same size. */
 struct BACnetSubordinateData;
 typedef struct BACnetSubordinateData {
     uint32_t Device_Instance;
     BACNET_OBJECT_TYPE Object_Type;
     uint32_t Object_Instance;
-    const char *Annotations;
+    char *Annotation;
     BACNET_NODE_TYPE Node_Type;
     BACNET_RELATIONSHIP Relationship;
     /* simple linked list */

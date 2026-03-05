@@ -95,8 +95,8 @@ static void test_object_structured_view(void)
             test_subordinate_data[index].Relationship, NULL);
         zassert_equal(
             strcmp(
-                test_list_member->Annotations,
-                test_subordinate_data[index].Annotations),
+                test_list_member->Annotation,
+                test_subordinate_data[index].Annotation),
             0, NULL);
     }
     bacnet_object_properties_read_write_test(
