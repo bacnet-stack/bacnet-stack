@@ -51,7 +51,8 @@ PORT_ETHERNET_SRC = \
 
 PORT_ZIGBEE_SRC = \
 	$(BACNET_PORT_DIR)/bzll-init.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bzll/bzllvmac.c
+	$(BACNET_SRC_DIR)/bacnet/basic/bzll/bzllvmac.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/bzll/h_bzll.c
 
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \

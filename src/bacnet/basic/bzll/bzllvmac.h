@@ -49,6 +49,15 @@ bool BZLL_VMAC_Delete(uint32_t device_id);
 BACNET_STACK_EXPORT
 bool BZLL_VMAC_Same(
     const struct bzll_vmac_data *vmac1, const struct bzll_vmac_data *vmac2);
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Copy(
+    struct bzll_vmac_data *vmac_dest, const struct bzll_vmac_data *vmac_src);
+
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Device_ID_To_Address(BACNET_ADDRESS *addr, uint32_t device_id);
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Device_ID_From_Address(
+    const BACNET_ADDRESS *addr, uint32_t *device_id);
 
 BACNET_STACK_EXPORT
 unsigned int BZLL_VMAC_Count(void);
@@ -59,6 +68,8 @@ void BZLL_VMAC_Init(void);
 
 BACNET_STACK_EXPORT
 void BZLL_VMAC_Debug_Enable(void);
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Debug_Enabled(void);
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,14 @@ void BZLL_VMAC_Debug_Enable(void)
     VMAC_Debug = true;
 }
 
+/**
+ * @brief Determine if debugging is enabled
+ */
+bool BZLL_VMAC_Debug_Enabled(void)
+{
+    return VMAC_Debug;
+}
+
 /** @file
     Handle VMAC address binding */
 
@@ -136,8 +144,10 @@ bool BZLL_VMAC_Entry_By_Device_ID(
     uint32_t device_id, struct bzll_vmac_data *vmac)
 {
     struct bzll_vmac_data *data = Keylist_Data(VMAC_List, device_id);
-    if (data && vmac) {
-        memcpy(vmac, data, sizeof(struct bzll_vmac_data));
+    if (data) {
+        if (vmac) {
+            BZLL_VMAC_Copy(vmac, data);
+        }
         return true;
     }
     return false;
@@ -167,7 +177,7 @@ bool BZLL_VMAC_Entry_By_Index(
                 *device_id = key;
             }
             if (vmac) {
-                memcpy(vmac, data, sizeof(struct bzll_vmac_data));
+                BZLL_VMAC_Copy(vmac, data);
             }
         }
     }
@@ -192,6 +202,27 @@ bool BZLL_VMAC_Same(
             vmac1->endpoint == vmac2->endpoint) {
             status = true;
         }
+    }
+
+    return status;
+}
+
+/** Copy the VMAC address
+ *
+ * @param vmac_dest - VMAC address that will be copied to
+ * @param vmac_src - VMAC address that will be copied from
+ *
+ * @return true if the addresses are the same
+ */
+bool BZLL_VMAC_Copy(
+    struct bzll_vmac_data *vmac_dest, const struct bzll_vmac_data *vmac_src)
+{
+    bool status = false;
+
+    if (vmac_dest && vmac_src) {
+        memcpy(vmac_dest->mac, vmac_src->mac, BZLL_VMAC_EUI64);
+        vmac_dest->endpoint = vmac_src->endpoint;
+        status = true;
     }
 
     return status;
@@ -252,6 +283,49 @@ bool BZLL_VMAC_Entry_Set(
             vmac->mac[i] = mac[i]; /* copy the MAC */
         }
         vmac->endpoint = endpoint;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Convert a BACnet VMAC Address from a Device ID
+ * @param addr - BACnet address that be set
+ * @param device_id - 22-bit device ID
+ * @return true if the address is converted from the device ID
+ */
+bool BZLL_VMAC_Device_ID_To_Address(BACNET_ADDRESS *addr, uint32_t device_id)
+{
+    bool status = false;
+
+    if (addr) {
+        encode_unsigned24(&addr->mac[0], device_id);
+        addr->mac_len = 3;
+        addr->net = 0;
+        addr->len = 0;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Convert a BACnet VMAC Address to a Device ID
+ * @param addr - BACnet address that be set
+ * @param device_id - 22-bit device ID
+ * @return true if the device is converted from the address
+ */
+bool BZLL_VMAC_Device_ID_From_Address(
+    const BACNET_ADDRESS *addr, uint32_t *device_id)
+{
+    bool status = false;
+
+    if (addr && device_id) {
+        if (addr->mac_len == 3) {
+            decode_unsigned24(&addr->mac[0], device_id);
+            status = true;
+        }
     }
 
     return status;
