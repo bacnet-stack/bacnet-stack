@@ -104,6 +104,11 @@ bool write_property_type_valid(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     const BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t expected_tag);
+
+BACNET_STACK_EXPORT
+char *write_property_characterstring_utf8_strdup(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_CHARACTER_STRING *value);
+
 BACNET_STACK_EXPORT
 bool write_property_string_valid(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
