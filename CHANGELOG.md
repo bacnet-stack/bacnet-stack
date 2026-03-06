@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-03-04
+## [Unreleased] - 2026-03-06
 
 ### Security
 
@@ -52,10 +52,11 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
-* Added WriteProperty support in the basic Structured View object,
-  including handling of UTF-8 strings and subordinate list members.
-  Updated tests to validate new functionality and improved memory
-  management. (#1255)
+* Added WriteProperty support in the basic Structured View object.
+  Converted Structured View internal storage to dynamically allocated
+  character strings and a keylist-based subordinate list that is resizable
+  via array index 0. Updated and expanded tests for structured view
+  and generic property read/write behaviors. (#1256)
 * Added CreateObject and DeleteObject for Octet StringValue and
   PositiveInteger Value objects. (#1246)
 * Added PROP_TIMER_RUNNING to writable properties and implement
