@@ -184,7 +184,7 @@ int bacnet_object_property_read_test(
     int read_len = 0;
     uint8_t *apdu;
     bool is_array, is_list;
-    BACNET_UNSIGNED_INTEGER array_size;
+    BACNET_UNSIGNED_INTEGER array_size = BACNET_ARRAY_ALL;
     BACNET_ARRAY_INDEX array_index = 0, i;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
