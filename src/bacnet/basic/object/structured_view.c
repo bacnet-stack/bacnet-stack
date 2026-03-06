@@ -658,6 +658,7 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Annotation_Member_Write(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_CHARACTER_STRING annotation = { 0 };
     BACNET_SUBORDINATE_DATA *element = NULL;
+    char *annotation_string;
     int len = 0;
     struct object_data *pObject;
 
@@ -672,21 +673,26 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Annotation_Member_Write(
             len = bacnet_character_string_application_decode(
                 apdu, apdu_size, &annotation);
             if (len > 0) {
-                if (characterstring_encoding(&annotation) != CHARACTER_UTF8) {
-                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                } else {
+                if (characterstring_utf8_valid(&annotation)) {
                     element = Structured_View_Subordinate_List_Element(
                         pObject, array_index);
                     if (element) {
-                        if (element->Annotation) {
-                            free((void *)element->Annotation);
-                        }
-                        element->Annotation =
+                        annotation_string =
                             characterstring_utf8_strdup(&annotation);
-                        error_code = ERROR_CODE_SUCCESS;
+                        if (annotation_string) {
+                            if (element->Annotation) {
+                                free((void *)element->Annotation);
+                            }
+                            element->Annotation = annotation_string;
+                            error_code = ERROR_CODE_SUCCESS;
+                        } else {
+                            error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        }
                     } else {
                         error_code = ERROR_CODE_OTHER;
                     }
+                } else {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -868,14 +874,14 @@ void Structured_View_Subordinate_List_Set(
         key = 0;
         element = subordinate_list;
         while (element) {
-            data = calloc(1, sizeof(BACNET_SUBORDINATE_DATA));
+            data = Structured_View_Subordinate_List_Element_Add(
+                pObject->Subordinate_List, key);
             if (data) {
                 memmove(data, element, sizeof(BACNET_SUBORDINATE_DATA));
                 if (element->Annotation) {
                     data->Annotation = bacnet_strdup(element->Annotation);
                 }
                 data->next = NULL;
-                Keylist_Data_Add(pObject->Subordinate_List, key, data);
             }
             element = element->next;
             key++;

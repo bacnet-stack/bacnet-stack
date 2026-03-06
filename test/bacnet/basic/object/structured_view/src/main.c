@@ -15,6 +15,22 @@
  * @{
  */
 
+static void Structured_View_Subordinate_List_Member_Same(
+    BACNET_SUBORDINATE_DATA *list_member_a,
+    BACNET_SUBORDINATE_DATA *list_member_b)
+{
+    zassert_equal(
+        list_member_a->Device_Instance, list_member_b->Device_Instance, NULL);
+    zassert_equal(list_member_a->Object_Type, list_member_b->Object_Type, NULL);
+    zassert_equal(
+        list_member_a->Object_Instance, list_member_b->Object_Instance, NULL);
+    zassert_equal(list_member_a->Node_Type, list_member_b->Node_Type, NULL);
+    zassert_equal(
+        list_member_a->Relationship, list_member_b->Relationship, NULL);
+    zassert_equal(
+        strcmp(list_member_a->Annotation, list_member_b->Annotation), 0, NULL);
+}
+
 /**
  * @brief Test
  */
@@ -78,26 +94,8 @@ static void test_object_structured_view(void)
         test_list_member =
             Structured_View_Subordinate_List_Member(instance, index);
         zassert_not_null(test_list_member, NULL);
-        zassert_equal(
-            test_list_member->Device_Instance,
-            test_subordinate_data[index].Device_Instance, NULL);
-        zassert_equal(
-            test_list_member->Object_Type,
-            test_subordinate_data[index].Object_Type, NULL);
-        zassert_equal(
-            test_list_member->Object_Instance,
-            test_subordinate_data[index].Object_Instance, NULL);
-        zassert_equal(
-            test_list_member->Node_Type, test_subordinate_data[index].Node_Type,
-            NULL);
-        zassert_equal(
-            test_list_member->Relationship,
-            test_subordinate_data[index].Relationship, NULL);
-        zassert_equal(
-            strcmp(
-                test_list_member->Annotation,
-                test_subordinate_data[index].Annotation),
-            0, NULL);
+        Structured_View_Subordinate_List_Member_Same(
+            test_list_member, &test_subordinate_data[index]);
     }
     bacnet_object_properties_read_write_test(
         OBJECT_STRUCTURED_VIEW, instance, Structured_View_Property_Lists,
@@ -145,9 +143,8 @@ static void test_object_structured_view(void)
 
     /* property specific API */
     test_list_member = Structured_View_Subordinate_List_Member(instance, 0);
-    diff = memcmp(
-        test_list_member, &test_subordinate_data,
-        sizeof(test_subordinate_data));
+    Structured_View_Subordinate_List_Member_Same(
+        test_list_member, &test_subordinate_data[0]);
 
     /* context API */
     Structured_View_Context_Set(instance, sample_context);

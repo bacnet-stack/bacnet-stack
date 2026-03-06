@@ -79,7 +79,7 @@ bool bacnet_object_property_write_test(
             /* attempt to resize the array to the existing size */
             wp_data->application_data_len = bacnet_unsigned_application_encode(
                 wp_data->application_data, sizeof(wp_data->application_data),
-                wp_data->array_index);
+                array_size);
             wp_data->array_index = 0;
             status = write_property(wp_data);
             if (status) {
