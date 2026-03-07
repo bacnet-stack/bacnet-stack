@@ -2196,13 +2196,16 @@ int bacnet_snprintf(
  */
 char *bacnet_strdup(const char *s)
 {
-    if (s == NULL) {
-        return NULL;
+    size_t size;
+    char *p = NULL;
+
+    if (s) {
+        size = strlen(s) + 1;
+        p = malloc(size);
+        if (p != NULL) {
+            memcpy(p, s, size);
+        }
     }
-    size_t size = strlen(s) + 1;
-    char *p = malloc(size);
-    if (p != NULL) {
-        memcpy(p, s, size);
-    }
+
     return p;
 }
