@@ -622,8 +622,14 @@ bool handler_cov_fsm(void)
 
     switch (cov_task_state) {
         case COV_STATE_IDLE:
-            index = 0;
-            cov_task_state = COV_STATE_MARK;
+            if (COV_Subscriptions[index].flag.valid) {
+                cov_task_state = COV_STATE_MARK;
+            } else {
+                index++;
+                if (index >= MAX_COV_SUBCRIPTIONS) {
+                    index = 0;
+                }
+            }
             break;
         case COV_STATE_MARK:
             /* mark any subscriptions where the value has changed */

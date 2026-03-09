@@ -157,6 +157,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the COV FSM handler to remiain in the IDLE state until there
+  is a valid subscriber. (#1257)
 * Changed bacnet_array_write() write_function callback API by adding
   array size parameter to avoid a duplicate decoding operation.
   Removed duplicate checking of array size in object handlers. (#1253)
