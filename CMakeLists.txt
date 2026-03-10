@@ -1070,6 +1070,7 @@ if(BACNET_STACK_BUILD_APPS)
       src/bacnet/basic/server/bacnet_basic.c
       src/bacnet/basic/server/bacnet_device.c
       src/bacnet/basic/server/bacnet_port.c
+      src/bacnet/basic/server/bacnet_port_bzll.c
       src/bacnet/basic/server/bacnet_port_ipv4.c
       src/bacnet/basic/server/bacnet_port_ipv6.c
       src/bacnet/basic/server/bacnet_port_mstp.c
