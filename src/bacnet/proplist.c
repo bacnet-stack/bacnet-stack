@@ -607,13 +607,15 @@ bool property_list_commandable_member(
  * @param object_type - object-type to be checked
  * @param object_property - object-property to be checked
  * @return true if the property is a READ-ONLY property
- * @note generally read-only per EPICS gathering, sometimes stated in the
- *  standard and sometimes not.
+ * @note generally read-only per EPICS property gathering,
+ *  sometimes stated explicitly in the standard and sometimes not.
+ *  Used in the EPICS tools to determine if a property should
+ *  avoid being written to determine writability of the property.
  */
 bool property_list_read_only_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
 {
-    /* exceptions where property is an BACnetLIST only in specific objects */
+    /* exceptions where the property is READ-ONLY only in specific objects */
     switch (object_type) {
         case OBJECT_AVERAGING:
             switch (object_property) {
