@@ -52,6 +52,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added property_list_read_only_member function to check for READ-ONLY
+  properties. (#1258)
 * Added WriteProperty support in the basic Structured View object.
   Converted Structured View internal storage to dynamically allocated
   character strings and a keylist-based subordinate list that is resizable
