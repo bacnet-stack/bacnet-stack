@@ -365,6 +365,43 @@ bool write_property_type_valid(
  * @brief simple validation of character string value for Write Property
  * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
  *  requested data and space for the reply, or error response.
+ * @param value - #BACNET_CHARACTER_STRING data
+ * @return pointer to duplicated UTF-8 string, or NULL if invalid
+ */
+char *write_property_characterstring_utf8_strdup(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_CHARACTER_STRING *value)
+{
+    char *str = NULL; /* return value */
+
+    if (characterstring_encoding(value) == CHARACTER_UTF8) {
+        if (utf8_isvalid(value->value, value->length)) {
+            str = characterstring_utf8_strdup(value);
+            if (!str) {
+                if (wp_data) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                }
+            }
+        } else {
+            if (wp_data) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        }
+    } else {
+        if (wp_data) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+        }
+    }
+
+    return str;
+}
+
+/**
+ * @brief simple validation of character string value for Write Property
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
+ *  requested data and space for the reply, or error response.
  * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
  * @param len_max - max length accepted for a character string, or 0=unchecked
  * @return true if the character string value is valid

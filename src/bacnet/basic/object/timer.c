@@ -1768,6 +1768,8 @@ static int Timer_State_Change_Value_Length(
  * @param object_instance [in] BACnet object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ *    if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -1775,6 +1777,7 @@ static int Timer_State_Change_Value_Length(
 static BACNET_ERROR_CODE Timer_State_Change_Value_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -1784,9 +1787,11 @@ static BACNET_ERROR_CODE Timer_State_Change_Value_Write(
     bool status;
 
     if (array_index == 0) {
-        /* fixed size array */
+        /* This array is not required to be resizable
+            through BACnet write services */
+        (void)array_size;
         error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-    } else if (array_index < TIMER_TRANSITION_MAX) {
+    } else {
         len = bacnet_timer_value_decode(
             application_data, application_data_len, &new_value);
         if (len > 0) {
@@ -1801,8 +1806,6 @@ static BACNET_ERROR_CODE Timer_State_Change_Value_Write(
         } else {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
-    } else {
-        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
     }
 
     return error_code;

@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-23
+## [Unreleased] - 2026-03-06
 
 ### Security
 
@@ -52,6 +52,13 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added WriteProperty support in the basic Structured View object.
+  Converted Structured View internal storage to dynamically allocated
+  character strings and a keylist-based subordinate list that is resizable
+  via array index 0. Updated and expanded tests for structured view
+  and generic property read/write behaviors. (#1256)
+* Added CreateObject and DeleteObject for Octet StringValue and
+  PositiveInteger Value objects. (#1246)
 * Added PROP_TIMER_RUNNING to writable properties and implement
   Timer_Running_Set functionality. (#1245)
 * Added BACNET_STACK_DEPRECATED_DISABLE guards around all of the deprecated
@@ -150,6 +157,15 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the COV FSM handler to remiain in the IDLE state until there
+  is a valid subscriber. (#1257)
+* Changed bacnet_array_write() write_function callback API by adding
+  array size parameter to avoid a duplicate decoding operation.
+  Removed duplicate checking of array size in object handlers. (#1253)
+* Changed bacfile_strdup to bacnet_strdup function to replace POSIX strdup
+  and update bacfile to use bacnet_strdup. (#1251)
+* Changed PositiveInteger present-value datatype to
+  BACNET_UNSIGNED_INTEGER. (#1246)
 * Changed BACFILE define dependencies to reflect bacfile-posix.c dependence
   since bacfile.c is now independent of any back end file system. (#1227)
 * Changed the default BACnet protocol revision to 28 to enable usage of
@@ -172,6 +188,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Device Management-Backup and Restore-B functionality to keep
+  configuration files during the restore operation. (#1250)
+* Fixed Device Management-Backup and Restore-B Backup_Failure_Timeout
+  to count down and abort at BACKUP_FAILURE or RESTORE_FAILURE states,
+  successful STARTBACKUP to end in PERFORMING_A_BACKUP state,
+  and moved STARTRESTORE functionality into ENDRESTORE. (#1247)
 * Fixed the basic Schedule object to set the correct present-value
   based on the Device object date and time. (#1236)
 * Fixed dlenv_init() for BACnet/SC. bsc_register_as_node() was blocking

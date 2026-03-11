@@ -995,6 +995,58 @@ bool characterstring_valid(const BACNET_CHARACTER_STRING *char_string)
     return valid;
 }
 
+/**
+ * Check if the character string is valid or not.
+ *
+ * @param char_string  Pointer to the character string.
+ *
+ * @return true if the string is valid, false otherwise.
+ */
+bool characterstring_utf8_valid(const BACNET_CHARACTER_STRING *char_string)
+{
+    bool valid = false; /* return value */
+
+    if (char_string) {
+        if (char_string->encoding == CHARACTER_UTF8) {
+            /*UTF8 check*/
+            if (utf8_isvalid(char_string->value, char_string->length)) {
+                valid = true;
+            }
+        }
+    }
+
+    return valid;
+}
+
+/**
+ * Duplicate a UTF-8 BACnet character string into a C string.
+ *
+ * The function allocates a new, NUL-terminated C string and copies the
+ * UTF-8 encoded bytes from the given BACNET_CHARACTER_STRING into it.
+ * The caller owns the returned buffer and must release it with free().
+ *
+ * @param char_string  Pointer to the BACnet character string to duplicate.
+ *
+ * @return Pointer to a newly allocated NUL-terminated UTF-8 C string on
+ *         success, or NULL if @p char_string is NULL, if the encoding
+ *         is not CHARACTER_UTF8, or if memory allocation fails.
+ */
+char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string)
+{
+    char *str = NULL; /* return value */
+
+    if (char_string) {
+        if (char_string->encoding == CHARACTER_UTF8) {
+            str = calloc(char_string->length + 1, 1);
+            if (str != NULL) {
+                memcpy(str, char_string->value, char_string->length);
+            }
+        }
+    }
+
+    return str;
+}
+
 #if BACNET_USE_OCTETSTRING
 /**
  * @brief Initialize an octet string with the given bytes or
@@ -2135,4 +2187,25 @@ int bacnet_snprintf(
     }
 
     return write_length;
+}
+
+/**
+ * @brief duplicate a string (replacement for POSIX strdup)
+ * @param  s - string to duplicate
+ * @return a pointer to a new string on success, or a null pointer
+ */
+char *bacnet_strdup(const char *s)
+{
+    size_t size;
+    char *p = NULL;
+
+    if (s) {
+        size = strlen(s) + 1;
+        p = malloc(size);
+        if (p != NULL) {
+            memcpy(p, s, size);
+        }
+    }
+
+    return p;
 }
