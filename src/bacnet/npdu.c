@@ -699,15 +699,28 @@ bool npdu_is_expected_reply(
     if (request.npdu_data.network_layer_message) {
         return false;
     }
+    if (request_pdu_len <= offset) {
+        return false;
+    }
+    /* confirmed service request? */
     request.pdu_type = request_pdu[offset] & 0xF0;
     if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
+        return false;
+    }
+    if (request_pdu_len <= (offset + 2)) {
         return false;
     }
     request.invoke_id = request_pdu[offset + 2];
     /* segmented request? */
     if (request_pdu[offset] & BIT(3)) {
+        if (request_pdu_len <= (offset + 5)) {
+            return false;
+        }
         request.service_choice = request_pdu[offset + 5];
     } else {
+        if (request_pdu_len <= (offset + 3)) {
+            return false;
+        }
         request.service_choice = request_pdu[offset + 3];
     }
     if ((reply_pdu_len > 0) && (reply_pdu[0] != BACNET_PROTOCOL_VERSION)) {
@@ -720,33 +733,52 @@ bool npdu_is_expected_reply(
     if (offset <= 0) {
         return false;
     }
+    /* reply is not a network layer message */
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
     /* reply could be a lot of things:
-       confirmed, simple ack, abort, reject, error */
+        confirmed, simple ack, abort, reject, error */
+    if (reply_pdu_len <= offset) {
+        return false;
+    }
     reply.pdu_type = reply_pdu[offset] & 0xF0;
     switch (reply.pdu_type) {
         case PDU_TYPE_SIMPLE_ACK:
+            if (reply_pdu_len <= (offset + 2)) {
+                return false;
+            }
             reply.invoke_id = reply_pdu[offset + 1];
             reply.service_choice = reply_pdu[offset + 2];
             break;
         case PDU_TYPE_COMPLEX_ACK:
+            if (reply_pdu_len <= (offset + 2)) {
+                return false;
+            }
             reply.invoke_id = reply_pdu[offset + 1];
             /* segmented message? */
             if (reply_pdu[offset] & BIT(3)) {
+                if (reply_pdu_len <= (offset + 4)) {
+                    return false;
+                }
                 reply.service_choice = reply_pdu[offset + 4];
             } else {
                 reply.service_choice = reply_pdu[offset + 2];
             }
             break;
         case PDU_TYPE_ERROR:
+            if (reply_pdu_len <= (offset + 2)) {
+                return false;
+            }
             reply.invoke_id = reply_pdu[offset + 1];
             reply.service_choice = reply_pdu[offset + 2];
             break;
         case PDU_TYPE_REJECT:
         case PDU_TYPE_ABORT:
         case PDU_TYPE_SEGMENT_ACK:
+            if (reply_pdu_len <= (offset + 1)) {
+                return false;
+            }
             reply.invoke_id = reply_pdu[offset + 1];
             break;
         default:
@@ -784,8 +816,9 @@ bool npdu_is_expected_reply(
  * @param reply_pdu_len - number of bytes of PDU data
  * @param reply_mac - MS/TP MAC address of the sender of the reply
  * @return true if the reply PDU is the data expected by the request PDU
- * @note This function is used by the DLMSTP datalink layer to match confirmed
- *  service requests with their replies in the ANSWER_DATA_REQUEST state.
+ * @note This function is used by the DLMSTP datalink layer to match
+ * confirmed service requests with their replies in the ANSWER_DATA_REQUEST
+ * state.
  */
 bool npdu_is_data_expecting_reply(
     const uint8_t *request_pdu,

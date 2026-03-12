@@ -50,6 +50,15 @@ static const int32_t Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRIORITY, PROP_ACK_REQUIRED, PROP_RECIPIENT_LIST, -1
+};
+
 void Notification_Class_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -65,6 +74,47 @@ void Notification_Class_Property_Lists(
         *pProprietary = Properties_Proprietary;
     }
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Notification Class object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Notification_Class_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
+}
+
+/**
+ * @brief Handle I-Am router to network for out of network recipients
+ * @param src - source address of the router
+ * @param network - network number of the router
+ */
+static void Notification_Class_I_Am_Router_To_Network_Handler(
+    BACNET_ADDRESS *src, uint16_t network)
+{
+    NOTIFICATION_CLASS_INFO *notification;
+    BACNET_DESTINATION *destination;
+    BACNET_RECIPIENT *recipient;
+    unsigned i, j;
+
+    for (i = 0; i < MAX_NOTIFICATION_CLASSES; i++) {
+        notification = &NC_Info[i];
+        for (j = 0; j < NC_MAX_RECIPIENTS; j++) {
+            destination = &notification->Recipient_List[j];
+            recipient = &destination->Recipient;
+            /* update recipient addresses for this network */
+            if ((recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) &&
+                (recipient->type.address.net == network)) {
+                bacnet_address_router_set(&recipient->type.address, src);
+            }
+        }
+    }
 }
 
 void Notification_Class_Init(void)
@@ -88,6 +138,8 @@ void Notification_Class_Init(void)
             bacnet_destination_default_init(destination);
         }
     }
+    npdu_set_i_am_router_to_network_handler(
+        Notification_Class_I_Am_Router_To_Network_Handler);
 
     return;
 }
@@ -704,12 +756,11 @@ void Notification_Class_common_reporting_function(
                     "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */
+                bacnet_address_copy(&dest, &pBacDest->Recipient.type.address);
                 if (pBacDest->ConfirmedNotify == true) {
-                    if (address_get_device_id(&dest, &device_id)) {
-                        Send_CEvent_Notify(device_id, event_data);
-                    }
+                    Send_CEvent_Notify_Address(
+                        Event_Buffer, sizeof(Event_Buffer), event_data, &dest);
                 } else {
-                    dest = pBacDest->Recipient.type.address;
                     Send_UEvent_Notify(Event_Buffer, event_data, &dest);
                 }
             }
@@ -741,6 +792,9 @@ void Notification_Class_find_recipient(void)
                         address of device is unknown. */
                     Send_WhoIs(device_id, device_id);
                 }
+            } else if (bacnet_recipient_address_router_unknown(recipient)) {
+                Send_Who_Is_Router_To_Network(
+                    NULL, recipient->type.address.net);
             }
         }
     }

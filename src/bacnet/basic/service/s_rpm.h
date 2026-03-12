@@ -27,6 +27,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
+uint8_t Send_Read_Property_Multiple_Request_Address(
+    BACNET_ADDRESS *dest,
+    uint16_t max_apdu,
+    uint8_t *pdu,
+    size_t max_pdu,
+    BACNET_READ_ACCESS_DATA *read_access_data);
+BACNET_STACK_EXPORT
 uint8_t Send_Read_Property_Multiple_Request(
     uint8_t *pdu,
     size_t max_pdu,

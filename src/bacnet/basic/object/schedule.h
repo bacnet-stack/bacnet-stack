@@ -67,6 +67,9 @@ void Schedule_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
     const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Schedule_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
 
 BACNET_STACK_EXPORT
 bool Schedule_Valid_Instance(uint32_t object_instance);
@@ -143,6 +146,9 @@ bool Schedule_In_Effective_Period(
 BACNET_STACK_EXPORT
 void Schedule_Recalculate_PV(
     SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, const BACNET_TIME *time);
+
+BACNET_STACK_EXPORT
+void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 #ifdef __cplusplus
 }

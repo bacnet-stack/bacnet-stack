@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet secure connect main include header.
+ * @brief BACnet secure connect main include header.
  * @author Kirill Neznamov <kirill\.neznamov@dsr-corporation\.com>
  * @date August 2022
  * @copyright SPDX-License-Identifier: MIT

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet hub function API.
+ * @brief BACnet hub function API.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date July 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0

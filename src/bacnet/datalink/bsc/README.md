@@ -1,4 +1,4 @@
-This readme explains how to enable support of BACNet Secure Connect datalink
+This readme explains how to enable support of BACnet Secure Connect datalink
 (ANNEX AB – BACnet Secure Connect in standard), how to set up the building
 environment and clarifies some important moments regarding implementation
 of that functionality.
@@ -7,7 +7,7 @@ By default the support of that functionality is turned off, to enable it
 you need to set option BACDL_BSC=ON in CMakeLists.txt if cmake build system
 is used or set BACDL_BSC=1 define in a case if using makefiles.
 
-BACNet/SC standard uses websockets as a transport layer, so Windows/Linux/BSD
+BACnet/SC standard uses websockets as a transport layer, so Windows/Linux/BSD
 implementations use libwebsocket library. Implementation for Zephyr uses
 native websocket API for the client side and mongoose library for the
 server side. Websocket layer which is built on the top of libwebsockets
@@ -51,4 +51,4 @@ The current implementation does not support Certificate_Signing_Request_File
 property of BACNET/SC netport and properties Operational_Certificate_File
 and Issuer_Certificate_Files related to certificates are readonly and can't
 be changed remotely. So, management of device certificates is out of the scope
-of current BACNet/SC implementation.
+of current BACnet/SC implementation.

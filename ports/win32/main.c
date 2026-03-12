@@ -38,9 +38,7 @@
 #include "bacnet/basic/object/mso.h"
 #include "bacnet/basic/object/ms-input.h"
 #include "bacnet/basic/object/trendlog.h"
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif
 
 /** Static receive buffer, initialized with zeros by the C Library Startup Code.
  */
@@ -164,16 +162,14 @@ static void Init_Service_Handlers(void)
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property_ack);
-#if defined(BACFILE)
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
-#endif
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
 
 #if 0
     /* Adding these handlers require the project(s) to change. */
-#if defined(BACFILE)
+#if defined BACNET_BACKUP_RESTORE
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
         handler_atomic_write_file);
 #endif

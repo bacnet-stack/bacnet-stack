@@ -102,7 +102,8 @@ static object_functions_t My_Object_Table[] = {
       NULL,
       NULL,
       NULL,
-      NULL },
+      NULL,
+      Device_Writable_Property_List },
 
     /* Analog Value (Read-Only) */
     { OBJECT_ANALOG_VALUE,
@@ -124,7 +125,8 @@ static object_functions_t My_Object_Table[] = {
       NULL,
       Analog_Value_Create,
       Analog_Value_Delete,
-      NULL },
+      NULL,
+      Analog_Value_Writable_Property_List },
 
     /* Analog Output (Commandable) */
     { OBJECT_ANALOG_OUTPUT,
@@ -146,7 +148,8 @@ static object_functions_t My_Object_Table[] = {
       NULL,
       Analog_Output_Create,
       Analog_Output_Delete,
-      NULL },
+      NULL,
+      Analog_Output_Writable_Property_List },
 
     /* Binary Output (Commandable) */
     { OBJECT_BINARY_OUTPUT,
@@ -168,7 +171,8 @@ static object_functions_t My_Object_Table[] = {
       NULL,
       Binary_Output_Create,
       Binary_Output_Delete,
-      NULL },
+      NULL,
+      Binary_Output_Writable_Property_List },
 
     /* Binary Value (Read-Only) */
     { OBJECT_BINARY_VALUE,
@@ -190,9 +194,11 @@ static object_functions_t My_Object_Table[] = {
       NULL,
       Binary_Value_Create,
       Binary_Value_Delete,
-      NULL },
+      NULL,
+      Binary_Value_Writable_Property_List },
 
     { MAX_BACNET_OBJECT_TYPE,
+      NULL,
       NULL,
       NULL,
       NULL,
@@ -297,7 +303,7 @@ int main(int argc, char *argv[])
 
     /* Handle command-line arguments */
     if (argc > 1) {
-        device_instance = strtoul(argv[1], NULL, 10);
+        bacnet_string_to_uint32(argv[1], &device_instance);
     }
     Device_Set_Object_Instance_Number(device_instance);
     printf("BACnet Device ID: %u\n", device_instance);

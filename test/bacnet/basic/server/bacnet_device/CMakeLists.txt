@@ -97,7 +97,9 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/cov.c
+    ${SRC_DIR}/bacnet/create_object.c
     ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/delete_object.c
     ${SRC_DIR}/bacnet/dcc.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
@@ -107,6 +109,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/property.c
     ${SRC_DIR}/bacnet/reject.c
+    ${SRC_DIR}/bacnet/shed_level.c
     ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c

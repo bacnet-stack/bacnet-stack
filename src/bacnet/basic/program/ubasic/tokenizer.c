@@ -556,8 +556,9 @@ void tokenizer_string(struct ubasic_tokenizer *tree, char *dest, uint8_t len)
     } while (*(string_end - 1) == '\\');
 
     string_len = string_end - tree->ptr - 1;
-    if (len < string_len) {
-        string_len = len;
+    if (string_len > len - 1) {
+        /* space for null terminator */
+        string_len = len - 1;
     }
     memcpy(dest, tree->ptr + 1, string_len);
     dest[string_len] = 0;
@@ -586,8 +587,9 @@ void tokenizer_label(struct ubasic_tokenizer *tree, char *dest, uint8_t len)
         }
         break;
     }
-    if (string_len > len) {
-        string_len = len;
+    if (string_len > len - 1) {
+        /* space for null terminator */
+        string_len = len - 1;
     }
     memcpy(dest, tree->ptr, string_len);
     dest[string_len] = 0;

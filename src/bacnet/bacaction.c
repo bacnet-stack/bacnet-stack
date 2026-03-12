@@ -464,7 +464,7 @@ int bacnet_action_command_decode(
     apdu_len += len;
     /* priority [5] Unsigned (1..16) OPTIONAL */
     len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_len - apdu_size, 5, &unsigned_value);
+        &apdu[apdu_len], apdu_size - apdu_len, 5, &unsigned_value);
     if (len > 0) {
         apdu_len += len;
         if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
@@ -483,7 +483,7 @@ int bacnet_action_command_decode(
     }
     /* postDelay [6] Unsigned OPTIONAL */
     len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_len - apdu_size, 6, &unsigned_value);
+        &apdu[apdu_len], apdu_size - apdu_len, 6, &unsigned_value);
     if (len > 0) {
         apdu_len += len;
         if (entry) {
@@ -497,7 +497,7 @@ int bacnet_action_command_decode(
     }
     /* quitOnFailure [7] BOOLEAN */
     len = bacnet_boolean_context_decode(
-        &apdu[apdu_len], apdu_len - apdu_size, 7, &boolean_value);
+        &apdu[apdu_len], apdu_size - apdu_len, 7, &boolean_value);
     if (len > 0) {
         apdu_len += len;
         if (entry) {
@@ -508,7 +508,7 @@ int bacnet_action_command_decode(
     }
     /* writeSuccessful [8] BOOLEAN */
     len = bacnet_boolean_context_decode(
-        &apdu[apdu_len], apdu_len - apdu_size, 8, &boolean_value);
+        &apdu[apdu_len], apdu_size - apdu_len, 8, &boolean_value);
     if (len > 0) {
         apdu_len += len;
         if (entry) {

@@ -43,6 +43,7 @@ SRCS = main.c \
 	${BACNET_SOURCE_DIR}/bacint.c \
 	${BACNET_SOURCE_DIR}/bacreal.c \
 	${BACNET_SOURCE_DIR}/bacstr.c \
+	${BACNET_SOURCE_DIR}/bactext.c \
 	${BACNET_SOURCE_DIR}/npdu.c \
 	${BACNET_SOURCE_DIR}/bacaddr.c \
 	${BACNET_SOURCE_DIR}/hostnport.c \

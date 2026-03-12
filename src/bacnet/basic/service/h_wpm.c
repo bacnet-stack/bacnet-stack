@@ -45,6 +45,7 @@ static int write_property_multiple_decode(
 {
     int len = 0;
     int offset = 0;
+    int tag_len = 0;
     uint8_t tag_number = 0;
 
     /* decode service request */
@@ -54,7 +55,9 @@ static int write_property_multiple_decode(
         if (len > 0) {
             offset += len;
             /* Opening tag 1 - List of Properties */
-            if (decode_is_opening_tag_number(&apdu[offset++], 1)) {
+            if (bacnet_is_opening_tag_number(
+                    &apdu[offset], apdu_len - offset, 1, &tag_len)) {
+                offset += tag_len;
                 do {
                     /* decode a 'Property Identifier':
                       (3) an optional 'Property Array Index'
@@ -85,9 +88,10 @@ static int write_property_multiple_decode(
                         return len;
                     }
                     /* Closing tag 1 - List of Properties */
-                    if (decode_is_closing_tag_number(&apdu[offset], 1)) {
+                    if (bacnet_is_closing_tag_number(
+                            &apdu[offset], apdu_len - offset, 1, &len)) {
                         tag_number = 1;
-                        offset++;
+                        offset += len;
                     } else {
                         /* it was not tag 1, decode next Property Identifier */
                         tag_number = 0;
@@ -101,7 +105,7 @@ static int write_property_multiple_decode(
         }
     } while (offset < apdu_len);
 
-    return len;
+    return offset;
 }
 
 /** Handler for a WriteProperty Service request.
@@ -166,21 +170,21 @@ void handler_write_property_multiple(
         debug_print("WPM: Sending Ack!\n");
     } else {
         /* handle any errors */
-        if (len == BACNET_STATUS_ABORT) {
+        if (abort_valid_error_code(wp_data.error_code)) {
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(wp_data.error_code), true);
             debug_print("WPM: Sending Abort!\n");
-        } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len = wpm_error_ack_encode_apdu(
-                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
-                &wp_data);
-            debug_print("WPM: Sending Error!\n");
-        } else if (len == BACNET_STATUS_REJECT) {
+        } else if (reject_valid_error_code(wp_data.error_code)) {
             apdu_len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(wp_data.error_code));
             debug_print("WPM: Sending Reject!\n");
+        } else {
+            apdu_len = wpm_error_ack_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+                &wp_data);
+            debug_print("WPM: Sending Error!\n");
         }
     }
     pdu_len = npdu_len + apdu_len;

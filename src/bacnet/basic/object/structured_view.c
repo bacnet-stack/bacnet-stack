@@ -33,12 +33,12 @@
 #include "structured_view.h"
 
 struct object_data {
-    const char *Object_Name;
-    const char *Description;
+    char *Object_Name;
+    char *Description;
     BACNET_NODE_TYPE Node_Type;
-    const char *Node_Subtype;
+    char *Node_Subtype;
     void *Context;
-    BACNET_SUBORDINATE_DATA *Subordinate_List;
+    OS_Keylist Subordinate_List;
     BACNET_RELATIONSHIP Default_Subordinate_Relationship;
     BACNET_DEVICE_OBJECT_REFERENCE Represents;
 };
@@ -67,6 +67,24 @@ static const int32_t Properties_Optional[] = {
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_NODE_TYPE,
+    PROP_DEFAULT_SUBORDINATE_RELATIONSHIP,
+    PROP_REPRESENTS,
+    PROP_SUBORDINATE_LIST,
+    PROP_SUBORDINATE_ANNOTATIONS,
+    PROP_SUBORDINATE_NODE_TYPES,
+    PROP_SUBORDINATE_RELATIONSHIPS,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
+    -1
+};
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -94,6 +112,20 @@ void Structured_View_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Structured View object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Structured_View_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -206,7 +238,8 @@ bool Structured_View_Name_Set(uint32_t object_instance, const char *new_name)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Object_Name = new_name;
+        free(pObject->Object_Name);
+        pObject->Object_Name = bacnet_strdup(new_name);
     }
 
     return status;
@@ -271,7 +304,8 @@ bool Structured_View_Description_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Description = new_name;
+        free(pObject->Description);
+        pObject->Description = bacnet_strdup(new_name);
     }
 
     return status;
@@ -353,29 +387,472 @@ bool Structured_View_Node_Subtype_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
-        pObject->Node_Subtype = new_name;
+        free(pObject->Node_Subtype);
+        pObject->Node_Subtype = bacnet_strdup(new_name);
     }
 
     return status;
 }
 
 /**
- * @brief For a given object instance-number, returns the Subordinate_List
+ * @brief For a given object instance-number, returns the number of
+ * Subordinate_List elements
  * @param  object_instance - object-instance number of the object
- * @return Subordinate_List or NULL if not found
+ * @return number of Subordinate_List elements
  */
-BACNET_SUBORDINATE_DATA *
-Structured_View_Subordinate_List(uint32_t object_instance)
+static unsigned int
+Structured_View_Subordinate_List_Size(struct object_data *pObject)
+{
+    unsigned int count = 0;
+
+    if (pObject) {
+        count = Keylist_Count(pObject->Subordinate_List);
+    }
+
+    return count;
+}
+
+/**
+ * @brief For a given object Subordinate_List, add an element to the list
+ * @param  list - pointer to the Subordinate_List key list
+ * @param  key - key for the new element
+ * @return pointer to the Subordinate_List element
+ */
+static BACNET_SUBORDINATE_DATA *
+Structured_View_Subordinate_List_Element_Add(OS_Keylist list, KEY key)
+{
+    BACNET_SUBORDINATE_DATA *element = NULL;
+    int index;
+
+    element = calloc(1, sizeof(BACNET_SUBORDINATE_DATA));
+    if (element) {
+        element->next = NULL;
+        index = Keylist_Data_Add(list, key, element);
+        if (index < 0) {
+            free(element);
+            element = NULL;
+        }
+    }
+
+    return element;
+}
+
+/**
+ * @brief For a given object element, free the Subordinate_List element
+ * @param  element - pointer to the Subordinate_List element
+ */
+static void
+Structured_View_Subordinate_List_Element_Remove(OS_Keylist list, KEY key)
+{
+    BACNET_SUBORDINATE_DATA *element;
+
+    element = Keylist_Data_Delete(list, key);
+    if (element) {
+        if (element->Annotation) {
+            free(element->Annotation);
+        }
+        free(element);
+    }
+}
+
+/**
+ * @brief For a given object instance-number, free the Subordinate_List
+ * @param  pObject - pointer to the object data
+ */
+static void Structured_View_Subordinate_List_Free(struct object_data *pObject)
+{
+    KEY key = 0;
+    int count = 0;
+
+    if (pObject) {
+        count = Keylist_Count(pObject->Subordinate_List);
+        while (count > 0) {
+            Structured_View_Subordinate_List_Element_Remove(
+                pObject->Subordinate_List, key);
+            key++;
+            count--;
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, resize the Subordinate_List
+ * @param pObject - pointer to the object data
+ * @param old_array_size - current size of the Subordinate_List
+ * @param new_array_size - new size of the Subordinate_List
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Structured_View_Subordinate_List_Resize(
+    struct object_data *pObject, BACNET_UNSIGNED_INTEGER new_array_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    BACNET_SUBORDINATE_DATA *element = NULL;
+    BACNET_UNSIGNED_INTEGER old_array_size = 0;
+    KEY key = 0;
+
+    old_array_size = Structured_View_Subordinate_List_Size(pObject);
+    /* Array element zero is the number of elements in the list. */
+    if (new_array_size < old_array_size) {
+        /* free the elements at the tail of the list */
+        key = new_array_size;
+        while (key < old_array_size) {
+            Structured_View_Subordinate_List_Element_Remove(
+                pObject->Subordinate_List, key);
+            key++;
+        }
+    } else if (new_array_size > old_array_size) {
+        /* extend the list */
+        key = old_array_size;
+        while (key < new_array_size) {
+            element = Structured_View_Subordinate_List_Element_Add(
+                pObject->Subordinate_List, key);
+            if (!element) {
+                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                break;
+            }
+            key++;
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief For a given object instance-number, returns the number of
+ * Subordinate_List elements
+ * @param  object_instance - object-instance number of the object
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @return Subordinate_List element or NULL if not found
+ */
+static BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Element(
+    struct object_data *pObject, BACNET_ARRAY_INDEX array_index)
 {
     BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
+    KEY key = 0;
+
+    if (pObject) {
+        key = array_index;
+        subordinate_list = Keylist_Data(pObject->Subordinate_List, key);
+    }
+
+    return subordinate_list;
+}
+
+/**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Structured_View_Subordinate_List_Member_Decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        subordinate_list = pObject->Subordinate_List;
+        len = bacnet_device_object_reference_decode(apdu, apdu_size, NULL);
     }
 
-    return subordinate_list;
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, used writing array
+ * element 0
+ * @param apdu [in] encoded element value
+ * @param apdu_size [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_DEVICE_OBJECT_REFERENCE reference = { 0 };
+    BACNET_SUBORDINATE_DATA *element = NULL;
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            /* Array element zero is the number of elements in the list. */
+            error_code =
+                Structured_View_Subordinate_List_Resize(pObject, array_size);
+        } else {
+            array_index--; /* array index is 1..N, but we want 0..(N-1) */
+            len = bacnet_device_object_reference_decode(
+                apdu, apdu_size, &reference);
+            if (len > 0) {
+                element = Structured_View_Subordinate_List_Element(
+                    pObject, array_index);
+                if (element) {
+                    element->Device_Instance =
+                        reference.deviceIdentifier.instance;
+                    element->Object_Type = reference.objectIdentifier.type;
+                    element->Object_Instance =
+                        reference.objectIdentifier.instance;
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    error_code = ERROR_CODE_OTHER;
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Structured_View_Subordinate_Annotation_Member_Decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        len = bacnet_character_string_application_decode(apdu, apdu_size, NULL);
+    }
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, used writing array
+ * element 0
+ * @param apdu [in] encoded element value
+ * @param apdu_size [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Structured_View_Subordinate_Annotation_Member_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_CHARACTER_STRING annotation = { 0 };
+    BACNET_SUBORDINATE_DATA *element = NULL;
+    char *annotation_string;
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            /* Array element zero is the number of elements in the list. */
+            error_code =
+                Structured_View_Subordinate_List_Resize(pObject, array_size);
+        } else {
+            array_index--; /* array index is 1..N, but we want 0..(N-1) */
+            len = bacnet_character_string_application_decode(
+                apdu, apdu_size, &annotation);
+            if (len > 0) {
+                if (characterstring_utf8_valid(&annotation)) {
+                    element = Structured_View_Subordinate_List_Element(
+                        pObject, array_index);
+                    if (element) {
+                        annotation_string =
+                            characterstring_utf8_strdup(&annotation);
+                        if (annotation_string) {
+                            if (element->Annotation) {
+                                free((void *)element->Annotation);
+                            }
+                            element->Annotation = annotation_string;
+                            error_code = ERROR_CODE_SUCCESS;
+                        } else {
+                            error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        }
+                    } else {
+                        error_code = ERROR_CODE_OTHER;
+                    }
+                } else {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Structured_View_Subordinate_Node_Type_Member_Decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        len = bacnet_enumerated_application_decode(apdu, apdu_size, NULL);
+    }
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, used writing array
+ * element 0
+ * @param apdu [in] encoded element value
+ * @param apdu_size [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Structured_View_Subordinate_Node_Type_Member_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    uint32_t node_type = 0;
+    BACNET_SUBORDINATE_DATA *element = NULL;
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            error_code =
+                Structured_View_Subordinate_List_Resize(pObject, array_size);
+        } else {
+            array_index--; /* array index is 1..N, but we want 0..(N-1) */
+            len = bacnet_enumerated_application_decode(
+                apdu, apdu_size, &node_type);
+            if (len > 0) {
+                if (node_type > BACNET_NODE_TYPE_MAX) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    element = Structured_View_Subordinate_List_Element(
+                        pObject, array_index);
+                    if (element) {
+                        element->Node_Type = node_type;
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_OTHER;
+                    }
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Structured_View_Subordinate_Relationship_Member_Decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        len = bacnet_enumerated_application_decode(apdu, apdu_size, NULL);
+    }
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, used writing array
+ * element 0
+ * @param apdu [in] encoded element value
+ * @param apdu_size [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE Structured_View_Subordinate_Relationship_Member_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    uint32_t relationship = 0;
+    BACNET_SUBORDINATE_DATA *element = NULL;
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            error_code =
+                Structured_View_Subordinate_List_Resize(pObject, array_size);
+        } else {
+            array_index--; /* array index is 1..N, but we want 0..(N-1) */
+            len = bacnet_enumerated_application_decode(
+                apdu, apdu_size, &relationship);
+            if (len > 0) {
+                if (relationship > BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    element = Structured_View_Subordinate_List_Element(
+                        pObject, array_index);
+                    if (element) {
+                        element->Relationship = relationship;
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_OTHER;
+                    }
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        }
+    }
+
+    return error_code;
 }
 
 /**
@@ -387,10 +864,46 @@ void Structured_View_Subordinate_List_Set(
     uint32_t object_instance, BACNET_SUBORDINATE_DATA *subordinate_list)
 {
     struct object_data *pObject;
+    BACNET_SUBORDINATE_DATA *element, *data;
+    KEY key;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Subordinate_List = subordinate_list;
+        Structured_View_Subordinate_List_Free(pObject);
+        /* walk the linked list and add to Keylist */
+        key = 0;
+        element = subordinate_list;
+        while (element) {
+            data = Structured_View_Subordinate_List_Element_Add(
+                pObject->Subordinate_List, key);
+            if (data) {
+                memmove(data, element, sizeof(BACNET_SUBORDINATE_DATA));
+                if (element->Annotation) {
+                    data->Annotation = bacnet_strdup(element->Annotation);
+                }
+                data->next = NULL;
+            }
+            element = element->next;
+            key++;
+        }
+    }
+}
+
+/**
+ * @brief Convert an array of BACnetSubordinateData to linked list
+ * @param array pointer to element zero of the array
+ * @param size number of elements in the array
+ */
+void Structured_View_Subordinate_List_Link_Array(
+    BACNET_SUBORDINATE_DATA *array, size_t size)
+{
+    size_t i = 0;
+
+    for (i = 0; i < size; i++) {
+        if (i > 0) {
+            array[i - 1].next = &array[i];
+        }
+        array[i].next = NULL;
     }
 }
 
@@ -398,8 +911,8 @@ void Structured_View_Subordinate_List_Set(
  * @brief For a given object instance-number, returns the
  * Default_Subordinate_Relationship
  * @param  object_instance - object-instance number of the object
- * @return Default_Subordinate_Relationship or BACNET_RELATIONSHIP_DEFAULT if
- * not found
+ * @return Default_Subordinate_Relationship or BACNET_RELATIONSHIP_DEFAULT
+ * if not found
  */
 BACNET_RELATIONSHIP
 Structured_View_Default_Subordinate_Relationship(uint32_t object_instance)
@@ -419,7 +932,8 @@ Structured_View_Default_Subordinate_Relationship(uint32_t object_instance)
  * @brief For a given object instance-number, sets the
  * Default_Subordinate_Relationship
  * @param  object_instance - object-instance number of the object
- * @param  relationship - holds the Default_Subordinate_Relationship to be set
+ * @param  relationship - holds the Default_Subordinate_Relationship to be
+ * set
  * @return  true if Default_Subordinate_Relationship was set
  */
 bool Structured_View_Default_Subordinate_Relationship_Set(
@@ -488,16 +1002,11 @@ bool Structured_View_Represents_Set(
 unsigned int Structured_View_Subordinate_List_Count(uint32_t object_instance)
 {
     unsigned int count = 0;
-    BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        subordinate_list = pObject->Subordinate_List;
-        while (subordinate_list) {
-            count++;
-            subordinate_list = subordinate_list->next;
-        }
+        count = Structured_View_Subordinate_List_Size(pObject);
     }
 
     return count;
@@ -514,23 +1023,16 @@ unsigned int Structured_View_Subordinate_List_Count(uint32_t object_instance)
 BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Member(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index)
 {
-    BACNET_ARRAY_INDEX index = 0;
-    BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
+    BACNET_SUBORDINATE_DATA *element = NULL;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        subordinate_list = pObject->Subordinate_List;
-        while (subordinate_list) {
-            if (index == array_index) {
-                break;
-            }
-            index++;
-            subordinate_list = subordinate_list->next;
-        }
+        element =
+            Structured_View_Subordinate_List_Element(pObject, array_index);
     }
 
-    return subordinate_list;
+    return element;
 }
 
 /**
@@ -585,7 +1087,7 @@ int Structured_View_Subordinate_Annotations_Element_Encode(
         Structured_View_Subordinate_List_Member(object_instance, array_index);
     if (subordinate_list) {
         /* BACnetCharacterString */
-        characterstring_init_ansi(&value, subordinate_list->Annotations);
+        characterstring_init_ansi(&value, subordinate_list->Annotation);
         apdu_len = encode_application_character_string(apdu, &value);
     }
 
@@ -781,6 +1283,259 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+static bool Structured_View_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+    char *utf8_name = NULL;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        utf8_name =
+            write_property_characterstring_utf8_strdup(wp_data, cstring);
+        if (utf8_name) {
+            free(pObject->Object_Name);
+            pObject->Object_Name = utf8_name;
+            status = true;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the description property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the description to be set
+ *
+ * @return  true if description was set
+ */
+static bool Structured_View_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+    char *utf8_name = NULL;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        utf8_name =
+            write_property_characterstring_utf8_strdup(wp_data, cstring);
+        if (utf8_name) {
+            free(pObject->Description);
+            pObject->Description = utf8_name;
+            status = true;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the node-subtype property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the node-subtype to be set
+ *
+ * @return  true if node-subtype was set
+ */
+static bool Structured_View_Node_Subtype_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+    char *utf8_name = NULL;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        utf8_name =
+            write_property_characterstring_utf8_strdup(wp_data, cstring);
+        if (utf8_name) {
+            free(pObject->Node_Subtype);
+            pObject->Node_Subtype = utf8_name;
+            status = true;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * WriteProperty handler for this object.  For the given WriteProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ *
+ * @return false if an error is loaded, true if no errors
+ */
+bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false; /* return value */
+    int len = 0;
+    BACNET_UNSIGNED_INTEGER array_size = 0;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+
+    /* decode the some of the request */
+    len = bacapp_decode_known_array_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property, wp_data->array_index);
+    /* FIXME: len < application_data_len: more data? */
+    if (len < 0) {
+        /* error while decoding - a value larger than we can handle */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
+    switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Structured_View_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Structured_View_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_NODE_SUBTYPE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Structured_View_Node_Subtype_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_NODE_TYPE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated > BACNET_NODE_TYPE_MAX) {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    status = Structured_View_Node_Type_Set(
+                        wp_data->object_instance, value.type.Enumerated);
+                }
+            }
+            break;
+        case PROP_DEFAULT_SUBORDINATE_RELATIONSHIP:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                if (value.type.Enumerated >
+                    BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    status =
+                        Structured_View_Default_Subordinate_Relationship_Set(
+                            wp_data->object_instance, value.type.Enumerated);
+                }
+            }
+            break;
+        case PROP_REPRESENTS:
+            status = write_property_type_valid(
+                wp_data, &value,
+                BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE);
+            if (status) {
+                status = Structured_View_Represents_Set(
+                    wp_data->object_instance,
+                    &value.type.Device_Object_Reference);
+            }
+            break;
+        case PROP_SUBORDINATE_LIST:
+            array_size = Structured_View_Subordinate_List_Count(
+                wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Structured_View_Subordinate_List_Member_Decode,
+                Structured_View_Subordinate_List_Member_Write, array_size,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+        case PROP_SUBORDINATE_ANNOTATIONS:
+            array_size = Structured_View_Subordinate_List_Count(
+                wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Structured_View_Subordinate_Annotation_Member_Decode,
+                Structured_View_Subordinate_Annotation_Member_Write, array_size,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+        case PROP_SUBORDINATE_NODE_TYPES:
+            array_size = Structured_View_Subordinate_List_Count(
+                wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Structured_View_Subordinate_Node_Type_Member_Decode,
+                Structured_View_Subordinate_Node_Type_Member_Write, array_size,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+        case PROP_SUBORDINATE_RELATIONSHIPS:
+            array_size = Structured_View_Subordinate_List_Count(
+                wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Structured_View_Subordinate_Relationship_Member_Decode,
+                Structured_View_Subordinate_Relationship_Member_Write,
+                array_size, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            }
+            break;
+        default:
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
+            break;
+    }
+
+    return status;
+}
+
+/**
  * @brief Set the context used with a specific object instance
  * @param object_instance [in] BACnet object instance number
  * @param context [in] pointer to the context
@@ -815,7 +1570,8 @@ void Structured_View_Context_Set(uint32_t object_instance, void *context)
 /**
  * Creates a Structured View object
  * @param object_instance - object-instance number of the object
- * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
+ * @return object_instance if the object is created, else
+ * BACNET_MAX_INSTANCE
  */
 uint32_t Structured_View_Create(uint32_t object_instance)
 {
@@ -844,7 +1600,7 @@ uint32_t Structured_View_Create(uint32_t object_instance)
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
         pObject->Node_Subtype = NULL;
-        pObject->Subordinate_List = NULL;
+        pObject->Subordinate_List = Keylist_Create();
         pObject->Default_Subordinate_Relationship = BACNET_RELATIONSHIP_DEFAULT;
         pObject->Represents.deviceIdentifier.type = OBJECT_NONE;
         pObject->Represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
@@ -863,7 +1619,23 @@ uint32_t Structured_View_Create(uint32_t object_instance)
 }
 
 /**
- * Deletes an Structured View object
+ * @brief Free the memory used by a Structured View object
+ * @param pObject pointer to the object data to free
+ */
+static void Structured_View_Object_Free(struct object_data *pObject)
+{
+    if (pObject) {
+        free(pObject->Description);
+        free(pObject->Node_Subtype);
+        free(pObject->Object_Name);
+        Structured_View_Subordinate_List_Free(pObject);
+        Keylist_Delete(pObject->Subordinate_List);
+        free(pObject);
+    }
+}
+
+/**
+ * Deletes a Structured View object
  * @param object_instance - object-instance number of the object
  * @return true if the object is deleted
  */
@@ -874,7 +1646,7 @@ bool Structured_View_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        free(pObject);
+        Structured_View_Object_Free(pObject);
         status = true;
     }
 
@@ -882,7 +1654,7 @@ bool Structured_View_Delete(uint32_t object_instance)
 }
 
 /**
- * Deletes all the Time Values and their data
+ * Deletes all the Structured View objects and their data
  */
 void Structured_View_Cleanup(void)
 {
@@ -891,13 +1663,19 @@ void Structured_View_Cleanup(void)
     if (Object_List) {
         do {
             pObject = Keylist_Data_Pop(Object_List);
-            if (pObject) {
-                free(pObject);
-            }
+            Structured_View_Object_Free(pObject);
         } while (pObject);
         Keylist_Delete(Object_List);
         Object_List = NULL;
     }
+}
+
+/**
+ * @brief Returns the approximate size of each Structured View object data
+ */
+size_t Structured_View_Size(void)
+{
+    return sizeof(struct object_data);
 }
 
 /**

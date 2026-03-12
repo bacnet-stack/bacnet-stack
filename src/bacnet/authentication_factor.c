@@ -131,6 +131,7 @@ int bacnet_authentication_factor_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the BACnetAuthenticationFactor complex data
  * @param apdu  Pointer to the buffer for decoding.
@@ -143,6 +144,7 @@ int bacapp_decode_authentication_factor(
 {
     return bacnet_authentication_factor_decode(apdu, MAX_APDU, af);
 }
+#endif
 
 /**
  * @brief Decode the context tagged BACnetAuthenticationFactor complex data
@@ -186,6 +188,7 @@ int bacnet_authentication_factor_context_decode(
     return apdu_len;
 }
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
 /**
  * @brief Decode the context tagged BACnetAuthenticationFactor complex data
  * @param apdu  Pointer to the buffer for decoding.
@@ -201,3 +204,4 @@ int bacapp_decode_context_authentication_factor(
 {
     return bacnet_authentication_factor_context_decode(apdu, MAX_APDU, tag, af);
 }
+#endif

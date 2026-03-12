@@ -67,6 +67,14 @@ typedef bool (*write_property_member_of_object)(
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property);
 
+/**
+ * @brief API to get the list of writable properties for an object instance
+ * @param object_instance - object-instance number of the object
+ * @param properties - pointer to the list of writable properties
+ */
+typedef void (*writable_property_list_function)(
+    uint32_t object_instance, const int32_t **properties);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -96,6 +104,11 @@ bool write_property_type_valid(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     const BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t expected_tag);
+
+BACNET_STACK_EXPORT
+char *write_property_characterstring_utf8_strdup(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_CHARACTER_STRING *value);
+
 BACNET_STACK_EXPORT
 bool write_property_string_valid(
     BACNET_WRITE_PROPERTY_DATA *wp_data,

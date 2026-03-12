@@ -23,9 +23,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/trendlog.h"
 #include "bacnet/datalink/datalink.h"
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h" /* object list dependency */
-#endif
+#include "bacnet/basic/object/bacfile.h"
 
 /* number of demo objects */
 #ifndef MAX_TREND_LOGS
@@ -75,6 +73,36 @@ static const int32_t Trend_Log_Properties_Optional[] = {
 
 static const int32_t Trend_Log_Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_ENABLE,
+    PROP_STOP_WHEN_FULL,
+    PROP_RECORD_COUNT,
+    PROP_LOGGING_TYPE,
+    PROP_START_TIME,
+    PROP_STOP_TIME,
+    PROP_LOG_DEVICE_OBJECT_PROPERTY,
+    PROP_LOG_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+    PROP_TRIGGER,
+    -1
+};
+
+/**
+ * @brief Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void Trend_Log_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -91,6 +119,20 @@ void Trend_Log_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Trend Log object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Trend_Log_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /* we simply have 0-n object instances.  Yours might be */
@@ -254,6 +296,48 @@ bool Trend_Log_Object_Name(
     }
 
     return status;
+}
+
+/**
+ * @brief Get the total record count for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return total record count
+ */
+uint32_t Trend_Log_Total_Record_Count(uint32_t object_instance)
+{
+    uint32_t total_records = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        total_records = LogInfo[object_instance].ulTotalRecordCount;
+    }
+    return total_records;
+}
+
+/**
+ * @brief Get the record count for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return record count
+ */
+uint32_t Trend_Log_Record_Count(uint32_t object_instance)
+{
+    uint32_t record_count = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        record_count = LogInfo[object_instance].ulRecordCount;
+    }
+    return record_count;
+}
+
+/**
+ * @brief Get the buffer size for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return buffer size
+ */
+uint32_t Trend_Log_Buffer_Size(uint32_t object_instance)
+{
+    uint32_t buffer_size = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        buffer_size = TL_MAX_ENTRIES;
+    }
+    return buffer_size;
 }
 
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
@@ -1134,7 +1218,8 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     uint32_t uiSequence = 0; /* Tracking sequence number when encoding */
     uint32_t uiRemaining = 0; /* Amount of unused space in packet */
     uint32_t uiFirstSeq = 0; /* Sequence number for 1st record in log */
-
+    uint32_t total_entries = 0;
+    uint32_t max_fit = 0;
     uint32_t uiBegin = 0; /* Starting Sequence number for request */
     uint32_t uiEnd = 0; /* Ending Sequence number for request */
     bool bWrapReq = false; /* Has request sequence range spanned the max for
@@ -1225,7 +1310,22 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             }
         }
     }
-
+    if (pRequest->Count < 0) {
+        /* adjust uiBegin when Count < 0 and total requested
+           items exceed the maximum encodable items (max_fit).*/
+        if (uiEnd >= uiBegin) {
+            total_entries = uiEnd - uiBegin + 1;
+            max_fit = uiRemaining / TL_MAX_ENC;
+            if ((max_fit > 0) && (total_entries > max_fit)) {
+                /* Adjust beginning index so returned items match z = max_fit */
+                uiBegin = uiEnd - max_fit + 1;
+                /* MORE_ITEMS must be set because
+                   request range not fully delivered */
+                bitstring_set_bit(
+                    &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
+            }
+        }
+    }
     /* We now have a range that lies completely within the log buffer
      * and we need to figure out where that starts in the buffer.
      */
@@ -1598,10 +1698,9 @@ static void TL_fetch_property(int iLog)
     uint8_t ucCount;
     TL_LOG_INFO *CurrentLog;
     TL_DATA_REC TempRec;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
     BACNET_BIT_STRING TempBits;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_TAG tag = { 0 };
 
     CurrentLog = &LogInfo[iLog];
 
@@ -1620,40 +1719,46 @@ static void TL_fetch_property(int iLog)
         TempRec.ucRecType = TL_TYPE_ERROR;
     } else {
         /* Decode data returned and see if we can fit it into the log */
-        iLen =
-            decode_tag_number_and_value(ValueBuf, &tag_number, &len_value_type);
-        switch (tag_number) {
+        iLen = bacnet_tag_decode(ValueBuf, sizeof(ValueBuf), &tag);
+    }
+    if ((iLen > 0) && (tag.application)) {
+        switch (tag.number) {
             case BACNET_APPLICATION_TAG_NULL:
                 TempRec.ucRecType = TL_TYPE_NULL;
                 break;
 
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 TempRec.ucRecType = TL_TYPE_BOOL;
-                TempRec.Datum.ucBoolean = decode_boolean(len_value_type);
+                TempRec.Datum.ucBoolean = decode_boolean(tag.len_value_type);
                 break;
 
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 TempRec.ucRecType = TL_TYPE_UNSIGN;
-                decode_unsigned(
-                    &ValueBuf[iLen], len_value_type, &unsigned_value);
+                bacnet_unsigned_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &unsigned_value);
                 TempRec.Datum.ulUValue = unsigned_value;
                 break;
 
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 TempRec.ucRecType = TL_TYPE_SIGN;
-                decode_signed(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.lSValue);
+                bacnet_signed_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempRec.Datum.lSValue);
                 break;
 
             case BACNET_APPLICATION_TAG_REAL:
                 TempRec.ucRecType = TL_TYPE_REAL;
-                decode_real_safe(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.fReal);
+                bacnet_real_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempRec.Datum.fReal);
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:
                 TempRec.ucRecType = TL_TYPE_BITS;
-                decode_bitstring(&ValueBuf[iLen], len_value_type, &TempBits);
+                bacnet_bitstring_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempBits);
                 /* We truncate any bitstrings at 32 bits to conserve space */
                 if (bitstring_bits_used(&TempBits) < 32) {
                     /* Store the bytes used and the bits free
@@ -1680,8 +1785,9 @@ static void TL_fetch_property(int iLog)
 
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 TempRec.ucRecType = TL_TYPE_ENUM;
-                decode_enumerated(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.ulEnum);
+                bacnet_enumerated_decode(
+                    &ValueBuf[iLen], sizeof(ValueBuf) - iLen,
+                    tag.len_value_type, &TempRec.Datum.ulEnum);
                 break;
 
             default:
@@ -1692,12 +1798,22 @@ static void TL_fetch_property(int iLog)
                 break;
         }
         /* Finally insert the status flags into the record */
-        iLen = decode_tag_number_and_value(
-            StatusBuf, &tag_number, &len_value_type);
-        decode_bitstring(&StatusBuf[iLen], len_value_type, &TempBits);
-        TempRec.ucStatus = 128 | bitstring_octet(&TempBits, 0);
+        iLen = bacnet_bitstring_application_decode(
+            StatusBuf, sizeof(StatusBuf), &TempBits);
+        if (iLen > 0) {
+            TempRec.ucStatus = 128 | bitstring_octet(&TempBits, 0);
+        } else {
+            /* If we couldn't decode the status flags, just set the bit to
+             * say they are not present */
+            TempRec.ucStatus = 0;
+        }
+    } else {
+        /* We couldn't decode the value, so we will just log an error with
+         * the error code for the value read attempt */
+        TempRec.Datum.Error.usClass = ERROR_CLASS_SERVICES;
+        TempRec.Datum.Error.usCode = ERROR_CODE_OTHER;
+        TempRec.ucRecType = TL_TYPE_ERROR;
     }
-
     Logs[iLog][CurrentLog->iIndex++] = TempRec;
     if (CurrentLog->iIndex >= TL_MAX_ENTRIES) {
         CurrentLog->iIndex = 0;

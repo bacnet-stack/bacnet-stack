@@ -52,6 +52,16 @@ static const int32_t Life_Safety_Point_Properties_Optional[] = { -1 };
 
 static const int32_t Life_Safety_Point_Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_MODE,     PROP_PRESENT_VALUE,      PROP_OUT_OF_SERVICE,
+    PROP_SILENCED, PROP_OPERATION_EXPECTED, -1
+};
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -79,6 +89,20 @@ void Life_Safety_Point_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Life Safety Point object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Life_Safety_Point_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**

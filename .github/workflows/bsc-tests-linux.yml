@@ -1,4 +1,4 @@
-name: BACNet/SC linux tests
+name: BACnet/SC linux tests
 
 on:
   push:
@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout BACnet Stack
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Checkout libwebsockets
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: warmcat/libwebsockets
           ref: v4.3-stable

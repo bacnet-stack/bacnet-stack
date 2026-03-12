@@ -16,11 +16,12 @@
 #include "bacnet/create_object.h"
 #include "bacnet/delete_object.h"
 #include "bacnet/list_element.h"
-#include "bacnet/wp.h"
+#include "bacnet/proplist.h"
 #include "bacnet/rd.h"
 #include "bacnet/rp.h"
 #include "bacnet/rpm.h"
 #include "bacnet/readrange.h"
+#include "bacnet/wp.h"
 
 /** Called so a BACnet object can perform any necessary initialization.
  * @ingroup ObjHelpers
@@ -140,6 +141,7 @@ typedef struct object_functions {
     create_object_function Object_Create;
     delete_object_function Object_Delete;
     object_timer_function Object_Timer;
+    writable_property_list_function Object_Writable_Property_List;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -241,6 +243,42 @@ BACNET_STACK_EXPORT
 bool Device_Interval_Offset_Set(uint32_t value);
 
 BACNET_STACK_EXPORT
+bool Device_Configuration_File_Set(unsigned index, uint32_t instance);
+BACNET_STACK_EXPORT
+uint32_t Device_Configuration_File(unsigned index);
+BACNET_STACK_EXPORT
+bool Device_Is_Configuration_File(uint32_t instance);
+
+BACNET_STACK_EXPORT
+uint16_t Device_Backup_Failure_Timeout(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_Failure_Timeout_Set(uint16_t timeout);
+BACNET_STACK_EXPORT
+void Device_Backup_Failure_Timeout_Reset(void);
+BACNET_STACK_EXPORT
+void Device_Backup_Failure_Timeout_Restart(void);
+BACNET_STACK_EXPORT
+void Device_Backup_Failure_Timeout_Countdown(uint32_t milliseconds);
+BACNET_STACK_EXPORT
+uint16_t Device_Backup_Preparation_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_Preparation_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+uint16_t Device_Restore_Preparation_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Restore_Preparation_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+uint16_t Device_Restore_Completion_Time(void);
+BACNET_STACK_EXPORT
+bool Device_Restore_Completion_Time_Set(uint16_t time);
+BACNET_STACK_EXPORT
+BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void);
+BACNET_STACK_EXPORT
+bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state);
+BACNET_STACK_EXPORT
+bool Device_Backup_State_In_Progress(BACNET_BACKUP_STATE state);
+
+BACNET_STACK_EXPORT
 void Device_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -251,10 +289,18 @@ void Device_Objects_Property_List(
     uint32_t object_instance,
     struct special_property_list_t *pPropertyList);
 BACNET_STACK_EXPORT
+void Device_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+BACNET_STACK_EXPORT
 bool Device_Objects_Property_List_Member(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property);
+BACNET_STACK_EXPORT
+uint32_t Device_Objects_Writable_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const int32_t **properties);
 
 /* functions to support COV */
 BACNET_STACK_EXPORT
@@ -295,6 +341,15 @@ BACNET_STACK_EXPORT
 bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data);
+BACNET_STACK_EXPORT
+void Device_Delete_Objects(void);
+
+BACNET_STACK_EXPORT
+void Device_Start_Backup(void);
+BACNET_STACK_EXPORT
+void Device_Start_Restore(void);
+BACNET_STACK_EXPORT
+void Device_End_Restore(void);
 
 BACNET_STACK_EXPORT
 unsigned Device_Count(void);
@@ -416,6 +471,13 @@ BACNET_STACK_EXPORT
 bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 void Device_Write_Property_Store_Callback_Set(write_property_function cb);
+
+BACNET_STACK_EXPORT
+void Device_Property_List_Proprietary_Callback_Set(property_list_function cb);
+BACNET_STACK_EXPORT
+void Device_Read_Property_Proprietary_Callback_Set(read_property_function cb);
+BACNET_STACK_EXPORT
+void Device_Write_Property_Proprietary_Callback_Set(write_property_function cb);
 
 #if defined(INTRINSIC_REPORTING)
 BACNET_STACK_EXPORT

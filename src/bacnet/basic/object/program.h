@@ -26,6 +26,10 @@ void Program_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary);
 BACNET_STACK_EXPORT
+void Program_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
+BACNET_STACK_EXPORT
 bool Program_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned Program_Count(void);

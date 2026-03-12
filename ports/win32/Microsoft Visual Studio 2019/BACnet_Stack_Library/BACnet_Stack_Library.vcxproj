@@ -215,6 +215,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\rp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\rpm.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\sbuf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\shed_level.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timer_value.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timesync.c" />

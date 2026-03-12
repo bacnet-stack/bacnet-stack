@@ -14,6 +14,7 @@ SRCS = main.c \
 	${BACNET_SRC_DIR}/bacnet/bacint.c \
 	${BACNET_SRC_DIR}/bacnet/bacreal.c \
 	${BACNET_SRC_DIR}/bacnet/bacstr.c \
+	${BACNET_SRC_DIR}/bacnet/bactext.c \
 	${BACNET_SRC_DIR}/bacnet/iam.c \
 	${BACNET_SRC_DIR}/bacnet/datetime.c \
 	${BACNET_SRC_DIR}/bacnet/indtext.c \

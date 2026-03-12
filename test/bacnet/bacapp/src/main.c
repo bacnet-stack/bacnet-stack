@@ -1334,7 +1334,8 @@ void test_bacapp_snprintf(
         /* normal case */
         len = bacapp_snprintf_value(str, str_len + 1, &object_value);
         zassert_mem_equal(
-            str, expected, str_len, "str='%s' expected='%s'", str, expected);
+            str, expected, str_len, "%s: str='%s' expected='%s'",
+            bactext_application_tag_name(tag_number), str, expected);
         zassert_equal(len, str_len, NULL);
         /* test when buffer is too small the behavior matches snprintf(). */
         test_len = len;
@@ -1380,14 +1381,17 @@ static void test_bacapp_sprintf_epics(void)
         BACNET_APPLICATION_TAG_DOUBLE, "-3.14159", "-3.141590");
     test_bacapp_snprintf(
         BACNET_APPLICATION_TAG_OCTET_STRING, "1234567890ABCDEF",
-        "1234567890ABCDEF");
+        "X'1234567890ABCDEF'");
     test_bacapp_snprintf(
-        BACNET_APPLICATION_TAG_OCTET_STRING, "12-34-56-78-90-AB-CD-EF",
-        "1234567890ABCDEF");
+        BACNET_APPLICATION_TAG_OCTET_STRING, "X'1234567890ABCDEF'",
+        "X'1234567890ABCDEF'");
     test_bacapp_snprintf(
-        BACNET_APPLICATION_TAG_OCTET_STRING, "12 34 56 78 90 AB CD EF",
-        "1234567890ABCDEF");
-    test_bacapp_snprintf(BACNET_APPLICATION_TAG_OCTET_STRING, "", "");
+        BACNET_APPLICATION_TAG_OCTET_STRING, "X'12-34-56-78-90-AB-CD-EF'",
+        "X'1234567890ABCDEF'");
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "X'12 34 56 78 90 AB CD EF'",
+        "X'1234567890ABCDEF'");
+    test_bacapp_snprintf(BACNET_APPLICATION_TAG_OCTET_STRING, "", "X''");
     test_bacapp_snprintf(
         BACNET_APPLICATION_TAG_CHARACTER_STRING, "Karg!", "\"Karg!\"");
     test_bacapp_snprintf(BACNET_APPLICATION_TAG_CHARACTER_STRING, "", "\"\"");
