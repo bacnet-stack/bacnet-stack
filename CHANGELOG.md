@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-03-06
+## [Unreleased] - 2026-03-12
 
 ### Security
 
@@ -191,6 +191,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed segmentation fault in Schedule_Recalculate_PV() during application
+  startup. (#1258)
 * Fixed the ReadRange-ACK of the Address_List property. (#1149)
 * Fixed ReadRangeACK by sequence in Trend Log object. (#1150)
 * Fixed Device Management-Backup and Restore-B functionality to keep
