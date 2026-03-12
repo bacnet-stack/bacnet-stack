@@ -54,6 +54,7 @@
 *.depend
 *.layout
 *.dmp
+*.idx
 tags
 test-results.xml
 .vscode/
