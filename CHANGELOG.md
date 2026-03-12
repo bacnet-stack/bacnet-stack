@@ -190,6 +190,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed ReadRangeACK by sequence in Trend Log object. (#1150)
 * Fixed Device Management-Backup and Restore-B functionality to keep
   configuration files during the restore operation. (#1250)
 * Fixed Device Management-Backup and Restore-B Backup_Failure_Timeout
