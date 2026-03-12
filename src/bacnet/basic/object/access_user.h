@@ -45,6 +45,10 @@ void Access_User_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary);
 BACNET_STACK_EXPORT
+void Access_User_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
+BACNET_STACK_EXPORT
 bool Access_User_Valid_Instance(uint32_t object_instance);
 unsigned Access_User_Count(void);
 BACNET_STACK_EXPORT

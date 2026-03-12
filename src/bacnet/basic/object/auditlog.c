@@ -137,6 +137,14 @@ static const int32_t BACnetARRAY_Properties[] = {
     -1
 };
 
+static const int32_t Writable_Properties[] = {
+    /* Every object shall have a Writable Property_List property
+    which is a BACnetARRAY of property identifiers,
+    one property identifier for each property within this object
+    that is always writable.  */
+    PROP_ENABLE, PROP_BUFFER_SIZE, -1
+};
+
 /**
  * @brief Determine if the object property is a BACnetARRAY property
  * @param object_property - object-property to be checked
@@ -174,6 +182,20 @@ void Audit_Log_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for an Audit Log object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Audit_Log_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**

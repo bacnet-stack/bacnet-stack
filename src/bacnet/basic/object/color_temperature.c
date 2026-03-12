@@ -79,6 +79,21 @@ static const int32_t Color_Temperature_Properties_Optional[] = {
 
 static const int32_t Color_Temperature_Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE,
+    PROP_DEFAULT_COLOR_TEMPERATURE,
+    PROP_DEFAULT_FADE_TIME,
+    PROP_TRANSITION,
+    PROP_DEFAULT_RAMP_RATE,
+    PROP_DEFAULT_STEP_INCREMENT,
+    -1
+};
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -109,7 +124,21 @@ void Color_Temperature_Property_Lists(
 }
 
 /**
- * Determines if a given Color instance is valid
+ * @brief Get the list of writable properties for an Color Temperature object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Color_Temperature_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
+}
+
+/**
+ * Determines if a given Color Temperature instance is valid
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -128,9 +157,9 @@ bool Color_Temperature_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * Determines the number of Color objects
+ * Determines the number of Color Temperature objects
  *
- * @return  Number of Color objects
+ * @return  Number of Color Temperature objects
  */
 unsigned Color_Temperature_Count(void)
 {
@@ -139,7 +168,7 @@ unsigned Color_Temperature_Count(void)
 
 /**
  * Determines the object instance-number for a given 0..N index
- * of Color objects where N is Color_Temperature_Count().
+ * of Color Temperature objects where N is Color_Temperature_Count().
  *
  * @param  index - 0..N where N is Color_Temperature_Count()
  *
@@ -156,7 +185,7 @@ uint32_t Color_Temperature_Index_To_Instance(unsigned index)
 
 /**
  * For a given object instance-number, determines a 0..N index
- * of Color objects where N is Color_Temperature_Count().
+ * of Color Temperature objects where N is Color_Temperature_Count().
  *
  * @param  object_instance - object-instance number of the object
  *

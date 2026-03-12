@@ -10,7 +10,7 @@ fi
 
 if [ ! -d "libpifacedigital" ]
 then
-    git clone https://github.com:piface/libpifacedigital.git
+    git clone https://github.com/piface/libpifacedigital.git
 fi
 
 # Build the library

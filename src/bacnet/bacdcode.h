@@ -47,6 +47,7 @@ typedef int (*bacnet_array_property_element_decode_function)(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -54,6 +55,7 @@ typedef int (*bacnet_array_property_element_decode_function)(
 typedef BACNET_ERROR_CODE (*bacnet_array_property_element_write_function)(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len);
 
@@ -85,6 +87,19 @@ typedef struct BACnetTag {
     bool closing : 1;
     uint32_t len_value_type;
 } BACNET_TAG;
+
+typedef struct BACnetCharacterStringBuffer {
+    uint8_t encoding;
+    char *buffer;
+    size_t buffer_size;
+    uint32_t buffer_length;
+} BACNET_CHARACTER_STRING_BUFFER;
+
+typedef struct BACnetOctetStringBuffer {
+    uint8_t *buffer;
+    size_t buffer_size;
+    uint32_t buffer_length;
+} BACNET_OCTET_STRING_BUFFER;
 
 /* max size of a BACnet tag */
 #define BACNET_TAG_SIZE 7
@@ -183,6 +198,8 @@ int encode_application_null(uint8_t *apdu);
 BACNET_STACK_EXPORT
 int encode_context_null(uint8_t *apdu, uint8_t tag_number);
 BACNET_STACK_EXPORT
+int bacnet_null_application_encode(uint8_t *apdu, uint32_t apdu_size);
+BACNET_STACK_EXPORT
 int bacnet_null_application_decode(const uint8_t *apdu, uint32_t apdu_size);
 BACNET_STACK_EXPORT
 int bacnet_null_context_decode(
@@ -196,7 +213,7 @@ bool decode_boolean(uint32_t len_value);
 BACNET_STACK_EXPORT
 int encode_context_boolean(
     uint8_t *apdu, uint8_t tag_number, bool boolean_value);
-BACNET_STACK_DEPRECATED("Use bacnet_boolean_context_decode() instead")
+BACNET_STACK_DEPRECATED("Use bacnet_boolean_context_value_decode() instead")
 BACNET_STACK_EXPORT
 bool decode_context_boolean(const uint8_t *apdu);
 BACNET_STACK_EXPORT
@@ -242,6 +259,8 @@ int bacnet_bitstring_decode(
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_BIT_STRING *value);
+BACNET_STACK_EXPORT
+uint8_t bacnet_byte_reverse_bits(uint8_t in_byte);
 
 BACNET_STACK_EXPORT
 int bacnet_bitstring_application_encode(
@@ -311,6 +330,13 @@ int bacnet_double_application_decode(
     const uint8_t *apdu, uint32_t apdu_len_max, double *value);
 
 BACNET_STACK_EXPORT
+uint32_t
+bacnet_object_id_to_value(BACNET_OBJECT_TYPE object_type, uint32_t instance);
+BACNET_STACK_EXPORT
+void bacnet_object_id_from_value(
+    uint32_t value, BACNET_OBJECT_TYPE *object_type, uint32_t *instance);
+
+BACNET_STACK_EXPORT
 int encode_bacnet_object_id(
     uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t instance);
 BACNET_STACK_EXPORT
@@ -376,6 +402,51 @@ bool bacnet_object_id_same(
     uint32_t instance2);
 
 BACNET_STACK_EXPORT
+int encode_application_octet_string_buffer(
+    uint8_t *apdu, const uint8_t *buffer, size_t buffer_size);
+BACNET_STACK_EXPORT
+int encode_context_octet_string_buffer(
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const uint8_t *buffer,
+    size_t buffer_size);
+BACNET_STACK_EXPORT
+int bacnet_octet_string_buffer_application_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    const uint8_t *buffer,
+    size_t buffer_size);
+BACNET_STACK_EXPORT
+int bacnet_octet_string_buffer_context_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    const uint8_t *buffer,
+    size_t buffer_size);
+BACNET_STACK_EXPORT
+int bacnet_octet_string_buffer_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    uint8_t *buffer,
+    size_t buffer_size);
+BACNET_STACK_EXPORT
+int bacnet_octet_string_buffer_application_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t *buffer,
+    size_t buffer_size,
+    uint32_t *buffer_length);
+BACNET_STACK_EXPORT
+int bacnet_octet_string_buffer_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_value,
+    uint8_t *buffer,
+    size_t buffer_size,
+    uint32_t *buffer_length);
+
+BACNET_STACK_EXPORT
 int encode_octet_string(uint8_t *apdu, const BACNET_OCTET_STRING *octet_string);
 BACNET_STACK_EXPORT
 int encode_application_octet_string(
@@ -418,6 +489,58 @@ uint32_t encode_bacnet_character_string_safe(
     uint8_t encoding,
     const char *pString,
     uint32_t length);
+BACNET_STACK_EXPORT
+uint32_t encode_bacnet_character_string_buffer(
+    uint8_t *apdu, const BACNET_CHARACTER_STRING_BUFFER *value);
+BACNET_STACK_EXPORT
+int encode_context_character_string_buffer(
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const BACNET_CHARACTER_STRING_BUFFER *char_string);
+BACNET_STACK_EXPORT
+int encode_application_character_string_buffer(
+    uint8_t *apdu, const BACNET_CHARACTER_STRING_BUFFER *char_string);
+BACNET_STACK_EXPORT
+int bacnet_character_string_buffer_application_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    const BACNET_CHARACTER_STRING_BUFFER *value);
+BACNET_STACK_EXPORT
+int bacnet_character_string_buffer_context_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    const BACNET_CHARACTER_STRING_BUFFER *value);
+BACNET_STACK_EXPORT
+int bacnet_character_string_buffer_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    BACNET_CHARACTER_STRING_BUFFER *value);
+BACNET_STACK_EXPORT
+int bacnet_character_string_buffer_application_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_CHARACTER_STRING_BUFFER *value);
+BACNET_STACK_EXPORT
+int bacnet_character_string_buffer_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_value,
+    BACNET_CHARACTER_STRING_BUFFER *value);
+BACNET_STACK_EXPORT
+void bacnet_character_string_buffer_init(
+    BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t encoding,
+    char *buffer,
+    size_t buffer_size);
+BACNET_STACK_EXPORT
+bool bacnet_character_string_buffer_unpack(
+    const BACNET_CHARACTER_STRING_BUFFER *value,
+    uint8_t *encoding,
+    char *buffer,
+    uint32_t *buffer_length);
+
 BACNET_STACK_EXPORT
 int encode_bacnet_character_string(
     uint8_t *apdu, const BACNET_CHARACTER_STRING *char_string);

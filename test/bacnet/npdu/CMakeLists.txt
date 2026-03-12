@@ -42,11 +42,13 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/tsm/tsm.c
     ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/reject.c
     ${SRC_DIR}/bacnet/rp.c

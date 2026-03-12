@@ -107,17 +107,15 @@ size_t list_element_service_request_encode(
 /**
  * @brief Decode the Add/Remove ListElement service request only
  * @param apdu  Pointer to the buffer for decoding.
- * @param apdu_len  Count of valid bytes in the buffer.
+ * @param apdu_size  Count of valid bytes in the buffer.
  * @param list_element  Pointer to the property decoded data to be stored
  *
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
  */
 int list_element_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_LIST_ELEMENT_DATA *list_element)
+    uint8_t *apdu, unsigned apdu_size, BACNET_LIST_ELEMENT_DATA *list_element)
 {
-    unsigned len = 0, application_data_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    int len = 0, application_data_len = 0, apdu_len = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     uint32_t property = 0;
@@ -125,7 +123,7 @@ int list_element_decode_service_request(
 
     /* Must have at least 2 tags, an object id and a property identifier
      * of at least 1 byte in length to have any chance of parsing */
-    if (apdu_len < 7) {
+    if (apdu_size < 7) {
         if (list_element) {
             list_element->error_code =
                 ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
@@ -134,107 +132,87 @@ int list_element_decode_service_request(
     }
 
     /* Tag 0: Object ID          */
-    if (!decode_is_context_tag(&apdu[len++], 0)) {
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &object_type,
+        &object_instance);
+    if (len <= 0) {
         if (list_element) {
             list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
         return BACNET_STATUS_REJECT;
     }
-    len += decode_object_id(&apdu[len], &object_type, &object_instance);
+    apdu_len += len;
     if (list_element) {
         list_element->object_type = object_type;
         list_element->object_instance = object_instance;
     }
     /* Tag 1: Property ID */
-    len +=
-        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-    if (tag_number != 1) {
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &property);
+    if (len <= 0) {
         if (list_element) {
             list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
         return BACNET_STATUS_REJECT;
     }
-    if (len >= apdu_len) {
-        if (list_element) {
-            list_element->error_code =
-                ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
-        }
-        return BACNET_STATUS_REJECT;
-    }
-    len += decode_enumerated(&apdu[len], len_value_type, &property);
     if (list_element) {
         list_element->object_property = (BACNET_PROPERTY_ID)property;
     }
-    if (len >= apdu_len) {
-        if (list_element) {
-            list_element->error_code =
-                ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
-        }
-        return BACNET_STATUS_REJECT;
-    }
+    apdu_len += len;
     /* Tag 2: Optional Array Index */
-    if (decode_is_opening_tag_number(&apdu[len], 3)) {
-        /* this is tag 3, therefore, optional tag 2 is not present  */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
+    if (len > 0) {
+        if (list_element) {
+            list_element->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
+        }
+        apdu_len += len;
+    } else if (len == 0) {
+        /* optional, so not an error if not present */
         if (list_element) {
             list_element->array_index = BACNET_ARRAY_ALL;
         }
     } else {
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if ((tag_number == 2) && (len < apdu_len)) {
-            len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
-            if (list_element) {
-                list_element->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
-            }
-        }
-    }
-    if (len >= apdu_len) {
         if (list_element) {
-            list_element->error_code =
-                ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+            list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
         return BACNET_STATUS_REJECT;
     }
     /* Tag 3: opening context tag */
-    if (decode_is_opening_tag_number(&apdu[len], 3)) {
-        /* an opening tag number of 3 is not extended so only one octet */
-        len++;
-        /* don't decode the application tag number or its data here */
-        if (list_element) {
-            list_element->application_data = &apdu[len];
-        }
-        application_data_len = apdu_len - len - 1 /*closing tag */;
-        if (list_element) {
-            /* Just to ensure we do not create a wrapped over value here. */
-            if (len < apdu_len) {
-                list_element->application_data_len = application_data_len;
-            } else {
-                list_element->application_data_len = 0;
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
+        application_data_len =
+            bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
+        if (application_data_len < 0) {
+            if (list_element) {
+                list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
+            return BACNET_STATUS_REJECT;
         }
-        len += application_data_len;
+        /* add the tag length */
+        apdu_len += len;
+        /* postpone the application data */
+        if (list_element) {
+            list_element->application_data = &apdu[apdu_len];
+            list_element->application_data_len = application_data_len;
+        }
+        apdu_len += application_data_len;
     } else {
         if (list_element) {
             list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
         return BACNET_STATUS_REJECT;
     }
-    if (len >= apdu_len) {
-        if (list_element) {
-            list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
-        }
-        return BACNET_STATUS_REJECT;
-    }
-    if (decode_is_closing_tag_number(&apdu[len], 3)) {
-        /* a closing tag number of 3 is not extended so only one octet */
-        len++;
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
+        apdu_len += len;
     } else {
         if (list_element) {
             list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
         return BACNET_STATUS_REJECT;
     }
-    if (len < apdu_len) {
+    if (apdu_len < apdu_size) {
         /* If something left over now, we have an invalid request */
         if (list_element) {
             list_element->error_code = ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS;
@@ -242,7 +220,7 @@ int list_element_decode_service_request(
         return BACNET_STATUS_REJECT;
     }
 
-    return (int)len;
+    return (int)apdu_len;
 }
 
 /**
@@ -330,9 +308,7 @@ int list_element_error_ack_decode(
         return 0;
     }
     /* Opening Context tag 0 - Error */
-    if (decode_is_opening_tag_number(apdu, 0)) {
-        /* opening tag 0 is 1 byte */
-        len = 1;
+    if (bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
         apdu_len += len;
         apdu += len;
     } else {
@@ -357,9 +333,7 @@ int list_element_error_ack_decode(
         return 0;
     }
     /* Closing Context tag 0 - Error */
-    if (decode_is_closing_tag_number(apdu, 0)) {
-        /* closing tag 0 is 1 byte */
-        len = 1;
+    if (bacnet_is_closing_tag_number(apdu, apdu_size - apdu_len, 0, &len)) {
         apdu_len += len;
         apdu += len;
     } else {

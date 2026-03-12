@@ -20,9 +20,7 @@
 #include "bacnet/reject.h"
 #include "bacnet/arf.h"
 /* basic objects, services, TSM, and datalink */
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
@@ -79,7 +77,6 @@ last octet or record of the file, then the 'End Of File' parameter
 shall be TRUE, otherwise FALSE.
 */
 
-#if defined(BACFILE)
 void handler_atomic_read_file(
     uint8_t *service_request,
     uint16_t service_len,
@@ -196,4 +193,3 @@ ARF_ABORT:
 
     return;
 }
-#endif

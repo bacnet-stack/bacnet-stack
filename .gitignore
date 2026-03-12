@@ -54,6 +54,7 @@
 *.depend
 *.layout
 *.dmp
+*.idx
 tags
 test-results.xml
 .vscode/
@@ -77,6 +78,8 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 CTestTestfile.cmake
+CMakeSettings.json
+
 # zephyr artifacts
 /twister-out/*
 /test/build/

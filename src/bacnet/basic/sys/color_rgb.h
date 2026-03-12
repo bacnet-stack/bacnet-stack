@@ -17,6 +17,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
+double color_rgb_clamp(double d, double min, double max);
+
+BACNET_STACK_EXPORT
 void color_rgb_to_xy(
     uint8_t r,
     uint8_t g,
@@ -55,6 +58,13 @@ const char *color_rgb_to_ascii(uint8_t red, uint8_t green, uint8_t blue);
 BACNET_STACK_EXPORT
 unsigned color_rgb_from_ascii(
     uint8_t *red, uint8_t *green, uint8_t *blue, const char *name);
+BACNET_STACK_EXPORT
+bool color_rgb_xy_from_ascii(
+    float *x_coordinate,
+    float *y_coordinate,
+    uint8_t *brightness,
+    const char *name);
+
 BACNET_STACK_EXPORT
 const char *color_rgb_from_index(
     unsigned target_index, uint8_t *red, uint8_t *green, uint8_t *blue);

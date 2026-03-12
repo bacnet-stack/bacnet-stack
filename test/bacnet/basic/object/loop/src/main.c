@@ -35,106 +35,18 @@ static int Read_Property_Internal(BACNET_READ_PROPERTY_DATA *data)
     return Read_Property_Internal_Length;
 }
 
-static int Proprietary_Properties[] = { 512, 513, -1 };
-static uint8_t Proprietary_Serial_Number[16];
-
-/**
- * @brief WriteProperty handler for this objects proprietary properties.
- * For the given WriteProperty data, the application_data is loaded
- * or the error code and class are set and the return value is false.
- * @param  data - BACNET_WRITE_PROPERTY_DATA data, including
- * requested data and space for the reply, or error response.
- * @return false if an error is loaded, true if no errors
- */
-static bool Write_Property_Proprietary(BACNET_WRITE_PROPERTY_DATA *data)
+static struct loop_write_property_notification Write_Property_Notification;
+static BACNET_WRITE_PROPERTY_DATA Write_Property_Notification_Data;
+static uint32_t Write_Property_Notification_Instance;
+static bool Write_Property_Notification_Status;
+static void Loop_Write_Property_Notification_Callback(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;
-    int apdu_len = 0;
-    uint8_t *apdu = NULL;
-    size_t apdu_size = 0;
-    BACNET_OCTET_STRING octet_value = { 0 };
-
-    switch ((int)data->object_property) {
-        case 512:
-            apdu_len = bacnet_octet_string_application_decode(
-                apdu, apdu_size, &octet_value);
-            if (apdu_len > 0) {
-                octetstring_copy_value(
-                    Proprietary_Serial_Number,
-                    sizeof(Proprietary_Serial_Number), &octet_value);
-                status = true;
-            } else if (apdu_len == 0) {
-                status = false;
-                data->error_class = ERROR_CLASS_PROPERTY;
-                data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-
-            } else {
-                status = false;
-                data->error_class = ERROR_CLASS_PROPERTY;
-                data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-            }
-            break;
-        case 513:
-        default:
-            status = false;
-            data->error_class = ERROR_CLASS_PROPERTY;
-            data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
-    }
-
-    return false;
-}
-
-/**
- * @brief ReadProperty handler for this objects proprietary properties.
- * For the given ReadProperty data, the application_data is loaded
- * or the error code and class are set and the return value is
- * BACNET_STATUS_ERROR.
- * @param  data - BACNET_READ_PROPERTY_DATA data, including
- * requested data and space for the reply, or error response.
- * @return false if an error is loaded, true if no errors
- */
-static int Read_Property_Proprietary(BACNET_READ_PROPERTY_DATA *data)
-{
-    int apdu_len = 0;
-    uint8_t *apdu = NULL;
-    size_t apdu_size = 0;
-    BACNET_OCTET_STRING octet_value = { 0 };
-    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-
-    if ((data == NULL) || (data->application_data == NULL) ||
-        (data->application_data_len == 0)) {
-        return 0;
-    }
-    /* none of our proprietary properties are arrays */
-    if (data->array_index != BACNET_ARRAY_ALL) {
-        data->error_class = ERROR_CLASS_PROPERTY;
-        data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return BACNET_STATUS_ERROR;
-    }
-    apdu = data->application_data;
-    apdu_size = data->application_data_len;
-    switch ((int)data->object_property) {
-        case 512:
-            octetstring_init(
-                &octet_value, Proprietary_Serial_Number,
-                sizeof(Proprietary_Serial_Number));
-            apdu_len = bacnet_octet_string_application_encode(
-                apdu, apdu_size, &octet_value);
-            break;
-        case 513:
-            unsigned_value = Loop_Size();
-            apdu_len = bacnet_unsigned_application_encode(
-                apdu, apdu_size, unsigned_value);
-            break;
-        default:
-            data->error_class = ERROR_CLASS_PROPERTY;
-            data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = BACNET_STATUS_ERROR;
-            break;
-    }
-
-    return apdu_len;
+    Write_Property_Notification_Instance = instance;
+    Write_Property_Notification_Status = status;
+    memcpy(
+        &Write_Property_Notification_Data, wp_data,
+        sizeof(BACNET_WRITE_PROPERTY_DATA));
 }
 
 /**
@@ -189,10 +101,6 @@ static void test_Loop_Read_Write(void)
     /* reliability and status flags */
     status = Loop_Reliability_Set(instance, RELIABILITY_PROCESS_ERROR);
     zassert_true(status, NULL);
-    /* add some proprietary properties */
-    Loop_Proprietary_Property_List_Set(Proprietary_Properties);
-    Loop_Read_Property_Proprietary_Callback_Set(Read_Property_Proprietary);
-    Loop_Write_Property_Proprietary_Callback_Set(Write_Property_Proprietary);
     /* perform a general test for RP/WP */
     bacnet_object_properties_read_write_test(
         OBJECT_LOOP, instance, Loop_Property_Lists, Loop_Read_Property,
@@ -369,6 +277,8 @@ static void test_Loop_Operation(void)
     bool status = false;
     uint32_t elapsed_time = 0;
     BACNET_OBJECT_PROPERTY_REFERENCE reference = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
+    int len = 0;
 
     /* init */
     Loop_Init();
@@ -379,6 +289,10 @@ static void test_Loop_Operation(void)
     /* connect the read and write property callbacks */
     Loop_Write_Property_Internal_Callback_Set(Write_Property_Internal);
     Loop_Read_Property_Internal_Callback_Set(Read_Property_Internal);
+    Write_Property_Notification.callback =
+        Loop_Write_Property_Notification_Callback;
+    Write_Property_Notification.next = NULL;
+    Loop_Write_Property_Notification_Add(&Write_Property_Notification);
     /* run the PID loop */
     Loop_Timer(instance, elapsed_time);
     elapsed_time += 1000;
@@ -402,6 +316,42 @@ static void test_Loop_Operation(void)
     Loop_Manipulated_Variable_Reference_Set(instance, &reference);
     elapsed_time += 100;
     Loop_Timer(instance, elapsed_time);
+    /* references - test by referencing another internal object */
+    reference.object_identifier.type = OBJECT_ANALOG_OUTPUT;
+    reference.property_identifier = PROP_PRESENT_VALUE;
+    Loop_Manipulated_Variable_Reference_Set(instance, &reference);
+    elapsed_time += 100;
+    Loop_Timer(instance, elapsed_time);
+    /* verify that the internal read/write property callbacks were used */
+    zassert_equal(
+        Write_Property_Internal_Data.object_type, OBJECT_ANALOG_OUTPUT,
+        "WriteProperty=%s:%d",
+        bactext_object_type_name(Write_Property_Internal_Data.object_type),
+        Write_Property_Internal_Data.object_instance);
+    zassert_equal(
+        Write_Property_Internal_Data.object_instance, instance,
+        "WriteProperty=%s:%d",
+        bactext_object_type_name(Write_Property_Internal_Data.object_type),
+        Write_Property_Internal_Data.object_instance);
+    zassert_equal(
+        Write_Property_Internal_Data.object_property, PROP_PRESENT_VALUE,
+        "WriteProperty=%s:%d %s",
+        bactext_object_type_name(Write_Property_Internal_Data.object_type),
+        Write_Property_Internal_Data.object_instance,
+        bactext_property_name(Write_Property_Internal_Data.object_property));
+    len = bacapp_decode_application_data(
+        Write_Property_Internal_Data.application_data,
+        Write_Property_Internal_Data.application_data_len, &test_value);
+    zassert_true(len > 0, "len=%d", len);
+    zassert_equal(Write_Property_Notification_Instance, instance, NULL);
+    zassert_equal(Write_Property_Notification_Status, true, NULL);
+    zassert_equal(
+        Write_Property_Notification_Data.object_property, PROP_PRESENT_VALUE,
+        NULL);
+    len = bacapp_decode_application_data(
+        Write_Property_Notification_Data.application_data,
+        Write_Property_Notification_Data.application_data_len, &test_value);
+    zassert_true(len > 0, "len=%d", len);
     /* cleanup instance */
     status = Loop_Delete(instance);
     zassert_true(status, NULL);

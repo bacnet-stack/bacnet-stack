@@ -19,6 +19,21 @@
 #include "bacnet/basic/object/lo.h"
 #include "bacnet/channel_value.h"
 
+/**
+ * @brief Callback for tracking the channel writes for logging or other purposes
+ * @param  instance - channel object instance number
+ * @param  status - true if write was successful
+ * @param  wp_data - pointer to the write property data structure
+ */
+typedef void (*channel_write_property_callback)(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data);
+/* linked list structure for notifications */
+struct channel_write_property_notification;
+struct channel_write_property_notification {
+    struct channel_write_property_notification *next;
+    channel_write_property_callback callback;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -27,6 +42,10 @@ void Channel_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
     const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Channel_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 bool Channel_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -104,6 +123,12 @@ bool Channel_Write_Member_Value(
 
 BACNET_STACK_EXPORT
 void Channel_Write_Property_Internal_Callback_Set(write_property_function cb);
+BACNET_STACK_EXPORT
+void Channel_Write_Property_Notification_Add(
+    struct channel_write_property_notification *notification);
+BACNET_STACK_EXPORT
+void Channel_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 void *Channel_Context_Get(uint32_t object_instance);

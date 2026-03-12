@@ -11,14 +11,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/time.h>
-#include <errno.h>
+#include <time.h>
 /* BSD includes */
+#if defined(__APPLE__) || defined(__darwin__)
 #include <IOKit/serial/ioss.h>
+#else
+#include <sys/serial.h>
+#endif
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacdef.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/mstp.h"

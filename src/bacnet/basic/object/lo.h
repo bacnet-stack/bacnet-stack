@@ -27,6 +27,10 @@ void Lighting_Output_Property_Lists(
     const int32_t **pOptional,
     const int32_t **pProprietary);
 BACNET_STACK_EXPORT
+void Lighting_Output_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
+BACNET_STACK_EXPORT
 bool Lighting_Output_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned Lighting_Output_Count(void);
@@ -215,6 +219,22 @@ bool Lighting_Output_Override_Color_Reference(
 BACNET_STACK_EXPORT
 bool Lighting_Output_Override_Color_Reference_Set(
     uint32_t object_instance, const BACNET_OBJECT_ID *value);
+
+BACNET_STACK_EXPORT
+float Lighting_Output_Feedback_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Feedback_Value_Set(uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
+float Lighting_Output_Power(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Power_Set(uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
+float Lighting_Output_Instantaneous_Power(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Instantaneous_Power_Set(
+    uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
 void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds);

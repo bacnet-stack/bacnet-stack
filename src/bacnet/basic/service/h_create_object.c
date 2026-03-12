@@ -34,7 +34,7 @@
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - a SimpleACK if Device_Create_Object() succeeds
+ * - a ComplexACK if Device_Create_Object() succeeds
  * - an Error if Device_Create_Object() fails
  *
  * @param service_request [in] The contents of the service request.

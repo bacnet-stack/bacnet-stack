@@ -31,7 +31,7 @@
 
 #if !defined(USER_DEFINED_BVLC_SC_HEADER_OPTION_MAX)
 #define BVLC_SC_HEADER_OPTION_MAX                                       \
-    4 /* though BACNet standard does not limit number of option headers \
+    4 /* though BACnet standard does not limit number of option headers \
      the implementation defines max value */
 #else
 #define BVLC_SC_HEADER_OPTION_MAX USER_DEFINED_BVLC_SC_HEADER_OPTION_MAX
@@ -39,7 +39,7 @@
 
 #if BVLC_SC_NPDU_SIZE > BVLC_SC_NPDU_MAX_SIZE
 #error \
-    "Maximum NPDU Length on BACNet/SC Data Link must be <= BVLC_SC_NPDU_MAX_SIZE"
+    "Maximum NPDU Length on BACnet/SC Data Link must be <= BVLC_SC_NPDU_MAX_SIZE"
 #endif
 
 /*

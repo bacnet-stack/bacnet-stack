@@ -17,7 +17,7 @@
  * @param data_list - list of strings and indices
  * @param search_name - string to search for
  * @param found_index - index of the string found
- * @return true if the string is found
+ * @return true if the matching string is found
  */
 bool indtext_by_string(
     INDTEXT_DATA *data_list, const char *search_name, uint32_t *found_index)
@@ -27,7 +27,7 @@ bool indtext_by_string(
 
     if (data_list && search_name) {
         while (data_list->pString) {
-            if (strcmp(data_list->pString, search_name) == 0) {
+            if (bacnet_strcmp(data_list->pString, search_name) == 0) {
                 index = data_list->index;
                 found = true;
                 break;
@@ -48,7 +48,7 @@ bool indtext_by_string(
  * @param data_list - list of strings and indices
  * @param search_name - string to search for
  * @param found_index - index of the string found
- * @return true if the string is found
+ * @return true if the matching string is found
  */
 bool indtext_by_istring(
     INDTEXT_DATA *data_list, const char *search_name, uint32_t *found_index)

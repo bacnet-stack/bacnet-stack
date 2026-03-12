@@ -1,8 +1,8 @@
 /**
  * @file
- * @brief BACNet secure connect node switch function API.
+ * @brief BACnet secure connect node switch function API.
  *        In general, user should not use that API directly,
- *        BACNet/SC datalink API should be used.
+ *        BACnet/SC datalink API should be used.
  * @author Kirill Neznamov <kirill\.neznamov@dsr-corporation\.com>
  * @date October 2022
  * @copyright SPDX-License-Identifier: MIT

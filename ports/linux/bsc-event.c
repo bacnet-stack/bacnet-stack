@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of port specific API used in BACNet secure connect.
+ * @brief Implementation of port specific API used in BACnet secure connect.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date August 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -17,7 +17,7 @@
 
 #undef DEBUG_PRINTF
 #if DEBUG_BSC_EVENT
-#define DEBUG_PRINTF printf
+#define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED
 #define DEBUG_PRINTF debug_printf_disabled

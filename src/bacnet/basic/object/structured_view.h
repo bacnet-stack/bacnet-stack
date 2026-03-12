@@ -16,13 +16,19 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/rp.h"
+#include "bacnet/wp.h"
 
+/* 12.29.7 Subordinate_List
+   If the size of the Subordinate_List array is changed,
+   the size of the Subordinate_Annotations, Subordinate_Tags,
+   Subordinate_Relationships, and Subordinate_Node_Types arrays,
+   if present, shall also be changed to the same size. */
 struct BACnetSubordinateData;
 typedef struct BACnetSubordinateData {
     uint32_t Device_Instance;
     BACNET_OBJECT_TYPE Object_Type;
     uint32_t Object_Instance;
-    const char *Annotations;
+    char *Annotation;
     BACNET_NODE_TYPE Node_Type;
     BACNET_RELATIONSHIP Relationship;
     /* simple linked list */
@@ -38,6 +44,10 @@ void Structured_View_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
     const int32_t **pProprietary);
+BACNET_STACK_EXPORT
+void Structured_View_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties);
+
 BACNET_STACK_EXPORT
 bool Structured_View_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -57,6 +67,8 @@ const char *Structured_View_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
+BACNET_STACK_EXPORT
+bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 const char *Structured_View_Description(uint32_t object_instance);
@@ -82,6 +94,9 @@ Structured_View_Subordinate_List(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Structured_View_Subordinate_List_Set(
     uint32_t object_instance, BACNET_SUBORDINATE_DATA *subordinate_list);
+BACNET_STACK_EXPORT
+void Structured_View_Subordinate_List_Link_Array(
+    BACNET_SUBORDINATE_DATA *array, size_t size);
 BACNET_STACK_EXPORT
 BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Member(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index);
@@ -127,6 +142,8 @@ bool Structured_View_Delete(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 void Structured_View_Cleanup(void);
+BACNET_STACK_EXPORT
+size_t Structured_View_Size(void);
 BACNET_STACK_EXPORT
 void Structured_View_Init(void);
 

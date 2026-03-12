@@ -35,6 +35,7 @@
 #include "bacnet/datalink/mstp.h"
 #include "rs485.h"
 #include "bacnet/basic/sys/fifo.h"
+#include "bacnet/basic/sys/debug.h"
 
 #include <sys/select.h>
 #include <sys/time.h>
@@ -156,7 +157,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         termios2_tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
 
 #if PRINT_ENABLED
-        fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
+        debug_fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Baud);
         fflush(stdout);
 #endif
     }
@@ -296,7 +297,7 @@ void RS485_Cleanup(void)
 void RS485_Initialize(void)
 {
 #if PRINT_ENABLED
-    fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
+    debug_printf("RS485 Interface: %s\n", RS485_Port_Name);
 #endif
     /*
        Open device for reading and writing.

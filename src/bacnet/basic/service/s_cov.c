@@ -90,19 +90,19 @@ int Send_UCOV_Notify(
 /** Sends a COV Subscription request.
  * @ingroup DSCOV
  *
- * @param device_id [in] ID of the destination device
+ * @param dest [in] BACNET_ADDRESS of the destination device
+ * @param max_apdu [in]
  * @param cov_data [in]  The COV subscription information to be encoded.
  * @return invoke id of outgoing message, or 0 if communication is disabled or
  *         no slot is available from the tsm for sending.
  */
-uint8_t Send_COV_Subscribe(
-    uint32_t device_id, const BACNET_SUBSCRIBE_COV_DATA *cov_data)
+uint8_t Send_COV_Subscribe_Address(
+    BACNET_ADDRESS *dest,
+    uint16_t max_apdu,
+    const BACNET_SUBSCRIBE_COV_DATA *cov_data)
 {
-    BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
-    unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
-    bool status = false;
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
@@ -111,18 +111,14 @@ uint8_t Send_COV_Subscribe(
     if (!dcc_communication_enabled()) {
         return 0;
     }
-    /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
-    if (status) {
-        invoke_id = tsm_next_free_invokeID();
-    }
+    invoke_id = tsm_next_free_invokeID();
     if (invoke_id) {
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
         pdu_len = npdu_encode_pdu(
-            &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+            &Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
         if (cov_data->covSubscribeToProperty) {
             /* subscribe to 1 property */
@@ -143,10 +139,10 @@ uint8_t Send_COV_Subscribe(
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
             tsm_set_confirmed_unsegmented_transaction(
-                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                invoke_id, dest, &npdu_data, &Handler_Transmit_Buffer[0],
                 (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
-                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+                dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
                 debug_perror("Failed to Send SubscribeCOV Request");
             }
@@ -158,6 +154,31 @@ uint8_t Send_COV_Subscribe(
                 "Failed to Send SubscribeCOV Request "
                 "(exceeds destination maximum APDU)!\n");
         }
+    }
+
+    return invoke_id;
+}
+
+/** Sends a COV Subscription request.
+ * @ingroup DSCOV
+ *
+ * @param device_id [in] ID of the destination device
+ * @param cov_data [in]  The COV subscription information to be encoded.
+ * @return invoke id of outgoing message, or 0 if communication is disabled or
+ *         no slot is available from the tsm for sending.
+ */
+uint8_t Send_COV_Subscribe(
+    uint32_t device_id, const BACNET_SUBSCRIBE_COV_DATA *cov_data)
+{
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
+    uint8_t invoke_id = 0;
+    bool status = false;
+
+    /* is the device bound? */
+    status = address_get_by_device(device_id, &max_apdu, &dest);
+    if (status) {
+        invoke_id = Send_COV_Subscribe_Address(&dest, max_apdu, cov_data);
     }
 
     return invoke_id;

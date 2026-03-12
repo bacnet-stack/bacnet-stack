@@ -31,25 +31,42 @@
     defined(CHANNEL_COLOR_COMMAND) || defined(CHANNEL_VALUE_ALL))
 #define CHANNEL_NUMERIC
 #elif defined(CHANNEL_VALUE_ALL)
+#undef CHANNEL_NUMERIC
 #define CHANNEL_NUMERIC
+#undef CHANNEL_OCTET_STRING
 #define CHANNEL_OCTET_STRING
+#undef CHANNEL_CHARACTER_STRING
 #define CHANNEL_CHARACTER_STRING
+#undef CHANNEL_BIT_STRING
 #define CHANNEL_BIT_STRING
+#undef CHANNEL_DATE
 #define CHANNEL_DATE
+#undef CHANNEL_TIME
 #define CHANNEL_TIME
+#undef CHANNEL_OBJECT_ID
 #define CHANNEL_OBJECT_ID
 #endif
 
 #if defined(CHANNEL_NUMERIC)
+#undef CHANNEL_NULL
 #define CHANNEL_NULL
+#undef CHANNEL_BOOLEAN
 #define CHANNEL_BOOLEAN
+#undef CHANNEL_UNSIGNED
 #define CHANNEL_UNSIGNED
+#undef CHANNEL_SIGNED
 #define CHANNEL_SIGNED
+#undef CHANNEL_REAL
 #define CHANNEL_REAL
+#undef CHANNEL_DOUBLE
 #define CHANNEL_DOUBLE
+#undef CHANNEL_ENUMERATED
 #define CHANNEL_ENUMERATED
+#undef CHANNEL_LIGHTING_COMMAND
 #define CHANNEL_LIGHTING_COMMAND
+#undef CHANNEL_COLOR_COMMAND
 #define CHANNEL_COLOR_COMMAND
+#undef CHANNEL_XY_COLOR
 #define CHANNEL_XY_COLOR
 #endif
 
@@ -148,6 +165,18 @@ int bacnet_channel_value_coerce_data_encode(
     size_t apdu_size,
     const BACNET_CHANNEL_VALUE *value,
     BACNET_APPLICATION_TAG tag);
+BACNET_STACK_EXPORT
+int bacnet_channel_value_no_coerce_type_encode(
+    uint8_t *apdu, const BACNET_CHANNEL_VALUE *value);
+BACNET_STACK_EXPORT
+int bacnet_channel_value_no_coerce_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_CHANNEL_VALUE *value);
+BACNET_STACK_EXPORT
+int bacnet_channel_value_no_coerce_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    uint8_t tag,
+    BACNET_CHANNEL_VALUE *value);
 
 #ifdef __cplusplus
 }

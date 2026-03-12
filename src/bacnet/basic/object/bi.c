@@ -97,6 +97,15 @@ static const int32_t Properties_Optional[] = {
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    -1
+};
+
 /**
  * Initialize the pointers for the required, the optional and the properitary
  * value properties.
@@ -121,6 +130,20 @@ void Binary_Input_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Binary Input object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Binary_Input_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -508,7 +531,7 @@ bool Binary_Input_Present_Value_Set(
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        if (value <= MAX_BINARY_PV) {
+        if (value < BINARY_PV_MAX) {
             /* de-polarize */
             if (Binary_Polarity(pObject->Polarity) != POLARITY_NORMAL) {
                 if (value == BINARY_INACTIVE) {
@@ -548,7 +571,7 @@ static bool Binary_Input_Present_Value_Write(
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        if (value <= MAX_BINARY_PV) {
+        if (value < BINARY_PV_MAX) {
             if (pObject->Write_Enabled) {
                 old_value = Binary_Present_Value(pObject->Present_Value);
                 Binary_Input_Present_Value_COV_Detect(pObject, value);
@@ -1170,7 +1193,7 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                if (value.type.Enumerated <= MAX_BINARY_PV) {
+                if (value.type.Enumerated < BINARY_PV_MAX) {
                     Binary_Input_Alarm_Value_Set(
                         wp_data->object_instance,
                         (BACNET_BINARY_PV)value.type.Enumerated);

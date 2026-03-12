@@ -183,8 +183,8 @@ int main(int argc, char *argv[])
     struct mstimer apdu_timer;
     struct mstimer maintenance_timer;
     bool found = false;
-    unsigned object_type = 0;
-    unsigned object_instance = 0;
+    unsigned long object_type = 0;
+    unsigned long object_instance = 0;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
@@ -218,7 +218,10 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
-                dnet = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if ((dnet >= 0) && (dnet <= UINT16_MAX)) {
                     specific_address = true;
                 }
@@ -233,25 +236,30 @@ int main(int argc, char *argv[])
             Verbose = true;
         } else {
             if (target_args == 0) {
-                object_instance = strtoul(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &object_instance)) {
+                    fprintf(stderr, "device-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(
-                        stderr, "device-instance=%u - not greater than %u\n",
+                        stderr, "device-instance=%lu - not greater than %u\n",
                         object_instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
                 Target_Device_Object_Instance = object_instance;
                 target_args++;
             } else if (target_args == 1) {
-                if (bactext_object_type_strtol(argv[argi], &object_type) ==
-                    false) {
+                if (!bacnet_strtoul(argv[argi], &object_type)) {
                     fprintf(stderr, "object-type=%s invalid\n", argv[argi]);
                     return 1;
                 }
                 Target_Object_Type = object_type;
                 target_args++;
             } else if (target_args == 2) {
-                object_instance = strtoul(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &object_instance)) {
+                    fprintf(stderr, "object-instance=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(
                         stderr, "object-instance=%u - not greater than %u\n",
@@ -260,7 +268,7 @@ int main(int argc, char *argv[])
                 }
                 Target_Object_Instance = object_instance;
                 if (Verbose) {
-                    printf("Instance=%u=%s\n", object_instance, argv[argi]);
+                    printf("Instance=%lu=%s\n", object_instance, argv[argi]);
                 }
                 target_args++;
             }

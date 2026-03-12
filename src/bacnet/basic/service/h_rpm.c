@@ -219,6 +219,7 @@ void handler_read_property_multiple(
     BACNET_RPM_DATA rpmdata;
     int apdu_len = 0;
     int npdu_len = 0;
+    int tag_len = 0;
     int error = 0;
 
     if (service_data) {
@@ -451,11 +452,12 @@ void handler_read_property_multiple(
                         }
                     }
 
-                    if (decode_is_closing_tag_number(
-                            &service_request[decode_len], 1)) {
+                    if (bacnet_is_closing_tag_number(
+                            &service_request[decode_len],
+                            service_len - decode_len, 1, &tag_len)) {
                         /* Reached end of property list so cap the result list
                          */
-                        decode_len++;
+                        decode_len += tag_len;
                         len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
                         copy_len = memcopy(
                             &Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],

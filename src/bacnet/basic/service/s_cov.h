@@ -39,6 +39,11 @@ int ucov_notify_encode_pdu(
     BACNET_NPDU_DATA *npdu_data,
     const BACNET_COV_DATA *cov_data);
 BACNET_STACK_EXPORT
+uint8_t Send_COV_Subscribe_Address(
+    BACNET_ADDRESS *dest,
+    uint16_t max_apdu,
+    const BACNET_SUBSCRIBE_COV_DATA *cov_data);
+BACNET_STACK_EXPORT
 uint8_t Send_COV_Subscribe(
     uint32_t device_id, const BACNET_SUBSCRIBE_COV_DATA *cov_data);
 

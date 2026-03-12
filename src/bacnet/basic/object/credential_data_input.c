@@ -37,6 +37,25 @@ static const int32_t Properties_Optional[] = { -1 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE, PROP_RELIABILITY, -1
+};
+
+/**
+ * @brief Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void Credential_Data_Input_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -55,6 +74,23 @@ void Credential_Data_Input_Property_Lists(
     return;
 }
 
+/**
+ * @brief Get list of writable properties for an Credential Data Input object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Credential_Data_Input_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
+}
+
+/**
+ * @brief Initialize the Credential Data Input object data structures.
+ */
 void Credential_Data_Input_Init(void)
 {
     unsigned i;
@@ -79,9 +115,11 @@ void Credential_Data_Input_Init(void)
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
+/**
+ * @brief Check if the given object instance is valid.
+ * @param object_instance - object-instance number of the object
+ * @return true if the instance is valid, false otherwise
+ */
 bool Credential_Data_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_CREDENTIAL_DATA_INPUTS) {
@@ -91,24 +129,32 @@ bool Credential_Data_Input_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * @brief Get the total count of Credential Data Input objects.
+ * @return The count of Credential Data Input objects.
+ */
 unsigned Credential_Data_Input_Count(void)
 {
     return MAX_CREDENTIAL_DATA_INPUTS;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Convert an object instance number to an index in the object array.
+ * @param object_instance - object-instance number of the object
+ * @return The index corresponding to the given object instance, or
+ * MAX_CREDENTIAL_DATA_INPUTS if the instance is invalid.
+ */
 uint32_t Credential_Data_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * @brief Convert an object instance number to an index in the object array.
+ * @param object_instance - object-instance number of the object
+ * @return The index corresponding to the given object instance, or
+ * MAX_CREDENTIAL_DATA_INPUTS if the instance is invalid.
+ */
 unsigned Credential_Data_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_CREDENTIAL_DATA_INPUTS;
@@ -120,7 +166,13 @@ unsigned Credential_Data_Input_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-/* note: the object name must be unique within this device */
+/**
+ * @brief Get the object name for a given Credential Data Input object instance.
+ * @param object_instance - object-instance number of the object
+ * @param object_name - pointer to a BACNET_CHARACTER_STRING to receive the
+ * object name
+ * @return true if the object name was successfully retrieved, false otherwise
+ */
 bool Credential_Data_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -137,6 +189,11 @@ bool Credential_Data_Input_Object_Name(
     return status;
 }
 
+/**
+ * @brief Check if the Credential Data Input object instance is out of service.
+ * @param object_instance - object-instance number of the object
+ * @return true if the object instance is out of service, false otherwise
+ */
 bool Credential_Data_Input_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
@@ -150,6 +207,13 @@ bool Credential_Data_Input_Out_Of_Service(uint32_t instance)
     return oos_flag;
 }
 
+/**
+ * @brief Set the out of service flag for a given Credential Data Input object
+ * instance.
+ * @param instance - object-instance number of the object
+ * @param oos_flag - true to set the object instance as out of service, false to
+ * set it as in service
+ */
 void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
@@ -160,7 +224,14 @@ void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
     }
 }
 
-/* return apdu len, or BACNET_STATUS_ERROR on error */
+/**
+ * @brief Read a property value for a given Credential Data Input object
+ * instance.
+ * @param rpdata - pointer to a BACNET_READ_PROPERTY_DATA structure containing
+ * the read request data
+ * @return The number of bytes encoded in the response, or BACNET_STATUS_ERROR
+ * on error.
+ */
 int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
@@ -266,7 +337,13 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/* returns true if successful */
+/**
+ * @brief Write a property value for a given Credential Data Input object
+ * instance.
+ * @param wp_data - pointer to a BACNET_WRITE_PROPERTY_DATA structure containing
+ * the write request data
+ * @return true if the property was successfully written, false otherwise
+ */
 bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -291,8 +368,9 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (Credential_Data_Input_Out_Of_Service(
                     wp_data->object_instance)) {
                 BACNET_AUTHENTICATION_FACTOR tmp;
-                len = bacapp_decode_authentication_factor(
-                    wp_data->application_data, &tmp);
+                len = bacnet_authentication_factor_decode(
+                    wp_data->application_data, wp_data->application_data_len,
+                    &tmp);
                 if (len > 0) {
                     memcpy(
                         &cdi_descr[object_index].present_value, &tmp,
@@ -320,19 +398,16 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_SUPPORTED_FORMATS:
-        case PROP_UPDATE_TIME:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

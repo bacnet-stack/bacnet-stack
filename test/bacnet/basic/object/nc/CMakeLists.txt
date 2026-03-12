@@ -59,6 +59,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/list_element.c
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/shed_level.c
     ${SRC_DIR}/bacnet/timer_value.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
@@ -71,6 +72,8 @@ add_executable(${PROJECT_NAME}
     # Test and test library files
     ./stubs.c
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/datetime_local.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

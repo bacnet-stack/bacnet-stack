@@ -343,6 +343,40 @@ static void test_NPDU_Segmented_Complex_Ack_Reply(void)
     zassert_true(status, NULL);
 }
 
+static void test_npdu_is_expected_reply_too_short(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    BACNET_ADDRESS *request_address,
+    uint16_t request_minimum_len,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    BACNET_ADDRESS *reply_address,
+    uint16_t reply_minimum_len)
+{
+    int test_len;
+    bool status;
+
+    /* shrink the buffers to test for buffer out-of-bounds read */
+    /* smallest valid request */
+    test_len = request_minimum_len;
+    while (test_len) {
+        test_len--;
+        status = npdu_is_expected_reply(
+            request_pdu, test_len, request_address, reply_pdu, reply_pdu_len,
+            reply_address);
+        zassert_false(status, "test_len=%d\n", test_len);
+    }
+    /* smallest valid reply */
+    test_len = reply_minimum_len;
+    while (test_len) {
+        test_len--;
+        status = npdu_is_expected_reply(
+            request_pdu, request_pdu_len, request_address, reply_pdu, test_len,
+            reply_address);
+        zassert_false(status, "test_len=%d\n", test_len);
+    }
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(npdu_tests, test_NPDU_Data_Expecting_Reply)
 #else
@@ -355,7 +389,8 @@ static void test_NPDU_Data_Expecting_Reply(void)
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t request_pdu[MAX_NPDU + MAX_APDU] = { 0 };
     uint8_t reply_pdu[MAX_NPDU + MAX_APDU] = { 0 };
-    int request_pdu_len = 0, reply_pdu_len = 0, npdu_len = 0, apdu_len = 0;
+    int request_pdu_len = 0, reply_pdu_len = 0, npdu_len = 0, apdu_len = 0,
+        request_npdu_len = 0;
     uint8_t invoke_id = 1;
     bool status;
 
@@ -376,6 +411,7 @@ static void test_NPDU_Data_Expecting_Reply(void)
     apdu_len = rp_encode_apdu(&request_pdu[npdu_len], invoke_id, &rpdata);
     zassert_true(apdu_len > 0, NULL);
     request_pdu_len = npdu_len + apdu_len;
+    request_npdu_len = npdu_len;
     /* reply */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(
@@ -395,6 +431,9 @@ static void test_NPDU_Data_Expecting_Reply(void)
         request_pdu, request_pdu_len, &test_address, reply_pdu, reply_pdu_len,
         &test_address);
     zassert_true(status, NULL);
+    test_npdu_is_expected_reply_too_short(
+        request_pdu, request_pdu_len, &test_address, request_npdu_len + 4,
+        reply_pdu, reply_pdu_len, &test_address, npdu_len + 3);
     /* using the MAC version of the function */
     status = npdu_is_data_expecting_reply(
         request_pdu, request_pdu_len, test_address.mac[0], reply_pdu,
@@ -458,6 +497,9 @@ static void test_NPDU_Data_Expecting_Reply(void)
         request_pdu, request_pdu_len, &test_address, reply_pdu, reply_pdu_len,
         &test_address);
     zassert_true(status, NULL);
+    test_npdu_is_expected_reply_too_short(
+        request_pdu, request_pdu_len, &test_address, request_npdu_len + 4,
+        reply_pdu, reply_pdu_len, &test_address, npdu_len + 3);
     /* reply with REJECT PDU */
     apdu_len = reject_encode_apdu(
         &reply_pdu[npdu_len], invoke_id, REJECT_REASON_OTHER);
@@ -467,6 +509,9 @@ static void test_NPDU_Data_Expecting_Reply(void)
         request_pdu, request_pdu_len, &test_address, reply_pdu, reply_pdu_len,
         &test_address);
     zassert_true(status, NULL);
+    test_npdu_is_expected_reply_too_short(
+        request_pdu, request_pdu_len, &test_address, request_npdu_len + 4,
+        reply_pdu, reply_pdu_len, &test_address, npdu_len + 2);
     /* reply with ABORT PDU */
     apdu_len = abort_encode_apdu(
         &reply_pdu[npdu_len], invoke_id, ABORT_REASON_OTHER, true);
@@ -476,6 +521,9 @@ static void test_NPDU_Data_Expecting_Reply(void)
         request_pdu, request_pdu_len, &test_address, reply_pdu, reply_pdu_len,
         &test_address);
     zassert_true(status, NULL);
+    test_npdu_is_expected_reply_too_short(
+        request_pdu, request_pdu_len, &test_address, request_npdu_len + 4,
+        reply_pdu, reply_pdu_len, &test_address, npdu_len + 2);
     /* reply with simple ack - note this is totally fake! */
     apdu_len = encode_simple_ack(
         &reply_pdu[npdu_len], invoke_id, SERVICE_CONFIRMED_READ_PROPERTY);
@@ -484,6 +532,10 @@ static void test_NPDU_Data_Expecting_Reply(void)
     status = npdu_is_expected_reply(
         request_pdu, request_pdu_len, &test_address, reply_pdu, reply_pdu_len,
         &test_address);
+    zassert_true(status, NULL);
+    test_npdu_is_expected_reply_too_short(
+        request_pdu, request_pdu_len, &test_address, request_npdu_len + 4,
+        reply_pdu, reply_pdu_len, &test_address, npdu_len + 3);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

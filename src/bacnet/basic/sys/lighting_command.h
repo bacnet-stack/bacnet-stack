@@ -41,11 +41,23 @@ struct lighting_command_timer_notification {
     lighting_command_timer_callback callback;
 };
 
+/**
+ * @brief Callback that manipulates the value at the specified priority slot
+    after a delay of Egress_Time seconds.
+ * @param object_instance object-instance number of the object
+ * @param operation BACnet lighting operation
+ * @param priority BACnet priority array value 1..16
+ */
+typedef void (*lighting_command_blink_callback)(
+    uint32_t key, BACNET_LIGHTING_OPERATION operation, uint8_t priority);
+
 typedef struct bacnet_lighting_command_warn_data {
     /* warn */
     float On_Value;
     float Off_Value;
     float End_Value;
+    uint8_t Priority;
+    lighting_command_blink_callback Callback;
     uint16_t Target_Interval;
     /* internal tracking */
     uint16_t Interval;

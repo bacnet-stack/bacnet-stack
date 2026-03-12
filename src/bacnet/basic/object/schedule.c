@@ -16,8 +16,10 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/object/schedule.h"
+
+#define UNUSED(v) (void)(v)
 
 #ifndef MAX_SCHEDULES
 #define MAX_SCHEDULES 4
@@ -52,6 +54,33 @@ static const int32_t Schedule_Properties_Optional[] = {
 
 static const int32_t Schedule_Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_OUT_OF_SERVICE,
+    PROP_WEEKLY_SCHEDULE,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
+    PROP_EFFECTIVE_PERIOD,
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    PROP_EXCEPTION_SCHEDULE,
+#endif
+    -1
+};
+
+/**
+ * Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ *
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void Schedule_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -65,6 +94,20 @@ void Schedule_Property_Lists(
     }
     if (pProprietary) {
         *pProprietary = Schedule_Properties_Proprietary;
+    }
+}
+
+/**
+ * @brief Get the list of writable properties for a Schedule object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Schedule_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
     }
 }
 
@@ -267,7 +310,7 @@ bool Schedule_Weekly_Schedule_Set(
     if (pObject && (array_index < BACNET_WEEKLY_SCHEDULE_SIZE)) {
         memcpy(
             &pObject->Weekly_Schedule[array_index], value,
-            sizeof(BACNET_WEEKLY_SCHEDULE));
+            sizeof(pObject->Weekly_Schedule[array_index]));
         return true;
     }
 
@@ -635,6 +678,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ *  if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -642,6 +687,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -654,8 +700,11 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+                through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
+        } else {
             array_index--;
             len = bacnet_dailyschedule_context_decode(
                 application_data, application_data_len, 0, &daily_schedule);
@@ -675,8 +724,6 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -712,6 +759,8 @@ static int Schedule_Weekly_Schedule_Element_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ * if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -719,6 +768,7 @@ static int Schedule_Weekly_Schedule_Element_Length(
 static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -730,8 +780,11 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+               through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= BACNET_WEEKLY_SCHEDULE_SIZE) {
+        } else {
             array_index--;
             len = bacnet_special_event_decode(
                 application_data, application_data_len, &special_event);
@@ -742,8 +795,6 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -779,6 +830,8 @@ static int Schedule_Exception_Schedule_Element_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ * if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -786,6 +839,7 @@ static int Schedule_Exception_Schedule_Element_Length(
 static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -798,8 +852,11 @@ static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (array_index == 0) {
-            error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        } else if (array_index <= BACNET_SCHEDULE_OBJ_PROP_REF_SIZE) {
+            /* This array is not required to be resizable
+               through BACnet write services */
+            (void)array_size;
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else {
             len = bacapp_decode_known_property(
                 application_data, application_data_len, &value, OBJECT_SCHEDULE,
                 PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
@@ -821,8 +878,6 @@ static BACNET_ERROR_CODE Schedule_List_Of_Object_Property_References_Write(
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -986,30 +1041,58 @@ bool Schedule_In_Effective_Period(
 void Schedule_Recalculate_PV(
     SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, const BACNET_TIME *time)
 {
-    int i;
+    int i, current, diff;
+    BACNET_TIME *tmptime;
     desc->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
     /* for future development, here should be the loop for Exception Schedule */
 
     /*  Note to developers: please ping Edward at info@connect-ex.com
         for a more complete schedule object implementation. */
-    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count &&
-         desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL;
-         i++) {
-        int diff = datetime_wildcard_compare_time(
+    current = -1;
+    tmptime = NULL;
+    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count; i++) {
+        diff = datetime_wildcard_compare_time(
             time, &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time);
-        if (diff >= 0 &&
-            desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag !=
-                BACNET_APPLICATION_TAG_NULL) {
-            bacnet_primitive_to_application_data_value(
-                &desc->Present_Value,
-                &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value);
+        if (diff >= 0) {
+            if (tmptime == NULL) {
+                tmptime = &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time;
+                current = i;
+            } else {
+                diff = datetime_wildcard_compare_time(
+                    &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time,
+                    tmptime);
+                if (diff >= 0) {
+                    tmptime =
+                        &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time;
+                    current = i;
+                }
+            }
         }
     }
-
-    if (desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL) {
+    if (current >= 0) {
+        bacnet_primitive_to_application_data_value(
+            &desc->Present_Value,
+            &desc->Weekly_Schedule[wday - 1].Time_Values[current].Value);
+    } else {
         memcpy(
             &desc->Present_Value, &desc->Schedule_Default,
             sizeof(desc->Present_Value));
     }
+}
+
+/**
+ * @brief Updates the Present Value of the Schedule object
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - Unused parameter
+ */
+void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
+{
+    BACNET_DATE_TIME bdatetime;
+    UNUSED(milliseconds);
+
+    Device_getCurrentDateTime(&bdatetime);
+
+    Schedule_Recalculate_PV(
+        Schedule_Object(object_instance), bdatetime.date.wday, &bdatetime.time);
 }

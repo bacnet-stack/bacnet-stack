@@ -37,9 +37,11 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
-    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/indtext.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

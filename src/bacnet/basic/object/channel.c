@@ -52,8 +52,11 @@ struct object_data {
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
-
+/* Internal write property callback */
 static write_property_function Write_Property_Internal_Callback;
+/* Write Property notification callbacks for logging or other purposes */
+static struct channel_write_property_notification
+    Write_Property_Notification_Head;
 
 /* These arrays are used by the ReadPropertyMultiple handler
    property-list property (as of protocol-revision 14) */
@@ -75,6 +78,20 @@ static const int32_t Channel_Properties_Required[] = {
 static const int32_t Channel_Properties_Optional[] = { -1 };
 
 static const int32_t Channel_Properties_Proprietary[] = { -1 };
+
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_PRESENT_VALUE,
+    PROP_OUT_OF_SERVICE,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
+    PROP_CHANNEL_NUMBER,
+    PROP_CONTROL_GROUPS,
+    -1
+};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -103,6 +120,20 @@ void Channel_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Get the list of writable properties for a Channel object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Channel_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
+    }
 }
 
 /**
@@ -581,10 +612,10 @@ bool Channel_Write_Member_Value(
     int apdu_len = 0;
 
     if (wp_data && value) {
-        if (((wp_data->object_type == OBJECT_ANALOG_INPUT) ||
-             (wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
+        if (((wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
              (wp_data->object_type == OBJECT_ANALOG_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -594,10 +625,10 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (
-            ((wp_data->object_type == OBJECT_BINARY_INPUT) ||
-             (wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
+            ((wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
              (wp_data->object_type == OBJECT_BINARY_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -607,10 +638,10 @@ bool Channel_Write_Member_Value(
                 status = true;
             }
         } else if (
-            ((wp_data->object_type == OBJECT_MULTI_STATE_INPUT) ||
-             (wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
+            ((wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
              (wp_data->object_type == OBJECT_MULTI_STATE_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
@@ -619,53 +650,36 @@ bool Channel_Write_Member_Value(
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
-        } else if (wp_data->object_type == OBJECT_LIGHTING_OUTPUT) {
-            if ((wp_data->object_property == PROP_PRESENT_VALUE) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_REAL);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
-            } else if (
-                (wp_data->object_property == PROP_LIGHTING_COMMAND) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_LIGHTING_COMMAND);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
+        } else if (
+            (wp_data->object_type == OBJECT_LIGHTING_OUTPUT) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_RELINQUISH_DEFAULT)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
+            apdu_len = bacnet_channel_value_coerce_data_encode(
+                wp_data->application_data, wp_data->application_data_len, value,
+                BACNET_APPLICATION_TAG_REAL);
+            if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
             }
-        } else if (wp_data->object_type == OBJECT_COLOR) {
-            if ((wp_data->object_property == PROP_PRESENT_VALUE) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_XY_COLOR);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
-            } else if (
-                (wp_data->object_property == PROP_COLOR_COMMAND) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
-                apdu_len = bacnet_channel_value_coerce_data_encode(
-                    wp_data->application_data, wp_data->application_data_len,
-                    value, BACNET_APPLICATION_TAG_COLOR_COMMAND);
-                if (apdu_len != BACNET_STATUS_ERROR) {
-                    wp_data->application_data_len = apdu_len;
-                    status = true;
-                }
-            }
-        } else if (wp_data->object_type == OBJECT_COLOR_TEMPERATURE) {
+        } else if (
+            (wp_data->object_type == OBJECT_COLOR_TEMPERATURE) &&
+            ((wp_data->object_property == PROP_PRESENT_VALUE) ||
+             (wp_data->object_property == PROP_DEFAULT_COLOR_TEMPERATURE)) &&
+            (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = bacnet_channel_value_coerce_data_encode(
                 wp_data->application_data, wp_data->application_data_len, value,
                 BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (apdu_len != BACNET_STATUS_ERROR) {
+                wp_data->application_data_len = apdu_len;
+                status = true;
+            }
+        } else {
+            /* no coercion */
+            apdu_len = bacnet_channel_value_no_coerce_encode(
+                wp_data->application_data, wp_data->application_data_len,
+                value);
+            if (apdu_len > 0) {
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
@@ -726,23 +740,32 @@ static bool Channel_Write_Members(
                         "channel[%lu].Channel_Write_Member[%u] coerced\n",
                         (unsigned long)object_instance, m);
                     if (Write_Property_Internal_Callback) {
-                        status = Write_Property_Internal_Callback(&wp_data);
+                        status = write_property_bacnet_array_valid(&wp_data);
                         if (status) {
-                            wp_data.error_code = ERROR_CODE_SUCCESS;
+                            status = Write_Property_Internal_Callback(&wp_data);
+                            if (status) {
+                                wp_data.error_code = ERROR_CODE_SUCCESS;
+                            }
                         }
                         debug_printf(
                             "channel[%lu].Channel_Write_Member[%u] "
-                            "%s\n",
+                            "%s-%u %s %s\n",
                             (unsigned long)object_instance, m,
+                            bactext_object_type_name(wp_data.object_type),
+                            wp_data.object_instance,
+                            bactext_property_name(wp_data.object_property),
                             bactext_error_code_name(wp_data.error_code));
                     }
                 } else {
+                    wp_data.error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
                     debug_printf(
                         "channel[%lu].Channel_Write_Member[%u] "
                         "coercion failed!\n",
                         (unsigned long)object_instance, m);
                     pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
                 }
+                Channel_Write_Property_Notify(
+                    object_instance, status, &wp_data);
             } else {
                 debug_printf(
                     "channel[%lu].Channel_Write_Member[%u] invalid!\n",
@@ -991,7 +1014,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_PRESENT_VALUE:
             cvalue = Channel_Present_Value(rpdata->object_instance);
             apdu_len = bacnet_channel_value_encode(apdu, apdu_size, cvalue);
-            if (apdu_len == BACNET_STATUS_ERROR) {
+            if (apdu_len == 0) {
                 apdu_len = encode_application_null(apdu);
             }
             break;
@@ -1088,6 +1111,7 @@ static int Channel_List_Of_Object_Property_References_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -1095,6 +1119,7 @@ static int Channel_List_Of_Object_Property_References_Length(
 static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -1107,8 +1132,11 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
     pObject = Object_Data(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+                through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= CHANNEL_MEMBERS_MAX) {
+        } else {
             len = bacapp_decode_known_property(
                 application_data, application_data_len, &value, OBJECT_CHANNEL,
                 PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
@@ -1129,8 +1157,6 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -1165,6 +1191,7 @@ static int Channel_Control_Groups_Length(
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to write:
  *    0=array size, 1 to N for individual array members
+ * @param array_size [in] number of elements in the array, if writing array size
  * @param application_data [in] encoded element value
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
@@ -1172,6 +1199,7 @@ static int Channel_Control_Groups_Length(
 static BACNET_ERROR_CODE Channel_Control_Groups_Write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -1185,8 +1213,11 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
     pObject = Object_Data(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            /* This array is not required to be resizable
+                through BACnet write services */
+            (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= CHANNEL_MEMBERS_MAX) {
+        } else {
             len = bacapp_decode_known_property(
                 application_data, application_data_len, &value, OBJECT_CHANNEL,
                 PROP_CONTROL_GROUPS);
@@ -1210,8 +1241,6 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
-        } else {
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
     }
 
@@ -1380,6 +1409,49 @@ void Channel_Write_Group(
 void Channel_Write_Property_Internal_Callback_Set(write_property_function cb)
 {
     Write_Property_Internal_Callback = cb;
+}
+
+/**
+ * @brief Add a Channel notification callback
+ * @param notification - pointer to the notification structure
+ */
+void Channel_Write_Property_Notification_Add(
+    struct channel_write_property_notification *notification)
+{
+    struct channel_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief call the channel WriteProperty notification callbacks
+ * @param instance - object instance number
+ * @param status - status of the write
+ * @param wp_data - write property data
+ */
+void Channel_Write_Property_Notify(
+    uint32_t instance, bool status, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    struct channel_write_property_notification *head;
+
+    head = &Write_Property_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(instance, status, wp_data);
+        }
+        head = head->next;
+    } while (head);
 }
 
 /**

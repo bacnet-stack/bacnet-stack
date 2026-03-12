@@ -29,9 +29,6 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/tsm/tsm.h"
 
-#ifndef FILE_RECORD_SIZE
-#define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
-#endif
 struct object_data {
     char *Object_Name;
     char *Pathname;
@@ -68,6 +65,15 @@ static const int32_t Properties_Optional[] = {
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
+/* Every object shall have a Writable Property_List property
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.  */
+static const int32_t Writable_Properties[] = {
+    /* unordered list of writable properties */
+    PROP_ARCHIVE, PROP_FILE_SIZE, -1
+};
+
 /**
  * @brief Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -97,18 +103,17 @@ void BACfile_Property_Lists(
 }
 
 /**
- * @brief duplicate a string (replacement for POSIX strdup)
- * @param  s - string to duplicate
- * @return a pointer to a new string on success, or a null pointer
+ * @brief Get the list of writable properties for an Analog Input object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
  */
-static char *bacfile_strdup(const char *s)
+void BACfile_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
 {
-    size_t size = strlen(s) + 1;
-    char *p = malloc(size);
-    if (p != NULL) {
-        memcpy(p, s, size);
+    (void)object_instance;
+    if (properties) {
+        *properties = Writable_Properties;
     }
-    return p;
 }
 
 /**
@@ -141,7 +146,7 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         free(pObject->Pathname);
-        pObject->Pathname = bacfile_strdup(pathname);
+        pObject->Pathname = bacnet_strdup(pathname);
     }
 }
 
@@ -225,7 +230,7 @@ bool bacfile_object_name_set(uint32_t object_instance, const char *new_name)
     if (pObject) {
         status = true;
         free(pObject->Object_Name);
-        pObject->Object_Name = bacfile_strdup(new_name);
+        pObject->Object_Name = bacnet_strdup(new_name);
     }
 
     return status;
@@ -513,7 +518,7 @@ void bacfile_file_size_set_callback_set(bool (*callback)(const char *, size_t))
  * @param  object_instance - object-instance number of the object
  * @param  buffer - data store from the file
  * @param  buffer_size - in bytes
- * @return  file size in bytes
+ * @return  number of bytes read, or 0 if not successful
  */
 uint32_t
 bacfile_read(uint32_t object_instance, uint8_t *buffer, uint32_t buffer_size)
@@ -531,11 +536,37 @@ bacfile_read(uint32_t object_instance, uint8_t *buffer, uint32_t buffer_size)
 }
 
 /**
+ * @brief Read the entire file into a buffer
+ * @param  object_instance - object-instance number of the object
+ * @param  offset - offset in bytes from the beginning of the file
+ * @param  buffer - data store from the file
+ * @param  buffer_size - in bytes
+ * @return  number of bytes read, or 0 if not successful
+ */
+uint32_t bacfile_read_offset(
+    uint32_t object_instance,
+    int32_t offset,
+    uint8_t *buffer,
+    uint32_t buffer_size)
+{
+    const char *pathname = NULL;
+    long file_size = 0;
+
+    pathname = bacfile_pathname(object_instance);
+    if (pathname) {
+        file_size = bacfile_read_stream_data_callback(
+            pathname, offset, buffer, buffer_size);
+    }
+
+    return (uint32_t)file_size;
+}
+
+/**
  * @brief Write the entire file from a buffer
  * @param  object_instance - object-instance number of the object
  * @param  buffer - data store for the file
  * @param  buffer_size - in bytes
- * @return  file size in bytes
+ * @return  number of bytes written, or 0 if not successful
  */
 uint32_t bacfile_write(
     uint32_t object_instance, const uint8_t *buffer, uint32_t buffer_size)
@@ -547,6 +578,32 @@ uint32_t bacfile_write(
     if (pathname) {
         file_size = bacfile_write_stream_data_callback(
             pathname, 0, buffer, buffer_size);
+    }
+
+    return (uint32_t)file_size;
+}
+
+/**
+ * @brief Write to the file from a buffer at a given offset
+ * @param  object_instance - object-instance number of the object
+ * @param  offset - offset in bytes from the beginning of the file
+ * @param  buffer - data store for the file
+ * @param  buffer_size - in bytes
+ * @return number of bytes written, or 0 if not successful
+ */
+uint32_t bacfile_write_offset(
+    uint32_t object_instance,
+    int32_t offset,
+    const uint8_t *buffer,
+    uint32_t buffer_size)
+{
+    const char *pathname = NULL;
+    long file_size = 0;
+
+    pathname = bacfile_pathname(object_instance);
+    if (pathname) {
+        file_size = bacfile_write_stream_data_callback(
+            pathname, offset, buffer, buffer_size);
     }
 
     return (uint32_t)file_size;
@@ -626,7 +683,7 @@ void bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         free(pObject->File_Type);
-        pObject->File_Type = bacfile_strdup(mime_type);
+        pObject->File_Type = bacnet_strdup(mime_type);
     }
 }
 
@@ -1242,6 +1299,9 @@ bool bacfile_delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        free(pObject->Pathname);
+        free(pObject->File_Type);
+        free(pObject->Object_Name);
         free(pObject);
         status = true;
     }

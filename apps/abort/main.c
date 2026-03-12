@@ -121,6 +121,8 @@ int main(int argc, char *argv[])
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
+    unsigned long long_value = 0;
+    bool server = false;
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
@@ -150,7 +152,10 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
-                dnet = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
                     specific_address = true;
                 }
@@ -163,13 +168,37 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                Target_Abort_Reason = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &long_value)) {
+                    fprintf(stderr, "abort-reason=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if (long_value > UINT16_MAX) {
+                    fprintf(
+                        stderr, "abort-reason=%lu exceeds %u\n", long_value,
+                        UINT16_MAX);
+                    return 1;
+                }
+                Target_Abort_Reason = (uint16_t)long_value;
                 target_args++;
             } else if (target_args == 1) {
-                Target_Invoke_ID = strtol(argv[argi], NULL, 0);
+                if (!bacnet_strtoul(argv[argi], &long_value)) {
+                    fprintf(stderr, "invoke-id=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if (long_value > UINT8_MAX) {
+                    fprintf(
+                        stderr, "invoke-id=%lu exceeds %u\n", long_value,
+                        UINT8_MAX);
+                    return 1;
+                }
+                Target_Invoke_ID = (uint8_t)long_value;
                 target_args++;
             } else if (target_args == 2) {
-                Target_Server = strtol(argv[argi], NULL, 0);
+                if (!bacnet_string_to_bool(argv[argi], &server)) {
+                    fprintf(stderr, "server=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                Target_Server = server;
                 target_args++;
             } else {
                 print_usage(filename);
@@ -177,41 +206,13 @@ int main(int argc, char *argv[])
             }
         }
     }
-    address_init();
+    /* setup my info */
     if (specific_address) {
-        if (adr.len && mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            memcpy(&dest.adr[0], &adr.adr[0], adr.len);
-            dest.len = adr.len;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-        } else if (mac.len) {
-            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
-            dest.mac_len = mac.len;
-            dest.len = 0;
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = 0;
-            }
-        } else {
-            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                dest.net = dnet;
-            } else {
-                dest.net = BACNET_BROADCAST_NETWORK;
-            }
-            dest.mac_len = 0;
-            dest.len = 0;
-        }
+        bacnet_address_init(&dest, &mac, dnet, &adr);
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
-    address_init();
     dlenv_init();
     atexit(datalink_cleanup);
     /* send the request */

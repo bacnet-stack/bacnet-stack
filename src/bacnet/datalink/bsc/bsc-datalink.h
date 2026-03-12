@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet/SC datalink public interface API.
+ * @brief BACnet/SC datalink public interface API.
  * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date October 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -16,10 +16,10 @@
 
 /**
  * @brief Blocking thread-safe bsc_init() function
- *        initializes BACNet/SC datalink in accordence with value of properties
- *        from BACNet/SC Network Port Object (sc_netport.h). That means that
+ *        initializes BACnet/SC datalink in accordence with value of properties
+ *        from BACnet/SC Network Port Object (sc_netport.h). That means that
  *        user must initialize and set corresponded properties required for
- *        configuration of BACNet/SC datalink before calling of that function.
+ *        configuration of BACnet/SC datalink before calling of that function.
  *        According to "Addendum cc" to ANSI/ASHRAE Standard 135-2020
  *        https://bacnet.org/wp-content/uploads/sites/4/2022/08/Add-135-2020cc.pdf
  *        most important properties are:
@@ -45,7 +45,7 @@ bool bsc_init(char *ifname);
 
 /**
  * @brief Blocking thread-safe bsc_cleanup() function
- *        de-initializes BACNet/SC datalink.
+ *        de-initializes BACnet/SC datalink.
  */
 BACNET_STACK_EXPORT
 void bsc_cleanup(void);
@@ -60,13 +60,13 @@ bool bsc_cert_files_check(uint32_t netport_instance);
 
 /**
  * @brief Blocking thread-safe bsc_send_pdu() function
- *        sends pdu over BACNet/SC to node specified by
+ *        sends pdu over BACnet/SC to node specified by
  *        destination address param.
  *
- * @param dest [in] BACNet/SC node's virtual MAC address as
+ * @param dest [in] BACnet/SC node's virtual MAC address as
  *                  defined in Clause AB.1.5.2.
  *                  Can be broadcast.
- * @param npdu_data [in] BACNet/SC datalink does not use that
+ * @param npdu_data [in] BACnet/SC datalink does not use that
  *                       parameter. Added for backward
  *                       compatibility.
  * @param pdu [in] protocol data unit to be sent.
@@ -83,7 +83,7 @@ int bsc_send_pdu(
 
 /**
  * @brief Blocking thread-safe bsc_receive() function
- *        receives NPDUs transferred over BACNet/SC
+ *        receives NPDUs transferred over BACnet/SC
  *        from a node specified by it's virtual MAC address as
  *        defined in Clause AB.1.5.2.
  *
@@ -101,7 +101,7 @@ uint16_t bsc_receive(
 
 /**
  * @brief Function can be used to retrieve broadcast
- *        VMAC address for BACNet/SC node.
+ *        VMAC address for BACnet/SC node.
  *
  * @param addr [out] Value of broadcast VMAC address.
  */
@@ -111,7 +111,7 @@ void bsc_get_broadcast_address(BACNET_ADDRESS *addr);
 
 /**
  * @brief Function can be used to retrieve local
- *        VMAC address of initialized BACNet/SC datalink.
+ *        VMAC address of initialized BACnet/SC datalink.
  *        If function called when datalink is not started,
  *        my_address filled by empty vmac address
  *        X'000000000000' as it defined in clause AB.1.5.2
@@ -123,11 +123,11 @@ BACNET_STACK_EXPORT
 void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
 /**
- * @brief Function checks if BACNet/SC direct connection is
- *        established with remote BACNet/SC node.
+ * @brief Function checks if BACnet/SC direct connection is
+ *        established with remote BACnet/SC node.
  *        User can check the status of connection using either
  *        destination vmac or list of destination urls.
- * @param dest BACNet/SC vmac of remote node to check direct
+ * @param dest BACnet/SC vmac of remote node to check direct
  *        connection status.
  * @param urls this array represents the possible URIs of a
  *        remote node for acceptance of direct connections.
@@ -143,22 +143,22 @@ bool bsc_direct_connection_established(
 
 /**
  * @brief Function starts process of establishing of a
- *        direct BACNet/SC connection to node identified by
+ *        direct BACnet/SC connection to node identified by
  *        either urls or dest parameter. User should note that
  *        if dest parameter is used, local node tries to resolve
  *        it (e.g.to get URIs related to dest vmac from all existent
- *        BACNet/SC nodes in network). As a result the process of
- *        establishing of a BACNet/SC connection by dest may
+ *        BACnet/SC nodes in network). As a result the process of
+ *        establishing of a BACnet/SC connection by dest may
  *        take unpredictable amount of time depending on a current
  *        network configuration.
- * @param dest BACNet/SC vmac of remote node to check direct
+ * @param dest BACnet/SC vmac of remote node to check direct
  *        connection status.
  * @param urls this array represents the possible URIs of a
  *        remote node for acceptance of direct connections.
  *        Can contain 1 elem.
  * @param urls_cnt - size of urls array.
  *
- * @return BSC_SC_SUCCESS if process of a establishing of a BACNet/SC
+ * @return BSC_SC_SUCCESS if process of a establishing of a BACnet/SC
  *         connection was started successfully, otherwise returns
  *         any retcode from BSC_SC_RET enum.
  */

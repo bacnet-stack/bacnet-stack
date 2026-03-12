@@ -152,7 +152,7 @@ static bool bvlc_sc_validate_options_headers(
 
         if (option == BVLC_SC_OPTION_TYPE_SECURE_PATH) {
             if (validation_type == BACNET_PDU_DEST_OPTION_VALIDATION) {
-                /* According BACNet standard secure path header option can be
+                /* According BACnet standard secure path header option can be
                   added only to data options. (AB.2.3.1 Secure Path Header
                   Option) */
                 *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
@@ -274,7 +274,7 @@ static size_t bvlc_sc_add_option(
     if (!to_data_option &&
         (sc_option[0] & BVLC_SC_HEADER_OPTION_TYPE_MASK) ==
             BVLC_SC_OPTION_TYPE_SECURE_PATH) {
-        /* According BACNet standard secure path header option can be added
+        /* According BACnet standard secure path header option can be added
            only to data options. (AB.2.3.1 Secure Path Header Option) */
         return 0;
     }
@@ -408,7 +408,7 @@ size_t bvlc_sc_add_option_to_data_options(
 
 /**
  * @brief Function encodes proprietary header option in correspondence
- *        of BACNet standard AB.2.3.2 Proprietary Header Options.
+ *        of BACnet standard AB.2.3.2 Proprietary Header Options.
  *        Any proprietary header option shall consist of the
  *        following fields:
  *
@@ -479,7 +479,7 @@ size_t bvlc_sc_encode_proprietary_option(
 
 /**
  * @brief Function encodes security path header option in correspondence
- *        of BACNet standard AB.2.3.1 Secure Path Header Option.
+ *        of BACnet standard AB.2.3.1 Secure Path Header Option.
  *        Any proprietary header option shall consist of the
  *        following fields:
  *
@@ -605,7 +605,7 @@ static void bvlc_sc_decode_proprietary_option(
 /**
  * @brief encode BVLC-SC header
  *
- * BACNet standard AB.2.2 BVLC-SC Header Format:
+ * BACnet standard AB.2.2 BVLC-SC Header Format:
  * BVLC Function               1-octet        BVLC function code
  * Control Flags               1-octet        Control flags
  * Message ID                  2-octets       Message identifier
@@ -659,7 +659,7 @@ static size_t bvlc_sc_encode_common(
 }
 
 /**
- * @brief Function encodes the BVLC-Result message according BACNet standard
+ * @brief Function encodes the BVLC-Result message according BACnet standard
  *        AB.2.4.1 BVLC-Result Format.
  *
  * BVLC Function               1-octet        (X'00') BVLC-Result
@@ -811,7 +811,7 @@ size_t bvlc_sc_encode_result(
 }
 
 /**
- * @brief Function decodes the BVLC-Result message according BACNet standard
+ * @brief Function decodes the BVLC-Result message according BACnet standard
  *       AB.2.4.1 BVLC-Result Format.
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
@@ -907,7 +907,7 @@ static bool bvlc_sc_decode_result(
 
 /**
  * @brief Function encodes the Encapsulated-NPDU message according
- *        BACNet standard AB.2.5 Encapsulated-NPDU.
+ *        BACnet standard AB.2.5 Encapsulated-NPDU.
  *
  * BVLC Function               1-octet        (X'01') Encapsulated-NPDU
  * Control Flags               1-octet        Control flags.
@@ -959,7 +959,7 @@ size_t bvlc_sc_encode_encapsulated_npdu(
 }
 
 /**
- * @brief Function encodes the Address-Resolution message according BACNet
+ * @brief Function encodes the Address-Resolution message according BACnet
  * standard AB.2.6 Address-Resolution
  *
  * BVLC Function               1-octet        (X'02') Address-Resolution
@@ -998,7 +998,7 @@ size_t bvlc_sc_encode_address_resolution(
 
 /**
  * @brief Function encodes the Address-Resolution-ACK message according
- *        BACNet standard AB.2.7.1 Address-Resolution-ACK Format.
+ *        BACnet standard AB.2.7.1 Address-Resolution-ACK Format.
  *
  * BVLC Function               1-octet        (X'03') Address-Resolution-ACK
  * Control Flags               1-octet        Control flags.
@@ -1061,7 +1061,7 @@ size_t bvlc_sc_encode_address_resolution_ack(
 
 /**
  * @brief Function encodes the Advertisement message according
- *        BACNet standard AB.2.8.1 Advertisement Format.
+ *        BACnet standard AB.2.8.1 Advertisement Format.
  *
  * BVLC Function               1-octet        (X'04') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1133,7 +1133,7 @@ size_t bvlc_sc_encode_advertisiment(
 
 /**
  * @brief Function encodes the Advertisement-Solicitation message according
- *       BACNet standard AB.2.9.1 Advertisement-Solicitation Format.
+ *       BACnet standard AB.2.9.1 Advertisement-Solicitation Format.
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to packed data
  * @param packed_payload_len - size of packed data
@@ -1189,7 +1189,7 @@ static bool bvlc_sc_decode_advertisiment(
 
 /**
  * @brief Function encodes the Advertisement-Solicitation message according
- *        BACNet standard AB.2.9.1 Advertisement-Solicitation Format.
+ *        BACnet standard AB.2.9.1 Advertisement-Solicitation Format.
  *
  * BVLC Function               1-octet        (X'05') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1227,7 +1227,7 @@ size_t bvlc_sc_encode_advertisiment_solicitation(
 
 /**
  * @brief Function encodes the Connect-Request message according
- *        BACNet standard AB.2.10.1 Connect-Request Format.
+ *        BACnet standard AB.2.10.1 Connect-Request Format.
  *
  * BVLC Function               1-octet        (X'06') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1302,7 +1302,7 @@ size_t bvlc_sc_encode_connect_request(
 
 /**
  * @brief Function decodes the Connect-Request message according
- *       BACNet standard AB.2.10.1 Connect-Request Format.
+ *       BACnet standard AB.2.10.1 Connect-Request Format.
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
  * @param packed_payload_len - size of the packed data
@@ -1346,7 +1346,7 @@ static bool bvlc_sc_decode_connect_request(
 
 /**
  * @brief Function encodes the Connect-Accept message according
- *        BACNet standard AB.2.11.1 Connect-Accept Format.
+ *        BACnet standard AB.2.11.1 Connect-Accept Format.
  *
  * BVLC Function               1-octet        (X'07') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1421,7 +1421,7 @@ size_t bvlc_sc_encode_connect_accept(
 
 /**
  * @brief Function decodes the Connect-Accept message according
- *      BACNet standard AB.2.11.1 Connect-Accept Format.
+ *      BACnet standard AB.2.11.1 Connect-Accept Format.
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
  * @param packed_payload_len - size of the packed data
@@ -1466,7 +1466,7 @@ static bool bvlc_sc_decode_connect_accept(
 
 /**
  * @brief Function encodes the Disconnect-Request message according
- *        BACNet standard AB.2.12.1 Disconnect-Request Format.
+ *        BACnet standard AB.2.12.1 Disconnect-Request Format.
  *
  * BVLC Function               1-octet        (X'08') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1497,7 +1497,7 @@ size_t bvlc_sc_encode_disconnect_request(
 
 /**
  * @brief Function encodes the  Disconnect-ACK message according
- *        BACNet standard AB.2.13.1 Disconnect-ACK Format.
+ *        BACnet standard AB.2.13.1 Disconnect-ACK Format.
  *
  * BVLC Function               1-octet        (X'09') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1528,7 +1528,7 @@ bvlc_sc_encode_disconnect_ack(uint8_t *pdu, size_t pdu_len, uint16_t message_id)
 
 /**
  * @brief Function encodes the  Heartbeat-Request message according
- *        BACNet standard AB.2.14.1 Heartbeat-Request Format.
+ *        BACnet standard AB.2.14.1 Heartbeat-Request Format.
  *
  * BVLC Function               1-octet        (X'0A') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1559,7 +1559,7 @@ size_t bvlc_sc_encode_heartbeat_request(
 
 /**
  * @brief Function encodes the Heartbeat-ACK message according
- *        BACNet standard AB.2.15.1 Heartbeat-ACK Format.
+ *        BACnet standard AB.2.15.1 Heartbeat-ACK Format.
  *
  * BVLC Function               1-octet        (X'0B') Advertisement
  * Control Flags               1-octet        Control flags.
@@ -1589,7 +1589,7 @@ bvlc_sc_encode_heartbeat_ack(uint8_t *pdu, size_t pdu_len, uint16_t message_id)
 }
 
 /**
- * @brief Function encodes the Proprietary Message according BACNet standard
+ * @brief Function encodes the Proprietary Message according BACnet standard
  *        AB.2.16.1 Proprietary Message Format.
  *
  * BVLC Function               1-octet        (X'0C') Proprietary-Message.
@@ -1660,7 +1660,7 @@ size_t bvlc_sc_encode_proprietary_message(
 }
 
 /**
- * @brief Function decodes the Proprietary Message according BACNet standard
+ * @brief Function decodes the Proprietary Message according BACnet standard
  *       AB.2.16.1 Proprietary Message Format.
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
@@ -1872,10 +1872,10 @@ bvlc_sc_decode_data_options_if_exists(BVLC_SC_DECODED_MESSAGE *message)
 }
 
 /**
- * @brief Function decodes BACNet/SC message.
+ * @brief Function decodes BACnet/SC message.
  *
- * @param buf - A buffer which holds BACNet/SC PDU.
- * @param buf_len - length of a buffer which holds BACNet/SC PDU.
+ * @param buf - A buffer which holds BACnet/SC PDU.
+ * @param buf_len - length of a buffer which holds BACnet/SC PDU.
  * @param message- pointer to structure for decoded data.
  * @param error-code - the value of parameter is filled if function returns
  *  false. Check BACNET_ERROR_CLASS enum.
@@ -2164,13 +2164,13 @@ bool bvlc_sc_decode_message(
 }
 
 /**
- * @brief Function removes destination address of BACNet/SC message
+ * @brief Function removes destination address of BACnet/SC message
  *                 and sets originating address instead of it.
  *                 It does it job only if message has destination address
  *                 and does not have origination address, otherwise pdu
  *                 stays unchanged.
- * @param pdu - BACNet/SC PDU.
- * @param pdu_len - length of a buffer which holds BACNet/SC PDU.
+ * @param pdu - BACnet/SC PDU.
+ * @param pdu_len - length of a buffer which holds BACnet/SC PDU.
  * @param orig- origination vmac.
  */
 void bvlc_sc_remove_dest_set_orig(
@@ -2188,11 +2188,11 @@ void bvlc_sc_remove_dest_set_orig(
 }
 
 /**
- * @brief Function changes or adds originating address into BACNet/SC message.
+ * @brief Function changes or adds originating address into BACnet/SC message.
  *                 It is assumed that ppdu points to buffer with pdu that has
  *                 BSC_PRE bytes behind.
- * @param ppdu - pointer to buffer which holds BACNet/SC PDU.
- * @param pdu_len - length of a buffer which holds BACNet/SC PDU.
+ * @param ppdu - pointer to buffer which holds BACnet/SC PDU.
+ * @param pdu_len - length of a buffer which holds BACnet/SC PDU.
  * @param orig- origination vmac.
  * @return new pdu length if function succeeded and ppdu points to beginning of
  *         changed pdu, otherwise returns old pdu_len and ppdu is not changed.
@@ -2238,10 +2238,10 @@ bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
 
 /**
  * @brief Function checks if it is needed to send BVLC result
- *        response message for given decoded BACNet/SC message.
+ *        response message for given decoded BACnet/SC message.
  *        In a case of errors, standard requires to send such kind
  *        of responses for unicast messages of specific types.
- * @param dm - pointer to decoded BACNet/SC message.
+ * @param dm - pointer to decoded BACnet/SC message.
  * @return true if vmac is broadcast, otherwise returns false.
  */
 bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE *dm)
@@ -2261,11 +2261,11 @@ bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE *dm)
 }
 
 /**
- * @brief Function checks if destination address of input BACNet/SC
+ * @brief Function checks if destination address of input BACnet/SC
  *        message is broadcast.
- * @param  pdu- buffer with BACNet/SC message.
- * @param  pdu_len- length of buffer of BACNet/SC message.
- * @return true if destination address of input BACNet/SC
+ * @param  pdu- buffer with BACnet/SC message.
+ * @param  pdu_len- length of buffer of BACnet/SC message.
+ * @return true if destination address of input BACnet/SC
  *         is broadcast, otherwise returns false.
  */
 bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu, size_t pdu_len)
@@ -2286,12 +2286,12 @@ bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu, size_t pdu_len)
 }
 
 /**
- * @brief Function checks if input BACNet/SC message has
+ * @brief Function checks if input BACnet/SC message has
  *        destination address field.
- * @param  pdu- buffer with BACNet/SC message.
- * @param  pdu_len- length of buffer of BACNet/SC message.
+ * @param  pdu- buffer with BACnet/SC message.
+ * @param  pdu_len- length of buffer of BACnet/SC message.
  * @return true if destination address is presented in
- *         input BACNet/SC message, otherwise returns false.
+ *         input BACnet/SC message, otherwise returns false.
  */
 bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu, size_t pdu_len)
 {
@@ -2305,10 +2305,10 @@ bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu, size_t pdu_len)
 
 /**
  * @brief Function puts destination address of
- *        BACNet/SC message into vmac if message
+ *        BACnet/SC message into vmac if message
  *        contains it.
- * @param  pdu- buffer with BACNet/SC message.
- * @param  pdu_len- length of buffer of BACNet/SC message.
+ * @param  pdu- buffer with BACnet/SC message.
+ * @param  pdu_len- length of buffer of BACnet/SC message.
  * @return true if destination address is presented and was
  *         placed into vmac, otherwise returns false.
  */
@@ -2332,13 +2332,13 @@ bool bvlc_sc_pdu_get_dest(
 
 /**
  * @brief Function removes originating and destination
- *        address fields from input BACNet/SC message.
- * @param  ppdu- pointer to buffer of  BACNet/SC message.
- * @param  pdu_len- length of buffer of BACNet/SC message.
+ *        address fields from input BACnet/SC message.
+ * @param  ppdu- pointer to buffer of  BACnet/SC message.
+ * @param  pdu_len- length of buffer of BACnet/SC message.
  * @return new length of changed pdu if originating or destination
  *         addresses were removed or old pdu length if
  *         pdu was not changed. If pdu was changed, ppdu contains
- *         updated pointer to buffer to modified BACNet/SC message.
+ *         updated pointer to buffer to modified BACnet/SC message.
  */
 size_t bvlc_sc_remove_orig_and_dest(uint8_t **ppdu, size_t pdu_len)
 {
