@@ -143,6 +143,71 @@ static void testAddressFile(void)
 #endif
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(address_tests, test_rr_address)
+#else
+static void test_rr_address(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU];
+    BACNET_READ_RANGE_DATA pRequest = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    unsigned i;
+    int len;
+
+    address_init();
+    /* Fill the cache to its limit */
+    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
+        src.mac_len = 1;
+        src.mac[0] = (uint8_t)i;
+        address_add(i, 480, &src);
+    }
+
+    /* Test ReadRange ALL */
+    pRequest.object_type = OBJECT_DEVICE;
+    pRequest.object_instance = 123;
+    pRequest.object_property = PROP_DEVICE_ADDRESS_BINDING;
+    pRequest.array_index = BACNET_ARRAY_ALL;
+    pRequest.RequestType = RR_READ_ALL;
+    pRequest.Overhead = 0;
+
+    len = rr_address_list_encode(apdu, &pRequest);
+    zassert_not_equal(len, 0, "ReadRange ALL failed - returned 0");
+    zassert_true(
+        bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_MORE_ITEMS),
+        "Expected MORE_ITEMS flag");
+    zassert_true(
+        bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_FIRST_ITEM),
+        "Expected FIRST_ITEM flag");
+
+    /* Test ReadRange from the end to verify the fix */
+    pRequest.RequestType = RR_BY_POSITION;
+    pRequest.Range.RefIndex = MAX_ADDRESS_CACHE - 5 + 1;
+    pRequest.Count = 5;
+    bitstring_init(&pRequest.ResultFlags);
+
+    len = rr_address_list_encode(apdu, &pRequest);
+    zassert_not_equal(len, 0, "ReadRange end failed - returned 0");
+    zassert_equal(pRequest.ItemCount, 5, "Expected 5 items");
+    zassert_true(
+        bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_LAST_ITEM),
+        "Expected LAST_ITEM flag");
+
+    /* Specifically test hitting the very last physical entry in Address_Cache
+     */
+    pRequest.RequestType = RR_BY_POSITION;
+    pRequest.Range.RefIndex = MAX_ADDRESS_CACHE;
+    pRequest.Count = 1;
+    bitstring_init(&pRequest.ResultFlags);
+
+    len = rr_address_list_encode(apdu, &pRequest);
+    zassert_not_equal(len, 0, "ReadRange last item failed - returned 0");
+    zassert_equal(pRequest.ItemCount, 1, "Expected 1 item");
+    zassert_true(
+        bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_LAST_ITEM),
+        "Expected LAST_ITEM flag for the last item");
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(address_tests, testAddress)
 #else
 static void testAddress(void)
@@ -209,11 +274,13 @@ void test_main(void)
 #ifdef BACNET_ADDRESS_CACHE_FILE
     ztest_test_suite(
         address_tests, ztest_unit_test(testAddressFile),
-        ztest_unit_test(testAddress));
+        ztest_unit_test(testAddress), ztest_unit_test(test_rr_address));
 
     ztest_run_test_suite(address_tests);
 #else
-    ztest_test_suite(address_tests, ztest_unit_test(testAddress));
+    ztest_test_suite(
+        address_tests, ztest_unit_test(testAddress),
+        ztest_unit_test(test_rr_address));
 
     ztest_run_test_suite(address_tests);
 #endif
