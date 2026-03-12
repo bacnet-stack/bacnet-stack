@@ -1043,6 +1043,10 @@ void Schedule_Recalculate_PV(
 {
     int i, current, diff;
     BACNET_TIME *tmptime;
+
+    if (!desc || !time || (wday < 1) || (wday > 7)) {
+        return;
+    }
     desc->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
     /* for future development, here should be the loop for Exception Schedule */
@@ -1088,11 +1092,13 @@ void Schedule_Recalculate_PV(
  */
 void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
 {
+    SCHEDULE_DESCR *pObject;
     BACNET_DATE_TIME bdatetime;
+
     UNUSED(milliseconds);
-
-    Device_getCurrentDateTime(&bdatetime);
-
-    Schedule_Recalculate_PV(
-        Schedule_Object(object_instance), bdatetime.date.wday, &bdatetime.time);
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        Device_getCurrentDateTime(&bdatetime);
+        Schedule_Recalculate_PV(pObject, bdatetime.date.wday, &bdatetime.time);
+    }
 }
