@@ -89,21 +89,32 @@ static void test_Trend_Log_ReadRange_BySequence(void)
     len = rr_trend_log_encode(apdu, &pRequest);
     zassert_true(len > 0, "Encoding failed");
     zassert_equal(pRequest.ItemCount, 6, "Expected 6 items (truncated at end)");
-    zassert_equal(pRequest.FirstSequence, total_records - 5, "Expected FirstSequence %u, got %u",
-        (unsigned)(total_records - 5), (unsigned)pRequest.FirstSequence);
-    zassert_true(bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_LAST_ITEM), "Expected LAST_ITEM flag");
+    zassert_equal(
+        pRequest.FirstSequence, total_records - 5,
+        "Expected FirstSequence %u, got %u", (unsigned)(total_records - 5),
+        (unsigned)pRequest.FirstSequence);
+    zassert_true(
+        bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_LAST_ITEM),
+        "Expected LAST_ITEM flag");
 
-    /* Verify BY_SEQUENCE with negative count and truncation at beginning of log */
+    /* Verify BY_SEQUENCE with negative count and truncation at beginning of log
+     */
     pRequest.Range.RefSeqNum = first_seq + 5;
     pRequest.Count = -10;
     len = rr_trend_log_encode(apdu, &pRequest);
     zassert_true(len > 0, "Encoding failed");
-    zassert_equal(pRequest.ItemCount, 6, "Expected 6 items (truncated at start)");
-    zassert_equal(pRequest.FirstSequence, first_seq, "Expected FirstSequence %u (start of log), got %u",
-        (unsigned)first_seq, (unsigned)pRequest.FirstSequence);
-    zassert_true(bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_FIRST_ITEM), "Expected FIRST_ITEM flag");
+    zassert_equal(
+        pRequest.ItemCount, 6, "Expected 6 items (truncated at start)");
+    zassert_equal(
+        pRequest.FirstSequence, first_seq,
+        "Expected FirstSequence %u (start of log), got %u", (unsigned)first_seq,
+        (unsigned)pRequest.FirstSequence);
+    zassert_true(
+        bitstring_bit(&pRequest.ResultFlags, RESULT_FLAG_FIRST_ITEM),
+        "Expected FIRST_ITEM flag");
 
-    /* Verify BY_SEQUENCE with negative count and APDU capacity truncation (THE FIX) */
+    /* Verify BY_SEQUENCE with negative count and APDU capacity truncation (THE
+     * FIX) */
     /* Requesting everything from the end. This should definitely trigger
      * truncation. */
     pRequest.ItemCount = 0;
