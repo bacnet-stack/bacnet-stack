@@ -298,6 +298,48 @@ bool Trend_Log_Object_Name(
     return status;
 }
 
+/**
+ * @brief Get the total record count for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return total record count
+ */
+uint32_t Trend_Log_Total_Record_Count(uint32_t object_instance)
+{
+    uint32_t total_records = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        total_records = LogInfo[object_instance].ulTotalRecordCount;
+    }
+    return total_records;
+}
+
+/**
+ * @brief Get the record count for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return record count
+ */
+uint32_t Trend_Log_Record_Count(uint32_t object_instance)
+{
+    uint32_t record_count = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        record_count = LogInfo[object_instance].ulRecordCount;
+    }
+    return record_count;
+}
+
+/**
+ * @brief Get the buffer size for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return buffer size
+ */
+uint32_t Trend_Log_Buffer_Size(uint32_t object_instance)
+{
+    uint32_t buffer_size = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        buffer_size = TL_MAX_ENTRIES;
+    }
+    return buffer_size;
+}
+
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
    BACNET_STATUS_ABORT for abort message */
 int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)

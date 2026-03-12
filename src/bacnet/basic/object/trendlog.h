@@ -137,6 +137,13 @@ bool Trend_Log_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 
 BACNET_STACK_EXPORT
+uint32_t Trend_Log_Total_Record_Count(uint32_t object_instance);
+BACNET_STACK_EXPORT
+uint32_t Trend_Log_Record_Count(uint32_t object_instance);
+BACNET_STACK_EXPORT
+uint32_t Trend_Log_Buffer_Size(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
 int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
