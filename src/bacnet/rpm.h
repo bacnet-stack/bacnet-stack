@@ -166,7 +166,8 @@ void rpm_ack_object_property_process(
     unsigned apdu_len,
     uint32_t device_id,
     BACNET_READ_PROPERTY_DATA *rp_data,
-    read_property_ack_process callback);
+    read_property_ack_process callback,
+    void *callback_context);
 
 #ifdef __cplusplus
 }
