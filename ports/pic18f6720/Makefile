@@ -3,7 +3,8 @@
 ###############################################################################
 
 ## General Flags
-MCU = pic18
+## Note: In SDCC, mpic16 is used for 8-bit PIC18 series.
+MCU = pic16
 PORT = 18f6720
 TARGET = bacnet
 ## Tools
@@ -11,31 +12,32 @@ CC = sdcc
 PACK = packihx
 
 # Source locations
-BACNET_CORE = ../../src
-BACNET_INCLUDE = ../../include
-BACNET_DEMO = ../../demo
+BACNET_DIR = ../../src
+BACNET_CORE = $(BACNET_DIR)/bacnet
+BACNET_BASIC = $(BACNET_CORE)/basic
+BACNET_INCLUDE = $(BACNET_DIR)
 
 CSRC = main.c \
 	isr.c \
 	rs485.c \
 	dlmstp.c \
 	mstp.c \
-	$(BACNET_CORE)/crc.c
+	$(BACNET_CORE)/datalink/crc.c
 
-DEMOSRC = h_rp.c \
-	device.c \
+BASICSRC = device.c \
 	ai.c \
 	av.c \
 	bi.c \
 	bv.c \
-	$(BACNET_DEMO)/handler/txbuf.c \
-	$(BACNET_DEMO)/handler/noserv.c \
-	$(BACNET_DEMO)/handler/h_npdu.c \
-	$(BACNET_DEMO)/handler/h_whois.c \
+	apdu.c \
+	$(BACNET_BASIC)/tsm/tsm.c \
+	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/service/noserv.c \
+	$(BACNET_BASIC)/service/h_whois.c \
+	h_rp.c \
 	h_wp.c
 
 CORESRC =  \
-	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/bacdcode.c \
 	$(BACNET_CORE)/bacint.c \
@@ -49,8 +51,7 @@ CORESRC =  \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
-	$(BACNET_CORE)/bacapp.c \
-	$(BACNET_CORE)/version.c
+	$(BACNET_CORE)/bacapp.c
 
 #	$(BACNET_CORE)/bacprop.c \
 #	$(BACNET_CORE)/bactext.c \
@@ -76,13 +77,13 @@ INCLUDES = -I. -I$(BACNET_INCLUDE)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)
-DEMOOBJ = $(DEMOSRC:.c=.o)
+BASICOBJ = $(BASICSRC:.c=.o)
 COREOBJ = $(CORESRC:.c=.o)
 
 LIBRARY = lib$(TARGET).a
 
 ## Options common to compile, link and assembly rules
-COMMON = -m$(MCU) -p$(PORT)
+COMMON = --use-non-free -m$(MCU) -p$(PORT)
 OPTIMIZATION = --opt-code-size
 
 ## Compile options common for all C compilation units.
@@ -117,8 +118,7 @@ HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 ## Objects that must be built in order to link
-OBJECTS = $(COBJ) $(DEMOOBJ)
-#OBJECTS = $(COBJ)
+OBJECTS = $(COBJ) $(BASICOBJ) $(COREOBJ)
 
 ## Build
 TARGET_ELF=$(TARGET).elf

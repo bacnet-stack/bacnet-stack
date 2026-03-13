@@ -8,7 +8,7 @@
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
-#include <p18f6720.h>
+#include <pic16regs.h>
 #include <stdint.h>
 #include <stdbool.h>
 

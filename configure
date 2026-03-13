@@ -35,6 +35,9 @@ sudo apt-get install -qq avrdude
 sudo apt-get install -qq gdb-avr
 sudo apt-get install -qq avrdude-doc
 
+# install PIC18 compiler and debugging tools
+sudo apt-get install -qq sdcc
+
 # install static analysis tools
 sudo apt-get install -qq flawfinder
 sudo apt-get install -qq cppcheck
