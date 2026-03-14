@@ -681,11 +681,12 @@ int rpm_ack_decode_object_property(
  * @param callback [in] The function to call for each property value.
  */
 void rpm_ack_object_property_process(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint32_t device_id,
     BACNET_READ_PROPERTY_DATA *rp_data,
-    read_property_ack_process callback)
+    read_property_ack_process callback,
+    void *callback_context)
 {
     int len = 0;
     int application_data_len;
@@ -707,7 +708,7 @@ void rpm_ack_object_property_process(
             rp_data->error_class = ERROR_CLASS_SERVICES;
             rp_data->error_code = ERROR_CODE_INVALID_TAG;
             if (callback) {
-                callback(device_id, rp_data);
+                callback(device_id, rp_data, callback_context);
             }
             return;
         }
@@ -728,7 +729,7 @@ void rpm_ack_object_property_process(
                 rp_data->error_class = ERROR_CLASS_SERVICES;
                 rp_data->error_code = ERROR_CODE_INVALID_TAG;
                 if (callback) {
-                    callback(device_id, rp_data);
+                    callback(device_id, rp_data, callback_context);
                 }
                 return;
             }
@@ -742,7 +743,7 @@ void rpm_ack_object_property_process(
                     rp_data->error_class = ERROR_CLASS_SERVICES;
                     rp_data->error_code = ERROR_CODE_INVALID_TAG;
                     if (callback) {
-                        callback(device_id, rp_data);
+                        callback(device_id, rp_data, callback_context);
                     }
                     return;
                 }
@@ -751,7 +752,9 @@ void rpm_ack_object_property_process(
                 apdu += len;
                 /* fill the RP application data */
                 rp_data->application_data_len = application_data_len;
-                rp_data->application_data = apdu;
+                /* application_data field is non-const (dual-use for
+                 * encode/decode); cast is safe since callback only reads */
+                rp_data->application_data = (uint8_t *)apdu;
                 apdu_len -= application_data_len;
                 apdu += application_data_len;
                 if (bacnet_is_closing_tag_number(apdu, apdu_len, 4, &len)) {
@@ -762,14 +765,14 @@ void rpm_ack_object_property_process(
                     rp_data->error_class = ERROR_CLASS_SERVICES;
                     rp_data->error_code = ERROR_CODE_INVALID_TAG;
                     if (callback) {
-                        callback(device_id, rp_data);
+                        callback(device_id, rp_data, callback_context);
                     }
                     return;
                 }
                 rp_data->error_class = ERROR_CLASS_PROPERTY;
                 rp_data->error_code = ERROR_CODE_SUCCESS;
                 if (callback) {
-                    callback(device_id, rp_data);
+                    callback(device_id, rp_data, callback_context);
                 }
             } else if (bacnet_is_opening_tag_number(apdu, apdu_len, 5, &len)) {
                 apdu_len -= len;
@@ -786,7 +789,7 @@ void rpm_ack_object_property_process(
                     rp_data->error_class = ERROR_CLASS_SERVICES;
                     rp_data->error_code = ERROR_CODE_INVALID_TAG;
                     if (callback) {
-                        callback(device_id, rp_data);
+                        callback(device_id, rp_data, callback_context);
                     }
                     return;
                 }
@@ -801,7 +804,7 @@ void rpm_ack_object_property_process(
                     rp_data->error_class = ERROR_CLASS_SERVICES;
                     rp_data->error_code = ERROR_CODE_INVALID_TAG;
                     if (callback) {
-                        callback(device_id, rp_data);
+                        callback(device_id, rp_data, callback_context);
                     }
                     return;
                 }
@@ -813,12 +816,12 @@ void rpm_ack_object_property_process(
                     rp_data->error_class = ERROR_CLASS_SERVICES;
                     rp_data->error_code = ERROR_CODE_INVALID_TAG;
                     if (callback) {
-                        callback(device_id, rp_data);
+                        callback(device_id, rp_data, callback_context);
                     }
                     return;
                 }
                 if (callback) {
-                    callback(device_id, rp_data);
+                    callback(device_id, rp_data, callback_context);
                 }
             }
         }

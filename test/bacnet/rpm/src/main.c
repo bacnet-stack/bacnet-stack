@@ -504,7 +504,8 @@ static size_t Read_Property_Ack_Count = 0;
  * @param rp_data [in] The contents of the service request.
  */
 static void bacnet_read_property_ack_process(
-    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data)
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data,
+    void *callback_context)
 {
     if (Read_Property_Ack_Count < TEST_READ_PROPERTY_ACK_DATA_COUNT) {
         Read_Property_Ack_Device_ID[Read_Property_Ack_Count] = device_id;
@@ -586,7 +587,8 @@ static void testReadPropertyMultipleAckProcess(void)
     zassert_not_equal(apdu_len, 0, NULL);
 
     rpm_ack_object_property_process(
-        apdu, apdu_len, device_id, &rp_data, bacnet_read_property_ack_process);
+        apdu, apdu_len, device_id, &rp_data, bacnet_read_property_ack_process,
+        NULL);
     zassert_equal(
         Read_Property_Ack_Count, 4, "RPM-ACK count=%zu, expected %d",
         Read_Property_Ack_Count, 4);
@@ -618,7 +620,7 @@ static void testReadPropertyMultipleAckProcess(void)
     Read_Property_Ack_Count = 0;
     rpm_ack_object_property_process(
         apdu, apdu_len + 2, device_id, &rp_data,
-        bacnet_read_property_ack_process);
+        bacnet_read_property_ack_process, NULL);
     zassert_equal(
         Read_Property_Ack_Count, 5, "RPM-ACK count=%zu, expected %d",
         Read_Property_Ack_Count, 5);

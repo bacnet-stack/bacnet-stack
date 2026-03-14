@@ -44,7 +44,8 @@ typedef int (*read_property_function)(BACNET_READ_PROPERTY_DATA *rp_data);
  * @param rp_data [in] The contents of the ReadProperty-ACK message
  */
 typedef void (*read_property_ack_process)(
-    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data);
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data,
+    void *callback_context);
 
 #ifdef __cplusplus
 extern "C" {

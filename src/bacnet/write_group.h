@@ -79,7 +79,8 @@ typedef struct BACnet_Write_Group_Notification {
  * @param data [in] The contents of the WriteGroup-Request message
  */
 typedef void (*write_group_request_process)(
-    uint32_t device_id, BACNET_WRITE_GROUP_DATA *data);
+    uint32_t device_id, BACNET_WRITE_GROUP_DATA *data,
+    void *callback_context);
 
 #ifdef __cplusplus
 extern "C" {
@@ -132,7 +133,8 @@ void bacnet_write_group_channel_value_process(
     uint8_t *apdu,
     size_t apdu_len,
     BACNET_WRITE_GROUP_DATA *data,
-    write_group_request_process callback);
+    write_group_request_process callback,
+    void *callback_context);
 
 BACNET_STACK_EXPORT
 int bacnet_group_channel_value_encode(

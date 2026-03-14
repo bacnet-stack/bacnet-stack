@@ -203,7 +203,8 @@ MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
  * @param rp_data [in] The contents of the service request.
  */
 static void bacnet_read_property_ack_process(
-    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data)
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data,
+    void *callback_context)
 {
     BACNET_APPLICATION_DATA_VALUE *value;
     uint8_t *apdu;
@@ -310,7 +311,7 @@ static void My_Read_Property_Ack_Handler(
             Error_Class = ERROR_CLASS_SERVICES;
             Error_Code = ERROR_CODE_INTERNAL_ERROR;
         } else {
-            bacnet_read_property_ack_process(device_id, &rp_data);
+            bacnet_read_property_ack_process(device_id, &rp_data, NULL);
         }
     }
 }
@@ -339,7 +340,7 @@ static void My_Read_Property_Multiple_Ack_Handler(
         rp_data.error_code = ERROR_CODE_SUCCESS;
         rpm_ack_object_property_process(
             apdu, apdu_len, device_id, &rp_data,
-            bacnet_read_property_ack_process);
+            bacnet_read_property_ack_process, NULL);
     }
 }
 
