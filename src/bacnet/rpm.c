@@ -681,7 +681,7 @@ int rpm_ack_decode_object_property(
  * @param callback [in] The function to call for each property value.
  */
 void rpm_ack_object_property_process(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint32_t device_id,
     BACNET_READ_PROPERTY_DATA *rp_data,
@@ -752,7 +752,9 @@ void rpm_ack_object_property_process(
                 apdu += len;
                 /* fill the RP application data */
                 rp_data->application_data_len = application_data_len;
-                rp_data->application_data = apdu;
+                /* application_data field is non-const (dual-use for
+                 * encode/decode); cast is safe since callback only reads */
+                rp_data->application_data = (uint8_t *)apdu;
                 apdu_len -= application_data_len;
                 apdu += application_data_len;
                 if (bacnet_is_closing_tag_number(apdu, apdu_len, 4, &len)) {

@@ -162,7 +162,7 @@ int rpm_ack_decode_object_property(
     BACNET_ARRAY_INDEX *array_index);
 BACNET_STACK_EXPORT
 void rpm_ack_object_property_process(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint32_t device_id,
     BACNET_READ_PROPERTY_DATA *rp_data,
