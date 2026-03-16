@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-03-12
+## [Unreleased] - 2026-03-16
 
 ### Security
 
@@ -53,6 +53,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added octetstring_length_value_same() API for comparing an OctetString
+  to value and len parameters. Added verification tests. (#1264)
 * Added property_list_read_only_member function to check for READ-ONLY
   properties. (#1258)
 * Added WriteProperty support in the basic Structured View object.
@@ -160,6 +162,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the OctetString Value object present-value get function
+  to perform a copy return rather than a pointer return and deprecate
+  the pointer return function. (#1264)
 * Changed the COV FSM handler to remiain in the IDLE state until there
   is a valid subscriber. (#1257)
 * Changed bacnet_array_write() write_function callback API by adding
