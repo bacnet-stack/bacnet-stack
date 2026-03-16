@@ -196,6 +196,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed FQDN hostname size in minimal hostnport implementation. (#1263)
 * Fixed segmentation fault in Schedule_Recalculate_PV() during application
   startup. (#1258)
 * Fixed the ReadRange-ACK of the Address_List property. (#1149)
