@@ -267,8 +267,105 @@ static void testCharacterString(void)
 }
 
 /**
- * @brief Test characterstring_utf8_valid function
+ * @brief Test utf8_isvalid function
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testUtf8IsValid)
+#else
+static void testUtf8IsValid(void)
+#endif
+{
+    static const char ascii_value[] = "Joshua,Mary,Anna";
+    static const char utf8_value[] = "Joshua😍Mary😍Anna";
+    static const char valid_two_byte[] = { (char)0xC2, (char)0xA9 };
+    static const char valid_three_byte[] = { (char)0xE2, (char)0x82,
+                                             (char)0xAC };
+    static const char valid_five_byte[] = { (char)0xF8, (char)0x88, (char)0x80,
+                                            (char)0x80, (char)0x80 };
+    static const char valid_six_byte[] = { (char)0xFC, (char)0x84, (char)0x80,
+                                           (char)0x80, (char)0x80, (char)0x80 };
+    static const char embedded_nul[] = { 'A', '\0', 'B' };
+    static const char lone_continuation[] = { (char)0x80 };
+    static const char truncated_multibyte[] = { 'A', (char)0xF0 };
+    static const char invalid_continuation[] = { (char)0xC2, 'A' };
+    static const char invalid_late_continuation[] = { (char)0xE2, (char)0x82,
+                                                      'A' };
+    static const char overlong_two_byte[] = { (char)0xC0, (char)0x80 };
+    static const char overlong_three_byte[] = { (char)0xE0, (char)0x80,
+                                                (char)0x80 };
+    static const char overlong_four_byte[] = { (char)0xF0, (char)0x80,
+                                               (char)0x80, (char)0x80 };
+    static const char overlong_five_byte[] = { (char)0xF8, (char)0x80,
+                                               (char)0x80, (char)0x80,
+                                               (char)0x80 };
+    static const char overlong_six_byte[] = { (char)0xFC, (char)0x80,
+                                              (char)0x80, (char)0x80,
+                                              (char)0x80, (char)0x80 };
+    static const char invalid_fe[] = { (char)0xFE, (char)0x80, (char)0x80,
+                                       (char)0x80, (char)0x80, (char)0x80 };
+    static const char invalid_ff[] = { (char)0xFF, (char)0x80, (char)0x80,
+                                       (char)0x80, (char)0x80, (char)0x80 };
+
+    zassert_true(utf8_isvalid(NULL, 0), "Empty input should be valid");
+    zassert_true(
+        utf8_isvalid(ascii_value, strlen(ascii_value)),
+        "ASCII input should be valid UTF-8");
+    zassert_true(
+        utf8_isvalid(valid_two_byte, sizeof(valid_two_byte)),
+        "Valid 2-byte UTF-8 should pass validation");
+    zassert_true(
+        utf8_isvalid(valid_three_byte, sizeof(valid_three_byte)),
+        "Valid 3-byte UTF-8 should pass validation");
+    zassert_true(
+        utf8_isvalid(utf8_value, strlen(utf8_value)),
+        "Valid multibyte UTF-8 should pass validation");
+    zassert_true(
+        utf8_isvalid(valid_five_byte, sizeof(valid_five_byte)),
+        "Valid 5-byte legacy UTF-8 should pass validation");
+    zassert_true(
+        utf8_isvalid(valid_six_byte, sizeof(valid_six_byte)),
+        "Valid 6-byte legacy UTF-8 should pass validation");
+
+    zassert_false(utf8_isvalid(NULL, 1), "NULL input should be rejected");
+    zassert_false(
+        utf8_isvalid(embedded_nul, sizeof(embedded_nul)),
+        "Embedded NUL should be rejected");
+    zassert_false(
+        utf8_isvalid(lone_continuation, sizeof(lone_continuation)),
+        "Lone continuation byte should be rejected");
+    zassert_false(
+        utf8_isvalid(truncated_multibyte, sizeof(truncated_multibyte)),
+        "Truncated multibyte sequence should be rejected");
+    zassert_false(
+        utf8_isvalid(invalid_continuation, sizeof(invalid_continuation)),
+        "Invalid continuation byte should be rejected");
+    zassert_false(
+        utf8_isvalid(
+            invalid_late_continuation, sizeof(invalid_late_continuation)),
+        "Invalid later continuation byte should be rejected");
+    zassert_false(
+        utf8_isvalid(overlong_two_byte, sizeof(overlong_two_byte)),
+        "Overlong 2-byte sequence should be rejected");
+    zassert_false(
+        utf8_isvalid(overlong_three_byte, sizeof(overlong_three_byte)),
+        "Overlong 3-byte sequence should be rejected");
+    zassert_false(
+        utf8_isvalid(overlong_four_byte, sizeof(overlong_four_byte)),
+        "Overlong 4-byte sequence should be rejected");
+    zassert_false(
+        utf8_isvalid(overlong_five_byte, sizeof(overlong_five_byte)),
+        "Overlong 5-byte sequence should be rejected");
+    zassert_false(
+        utf8_isvalid(overlong_six_byte, sizeof(overlong_six_byte)),
+        "Overlong 6-byte sequence should be rejected");
+    zassert_false(
+        utf8_isvalid(invalid_fe, sizeof(invalid_fe)),
+        "0xFE lead byte should be rejected");
+    zassert_false(
+        utf8_isvalid(invalid_ff, sizeof(invalid_ff)),
+        "0xFF lead byte should be rejected");
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacstr_tests, testCharacterStringUtf8Valid)
 #else
@@ -1117,7 +1214,7 @@ void test_main(void)
 {
     ztest_test_suite(
         bacstr_tests, ztest_unit_test(testBitString),
-        ztest_unit_test(testCharacterString),
+        ztest_unit_test(testCharacterString), ztest_unit_test(testUtf8IsValid),
         ztest_unit_test(testCharacterStringUtf8Valid),
         ztest_unit_test(testCharacterStringUtf8Strdup),
         ztest_unit_test(testOctetString),
