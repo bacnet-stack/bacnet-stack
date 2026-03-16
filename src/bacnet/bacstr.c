@@ -1368,7 +1368,7 @@ bool octetstring_value_same(
 {
     bool status = false;
 
-    if (octet_string1 && octet_string2) {
+    if (octet_string2) {
         status = octetstring_length_value_same(
             octet_string1, octet_string2->length, octet_string2->value);
     }
