@@ -83,6 +83,72 @@ static void test_HostNPortMinimal_Codec(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(host_n_port_tests, test_HostNPortMinimalContext_Codec)
+#else
+static void test_HostNPortMinimalContext_Codec(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+    BACNET_HOST_N_PORT_MINIMAL test_data_1 = { 0 }, test_data_2 = { 0 };
+    uint8_t address[IP6_ADDRESS_MAX] = { 1, 2,  3,  4,  5,  6,  7,  8,
+                                         9, 10, 11, 12, 13, 14, 15, 16 };
+    uint16_t port = 0xBAC0;
+    uint8_t tag_number = 1;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+
+    /* test IP address */
+    host_n_port_minimal_ip_init(&test_data_1, port, address, sizeof(address));
+    null_len =
+        host_n_port_minimal_context_encode(NULL, tag_number, &test_data_1);
+    apdu_len =
+        host_n_port_minimal_context_encode(apdu, tag_number, &test_data_1);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+    null_len = host_n_port_minimal_context_decode(
+        apdu, apdu_len, tag_number, NULL, NULL);
+    test_len = host_n_port_minimal_context_decode(
+        apdu, apdu_len, tag_number, &error_code, &test_data_2);
+    zassert_equal(test_len, null_len, NULL);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    zassert_true(
+        host_n_port_minimal_same(&test_data_1, &test_data_2),
+        "test_data_1 != test_data_2");
+    while (test_len) {
+        test_len--;
+        len = host_n_port_minimal_context_decode(
+            apdu, test_len, tag_number, NULL, NULL);
+        zassert_true(len < 0, "len=%d test_len=%d", len, test_len);
+    }
+
+    /* test hostname */
+    host_n_port_minimal_hostname_init(&test_data_1, port, "bacnet.org");
+    null_len =
+        host_n_port_minimal_context_encode(NULL, tag_number, &test_data_1);
+    apdu_len =
+        host_n_port_minimal_context_encode(apdu, tag_number, &test_data_1);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+    null_len = host_n_port_minimal_context_decode(
+        apdu, apdu_len, tag_number, NULL, NULL);
+    test_len = host_n_port_minimal_context_decode(
+        apdu, apdu_len, tag_number, &error_code, &test_data_2);
+    zassert_equal(test_len, null_len, NULL);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    zassert_true(
+        host_n_port_minimal_same(&test_data_1, &test_data_2),
+        "test_data_1 != test_data_2");
+    while (test_len) {
+        test_len--;
+        len = host_n_port_minimal_context_decode(
+            apdu, test_len, tag_number, NULL, NULL);
+        zassert_true(len < 0, "len=%d test_len=%d", len, test_len);
+    }
+}
+
 static void test_HostNPortMinimal_Copy(BACNET_HOST_N_PORT *data)
 {
     BACNET_HOST_N_PORT_MINIMAL test_data_1 = { 0 }, test_data_2 = { 0 };
@@ -364,6 +430,7 @@ void test_main(void)
     ztest_test_suite(
         host_n_port_tests, ztest_unit_test(test_HostNPort),
         ztest_unit_test(test_HostNPortMinimal_Codec),
+        ztest_unit_test(test_HostNPortMinimalContext_Codec),
         ztest_unit_test(test_is_valid_hostname),
         ztest_unit_test(test_fdt_entry));
 
