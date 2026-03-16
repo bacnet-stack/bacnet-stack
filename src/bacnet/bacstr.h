@@ -173,7 +173,11 @@ BACNET_STACK_EXPORT
 size_t octetstring_length(const BACNET_OCTET_STRING *octet_string);
 BACNET_STACK_EXPORT
 size_t octetstring_capacity(const BACNET_OCTET_STRING *octet_string);
-/* returns true if the same length and contents */
+BACNET_STACK_EXPORT
+bool octetstring_length_value_same(
+    const BACNET_OCTET_STRING *octet_string1,
+    size_t length,
+    const uint8_t *value);
 BACNET_STACK_EXPORT
 bool octetstring_value_same(
     const BACNET_OCTET_STRING *octet_string1,

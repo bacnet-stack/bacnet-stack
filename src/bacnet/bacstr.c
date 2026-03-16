@@ -1324,7 +1324,38 @@ size_t octetstring_capacity(const BACNET_OCTET_STRING *octet_string)
 }
 
 /**
- * @brief Returns true if the same length and contents.
+ * @brief Returns true if the same length and value contents.
+ *
+ * @param octet_string1  Pointer to the first octet string.
+ * @param length  Length of the second octet string.
+ * @param value  Pointer to the value of the second octet string.
+ *
+ * @return true if the octet strings are the same, false otherwise.
+ */
+bool octetstring_length_value_same(
+    const BACNET_OCTET_STRING *octet_string1,
+    size_t length,
+    const uint8_t *value)
+{
+    size_t i = 0; /* loop counter */
+
+    if (octet_string1 && value) {
+        if ((octet_string1->length == length) &&
+            (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
+            for (i = 0; i < octet_string1->length; i++) {
+                if (octet_string1->value[i] != value[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief Returns true if the same length and value contents.
  *
  * @param octet_string1  Pointer to the first octet string.
  * @param octet_string2  Pointer to the second octet string.
@@ -1335,21 +1366,14 @@ bool octetstring_value_same(
     const BACNET_OCTET_STRING *octet_string1,
     const BACNET_OCTET_STRING *octet_string2)
 {
-    size_t i = 0; /* loop counter */
+    bool status = false;
 
     if (octet_string1 && octet_string2) {
-        if ((octet_string1->length == octet_string2->length) &&
-            (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
-            for (i = 0; i < octet_string1->length; i++) {
-                if (octet_string1->value[i] != octet_string2->value[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
+        status = octetstring_length_value_same(
+            octet_string1, octet_string2->length, octet_string2->value);
     }
 
-    return false;
+    return status;
 }
 #endif
 
