@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <math.h>
 #include "bacnet/hostnport.h"
 #include "bacnet/bacdcode.h"
 
@@ -442,6 +441,37 @@ int host_n_port_minimal_encode(
 }
 
 /**
+ * @brief Encode a context encoded BACnetHostNPort_Minimal complex data type
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param tag_number - context tag number to be encoded
+ * @param host - BACnetHostNPort_Minimal SEQUENCE
+ * @return length of the encoded APDU buffer
+ */
+int host_n_port_minimal_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_HOST_N_PORT_MINIMAL *host)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (host) {
+        len = encode_opening_tag(apdu, tag_number);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = host_n_port_minimal_encode(apdu, host);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief  Decode the BACnetHostAddress
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer length
@@ -694,7 +724,7 @@ void host_n_port_minimal_ip_init(
     const uint8_t *address,
     size_t address_len)
 {
-    unsigned i, imax;
+    uint8_t i, imax;
 
     if (host) {
         host->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
@@ -722,7 +752,7 @@ void host_n_port_minimal_ip_init(
 void host_n_port_minimal_hostname_init(
     BACNET_HOST_N_PORT_MINIMAL *host, uint16_t port, const char *hostname)
 {
-    unsigned i;
+    uint8_t i;
 
     if (host) {
         host->tag = BACNET_HOST_ADDRESS_TAG_NAME;
@@ -753,7 +783,7 @@ bool host_n_port_minimal_copy(
     BACNET_HOST_N_PORT_MINIMAL *dest, const BACNET_HOST_N_PORT_MINIMAL *src)
 {
     bool status = false;
-    int i;
+    uint8_t i;
 
     if (dest && src) {
         dest->tag = src->tag;
@@ -873,7 +903,7 @@ bool host_n_port_minimal_same(
     const BACNET_HOST_N_PORT_MINIMAL *src)
 {
     bool status = false;
-    int i;
+    uint8_t i;
 
     if (dst && src) {
         if (dst->tag == src->tag) {
