@@ -21,6 +21,13 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/osv.h"
 
+typedef struct octetstring_value_descr {
+    unsigned Event_State : 3;
+    bool Out_Of_Service;
+    BACNET_OCTET_STRING Present_Value;
+    const char *Object_Name;
+} OCTETSTRING_VALUE_DESCR;
+
 /* Key List for storing object data sorted by instance number */
 static OS_Keylist Object_List = NULL;
 
@@ -238,21 +245,76 @@ bool OctetString_Value_Present_Value_Set(
 }
 
 /**
+ * @brief Sets the present value length for an Octet String Value object.
+ * @param object_instance Object instance number.
+ * @param value Pointer to octet string value.
+ * @param length Length of the octet string value.
+ * @param priority Write priority (1..16).
+ * @return true if values are within range and present value length is set.
+ */
+bool OctetString_Value_Present_Value_Length_Set(
+    uint32_t object_instance, uint8_t *value, size_t length, uint8_t priority)
+{
+    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    bool status = false;
+
+    (void)priority;
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        status = octetstring_init(&pObject->Present_Value, value, length);
+    }
+
+    return status;
+}
+
+/**
  * @brief Gets the present value for an Octet String Value object.
  * @param object_instance Object instance number.
- * @return Pointer to present value, or NULL if object does not exist.
+ * @param value Pointer to octet string structure to receive the value.
+ * @return true if object exists and value is returned.
  */
-BACNET_OCTET_STRING *OctetString_Value_Present_Value(uint32_t object_instance)
+bool OctetString_Value_Present_Value_Get(
+    uint32_t object_instance, BACNET_OCTET_STRING *value)
 {
-    BACNET_OCTET_STRING *value = NULL;
     OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    bool status = false;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
-        value = &pObject->Present_Value;
+        status = octetstring_copy(value, &pObject->Present_Value);
     }
 
-    return value;
+    return status;
+}
+
+/**
+ * @brief Gets the present value length for an Octet String Value object.
+ * @param object_instance Object instance number.
+ * @param value Pointer to buffer to receive octet string value.
+ * @param value_size Size of the value buffer.
+ * @param length Pointer to receive length of the octet string value.
+ * @return true if object exists and value length is returned.
+ */
+bool OctetString_Value_Present_Value_Length(
+    uint32_t object_instance, uint8_t *value, size_t value_size, size_t *length)
+{
+    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    size_t value_length = 0;
+    bool status = false;
+
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        value_length = octetstring_length(&pObject->Present_Value);
+        if (length) {
+            *length = value_length;
+        }
+        if (value && (value_size >= value_length)) {
+            memcpy(value, pObject->Present_Value.value, value_length);
+        }
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -324,6 +386,47 @@ const char *OctetString_Value_Name_ASCII(uint32_t object_instance)
 }
 
 /**
+ * For a given object instance-number, returns the out-of-service
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  out-of-service property value
+ */
+bool OctetString_Value_Out_Of_Service(uint32_t object_instance)
+{
+    bool value = false;
+    OCTETSTRING_VALUE_DESCR *pObject;
+
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Out_Of_Service;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the out-of-service property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param value - boolean out-of-service value
+ *
+ * @return true if the out-of-service property value was set
+ */
+bool OctetString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
+{
+    OCTETSTRING_VALUE_DESCR *pObject;
+
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Out_Of_Service = value;
+        return true;
+    }
+    return false;
+}
+
+/**
  * @brief Encodes a read-property response for an Octet String Value object.
  * @param rpdata Read property request/response context.
  * @return Encoded APDU length, or BACNET_STATUS_ERROR on error.
@@ -331,27 +434,17 @@ const char *OctetString_Value_Name_ASCII(uint32_t object_instance)
 int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
-    BACNET_OCTET_STRING *real_value = NULL;
+    BACNET_BIT_STRING bit_string = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_OCTET_STRING octet_value = { 0 };
     bool state = false;
     uint8_t *apdu = NULL;
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-
     apdu = rpdata->application_data;
-
-    pObject = OctetString_Value_Object(rpdata->object_instance);
-    if (!pObject) {
-        rpdata->error_class = ERROR_CLASS_OBJECT;
-        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        return BACNET_STATUS_ERROR;
-    }
-
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -372,9 +465,9 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_PRESENT_VALUE:
-            real_value =
-                OctetString_Value_Present_Value(rpdata->object_instance);
-            apdu_len = encode_application_octet_string(&apdu[0], real_value);
+            OctetString_Value_Present_Value_Get(
+                rpdata->object_instance, &octet_value);
+            apdu_len = encode_application_octet_string(&apdu[0], &octet_value);
             break;
 
         case PROP_STATUS_FLAGS:
@@ -384,7 +477,7 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                pObject->Out_Of_Service);
+                OctetString_Value_Out_Of_Service(rpdata->object_instance));
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -395,7 +488,7 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OUT_OF_SERVICE:
-            state = pObject->Out_Of_Service;
+            state = OctetString_Value_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         default:
@@ -418,7 +511,6 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
 
     if (wp_data == NULL) {
         return false;
@@ -426,24 +518,15 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data->application_data_len == 0) {
         return false;
     }
-
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
-    /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    pObject = OctetString_Value_Object(wp_data->object_instance);
-    if (!pObject) {
-        wp_data->error_class = ERROR_CLASS_OBJECT;
-        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        return false;
-    }
-
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -473,7 +556,8 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                pObject->Out_Of_Service = value.type.Boolean;
+                OctetString_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         default:
