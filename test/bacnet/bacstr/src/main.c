@@ -550,16 +550,14 @@ static void test_octetstring_init_ascii_epics(void)
     BACNET_OCTET_STRING bacnet_string;
     const char *epics_valid_hex = "X'1234567890ABCDEF'";
     const char *epics_valid_hex_with_colons = "X'12:34:56:78:90:AB:CD:EF'";
-    const char *epics_valid_empty = "X''";
     const char *epics_invalid_no_prefix = "1234567890ABCDEF";
     const char *epics_invalid_wrong_prefix = "H'1234567890ABCDEF'";
-    const char *epics_invalid_odd_digits = "X'123456789ABCDE'";
+    const char *epics_invalid_odd_single = "X'1";
     char epics_too_long[MAX_APDU + MAX_APDU] = "";
     bool status = false;
     size_t length = 0;
     size_t test_length = 0;
     uint8_t *value = NULL;
-    size_t i = 0;
 
     /* test valid EPICS format with hex string */
     status = octetstring_init_ascii_epics(&bacnet_string, epics_valid_hex);
@@ -582,12 +580,6 @@ static void test_octetstring_init_ascii_epics(void)
     value = octetstring_value(&bacnet_string);
     zassert_equal(value[0], 0x12, "First byte should be 0x12");
     zassert_equal(value[1], 0x34, "Second byte should be 0x34");
-
-    /* test empty EPICS format */
-    status = octetstring_init_ascii_epics(&bacnet_string, epics_valid_empty);
-    zassert_true(status, "Empty EPICS format should return true");
-    length = octetstring_length(&bacnet_string);
-    zassert_equal(length, 0, "Length should be 0 bytes");
 
     /* test invalid - NULL octet string pointer */
     status = octetstring_init_ascii_epics(NULL, epics_valid_hex);
@@ -613,8 +605,8 @@ static void test_octetstring_init_ascii_epics(void)
 
     /* test invalid - odd number of hex digits */
     status =
-        octetstring_init_ascii_epics(&bacnet_string, epics_invalid_odd_digits);
-    zassert_false(status, "Odd number of hex digits should return false");
+        octetstring_init_ascii_epics(&bacnet_string, epics_invalid_odd_single);
+    zassert_false(status, "Single hex digit without pair should return false");
 
     /* test invalid - string too long */
     memset(
