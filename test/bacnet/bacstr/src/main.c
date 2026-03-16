@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdint.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
 
@@ -1039,6 +1040,73 @@ static void test_bacnet_snprintf(void)
 }
 
 /**
+ * @brief Test bacnet_strdup string duplication
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_strdup)
+#else
+static void test_bacnet_strdup(void)
+#endif
+{
+    const char *original = "Test String";
+    const char *empty_string = "";
+    const char *long_string =
+        "This is a longer test string with multiple words";
+    char *dup_string = NULL;
+
+    /* Test NULL pointer */
+    dup_string = bacnet_strdup(NULL);
+    zassert_is_null(dup_string, "NULL input should return NULL");
+
+    /* Test empty string */
+    dup_string = bacnet_strdup(empty_string);
+    zassert_not_null(dup_string, "Empty string should allocate memory");
+    zassert_equal(
+        strlen(dup_string), 0, "Duplicated empty string should have length 0");
+    zassert_equal(
+        bacnet_strcmp(dup_string, empty_string), 0,
+        "Duplicated string should match original");
+    free(dup_string);
+
+    /* Test normal string */
+    dup_string = bacnet_strdup(original);
+    zassert_not_null(dup_string, "Normal string should allocate memory");
+    zassert_equal(
+        bacnet_strcmp(dup_string, original), 0,
+        "Duplicated string should match original");
+    /* Verify different memory addresses */
+    zassert_not_equal(
+        (uintptr_t)dup_string, (uintptr_t)original,
+        "Duplicated string should have different address");
+    /* Verify string length is preserved */
+    zassert_equal(
+        strlen(dup_string), strlen(original),
+        "String length should be preserved");
+    free(dup_string);
+
+    /* Test longer string */
+    dup_string = bacnet_strdup(long_string);
+    zassert_not_null(dup_string, "Longer string should allocate memory");
+    zassert_equal(
+        bacnet_strcmp(dup_string, long_string), 0,
+        "Duplicated longer string should match original");
+    zassert_equal(
+        strlen(dup_string), strlen(long_string),
+        "Longer string length should be preserved");
+    free(dup_string);
+
+    /* Test string with special characters */
+    const char *special_chars = "Hello\tWorld\nTest!";
+    dup_string = bacnet_strdup(special_chars);
+    zassert_not_null(
+        dup_string, "String with special chars should allocate memory");
+    zassert_equal(
+        bacnet_strcmp(dup_string, special_chars), 0,
+        "Special characters should be preserved");
+    free(dup_string);
+}
+
+/**
  * @}
  */
 
@@ -1061,7 +1129,8 @@ void test_main(void)
         ztest_unit_test(test_bacnet_string_to_x),
         ztest_unit_test(test_bacnet_string_trim),
         ztest_unit_test(test_bacnet_stptok),
-        ztest_unit_test(test_bacnet_snprintf));
+        ztest_unit_test(test_bacnet_snprintf),
+        ztest_unit_test(test_bacnet_strdup));
     ztest_run_test_suite(bacstr_tests);
 }
 #endif
