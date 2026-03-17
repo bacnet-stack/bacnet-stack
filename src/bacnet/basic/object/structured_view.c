@@ -203,7 +203,7 @@ bool Structured_View_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[48] = "Structured-View-4194303";
+    char name_text[48] = "";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -293,7 +293,7 @@ const char *Structured_View_Description(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @param  new_name - holds the description to be set
  *
- * @return  true if object-name was set
+ * @return  true if description was set
  */
 bool Structured_View_Description_Set(
     uint32_t object_instance, const char *new_name)
