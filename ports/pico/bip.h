@@ -18,7 +18,9 @@
 
 /* specific defines for BACnet/IP over Ethernet */
 #define BIP_HEADER_MAX (1 + 1 + 2)
+#ifndef BIP_MPDU_MAX
 #define BIP_MPDU_MAX (BIP_HEADER_MAX + MAX_PDU) /* 1506 */
+#endif
 
 #define BVLL_TYPE_BACNET_IP (0x81)
 

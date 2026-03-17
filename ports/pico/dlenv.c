@@ -35,7 +35,7 @@ volatile uint8_t g_last_dst = 0;
 
 static void mstp_frame_rx_complete_cb(
     uint8_t src, uint8_t dst, uint8_t frame_type,
-    const uint8_t *buf, uint16_t len)
+    uint8_t *buf, uint16_t len)
 {
     (void)buf;
     (void)len;

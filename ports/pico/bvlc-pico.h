@@ -19,7 +19,9 @@ extern "C" {
 #endif
 
 /* Maximum packet size for BACnet/IP */
+#ifndef BIP_MPDU_MAX
 #define BIP_MPDU_MAX 1506
+#endif
 
 uint16_t bvlc_for_non_bbmd(
     uint8_t *addr,
