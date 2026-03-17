@@ -1378,6 +1378,69 @@ bool octetstring_value_same(
 #endif
 
 /**
+ * @brief Copies an octet string value to a buffer structure.
+ * @param dest Pointer to destination buffer structure.
+ * @param src Pointer to source octet string structure.
+ * @return true if copy is successful.
+ */
+bool octetstring_buffer_duplicate(
+    BACNET_OCTET_STRING_BUFFER *dest, const uint8_t *value, size_t length)
+{
+    uint8_t *new_buffer = NULL;
+    bool status = false;
+
+    if (dest && value) {
+        if (length <= dest->buffer_size) {
+            dest->buffer_length = length;
+            if (length > 0) {
+                memcpy(dest->buffer, value, length);
+            }
+            status = true;
+        } else {
+            new_buffer = realloc(dest->buffer, length);
+            if (new_buffer) {
+                dest->buffer = new_buffer;
+                dest->buffer_length = length;
+                dest->buffer_size = length;
+                memcpy(dest->buffer, value, length);
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Copies an octet string value to a buffer structure.
+ * @param dest Pointer to destination buffer structure.
+ * @param src Pointer to source octet string structure.
+ * @return true if copy is successful.
+ */
+bool octetstring_to_buffer_duplicate(
+    BACNET_OCTET_STRING_BUFFER *dest, const BACNET_OCTET_STRING *src)
+{
+    return octetstring_buffer_duplicate(dest, src->value, src->length);
+}
+
+/**
+ * @brief Copies an octet string value from a buffer structure.
+ * @param dest Pointer to destination octet string structure.
+ * @param src Pointer to source buffer structure.
+ * @return true if copy is successful.
+ */
+bool octetstring_from_buffer_copy(
+    BACNET_OCTET_STRING *dest, const BACNET_OCTET_STRING_BUFFER *src)
+{
+    if (dest && src && (src->buffer_length <= sizeof(dest->value))) {
+        memcpy(dest->value, src->buffer, src->buffer_length);
+        dest->length = src->buffer_length;
+        return true;
+    }
+    return false;
+}
+
+/**
  * @brief Compare two strings, case sensitive or insensitive, with length limit
  * @details The strncmp() function compares, at most, the first n characters
  *  of string1 and string2.
