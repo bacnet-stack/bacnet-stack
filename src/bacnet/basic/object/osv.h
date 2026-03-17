@@ -83,7 +83,7 @@ bool OctetString_Value_Encode_Value_List(
     uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list);
 
 BACNET_STACK_EXPORT
-char *OctetString_Value_Description(uint32_t instance);
+const char *OctetString_Value_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool OctetString_Value_Description_Set(uint32_t instance, const char *new_name);
 

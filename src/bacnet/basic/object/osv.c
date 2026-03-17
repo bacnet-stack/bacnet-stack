@@ -15,18 +15,20 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/osv.h"
 
-typedef struct octetstring_value_descr {
+struct object_data {
     unsigned Event_State : 3;
-    bool Out_Of_Service;
-    BACNET_OCTET_STRING Present_Value;
-    const char *Object_Name;
-} OCTETSTRING_VALUE_DESCR;
+    bool Out_Of_Service : 1;
+    BACNET_OCTET_STRING_BUFFER Present_Value;
+    char *Object_Name;
+    char *Description;
+};
 
 /* Key List for storing object data sorted by instance number */
 static OS_Keylist Object_List = NULL;
@@ -97,8 +99,7 @@ void OctetString_Value_Writable_Property_List(
  * @param object_instance Object instance number.
  * @return Pointer to object descriptor, or NULL if not found.
  */
-static OCTETSTRING_VALUE_DESCR *
-OctetString_Value_Object(uint32_t object_instance)
+static struct object_data *OctetString_Value_Object(uint32_t object_instance)
 {
     return Keylist_Data(Object_List, object_instance);
 }
@@ -111,7 +112,7 @@ OctetString_Value_Object(uint32_t object_instance)
  */
 uint32_t OctetString_Value_Create(uint32_t object_instance)
 {
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    struct object_data *pObject = NULL;
     int index = 0;
 
     if (!Object_List) {
@@ -124,7 +125,7 @@ uint32_t OctetString_Value_Create(uint32_t object_instance)
     }
     pObject = OctetString_Value_Object(object_instance);
     if (!pObject) {
-        pObject = calloc(1, sizeof(OCTETSTRING_VALUE_DESCR));
+        pObject = calloc(1, sizeof(struct object_data));
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
@@ -133,7 +134,8 @@ uint32_t OctetString_Value_Create(uint32_t object_instance)
             free(pObject);
             return BACNET_MAX_INSTANCE;
         }
-        octetstring_init(&pObject->Present_Value, NULL, 0);
+        pObject->Object_Name = NULL;
+        pObject->Description = NULL;
         pObject->Out_Of_Service = false;
         pObject->Event_State = EVENT_STATE_NORMAL;
     }
@@ -148,10 +150,12 @@ uint32_t OctetString_Value_Create(uint32_t object_instance)
  */
 bool OctetString_Value_Delete(uint32_t object_instance)
 {
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    struct object_data *pObject = NULL;
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        free(pObject->Description);
+        free(pObject->Object_Name);
         free(pObject);
         return true;
     }
@@ -231,13 +235,13 @@ bool OctetString_Value_Present_Value_Set(
     const BACNET_OCTET_STRING *value,
     uint8_t priority)
 {
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    struct object_data *pObject = NULL;
     bool status = false;
 
     (void)priority;
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
-        octetstring_copy(&pObject->Present_Value, value);
+        octetstring_to_buffer_duplicate(&pObject->Present_Value, value);
         status = true;
     }
 
@@ -255,13 +259,14 @@ bool OctetString_Value_Present_Value_Set(
 bool OctetString_Value_Present_Value_Length_Set(
     uint32_t object_instance, uint8_t *value, size_t length, uint8_t priority)
 {
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    struct object_data *pObject = NULL;
     bool status = false;
 
     (void)priority;
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
-        status = octetstring_init(&pObject->Present_Value, value, length);
+        status = octetstring_buffer_duplicate(
+            &pObject->Present_Value, value, length);
     }
 
     return status;
@@ -276,12 +281,12 @@ bool OctetString_Value_Present_Value_Length_Set(
 bool OctetString_Value_Present_Value_Get(
     uint32_t object_instance, BACNET_OCTET_STRING *value)
 {
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    struct object_data *pObject = NULL;
     bool status = false;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
-        status = octetstring_copy(value, &pObject->Present_Value);
+        status = octetstring_from_buffer_copy(value, &pObject->Present_Value);
     }
 
     return status;
@@ -298,20 +303,24 @@ bool OctetString_Value_Present_Value_Get(
 bool OctetString_Value_Present_Value_Length(
     uint32_t object_instance, uint8_t *value, size_t value_size, size_t *length)
 {
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
-    size_t value_length = 0;
+    struct object_data *pObject = NULL;
     bool status = false;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
-        value_length = octetstring_length(&pObject->Present_Value);
         if (length) {
-            *length = value_length;
+            *length = pObject->Present_Value.buffer_length;
         }
-        if (value && (value_size >= value_length)) {
-            memcpy(value, pObject->Present_Value.value, value_length);
+        if (value) {
+            if (value_size >= pObject->Present_Value.buffer_length) {
+                memcpy(
+                    value, pObject->Present_Value.buffer,
+                    pObject->Present_Value.buffer_length);
+                status = true;
+            } else {
+                status = false;
+            }
         }
-        status = true;
     }
 
     return status;
@@ -328,7 +337,7 @@ bool OctetString_Value_Object_Name(
 {
     char text[32] = "";
     bool status = false;
-    OCTETSTRING_VALUE_DESCR *pObject = NULL;
+    struct object_data *pObject = NULL;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
@@ -356,12 +365,13 @@ bool OctetString_Value_Object_Name(
 bool OctetString_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
-    OCTETSTRING_VALUE_DESCR *pObject;
+    struct object_data *pObject;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
         status = true;
-        pObject->Object_Name = new_name;
+        free(pObject->Object_Name);
+        pObject->Object_Name = bacnet_strdup(new_name);
     }
 
     return status;
@@ -375,7 +385,7 @@ bool OctetString_Value_Name_Set(uint32_t object_instance, const char *new_name)
 const char *OctetString_Value_Name_ASCII(uint32_t object_instance)
 {
     const char *name = NULL;
-    OCTETSTRING_VALUE_DESCR *pObject;
+    struct object_data *pObject;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
@@ -383,6 +393,54 @@ const char *OctetString_Value_Name_ASCII(uint32_t object_instance)
     }
 
     return name;
+}
+
+/**
+ * For a given object instance-number, returns the description
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return description text or NULL if not found
+ */
+const char *OctetString_Value_Description(uint32_t object_instance)
+{
+    const char *name = NULL;
+    const struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->Description) {
+            name = pObject->Description;
+        } else {
+            name = "";
+        }
+    }
+
+    return name;
+}
+
+/**
+ * For a given object instance-number, sets the description
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ *
+ * @return  true if description was set
+ */
+bool OctetString_Value_Description_Set(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = true;
+        free(pObject->Description);
+        pObject->Description = bacnet_strdup(new_name);
+    }
+
+    return status;
 }
 
 /**
@@ -396,7 +454,7 @@ const char *OctetString_Value_Name_ASCII(uint32_t object_instance)
 bool OctetString_Value_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
-    OCTETSTRING_VALUE_DESCR *pObject;
+    struct object_data *pObject;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
@@ -416,7 +474,7 @@ bool OctetString_Value_Out_Of_Service(uint32_t object_instance)
  */
 bool OctetString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
-    OCTETSTRING_VALUE_DESCR *pObject;
+    struct object_data *pObject;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
@@ -452,7 +510,6 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             OctetString_Value_Object_Name(
                 rpdata->object_instance, &char_string);
             apdu_len =
@@ -487,10 +544,18 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
 
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string,
+                OctetString_Value_Description(rpdata->object_instance));
+            apdu_len = encode_application_character_string(apdu, &char_string);
+            break;
+
         case PROP_OUT_OF_SERVICE:
             state = OctetString_Value_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
+
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -499,6 +564,70 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
 
     return apdu_len;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+static bool OctetString_Value_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+    char *utf8_name = NULL;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        utf8_name =
+            write_property_characterstring_utf8_strdup(wp_data, cstring);
+        if (utf8_name) {
+            free(pObject->Object_Name);
+            pObject->Object_Name = utf8_name;
+            status = true;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the description property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the description to be set
+ *
+ * @return  true if description was set
+ */
+static bool OctetString_Value_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+    char *utf8_name = NULL;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        utf8_name =
+            write_property_characterstring_utf8_strdup(wp_data, cstring);
+        if (utf8_name) {
+            free(pObject->Description);
+            pObject->Description = utf8_name;
+            status = true;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
 }
 
 /**
@@ -551,7 +680,22 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = OctetString_Value_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = OctetString_Value_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_OUT_OF_SERVICE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
