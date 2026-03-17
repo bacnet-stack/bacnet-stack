@@ -65,10 +65,10 @@ BACNET_STACK_EXPORT
 BACNET_OCTET_STRING *OctetString_Value_Present_Value(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-bool OctetString_Value_Present_Value_Length_Set(
+bool OctetString_Value_Present_Value_Buffer_Set(
     uint32_t object_instance, uint8_t *value, size_t length, uint8_t priority);
 BACNET_STACK_EXPORT
-bool OctetString_Value_Present_Value_Length(
+bool OctetString_Value_Present_Value_Buffer_Get(
     uint32_t object_instance,
     uint8_t *value,
     size_t value_size,

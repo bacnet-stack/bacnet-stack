@@ -249,30 +249,6 @@ bool OctetString_Value_Present_Value_Set(
 }
 
 /**
- * @brief Sets the present value length for an Octet String Value object.
- * @param object_instance Object instance number.
- * @param value Pointer to octet string value.
- * @param length Length of the octet string value.
- * @param priority Write priority (1..16).
- * @return true if values are within range and present value length is set.
- */
-bool OctetString_Value_Present_Value_Length_Set(
-    uint32_t object_instance, uint8_t *value, size_t length, uint8_t priority)
-{
-    struct object_data *pObject = NULL;
-    bool status = false;
-
-    (void)priority;
-    pObject = OctetString_Value_Object(object_instance);
-    if (pObject) {
-        status = octetstring_buffer_duplicate(
-            &pObject->Present_Value, value, length);
-    }
-
-    return status;
-}
-
-/**
  * @brief Gets the present value for an Octet String Value object.
  * @param object_instance Object instance number.
  * @param value Pointer to octet string structure to receive the value.
@@ -293,14 +269,38 @@ bool OctetString_Value_Present_Value_Get(
 }
 
 /**
- * @brief Gets the present value length for an Octet String Value object.
+ * @brief Sets the present value buffer and length for this object.
+ * @param object_instance Object instance number.
+ * @param value Pointer to octet string value.
+ * @param length Length of the octet string value.
+ * @param priority Write priority (1..16).
+ * @return true if values are within range and present value length is set.
+ */
+bool OctetString_Value_Present_Value_Buffer_Set(
+    uint32_t object_instance, uint8_t *value, size_t length, uint8_t priority)
+{
+    struct object_data *pObject = NULL;
+    bool status = false;
+
+    (void)priority;
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        status = octetstring_buffer_duplicate(
+            &pObject->Present_Value, value, length);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the present value buffer and length for this object.
  * @param object_instance Object instance number.
  * @param value Pointer to buffer to receive octet string value.
  * @param value_size Size of the value buffer.
  * @param length Pointer to receive length of the octet string value.
  * @return true if object exists and value length is returned.
  */
-bool OctetString_Value_Present_Value_Length(
+bool OctetString_Value_Present_Value_Buffer_Get(
     uint32_t object_instance, uint8_t *value, size_t value_size, size_t *length)
 {
     struct object_data *pObject = NULL;
