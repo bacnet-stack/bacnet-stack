@@ -123,6 +123,40 @@ static void testBitString(void)
     zassert_equal(
         bitstring_bits_capacity(&bit_string), (MAX_BITSTRING_BYTES * 8), NULL);
     zassert_equal(bitstring_bits_capacity(NULL), 0, NULL);
+
+    /* bitstring_init_ascii negative tests */
+    /* test NULL bit_string pointer */
+    status = bitstring_init_ascii(NULL, "1111");
+    zassert_false(status, "NULL bit_string should return false");
+    /* test empty ascii string */
+    status = bitstring_init_ascii(&bit_string, "");
+    zassert_true(status, "Empty string should return true");
+    zassert_equal(
+        bitstring_bits_used(&bit_string), 0, "Empty string should have 0 bits");
+    /* test ascii string with only invalid characters */
+    status = bitstring_init_ascii(&bit_string, "xyz-._:");
+    zassert_false(status, "String with only invalid chars should return false");
+    /* test string that exceeds capacity */
+    char overflow_string[MAX_BITSTRING_BYTES * 8 + 100] = { 0 };
+    memset(overflow_string, '1', MAX_BITSTRING_BYTES * 8 + 10);
+    overflow_string[MAX_BITSTRING_BYTES * 8 + 10] = 0;
+    status = bitstring_init_ascii(&bit_string, overflow_string);
+    zassert_false(status, "String exceeding capacity should return false");
+    /* test valid string at exact capacity boundary */
+    char capacity_string[MAX_BITSTRING_BYTES * 8 + 1] = { 0 };
+    memset(capacity_string, '1', MAX_BITSTRING_BYTES * 8);
+    capacity_string[MAX_BITSTRING_BYTES * 8] = 0;
+    status = bitstring_init_ascii(&bit_string, capacity_string);
+    zassert_true(status, "String at exact capacity should return true");
+    zassert_equal(
+        bitstring_bits_used(&bit_string), MAX_BITSTRING_BYTES * 8,
+        "Should have max bits");
+    /* test string with mixed valid and invalid characters */
+    status = bitstring_init_ascii(&bit_string, "1a1b0c0d1e0");
+    zassert_true(status, "Mixed valid/invalid chars should skip invalid ones");
+    zassert_equal(
+        bitstring_bits_used(&bit_string), 6,
+        "Should have 6 bits from valid chars: 110010");
 }
 
 /**
@@ -503,11 +537,19 @@ static void testOctetString(void)
 {
     BACNET_OCTET_STRING bacnet_string;
     BACNET_OCTET_STRING bacnet_string_twin;
+    BACNET_OCTET_STRING_BUFFER octet_string_buffer;
+    BACNET_OCTET_STRING_BUFFER octet_string_buffer_src;
     uint8_t *value = NULL;
     uint8_t test_value[MAX_APDU] = "Patricia";
     uint8_t test_value_twin[MAX_APDU] = "PATRICIA";
     uint8_t test_append_value[MAX_APDU] = " and the Kids";
     uint8_t test_append_string[MAX_APDU] = "";
+    uint8_t duplicate_value[] = { 0x01, 0x23, 0x45, 0x67, 0x89 };
+    uint8_t duplicate_value_realloc[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
+                                          0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B };
+    uint8_t from_buffer_value[] = { 0xA5, 0x5A, 0xC3 };
+    uint8_t max_octet_string_value[MAX_OCTET_STRING_BYTES] = { 0 };
+    uint8_t over_limit_value[MAX_OCTET_STRING_BYTES + 1] = { 0 };
     const char *hex_value_valid = "1234567890ABCDEF";
     const char *hex_value_skips = "12:34:56:78:90:AB:CD:EF";
     const char *hex_value_odd = "1234567890ABCDE";
@@ -634,6 +676,156 @@ static void testOctetString(void)
     zassert_true(status, NULL);
     status = octetstring_value_same(&bacnet_string_twin, &bacnet_string);
     zassert_true(status, NULL);
+
+    /* to buffer duplicate */
+    memset(&octet_string_buffer, 0, sizeof(octet_string_buffer));
+    octet_string_buffer.buffer_size = 8;
+    octet_string_buffer.buffer = malloc(octet_string_buffer.buffer_size);
+    zassert_not_null(octet_string_buffer.buffer, NULL);
+    test_length = sizeof(duplicate_value);
+    status = octetstring_init(&bacnet_string, duplicate_value, test_length);
+    zassert_true(status, NULL);
+    status =
+        octetstring_to_buffer_duplicate(&octet_string_buffer, &bacnet_string);
+    zassert_true(status, NULL);
+    zassert_equal(octet_string_buffer.buffer_length, test_length, NULL);
+    zassert_equal(
+        memcmp(octet_string_buffer.buffer, duplicate_value, test_length), 0,
+        NULL);
+    status = octetstring_to_buffer_duplicate(NULL, &bacnet_string);
+    zassert_false(status, NULL);
+    status = octetstring_to_buffer_duplicate(&octet_string_buffer, NULL);
+    zassert_false(status, NULL);
+    status = octetstring_init(
+        &bacnet_string, duplicate_value_realloc,
+        sizeof(duplicate_value_realloc));
+    zassert_true(status, NULL);
+    status =
+        octetstring_to_buffer_duplicate(&octet_string_buffer, &bacnet_string);
+    zassert_true(status, NULL);
+    zassert_equal(
+        octet_string_buffer.buffer_size, sizeof(duplicate_value_realloc), NULL);
+    zassert_equal(
+        octet_string_buffer.buffer_length, sizeof(duplicate_value_realloc),
+        NULL);
+    zassert_equal(
+        memcmp(
+            octet_string_buffer.buffer, duplicate_value_realloc,
+            sizeof(duplicate_value_realloc)),
+        0, NULL);
+    status = octetstring_init(&bacnet_string, NULL, 0);
+    zassert_true(status, NULL);
+    status =
+        octetstring_to_buffer_duplicate(&octet_string_buffer, &bacnet_string);
+    zassert_true(status, NULL);
+    zassert_equal(octet_string_buffer.buffer_length, 0, NULL);
+    free(octet_string_buffer.buffer);
+
+    /* from buffer copy */
+    memset(&octet_string_buffer_src, 0, sizeof(octet_string_buffer_src));
+    octet_string_buffer_src.buffer = from_buffer_value;
+    octet_string_buffer_src.buffer_size = sizeof(from_buffer_value);
+    octet_string_buffer_src.buffer_length = sizeof(from_buffer_value);
+    status =
+        octetstring_from_buffer_copy(&bacnet_string, &octet_string_buffer_src);
+    zassert_true(status, NULL);
+    zassert_equal(bacnet_string.length, sizeof(from_buffer_value), NULL);
+    zassert_equal(
+        memcmp(
+            bacnet_string.value, from_buffer_value, sizeof(from_buffer_value)),
+        0, NULL);
+    octet_string_buffer_src.buffer_length = 0;
+    status =
+        octetstring_from_buffer_copy(&bacnet_string, &octet_string_buffer_src);
+    zassert_true(status, NULL);
+    zassert_equal(bacnet_string.length, 0, NULL);
+    for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
+        max_octet_string_value[i] = (uint8_t)i;
+    }
+    octet_string_buffer_src.buffer = max_octet_string_value;
+    octet_string_buffer_src.buffer_size = sizeof(max_octet_string_value);
+    octet_string_buffer_src.buffer_length = sizeof(max_octet_string_value);
+    status =
+        octetstring_from_buffer_copy(&bacnet_string, &octet_string_buffer_src);
+    zassert_true(status, NULL);
+    zassert_equal(bacnet_string.length, sizeof(max_octet_string_value), NULL);
+    zassert_equal(
+        memcmp(
+            bacnet_string.value, max_octet_string_value,
+            sizeof(max_octet_string_value)),
+        0, NULL);
+    status = octetstring_from_buffer_copy(NULL, &octet_string_buffer_src);
+    zassert_false(status, NULL);
+    status = octetstring_from_buffer_copy(&bacnet_string, NULL);
+    zassert_false(status, NULL);
+    status = octetstring_init(
+        &bacnet_string, duplicate_value, sizeof(duplicate_value));
+    zassert_true(status, NULL);
+    for (i = 0; i < sizeof(over_limit_value); i++) {
+        over_limit_value[i] = (uint8_t)i;
+    }
+    octet_string_buffer_src.buffer = over_limit_value;
+    octet_string_buffer_src.buffer_size = sizeof(over_limit_value);
+    octet_string_buffer_src.buffer_length = sizeof(over_limit_value);
+    status =
+        octetstring_from_buffer_copy(&bacnet_string, &octet_string_buffer_src);
+    zassert_false(status, NULL);
+    zassert_equal(bacnet_string.length, sizeof(duplicate_value), NULL);
+    zassert_equal(
+        memcmp(bacnet_string.value, duplicate_value, sizeof(duplicate_value)),
+        0, NULL);
+
+    /* to buffer copy (no reallocation, fixed-size copy) */
+    memset(&octet_string_buffer, 0, sizeof(octet_string_buffer));
+    octet_string_buffer.buffer_size = 8;
+    octet_string_buffer.buffer = malloc(octet_string_buffer.buffer_size);
+    zassert_not_null(octet_string_buffer.buffer, NULL);
+    test_length = sizeof(duplicate_value);
+    status = octetstring_init(&bacnet_string, duplicate_value, test_length);
+    zassert_true(status, NULL);
+    status = octetstring_to_buffer_copy(&octet_string_buffer, &bacnet_string);
+    zassert_true(status, NULL);
+    zassert_equal(octet_string_buffer.buffer_length, test_length, NULL);
+    zassert_equal(octet_string_buffer.buffer_size, 8, NULL);
+    zassert_equal(
+        memcmp(octet_string_buffer.buffer, duplicate_value, test_length), 0,
+        NULL);
+    status = octetstring_to_buffer_copy(NULL, &bacnet_string);
+    zassert_false(status, NULL);
+    status = octetstring_to_buffer_copy(&octet_string_buffer, NULL);
+    zassert_false(status, NULL);
+    /* test copy with empty string */
+    status = octetstring_init(&bacnet_string, NULL, 0);
+    zassert_true(status, NULL);
+    status = octetstring_to_buffer_copy(&octet_string_buffer, &bacnet_string);
+    zassert_true(status, NULL);
+    zassert_equal(octet_string_buffer.buffer_length, 0, NULL);
+    zassert_equal(octet_string_buffer.buffer_size, 8, NULL);
+    /* test copy failure when data exceeds buffer size */
+    status = octetstring_init(
+        &bacnet_string, duplicate_value_realloc,
+        sizeof(duplicate_value_realloc));
+    zassert_true(status, NULL);
+    status = octetstring_to_buffer_copy(&octet_string_buffer, &bacnet_string);
+    zassert_false(status, "Copy should fail when src length > buffer_size");
+    zassert_equal(
+        octet_string_buffer.buffer_size, 8,
+        "Buffer size should not change on failed copy");
+    /* test copy fits exactly at buffer boundary */
+    octet_string_buffer.buffer_size = sizeof(duplicate_value);
+    status = octetstring_init(
+        &bacnet_string, duplicate_value, sizeof(duplicate_value));
+    zassert_true(status, NULL);
+    status = octetstring_to_buffer_copy(&octet_string_buffer, &bacnet_string);
+    zassert_true(status, "Copy should succeed when size equals buffer_size");
+    zassert_equal(
+        octet_string_buffer.buffer_length, sizeof(duplicate_value), NULL);
+    zassert_equal(
+        memcmp(
+            octet_string_buffer.buffer, duplicate_value,
+            sizeof(duplicate_value)),
+        0, NULL);
+    free(octet_string_buffer.buffer);
 }
 
 /**
