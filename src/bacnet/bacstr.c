@@ -1378,9 +1378,10 @@ bool octetstring_value_same(
 #endif
 
 /**
- * @brief Copies an octet string value to a buffer structure.
+ * @brief Duplicates an octet string value and length to a buffer structure.
  * @param dest Pointer to destination buffer structure.
- * @param src Pointer to source octet string structure.
+ * @param value Pointer to the byte array to be copied to the buffer structure.
+ * @param length Count of bytes to be copied to the buffer structure.
  * @return true if copy is successful.
  */
 bool octetstring_buffer_duplicate(
@@ -1412,7 +1413,7 @@ bool octetstring_buffer_duplicate(
 }
 
 /**
- * @brief Copies an octet string value to a buffer structure.
+ * @brief Duplicates an octet string value to a buffer structure.
  * @param dest Pointer to destination buffer structure.
  * @param src Pointer to source octet string structure.
  * @return true if copy is successful.
@@ -1420,7 +1421,34 @@ bool octetstring_buffer_duplicate(
 bool octetstring_to_buffer_duplicate(
     BACNET_OCTET_STRING_BUFFER *dest, const BACNET_OCTET_STRING *src)
 {
+    if (!src) {
+        return false;
+    }
     return octetstring_buffer_duplicate(dest, src->value, src->length);
+}
+
+/**
+ * @brief Copies an octet string value to a buffer structure.
+ * @param dest Pointer to destination buffer structure.
+ * @param src Pointer to source octet string structure.
+ * @return true if copy is successful.
+ */
+bool octetstring_to_buffer_copy(
+    BACNET_OCTET_STRING_BUFFER *dest, const BACNET_OCTET_STRING *src)
+{
+    bool status = false;
+
+    if (dest && src) {
+        if (src->length <= dest->buffer_size) {
+            dest->buffer_length = src->length;
+            if (src->length > 0) {
+                memcpy(dest->buffer, src->value, src->length);
+            }
+            status = true;
+        }
+    }
+
+    return status;
 }
 
 /**

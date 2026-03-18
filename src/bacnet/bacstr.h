@@ -207,6 +207,9 @@ BACNET_STACK_EXPORT
 bool octetstring_to_buffer_duplicate(
     BACNET_OCTET_STRING_BUFFER *dest, const BACNET_OCTET_STRING *src);
 BACNET_STACK_EXPORT
+bool octetstring_to_buffer_copy(
+    BACNET_OCTET_STRING_BUFFER *dest, const BACNET_OCTET_STRING *src);
+BACNET_STACK_EXPORT
 bool octetstring_from_buffer_copy(
     BACNET_OCTET_STRING *dest, const BACNET_OCTET_STRING_BUFFER *src);
 
