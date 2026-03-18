@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-03-16
+## [Unreleased] - 2026-03-18
 
 ### Security
 
@@ -53,6 +53,10 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added new functions for duplicating and copying octet string buffers.
+  Refactor existing OctetString Value object to enable writes to object name
+  description, and present-value, with functional tests to ensure
+  the correctness of the new features. (#1266)
 * Added octetstring_length_value_same() API for comparing an OctetString
   to value and len parameters. Added verification tests. (#1264)
 * Added property_list_read_only_member function to check for READ-ONLY
