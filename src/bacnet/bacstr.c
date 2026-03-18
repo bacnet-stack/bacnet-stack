@@ -1391,7 +1391,7 @@ bool octetstring_buffer_duplicate(
     bool status = false;
 
     if (dest && value) {
-        if (length <= dest->buffer_size) {
+        if (dest->buffer && (length <= dest->buffer_size)) {
             dest->buffer_length = length;
             if (length > 0) {
                 memcpy(dest->buffer, value, length);
@@ -1406,6 +1406,10 @@ bool octetstring_buffer_duplicate(
                 memcpy(dest->buffer, value, length);
                 status = true;
             }
+        } else {
+            /* length is zero, so just set the length and return true */
+            dest->buffer_length = 0;
+            status = true;
         }
     }
 

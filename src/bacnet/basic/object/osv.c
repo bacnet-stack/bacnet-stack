@@ -134,9 +134,6 @@ uint32_t OctetString_Value_Create(uint32_t object_instance)
             free(pObject);
             return BACNET_MAX_INSTANCE;
         }
-        pObject->Object_Name = NULL;
-        pObject->Description = NULL;
-        pObject->Out_Of_Service = false;
         pObject->Event_State = EVENT_STATE_NORMAL;
     }
 
@@ -156,6 +153,7 @@ bool OctetString_Value_Delete(uint32_t object_instance)
     if (pObject) {
         free(pObject->Description);
         free(pObject->Object_Name);
+        free(pObject->Present_Value.buffer);
         free(pObject);
         return true;
     }
