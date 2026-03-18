@@ -21,16 +21,33 @@ typedef struct BACnet_Bit_String {
     uint8_t value[MAX_BITSTRING_BYTES];
 } BACNET_BIT_STRING;
 
+/* fixed size buffer version of Character String */
 typedef struct BACnet_Character_String {
     size_t length;
     uint8_t encoding;
     char value[MAX_CHARACTER_STRING_BYTES];
 } BACNET_CHARACTER_STRING;
 
+/* fixed size buffer version of Octet String */
 typedef struct BACnet_Octet_String {
     size_t length;
     uint8_t value[MAX_OCTET_STRING_BYTES];
 } BACNET_OCTET_STRING;
+
+/* buffer pointer version of Character String */
+typedef struct BACnetCharacterStringBuffer {
+    uint8_t encoding;
+    char *buffer;
+    size_t buffer_size;
+    uint32_t buffer_length;
+} BACNET_CHARACTER_STRING_BUFFER;
+
+/* buffer pointer version of Octet String */
+typedef struct BACnetOctetStringBuffer {
+    uint8_t *buffer;
+    size_t buffer_size;
+    uint32_t buffer_length;
+} BACNET_OCTET_STRING_BUFFER;
 
 #ifdef __cplusplus
 extern "C" {
@@ -182,6 +199,19 @@ BACNET_STACK_EXPORT
 bool octetstring_value_same(
     const BACNET_OCTET_STRING *octet_string1,
     const BACNET_OCTET_STRING *octet_string2);
+
+BACNET_STACK_EXPORT
+bool octetstring_buffer_duplicate(
+    BACNET_OCTET_STRING_BUFFER *dest, const uint8_t *value, size_t length);
+BACNET_STACK_EXPORT
+bool octetstring_to_buffer_duplicate(
+    BACNET_OCTET_STRING_BUFFER *dest, const BACNET_OCTET_STRING *src);
+BACNET_STACK_EXPORT
+bool octetstring_to_buffer_copy(
+    BACNET_OCTET_STRING_BUFFER *dest, const BACNET_OCTET_STRING *src);
+BACNET_STACK_EXPORT
+bool octetstring_from_buffer_copy(
+    BACNET_OCTET_STRING *dest, const BACNET_OCTET_STRING_BUFFER *src);
 
 BACNET_STACK_EXPORT
 int bacnet_strcmp(const char *a, const char *b);
