@@ -1397,7 +1397,7 @@ bool octetstring_buffer_duplicate(
                 memcpy(dest->buffer, value, length);
             }
             status = true;
-        } else {
+        } else if (length > 0) {
             new_buffer = realloc(dest->buffer, length);
             if (new_buffer) {
                 dest->buffer = new_buffer;
@@ -1460,7 +1460,8 @@ bool octetstring_to_buffer_copy(
 bool octetstring_from_buffer_copy(
     BACNET_OCTET_STRING *dest, const BACNET_OCTET_STRING_BUFFER *src)
 {
-    if (dest && src && (src->buffer_length <= sizeof(dest->value))) {
+    if (dest && src && src->buffer &&
+        (src->buffer_length <= sizeof(dest->value))) {
         memcpy(dest->value, src->buffer, src->buffer_length);
         dest->length = src->buffer_length;
         return true;

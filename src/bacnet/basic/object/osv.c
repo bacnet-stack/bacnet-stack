@@ -305,6 +305,7 @@ bool OctetString_Value_Present_Value_Buffer_Get(
 {
     struct object_data *pObject = NULL;
     bool status = false;
+    size_t copy_length = 0;
 
     pObject = OctetString_Value_Object(object_instance);
     if (pObject) {
@@ -312,14 +313,44 @@ bool OctetString_Value_Present_Value_Buffer_Get(
             *length = pObject->Present_Value.buffer_length;
         }
         if (value) {
-            if (value_size >= pObject->Present_Value.buffer_length) {
-                memcpy(
-                    value, pObject->Present_Value.buffer,
-                    pObject->Present_Value.buffer_length);
-                status = true;
+            if (value_size > pObject->Present_Value.buffer_length) {
+                copy_length = pObject->Present_Value.buffer_length;
             } else {
-                status = false;
+                copy_length = value_size;
             }
+            if (copy_length > 0) {
+                memcpy(value, pObject->Present_Value.buffer, copy_length);
+            }
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Gets the object name for an Octet String Value object.
+ * @param object_instance Object instance number.
+ * @param object_name Pointer to string storage for resulting object name.
+ * @return true if object name is generated successfully.
+ */
+bool OctetString_Value_Object_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+{
+    char text[32] = "";
+    bool status = false;
+    struct object_data *pObject = NULL;
+
+    pObject = OctetString_Value_Object(object_instance);
+    if (pObject) {
+        if (pObject->Object_Name) {
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
+        } else {
+            snprintf(
+                text, sizeof(text), "OCTETSTRING VALUE %lu",
+                (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text);
         }
     }
 

@@ -136,16 +136,14 @@ static void testBitString(void)
     /* test ascii string with only invalid characters */
     status = bitstring_init_ascii(&bit_string, "xyz-._:");
     zassert_false(status, "String with only invalid chars should return false");
-    /* test string that exceeds capacity */
-    char overflow_string[MAX_BITSTRING_BYTES * 8 + 100] = { 0 };
-    memset(overflow_string, '1', MAX_BITSTRING_BYTES * 8 + 10);
-    overflow_string[MAX_BITSTRING_BYTES * 8 + 10] = 0;
+    /* test string that exceeds capacity by 10 bits */
+    char overflow_string[((MAX_BITSTRING_BYTES * 8) + 10) + 1] = { 0 };
+    memset(overflow_string, '1', ((MAX_BITSTRING_BYTES * 8) + 10));
     status = bitstring_init_ascii(&bit_string, overflow_string);
     zassert_false(status, "String exceeding capacity should return false");
     /* test valid string at exact capacity boundary */
-    char capacity_string[MAX_BITSTRING_BYTES * 8 + 1] = { 0 };
+    char capacity_string[(MAX_BITSTRING_BYTES * 8) + 1] = { 0 };
     memset(capacity_string, '1', MAX_BITSTRING_BYTES * 8);
-    capacity_string[MAX_BITSTRING_BYTES * 8] = 0;
     status = bitstring_init_ascii(&bit_string, capacity_string);
     zassert_true(status, "String at exact capacity should return true");
     zassert_equal(
