@@ -395,6 +395,12 @@ dlmstp-linux: ports/linux/dlmstp.mak
 lwip: ports/lwip/Makefile
 	$(MAKE) -s -C ports/lwip clean all
 
+.PHONY: pico-cmake
+pico-cmake:
+	cd ports/pico && ./configure.sh
+	[ -d ports/pico/build ] || mkdir -p ports/pico/build
+	cd ports/pico/build && cmake .. -DPICO_SDK_PATH=../external/pico-sdk && cmake --build . --clean-first -- -j$(shell nproc 2>/dev/null || echo 1)
+
 .PHONY: pretty
 pretty:
 	find ./src -iname *.h -o -iname *.c -exec \
