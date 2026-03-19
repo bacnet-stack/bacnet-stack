@@ -152,15 +152,15 @@ typedef uint32_t BACNET_UNSIGNED_INTEGER;
 
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
-#define BACNET_MAX_INSTANCE (0x3FFFFF)
+#define BACNET_MAX_INSTANCE (0x3FFFFFU)
 #define BACNET_INSTANCE_BITS 22
 /* large BACnet Object Type */
-#define BACNET_MAX_OBJECT (0x3FF)
+#define BACNET_MAX_OBJECT (0x3FFU)
 /* Array index 0=size of array, n=array element n,  MAX=all array elements */
 #define BACNET_ARRAY_ALL UINT32_MAX
 typedef uint32_t BACNET_ARRAY_INDEX;
 /* For device object property references with no device id defined */
-#define BACNET_NO_DEV_ID 0xFFFFFFFFu
+#define BACNET_NO_DEV_ID UINT32_MAX
 #define BACNET_NO_DEV_TYPE OBJECT_NONE
 /* Priority Array for commandable objects */
 #define BACNET_NO_PRIORITY 0
