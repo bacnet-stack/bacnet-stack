@@ -27,6 +27,28 @@ static bool is_float_equal(float x1, float x2)
     return fabs(x1 - x2) < 0.001;
 }
 
+/**
+ * @brief Search for a property identifier in a terminated property list
+ * @param list pointer to list terminated by -1
+ * @param property property identifier to find
+ * @return true when found in list
+ */
+static bool property_list_contains(const int32_t *list, int32_t property)
+{
+    unsigned i;
+
+    if (!list) {
+        return false;
+    }
+    for (i = 0; list[i] != -1; i++) {
+        if (list[i] == property) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static float Test_Tracking_Value;
 /**
  * @brief Callback for tracking value updates
@@ -40,6 +62,141 @@ static void lighting_command_tracking_value_observer(
     (void)key;
     (void)old_value;
     Test_Tracking_Value = value;
+}
+
+/**
+ * @brief Test writable property list API
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputWritablePropertyList)
+#else
+static void testLightingOutputWritablePropertyList(void)
+#endif
+{
+    const int32_t *properties = NULL;
+
+    Lighting_Output_Writable_Property_List(1, NULL);
+    Lighting_Output_Writable_Property_List(1, &properties);
+    zassert_not_null(properties, NULL);
+    zassert_true(
+        property_list_contains(properties, PROP_PRESENT_VALUE),
+        "missing PROP_PRESENT_VALUE");
+    zassert_true(
+        property_list_contains(properties, PROP_LIGHTING_COMMAND),
+        "missing PROP_LIGHTING_COMMAND");
+    zassert_true(
+        property_list_contains(properties, PROP_EGRESS_TIME),
+        "missing PROP_EGRESS_TIME");
+    zassert_true(
+        property_list_contains(properties, PROP_TRIM_FADE_TIME),
+        "missing PROP_TRIM_FADE_TIME");
+    zassert_true(
+        property_list_contains(
+            properties, PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY),
+        "missing PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY");
+}
+
+/**
+ * @brief Test delayed WARN_OFF path that triggers blink-stop callback
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputBlinkStop)
+#else
+static void testLightingOutputBlinkStop(void)
+#endif
+{
+    const uint32_t instance = 321;
+    const unsigned priority = 8;
+    BACNET_LIGHTING_IN_PROGRESS in_progress;
+    float test_real;
+    bool status;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Present_Value_Set(instance, 75.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 75.0f), NULL);
+
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 500);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(in_progress, BACNET_LIGHTING_OTHER, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 75.0f), NULL);
+
+    Lighting_Output_Timer(instance, 500);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(in_progress, BACNET_LIGHTING_IDLE, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 0.0f), NULL);
+    test_real = Lighting_Output_Priority_Array_Value(instance, priority);
+    zassert_true(is_float_equal(test_real, 0.0f), NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_false(status, NULL);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
+/**
+ * @brief Test WARN_RELINQUISH behavior with egress-time configured
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputWarnRelinquishEgress)
+#else
+static void testLightingOutputWarnRelinquishEgress(void)
+#endif
+{
+    const uint32_t instance = 322;
+    const unsigned priority = 8;
+    BACNET_LIGHTING_IN_PROGRESS in_progress;
+    float test_real;
+    bool status;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+
+    status = Lighting_Output_Present_Value_Set(instance, 60.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 60.0f), NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_false(status, NULL);
+
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 500);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(in_progress, BACNET_LIGHTING_IDLE, NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 0.0f), NULL);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
 }
 
 /**
@@ -547,7 +704,11 @@ ZTEST_SUITE(lo_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(lo_tests, ztest_unit_test(testLightingOutput));
+    ztest_test_suite(
+        lo_tests, ztest_unit_test(testLightingOutput),
+        ztest_unit_test(testLightingOutputWritablePropertyList),
+        ztest_unit_test(testLightingOutputBlinkStop),
+        ztest_unit_test(testLightingOutputWarnRelinquishEgress));
 
     ztest_run_test_suite(lo_tests);
 }
