@@ -79,6 +79,7 @@ typedef struct bacnet_lighting_command_data {
     float Max_Actual_Value;
     float High_Trim_Value;
     float Low_Trim_Value;
+    uint32_t Trim_Fade_Time;
     float Default_On_Value;
     float Last_On_Value;
     BACNET_LIGHTING_COMMAND_WARN_DATA Blink;
@@ -142,7 +143,9 @@ BACNET_STACK_EXPORT
 float lighting_command_step_increment_clamp(float step_increment);
 BACNET_STACK_EXPORT
 float lighting_command_operating_range_clamp(
-    struct bacnet_lighting_command_data *data, float value);
+    struct bacnet_lighting_command_data *data,
+    float value,
+    uint16_t milliseconds);
 BACNET_STACK_EXPORT
 float lighting_command_normalized_range_clamp(
     struct bacnet_lighting_command_data *data, float value);

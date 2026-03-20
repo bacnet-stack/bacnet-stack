@@ -267,7 +267,9 @@ static void test_lighting_command_unit(void)
     zassert_true(is_float_equal(data.Last_On_Value, 1.0f), NULL);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
-    zassert_true(is_float_equal(Tracking_Value, data.Low_Trim_Value), NULL);
+    zassert_true(
+        is_float_equal(Tracking_Value, data.Low_Trim_Value),
+        "Tracking_Value=%f Low_Trim=%f", Tracking_Value, data.Low_Trim_Value);
     target_level = 0.0f;
     milliseconds = 10;
     lighting_command_fade_to(&data, target_level, 0);
@@ -287,6 +289,53 @@ static void test_lighting_command_unit(void)
     zassert_true(is_float_equal(Tracking_Value, data.High_Trim_Value), NULL);
     data.High_Trim_Value = data.Max_Actual_Value;
     zassert_true(is_float_equal(data.Last_On_Value, target_level), NULL);
+    /* trim fade time */
+    target_level = 80.0f;
+    milliseconds = 10;
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
+    data.High_Trim_Value = 90.0f;
+    data.Trim_Fade_Time = fade_time;
+    lighting_command_fade_to(&data, 100.0f, fade_time * 2);
+    milliseconds = fade_time / 4;
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 82.5f), NULL);
+    zassert_equal(data.Trim_Fade_Time, fade_time, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 85.0f), NULL);
+    zassert_equal(data.Trim_Fade_Time, fade_time, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 87.5f), NULL);
+    zassert_equal(data.Trim_Fade_Time, fade_time, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 90.0f), NULL);
+    zassert_equal(data.Trim_Fade_Time, fade_time, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 91.875f), NULL);
+    zassert_equal(data.Trim_Fade_Time, 750, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
+    zassert_true(
+        is_float_equal(Tracking_Value, 93.333f), "Tracking_Value=%f",
+        Tracking_Value);
+    zassert_equal(data.Trim_Fade_Time, 500, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 93.75f), NULL);
+    zassert_equal(data.Trim_Fade_Time, 250, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, data.High_Trim_Value), NULL);
+    zassert_equal(data.Trim_Fade_Time, 0, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    data.High_Trim_Value = data.Max_Actual_Value;
     /* override */
     override_level = 42.0f;
     target_level = 100.0f;
