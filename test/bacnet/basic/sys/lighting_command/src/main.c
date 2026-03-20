@@ -64,6 +64,24 @@ static bool is_float_equal(float x1, float x2)
 static uint32_t Test_Blink_End_Key;
 static BACNET_LIGHTING_OPERATION Test_Blink_End_Operation;
 static uint8_t Test_Blink_End_Priority;
+static uint32_t Refresh_Event_Count;
+static uint32_t Refresh_Event_Key;
+static float Refresh_Event_Old_Value;
+static float Refresh_Event_New_Value;
+
+/**
+ * @brief Callback for tracking refresh notifications
+ * @param key object identifier
+ * @param old_value previous tracking value
+ * @param value current tracking value
+ */
+static void tracking_refresh_value(uint32_t key, float old_value, float value)
+{
+    Refresh_Event_Count++;
+    Refresh_Event_Key = key;
+    Refresh_Event_Old_Value = old_value;
+    Refresh_Event_New_Value = value;
+}
 
 /**
  * @brief Callback that manipulates the value at the specified priority slot
@@ -684,6 +702,49 @@ static void test_lighting_command_unit(void)
 }
 
 /**
+ * Tests for lighting command refresh operation
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_command_tests, test_lighting_command_refresh_unit)
+#else
+static void test_lighting_command_refresh_unit(void)
+#endif
+{
+    BACNET_LIGHTING_COMMAND_DATA data = { 0 };
+    struct lighting_command_notification observer = { 0 };
+    float target_level = 75.0f;
+    uint16_t milliseconds = 10;
+
+    lighting_command_init(&data);
+    data.Key = 42;
+    observer.callback = tracking_refresh_value;
+    lighting_command_notification_add(&data, &observer);
+
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    zassert_true(is_float_equal(data.Tracking_Value, target_level), NULL);
+
+    Refresh_Event_Count = 0;
+    Refresh_Event_Key = 0;
+    Refresh_Event_Old_Value = 0.0f;
+    Refresh_Event_New_Value = 0.0f;
+    lighting_command_refresh(&data);
+    zassert_equal(Refresh_Event_Count, 1, NULL);
+    zassert_equal(Refresh_Event_Key, data.Key, NULL);
+    zassert_true(
+        is_float_equal(Refresh_Event_Old_Value, target_level),
+        "Refresh_Event_Old_Value=%f", Refresh_Event_Old_Value);
+    zassert_true(
+        is_float_equal(Refresh_Event_New_Value, target_level),
+        "Refresh_Event_New_Value=%f", Refresh_Event_New_Value);
+    zassert_true(is_float_equal(data.Tracking_Value, target_level), NULL);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+
+    lighting_command_refresh(NULL);
+}
+
+/**
  * @}
  */
 
@@ -693,7 +754,8 @@ ZTEST_SUITE(lighting_command_tests, NULL, NULL, NULL, NULL, NULL);
 void test_main(void)
 {
     ztest_test_suite(
-        lighting_command_tests, ztest_unit_test(test_lighting_command_unit));
+        lighting_command_tests, ztest_unit_test(test_lighting_command_unit),
+        ztest_unit_test(test_lighting_command_refresh_unit));
 
     ztest_run_test_suite(lighting_command_tests);
 }
