@@ -158,6 +158,8 @@ float lighting_command_normalized_range_clamp(
 BACNET_STACK_EXPORT
 float lighting_command_normalized_on_range_clamp(
     struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
+float lighting_command_physical_range_clamp(float value);
 
 BACNET_STACK_EXPORT
 void lighting_command_refresh(struct bacnet_lighting_command_data *data);

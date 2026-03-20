@@ -164,6 +164,34 @@ float lighting_command_step_increment_clamp(float step_increment)
 }
 
 /**
+ * @brief Clamp the value within the physical min/max range
+ * @details The physical output level, or non-normalized range,
+ *  is specified as the linearized percentage (0..100%)
+ *  of the possible light output range with 0.0% being off,
+ *  1.0% being dimmest, and 100.0% being brightest.
+ * @param data - dimmer data structure
+ * @param value [in] value to normalize
+ * @return normalized value within the range defined by
+ *  0.0%, Min_Actual_Value, and Max_Actual_Value
+ */
+float lighting_command_physical_range_clamp(float value)
+{
+    float physical_value;
+
+    /* clamp value within physical values, if non-zero */
+    if (isless(value, 1.0f)) {
+        /* jump target to OFF */
+        physical_value = 0.0f;
+    } else if (isgreater(value, 100.0f)) {
+        physical_value = 100.0f;
+    } else {
+        physical_value = value;
+    }
+
+    return physical_value;
+}
+
+/**
  * @brief Calculate the target value for a step down command
  * @param tracking_value [in] current tracking value
  * @param step_increment [in] step increment value
@@ -213,7 +241,7 @@ static float lighting_command_trim_fade(
     struct bacnet_lighting_command_data *data,
     float value,
     float trim_value,
-    uint16_t milliseconds)
+    uint32_t milliseconds)
 {
     float new_value;
     float x1, x2, x3, y1, y3;
@@ -258,17 +286,28 @@ float lighting_command_operating_range_clamp(
     float value,
     uint16_t milliseconds)
 {
+    float high_trim, low_trim, swap_value;
+
+    /* clamp range within physical limits */
+    high_trim = lighting_command_physical_range_clamp(data->High_Trim_Value);
+    low_trim = lighting_command_physical_range_clamp(data->Low_Trim_Value);
+    /* valid range check for high and low trim values */
+    if (isgreater(low_trim, high_trim)) {
+        /* swap the trims if they are inverse */
+        swap_value = low_trim;
+        low_trim = high_trim;
+        high_trim = swap_value;
+    }
     /* clamp value within trim values, if non-zero */
     if (isless(value, 1.0f)) {
         /* jump target to OFF if below normalized min */
         value = 0.0f;
-    } else if (isgreater(value, data->High_Trim_Value)) {
-        value = lighting_command_trim_fade(
-            data, value, data->High_Trim_Value, milliseconds);
+    } else if (isgreater(value, high_trim)) {
+        value =
+            lighting_command_trim_fade(data, value, high_trim, milliseconds);
         data->In_Progress = BACNET_LIGHTING_TRIM_ACTIVE;
-    } else if (isless(value, data->Low_Trim_Value)) {
-        value = lighting_command_trim_fade(
-            data, value, data->Low_Trim_Value, milliseconds);
+    } else if (isless(value, low_trim)) {
+        value = lighting_command_trim_fade(data, value, low_trim, milliseconds);
         data->In_Progress = BACNET_LIGHTING_TRIM_ACTIVE;
     }
 
@@ -294,11 +333,23 @@ float lighting_command_operating_range_clamp(
 float lighting_command_normalized_on_range_clamp(
     struct bacnet_lighting_command_data *data, float value)
 {
+    float min_value, max_value, swap_value;
+
+    /* clamp range within physical limits */
+    max_value = lighting_command_physical_range_clamp(data->Max_Actual_Value);
+    min_value = lighting_command_physical_range_clamp(data->Min_Actual_Value);
+    /* valid range check for high and low trim values */
+    if (isgreater(min_value, max_value)) {
+        /* swap the trims if they are inverse */
+        swap_value = min_value;
+        min_value = max_value;
+        max_value = swap_value;
+    }
     /* clamp value within trim values, if non-zero */
-    if (isgreater(value, data->Max_Actual_Value)) {
-        value = data->Max_Actual_Value;
-    } else if (isless(value, data->Min_Actual_Value)) {
-        value = data->Min_Actual_Value;
+    if (isgreater(value, max_value)) {
+        value = max_value;
+    } else if (isless(value, min_value)) {
+        value = min_value;
     }
 
     return value;
@@ -324,15 +375,26 @@ float lighting_command_normalized_range_clamp(
     struct bacnet_lighting_command_data *data, float value)
 {
     float normalized_value;
+    float min_value, max_value, swap_value;
 
+    /* clamp range within physical limits */
+    max_value = lighting_command_physical_range_clamp(data->Max_Actual_Value);
+    min_value = lighting_command_physical_range_clamp(data->Min_Actual_Value);
+    /* valid range check for high and low trim values */
+    if (isgreater(min_value, max_value)) {
+        /* swap the trims if they are inverse */
+        swap_value = min_value;
+        min_value = max_value;
+        max_value = swap_value;
+    }
     /* clamp value within normalized values, if non-zero */
     if (isless(value, 1.0f)) {
         /* jump target to OFF if below normalized min */
         normalized_value = 0.0f;
-    } else if (isgreater(value, data->Max_Actual_Value)) {
-        normalized_value = data->Max_Actual_Value;
-    } else if (isless(value, data->Min_Actual_Value)) {
-        normalized_value = data->Min_Actual_Value;
+    } else if (isgreater(value, max_value)) {
+        normalized_value = max_value;
+    } else if (isless(value, min_value)) {
+        normalized_value = min_value;
     } else {
         normalized_value = value;
     }
@@ -409,7 +471,7 @@ static void lighting_command_fade_handler(
         data->Fade_Time -= milliseconds;
         data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
     }
-    /* clamp Tracking Value inclusively within the Operating Range.*/
+    /* clamp Tracking Value inclusively within the Operating Range */
     data->Tracking_Value = lighting_command_operating_range_clamp(
         data, data->Tracking_Value, milliseconds);
     /* notify */
@@ -499,7 +561,7 @@ static void lighting_command_ramp_handler(
             data->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
         }
     }
-    /* clamp Tracking_Value clamped inclusively within the Operating Range.*/
+    /* clamp Tracking_Value inclusively within the Operating Range */
     operating_value = lighting_command_operating_range_clamp(
         data, data->Tracking_Value, milliseconds);
     data->Tracking_Value = operating_value;
@@ -527,12 +589,12 @@ lighting_command_step_up_handler(struct bacnet_lighting_command_data *data)
         /* inhibit ON if the value is already OFF */
         target_value = lighting_command_step_up_target_value(
             data->Tracking_Value, data->Step_Increment);
-        /* clamp Tracking value within the Normalized ON Range.*/
+        /* clamp Tracking value within the Normalized ON Range */
         data->Tracking_Value =
             lighting_command_normalized_on_range_clamp(data, target_value);
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
-        /* clamp Tracking value inclusively within the Operating Range.*/
+        /* clamp Tracking value inclusively within the Operating Range */
         operating_value = lighting_command_operating_range_clamp(
             data, data->Tracking_Value, 0);
         data->Tracking_Value = operating_value;
@@ -738,9 +800,9 @@ void lighting_command_override_set(
     data->Overridden = true;
     data->Overridden_Momentary = false;
     old_value = data->Tracking_Value;
-    data->Tracking_Value = value;
-    /* note: override does not clamp in the normalized or operating range */
-    lighting_command_tracking_value_event(data, old_value, value);
+    data->Tracking_Value = lighting_command_physical_range_clamp(value);
+    lighting_command_tracking_value_event(
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -782,9 +844,9 @@ void lighting_command_override_momentary(
     data->Overridden = true;
     data->Overridden_Momentary = true;
     old_value = data->Tracking_Value;
-    data->Tracking_Value = value;
-    /* note: override does not clamp in the normalized or operating range */
-    lighting_command_tracking_value_event(data, old_value, value);
+    data->Tracking_Value = lighting_command_physical_range_clamp(value);
+    lighting_command_tracking_value_event(
+        data, old_value, data->Tracking_Value);
 }
 
 /**
