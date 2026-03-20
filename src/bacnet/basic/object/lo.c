@@ -2610,7 +2610,7 @@ float Lighting_Output_High_End_Trim(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.High_Trim_Value;
+        value = pObject->High_End_Trim;
     }
 
     return value;
@@ -2687,7 +2687,7 @@ float Lighting_Output_Low_End_Trim(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.Low_Trim_Value;
+        value = pObject->Low_End_Trim;
     }
 
     return value;
@@ -2710,7 +2710,7 @@ bool Lighting_Output_Low_End_Trim_Set(uint32_t object_instance, float value)
         /* Low_End_Trim shall always be a positive number
            in the normalized range 1.0% to 100.0%. */
         if (isgreaterequal(value, 1.0) && islessequal(value, 100.0)) {
-            pObject->Lighting_Command.Low_Trim_Value = value;
+            pObject->Low_End_Trim = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
             if (!Lighting_Command_In_Progress(pObject)) {
@@ -2788,12 +2788,12 @@ bool Lighting_Output_Trim_Fade_Time_Set(
         if (value <= 86400000UL) {
             /* The range of allowable fade-time values
                is 0 ms to 86400000 ms (1 day) inclusive. */
+            pObject->Trim_Fade_Time = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
             if (!Lighting_Command_In_Progress(pObject)) {
                 lighting_command_refresh(&pObject->Lighting_Command);
             }
-            pObject->Trim_Fade_Time = value;
             status = true;
         }
     }
@@ -2845,9 +2845,7 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Lighting_Command.Overridden_Momentary = false;
-        pObject->Lighting_Command.Overridden = true;
-        lighting_command_override(&pObject->Lighting_Command, value);
+        lighting_command_override_set(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -2870,10 +2868,8 @@ bool Lighting_Output_Overridden_Clear(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Lighting_Command.Overridden = false;
-        pObject->Lighting_Command.Overridden_Momentary = false;
         value = Priority_Array_Next_Value(pObject, 0);
-        lighting_command_override(&pObject->Lighting_Command, value);
+        lighting_command_override_clear(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -2897,9 +2893,7 @@ bool Lighting_Output_Overridden_Momentary(uint32_t object_instance, float value)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         /* set the override */
-        pObject->Lighting_Command.Overridden_Momentary = true;
-        pObject->Lighting_Command.Overridden = true;
-        lighting_command_override(&pObject->Lighting_Command, value);
+        lighting_command_override_momentary(&pObject->Lighting_Command, value);
         status = true;
     }
 

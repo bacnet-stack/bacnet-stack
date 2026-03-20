@@ -402,6 +402,112 @@ static void testLightingOutput(void)
     test_real = Lighting_Output_Tracking_Value(instance);
     zassert_true(is_float_equal(test_real, real_value), NULL);
     zassert_true(is_float_equal(Test_Tracking_Value, real_value), NULL);
+    /* high-end-trim, low-end-trim, and trim-fade-time */
+    Lighting_Output_Present_Value_Relinquish_All(instance);
+    status = Lighting_Output_Transition_Set(
+        instance, BACNET_LIGHTING_TRANSITION_NONE);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Trim_Fade_Time_Set(instance, 0);
+    zassert_true(status, NULL);
+    status = Lighting_Output_High_End_Trim_Set(instance, 90.0f);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_High_End_Trim(instance);
+    zassert_true(is_float_equal(test_real, 90.0f), NULL);
+    status = Lighting_Output_Low_End_Trim_Set(instance, 10.0f);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Low_End_Trim(instance);
+    zassert_true(is_float_equal(test_real, 10.0f), NULL);
+    priority = 8;
+    status = Lighting_Output_Present_Value_Set(instance, 100.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_TRIM_ACTIVE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 90.0f), NULL);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    status = Lighting_Output_Present_Value_Set(instance, 1.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_TRIM_ACTIVE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 10.0f), "tracking=%f", test_real);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    Lighting_Output_Present_Value_Relinquish_All(instance);
+    status = Lighting_Output_Present_Value_Set(instance, 100.0f, 1);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 100.0f), "tracking=%f", test_real);
+    Lighting_Output_Present_Value_Relinquish_All(instance);
+    status = Lighting_Output_Present_Value_Set(instance, 80.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 80.0f), NULL);
+    unsigned_value = 1000;
+    status = Lighting_Output_Trim_Fade_Time_Set(instance, unsigned_value);
+    zassert_true(status, NULL);
+    test_unsigned = Lighting_Output_Trim_Fade_Time(instance);
+    zassert_equal(test_unsigned, unsigned_value, NULL);
+    status = Lighting_Output_Default_Fade_Time_Set(instance, 2000);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Transition_Set(
+        instance, BACNET_LIGHTING_TRANSITION_FADE);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Present_Value_Set(instance, 100.0f, priority);
+    zassert_true(status, NULL);
+    milliseconds = 500;
+    Lighting_Output_Timer(instance, milliseconds);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_FADE_ACTIVE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 85.0f), NULL);
+    Lighting_Output_Timer(instance, milliseconds);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_FADE_ACTIVE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 90.0f), NULL);
+    Lighting_Output_Timer(instance, milliseconds);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_TRIM_ACTIVE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 92.5f), NULL);
+    Lighting_Output_Timer(instance, milliseconds);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_TRIM_ACTIVE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 90.0f), NULL);
+    Lighting_Output_Timer(instance, milliseconds);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
     /* feedback value */
     status = Lighting_Output_Feedback_Value_Set(instance, 55.5f);
     zassert_true(status, NULL);

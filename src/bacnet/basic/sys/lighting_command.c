@@ -348,10 +348,7 @@ float lighting_command_normalized_range_clamp(
  * @param milliseconds - number of milliseconds elapsed
  */
 static void lighting_command_tracking_value_event(
-    struct bacnet_lighting_command_data *data,
-    float old_value,
-    float value,
-    uint16_t milliseconds)
+    struct bacnet_lighting_command_data *data, float old_value, float value)
 {
     if (data->Overridden) {
         lighting_command_tracking_value_notify(data, old_value, value);
@@ -360,8 +357,6 @@ static void lighting_command_tracking_value_event(
         }
     } else if (!data->Out_Of_Service) {
         data->Overridden_Momentary = false;
-        value =
-            lighting_command_operating_range_clamp(data, value, milliseconds);
         lighting_command_tracking_value_notify(data, old_value, value);
     } else {
         debug_printf(
@@ -384,6 +379,7 @@ static void lighting_command_fade_handler(
     float target_value;
 
     old_value = data->Tracking_Value;
+    /* clamp Tracking value within the Normalized ON Range */
     target_value =
         lighting_command_normalized_on_range_clamp(data, data->Target_Level);
     if ((milliseconds >= data->Fade_Time) ||
@@ -413,8 +409,12 @@ static void lighting_command_fade_handler(
         data->Fade_Time -= milliseconds;
         data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
     }
+    /* clamp Tracking Value inclusively within the Operating Range.*/
+    data->Tracking_Value = lighting_command_operating_range_clamp(
+        data, data->Tracking_Value, milliseconds);
+    /* notify */
     lighting_command_tracking_value_event(
-        data, old_value, data->Tracking_Value, milliseconds);
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -435,9 +435,11 @@ static void lighting_command_fade_handler(
 static void lighting_command_ramp_handler(
     struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
-    float old_value, target_value, step_value, steps, ramp_rate;
+    float old_value, target_value, step_value, steps, ramp_rate,
+        operating_value;
 
     old_value = data->Tracking_Value;
+    /* clamp Tracking value within the Normalized ON Range */
     target_value =
         lighting_command_normalized_on_range_clamp(data, data->Target_Level);
     if (!islessgreater(data->Tracking_Value, target_value)) {
@@ -497,8 +499,13 @@ static void lighting_command_ramp_handler(
             data->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
         }
     }
+    /* clamp Tracking_Value clamped inclusively within the Operating Range.*/
+    operating_value = lighting_command_operating_range_clamp(
+        data, data->Tracking_Value, milliseconds);
+    data->Tracking_Value = operating_value;
+    /* notify */
     lighting_command_tracking_value_event(
-        data, old_value, data->Tracking_Value, milliseconds);
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -513,19 +520,25 @@ static void lighting_command_ramp_handler(
 static void
 lighting_command_step_up_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value;
+    float old_value, target_value, operating_value;
 
     old_value = data->Tracking_Value;
     if (isgreaterequal(old_value, data->Min_Actual_Value)) {
         /* inhibit ON if the value is already OFF */
         target_value = lighting_command_step_up_target_value(
             data->Tracking_Value, data->Step_Increment);
+        /* clamp Tracking value within the Normalized ON Range.*/
         data->Tracking_Value =
             lighting_command_normalized_on_range_clamp(data, target_value);
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
+        /* clamp Tracking value inclusively within the Operating Range.*/
+        operating_value = lighting_command_operating_range_clamp(
+            data, data->Tracking_Value, 0);
+        data->Tracking_Value = operating_value;
+        /* notify */
         lighting_command_tracking_value_event(
-            data, old_value, data->Tracking_Value, 0);
+            data, old_value, data->Tracking_Value);
     }
 }
 
@@ -541,17 +554,23 @@ lighting_command_step_up_handler(struct bacnet_lighting_command_data *data)
 static void
 lighting_command_step_down_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value;
+    float old_value, target_value, operating_value;
 
     old_value = data->Tracking_Value;
     target_value = lighting_command_step_down_target_value(
         data->Tracking_Value, data->Step_Increment);
+    /* clamp Tracking value within the Normalized ON Range */
     data->Tracking_Value =
         lighting_command_normalized_on_range_clamp(data, target_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
+    /* clamp Tracking value inclusively within the Operating Range */
+    operating_value =
+        lighting_command_operating_range_clamp(data, data->Tracking_Value, 0);
+    data->Tracking_Value = operating_value;
+    /* notify */
     lighting_command_tracking_value_event(
-        data, old_value, data->Tracking_Value, 0);
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -566,7 +585,7 @@ lighting_command_step_down_handler(struct bacnet_lighting_command_data *data)
 static void
 lighting_command_step_on_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value;
+    float old_value, target_value, operating_value;
 
     old_value = data->Tracking_Value;
     target_value = lighting_command_step_up_target_value(
@@ -575,8 +594,13 @@ lighting_command_step_on_handler(struct bacnet_lighting_command_data *data)
         lighting_command_normalized_range_clamp(data, target_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
+    /* clamp Tracking value inclusively within the Operating Range */
+    operating_value =
+        lighting_command_operating_range_clamp(data, data->Tracking_Value, 0);
+    data->Tracking_Value = operating_value;
+    /* notify */
     lighting_command_tracking_value_event(
-        data, old_value, data->Tracking_Value, 0);
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -591,7 +615,7 @@ lighting_command_step_on_handler(struct bacnet_lighting_command_data *data)
 static void
 lighting_command_step_off_handler(struct bacnet_lighting_command_data *data)
 {
-    float old_value, target_value;
+    float old_value, target_value, operating_value;
 
     old_value = data->Tracking_Value;
     target_value = lighting_command_step_down_target_value(
@@ -600,8 +624,13 @@ lighting_command_step_off_handler(struct bacnet_lighting_command_data *data)
         lighting_command_normalized_range_clamp(data, target_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
+    /* clamp Tracking value inclusively within the Operating Range */
+    operating_value =
+        lighting_command_operating_range_clamp(data, data->Tracking_Value, 0);
+    data->Tracking_Value = operating_value;
+    /* notify */
     lighting_command_tracking_value_event(
-        data, old_value, data->Tracking_Value, 0);
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -631,7 +660,7 @@ lighting_command_step_off_handler(struct bacnet_lighting_command_data *data)
 static void lighting_command_blink_handler(
     struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
-    float old_value, target_value;
+    float old_value, target_value, operating_value;
 
     old_value = data->Tracking_Value;
     /* detect 'end' operation */
@@ -683,20 +712,22 @@ static void lighting_command_blink_handler(
         }
     }
     target_value = lighting_command_normalized_range_clamp(data, target_value);
+    /* clamp Tracking value inclusively within the Operating Range */
+    operating_value =
+        lighting_command_operating_range_clamp(data, target_value, 0);
     /* note: The blink-warn notifications shall not be reflected
        in the tracking value. */
     if (data->In_Progress == BACNET_LIGHTING_IDLE) {
-        data->Tracking_Value = target_value;
+        data->Tracking_Value = operating_value;
     }
-    lighting_command_tracking_value_event(
-        data, old_value, target_value, milliseconds);
+    lighting_command_tracking_value_event(data, old_value, operating_value);
 }
 
 /**
- * @brief Overrides the current lighting command if overridden is true
+ * @brief Overrides the current lighting command with the provided value
  * @param data [in] dimmer data
  */
-void lighting_command_override(
+void lighting_command_override_set(
     struct bacnet_lighting_command_data *data, float value)
 {
     float old_value;
@@ -704,9 +735,56 @@ void lighting_command_override(
     if (!data) {
         return;
     }
+    data->Overridden = true;
+    data->Overridden_Momentary = false;
     old_value = data->Tracking_Value;
     data->Tracking_Value = value;
-    lighting_command_tracking_value_event(data, old_value, value, 0);
+    /* note: override does not clamp in the normalized or operating range */
+    lighting_command_tracking_value_event(data, old_value, value);
+}
+
+/**
+ * @brief Clears the override of the current lighting command
+ * @param data [in] dimmer data
+ */
+void lighting_command_override_clear(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    float old_value, normalalized_value, operating_value;
+
+    if (!data) {
+        return;
+    }
+    data->Overridden = false;
+    data->Overridden_Momentary = false;
+    old_value = data->Tracking_Value;
+    /* clamp Tracking value within the Normalized Range */
+    normalalized_value = lighting_command_normalized_range_clamp(data, value);
+    /* clamp Tracking value inclusively within the Operating Range */
+    operating_value =
+        lighting_command_operating_range_clamp(data, normalalized_value, 0);
+    data->Tracking_Value = operating_value;
+    lighting_command_tracking_value_event(data, old_value, operating_value);
+}
+
+/**
+ * @brief Overrides the current lighting command with the provided value
+ * @param data [in] dimmer data
+ */
+void lighting_command_override_momentary(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    float old_value;
+
+    if (!data) {
+        return;
+    }
+    data->Overridden = true;
+    data->Overridden_Momentary = true;
+    old_value = data->Tracking_Value;
+    data->Tracking_Value = value;
+    /* note: override does not clamp in the normalized or operating range */
+    lighting_command_tracking_value_event(data, old_value, value);
 }
 
 /**
@@ -721,7 +799,7 @@ void lighting_command_refresh(struct bacnet_lighting_command_data *data)
         return;
     }
     value = data->Tracking_Value;
-    lighting_command_tracking_value_event(data, value, value, 0);
+    lighting_command_tracking_value_event(data, value, value);
 }
 
 /**
