@@ -22,6 +22,7 @@ typedef struct BACnet_Read_Property_Data {
     int application_data_len;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
+    void *context;  /* user-defined callback context */
 } BACNET_READ_PROPERTY_DATA;
 
 /* Forward declaration of RPM-style data structure */
