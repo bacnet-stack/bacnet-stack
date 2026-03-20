@@ -149,6 +149,9 @@ BACNET_STACK_EXPORT
 float lighting_command_step_increment_clamp(float step_increment);
 BACNET_STACK_EXPORT
 float lighting_command_operating_range_clamp(
+    struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
+float lighting_command_operating_range_clamp_fade(
     struct bacnet_lighting_command_data *data,
     float value,
     uint16_t milliseconds);

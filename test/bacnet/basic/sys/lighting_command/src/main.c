@@ -377,6 +377,24 @@ static void test_lighting_command_unit(void)
     target_step = lighting_command_step_increment_clamp(100.1f);
     zassert_true(is_float_equal(target_step, 100.0f), NULL);
 
+    /* physical range clamping */
+    target_level = lighting_command_physical_range_clamp(0.0f);
+    zassert_true(is_float_equal(target_level, 0.0f), NULL);
+    target_level = lighting_command_physical_range_clamp(0.5f);
+    zassert_true(is_float_equal(target_level, 0.0f), NULL);
+    target_level = lighting_command_physical_range_clamp(0.9f);
+    zassert_true(is_float_equal(target_level, 0.0f), NULL);
+    target_level = lighting_command_physical_range_clamp(1.0f);
+    zassert_true(is_float_equal(target_level, 1.0f), NULL);
+    target_level = lighting_command_physical_range_clamp(50.0f);
+    zassert_true(is_float_equal(target_level, 50.0f), NULL);
+    target_level = lighting_command_physical_range_clamp(100.0f);
+    zassert_true(is_float_equal(target_level, 100.0f), NULL);
+    target_level = lighting_command_physical_range_clamp(100.1f);
+    zassert_true(is_float_equal(target_level, 100.0f), NULL);
+    target_level = lighting_command_physical_range_clamp(150.0f);
+    zassert_true(is_float_equal(target_level, 100.0f), NULL);
+
     /* step UP - inhibit ON */
     target_step = 1.0f;
     target_level = 0.0f;
