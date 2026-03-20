@@ -36,6 +36,8 @@ struct object_data {
     uint32_t Egress_Time_Seconds;
     uint32_t Default_Fade_Time;
     uint32_t Trim_Fade_Time;
+    float High_End_Trim;
+    float Low_End_Trim;
     float Default_Ramp_Rate;
     float Default_Step_Increment;
     BACNET_LIGHTING_TRANSITION Transition;
@@ -499,6 +501,57 @@ unsigned Lighting_Output_Present_Value_Priority(uint32_t object_instance)
 }
 
 /**
+ * @brief Determine if fade, ramp, or warn command is currently executing
+ * @param pObject [in] object to apply the trim values to
+ * @param priority [in] priority of the command
+ */
+static bool Lighting_Command_In_Progress(struct object_data *pObject)
+{
+    bool in_progress = false;
+
+    if (!pObject) {
+        return in_progress;
+    }
+    if ((pObject->Lighting_Command.In_Progress ==
+         BACNET_LIGHTING_FADE_ACTIVE) ||
+        (pObject->Lighting_Command.In_Progress ==
+         BACNET_LIGHTING_RAMP_ACTIVE) ||
+        (pObject->Lighting_Command.Blink.Duration > 0)) {
+        in_progress = true;
+    }
+
+    return in_progress;
+}
+
+/**
+ * @brief Configure the lighting command to apply low or high trim
+ * to the tracking value based on the priority of the command
+ * @param pObject [in] object to apply the trim values to
+ * @param priority [in] priority of the command
+ */
+static void
+Lighting_Command_Trim_Apply(struct object_data *pObject, unsigned priority)
+{
+    if (!pObject) {
+        return;
+    }
+    /* If Present_Value is commanded at priority 1 or 2,
+        High_End_Trim and Low_End_Trim shall not be applied and
+        the Tracking_Value shall not be clamped. */
+    if ((priority == 1) || (priority == 2)) {
+        /* remove any high or low trim */
+        pObject->Lighting_Command.High_Trim_Value = 100.0f;
+        pObject->Lighting_Command.Low_Trim_Value = 1.0f;
+        pObject->Lighting_Command.Trim_Fade_Time = 0;
+    } else {
+        /* apply high and low trim */
+        pObject->Lighting_Command.High_Trim_Value = pObject->High_End_Trim;
+        pObject->Lighting_Command.Low_Trim_Value = pObject->Low_End_Trim;
+        pObject->Lighting_Command.Trim_Fade_Time = pObject->Trim_Fade_Time;
+    }
+}
+
+/**
  * @brief Set the lighting command if the priority is active
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
@@ -519,7 +572,9 @@ static void Lighting_Command_Fade_To(
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
-        /* we have priority - configure the Lighting Command */
+        /* we have priority */
+        Lighting_Command_Trim_Apply(pObject, priority);
+        /* configure the Lighting Command */
         lighting_command_fade_to(&pObject->Lighting_Command, value, fade_time);
     }
 }
@@ -545,7 +600,9 @@ static void Lighting_Command_Ramp_To(
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
-        /* we have priority - configure the Lighting Command */
+        /* we have priority */
+        Lighting_Command_Trim_Apply(pObject, priority);
+        /* configure the Lighting Command */
         lighting_command_ramp_to(&pObject->Lighting_Command, value, ramp_rate);
     }
 }
@@ -598,6 +655,7 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
         (Priority_Array_Active(pObject, priority - 1)) &&
         (!is_float_equal(Priority_Array_Value(pObject, priority - 1), 0.0)) &&
         pObject->Blink_Warn_Enable) {
+        Lighting_Command_Trim_Apply(pObject, priority);
         /* The blink-warn notification shall not occur
             if any of the following conditions occur:
             (a) The specified priority is not the highest
@@ -662,6 +720,7 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
     }
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
+        Lighting_Command_Trim_Apply(pObject, priority);
         if ((Priority_Array_Active(pObject, priority - 1)) &&
             (!is_float_equal(
                 Priority_Array_Value(pObject, priority - 1), 0.0)) &&
@@ -732,6 +791,7 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
     }
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
+        Lighting_Command_Trim_Apply(pObject, priority);
         if ((Priority_Array_Active(pObject, priority - 1)) &&
             (!is_float_equal(
                 Priority_Array_Value(pObject, priority - 1), 0.0)) &&
@@ -813,6 +873,7 @@ static void Lighting_Command_Step_Up_On(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
+        Lighting_Command_Trim_Apply(pObject, priority);
         lighting_command_step(
             &pObject->Lighting_Command, operation, step_increment);
     }
@@ -870,6 +931,7 @@ static void Lighting_Command_Step_Down_Off(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
+        Lighting_Command_Trim_Apply(pObject, priority);
         lighting_command_step(
             &pObject->Lighting_Command, operation, step_increment);
     }
@@ -1398,11 +1460,7 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     }
     current_priority = Present_Value_Priority(pObject);
     if (priority == current_priority) {
-        if ((pObject->Lighting_Command.In_Progress ==
-             BACNET_LIGHTING_FADE_ACTIVE) ||
-            (pObject->Lighting_Command.In_Progress ==
-             BACNET_LIGHTING_RAMP_ACTIVE) ||
-            (pObject->Lighting_Command.Blink.Duration > 0)) {
+        if (Lighting_Command_In_Progress(pObject)) {
             /* fade, ramp, or warn command is currently
                executing at the specified priority */
             value = pObject->Lighting_Command.Tracking_Value;
@@ -2552,7 +2610,7 @@ float Lighting_Output_High_End_Trim(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.High_Trim_Value;
+        value = pObject->High_End_Trim;
     }
 
     return value;
@@ -2572,8 +2630,15 @@ bool Lighting_Output_High_End_Trim_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        /* High_End_Trim shall always be a positive number
+           in the normalized range 1.0% to 100.0%. */
         if (isgreaterequal(value, 1.0) && islessequal(value, 100.0)) {
-            pObject->Lighting_Command.High_Trim_Value = value;
+            pObject->High_End_Trim = value;
+            Lighting_Command_Trim_Apply(
+                pObject, Present_Value_Priority(pObject));
+            if (!Lighting_Command_In_Progress(pObject)) {
+                lighting_command_refresh(&pObject->Lighting_Command);
+            }
             status = true;
         }
     }
@@ -2622,7 +2687,7 @@ float Lighting_Output_Low_End_Trim(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.Low_Trim_Value;
+        value = pObject->Low_End_Trim;
     }
 
     return value;
@@ -2642,8 +2707,15 @@ bool Lighting_Output_Low_End_Trim_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        /* Low_End_Trim shall always be a positive number
+           in the normalized range 1.0% to 100.0%. */
         if (isgreaterequal(value, 1.0) && islessequal(value, 100.0)) {
-            pObject->Lighting_Command.Low_Trim_Value = value;
+            pObject->Low_End_Trim = value;
+            Lighting_Command_Trim_Apply(
+                pObject, Present_Value_Priority(pObject));
+            if (!Lighting_Command_In_Progress(pObject)) {
+                lighting_command_refresh(&pObject->Lighting_Command);
+            }
             status = true;
         }
     }
@@ -2714,7 +2786,14 @@ bool Lighting_Output_Trim_Fade_Time_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (value <= 86400000UL) {
+            /* The range of allowable fade-time values
+               is 0 ms to 86400000 ms (1 day) inclusive. */
             pObject->Trim_Fade_Time = value;
+            Lighting_Command_Trim_Apply(
+                pObject, Present_Value_Priority(pObject));
+            if (!Lighting_Command_In_Progress(pObject)) {
+                lighting_command_refresh(&pObject->Lighting_Command);
+            }
             status = true;
         }
     }
@@ -2766,9 +2845,7 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Lighting_Command.Overridden_Momentary = false;
-        pObject->Lighting_Command.Overridden = true;
-        lighting_command_override(&pObject->Lighting_Command, value);
+        lighting_command_override_set(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -2791,10 +2868,8 @@ bool Lighting_Output_Overridden_Clear(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Lighting_Command.Overridden = false;
-        pObject->Lighting_Command.Overridden_Momentary = false;
         value = Priority_Array_Next_Value(pObject, 0);
-        lighting_command_override(&pObject->Lighting_Command, value);
+        lighting_command_override_clear(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -2818,9 +2893,7 @@ bool Lighting_Output_Overridden_Momentary(uint32_t object_instance, float value)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         /* set the override */
-        pObject->Lighting_Command.Overridden_Momentary = true;
-        pObject->Lighting_Command.Overridden = true;
-        lighting_command_override(&pObject->Lighting_Command, value);
+        lighting_command_override_momentary(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -3787,6 +3860,11 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Last_Lighting_Command.use_fade_time = false;
         pObject->Last_Lighting_Command.use_priority = false;
         pObject->Blink_Warn_Enable = false;
+        pObject->High_End_Trim = 100.0f;
+        pObject->Lighting_Command.High_Trim_Value = pObject->High_End_Trim;
+        pObject->Low_End_Trim = 1.0f;
+        pObject->Lighting_Command.Low_Trim_Value = pObject->Low_End_Trim;
+        pObject->Trim_Fade_Time = 0;
         pObject->Egress_Time_Seconds = 0;
         pObject->Default_Fade_Time = 100;
         pObject->Default_Ramp_Rate = 100.0;
