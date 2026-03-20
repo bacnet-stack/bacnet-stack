@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-03-18
+## [Unreleased] - 2026-03-20
 
 ### Security
 
@@ -200,6 +200,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting output and lighting command low and high trim fade. (#1268)
 * Fixed FQDN hostname size in minimal hostnport implementation. (#1263)
 * Fixed segmentation fault in Schedule_Recalculate_PV() during application
   startup. (#1258)
