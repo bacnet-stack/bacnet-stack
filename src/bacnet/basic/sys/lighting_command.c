@@ -823,7 +823,7 @@ static void lighting_command_blink_handler(
  * @brief Overrides the current lighting command with the provided value
  * @param data [in] dimmer data
  */
-void lighting_command_override_set(
+void lighting_command_override(
     struct bacnet_lighting_command_data *data, float value)
 {
     float old_value;
@@ -831,12 +831,25 @@ void lighting_command_override_set(
     if (!data) {
         return;
     }
-    data->Overridden = true;
-    data->Overridden_Momentary = false;
     old_value = data->Tracking_Value;
     data->Tracking_Value = lighting_command_physical_range_clamp(value);
     lighting_command_tracking_value_event(
         data, old_value, data->Tracking_Value);
+}
+
+/**
+ * @brief Overrides the current lighting command with the provided value
+ * @param data [in] dimmer data
+ */
+void lighting_command_override_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    data->Overridden = true;
+    data->Overridden_Momentary = false;
+    lighting_command_override(data, value);
 }
 
 /**
@@ -870,17 +883,12 @@ void lighting_command_override_clear(
 void lighting_command_override_momentary(
     struct bacnet_lighting_command_data *data, float value)
 {
-    float old_value;
-
     if (!data) {
         return;
     }
     data->Overridden = true;
     data->Overridden_Momentary = true;
-    old_value = data->Tracking_Value;
-    data->Tracking_Value = lighting_command_physical_range_clamp(value);
-    lighting_command_tracking_value_event(
-        data, old_value, data->Tracking_Value);
+    lighting_command_override(data, value);
 }
 
 /**

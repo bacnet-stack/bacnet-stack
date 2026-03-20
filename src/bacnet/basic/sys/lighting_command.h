@@ -134,6 +134,9 @@ void lighting_command_toggle_default(
     struct bacnet_lighting_command_data *data, uint32_t fade_time);
 
 BACNET_STACK_EXPORT
+void lighting_command_override(
+    struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
 void lighting_command_override_set(
     struct bacnet_lighting_command_data *data, float value);
 BACNET_STACK_EXPORT
