@@ -30,6 +30,7 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/bbmd/h_bbmd.c
+    ${SRC_DIR}/bacnet/basic/bbmd/h_bbmdhost.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c

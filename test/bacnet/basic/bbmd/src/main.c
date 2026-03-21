@@ -12,14 +12,13 @@
 #include <assert.h>
 #include <string.h>
 #include "bacnet/bacdef.h"
-#include "bacnet/bacdcode.h"
 #include "bacnet/iam.h"
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
+#include "bacnet/basic/bbmd/h_bbmdhost.h"
 
 struct device_info_t {
     uint32_t Device_ID;
@@ -227,9 +226,249 @@ static void test_BBMD_Result(void)
     }
 }
 
+/**
+ * @brief Mock callback to query the hostname to IP address
+ */
+static void test_bbmdhost_lookup_callback(BACNET_HOST_N_PORT_MINIMAL *host)
+{
+    if (host->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
+        if (strcmp(host->host.name.fqdn, "test.com") == 0) {
+            host->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
+            host->host.ip_address.address[0] = 10;
+            host->host.ip_address.address[1] = 0;
+            host->host.ip_address.address[2] = 0;
+            host->host.ip_address.address[3] = 1;
+            host->host.ip_address.length = 4;
+        }
+    }
+}
+
+static void test_BBMD_Host(void)
+{
+    BACNET_CHARACTER_STRING name;
+    BACNET_HOST_N_PORT_MINIMAL data;
+    uint8_t ip[4] = { 0 };
+    uint8_t ip_len = 0;
+    int index1, index2;
+    bool status;
+
+    bbmdhost_init();
+    /* test adding a name */
+    characterstring_init_ansi(&name, "test.com");
+    index1 = bbmdhost_add(&name);
+    assert(index1 == 0);
+    assert(bbmdhost_count() == 1);
+    /* test duplicate check */
+    index2 = bbmdhost_add(&name);
+    assert(index1 == index2);
+    assert(bbmdhost_count() == 1);
+    /* test retrieving name */
+    status = bbmdhost_data_resolved(index1, &data);
+    assert(status);
+    assert(data.tag == BACNET_HOST_ADDRESS_TAG_NAME);
+    assert(strcmp(data.host.name.fqdn, "test.com") == 0);
+    /* test adding another name */
+    characterstring_init_ansi(&name, "another.com");
+    index2 = bbmdhost_add(&name);
+    assert(index2 == 1);
+    assert(bbmdhost_count() == 2);
+    /* test IP retrieval before resolution */
+    status = bbmdhost_ip_address(index1, ip, &ip_len);
+    assert(!status);
+    status = bbmdhost_hostname_ip_address("test.com", ip, &ip_len);
+    assert(!status);
+    /* test resolution */
+    bbmdhost_lookup_update(test_bbmdhost_lookup_callback);
+    /* test bbmdhost_data_resolved with IP address resolved */
+    status = bbmdhost_data_resolved(index1, &data);
+    assert(status);
+    assert(data.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS);
+    assert(data.host.ip_address.length == 4);
+    assert(data.host.ip_address.address[0] == 10);
+    /* test h_bbmdhost_data */
+    {
+        BACNET_HOST_ADDRESS_PAIR pair;
+        status = bbmdhost_data(index1, &pair);
+        assert(status);
+        assert(pair.ip_address.length == 4);
+        assert(pair.ip_address.address[0] == 10);
+        assert(pair.name.length == 8);
+        assert(strcmp(pair.name.fqdn, "test.com") == 0);
+    }
+    /* test IP retrieval after resolution */
+    status = bbmdhost_ip_address(index1, ip, &ip_len);
+    assert(status);
+    assert(ip_len == 4);
+    assert(ip[0] == 10);
+    assert(ip[3] == 1);
+    status = bbmdhost_hostname_ip_address("test.com", ip, &ip_len);
+    assert(status);
+    assert(ip_len == 4);
+    assert(ip[0] == 10);
+    assert(ip[3] == 1);
+    /* test IP retrieval for non-resolved name */
+    status = bbmdhost_ip_address(index2, ip, &ip_len);
+    assert(!status);
+    bbmdhost_cleanup();
+    assert(bbmdhost_count() == 0);
+}
+
+static void test_BBMD_Host_NULL(void)
+{
+    BACNET_CHARACTER_STRING name;
+    BACNET_HOST_N_PORT_MINIMAL data;
+    uint8_t ip[4];
+    uint8_t ip_len;
+    int index;
+    bool status;
+
+    /* test APIs before init */
+    bbmdhost_cleanup();
+    characterstring_init_ansi(&name, "test.com");
+    index = bbmdhost_add(&name);
+    assert(index == -1);
+    assert(bbmdhost_count() == 0);
+    status = bbmdhost_data_resolved(0, &data);
+    assert(!status);
+    bbmdhost_lookup_update(test_bbmdhost_lookup_callback);
+    status = bbmdhost_ip_address(0, ip, &ip_len);
+    assert(!status);
+    status = bbmdhost_hostname_ip_address("test.com", ip, &ip_len);
+    assert(!status);
+
+    bbmdhost_init();
+    /* NULL name in add */
+    index = bbmdhost_add(NULL);
+    assert(index == -1);
+    /* NULL name in data */
+    index = bbmdhost_add(&name);
+    assert(index == 0);
+    status = bbmdhost_data_resolved(0, NULL);
+    assert(status);
+    /* NULL callback in update */
+    bbmdhost_lookup_update(NULL);
+    /* NULL output params in ip_address */
+    status = bbmdhost_ip_address(0, NULL, NULL);
+    assert(!status);
+    /* NULL hostname in hostname_ip_address */
+    status = bbmdhost_hostname_ip_address(NULL, ip, &ip_len);
+    assert(!status);
+    bbmdhost_cleanup();
+}
+
+static void test_BBMD_Host_Edge_Cases(void)
+{
+    BACNET_CHARACTER_STRING name;
+    char long_name[300];
+    int index;
+    bool status;
+    uint8_t ip[4];
+    uint8_t ip_len;
+
+    bbmdhost_init();
+    /* test invalid index */
+    status = bbmdhost_data_resolved(-1, NULL);
+    assert(!status);
+    status = bbmdhost_data_resolved(100, NULL);
+    assert(!status);
+    status = bbmdhost_data(-1, NULL);
+    assert(!status);
+    status = bbmdhost_data(100, NULL);
+    assert(!status);
+    status = bbmdhost_ip_address(-1, NULL, NULL);
+    assert(!status);
+    status = bbmdhost_ip_address(100, NULL, NULL);
+    assert(!status);
+
+    /* test long name truncation */
+    memset(long_name, 'a', sizeof(long_name) - 1);
+    long_name[sizeof(long_name) - 1] = '\0';
+    characterstring_init_ansi(&name, long_name);
+    index = bbmdhost_add(&name);
+    assert(index == 0);
+    /* bbmdhost_add truncates internal storage */
+
+    /* test hostname matching logic */
+    characterstring_init_ansi(&name, "match.com");
+    index = bbmdhost_add(&name);
+    assert(index == 1);
+    /* different length but same prefix */
+    characterstring_init_ansi(&name, "match.co");
+    index = bbmdhost_add(&name);
+    assert(index == 2);
+    /* same length but different content */
+    characterstring_init_ansi(&name, "match.cc");
+    index = bbmdhost_add(&name);
+    assert(index == 3);
+
+    /* test IP retrieval match failures */
+    status = bbmdhost_hostname_ip_address("nonexistent.com", ip, &ip_len);
+    assert(!status);
+    /* exists but no IP */
+    status = bbmdhost_hostname_ip_address("match.com", ip, &ip_len);
+    assert(!status);
+
+    bbmdhost_cleanup();
+}
+
+static void test_BBMD_Host_Same(void)
+{
+    BACNET_HOST_ADDRESS_PAIR host1 = { 0 };
+    BACNET_HOST_ADDRESS_PAIR host2 = { 0 };
+    bool status;
+
+    /* test NULLs */
+    status = bbmdhost_same(NULL, NULL);
+    assert(!status);
+    status = bbmdhost_same(&host1, NULL);
+    assert(!status);
+    status = bbmdhost_same(NULL, &host2);
+    assert(!status);
+
+    /* test empty (same) */
+    status = bbmdhost_same(&host1, &host2);
+    assert(status);
+
+    /* test same name, different IP length (host1 has IP, host2 doesn't) */
+    strcpy(host1.name.fqdn, "test.com");
+    host1.name.length = 8;
+    strcpy(host2.name.fqdn, "test.com");
+    host2.name.length = 8;
+    host1.ip_address.length = 4;
+    status = bbmdhost_same(&host1, &host2);
+    assert(!status);
+
+    /* test same name, same IP length, different IP content */
+    host2.ip_address.length = 4;
+    host1.ip_address.address[0] = 10;
+    host2.ip_address.address[0] = 192;
+    status = bbmdhost_same(&host1, &host2);
+    assert(!status);
+
+    /* test same name, same IP content */
+    host2.ip_address.address[0] = 10;
+    status = bbmdhost_same(&host1, &host2);
+    assert(status);
+
+    /* test different name length */
+    host2.name.length = 7;
+    status = bbmdhost_same(&host1, &host2);
+    assert(!status);
+
+    /* test different name content */
+    host2.name.length = 8;
+    strcpy(host2.name.fqdn, "best.com");
+    status = bbmdhost_same(&host1, &host2);
+    assert(!status);
+}
+
 int main(void)
 {
     /* individual tests */
+    test_BBMD_Host_Same();
+    test_BBMD_Host();
+    test_BBMD_Host_NULL();
+    test_BBMD_Host_Edge_Cases();
     test_BBMD_Result();
     test_Initiate_Original_Broadcast_NPDU();
 
