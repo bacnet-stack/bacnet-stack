@@ -54,6 +54,7 @@ typedef struct BACnet_Write_Group_Data {
     BACNET_GROUP_CHANNEL_VALUE change_list;
     WRITE_GROUP_INHIBIT_DELAY inhibit_delay;
     struct BACnet_Write_Group_Data *next;
+    void *context; /* user-defined callback context */
 } BACNET_WRITE_GROUP_DATA;
 
 /**
