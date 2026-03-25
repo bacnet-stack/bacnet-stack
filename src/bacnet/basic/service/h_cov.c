@@ -60,7 +60,14 @@ typedef struct BACnet_COV_Subscription {
 #ifndef MAX_COV_SUBCRIPTIONS
 #define MAX_COV_SUBCRIPTIONS 128
 #endif
-static BACNET_COV_SUBSCRIPTION COV_Subscriptions[MAX_COV_SUBCRIPTIONS];
+
+static BACNET_COV_SUBSCRIPTION COV_Subscriptions_List[MAX_NUM_DEVICES]
+                                                     [MAX_COV_SUBCRIPTIONS];
+#ifdef BAC_ROUTING
+#define COV_Subscriptions (COV_Subscriptions_List[Routed_Device_Object_Index()])
+#else
+#define COV_Subscriptions (COV_Subscriptions_List[0])
+#endif
 #ifndef MAX_COV_ADDRESSES
 #define MAX_COV_ADDRESSES 16
 #endif
@@ -97,6 +104,31 @@ static void cov_address_remove_unused(void)
     unsigned cov_index = 0;
     bool found = false;
 
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    for (cov_index = 0; cov_index < MAX_COV_ADDRESSES; cov_index++) {
+        if (COV_Addresses[cov_index].valid) {
+            found = false;
+            for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+                Set_Routed_Device_Object_Index(dev_id);
+                for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+                    if ((COV_Subscriptions[index].flag.valid) &&
+                        (COV_Subscriptions[index].dest_index == cov_index)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    break;
+                }
+            }
+            if (!found) {
+                COV_Addresses[cov_index].valid = false;
+            }
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
     for (cov_index = 0; cov_index < MAX_COV_ADDRESSES; cov_index++) {
         if (COV_Addresses[cov_index].valid) {
             found = false;
@@ -112,6 +144,7 @@ static void cov_address_remove_unused(void)
             }
         }
     }
+#endif
 }
 
 /**
@@ -320,7 +353,26 @@ int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 void handler_cov_init(void)
 {
     unsigned index = 0;
-
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+        for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+            /* initialize with invalid COV address */
+            COV_Subscriptions[index].flag.valid = false;
+            COV_Subscriptions[index].dest_index = MAX_COV_ADDRESSES;
+            COV_Subscriptions[index].subscriberProcessIdentifier = 0;
+            COV_Subscriptions[index].monitoredObjectIdentifier.type =
+                OBJECT_ANALOG_INPUT;
+            COV_Subscriptions[index].monitoredObjectIdentifier.instance = 0;
+            COV_Subscriptions[index].flag.issueConfirmedNotifications = false;
+            COV_Subscriptions[index].invokeID = 0;
+            COV_Subscriptions[index].lifetime = 0;
+            COV_Subscriptions[index].flag.send_requested = false;
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         /* initialize with invalid COV address */
         COV_Subscriptions[index].flag.valid = false;
@@ -334,6 +386,7 @@ void handler_cov_init(void)
         COV_Subscriptions[index].lifetime = 0;
         COV_Subscriptions[index].flag.send_requested = false;
     }
+#endif
     for (index = 0; index < MAX_COV_ADDRESSES; index++) {
         COV_Addresses[index].valid = false;
     }
@@ -587,7 +640,27 @@ void handler_cov_timer_seconds(uint32_t elapsed_seconds)
 {
     unsigned index = 0;
     uint32_t lifetime_seconds = 0;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
 
+    if (elapsed_seconds) {
+        /* handle the subscription timeouts */
+        for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+            Set_Routed_Device_Object_Index(dev_id);
+            for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+                if (COV_Subscriptions[index].flag.valid) {
+                    lifetime_seconds = COV_Subscriptions[index].lifetime;
+                    if (lifetime_seconds) {
+                        /* only expire COV with definite lifetimes */
+                        cov_lifetime_expiration_handler(
+                            index, elapsed_seconds, lifetime_seconds);
+                    }
+                }
+            }
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
     if (elapsed_seconds) {
         /* handle the subscription timeouts */
         for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
@@ -601,24 +674,38 @@ void handler_cov_timer_seconds(uint32_t elapsed_seconds)
             }
         }
     }
+#endif
 }
 
 bool handler_cov_fsm(void)
 {
-    static int index = 0;
+    static int indices[MAX_NUM_DEVICES] = { 0 };
+#ifdef BAC_ROUTING
+    const int dev_id = Routed_Device_Object_Index();
+#else
+    const int dev_id = 0;
+#endif
+
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     uint32_t object_instance = 0;
     bool status = false;
     bool send = false;
     BACNET_PROPERTY_VALUE value_list[MAX_COV_PROPERTIES] = { 0 };
+
     /* states for transmitting */
-    static enum {
+    typedef enum cov_fsm_state {
         COV_STATE_IDLE = 0,
         COV_STATE_MARK,
         COV_STATE_CLEAR,
         COV_STATE_FREE,
         COV_STATE_SEND
-    } cov_task_state = COV_STATE_IDLE;
+    } cov_fsm_state_t;
+    static cov_fsm_state_t cov_task_states[MAX_NUM_DEVICES] = {
+        COV_STATE_IDLE
+    };
+
+    int index = indices[dev_id];
+    cov_fsm_state_t cov_task_state = cov_task_states[dev_id];
 
     switch (cov_task_state) {
         case COV_STATE_IDLE:
@@ -735,12 +822,25 @@ bool handler_cov_fsm(void)
             cov_task_state = COV_STATE_IDLE;
             break;
     }
+
+    indices[dev_id] = index;
+    cov_task_states[dev_id] = cov_task_state;
+
     return (cov_task_state == COV_STATE_IDLE);
 }
 
 void handler_cov_task(void)
 {
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+        handler_cov_fsm();
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
     handler_cov_fsm();
+#endif
 }
 
 static bool cov_subscribe(
