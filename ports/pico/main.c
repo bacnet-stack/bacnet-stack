@@ -43,7 +43,8 @@ int main(void)
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
     apdu_set_confirmed_handler(

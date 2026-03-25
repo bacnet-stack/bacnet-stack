@@ -10,10 +10,10 @@
 
 void systimer_init(void)
 {
-  //
+    //
 }
 
 unsigned long mstimer_now(void)
 {
-  return to_ms_since_boot(get_absolute_time());
+    return to_ms_since_boot(get_absolute_time());
 }

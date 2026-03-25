@@ -13,7 +13,7 @@
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "rs485.h"
-#include "mstimer_init.h" 
+#include "mstimer_init.h"
 #include <stdio.h>
 
 // --- Static State Variables ---
@@ -44,19 +44,19 @@ void rs485_init(void)
     uart_set_format(RS485_UART_ID, DATA_BIT, STOP_BIT, UART_PARITY_NONE);
     uart_set_hw_flow(RS485_UART_ID, false, false);
     uart_set_fifo_enabled(RS485_UART_ID, false);
-    
+
     // 3. Reset silence timer
     rs485_silence_reset();
-    
+
     // 4. Flush any junk data in the RX buffer from startup
     while (uart_is_readable(RS485_UART_ID)) {
         uart_getc(RS485_UART_ID);
     }
-
 }
 
 /**
- * @brief Enables or disables the Request To Send (RTS) / Driver Enable (DE/RE) pin.
+ * @brief Enables or disables the Request To Send (RTS) / Driver Enable (DE/RE)
+ * pin.
  * @param enable True to enable transmitter (TX), False to enable receiver (RX).
  */
 void rs485_rts_enable(bool enable)
@@ -98,9 +98,9 @@ bool rs485_byte_available(uint8_t *data_register)
     return true;
 }
 
-
 /**
- * @brief Checks the UART hardware for a receive error (Framing, Parity, Overrun).
+ * @brief Checks the UART hardware for a receive error (Framing, Parity,
+ * Overrun).
  * @return True if a receive error is present, False otherwise.
  */
 bool rs485_receive_error(void)
@@ -108,14 +108,15 @@ bool rs485_receive_error(void)
     // The RSR (Receive Status Register) holds error flags.
     // It is part of the raw hardware registers, accessed via uart_get_hw().
     uart_hw_t *uart_hw = uart_get_hw(RS485_UART_ID);
-    
-    // RSR bits: 0: FE (Framing Error), 1: PE (Parity Error), 2: BE (Break Error), 3: OE (Overrun Error)
+
+    // RSR bits: 0: FE (Framing Error), 1: PE (Parity Error), 2: BE (Break
+    // Error), 3: OE (Overrun Error)
     uint32_t rsr = uart_hw->rsr;
-    
+
     // Clearing the RSR register is crucial after reading errors.
     // Writing anything to it clears all error flags.
-    uart_hw->rsr = 0; 
-    
+    uart_hw->rsr = 0;
+
     // Check if any error bit is set
     return (rsr != 0);
 }
@@ -140,13 +141,13 @@ void rs485_bytes_send(const uint8_t *buffer, uint16_t nbytes)
     uart_write_blocking(RS485_UART_ID, buffer, nbytes);
     uart_tx_wait_blocking(RS485_UART_ID);
     sleep_us(200);
-    
+
     // Update count and silence timer.
     Rs485_Bytes_Tx += nbytes;
     rs485_rts_enable(false);
     rs485_silence_reset();
-    
-    // The BACnet stack handles the post-transmit delay (T_prop + T_frame_gap) 
+
+    // The BACnet stack handles the post-transmit delay (T_prop + T_frame_gap)
     // and calls rs485_rts_enable(false) to turn off the driver.
 }
 
@@ -169,9 +170,10 @@ bool rs485_baud_rate_set(uint32_t baud)
     if (baud == 0) {
         return false;
     }
-    
-    // uart_set_baudrate returns the actual configured rate, which may be slightly off.
-    // We only care that the function executed successfully and we store the requested rate.
+
+    // uart_set_baudrate returns the actual configured rate, which may be
+    // slightly off. We only care that the function executed successfully and we
+    // store the requested rate.
     switch (baud) {
         case 9600:
         case 19200:
@@ -186,12 +188,13 @@ bool rs485_baud_rate_set(uint32_t baud)
             return false;
             break;
     }
-    
+
     return true;
 }
 
 /**
- * @brief Measures the duration of silence on the bus since the last byte (Tx or Rx).
+ * @brief Measures the duration of silence on the bus since the last byte (Tx or
+ * Rx).
  * @return The duration of silence in milliseconds.
  */
 uint32_t rs485_silence_milliseconds(void)

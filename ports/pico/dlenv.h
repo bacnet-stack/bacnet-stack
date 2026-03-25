@@ -19,7 +19,7 @@
 
 #include "rs485.h"
 
-#define BACNET_MSTP_MAX_MASTER      5
+#define BACNET_MSTP_MAX_MASTER 5
 #define BACNET_MSTP_MAX_INFO_FRAMES 1
 
 #ifdef __cplusplus

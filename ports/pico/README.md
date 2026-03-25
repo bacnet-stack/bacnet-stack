@@ -118,7 +118,7 @@ int main() {
     Device_Set_Object_Instance_Number(12345);
     Device_Init(NULL);
     address_init();
-    
+
     // Initialize BACnet/IP on port 0xBAC0 (47808)
     if (!bip_init(0xBAC0)) {
         return -1;
@@ -129,21 +129,21 @@ int main() {
 
     mstimer_set(&DCC_Timer, 1000); // 1 second timer
     printf("BACnet BIP Initialized");
-    
+
     BACNET_ADDRESS src = {0};
     uint8_t rx_buf[480];
     const uint16_t max_pdu = sizeof(rx_buf);
 
-    while (1) 
+    while (1)
     {
-        if (mstimer_expired(&DCC_Timer)) 
+        if (mstimer_expired(&DCC_Timer))
         {
             mstimer_reset(&DCC_Timer);
             dcc_timer_seconds(1);
         }
-        
+
         uint16_t pdu_len = bip_receive(&src, rx_buf, max_pdu, 0);
-        if (pdu_len > 0) 
+        if (pdu_len > 0)
         {
             npdu_handler(&src, rx_buf, pdu_len);
             printf("%u bytes received from MAC %u\r\n", pdu_len, src.mac[0]);
@@ -151,7 +151,7 @@ int main() {
             printf("\n");
         }
     }
-    
+
     return 0;
 }
 ```

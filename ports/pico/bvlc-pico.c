@@ -1,6 +1,7 @@
 /**
  * @file
- * @authors Miguel Fernandes <miguelandre.fernandes@gmail.com> Testimony Adams <adamstestimony@gmail.com>
+ * @authors Miguel Fernandes <miguelandre.fernandes@gmail.com> Testimony Adams
+ * <adamstestimony@gmail.com>
  * @date 6 de Jun de 2013
  * @brief BACnet Virtual Link Control for Pico
  */
@@ -84,7 +85,7 @@ static int bvlc_send_mpdu(
     uint16_t mtu_len)
 {
     int bytes_sent = 0;
-    
+
     /* assumes that the driver has already been initialized */
     if (!bip_valid()) {
         return -1;

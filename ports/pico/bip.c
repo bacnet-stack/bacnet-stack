@@ -36,10 +36,8 @@ static uint8_t BIP_Broadcast_Address[4] = { 0, 0, 0, 0 };
  */
 uint32_t convertBIP_Address2uint32(const uint8_t *bip_address)
 {
-    return ((uint32_t)bip_address[0] << 24) |
-           ((uint32_t)bip_address[1] << 16) |
-           ((uint32_t)bip_address[2] << 8) |
-           ((uint32_t)bip_address[3]);
+    return ((uint32_t)bip_address[0] << 24) | ((uint32_t)bip_address[1] << 16) |
+        ((uint32_t)bip_address[2] << 8) | ((uint32_t)bip_address[3]);
 }
 
 /** Convert from uint32_t IPv4 address to uint8_t[4] address
@@ -115,9 +113,7 @@ uint16_t bip_get_port(void)
 }
 
 static int bip_decode_bip_address(
-    const BACNET_ADDRESS *bac_addr,
-    uint8_t *address,
-    uint16_t *port)
+    const BACNET_ADDRESS *bac_addr, uint8_t *address, uint16_t *port)
 {
     int len = 0;
 
@@ -213,10 +209,7 @@ int bip_send_pdu(
  * @return The number of octets (remaining) in the PDU, or zero on failure.
  */
 uint16_t bip_receive(
-    BACNET_ADDRESS *src,
-    uint8_t *pdu,
-    uint16_t max_pdu,
-    unsigned timeout)
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
 {
     int received_bytes = 0;
     int max = 0;
@@ -368,7 +361,8 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-int bip_send_mpdu(const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     int bytes_sent = 0;
 

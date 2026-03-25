@@ -60,10 +60,7 @@ int bip_socket_send(
  * @return number of bytes received, 0 if no data, negative on error
  */
 int bip_socket_receive(
-    uint8_t *buf,
-    uint16_t buf_len,
-    uint8_t *src_addr,
-    uint16_t *src_port);
+    uint8_t *buf, uint16_t buf_len, uint8_t *src_addr, uint16_t *src_port);
 
 /**
  * @brief Close/cleanup the UDP socket
@@ -77,8 +74,6 @@ void bip_socket_cleanup(void);
  * @return true on success
  */
 bool bip_get_local_network_info(uint8_t *local_addr, uint8_t *netmask);
-
-
 
 /* BACnet/IP port functions */
 bool bip_init(uint16_t port);
@@ -105,16 +100,11 @@ int bip_send_pdu(
 
 /* Function to send a packet out the BACnet/IP socket (Annex J) */
 int bip_send_mpdu(
-    const BACNET_IP_ADDRESS *dest,
-    const uint8_t *mtu,
-    uint16_t mtu_len);
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len);
 
 /* receives a BACnet/IP packet */
 uint16_t bip_receive(
-    BACNET_ADDRESS *src,
-    uint8_t *pdu,
-    uint16_t max_pdu,
-    unsigned timeout);
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout);
 
 /* use host byte order for setting */
 void bip_set_port(uint16_t port);

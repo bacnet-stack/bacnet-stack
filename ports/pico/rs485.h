@@ -14,15 +14,15 @@
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
 #include "hardware/gpio.h"
-#include "hardware/regs/uart.h" 
+#include "hardware/regs/uart.h"
 
-#define RS485_UART_ID       uart1
-#define RS485_BAUD_RATE     38400
-#define RS485_TX_PIN        8
-#define RS485_RX_PIN        9
-#define RS485_DE_PIN        10
-#define DATA_BIT            8
-#define STOP_BIT            1
+#define RS485_UART_ID uart1
+#define RS485_BAUD_RATE 38400
+#define RS485_TX_PIN 8
+#define RS485_RX_PIN 9
+#define RS485_DE_PIN 10
+#define DATA_BIT 8
+#define STOP_BIT 1
 
 #ifdef __cplusplus
 extern "C" {

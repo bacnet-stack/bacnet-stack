@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 
-if (NOT DEFINED ENV{PICO_SDK_PATH} AND DEFINED PICO_SDK_PATH)
+if (NOT DEFINED PICO_SDK_PATH AND DEFINED ENV{PICO_SDK_PATH})
+    set(PICO_SDK_PATH "$ENV{PICO_SDK_PATH}")
+endif()
+if (DEFINED PICO_SDK_PATH)
+    get_filename_component(
+        PICO_SDK_PATH "${PICO_SDK_PATH}" REALPATH
+        BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     set(ENV{PICO_SDK_PATH} "${PICO_SDK_PATH}")
 endif()
 
@@ -12,7 +18,7 @@ if (NOT DEFINED ENV{PICO_BOARD})
     set(ENV{PICO_BOARD} "${PICO_BOARD}")
 endif()
 
-include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 project(bacnet_pico_port C CXX ASM)
 

@@ -34,8 +34,7 @@ volatile uint8_t g_last_src = 0;
 volatile uint8_t g_last_dst = 0;
 
 static void mstp_frame_rx_complete_cb(
-    uint8_t src, uint8_t dst, uint8_t frame_type,
-    uint8_t *buf, uint16_t len)
+    uint8_t src, uint8_t dst, uint8_t frame_type, uint8_t *buf, uint16_t len)
 {
     (void)buf;
     (void)len;
@@ -57,26 +56,28 @@ bool pico_dlenv_init(uint8_t mac_address)
 
     /* Configure MSTP port structure that the core stack will drive */
     MSTP_Port.Nmax_info_frames = BACNET_MSTP_MAX_INFO_FRAMES;
-    MSTP_Port.Nmax_master      = BACNET_MSTP_MAX_MASTER;
+    MSTP_Port.Nmax_master = BACNET_MSTP_MAX_MASTER;
 
-    MSTP_Port.InputBuffer      = Input_Buffer;
-    MSTP_Port.InputBufferSize  = sizeof(Input_Buffer);
-    MSTP_Port.OutputBuffer     = Output_Buffer;
+    MSTP_Port.InputBuffer = Input_Buffer;
+    MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
+    MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
 
     /* No ZeroConfig / slaves / auto-baud for this Pico port (you can tweak) */
     MSTP_Port.ZeroConfigEnabled = false;
-    MSTP_Port.SlaveNodeEnabled  = false;
-    MSTP_Port.CheckAutoBaud     = false;
+    MSTP_Port.SlaveNodeEnabled = false;
+    MSTP_Port.CheckAutoBaud = false;
 
     MSTP_Zero_Config_UUID_Init((struct mstp_port_struct_t *)&MSTP_Port);
 
     /* Hook the RS-485 driver into the MS/TP layer */
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
-    MSTP_Port.UserData          = &MSTP_User_Data;
+    MSTP_Port.UserData = &MSTP_User_Data;
 
     /* Start the MS/TP state machine using our port */
-    if (!dlmstp_init((char *)&MSTP_Port)) return false;
+    if (!dlmstp_init((char *)&MSTP_Port)) {
+        return false;
+    }
 
     /* Apply logical MS/TP parameters */
     dlmstp_set_mac_address(mac_address);
@@ -89,7 +90,7 @@ bool pico_dlenv_init(uint8_t mac_address)
     dlmstp_set_frame_not_for_us_rx_complete_callback(NULL);
     dlmstp_set_invalid_frame_rx_complete_callback(NULL);
     dlmstp_set_frame_rx_start_callback(NULL);
-    
+
     return true;
 }
 
@@ -105,4 +106,3 @@ void dlenv_cleanup(void)
 {
     /* no action */
 }
-
