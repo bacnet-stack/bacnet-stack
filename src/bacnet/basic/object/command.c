@@ -28,10 +28,17 @@
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
 /* me!*/
 #include "bacnet/basic/object/command.h"
 
-static COMMAND_DESCR Command_Descr[MAX_COMMANDS];
+static COMMAND_DESCR Command_Descrs[MAX_NUM_DEVICES][MAX_COMMANDS];
+#ifdef BAC_ROUTING
+#define Command_Descr (Command_Descrs[Routed_Device_Object_Index()])
+#else
+#define Command_Descr (Command_Descrs[0])
+#endif
 
 /* These arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Command_Properties_Required[] = {
@@ -107,12 +114,27 @@ void Command_Writable_Property_List(
  */
 void Command_Init(void)
 {
+    uint16_t dev_id;
     unsigned i;
-    for (i = 0; i < MAX_COMMANDS; i++) {
-        Command_Descr[i].Present_Value = 0;
-        Command_Descr[i].In_Process = false;
-        Command_Descr[i].All_Writes_Successful = true; /* Optimistic default */
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
+
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        for (i = 0; i < MAX_COMMANDS; i++) {
+            Command_Descr[i].Present_Value = 0;
+            Command_Descr[i].In_Process = false;
+            Command_Descr[i].All_Writes_Successful =
+                true; /* Optimistic default */
+        }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }
 
 /**

@@ -22,7 +22,12 @@
 #include "bacnet/basic/object/piv.h"
 
 /* Key List for storing object data sorted by instance number */
-static OS_Keylist Object_List = NULL;
+static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
+#ifdef BAC_ROUTING
+#define Object_List (Object_Lists[Routed_Device_Object_Index()])
+#else
+#define Object_List (Object_Lists[0])
+#endif
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_POSITIVE_INTEGER_VALUE;
 
@@ -171,14 +176,29 @@ bool PositiveInteger_Value_Delete(uint32_t object_instance)
 void PositiveInteger_Value_Init(void)
 {
 #ifdef MAX_POSITIVEINTEGER_VALUES
+#ifdef BAC_ROUTING
     unsigned i = 0;
-
+    uint16_t dev_id;
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+        if (!Object_List) {
+            Object_List = Keylist_Create();
+        }
+        for (i = 0; i < MAX_POSITIVEINTEGER_VALUES; i++) {
+            PositiveInteger_Value_Create(i);
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
+    unsigned i = 0;
     if (!Object_List) {
         Object_List = Keylist_Create();
     }
     for (i = 0; i < MAX_POSITIVEINTEGER_VALUES; i++) {
         PositiveInteger_Value_Create(i);
     }
+#endif
 #endif
 }
 

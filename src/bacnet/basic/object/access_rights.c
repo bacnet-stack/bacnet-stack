@@ -17,12 +17,19 @@
 #include "bacnet/proplist.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
 /* me! */
 #include "access_rights.h"
 
 static bool Access_Rights_Initialized = false;
 
-static ACCESS_RIGHTS_DESCR ar_descr[MAX_ACCESS_RIGHTS];
+static ACCESS_RIGHTS_DESCR ar_descrs[MAX_NUM_DEVICES][MAX_ACCESS_RIGHTS];
+#ifdef BAC_ROUTING
+#define ar_descr (ar_descrs[Routed_Device_Object_Index()])
+#else
+#define ar_descr (ar_descrs[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -90,20 +97,34 @@ void Access_Rights_Writable_Property_List(
 void Access_Rights_Init(void)
 {
     unsigned i;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
     if (!Access_Rights_Initialized) {
         Access_Rights_Initialized = true;
 
-        for (i = 0; i < MAX_ACCESS_RIGHTS; i++) {
-            ar_descr[i].global_identifier =
-                0; /* set to some meaningful value */
-            ar_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
-            ar_descr[i].enable = false;
-            ar_descr[i].negative_access_rules_count = 0;
-            ar_descr[i].positive_access_rules_count = 0;
-            /* fill in the positive and negative access rules with proper ids */
+        for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+            Set_Routed_Device_Object_Index(dev_id);
+#endif
+            for (i = 0; i < MAX_ACCESS_RIGHTS; i++) {
+                ar_descr[i].global_identifier =
+                    0; /* set to some meaningful value */
+                ar_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
+                ar_descr[i].enable = false;
+                ar_descr[i].negative_access_rules_count = 0;
+                ar_descr[i].positive_access_rules_count = 0;
+                /* fill in the positive and negative access rules with proper
+                 * ids */
+            }
         }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 
     return;
 }

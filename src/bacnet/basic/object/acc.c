@@ -17,10 +17,18 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/sys/keylist.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
+/* me! */
 #include "bacnet/basic/object/acc.h"
 
 /* Key List for storing the object data sorted by instance number  */
-static OS_Keylist Object_List = NULL;
+static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
+#ifdef BAC_ROUTING
+#define Object_List (Object_Lists[Routed_Device_Object_Index()])
+#else
+#define Object_List (Object_Lists[0])
+#endif
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_ACCUMULATOR;
 

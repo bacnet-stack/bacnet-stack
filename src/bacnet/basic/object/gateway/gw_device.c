@@ -74,6 +74,22 @@ uint16_t Num_Managed_Devices = 0;
  */
 uint16_t iCurrent_Device_Idx = 0;
 
+/** Get the current routed device object index.
+ * @return Index of the currently active routed device in Devices[] array
+ */
+uint16_t Routed_Device_Object_Index(void)
+{
+    return iCurrent_Device_Idx;
+}
+
+/** Set the current routed device object index.
+ * @param idx [in] Index of the routed device to set as current
+ */
+void Set_Routed_Device_Object_Index(uint16_t idx)
+{
+    iCurrent_Device_Idx = idx;
+}
+
 /* void Routing_Device_Init(uint32_t first_object_instance) is
  * found in device.c
  */
