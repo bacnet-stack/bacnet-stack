@@ -68,6 +68,7 @@ address_cache
 **/build/*
 **/_build/*
 **/out/*
+**/external/*
 Obj/
 Release/
 libwebsockets/

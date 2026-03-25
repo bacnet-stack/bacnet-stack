@@ -1,7 +1,7 @@
 /**
  * @file
- * @authors Miguel Fernandes <miguelandre.fernandes@gmail.com> Testimony Adams
- * <adamstestimony@gmail.com>
+ * @author Miguel Fernandes <miguelandre.fernandes@gmail.com>
+ * @author Testimony Adams <adamstestimony@gmail.com>
  * @date 6 de Jun de 2013
  * @brief BACnet Virtual Link Control for Pico
  */
