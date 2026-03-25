@@ -238,6 +238,7 @@ jobs:
         arm-none-eabi-gcc --version
         make stm32f4xx-cmake
         make at91sam7s-cmake
+        make pico-cmake
 
   ports-avr:
     runs-on: ubuntu-latest
