@@ -790,34 +790,34 @@ static void get_print_value(
     uint32_t array_index)
 {
     BACNET_READ_ACCESS_DATA *rpm_data;
+    bool is_proprietary = false;
 
-    if (bactext_property_name_proprietary(property)) {
-        printf("    -- proprietary-%u: ?\n", property);
-        return;
+    /* get and print properties */
+    if (object.type >= OBJECT_PROPRIETARY_MIN &&
+        object.type <= OBJECT_PROPRIETARY_MAX) {
+        /* propriatary object */
+        if (property != PROP_OBJECT_IDENTIFIER &&
+            property != PROP_OBJECT_TYPE && property != PROP_OBJECT_NAME) {
+            /* standard property, other than above, in a proprietary
+             * object
+             * - BTF wants them commented out */
+            is_proprietary = true;
+        }
     }
-    /* get and print non-proprietary properties */
     /* read property value */
     Request_Invoke_ID = Send_Read_Property_Request(
         device_instance, object.type, object.instance, property, array_index);
     wait_for_response();
     switch (Response_Status) {
         case RESP_SUCCESS:
-            printf("    ");
             rpm_data = Read_Property_Multiple_Data.rpm_data;
-            /* Print value or ? */
-            if (object.type >= OBJECT_PROPRIETARY_MIN &&
-                object.type <= OBJECT_PROPRIETARY_MAX) {
-                /* propriatary object */
-                if (property != PROP_OBJECT_IDENTIFIER &&
-                    property != PROP_OBJECT_TYPE &&
-                    property != PROP_OBJECT_NAME) {
-                    /* standard property, other than above, in a proprietary
-                     * object
-                     * - BTF wants them commented out */
-                    printf("-- ");
-                }
+            if (bactext_property_name_proprietary(property)) {
+                printf("    -- proprietary-%u: \n", property);
+            } else {
+                printf(
+                    "    %s%s: ", is_proprietary ? "-- " : "",
+                    bactext_property_name(property));
             }
-            printf("%s: ", bactext_property_name(property));
             PrintReadPropertyData(
                 rpm_data->object_type, rpm_data->object_instance,
                 rpm_data->listOfProperties);
@@ -828,19 +828,30 @@ static void get_print_value(
         case RESP_REJECT_CODE:
         case RESP_ERROR_CODE:
             if (ShowErrors) {
-                printf("    ");
-                printf("%s: ", bactext_property_name(property));
-                printf(
-                    "? --%s:%s\n", bactext_error_class_name(Last_Error_Class),
-                    bactext_error_code_name(Last_Error_Code));
+                if (bactext_property_name_proprietary(property)) {
+                    printf(
+                        "    -- proprietary-%u: ? --%s:%s\n", property,
+                        bactext_error_class_name(Last_Error_Class),
+                        bactext_error_code_name(Last_Error_Code));
+                } else {
+                    printf(
+                        "    %s: ? --%s:%s\n", bactext_property_name(property),
+                        bactext_error_class_name(Last_Error_Class),
+                        bactext_error_code_name(Last_Error_Code));
+                }
             }
             return;
         case RESP_FAILED_TO_DECODE:
             /* received a response this tool could not decode
                add '?' and move on */
-            printf("    ");
-            printf("%s: ", bactext_property_name(property));
-            printf("? --failed to decode\n");
+            if (bactext_property_name_proprietary(property)) {
+                printf(
+                    "    -- proprietary-%u: ? --failed to decode\n", property);
+            } else {
+                printf(
+                    "    %s: ? --failed to decode\n",
+                    bactext_property_name(property));
+            }
             return;
         case RESP_TIMEOUT:
         case RESP_TSM_FAILED:
@@ -850,7 +861,9 @@ static void get_print_value(
             break;
     }
     /* read failed for some reason after TSM retried */
-    printf("? -- ERROR - IUT Failed to respond to request! \n");
+    printf(
+        "    %s: ? -- ERROR - IUT Failed to respond to request!\n",
+        bactext_property_name(property));
 }
 
 static uint32_t Print_EPICS_Header(uint32_t device_instance)
@@ -1328,15 +1341,17 @@ static void print_property_list(
     PROPERTY_LIST *prop_list, uint32_t num_properties, BACNET_OBJECT_TYPE type)
 {
     uint32_t i;
+    bool is_proprietary = false;
 
-    printf("    ");
     if (type >= OBJECT_PROPRIETARY_MIN && type <= OBJECT_PROPRIETARY_MAX) {
         /* propriatary object */
         /* standard property, other than above, in a proprietary object - BTF
          * wants them remmed out */
-        printf("-- ");
+        is_proprietary = true;
     }
-    printf("%s: {\n", bactext_property_name(PROP_PROPERTY_LIST));
+    printf(
+        "    %s%s: {\n", is_proprietary ? "-- " : "",
+        bactext_property_name(PROP_PROPERTY_LIST));
     for (i = 0; i < num_properties; i++) {
         if (i == num_properties - 1) {
             if (ShowValues) {
