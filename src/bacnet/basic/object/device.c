@@ -3942,22 +3942,32 @@ void Device_local_reporting(void)
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t idx = 0;
 
-    objects_count = Device_Object_List_Count();
+/* loop for all objects */
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
+    for (uint16_t dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        objects_count = Device_Object_List_Count();
+        for (idx = 1; idx <= objects_count; idx++) {
+            Device_Object_List_Identifier(idx, &object_type, &object_instance);
 
-    /* loop for all objects */
-    for (idx = 1; idx <= objects_count; idx++) {
-        Device_Object_List_Identifier(idx, &object_type, &object_instance);
-
-        pObject = Device_Object_Functions_Find(object_type);
-        if (pObject != NULL) {
-            if (pObject->Object_Valid_Instance &&
-                pObject->Object_Valid_Instance(object_instance)) {
-                if (pObject->Object_Intrinsic_Reporting) {
-                    pObject->Object_Intrinsic_Reporting(object_instance);
+            pObject = Device_Object_Functions_Find(object_type);
+            if (pObject != NULL) {
+                if (pObject->Object_Valid_Instance &&
+                    pObject->Object_Valid_Instance(object_instance)) {
+                    if (pObject->Object_Intrinsic_Reporting) {
+                        pObject->Object_Intrinsic_Reporting(object_instance);
+                    }
                 }
             }
         }
     }
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }
 #endif
 
@@ -4090,23 +4100,34 @@ void Device_Timer(uint16_t milliseconds)
     unsigned count = 0;
     uint32_t instance;
 
-    Device_Backup_Failure_Timeout_Countdown(milliseconds);
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        count = 0;
-        if (pObject->Object_Count) {
-            count = pObject->Object_Count();
-        }
-        while (count) {
-            count--;
-            if ((pObject->Object_Timer) &&
-                (pObject->Object_Index_To_Instance)) {
-                instance = pObject->Object_Index_To_Instance(count);
-                pObject->Object_Timer(instance, milliseconds);
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
+    for (uint16_t dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        Device_Backup_Failure_Timeout_Countdown(milliseconds);
+        pObject = Object_Table;
+        while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+            count = 0;
+            if (pObject->Object_Count) {
+                count = pObject->Object_Count();
             }
+            while (count) {
+                count--;
+                if ((pObject->Object_Timer) &&
+                    (pObject->Object_Index_To_Instance)) {
+                    instance = pObject->Object_Index_To_Instance(count);
+                    pObject->Object_Timer(instance, milliseconds);
+                }
+            }
+            pObject++;
         }
-        pObject++;
     }
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }
 
 #ifdef BAC_ROUTING
