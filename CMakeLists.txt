@@ -1022,6 +1022,15 @@ if(BACNET_STACK_BUILD_APPS)
     )
   endif()
 
+  if(BAC_ROUTING)
+    add_executable(gateway2 apps/gateway2/main.c apps/gateway2/gateway.h)
+    target_link_libraries(gateway2 PRIVATE ${PROJECT_NAME})
+    target_compile_options(gateway2 PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif()
+
   add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
 
