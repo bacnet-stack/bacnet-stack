@@ -987,15 +987,25 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         /* Chalk up another one for the response count */
         pRequest->ItemCount++;
 
+        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+            /* valid entry at the end of the table */
+            uiLast = uiTotal;
+            break;
+        }
         while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
                BAC_ADDR_IN_USE) {
             /* Find next bound entry */
             pMatch++;
-            /* Can normally not happen. */
             if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-                /* Issue with the table. */
-                return (0);
+                /* valid entry at the end of the table */
+                uiLast = uiTotal;
+                break;
             }
+        }
+        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+            /* valid entry at the end of the table */
+            uiLast = uiTotal;
+            break;
         }
     }
     /* Set remaining result flags if necessary */

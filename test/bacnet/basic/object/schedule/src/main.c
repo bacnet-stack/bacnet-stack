@@ -122,6 +122,13 @@ static void testSchedule(void)
         skip_fail_property_list);
     Schedule_Recalculate_PV(
         Schedule_Object(object_instance), BACNET_WEEKDAY_SUNDAY, &time_of_day);
+    /* targeted tests for NULL pointer and invalid day of week */
+    Schedule_Recalculate_PV(NULL, BACNET_WEEKDAY_SUNDAY, &time_of_day);
+    Schedule_Recalculate_PV(Schedule_Object(object_instance), 0, &time_of_day);
+    Schedule_Recalculate_PV(Schedule_Object(object_instance), 8, &time_of_day);
+    Schedule_Recalculate_PV(
+        Schedule_Object(object_instance), BACNET_WEEKDAY_SUNDAY, NULL);
+    Schedule_Timer(BACNET_MAX_INSTANCE, 0);
 }
 /**
  * @}

@@ -9,10 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 The git repositories are hosted at the following sites:
-* https://bacnet.sourceforge.net/
-* https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-03-06
+* <https://bacnet.sourceforge.net/>
+* <https://github.com/bacnet-stack/bacnet-stack/>
+
+## [Unreleased] - 2026-03-25
 
 ### Security
 
@@ -52,6 +53,14 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added ports/pico for Raspberry Pi Pico port of the BACnet stack
+  supporting both BACnet/IP and BACnet MS/TP. (#1232)
+* Added new functions for duplicating and copying octet string buffers.
+  Refactor existing OctetString Value object to enable writes to object name
+  description, and present-value, with functional tests to ensure
+  the correctness of the new features. (#1266)
+* Added octetstring_length_value_same() API for comparing an OctetString
+  to value and len parameters. Added verification tests. (#1264)
 * Added property_list_read_only_member function to check for READ-ONLY
   properties. (#1258)
 * Added WriteProperty support in the basic Structured View object.
@@ -159,6 +168,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the OctetString Value object present-value get function
+  to perform a copy return rather than a pointer return and deprecate
+  the pointer return function. (#1264)
 * Changed the COV FSM handler to remiain in the IDLE state until there
   is a valid subscriber. (#1257)
 * Changed bacnet_array_write() write_function callback API by adding
@@ -190,6 +202,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting output and lighting command low and high trim fade. (#1268)
+* Fixed FQDN hostname size in minimal hostnport implementation. (#1263)
+* Fixed segmentation fault in Schedule_Recalculate_PV() during application
+  startup. (#1258)
+* Fixed the ReadRange-ACK of the Address_List property. (#1149)
+* Fixed ReadRangeACK by sequence in Trend Log object. (#1150)
 * Fixed Device Management-Backup and Restore-B functionality to keep
   configuration files during the restore operation. (#1250)
 * Fixed Device Management-Backup and Restore-B Backup_Failure_Timeout
@@ -526,6 +544,7 @@ The git repositories are hosted at the following sites:
 ## [1.4.1] - 2025-04-11
 
 ### Security
+
 * Secured ReadRange service codecs. Added ReadRange unit testing.
   Secured ReadRange-ACK handler to enable APDU size checking. (#957)
 * Secured BACnet/SC URL handling by changing all the sprintf
@@ -613,7 +632,7 @@ The git repositories are hosted at the following sites:
   handlers. (#908)
 * Fixed multi-state-input and multi-state-value basic objects usage of the
   Write_Enabled flag by adding an API to get/set the flag. (#903)
- * Fixed usage of 8-bit modulo operator off-by-one maximums. (#901)
+* Fixed usage of 8-bit modulo operator off-by-one maximums. (#901)
 * Fixed legacy make build recipe for library. 'make library' now builds.
 * Fixed IPv6 to leave multicast when registering as foreign device. (#899)
 * Fixed IPv6 handler to ignore original-broadcast when registered as
@@ -764,7 +783,7 @@ The git repositories are hosted at the following sites:
 * Changed the datalink abstraction to enable selecting multiple datalinks
   using BACDL_MULTIPLE and one or more other BACDL defines. (#717)
 * Moved west manifest, zephyr folder, and ports/zephyr folders to
-  another repository https://github.com/bacnet-stack/bacnet-stack-zephyr
+  another repository <https://github.com/bacnet-stack/bacnet-stack-zephyr>
   so that the rapid pace of Zephyr OS development changes will have
   a less impact on the development of the BACnet Stack library. (#757)
 * Removed static scope on character array used for object-name since the array
@@ -953,7 +972,6 @@ The git repositories are hosted at the following sites:
   bacapp_decode_context_data_len() as they are no longer used in any code
   in the library.(#702)
 
-
 ## [1.3.7] - 2024-06-26
 
 ### Security
@@ -1024,7 +1042,6 @@ The git repositories are hosted at the following sites:
 * Fixed basic analog-value object write property of present-value to
   priority 6. (#640)
 * Fixed basic analog-value alarm-ack functionality. (#639)
-
 
 ### Removed
 
@@ -1488,7 +1505,7 @@ tags. (#491)
 
 ### Added
 
-* Added minimim support for BACnet protocol-revision 0 through 24. See 
+* Added minimim support for BACnet protocol-revision 0 through 24. See
 BACNET_PROTOCOL_REVISION define in bacdef.h
 * Added example objects for color and color temperature, new for protocol-revision 24.
 * Added current-command-priority to output objects revision 17 or later.
@@ -1514,20 +1531,20 @@ these objects: file, analog output, binary output, multi-state output, color,
 color temperature).
 * Unit tests and functional tests have been moved from the source C files
 into their own test files under the test folder in a src/ mirrored folder
-structure under test/. 
-* The testing framework was moved from ctest to ztest, using CMake, CTest, and LCOV. 
+structure under test/.
+* The testing framework was moved from ctest to ztest, using CMake, CTest, and LCOV.
 It's now possible to visually view code coverage from the testing of each file
 in the library. The tests are run in continuous integration.  Adding new tests
 can be done by as copying an existing folder under test/ as a starting point, and
 adding the new test folder name into the CMakeLists.txt under test/ folder, or
-editing the existing test C file and extending or fixing the existing test. 
+editing the existing test C file and extending or fixing the existing test.
 * Most (all?) of the primitive value encoders are now using a snprintf()
 style API pattern, where passing NULL in the buffer parameter will
 return the length that the buffer would use (i.e. returns the length that the
 buffer needs to be).  This makes simple to write the parent encoders to check
 the length versus their buffer before attempting the encoding at the expense of
 an extra function call to get the length.
-* BACnetARRAY property types now have a helper function to use for encoding (see bacnet_array_encode) 
+* BACnetARRAY property types now have a helper function to use for encoding (see bacnet_array_encode)
 
 ## Deprecated
 

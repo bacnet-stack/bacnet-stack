@@ -88,19 +88,6 @@ typedef struct BACnetTag {
     uint32_t len_value_type;
 } BACNET_TAG;
 
-typedef struct BACnetCharacterStringBuffer {
-    uint8_t encoding;
-    char *buffer;
-    size_t buffer_size;
-    uint32_t buffer_length;
-} BACNET_CHARACTER_STRING_BUFFER;
-
-typedef struct BACnetOctetStringBuffer {
-    uint8_t *buffer;
-    size_t buffer_size;
-    uint32_t buffer_length;
-} BACNET_OCTET_STRING_BUFFER;
-
 /* max size of a BACnet tag */
 #define BACNET_TAG_SIZE 7
 

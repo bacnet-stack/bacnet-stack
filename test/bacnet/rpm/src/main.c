@@ -516,7 +516,7 @@ static void bacnet_read_property_ack_process(
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(rpm_tests, testReadPropertyMultipleAck)
+ZTEST(rpm_tests, testReadPropertyMultipleAckProcess)
 #else
 static void testReadPropertyMultipleAckProcess(void)
 #endif

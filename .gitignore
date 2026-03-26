@@ -54,6 +54,7 @@
 *.depend
 *.layout
 *.dmp
+*.idx
 tags
 test-results.xml
 .vscode/
@@ -67,6 +68,7 @@ address_cache
 **/build/*
 **/_build/*
 **/out/*
+**/external/*
 Obj/
 Release/
 libwebsockets/

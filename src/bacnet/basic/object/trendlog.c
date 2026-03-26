@@ -298,6 +298,48 @@ bool Trend_Log_Object_Name(
     return status;
 }
 
+/**
+ * @brief Get the total record count for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return total record count
+ */
+uint32_t Trend_Log_Total_Record_Count(uint32_t object_instance)
+{
+    uint32_t total_records = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        total_records = LogInfo[object_instance].ulTotalRecordCount;
+    }
+    return total_records;
+}
+
+/**
+ * @brief Get the record count for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return record count
+ */
+uint32_t Trend_Log_Record_Count(uint32_t object_instance)
+{
+    uint32_t record_count = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        record_count = LogInfo[object_instance].ulRecordCount;
+    }
+    return record_count;
+}
+
+/**
+ * @brief Get the buffer size for a Trend Log object
+ * @param object_instance - object-instance number of the object
+ * @return buffer size
+ */
+uint32_t Trend_Log_Buffer_Size(uint32_t object_instance)
+{
+    uint32_t buffer_size = 0;
+    if (object_instance < MAX_TREND_LOGS) {
+        buffer_size = TL_MAX_ENTRIES;
+    }
+    return buffer_size;
+}
+
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
    BACNET_STATUS_ABORT for abort message */
 int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
@@ -1176,7 +1218,8 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     uint32_t uiSequence = 0; /* Tracking sequence number when encoding */
     uint32_t uiRemaining = 0; /* Amount of unused space in packet */
     uint32_t uiFirstSeq = 0; /* Sequence number for 1st record in log */
-
+    uint32_t total_entries = 0;
+    uint32_t max_fit = 0;
     uint32_t uiBegin = 0; /* Starting Sequence number for request */
     uint32_t uiEnd = 0; /* Ending Sequence number for request */
     bool bWrapReq = false; /* Has request sequence range spanned the max for
@@ -1267,7 +1310,22 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             }
         }
     }
-
+    if (pRequest->Count < 0) {
+        /* adjust uiBegin when Count < 0 and total requested
+           items exceed the maximum encodable items (max_fit).*/
+        if (uiEnd >= uiBegin) {
+            total_entries = uiEnd - uiBegin + 1;
+            max_fit = uiRemaining / TL_MAX_ENC;
+            if ((max_fit > 0) && (total_entries > max_fit)) {
+                /* Adjust beginning index so returned items match z = max_fit */
+                uiBegin = uiEnd - max_fit + 1;
+                /* MORE_ITEMS must be set because
+                   request range not fully delivered */
+                bitstring_set_bit(
+                    &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
+            }
+        }
+    }
     /* We now have a range that lies completely within the log buffer
      * and we need to figure out where that starts in the buffer.
      */
