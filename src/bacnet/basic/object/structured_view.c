@@ -419,7 +419,7 @@ Structured_View_Subordinate_List_Size(struct object_data *pObject)
  * @return pointer to the Subordinate_List element
  */
 static BACNET_SUBORDINATE_DATA *
-Structured_View_Subordinate_List_Element_Add(OS_Keylist list, KEY key)
+Subordinate_List_Element_Add(OS_Keylist list, KEY key)
 {
     BACNET_SUBORDINATE_DATA *element = NULL;
     int index;
@@ -441,8 +441,7 @@ Structured_View_Subordinate_List_Element_Add(OS_Keylist list, KEY key)
  * @brief For a given object element, free the Subordinate_List element
  * @param  element - pointer to the Subordinate_List element
  */
-static void
-Structured_View_Subordinate_List_Element_Remove(OS_Keylist list, KEY key)
+static void Subordinate_List_Element_Remove(OS_Keylist list, KEY key)
 {
     BACNET_SUBORDINATE_DATA *element;
 
@@ -459,7 +458,7 @@ Structured_View_Subordinate_List_Element_Remove(OS_Keylist list, KEY key)
  * @brief For a given object instance-number, free the Subordinate_List
  * @param  pObject - pointer to the object data
  */
-static void Structured_View_Subordinate_List_Free(struct object_data *pObject)
+static void Subordinate_List_Purge(struct object_data *pObject)
 {
     KEY key = 0;
     int count = 0;
@@ -467,12 +466,152 @@ static void Structured_View_Subordinate_List_Free(struct object_data *pObject)
     if (pObject) {
         count = Keylist_Count(pObject->Subordinate_List);
         while (count > 0) {
-            Structured_View_Subordinate_List_Element_Remove(
-                pObject->Subordinate_List, key);
+            Subordinate_List_Element_Remove(pObject->Subordinate_List, key);
             key++;
             count--;
         }
     }
+}
+
+/**
+ * @brief For a given object instance-number, returns the number of
+ * Subordinate_List elements
+ * @param  object_instance - object-instance number of the object
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @return Subordinate_List element or NULL if not found
+ */
+static BACNET_SUBORDINATE_DATA *Subordinate_List_Element(
+    struct object_data *pObject, BACNET_ARRAY_INDEX array_index)
+{
+    BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
+    KEY key = 0;
+
+    if (pObject) {
+        key = array_index;
+        subordinate_list = Keylist_Data(pObject->Subordinate_List, key);
+    }
+
+    return subordinate_list;
+}
+
+/**
+ * @brief For a given object instance-number, determine if an element exists
+ * in the Subordinate_List
+ * @param  object_instance - object-instance number of the object
+ * @param  element - pointer to the Subordinate_List element to be checked
+ * @return array index of the element if it exists,
+ *  or BACNET_ARRAY_ALL if not found
+ */
+BACNET_ARRAY_INDEX Structured_View_Subordinate_List_Element_Exist(
+    uint32_t object_instance, BACNET_SUBORDINATE_DATA *element)
+{
+    struct object_data *pObject;
+    BACNET_SUBORDINATE_DATA *list_element;
+    unsigned count = 0;
+    BACNET_ARRAY_INDEX array_index = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (element) {
+            count = Structured_View_Subordinate_List_Size(pObject);
+            for (array_index = 0; array_index < count; array_index++) {
+                list_element = Subordinate_List_Element(pObject, array_index);
+                if (Structured_View_Subordinate_List_Element_Same(
+                        list_element, element)) {
+                    break;
+                }
+            }
+            if (array_index >= count) {
+                array_index = BACNET_ARRAY_ALL;
+            }
+        }
+    }
+
+    return array_index;
+}
+
+/**
+ * @brief For a given object instance-number, add a unique element to the
+ *  Subordinate_List
+ * @param  object_instance - object-instance number of the object
+ * @param  element - pointer to the Subordinate_List element to be added
+ * @return array index of the element if it was added successfully,
+ *  or BACNET_ARRAY_ALL if not added
+ */
+BACNET_ARRAY_INDEX Structured_View_Subordinate_List_Element_Add(
+    uint32_t object_instance, BACNET_SUBORDINATE_DATA *element)
+{
+    struct object_data *pObject;
+    BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
+    KEY key = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (element) {
+            /* does this element already exist in the list? */
+            array_index = Structured_View_Subordinate_List_Element_Exist(
+                object_instance, element);
+            if (array_index == BACNET_ARRAY_ALL) {
+                /* append a copy of the element to the list */
+                key = Keylist_Next_Empty_Key(pObject->Subordinate_List, 0);
+                if (!Subordinate_List_Element_Add(
+                        pObject->Subordinate_List, key)) {
+                    array_index = BACNET_ARRAY_ALL;
+                } else {
+                    array_index = key;
+                }
+            }
+        }
+    }
+
+    return array_index;
+}
+
+/**
+ * @brief For a given object instance-number, remove an element from the
+ * Subordinate_List
+ * @param  object_instance - object-instance number of the object
+ * @param  element - pointer to the Subordinate_List element to be removed
+ * @return array index of the element if it was removed successfully,
+ *  or BACNET_ARRAY_ALL if not removed
+ */
+BACNET_ARRAY_INDEX Structured_View_Subordinate_List_Element_Remove(
+    uint32_t object_instance, BACNET_SUBORDINATE_DATA *element)
+{
+    BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        array_index = Structured_View_Subordinate_List_Element_Exist(
+            object_instance, element);
+        if (array_index != BACNET_ARRAY_ALL) {
+            Subordinate_List_Element_Remove(
+                pObject->Subordinate_List, array_index);
+        }
+    }
+
+    return array_index;
+}
+
+/**
+ * @brief For a given object instance-number, free the Subordinate_List
+ * @param  object_instance - object-instance number of the object
+ * @return true if the Subordinate_List was purged successfully
+ */
+bool Structured_View_Subordinate_List_Purge(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        Subordinate_List_Purge(pObject);
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -496,16 +635,15 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Resize(
         /* free the elements at the tail of the list */
         key = new_array_size;
         while (key < old_array_size) {
-            Structured_View_Subordinate_List_Element_Remove(
-                pObject->Subordinate_List, key);
+            Subordinate_List_Element_Remove(pObject->Subordinate_List, key);
             key++;
         }
     } else if (new_array_size > old_array_size) {
         /* extend the list */
         key = old_array_size;
         while (key < new_array_size) {
-            element = Structured_View_Subordinate_List_Element_Add(
-                pObject->Subordinate_List, key);
+            element =
+                Subordinate_List_Element_Add(pObject->Subordinate_List, key);
             if (!element) {
                 error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                 break;
@@ -515,28 +653,6 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Resize(
     }
 
     return error_code;
-}
-
-/**
- * @brief For a given object instance-number, returns the number of
- * Subordinate_List elements
- * @param  object_instance - object-instance number of the object
- * @param array_index [in] array index requested:
- *    0 to N for individual array members
- * @return Subordinate_List element or NULL if not found
- */
-static BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Element(
-    struct object_data *pObject, BACNET_ARRAY_INDEX array_index)
-{
-    BACNET_SUBORDINATE_DATA *subordinate_list = NULL;
-    KEY key = 0;
-
-    if (pObject) {
-        key = array_index;
-        subordinate_list = Keylist_Data(pObject->Subordinate_List, key);
-    }
-
-    return subordinate_list;
 }
 
 /**
@@ -595,8 +711,7 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
             len = bacnet_device_object_reference_decode(
                 apdu, apdu_size, &reference);
             if (len > 0) {
-                element = Structured_View_Subordinate_List_Element(
-                    pObject, array_index);
+                element = Subordinate_List_Element(pObject, array_index);
                 if (element) {
                     element->Device_Instance =
                         reference.deviceIdentifier.instance;
@@ -674,8 +789,7 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Annotation_Member_Write(
                 apdu, apdu_size, &annotation);
             if (len > 0) {
                 if (characterstring_utf8_valid(&annotation)) {
-                    element = Structured_View_Subordinate_List_Element(
-                        pObject, array_index);
+                    element = Subordinate_List_Element(pObject, array_index);
                     if (element) {
                         annotation_string =
                             characterstring_utf8_strdup(&annotation);
@@ -761,8 +875,7 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Node_Type_Member_Write(
                 if (node_type > BACNET_NODE_TYPE_MAX) {
                     error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 } else {
-                    element = Structured_View_Subordinate_List_Element(
-                        pObject, array_index);
+                    element = Subordinate_List_Element(pObject, array_index);
                     if (element) {
                         element->Node_Type = node_type;
                         error_code = ERROR_CODE_SUCCESS;
@@ -837,8 +950,7 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Relationship_Member_Write(
                 if (relationship > BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
                     error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 } else {
-                    element = Structured_View_Subordinate_List_Element(
-                        pObject, array_index);
+                    element = Subordinate_List_Element(pObject, array_index);
                     if (element) {
                         element->Relationship = relationship;
                         error_code = ERROR_CODE_SUCCESS;
@@ -869,13 +981,12 @@ void Structured_View_Subordinate_List_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        Structured_View_Subordinate_List_Free(pObject);
+        Subordinate_List_Purge(pObject);
         /* walk the linked list and add to Keylist */
-        key = 0;
         element = subordinate_list;
         while (element) {
-            data = Structured_View_Subordinate_List_Element_Add(
-                pObject->Subordinate_List, key);
+            key = Keylist_Next_Empty_Key(pObject->Subordinate_List, 0);
+            data = Subordinate_List_Element_Add(pObject->Subordinate_List, key);
             if (data) {
                 memmove(data, element, sizeof(BACNET_SUBORDINATE_DATA));
                 if (element->Annotation) {
@@ -884,9 +995,41 @@ void Structured_View_Subordinate_List_Set(
                 data->next = NULL;
             }
             element = element->next;
-            key++;
         }
     }
+}
+
+/**
+ * @brief For a given object instance-number, determine if two
+ *  BACNET_SUBORDINATE_DATA elements are the same
+ * @param  element1 - pointer to the first Subordinate_List element
+ * @param  element2 - pointer to the second Subordinate_List element
+ * @return true if the contents of the elements are the same, false otherwise
+ */
+bool Structured_View_Subordinate_List_Element_Same(
+    BACNET_SUBORDINATE_DATA *element1, BACNET_SUBORDINATE_DATA *element2)
+{
+    bool same = true;
+
+    if (element1 && element2) {
+        if (element1->Device_Instance != element2->Device_Instance ||
+            element1->Object_Type != element2->Object_Type ||
+            element1->Object_Instance != element2->Object_Instance ||
+            element1->Node_Type != element2->Node_Type ||
+            element1->Relationship != element2->Relationship) {
+            same = false;
+        }
+        if (element1->Annotation && element2->Annotation) {
+            if (strcmp(element1->Annotation, element2->Annotation) != 0) {
+                same = false;
+            }
+        } else if (element1->Annotation || element2->Annotation) {
+            /* one is NULL and the other is not */
+            same = false;
+        }
+    }
+
+    return same;
 }
 
 /**
@@ -1028,8 +1171,7 @@ BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Member(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        element =
-            Structured_View_Subordinate_List_Element(pObject, array_index);
+        element = Subordinate_List_Element(pObject, array_index);
     }
 
     return element;
@@ -1628,7 +1770,7 @@ static void Structured_View_Object_Free(struct object_data *pObject)
         free(pObject->Description);
         free(pObject->Node_Subtype);
         free(pObject->Object_Name);
-        Structured_View_Subordinate_List_Free(pObject);
+        Subordinate_List_Purge(pObject);
         Keylist_Delete(pObject->Subordinate_List);
         free(pObject);
     }
