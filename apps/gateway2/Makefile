@@ -1,7 +1,7 @@
 #Makefile to build BACnet Application using GCC compiler
 
 # Executable file name
-TARGET = bacgateway
+TARGET = bacgateway2
 
 SRC := main.c
 

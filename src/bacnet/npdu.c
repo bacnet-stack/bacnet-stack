@@ -51,6 +51,7 @@ void npdu_copy_data(BACNET_NPDU_DATA *dest, const BACNET_NPDU_DATA *src)
 static int npdu_encode_pdu_routing(BACNET_ADDRESS *src)
 {
     DEVICE_OBJECT_DATA *pDev = NULL;
+    bool is_routed_device = false;
     /* get the currently active routed device object */
     pDev = Get_Routed_Device_Object(-1);
     if (pDev == NULL) {
@@ -58,7 +59,7 @@ static int npdu_encode_pdu_routing(BACNET_ADDRESS *src)
         return -1;
     }
 
-    bool is_routed_device = (pDev->bacDevAddr.net != 0);
+    is_routed_device = (pDev->bacDevAddr.net != 0);
 
     if (is_routed_device) {
         bacnet_address_copy(src, &pDev->bacDevAddr);

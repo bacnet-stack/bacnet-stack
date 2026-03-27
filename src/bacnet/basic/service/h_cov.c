@@ -106,10 +106,11 @@ static void cov_address_remove_unused(void)
 
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
+    uint16_t dev_id = 0;
     for (cov_index = 0; cov_index < MAX_COV_ADDRESSES; cov_index++) {
         if (COV_Addresses[cov_index].valid) {
             found = false;
-            for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+            for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
                 Set_Routed_Device_Object_Index(dev_id);
                 for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
                     if ((COV_Subscriptions[index].flag.valid) &&
@@ -355,7 +356,8 @@ void handler_cov_init(void)
     unsigned index = 0;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
-    for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+    uint16_t dev_id = 0;
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
         Set_Routed_Device_Object_Index(dev_id);
         for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
             /* initialize with invalid COV address */
@@ -642,10 +644,10 @@ void handler_cov_timer_seconds(uint32_t elapsed_seconds)
     uint32_t lifetime_seconds = 0;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
-
+    uint16_t dev_id = 0;
     if (elapsed_seconds) {
         /* handle the subscription timeouts */
-        for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+        for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
             Set_Routed_Device_Object_Index(dev_id);
             for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
                 if (COV_Subscriptions[index].flag.valid) {
@@ -833,7 +835,8 @@ void handler_cov_task(void)
 {
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
-    for (int dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+    uint16_t dev_id = 0;
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
         Set_Routed_Device_Object_Index(dev_id);
         handler_cov_fsm();
     }

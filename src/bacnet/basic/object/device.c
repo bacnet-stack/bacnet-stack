@@ -3941,12 +3941,13 @@ void Device_local_reporting(void)
     uint32_t object_instance = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t idx = 0;
+    uint16_t dev_id = 0;
 
 /* loop for all objects */
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
 #endif
-    for (uint16_t dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
 #ifdef BAC_ROUTING
         Set_Routed_Device_Object_Index(dev_id);
 #endif
@@ -4099,11 +4100,12 @@ void Device_Timer(uint16_t milliseconds)
     struct object_functions *pObject;
     unsigned count = 0;
     uint32_t instance;
+    uint16_t dev_id = 0;
 
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
 #endif
-    for (uint16_t dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
 #ifdef BAC_ROUTING
         Set_Routed_Device_Object_Index(dev_id);
 #endif

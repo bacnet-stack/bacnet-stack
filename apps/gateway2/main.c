@@ -4,7 +4,8 @@
  * Code for this project began with code from the demo/server project and
  * Paul Chapman's vmac project.
  * @author Tom Brennan <tbrennan3@users.sourceforge.net>
- * @date 2010
+ * @author Hyeongjun Kim <sicad3@gmail.com>
+ * @date 2026
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
@@ -80,12 +81,12 @@ static void Devices_Init(uint32_t first_object_instance)
      * But give it a better Description. */
     Routed_Device_Set_Description(DEV_DESCR_GATEWAY, strlen(DEV_DESCR_GATEWAY));
 
-    // Gateway - analog_input
+    /* Gateway - analog_input */
     Analog_Input_Create(1000);
     Analog_Input_Name_Set(1000, "Gateway Analog Input");
     Analog_Input_Present_Value_Set(1000, 100.0);
 
-    // Gateway - analog_onput
+    /* Gateway - analog_onput */
     Analog_Output_Create(1001);
     Analog_Output_Name_Set(1001, "Gateway Analog Output");
     Analog_Output_Present_Value_Set(1001, 50.0, BACNET_MAX_PRIORITY);
@@ -98,12 +99,12 @@ static void Devices_Init(uint32_t first_object_instance)
 
         Add_Routed_Device((first_object_instance + i), &name_string, descText);
 
-        // Gateway - analog_input
+        /* Gateway - analog_input */
         Analog_Input_Create(i * 10000 + 1000);
         Analog_Input_Name_Set(i * 10000 + 1000, "Gateway Analog Input");
         Analog_Input_Present_Value_Set(i * 10000 + 1000, 0.1 + (float)i);
 
-        // Gateway - analog_onput
+        /* Gateway - analog_onput */
         Analog_Output_Create(i * 10000 + 1001);
         Analog_Output_Name_Set(i * 10000 + 1001, "Gateway Analog Output");
         Analog_Output_Present_Value_Set(
