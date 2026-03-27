@@ -402,10 +402,18 @@ static void test_property_lists(void)
         bool found_node_type = false;
         bool found_sublist = false;
         while (*p != -1) {
-            if (*p == PROP_OBJECT_IDENTIFIER) { found_oid = true; }
-            if (*p == PROP_OBJECT_NAME) { found_name = true; }
-            if (*p == PROP_NODE_TYPE) { found_node_type = true; }
-            if (*p == PROP_SUBORDINATE_LIST) { found_sublist = true; }
+            if (*p == PROP_OBJECT_IDENTIFIER) {
+                found_oid = true;
+            }
+            if (*p == PROP_OBJECT_NAME) {
+                found_name = true;
+            }
+            if (*p == PROP_NODE_TYPE) {
+                found_node_type = true;
+            }
+            if (*p == PROP_SUBORDINATE_LIST) {
+                found_sublist = true;
+            }
             p++;
         }
         zassert_true(found_oid, NULL);
@@ -443,8 +451,7 @@ static void test_subordinate_list(void)
     Structured_View_Create(instance);
 
     /* before population the list is empty */
-    zassert_equal(
-        Structured_View_Subordinate_List_Count(instance), 0, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 0, NULL);
 
     Structured_View_Subordinate_List_Link_Array(list, ARRAY_SIZE(list));
     Structured_View_Subordinate_List_Set(instance, &list[0]);
@@ -475,10 +482,10 @@ static void test_subordinate_encode_functions(void)
     uint8_t apdu[256];
     int len = 0;
     BACNET_SUBORDINATE_DATA list[] = {
-        { 1234, OBJECT_ANALOG_INPUT,  7, "energy",
-          BACNET_NODE_MEMBER, BACNET_RELATIONSHIP_CONTAINS, NULL },
-        { 0,    OBJECT_BINARY_INPUT,  3, "status",
-          BACNET_NODE_COLLECTION, BACNET_RELATIONSHIP_DEFAULT, NULL },
+        { 1234, OBJECT_ANALOG_INPUT, 7, "energy", BACNET_NODE_MEMBER,
+          BACNET_RELATIONSHIP_CONTAINS, NULL },
+        { 0, OBJECT_BINARY_INPUT, 3, "status", BACNET_NODE_COLLECTION,
+          BACNET_RELATIONSHIP_DEFAULT, NULL },
     };
 
     Structured_View_Init();
@@ -489,23 +496,19 @@ static void test_subordinate_encode_functions(void)
     /* --- Structured_View_Subordinate_List_Element_Encode --- */
 
     /* valid index 0 - should produce a positive length */
-    len = Structured_View_Subordinate_List_Element_Encode(
-        instance, 0, apdu);
+    len = Structured_View_Subordinate_List_Element_Encode(instance, 0, apdu);
     zassert_true(len > 0, NULL);
 
     /* valid index 1 */
-    len = Structured_View_Subordinate_List_Element_Encode(
-        instance, 1, apdu);
+    len = Structured_View_Subordinate_List_Element_Encode(instance, 1, apdu);
     zassert_true(len > 0, NULL);
 
     /* out-of-range index returns BACNET_STATUS_ERROR */
-    len = Structured_View_Subordinate_List_Element_Encode(
-        instance, 99, apdu);
+    len = Structured_View_Subordinate_List_Element_Encode(instance, 99, apdu);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
 
     /* NULL apdu (length-only query) for index 0 */
-    len = Structured_View_Subordinate_List_Element_Encode(
-        instance, 0, NULL);
+    len = Structured_View_Subordinate_List_Element_Encode(instance, 0, NULL);
     zassert_true(len > 0, NULL);
 
     /* --- Structured_View_Subordinate_Annotations_Element_Encode --- */
@@ -572,7 +575,8 @@ static void test_encode_functions_invalid_instance(void)
 
     Structured_View_Init();
 
-    /* All encode functions should return BACNET_STATUS_ERROR for invalid instance */
+    /* All encode functions should return BACNET_STATUS_ERROR for invalid
+     * instance */
 
     /* --- Subordinate_List_Element_Encode --- */
     len = Structured_View_Subordinate_List_Element_Encode(
@@ -625,12 +629,16 @@ static void test_subordinate_null_annotations(void)
     const uint32_t instance = 555;
     BACNET_ARRAY_INDEX array_index = 0;
     BACNET_SUBORDINATE_DATA element_with_annotation = {
-        0, OBJECT_ACCUMULATOR, 10,
-        "has-annotation", BACNET_NODE_MEMBER, BACNET_RELATIONSHIP_CONTAINS,
+        0,
+        OBJECT_ACCUMULATOR,
+        10,
+        "has-annotation",
+        BACNET_NODE_MEMBER,
+        BACNET_RELATIONSHIP_CONTAINS,
         NULL
     };
     BACNET_SUBORDINATE_DATA element_null_annotation = {
-        0, OBJECT_ACCUMULATOR, 10,
+        0,    OBJECT_ACCUMULATOR, 10,
         NULL, BACNET_NODE_MEMBER, BACNET_RELATIONSHIP_CONTAINS,
         NULL
     };
@@ -678,7 +686,7 @@ static void test_subordinate_list_boundaries(void)
     const uint32_t instance = 888;
     BACNET_ARRAY_INDEX array_index = 0;
     BACNET_SUBORDINATE_DATA element = {
-        0, OBJECT_ACCUMULATOR, 1,
+        0,      OBJECT_ACCUMULATOR, 1,
         "test", BACNET_NODE_MEMBER, BACNET_RELATIONSHIP_CONTAINS,
         NULL
     };
@@ -689,13 +697,14 @@ static void test_subordinate_list_boundaries(void)
 
     /* Test accessing beyond list boundaries */
     test_member = Structured_View_Subordinate_List_Member(instance, 0);
-    zassert_is_null(test_member, NULL);  /* Empty list */
+    zassert_is_null(test_member, NULL); /* Empty list */
 
     test_member = Structured_View_Subordinate_List_Member(instance, 100);
-    zassert_is_null(test_member, NULL);  /* Out of bounds */
+    zassert_is_null(test_member, NULL); /* Out of bounds */
 
     /* Add one element */
-    array_index = Structured_View_Subordinate_List_Element_Add(instance, &element);
+    array_index =
+        Structured_View_Subordinate_List_Element_Add(instance, &element);
     zassert_not_equal(array_index, BACNET_ARRAY_ALL, NULL);
 
     /* Access valid index */
@@ -710,8 +719,8 @@ static void test_subordinate_list_boundaries(void)
     zassert_equal(Structured_View_Subordinate_List_Count(instance), 1, NULL);
 
     /* Remove element and verify count */
-    array_index = Structured_View_Subordinate_List_Element_Remove(
-        instance, &element);
+    array_index =
+        Structured_View_Subordinate_List_Element_Remove(instance, &element);
     zassert_not_equal(array_index, BACNET_STATUS_ERROR, NULL);
     zassert_equal(Structured_View_Subordinate_List_Count(instance), 0, NULL);
 
@@ -731,13 +740,13 @@ static void test_sequential_add_remove_cycles(void)
     const uint32_t instance = 777;
     BACNET_ARRAY_INDEX array_index = 0;
     BACNET_SUBORDINATE_DATA element1 = {
-        0, OBJECT_ACCUMULATOR, 1,
+        0,           OBJECT_ACCUMULATOR, 1,
         "element-1", BACNET_NODE_MEMBER, BACNET_RELATIONSHIP_CONTAINS,
         NULL
     };
     BACNET_SUBORDINATE_DATA element2 = {
-        0, OBJECT_LOAD_CONTROL, 2,
-        "element-2", BACNET_NODE_MEMBER, BACNET_RELATIONSHIP_CONTAINS,
+        0,           OBJECT_LOAD_CONTROL, 2,
+        "element-2", BACNET_NODE_MEMBER,  BACNET_RELATIONSHIP_CONTAINS,
         NULL
     };
 
@@ -745,18 +754,20 @@ static void test_sequential_add_remove_cycles(void)
     Structured_View_Create(instance);
 
     /* Add element (should succeed) */
-    array_index = Structured_View_Subordinate_List_Element_Add(instance, &element1);
+    array_index =
+        Structured_View_Subordinate_List_Element_Add(instance, &element1);
     zassert_not_equal(array_index, BACNET_ARRAY_ALL, NULL);
     unsigned count1 = Structured_View_Subordinate_List_Count(instance);
     zassert_equal(count1, 1, NULL);
 
     /* Remove element (should succeed) */
-    array_index = Structured_View_Subordinate_List_Element_Remove(
-        instance, &element1);
+    array_index =
+        Structured_View_Subordinate_List_Element_Remove(instance, &element1);
     zassert_not_equal(array_index, BACNET_ARRAY_ALL, NULL);
 
     /* Add another element */
-    array_index = Structured_View_Subordinate_List_Element_Add(instance, &element2);
+    array_index =
+        Structured_View_Subordinate_List_Element_Add(instance, &element2);
     zassert_not_equal(array_index, BACNET_ARRAY_ALL, NULL);
     unsigned count2 = Structured_View_Subordinate_List_Count(instance);
     zassert_equal(count2, 1, NULL);
@@ -776,9 +787,8 @@ static void test_invalid_instance_validation(void)
 {
     const uint32_t invalid_instance = 5000;
     char test_string[] = "test";
-    BACNET_DEVICE_OBJECT_REFERENCE test_ref = {
-        { OBJECT_DEVICE, 1 }, { OBJECT_DEVICE, 1 }
-    };
+    BACNET_DEVICE_OBJECT_REFERENCE test_ref = { { OBJECT_DEVICE, 1 },
+                                                { OBJECT_DEVICE, 1 } };
 
     Structured_View_Init();
 
@@ -808,8 +818,8 @@ static void test_invalid_instance_validation(void)
     result = Structured_View_Node_Subtype_Set(invalid_instance, test_string);
     zassert_false(result, NULL);
 
-    result = Structured_View_Node_Type_Set(
-        invalid_instance, BACNET_NODE_MEMBER);
+    result =
+        Structured_View_Node_Type_Set(invalid_instance, BACNET_NODE_MEMBER);
     zassert_false(result, NULL);
 
     result = Structured_View_Default_Subordinate_Relationship_Set(
@@ -854,12 +864,12 @@ static void test_state_consistency_after_purge(void)
         test_data, ARRAY_SIZE(test_data));
     Structured_View_Subordinate_List_Set(instance, &test_data[0]);
     zassert_equal(
-        Structured_View_Subordinate_List_Count(instance),
-        ARRAY_SIZE(test_data), NULL);
+        Structured_View_Subordinate_List_Count(instance), ARRAY_SIZE(test_data),
+        NULL);
 
     /* Verify element exists */
-    array_index = Structured_View_Subordinate_List_Element_Exist(
-        instance, &test_data[0]);
+    array_index =
+        Structured_View_Subordinate_List_Element_Exist(instance, &test_data[0]);
     zassert_equal(array_index, 0, NULL);
 
     /* Purge list */
@@ -868,8 +878,8 @@ static void test_state_consistency_after_purge(void)
     zassert_equal(Structured_View_Subordinate_List_Count(instance), 0, NULL);
 
     /* Verify element no longer exists after purge */
-    array_index = Structured_View_Subordinate_List_Element_Exist(
-        instance, &test_data[0]);
+    array_index =
+        Structured_View_Subordinate_List_Element_Exist(instance, &test_data[0]);
     zassert_equal(array_index, BACNET_ARRAY_ALL, NULL);
 
     /* Re-populate with same data */
@@ -877,22 +887,124 @@ static void test_state_consistency_after_purge(void)
         test_data, ARRAY_SIZE(test_data));
     Structured_View_Subordinate_List_Set(instance, &test_data[0]);
     zassert_equal(
-        Structured_View_Subordinate_List_Count(instance),
-        ARRAY_SIZE(test_data), NULL);
+        Structured_View_Subordinate_List_Count(instance), ARRAY_SIZE(test_data),
+        NULL);
 
     /* Verify elements are found again */
-    array_index = Structured_View_Subordinate_List_Element_Exist(
-        instance, &test_data[0]);
+    array_index =
+        Structured_View_Subordinate_List_Element_Exist(instance, &test_data[0]);
     zassert_equal(array_index, 0, NULL);
 
-    array_index = Structured_View_Subordinate_List_Element_Exist(
-        instance, &test_data[1]);
+    array_index =
+        Structured_View_Subordinate_List_Element_Exist(instance, &test_data[1]);
     zassert_equal(array_index, 1, NULL);
 
     /* Purge again */
     status = Structured_View_Subordinate_List_Purge(instance);
     zassert_true(status, NULL);
     zassert_equal(Structured_View_Subordinate_List_Count(instance), 0, NULL);
+
+    Structured_View_Delete(instance);
+    Structured_View_Cleanup();
+}
+
+/**
+ * @brief Test Structured_View_Subordinate_List_Resize via Write_Property
+ * array_index==0 on PROP_SUBORDINATE_LIST and related array properties.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_structured_view, test_subordinate_list_resize)
+#else
+static void test_subordinate_list_resize(void)
+#endif
+{
+    const uint32_t instance = 1111;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+
+    Structured_View_Init();
+    Structured_View_Create(instance);
+
+    wp_data.object_type = OBJECT_STRUCTURED_VIEW;
+    wp_data.object_instance = instance;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.array_index = 0; /* index 0 means "write the array size" */
+
+    /* --- grow from 0 to 3 via PROP_SUBORDINATE_LIST --- */
+    wp_data.object_property = PROP_SUBORDINATE_LIST;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 3);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 3, NULL);
+
+    /* --- grow from 3 to 5 --- */
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 5);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 5, NULL);
+
+    /* --- same size (no change) --- */
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 5);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 5, NULL);
+
+    /* --- shrink from 5 to 2 --- */
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 2);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 2, NULL);
+
+    /* --- shrink to zero --- */
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 0);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 0, NULL);
+
+    /* --- resize via PROP_SUBORDINATE_ANNOTATIONS independently --- */
+    /* first grow the list so the annotation resize has something to work with
+     */
+    wp_data.object_property = PROP_SUBORDINATE_LIST;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 4);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    wp_data.object_property = PROP_SUBORDINATE_ANNOTATIONS;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 2);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 2, NULL);
+
+    /* --- resize via PROP_SUBORDINATE_NODE_TYPES --- */
+    wp_data.object_property = PROP_SUBORDINATE_NODE_TYPES;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 3);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 3, NULL);
+
+    /* --- resize via PROP_SUBORDINATE_RELATIONSHIPS --- */
+    wp_data.object_property = PROP_SUBORDINATE_RELATIONSHIPS;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 1);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 1, NULL);
+
+    /* --- invalid instance returns false --- */
+    wp_data.object_instance = instance + 9999;
+    wp_data.object_property = PROP_SUBORDINATE_LIST;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 2);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_false(status, NULL);
 
     Structured_View_Delete(instance);
     Structured_View_Cleanup();
@@ -921,7 +1033,8 @@ void test_main(void)
         ztest_unit_test(test_subordinate_list_boundaries),
         ztest_unit_test(test_sequential_add_remove_cycles),
         ztest_unit_test(test_invalid_instance_validation),
-        ztest_unit_test(test_state_consistency_after_purge));
+        ztest_unit_test(test_state_consistency_after_purge),
+        ztest_unit_test(test_subordinate_list_resize));
 
     ztest_run_test_suite(tests_object_structured_view);
 }
