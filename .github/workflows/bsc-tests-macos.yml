@@ -10,7 +10,7 @@ on:
 
 jobs:
   job_bsc_tests_macos:
-    runs-on: macos-latest
+    runs-on: macos-15-intel
     steps:
     - uses: actions/checkout@v6
     - name: Create Build Environment
