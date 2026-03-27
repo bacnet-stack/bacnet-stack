@@ -38,6 +38,7 @@ void PositiveInteger_Value_Writable_Property_List(
 
 BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Valid_Instance(uint32_t object_instance);
+BACNET_STACK_EXPORT
 unsigned PositiveInteger_Value_Count(void);
 BACNET_STACK_EXPORT
 uint32_t PositiveInteger_Value_Index_To_Instance(unsigned index);
