@@ -31,7 +31,7 @@ string(REGEX REPLACE
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
-    BIG_ENDIAN=0
+    BACNET_BIG_ENDIAN=0
     CONFIG_ZTEST=1
     BACDL_BSC
     BSC_CONF_CLIENT_CONNECTIONS_NUM=5
