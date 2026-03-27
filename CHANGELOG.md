@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-03-25
+## [Unreleased] - 2026-03-27
 
 ### Security
 
@@ -53,6 +53,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added structured-view object subordinate-list add, remove, exist, same
+  API for interfacing as a list.  Added purge API for unit testing. (#1283)
 * Added ports/pico for Raspberry Pi Pico port of the BACnet stack
   supporting both BACnet/IP and BACnet MS/TP. (#1232)
 * Added new functions for duplicating and copying octet string buffers.
