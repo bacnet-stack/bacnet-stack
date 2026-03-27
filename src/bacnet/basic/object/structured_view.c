@@ -17,17 +17,9 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacerror.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/bactext.h"
-#include "bacnet/apdu.h"
-#include "bacnet/npdu.h"
-#include "bacnet/abort.h"
 #include "bacnet/proplist.h"
-#include "bacnet/property.h"
-#include "bacnet/reject.h"
 #include "bacnet/rp.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */
 #include "structured_view.h"
@@ -509,7 +501,7 @@ BACNET_ARRAY_INDEX Structured_View_Subordinate_List_Element_Exist(
     struct object_data *pObject;
     BACNET_SUBORDINATE_DATA *list_element;
     unsigned count = 0;
-    BACNET_ARRAY_INDEX array_index = 0;
+    BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -545,6 +537,7 @@ BACNET_ARRAY_INDEX Structured_View_Subordinate_List_Element_Add(
     struct object_data *pObject;
     BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
     KEY key = 0;
+    BACNET_SUBORDINATE_DATA *data = NULL;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -555,10 +548,16 @@ BACNET_ARRAY_INDEX Structured_View_Subordinate_List_Element_Add(
             if (array_index == BACNET_ARRAY_ALL) {
                 /* append a copy of the element to the list */
                 key = Keylist_Next_Empty_Key(pObject->Subordinate_List, 0);
-                if (!Subordinate_List_Element_Add(
-                        pObject->Subordinate_List, key)) {
+                data = Subordinate_List_Element_Add(
+                    pObject->Subordinate_List, key);
+                if (!data) {
                     array_index = BACNET_ARRAY_ALL;
                 } else {
+                    memmove(data, element, sizeof(BACNET_SUBORDINATE_DATA));
+                    if (element->Annotation) {
+                        data->Annotation = bacnet_strdup(element->Annotation);
+                    }
+                    data->next = NULL;
                     array_index = key;
                 }
             }
@@ -968,6 +967,48 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Relationship_Member_Write(
 }
 
 /**
+ * @brief For a given object instance-number, returns the Subordinate_List
+ * as a linked list with next pointers properly set
+ * @param  object_instance - object-instance number of the object
+ * @return pointer to the first element of the Subordinate_List, or NULL
+ */
+BACNET_SUBORDINATE_DATA *
+Structured_View_Subordinate_List(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    BACNET_SUBORDINATE_DATA *first_element = NULL;
+    BACNET_SUBORDINATE_DATA *element;
+    BACNET_SUBORDINATE_DATA *prev_element = NULL;
+    unsigned int count = 0;
+    unsigned int i = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        count = Structured_View_Subordinate_List_Size(pObject);
+        if (count > 0) {
+            /* Iterate through all elements and set up next pointers */
+            for (i = 0; i < count; i++) {
+                element = Subordinate_List_Element(pObject, i);
+                if (element) {
+                    if (i == 0) {
+                        /* First element */
+                        first_element = element;
+                    } else if (prev_element) {
+                        /* Link previous element to current element */
+                        prev_element->next = element;
+                    }
+                    /* Clear the next pointer for the current element */
+                    element->next = NULL;
+                    prev_element = element;
+                }
+            }
+        }
+    }
+
+    return first_element;
+}
+
+/**
  * @brief For a given object instance-number, sets the Subordinate_List
  * @param  object_instance - object-instance number of the object
  * @param  subordinate_list - holds the Subordinate_List to be set
@@ -1009,27 +1050,29 @@ void Structured_View_Subordinate_List_Set(
 bool Structured_View_Subordinate_List_Element_Same(
     BACNET_SUBORDINATE_DATA *element1, BACNET_SUBORDINATE_DATA *element2)
 {
-    bool same = true;
-
-    if (element1 && element2) {
-        if (element1->Device_Instance != element2->Device_Instance ||
-            element1->Object_Type != element2->Object_Type ||
-            element1->Object_Instance != element2->Object_Instance ||
-            element1->Node_Type != element2->Node_Type ||
-            element1->Relationship != element2->Relationship) {
-            same = false;
+    if (element1 == element2) {
+        return true;
+    }
+    if (!element1 || !element2) {
+        return false;
+    }
+    if (element1->Device_Instance != element2->Device_Instance ||
+        element1->Object_Type != element2->Object_Type ||
+        element1->Object_Instance != element2->Object_Instance ||
+        element1->Node_Type != element2->Node_Type ||
+        element1->Relationship != element2->Relationship) {
+        return false;
+    }
+    if (element1->Annotation && element2->Annotation) {
+        if (strcmp(element1->Annotation, element2->Annotation) != 0) {
+            return false;
         }
-        if (element1->Annotation && element2->Annotation) {
-            if (strcmp(element1->Annotation, element2->Annotation) != 0) {
-                same = false;
-            }
-        } else if (element1->Annotation || element2->Annotation) {
-            /* one is NULL and the other is not */
-            same = false;
-        }
+    } else if (element1->Annotation || element2->Annotation) {
+        /* one is NULL and the other is not */
+        return false;
     }
 
-    return same;
+    return true;
 }
 
 /**
