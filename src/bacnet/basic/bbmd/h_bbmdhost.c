@@ -234,16 +234,13 @@ bool bbmdhost_data(int index, BACNET_HOST_ADDRESS_PAIR *data)
  * @brief Update the IP addresses for all hostnames in the list
  * @param callback [in] The callback to query the hostname to IP address
  */
-void bbmdhost_lookup_update(bbmdhost_lookup_callback callback)
+void bbmdhost_resolver_iterate(bbmdhost_resolver_callback resolver)
 {
     int index;
     int count;
     BACNET_HOST_ADDRESS_PAIR *entry;
     BACNET_HOST_N_PORT_MINIMAL host;
 
-    if (!callback) {
-        return;
-    }
     count = Keylist_Count(Host_Keylist);
     for (index = 0; index < count; index++) {
         entry = Keylist_Data_Index(Host_Keylist, index);
@@ -252,7 +249,9 @@ void bbmdhost_lookup_update(bbmdhost_lookup_callback callback)
             if (entry->name.length > 0) {
                 host.tag = BACNET_HOST_ADDRESS_TAG_NAME;
                 memcpy(&host.host.name, &entry->name, sizeof(host.host.name));
-                callback(&host);
+                if (resolver) {
+                    resolver(&host);
+                }
                 if (host.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
                     memcpy(
                         &entry->ip_address, &host.host.ip_address,

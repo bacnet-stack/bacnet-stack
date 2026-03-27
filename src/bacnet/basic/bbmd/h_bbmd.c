@@ -9,12 +9,13 @@
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <string.h> /* for memcpy */
+#include <stdlib.h> /* for memcpy */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 
 /* Define BBMD_ENABLED to get the functions that a
@@ -69,6 +70,9 @@ static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY
 #endif
 static BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 #endif
+/* Keylist of hostnames using minimial host-n-port lookup */
+static OS_Keylist Host_Keylist;
+static bvlc_host_resolver_callback Host_Resolver_Callback;
 
 /**
  * @brief Enabled debug printing of BACnet/IPv4 BBMD
@@ -799,8 +803,9 @@ int bvlc_bbmd_disabled_handler(
                     npdu = &mtu[offset];
                     if (npdu_confirmed_service(npdu, npdu_len)) {
                         offset = 0;
-                        debug_print_string("Dropped Original-Broadcast-NPDU: "
-                                           "Confirmed Service!");
+                        debug_print_string(
+                            "Dropped Original-Broadcast-NPDU: "
+                            "Confirmed Service!");
                     } else {
                         debug_print_npdu(
                             "Original-Broadcast-NPDU", offset, npdu_len);
@@ -1146,8 +1151,9 @@ int bvlc_bbmd_enabled_handler(
                    network layer. */
                 if (npdu_confirmed_service(npdu, npdu_len)) {
                     offset = 0;
-                    debug_print_string("Dropped Original-Broadcast-NPDU: "
-                                       "Confirmed Service!");
+                    debug_print_string(
+                        "Dropped Original-Broadcast-NPDU: "
+                        "Confirmed Service!");
                 } else {
                     (void)bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
                     (void)bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
@@ -1464,6 +1470,71 @@ void bvlc_disable_nat(void)
     debug_print_string("NAT Address disabled");
 }
 
+/**
+ * @brief Set the callback function for host name resolution
+ * @param [in] callback - The callback function to use for host name resolution
+ */
+void bvlc_host_resolver_callback_set(bvlc_host_resolver_callback callback)
+{
+    Host_Resolver_Callback = callback;
+}
+
+/**
+ * @brief Resolve all host names in the host list
+ */
+void bvlc_host_resolve_task(void)
+{
+    int index;
+    int count;
+    BACNET_HOST_ADDRESS_PAIR *entry;
+    BACNET_HOST_N_PORT_MINIMAL host;
+
+    count = Keylist_Count(Host_Keylist);
+    for (index = 0; index < count; index++) {
+        entry = Keylist_Data_Index(Host_Keylist, index);
+        if (entry) {
+            memset(&host, 0, sizeof(host));
+            if (entry->name.length > 0) {
+                host.tag = BACNET_HOST_ADDRESS_TAG_NAME;
+                memcpy(&host.host.name, &entry->name, sizeof(host.host.name));
+                if (Host_Resolver_Callback) {
+                    (void)Host_Resolver_Callback(&host);
+                }
+                if (host.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+                    memcpy(
+                        &entry->ip_address, &host.host.ip_address,
+                        sizeof(entry->ip_address));
+                    /* update BBMD table of any host entries that match the
+                       resolved IP address */
+                    bvlc_bdt_list_update_ip_address(
+                        &entry->ip_address, &entry->ip_address);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @brief Cleanup the host list and free memory
+ */
+void bvlc_deinit(void)
+{
+    BACNET_HOST_ADDRESS_PAIR *entry;
+
+    if (Host_Keylist) {
+        entry = Keylist_Data_Pop(Host_Keylist);
+        while (entry) {
+            free(entry);
+            entry = Keylist_Data_Pop(Host_Keylist);
+        }
+        Keylist_Delete(Host_Keylist);
+        Host_Keylist = NULL;
+    }
+}
+
+/**
+ * @brief Initialize the BACnet/IPv4 BBMD
+ */
 void bvlc_init(void)
 {
 #if BBMD_ENABLED
@@ -1474,4 +1545,7 @@ void bvlc_init(void)
 #else
     debug_print_string("Initializing (BBMD Disabled).");
 #endif
+    if (!Host_Keylist) {
+        Host_Keylist = Keylist_Create();
+    }
 }

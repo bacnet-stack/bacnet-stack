@@ -278,7 +278,7 @@ static void test_BBMD_Host(void)
     status = bbmdhost_hostname_ip_address("test.com", ip, &ip_len);
     assert(!status);
     /* test resolution */
-    bbmdhost_lookup_update(test_bbmdhost_lookup_callback);
+    bbmdhost_resolver_iterate(test_bbmdhost_lookup_callback);
     /* test bbmdhost_data_resolved with IP address resolved */
     status = bbmdhost_data_resolved(index1, &data);
     assert(status);
@@ -330,7 +330,7 @@ static void test_BBMD_Host_NULL(void)
     assert(bbmdhost_count() == 0);
     status = bbmdhost_data_resolved(0, &data);
     assert(!status);
-    bbmdhost_lookup_update(test_bbmdhost_lookup_callback);
+    bbmdhost_resolver_iterate(test_bbmdhost_lookup_callback);
     status = bbmdhost_ip_address(0, ip, &ip_len);
     assert(!status);
     status = bbmdhost_hostname_ip_address("test.com", ip, &ip_len);
@@ -346,7 +346,7 @@ static void test_BBMD_Host_NULL(void)
     status = bbmdhost_data_resolved(0, NULL);
     assert(status);
     /* NULL callback in update */
-    bbmdhost_lookup_update(NULL);
+    bbmdhost_resolver_iterate(NULL);
     /* NULL output params in ip_address */
     status = bbmdhost_ip_address(0, NULL, NULL);
     assert(!status);

@@ -15,6 +15,14 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/datalink/bvlc.h"
+#include "bacnet/hostnport.h"
+
+/**
+ * @brief Callback to query the hostname to IP address and update the address
+ * @param host [in,out] The host and port data
+ * @return true if the host was resolved, false otherwise
+ */
+typedef bool (*bvlc_host_resolver_callback)(BACNET_HOST_N_PORT_MINIMAL *host);
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,6 +76,9 @@ void bvlc_set_function_code(uint8_t function_code);
 
 BACNET_STACK_EXPORT
 void bvlc_maintenance_timer(uint16_t seconds);
+
+BACNET_STACK_EXPORT
+void bvlc_deinit(void);
 
 BACNET_STACK_EXPORT
 void bvlc_init(void);

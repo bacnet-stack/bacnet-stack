@@ -24,7 +24,7 @@ extern "C" {
  * @brief Callback to query the hostname to IP address and update the address
  * @param host [in,out] The host and port data
  */
-typedef void (*bbmdhost_lookup_callback)(BACNET_HOST_N_PORT_MINIMAL *host);
+typedef void (*bbmdhost_resolver_callback)(BACNET_HOST_N_PORT_MINIMAL *host);
 
 BACNET_STACK_EXPORT
 void bbmdhost_init(void);
@@ -37,6 +37,7 @@ int bbmdhost_add(BACNET_CHARACTER_STRING *name);
 
 BACNET_STACK_EXPORT
 int bbmdhost_count(void);
+
 BACNET_STACK_EXPORT
 bool bbmdhost_data(int index, BACNET_HOST_ADDRESS_PAIR *data);
 
@@ -44,7 +45,7 @@ BACNET_STACK_EXPORT
 bool bbmdhost_data_resolved(int index, BACNET_HOST_N_PORT_MINIMAL *host);
 
 BACNET_STACK_EXPORT
-void bbmdhost_lookup_update(bbmdhost_lookup_callback callback);
+void bbmdhost_resolver_iterate(bbmdhost_resolver_callback callback);
 
 BACNET_STACK_EXPORT
 bool bbmdhost_ip_address(
