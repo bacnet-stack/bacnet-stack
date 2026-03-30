@@ -40,6 +40,7 @@
 #include "bacnet/basic/object/bacfile.h"
 /* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/sys/debug.h"
 
 /* forward prototypes */
 int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -73,6 +74,43 @@ uint16_t Num_Managed_Devices = 0;
  * request is addressing.  Should default to 0, the main gateway Device.
  */
 uint16_t iCurrent_Device_Idx = 0;
+
+/** Get the current routed device object index.
+ * @return Index of the currently active routed device in Devices[] array
+ */
+uint16_t Routed_Device_Object_Index(void)
+{
+    return iCurrent_Device_Idx;
+}
+
+/** Get the number of managed devices.
+ * @return Number of devices currently managed (including gateway)
+ */
+uint16_t Get_Num_Managed_Devices(void)
+{
+    return Num_Managed_Devices;
+}
+
+/** Set the current routed device object index.
+ * @param idx [in] Index of the routed device to set as current
+ * @return true if index is valid and set, false if index exceeds
+ * MAX_NUM_DEVICES
+ */
+bool Set_Routed_Device_Object_Index(uint16_t idx)
+{
+    if (idx >= MAX_NUM_DEVICES) {
+        debug_fprintf(
+            stderr,
+            "Set_Routed_Device_Object_Index: idx(%u) >= MAX_NUM_DEVICES(%u)\n",
+            (unsigned)idx, (unsigned)MAX_NUM_DEVICES);
+
+        return false;
+    }
+
+    iCurrent_Device_Idx = idx;
+
+    return true;
+}
 
 /* void Routing_Device_Init(uint32_t first_object_instance) is
  * found in device.c

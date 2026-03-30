@@ -16,12 +16,20 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
 /* me! */
 #include "bacnet/basic/object/credential_data_input.h"
 
 static bool Credential_Data_Input_Initialized = false;
 
-static CREDENTIAL_DATA_INPUT_DESCR cdi_descr[MAX_CREDENTIAL_DATA_INPUTS];
+static CREDENTIAL_DATA_INPUT_DESCR cdi_descrs[MAX_NUM_DEVICES]
+                                             [MAX_CREDENTIAL_DATA_INPUTS];
+#ifdef BAC_ROUTING
+#define cdi_descr (cdi_descrs[Routed_Device_Object_Index()])
+#else
+#define cdi_descr (cdi_descrs[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -93,25 +101,37 @@ void Credential_Data_Input_Writable_Property_List(
  */
 void Credential_Data_Input_Init(void)
 {
+    uint16_t dev_id;
     unsigned i;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
     if (!Credential_Data_Input_Initialized) {
         Credential_Data_Input_Initialized = true;
 
-        for (i = 0; i < MAX_CREDENTIAL_DATA_INPUTS; i++) {
-            /* there should be a meaningful setup for present value */
-            cdi_descr[i].present_value.format_type =
-                AUTHENTICATION_FACTOR_UNDEFINED;
-            cdi_descr[i].present_value.format_class = 0;
-            octetstring_init(&cdi_descr[i].present_value.value, NULL, 0);
-            cdi_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
-            cdi_descr[i].out_of_service = false;
-            /* set supported formats */
-            cdi_descr[i].supported_formats_count = 0;
-            /* timestamp uninitialized */
+        for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+            Set_Routed_Device_Object_Index(dev_id);
+#endif
+            for (i = 0; i < MAX_CREDENTIAL_DATA_INPUTS; i++) {
+                /* there should be a meaningful setup for present value */
+                cdi_descr[i].present_value.format_type =
+                    AUTHENTICATION_FACTOR_UNDEFINED;
+                cdi_descr[i].present_value.format_class = 0;
+                octetstring_init(&cdi_descr[i].present_value.value, NULL, 0);
+                cdi_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
+                cdi_descr[i].out_of_service = false;
+                /* set supported formats */
+                cdi_descr[i].supported_formats_count = 0;
+                /* timestamp uninitialized */
+            }
         }
     }
 
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
     return;
 }
 

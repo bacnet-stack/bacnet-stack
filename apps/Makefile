@@ -334,6 +334,10 @@ clean:
 gateway: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: gateway2
+gateway2: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: abort
 abort: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@

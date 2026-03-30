@@ -16,10 +16,17 @@
 #include "bacnet/wp.h"
 #include "access_point.h"
 #include "bacnet/basic/services.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
 
 static bool Access_Point_Initialized = false;
 
-static ACCESS_POINT_DESCR ap_descr[MAX_ACCESS_POINTS];
+static ACCESS_POINT_DESCR ap_descrs[MAX_NUM_DEVICES][MAX_ACCESS_POINTS];
+#ifdef BAC_ROUTING
+#define ap_descr (ap_descrs[Routed_Device_Object_Index()])
+#else
+#define ap_descr (ap_descrs[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -93,26 +100,42 @@ void Access_Point_Writable_Property_List(
 void Access_Point_Init(void)
 {
     unsigned i;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
     if (!Access_Point_Initialized) {
         Access_Point_Initialized = true;
 
-        for (i = 0; i < MAX_ACCESS_POINTS; i++) {
-            ap_descr[i].event_state = EVENT_STATE_NORMAL;
-            ap_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
-            ap_descr[i].out_of_service = false;
-            ap_descr[i].authentication_status = AUTHENTICATION_STATUS_NOT_READY;
-            ap_descr[i].active_authentication_policy = 0;
-            ap_descr[i].number_of_authentication_policies = 0;
-            ap_descr[i].authorization_mode = AUTHORIZATION_MODE_AUTHORIZE;
-            ap_descr[i].access_event = ACCESS_EVENT_NONE;
-            /* timestamp uninitialized */
-            /* access_event_credential should be set to some meaningful value */
-            ap_descr[i].num_doors = 0;
-            /* fill in the access doors with proper ids */
-            ap_descr[i].priority_for_writing = 16; /* lowest possible for now */
+        for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+            Set_Routed_Device_Object_Index(dev_id);
+#endif
+            for (i = 0; i < MAX_ACCESS_POINTS; i++) {
+                ap_descr[i].event_state = EVENT_STATE_NORMAL;
+                ap_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
+                ap_descr[i].out_of_service = false;
+                ap_descr[i].authentication_status =
+                    AUTHENTICATION_STATUS_NOT_READY;
+                ap_descr[i].active_authentication_policy = 0;
+                ap_descr[i].number_of_authentication_policies = 0;
+                ap_descr[i].authorization_mode = AUTHORIZATION_MODE_AUTHORIZE;
+                ap_descr[i].access_event = ACCESS_EVENT_NONE;
+                /* timestamp uninitialized */
+                /* access_event_credential should be set to some meaningful
+                 * value */
+                ap_descr[i].num_doors = 0;
+                /* fill in the access doors with proper ids */
+                ap_descr[i].priority_for_writing =
+                    16; /* lowest possible for now */
+            }
         }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 
     return;
 }
