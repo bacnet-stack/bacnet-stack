@@ -63,8 +63,8 @@ int DNET_list[2] = {
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
-/* routed devices - I-Am on startup */
-static unsigned Routed_Device_Index;
+/* Virtual devices start at index 1 (gateway is at 0) */
+static unsigned Routed_Device_Index = 1;
 
 /** Initialize the Device Objects and each of the child Object instances.
  * @param first_object_instance Set the first (gateway) Device to this
@@ -73,6 +73,8 @@ static unsigned Routed_Device_Index;
 static void Devices_Init(uint32_t first_object_instance)
 {
     int i;
+    int dev_idx;
+    int instance_number = 0;
     char nameText[MAX_DEV_NAME_LEN];
     char descText[MAX_DEV_DESC_LEN];
     BACNET_CHARACTER_STRING name_string;
@@ -82,33 +84,43 @@ static void Devices_Init(uint32_t first_object_instance)
     Routed_Device_Set_Description(DEV_DESCR_GATEWAY, strlen(DEV_DESCR_GATEWAY));
 
     /* Gateway - analog_input */
-    Analog_Input_Create(1000);
-    Analog_Input_Name_Set(1000, "Gateway Analog Input");
-    Analog_Input_Present_Value_Set(1000, 100.0);
+    instance_number = 1000;
+    Analog_Input_Create(instance_number);
+    Analog_Input_Name_Set(instance_number, "Gateway Analog Input");
+    Analog_Input_Present_Value_Set(instance_number, 100.0);
 
     /* Gateway - analog_onput */
-    Analog_Output_Create(1001);
-    Analog_Output_Name_Set(1001, "Gateway Analog Output");
-    Analog_Output_Present_Value_Set(1001, 50.0, BACNET_MAX_PRIORITY);
+    instance_number = 1001;
+    Analog_Output_Create(instance_number);
+    Analog_Output_Name_Set(instance_number, "Gateway Analog Output");
+
+    Analog_Output_Present_Value_Set(instance_number, 50.0, BACNET_MAX_PRIORITY);
 
     /* Now initialize the remote Device objects. */
-    for (i = 1; i < MAX_NUM_DEVICES; i++) {
-        snprintf(nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, i + 1);
-        snprintf(descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, i);
+    for (i = 0; i < VIRTUAL_DEVICE_COUNT; i++) {
+        dev_idx = i + 1;
+        snprintf(
+            nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, dev_idx + 1);
+        snprintf(
+            descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, dev_idx);
         characterstring_init_ansi(&name_string, nameText);
 
-        Add_Routed_Device((first_object_instance + i), &name_string, descText);
+        Add_Routed_Device(
+            (first_object_instance + dev_idx), &name_string, descText);
 
         /* Gateway - analog_input */
-        Analog_Input_Create(i * 10000 + 1000);
-        Analog_Input_Name_Set(i * 10000 + 1000, "Gateway Analog Input");
-        Analog_Input_Present_Value_Set(i * 10000 + 1000, 0.1 + (float)i);
+        instance_number = dev_idx * 10000 + 1000;
+        Analog_Input_Create(instance_number);
+        Analog_Input_Name_Set(instance_number, "Gateway Analog Input");
+        Analog_Input_Present_Value_Set(instance_number, 0.1 + (float)dev_idx);
 
         /* Gateway - analog_onput */
-        Analog_Output_Create(i * 10000 + 1001);
-        Analog_Output_Name_Set(i * 10000 + 1001, "Gateway Analog Output");
+        instance_number = dev_idx * 10000 + 1001;
+        Analog_Output_Create(instance_number);
+        Analog_Output_Name_Set(instance_number, "Gateway Analog Output");
+        Analog_Output_Relinquish_Default_Set(instance_number, 100);
         Analog_Output_Present_Value_Set(
-            i * 10000 + 1001, 0.9 + (float)i, BACNET_MAX_PRIORITY);
+            instance_number, 0.9 + (float)i, BACNET_MAX_PRIORITY);
     }
 }
 
@@ -149,7 +161,8 @@ static void Initialize_Device_Addresses(void)
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 
-    for (i = 1; i < MAX_NUM_DEVICES; i++) {
+    /* Virtual devices start at index 1 (gateway is at 0) */
+    for (i = 1; i < Get_Num_Managed_Devices(); i++) {
         pDev = Get_Routed_Device_Object(i);
         if (pDev == NULL) {
             continue;
@@ -248,7 +261,9 @@ int main(int argc, char *argv[])
         if ((first_object_instance == 0) ||
             (first_object_instance > BACNET_MAX_INSTANCE)) {
             printf("Error: Invalid Object Instance %s \n", argv[1]);
-            printf("Provide a number from 1 to %ul \n", BACNET_MAX_INSTANCE);
+            printf(
+                "Provide a number from 1 to %lu \n",
+                (unsigned long)BACNET_MAX_INSTANCE);
             exit(1);
         }
     }
@@ -257,8 +272,10 @@ int main(int argc, char *argv[])
         "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n"
         "Max APDU: %d\n"
-        "Max Devices: %d\n",
-        BACnet_Version, first_object_instance, MAX_APDU, MAX_NUM_DEVICES);
+        "Max Devices: %d\n"
+        "Virtual Devices Count: %d\n",
+        BACnet_Version, first_object_instance, MAX_APDU, MAX_NUM_DEVICES,
+        VIRTUAL_DEVICE_COUNT);
     Init_Service_Handlers(first_object_instance);
     dlenv_init();
     atexit(datalink_cleanup);
@@ -276,6 +293,9 @@ int main(int argc, char *argv[])
     /* broadcast an I-am-router-to-network on startup */
     printf("Remote Network DNET Number %d \n", DNET_list[0]);
     Send_I_Am_Router_To_Network(DNET_list);
+    Send_Network_Number_Is(NULL, DNET_list[0], NETWORK_NUMBER_CONFIGURED);
+
+    handler_cov_init();
 
     /* loop forever */
     for (;;) {
@@ -300,12 +320,14 @@ int main(int argc, char *argv[])
             tsm_timer_milliseconds(elapsed_milliseconds);
             Device_Timer(elapsed_milliseconds);
         }
+
         handler_cov_task();
-        if (Routed_Device_Index < MAX_NUM_DEVICES) {
-            Routed_Device_Index++;
+
+        if (Routed_Device_Index < Get_Num_Managed_Devices()) {
             Get_Routed_Device_Object(Routed_Device_Index);
             /* broadcast an I-Am for each routed Device now */
             Send_I_Am(&Handler_Transmit_Buffer[0]);
+            Routed_Device_Index++;
         }
     }
     /* Dummy return */

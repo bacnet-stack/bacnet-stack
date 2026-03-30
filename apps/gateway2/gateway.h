@@ -9,6 +9,8 @@
 #ifndef BACNET_GATEWAY_H_
 #define BACNET_GATEWAY_H_
 
+#include "bacnet/config.h"
+
 /** @defgroup GatewayDemo Demo of a BACnet virtual gateway (multiple Device).
  * @ingroup Demos
  * This is a basic demonstration of a BACnet Router with child devices (ie,
@@ -22,5 +24,19 @@
 #define DEV_NAME_BASE "Gateway Demo Device"
 #define DEV_DESCR_GATEWAY "Gateway Device and Router"
 #define DEV_DESCR_REMOTE "Routed Remote Device"
+#define VIRTUAL_DEVICE_COUNT 10
+#define VIRTUAL_DEVICE_INDEX_OFFSET 1
+
+#if VIRTUAL_DEVICE_COUNT >= MAX_NUM_DEVICES
+#ifdef _MSC_VER
+#pragma message( \
+    "VIRTUAL_DEVICE_COUNT >= MAX_NUM_DEVICES, adjusting to MAX_NUM_DEVICES-1")
+#else
+#warning \
+    "VIRTUAL_DEVICE_COUNT >= MAX_NUM_DEVICES, adjusting to MAX_NUM_DEVICES-1"
+#endif
+#undef VIRTUAL_DEVICE_COUNT
+#define VIRTUAL_DEVICE_COUNT (MAX_NUM_DEVICES - 1)
+#endif
 
 #endif
