@@ -4113,9 +4113,23 @@ void Device_Timer(uint16_t milliseconds)
 #ifdef BAC_ROUTING
     uint16_t dev_id = 0;
     uint16_t current_dev_id = Routed_Device_Object_Index();
+    /* TODO: Multi-device Backup/Restore support
+     * Currently only Gateway (dev_id=0) supports Backup/Restore.
+     * Virtual devices are blocked by Routed_Device_Service_Approval().
+     * Plan to support after discussing with maintainer.
+     *
+     * To enable per-device Backup/Restore:
+     * 1. Move Backup-related static variables to DEVICE_OBJECT_DATA:
+     *    - Backup_State, Backup_Failure_Timeout_Milliseconds
+     *    - Backup_Failure_Timeout, Configuration_Files[]
+     *    - Last_Restore_Time, Backup/Restore_Preparation_Time
+     * 2. Modify Routed_Device_Service_Approval() to allow RD on virtual devices
+     * 3. Call Device_Backup_Failure_Timeout_Countdown() inside the for loop
+     *    for each device
+     */
+    Device_Backup_Failure_Timeout_Countdown(milliseconds);
     for (dev_id = 0; dev_id < Get_Num_Managed_Devices(); dev_id++) {
         Set_Routed_Device_Object_Index(dev_id);
-        Device_Backup_Failure_Timeout_Countdown(milliseconds);
         pObject = Object_Table;
         while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
             count = 0;
