@@ -30,11 +30,12 @@
 #define MAX_TREND_LOGS 8
 #endif
 
-static TL_DATA_REC Logss[MAX_NUM_DEVICES][MAX_TREND_LOGS][TL_MAX_ENTRIES];
+static TL_DATA_REC Logs_Records[MAX_NUM_DEVICES][MAX_TREND_LOGS]
+                               [TL_MAX_ENTRIES];
 #ifdef BAC_ROUTING
-#define Logs (Logss[Routed_Device_Object_Index()])
+#define Logs (Logs_Records[Routed_Device_Object_Index()])
 #else
-#define Logs (Logss[0])
+#define Logs (Logs_Records[0])
 #endif
 static TL_LOG_INFO LogInfos[MAX_NUM_DEVICES][MAX_TREND_LOGS];
 #ifdef BAC_ROUTING
