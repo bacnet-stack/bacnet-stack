@@ -539,7 +539,9 @@ int Routed_Device_Service_Approval(
 BACNET_STACK_EXPORT
 uint16_t Routed_Device_Object_Index(void);
 BACNET_STACK_EXPORT
-void Set_Routed_Device_Object_Index(uint16_t idx);
+bool Set_Routed_Device_Object_Index(uint16_t idx);
+BACNET_STACK_EXPORT
+uint16_t Get_Num_Managed_Devices(void);
 
 #ifdef __cplusplus
 }
