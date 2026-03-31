@@ -20,7 +20,7 @@ string(REGEX REPLACE
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
-    BIG_ENDIAN=0
+    BACNET_BIG_ENDIAN=0
     CONFIG_ZTEST=1
     BSC_CONF_TX_PRE=0
     BACNET_STACK_DEPRECATED_DISABLE=1

@@ -160,6 +160,14 @@ gateway:
 gateway-win32:
 	$(MAKE) BACNET_PORT=win32 -s -B -C apps gateway
 
+.PHONY: gateway2
+gateway2:
+	$(MAKE) -s -B -C apps $@
+
+.PHONY: gateway2-win32
+gateway2-win32:
+	$(MAKE) BACNET_PORT=win32 -s -B -C apps gateway2
+
 .PHONY: piface
 piface:
 	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
@@ -395,6 +403,12 @@ dlmstp-linux: ports/linux/dlmstp.mak
 lwip: ports/lwip/Makefile
 	$(MAKE) -s -C ports/lwip clean all
 
+.PHONY: pico-cmake
+pico-cmake:
+	cd ports/pico && ./configure.sh
+	[ -d ports/pico/build ] || mkdir -p ports/pico/build
+	cd ports/pico/build && cmake .. -DPICO_SDK_PATH=../external/pico-sdk && cmake --build . --clean-first -- -j$(shell nproc 2>/dev/null || echo 1)
+
 .PHONY: pretty
 pretty:
 	find ./src -iname *.h -o -iname *.c -exec \
@@ -537,6 +551,7 @@ clean: ports-clean
 	$(MAKE) -s -C apps/router-ipv6 clean
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
+	$(MAKE) -s -C apps/gateway2 clean
 	$(MAKE) -s -C apps/sc-hub clean
 	$(MAKE) -s -C apps/fuzz-afl clean
 	$(MAKE) -s -C apps/fuzz-libfuzzer clean

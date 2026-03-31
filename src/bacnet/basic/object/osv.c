@@ -31,7 +31,12 @@ struct object_data {
 };
 
 /* Key List for storing object data sorted by instance number */
-static OS_Keylist Object_List = NULL;
+static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
+#ifdef BAC_ROUTING
+#define Object_List (Object_Lists[Routed_Device_Object_Index()])
+#else
+#define Object_List (Object_Lists[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -167,11 +172,23 @@ bool OctetString_Value_Delete(uint32_t object_instance)
 void OctetString_Value_Init(void)
 {
 #ifdef MAX_OCTETSTRING_VALUES
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
     unsigned i = 0;
-
+    uint16_t dev_id;
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+        for (i = 0; i < MAX_OCTETSTRING_VALUES; i++) {
+            OctetString_Value_Create(i);
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
+    unsigned i = 0;
     for (i = 0; i < MAX_OCTETSTRING_VALUES; i++) {
         OctetString_Value_Create(i);
     }
+#endif
 #endif
 }
 

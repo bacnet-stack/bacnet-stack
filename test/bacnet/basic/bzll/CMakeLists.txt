@@ -19,7 +19,7 @@ string(REGEX REPLACE
     ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_compile_definitions(
-    BIG_ENDIAN=0
+    BACNET_BIG_ENDIAN=0
     )
 
 include_directories(
