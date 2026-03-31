@@ -17,6 +17,19 @@
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/datalink/bvlc6.h"
 
+/* RFC 1035 255-octet total limit and 63-octet label limit
+   including dots and null terminator */
+#define BACNET_HOST_NAME_MAX 255
+typedef struct BACnetHostCharacterString {
+    char fqdn[BACNET_HOST_NAME_MAX];
+    uint8_t length;
+} BACNET_HOST_NAME;
+/* minimal octet string buffer */
+typedef struct BACnetHostOctetString {
+    uint8_t address[IP6_ADDRESS_MAX];
+    uint8_t length;
+} BACNET_HOST_ADDRESS;
+
 /**
  *  BACnetHostNPort ::= SEQUENCE {
  *      host [0] BACnetHostAddress,
@@ -42,29 +55,20 @@ typedef struct BACnetHostNPort {
 #define BACNET_HOST_ADDRESS_TAG_NONE 0
 #define BACNET_HOST_ADDRESS_TAG_IP_ADDRESS 1
 #define BACNET_HOST_ADDRESS_TAG_NAME 2
-/* RFC 1035 255-octet total limit and 63-octet label limit
-   including dots and null terminator */
-#define BACNET_HOST_NAME_MAX 255
 /* BACnetHostNPort with smaller RAM footprint using C datatypes */
 typedef struct BACnetHostNPort_Minimal {
     uint8_t tag;
     union BACnetHostAddress_Minimal {
-        struct BACnetHostOctetString {
-            uint8_t address[IP6_ADDRESS_MAX];
-            uint8_t length;
-        } ip_address;
-        struct BACnetHostCharacterString {
-            char fqdn[BACNET_HOST_NAME_MAX];
-            uint8_t length;
-        } name;
+        struct BACnetHostOctetString ip_address;
+        struct BACnetHostCharacterString name;
     } host;
     uint16_t port;
 } BACNET_HOST_N_PORT_MINIMAL;
 
 /* Structure to hold the host IP address and hostname for lookup */
 typedef struct BACnetHostAddressPair {
-    struct BACnetHostOctetString ip_address;
-    struct BACnetHostCharacterString name;
+    BACNET_HOST_ADDRESS ip_address;
+    BACNET_HOST_NAME name;
 } BACNET_HOST_ADDRESS_PAIR;
 
 /**
@@ -94,6 +98,15 @@ typedef struct BACnetFDTEntry {
     uint16_t time_to_live;
     uint16_t remaining_time_to_live;
 } BACNET_FDT_ENTRY;
+
+/**
+ * @brief Callback to query the hostname to IP address and update the address
+ * @param hostname - host name that is needing to be resolved to IP address
+ * @param address - address that is resolved
+ * @return true if the host was resolved, false otherwise
+ */
+typedef bool (*bacnet_host_resolver_callback)(
+    BACNET_HOST_NAME *hostname, BACNET_HOST_ADDRESS *address);
 
 #ifdef __cplusplus
 extern "C" {

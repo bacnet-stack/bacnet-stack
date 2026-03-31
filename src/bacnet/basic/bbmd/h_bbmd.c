@@ -70,9 +70,21 @@ static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY
 #endif
 static BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 #endif
-/* Keylist of hostnames using minimial host-n-port lookup */
-static OS_Keylist Host_Keylist;
-static bvlc_host_resolver_callback Host_Resolver_Callback;
+/* Keylist of hostnames using minimial host-n-port structure
+   where the key = entry index
+   so these hostnames can sit alongside the existing structures */
+static OS_Keylist BBMD_Table_Hosts;
+static OS_Keylist FD_Table_Hosts;
+static bacnet_host_resolver_callback Host_Resolver_Callback;
+
+/**
+ * @brief Set the callback function for host name resolution
+ * @param [in] callback - The callback function to use for host name resolution
+ */
+void bvlc_host_resolver_callback_set(bacnet_host_resolver_callback callback)
+{
+    Host_Resolver_Callback = callback;
+}
 
 /**
  * @brief Enabled debug printing of BACnet/IPv4 BBMD
@@ -803,9 +815,8 @@ int bvlc_bbmd_disabled_handler(
                     npdu = &mtu[offset];
                     if (npdu_confirmed_service(npdu, npdu_len)) {
                         offset = 0;
-                        debug_print_string(
-                            "Dropped Original-Broadcast-NPDU: "
-                            "Confirmed Service!");
+                        debug_print_string("Dropped Original-Broadcast-NPDU: "
+                                           "Confirmed Service!");
                     } else {
                         debug_print_npdu(
                             "Original-Broadcast-NPDU", offset, npdu_len);
@@ -1151,9 +1162,8 @@ int bvlc_bbmd_enabled_handler(
                    network layer. */
                 if (npdu_confirmed_service(npdu, npdu_len)) {
                     offset = 0;
-                    debug_print_string(
-                        "Dropped Original-Broadcast-NPDU: "
-                        "Confirmed Service!");
+                    debug_print_string("Dropped Original-Broadcast-NPDU: "
+                                       "Confirmed Service!");
                 } else {
                     (void)bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
                     (void)bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
@@ -1471,43 +1481,39 @@ void bvlc_disable_nat(void)
 }
 
 /**
- * @brief Set the callback function for host name resolution
- * @param [in] callback - The callback function to use for host name resolution
- */
-void bvlc_host_resolver_callback_set(bvlc_host_resolver_callback callback)
-{
-    Host_Resolver_Callback = callback;
-}
-
-/**
  * @brief Resolve all host names in the host list
  */
 void bvlc_host_resolve_task(void)
 {
-    int index;
-    int count;
-    BACNET_HOST_ADDRESS_PAIR *entry;
-    BACNET_HOST_N_PORT_MINIMAL host;
+    bool status;
+    unsigned i = 0; /* loop counter */
+    KEY key;
+    BACNET_HOST_NAME *hostname;
+    BACNET_HOST_ADDRESS address = { 0 };
 
-    count = Keylist_Count(Host_Keylist);
-    for (index = 0; index < count; index++) {
-        entry = Keylist_Data_Index(Host_Keylist, index);
-        if (entry) {
-            memset(&host, 0, sizeof(host));
-            if (entry->name.length > 0) {
-                host.tag = BACNET_HOST_ADDRESS_TAG_NAME;
-                memcpy(&host.host.name, &entry->name, sizeof(host.host.name));
+    for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+        if (BBMD_Table[i].valid) {
+            if ((BBMD_Table[i].dest_address.address[0] == 0) &&
+                (BBMD_Table[i].dest_address.address[1] == 0) &&
+                (BBMD_Table[i].dest_address.address[2] == 0) &&
+                (BBMD_Table[i].dest_address.address[3] == 0)) {
+                key = i;
+                /* need an IP address */
+                hostname =
+                    (BACNET_HOST_NAME *)Keylist_Data(BBMD_Table_Hosts, key);
                 if (Host_Resolver_Callback) {
-                    (void)Host_Resolver_Callback(&host);
-                }
-                if (host.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
-                    memcpy(
-                        &entry->ip_address, &host.host.ip_address,
-                        sizeof(entry->ip_address));
-                    /* update BBMD table of any host entries that match the
-                       resolved IP address */
-                    bvlc_bdt_list_update_ip_address(
-                        &entry->ip_address, &entry->ip_address);
+                    status = Host_Resolver_Callback(hostname, &address);
+                    if (status && (address.length == 4)) {
+                        /* copy the address */
+                        BBMD_Table[i].dest_address.address[0] =
+                            address.address[0];
+                        BBMD_Table[i].dest_address.address[1] =
+                            address.address[1];
+                        BBMD_Table[i].dest_address.address[2] =
+                            address.address[2];
+                        BBMD_Table[i].dest_address.address[3] =
+                            address.address[3];
+                    }
                 }
             }
         }
@@ -1519,16 +1525,25 @@ void bvlc_host_resolve_task(void)
  */
 void bvlc_deinit(void)
 {
-    BACNET_HOST_ADDRESS_PAIR *entry;
+    BACNET_HOST_NAME *entry;
 
-    if (Host_Keylist) {
-        entry = Keylist_Data_Pop(Host_Keylist);
+    if (BBMD_Table_Hosts) {
+        entry = Keylist_Data_Pop(BBMD_Table_Hosts);
         while (entry) {
             free(entry);
-            entry = Keylist_Data_Pop(Host_Keylist);
+            entry = Keylist_Data_Pop(BBMD_Table_Hosts);
         }
-        Keylist_Delete(Host_Keylist);
-        Host_Keylist = NULL;
+        Keylist_Delete(BBMD_Table_Hosts);
+        BBMD_Table_Hosts = NULL;
+    }
+    if (FD_Table_Hosts) {
+        entry = Keylist_Data_Pop(FD_Table_Hosts);
+        while (entry) {
+            free(entry);
+            entry = Keylist_Data_Pop(FD_Table_Hosts);
+        }
+        Keylist_Delete(FD_Table_Hosts);
+        FD_Table_Hosts = NULL;
     }
 }
 
@@ -1545,7 +1560,10 @@ void bvlc_init(void)
 #else
     debug_print_string("Initializing (BBMD Disabled).");
 #endif
-    if (!Host_Keylist) {
-        Host_Keylist = Keylist_Create();
+    if (!BBMD_Table_Hosts) {
+        BBMD_Table_Hosts = Keylist_Create();
+    }
+    if (!FD_Table_Hosts) {
+        FD_Table_Hosts = Keylist_Create();
     }
 }
