@@ -1235,6 +1235,54 @@ static void testBACnetApplicationData(void)
     verifyBACnetComplexDataValue(
         &value, OBJECT_NETWORK_PORT, PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE);
 
+    char special_event_calendar[] =
+        "calendar:5,{12:30:15.05,15,16:01:02.03,0},5";
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_SPECIAL_EVENT, special_event_calendar, &value);
+    zassert_true(status, NULL);
+    zassert_equal(
+        value.type.Special_Event.periodTag,
+        BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE, NULL);
+    zassert_equal(
+        value.type.Special_Event.period.calendarReference.type, OBJECT_CALENDAR,
+        NULL);
+    zassert_equal(
+        value.type.Special_Event.period.calendarReference.instance, 5, NULL);
+    zassert_equal(value.type.Special_Event.timeValues.TV_Count, 2, NULL);
+    zassert_equal(value.type.Special_Event.priority, 5, NULL);
+    verifyBACnetComplexDataValue(
+        &value, OBJECT_SCHEDULE, PROP_EXCEPTION_SCHEDULE);
+
+    char special_event_date[] = "2023/10/24,{08:00:00.00,active},3";
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_SPECIAL_EVENT, special_event_date, &value);
+    zassert_true(status, NULL);
+    zassert_equal(
+        value.type.Special_Event.periodTag,
+        BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY, NULL);
+    zassert_equal(
+        value.type.Special_Event.period.calendarEntry.tag, BACNET_CALENDAR_DATE,
+        NULL);
+    zassert_equal(value.type.Special_Event.timeValues.TV_Count, 1, NULL);
+    zassert_equal(value.type.Special_Event.priority, 3, NULL);
+    verifyBACnetComplexDataValue(
+        &value, OBJECT_SCHEDULE, PROP_EXCEPTION_SCHEDULE);
+
+    char special_event_empty[] = "2023/10/24,{},255";
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_SPECIAL_EVENT, special_event_empty, &value);
+    zassert_true(status, NULL);
+    zassert_equal(value.type.Special_Event.priority, 255, NULL);
+    zassert_equal(value.type.Special_Event.timeValues.TV_Count, 0, NULL);
+    {
+        uint8_t apdu_special[480] = { 0 };
+        int special_len = bacapp_encode_application_data(NULL, &value);
+        zassert_true(special_len > 0, NULL);
+        zassert_equal(
+            bacapp_encode_application_data(apdu_special, &value), special_len,
+            NULL);
+    }
+
     return;
 }
 
