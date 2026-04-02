@@ -1282,6 +1282,44 @@ static void testBACnetApplicationData(void)
             bacapp_encode_application_data(apdu_special, &value), special_len,
             NULL);
     }
+    /* Test: date entry with two numeric time-value pairs (from header comment
+     * example). Verifies that sched_str is "{12:30:00.00,100,14:00:00.00,50}"
+     * and not just the first token "12:30:00.00". */
+    char special_event_date_multi[] =
+        "2023/10/24,{12:30:00.00,100,14:00:00.00,50},5";
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_SPECIAL_EVENT, special_event_date_multi, &value);
+    zassert_true(status, NULL);
+    zassert_equal(
+        value.type.Special_Event.periodTag,
+        BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY, NULL);
+    zassert_equal(
+        value.type.Special_Event.period.calendarEntry.tag, BACNET_CALENDAR_DATE,
+        NULL);
+    zassert_equal(value.type.Special_Event.timeValues.TV_Count, 2, NULL);
+    zassert_equal(
+        value.type.Special_Event.timeValues.Time_Values[0].Time.hour, 12, NULL);
+    zassert_equal(
+        value.type.Special_Event.timeValues.Time_Values[0].Time.min, 30, NULL);
+    zassert_equal(
+        value.type.Special_Event.timeValues.Time_Values[0].Value.tag,
+        BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_equal(
+        value.type.Special_Event.timeValues.Time_Values[0]
+            .Value.type.Unsigned_Int,
+        100, NULL);
+    zassert_equal(
+        value.type.Special_Event.timeValues.Time_Values[1].Time.hour, 14, NULL);
+    zassert_equal(
+        value.type.Special_Event.timeValues.Time_Values[1].Value.tag,
+        BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_equal(
+        value.type.Special_Event.timeValues.Time_Values[1]
+            .Value.type.Unsigned_Int,
+        50, NULL);
+    zassert_equal(value.type.Special_Event.priority, 5, NULL);
+    verifyBACnetComplexDataValue(
+        &value, OBJECT_SCHEDULE, PROP_EXCEPTION_SCHEDULE);
 
     return;
 }
