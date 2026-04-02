@@ -53,6 +53,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added parsing for property name and optional array in ReadPropertyMultiple
+  example application. Added the priority value when printing special-event
+  property types, specificially for exception-schedule property. (#1291)
 * Added parsing for BACnetSpecialEvent in bacapp for use in apps/writeproperty
   and add unit tests. (#1290)
 * Added multi-device support for BACnet gateway routing. Expanded Object_List
