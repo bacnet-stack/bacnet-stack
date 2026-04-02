@@ -401,7 +401,8 @@ int main(int argc, char *argv[])
                              */
                             fprintf(
                                 stderr,
-                                "Error: unable to parse the tag value\n");
+                                "Error: unable to parse tag=%ld value=%s\n",
+                                property_tag, value_string);
                             return 1;
                         }
                     } else {

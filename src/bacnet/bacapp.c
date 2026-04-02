@@ -3613,7 +3613,7 @@ static int bacapp_snprintf_special_event(
     }
     slen = bacapp_snprintf_daily_schedule(str, str_len, &value->timeValues);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = bacapp_snprintf(str, str_len, "}");
+    slen = bacapp_snprintf(str, str_len, ",%u}", (unsigned)value->priority);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
