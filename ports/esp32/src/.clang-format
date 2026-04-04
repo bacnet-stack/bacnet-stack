@@ -1,7 +1,0 @@
----
-# Disable formatting for now as there is external code. We should move external
-# code to a separate directory and enable formatting for our code.
-DisableFormat: true
-
-# DisableFormat will not disable include sorting with some versions.
-SortIncludes: Never
