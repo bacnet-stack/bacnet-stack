@@ -1,56 +1,96 @@
-//
-// Copyleft  F.Chaxel 2017
-//
+/**
+ * @file
+ * @brief BACnet/IP initialization helpers for the PlatformIO ESP32 port
+ * @author Kato Gangstad
+ */
 
-#include "esp_log.h"
-#include "esp_wifi.h"
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "lwip/sockets.h"
-#include "lwip/netdb.h"
+#include "bip.h"
 
-#include "bacnet/datalink/bip.h"
+static bool BIP_Debug = false;
 
-long bip_get_addr_by_name(const char *host_name)
+/**
+ * @brief Enable BACnet/IP debug mode
+ */
+void bip_debug_enable(void)
 {
+    BIP_Debug = true;
+}
+
+/**
+ * @brief Disable BACnet/IP debug mode
+ */
+void bip_debug_disable(void)
+{
+    BIP_Debug = false;
+}
+
+/**
+ * @brief Resolve a host name into an address when supported
+ * @param host_name host name to resolve
+ * @return resolved address, or 0 when unsupported by this port
+ */
+long bip_getaddrbyname(const char *host_name)
+{
+    (void)host_name;
     return 0;
 }
 
-void bip_set_interface(const char *ifname)
+/**
+ * @brief Refresh the local and broadcast BACnet/IP addresses
+ */
+void bip_set_interface(void)
 {
+    uint8_t local_address[] = { 0, 0, 0, 0 };
+    uint8_t broadcast_address[] = { 0, 0, 0, 0 };
+    uint8_t netmask[] = { 0, 0, 0, 0 };
+    uint8_t inverted_netmask[] = { 0, 0, 0, 0 };
+    int i;
+
+    if (!bip_get_local_network_info(local_address, netmask)) {
+        return;
+    }
+
+    bip_set_addr(local_address);
+
+    for (i = 0; i < 4; i++) {
+        inverted_netmask[i] = (uint8_t)~netmask[i];
+        broadcast_address[i] =
+            (uint8_t)(local_address[i] | inverted_netmask[i]);
+    }
+
+    bip_set_broadcast_addr(broadcast_address);
 }
 
-void bip_cleanup(void)
+/**
+ * @brief Initialize the BACnet/IP datalink for the selected UDP port
+ * @param port UDP port number
+ * @return true if initialization succeeded
+ */
+bool bip_init(uint16_t port)
 {
-    close(bip_socket());
-    bip_set_socket(-1);
-}
+    (void)BIP_Debug;
 
-bool bip_init(char *ifname)
-{
-    tcpip_adapter_ip_info_t ip_info = { 0 };
+    if (!bip_socket_init(port)) {
+        return false;
+    }
 
-    int value = 1;
+    bip_set_interface();
+    bip_set_port(port);
 
-    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
-
-    bip_set_interface(ifname);
-    bip_set_port(0xBAC0U);
-    bip_set_addr(ip_info.ip.addr);
-    bip_set_broadcast_addr(
-        (ip_info.ip.addr & ip_info.netmask.addr) | (~ip_info.netmask.addr));
-
-    int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-    struct sockaddr_in saddr = { 0 };
-
-    saddr.sin_family = PF_INET;
-    saddr.sin_port = htons(0xBAC0U);
-    saddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    bind(sock, (struct sockaddr *)&saddr, sizeof(struct sockaddr_in));
-
-    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&value, sizeof(value));
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value));
-
-    bip_set_socket(sock);
+    bip_set_socket(0);
 
     return true;
+}
+
+/**
+ * @brief Shut down the BACnet/IP datalink
+ */
+void bip_cleanup(void)
+{
+    if (bip_valid()) {
+        bip_socket_cleanup();
+    }
 }
