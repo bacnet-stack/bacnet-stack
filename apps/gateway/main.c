@@ -53,7 +53,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /** The list of DNETs that our router can reach.
  *  Only one entry since we don't support downstream routers.
  */
-int DNET_list[2] = {
+int32_t DNET_list[2] = {
     VIRTUAL_DNET, -1 /* Need -1 terminator */
 };
 

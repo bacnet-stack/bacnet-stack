@@ -25,21 +25,22 @@ BACNET_STACK_EXPORT
 int Send_Network_Layer_Message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     BACNET_ADDRESS *dst,
-    const int *iArgs);
+    const int32_t *iArgs);
 BACNET_STACK_EXPORT
-void Send_Who_Is_Router_To_Network(BACNET_ADDRESS *dst, int dnet);
+void Send_Who_Is_Router_To_Network(BACNET_ADDRESS *dst, int32_t dnet);
 BACNET_STACK_EXPORT
-void Send_I_Am_Router_To_Network(const int DNET_list[]);
+void Send_I_Am_Router_To_Network(const int32_t DNET_list[]);
 BACNET_STACK_EXPORT
 void Send_Reject_Message_To_Network(
-    BACNET_ADDRESS *dst, uint8_t reject_reason, int dnet);
+    BACNET_ADDRESS *dst, uint8_t reject_reason, int32_t dnet);
 BACNET_STACK_EXPORT
-void Send_Initialize_Routing_Table(BACNET_ADDRESS *dst, const int DNET_list[]);
+void Send_Initialize_Routing_Table(
+    BACNET_ADDRESS *dst, const int32_t DNET_list[]);
 BACNET_STACK_EXPORT
 void Send_Initialize_Routing_Table_Ack(
-    BACNET_ADDRESS *dst, const int DNET_list[]);
+    BACNET_ADDRESS *dst, const int32_t DNET_list[]);
 BACNET_STACK_EXPORT
-void Send_Network_Number_Is(BACNET_ADDRESS *dst, int dnet, int status);
+void Send_Network_Number_Is(BACNET_ADDRESS *dst, int32_t dnet, int status);
 
 #ifdef __cplusplus
 }

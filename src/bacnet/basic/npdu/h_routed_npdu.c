@@ -50,7 +50,7 @@
  */
 static void network_control_handler(
     BACNET_ADDRESS *src,
-    int *DNET_list,
+    int32_t *DNET_list,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *npdu,
     uint16_t npdu_len)
@@ -181,7 +181,7 @@ static void network_control_handler(
 static void routed_apdu_handler(
     BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
-    int *DNET_list,
+    int32_t *DNET_list,
     uint8_t *apdu,
     uint16_t apdu_len)
 {
@@ -260,7 +260,7 @@ static void routed_apdu_handler(
  *  @param pdu_len [in] The size of the received message in the pdu[] buffer.
  */
 void routing_npdu_handler(
-    BACNET_ADDRESS *src, int *DNET_list, uint8_t *pdu, uint16_t pdu_len)
+    BACNET_ADDRESS *src, int32_t *DNET_list, uint8_t *pdu, uint16_t pdu_len)
 {
     int apdu_offset = 0;
     BACNET_ADDRESS dest = { 0 };

@@ -22,7 +22,7 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 void routing_npdu_handler(
-    BACNET_ADDRESS *src, int *DNET_list, uint8_t *pdu, uint16_t pdu_len);
+    BACNET_ADDRESS *src, int32_t *DNET_list, uint8_t *pdu, uint16_t pdu_len);
 
 #ifdef __cplusplus
 }
