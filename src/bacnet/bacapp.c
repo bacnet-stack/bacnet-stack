@@ -4147,7 +4147,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
     char *chunk, *comma, *space, *t, *v, *colonpos, *sqpos;
     int daynum = 0, tvnum = 0;
-    unsigned int inner_tag;
+    uint32_t inner_tag;
     BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
     BACNET_DAILY_SCHEDULE *dsch;
 
@@ -4179,7 +4179,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
             return false;
         }
     } else {
-        inner_tag = (int)dummy_value.type.Unsigned_Int;
+        inner_tag = (uint32_t)dummy_value.type.Unsigned_Int;
     }
 
     chunk = strtok(NULL, ";");
@@ -4810,8 +4810,8 @@ bool bacapp_parse_application_data(
 #if defined(BACAPP_DATE)
     int year, month, day, wday;
 #endif
-    int object_type = 0;
-    uint32_t instance = 0;
+    unsigned int object_type = 0;
+    unsigned int object_instance = 0;
     bool status = false;
     long long_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_long_value = 0;
@@ -4957,10 +4957,10 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                count = sscanf(argv, "%4d:%7u", &object_type, &instance);
+                count = sscanf(argv, "%4u:%7u", &object_type, &object_instance);
                 if (count == 2) {
                     value->type.Object_Id.type = (uint16_t)object_type;
-                    value->type.Object_Id.instance = instance;
+                    value->type.Object_Id.instance = (uint32_t)object_instance;
                 } else {
                     status = false;
                 }
