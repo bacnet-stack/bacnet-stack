@@ -216,6 +216,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed type definition compiler warnings in DNET list when int32_t is
+  defined as long int instead of int on 32-bit platforms, and in bacapp
+  module for inner_tag and object_instance when uint32_t is defined
+  as long unsigned int instead of unsigned int on 32-bit platforms. (#1293)
 * Fixed CMakeLists.txt by replacing BIG_ENDIAN definition with
   BACNET_BIG_ENDIAN to fix missing function in builds. (#1284)
 * Fixed CMakeLists.txt by adding INTRINSIC_REPORTING CMake option
