@@ -58,6 +58,7 @@ static void network_control_handler(
     uint16_t npdu_offset = 0;
     uint16_t dnet = 0;
     uint16_t len = 0;
+    int32_t listTerminator = -1;
 
     switch (npdu_data->network_message_type) {
         case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
@@ -133,7 +134,6 @@ static void network_control_handler(
                      * with no routing list of our own.  But we don't DO
                      * anything with the info, either.
                      */
-                    int listTerminator = -1;
                     Send_Initialize_Routing_Table_Ack(src, &listTerminator);
                 }
                 break;

@@ -160,7 +160,7 @@ static void check_who_is_for_routing(
     int32_t high_limit = 0;
     int32_t dev_instance;
     int cursor = 0; /* Starting hint */
-    int my_list[2] = { 0, -1 }; /* Not really used, so dummy values */
+    int32_t my_list[2] = { 0, -1 }; /* Not really used, so dummy values */
     BACNET_ADDRESS bcast_net;
 
     len = whois_decode_service_request(
