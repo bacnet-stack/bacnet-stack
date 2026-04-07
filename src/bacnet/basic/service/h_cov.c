@@ -45,7 +45,6 @@ typedef struct BACnet_COV_Address {
 /* note: This COV service only monitors the properties
    of an object that have been specified in the standard.  */
 typedef struct BACnet_COV_Subscription_Flags {
-    bool valid : 1;
     bool issueConfirmedNotifications : 1; /* optional */
     bool send_requested : 1;
 } BACNET_COV_SUBSCRIPTION_FLAGS;
@@ -375,8 +374,7 @@ int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 
         for (index = 0; index < Keylist_Count(COV_Subscriptions); index++) {
             subscription = Keylist_Data_Index(COV_Subscriptions, index);
-            if (subscription &&
-                subscription->flag.valid) {
+            if (subscription) {
                 /* Lets encode a COV subscription into an intermediate buffer
                  * that can hold it */
                 int len = cov_encode_subscription(
@@ -497,7 +495,6 @@ static bool cov_list_subscribe(
             subscription = cov_subscription_create(index);
             if (subscription) {
                 subscription->dest_index = addr_add_ret;
-                subscription->flag.valid = true;
                 subscription->monitoredObjectIdentifier.type =
                     cov_data->monitoredObjectIdentifier.type;
                 subscription->monitoredObjectIdentifier.instance =
@@ -690,8 +687,7 @@ void handler_cov_timer_seconds(uint32_t elapsed_seconds)
             /* Iterate in reverse order due to subscription deletion */
             for (index = list_cnt - 1; index >= 0; index--) {
                 subscription = Keylist_Data_Index(COV_Subscriptions, index);
-                if (subscription &&
-                    subscription->flag.valid) {
+                if (subscription) {
                     lifetime_seconds = subscription->lifetime;
                     if (lifetime_seconds) {
                         /* only expire COV with definite lifetimes */
@@ -710,8 +706,7 @@ void handler_cov_timer_seconds(uint32_t elapsed_seconds)
         /* Iterate in reverse order due to subscription deletion */
         for (index = list_cnt - 1; index >= 0; index--) {
             subscription = Keylist_Data_Index(COV_Subscriptions, index);
-            if (subscription &&
-                subscription->flag.valid) {
+            if (subscription) {
                 lifetime_seconds = subscription->lifetime;
                 if (lifetime_seconds) {
                     /* only expire COV with definite lifetimes */
@@ -759,8 +754,7 @@ bool handler_cov_fsm(void)
 
     switch (cov_task_state) {
         case COV_STATE_IDLE:
-            if (subscription &&
-                subscription->flag.valid) {
+            if (subscription) {
                 cov_task_state = COV_STATE_MARK;
             } else {
                 index++;
@@ -808,7 +802,6 @@ bool handler_cov_fsm(void)
         case COV_STATE_FREE:
             /* confirmed notification house keeping */
             if (subscription &&
-                (subscription->flag.valid) &&
                 (subscription->flag.issueConfirmedNotifications) &&
                 (subscription->invokeID)) {
                 if (tsm_invoke_id_free(subscription->invokeID)) {
