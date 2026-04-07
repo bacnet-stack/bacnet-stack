@@ -702,8 +702,8 @@ bool dlmstp_init(void *poPort, char *ifname)
      */
     newtio.c_cflag =
         poSharedData->RS485MOD | CLOCAL | CREAD | BOTHER | (BOTHER << IBSHIFT);
-    newtio.c_ispeed = poSharedData->RS485_Baud;
-    newtio.c_ospeed = poSharedData->RS485_Baud;
+    newtio.c_ispeed = dlmstp_baud_rate(mstp_port);
+    newtio.c_ospeed = dlmstp_baud_rate(mstp_port);
     /* Raw input */
     newtio.c_iflag = 0;
     /* Raw output */

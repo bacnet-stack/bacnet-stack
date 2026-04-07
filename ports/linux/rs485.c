@@ -206,7 +206,13 @@ void RS485_Send_Frame(
 
     if (mstp_port && mstp_port->UserData) {
         poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
-        baud = poSharedData->RS485_Baud;
+        /* poSharedData->RS485_Baud stores a termios B-constant (e.g.
+         * B38400=15), NOT the actual numeric baud rate. Using it directly in
+         * the turnaround delay formula (40,000,000 / baud) would produce ~2.7
+         * seconds instead of the correct ~1ms at 38400 baud. dlmstp_baud_rate()
+         * converts the termios constant to the real value.
+         */
+        baud = dlmstp_baud_rate(mstp_port);
         handle = poSharedData->RS485_Handle;
     }
 
