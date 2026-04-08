@@ -671,7 +671,7 @@ static void cov_lifetime_expiration_handler(
  */
 void handler_cov_timer_seconds(uint32_t elapsed_seconds)
 {
-    unsigned index = 0;
+    int index = 0;
     uint32_t lifetime_seconds = 0;
     BACNET_COV_SUBSCRIPTION *subscription = NULL;
     int list_cnt = 0;
