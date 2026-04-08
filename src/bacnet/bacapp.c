@@ -4712,7 +4712,7 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, char *str)
     char *period_str, *sched_str, *prio_str;
     BACNET_SPECIAL_EVENT *ev = &value->type.Special_Event;
     BACNET_UNSIGNED_INTEGER prio = 0;
-    uint32_t obj_type = 0, obj_instance = 0;
+    long unsigned int obj_type = 0, obj_instance = 0;
     char type_buf[64];
     char *colon;
     size_t tlen;
@@ -4776,7 +4776,7 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, char *str)
         }
         memcpy(type_buf, period_str, tlen);
         type_buf[tlen] = '\0';
-        count = sscanf(colon + 1, "%7u", &obj_instance);
+        count = sscanf(colon + 1, "%7lu", &obj_instance);
         if (count != 1) {
             return false;
         }
@@ -4784,7 +4784,7 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, char *str)
         if (bactext_object_type_strtol(type_buf, &obj_type)) {
             ev->period.calendarReference.type = (BACNET_OBJECT_TYPE)obj_type;
         } else {
-            count = sscanf(type_buf, "%4u", &obj_type);
+            count = sscanf(type_buf, "%4lu", &obj_type);
             if (count != 1) {
                 return false;
             }
