@@ -39,13 +39,20 @@ void ge_ack_print_data(
 {
     unsigned int count = 0;
     BACNET_GET_EVENT_INFORMATION_DATA *act_data = data;
-    const char *state_strs[] = { "NO", "FA", "ON", "HL", "LL" };
+    const char *state_strs[EVENT_STATE_MAX] = { "NO", "FA", "ON", "HL", "LL" };
+    const char *state_str;
     printf("DeviceID\tType\tInstance\teventState\n");
     printf("--------------- ------- --------------- ---------------\n");
     while (act_data) {
+        if (act_data->eventState < EVENT_STATE_MAX) {
+            state_str = state_strs[act_data->eventState];
+        } else {
+            state_str = "??";
+        }
         printf(
-            "%u\t\t%u\t%u\t\t%s\n", device_id, act_data->objectIdentifier.type,
-            act_data->objectIdentifier.instance, state_strs[data->eventState]);
+            "%lu\t\t%u\t%lu\t\t%s\n", (unsigned long)device_id,
+            act_data->objectIdentifier.type,
+            (unsigned long)act_data->objectIdentifier.instance, state_str);
         act_data = act_data->next;
         count++;
     }
