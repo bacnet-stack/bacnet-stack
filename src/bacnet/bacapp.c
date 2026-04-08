@@ -4712,7 +4712,8 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, char *str)
     char *period_str, *sched_str, *prio_str;
     BACNET_SPECIAL_EVENT *ev = &value->type.Special_Event;
     BACNET_UNSIGNED_INTEGER prio = 0;
-    long unsigned int obj_type = 0, obj_instance = 0;
+    long unsigned int unsigned_value = 0;
+    uint32_t found_index = 0;
     char type_buf[64];
     char *colon;
     size_t tlen;
@@ -4776,19 +4777,20 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, char *str)
         }
         memcpy(type_buf, period_str, tlen);
         type_buf[tlen] = '\0';
-        count = sscanf(colon + 1, "%7lu", &obj_instance);
+        count = sscanf(colon + 1, "%7lu", &unsigned_value);
         if (count != 1) {
             return false;
         }
-        ev->period.calendarReference.instance = obj_instance;
-        if (bactext_object_type_strtol(type_buf, &obj_type)) {
-            ev->period.calendarReference.type = (BACNET_OBJECT_TYPE)obj_type;
+        ev->period.calendarReference.instance = (uint32_t)unsigned_value;
+        if (bactext_object_type_strtol(type_buf, &found_index)) {
+            ev->period.calendarReference.type = (BACNET_OBJECT_TYPE)found_index;
         } else {
-            count = sscanf(type_buf, "%4lu", &obj_type);
+            count = sscanf(type_buf, "%4lu", &unsigned_value);
             if (count != 1) {
                 return false;
             }
-            ev->period.calendarReference.type = (BACNET_OBJECT_TYPE)obj_type;
+            ev->period.calendarReference.type =
+                (BACNET_OBJECT_TYPE)unsigned_value;
         }
     }
     value->tag = BACNET_APPLICATION_TAG_SPECIAL_EVENT;
