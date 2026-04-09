@@ -55,7 +55,6 @@ void bacnet_port_bzll_task(uint16_t elapsed_seconds)
 bool bacnet_port_bzll_init(void)
 {
     uint32_t instance = 1;
-    uint8_t prefix = 0;
     BACNET_ADDRESS addr = { 0 };
 
     if (!bzll_init(NULL)) {
@@ -66,7 +65,6 @@ bool bacnet_port_bzll_init(void)
     Network_Port_Type_Set(instance, PORT_TYPE_ZIGBEE);
     bzll_get_my_address(&addr);
     Network_Port_MAC_Address_Set(instance, &addr.mac[0], addr.mac_len);
-    /* FIXME: Virtual_MAC_Address_Table */
 
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
     Network_Port_Out_Of_Service_Set(instance, false);

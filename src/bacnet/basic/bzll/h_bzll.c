@@ -13,10 +13,11 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/datalink/bzll.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bzll/bzllvmac.h"
+/* me! */
 #include "bacnet/basic/bzll/h_bzll.h"
-#include "bacnet/basic/sys/ringbuf.h"
 
 /* buffer for incoming BACnet messages */
 struct bzll_packet {
@@ -24,12 +25,28 @@ struct bzll_packet {
     uint16_t length;
     uint8_t buffer[BZLL_MPDU_MAX];
 };
+
+/* Time to request a read if there is no communication */
+#ifndef BZLL_NODE_TIME_TO_LIVE_S
+#define BZLL_NODE_TIME_TO_LIVE_S (600)
+#endif
+
+/* Time of interval to scan all devices */
+#ifndef BZLL_SCAN_NODES_INTERVAL_S
+#define BZLL_SCAN_NODES_INTERVAL_S (3600)
+#endif
+
+/* Size of the protocol address size */
+#define BZLL_ADDRESS_SIZE   (3)
+
 /* count must be a power of 2 for ringbuf library */
 #ifndef BZLL_RECEIVE_PACKET_COUNT
 #define BZLL_RECEIVE_PACKET_COUNT 2
 #endif
+
 static struct bzll_packet Receive_Buffer[BZLL_RECEIVE_PACKET_COUNT];
 static RING_BUFFER Receive_Queue;
+static uint32_t bzll_time_scan_nodes_remaining = BZLL_SCAN_NODES_INTERVAL_S;
 
 /**
  * @brief Enable debugging if print is enabled
@@ -39,11 +56,20 @@ void bzll_debug_enable(void)
     BZLL_VMAC_Debug_Enable();
 }
 
+/**
+ * @brief Determine if debugging is enabled
+ */
+bool bzll_debug_enabled(void)
+{
+    return BZLL_VMAC_Debug_Enabled();
+}
+
 /* Callback function for sending MPDU */
 static bzll_send_mpdu_callback BZLL_Send_MPDU_Callback;
 
 /**
  * @brief Set the callback function for sending MPDU
+ *
  * @param cb - callback function to be called when an MPDU needs to be sent
  */
 void bzll_send_mpdu_callback_set(bzll_send_mpdu_callback cb)
@@ -53,10 +79,12 @@ void bzll_send_mpdu_callback_set(bzll_send_mpdu_callback cb)
 
 /**
  * @brief Send a packet to the destination address via the callback function
+ *
  * @param dest - Points to a BZLL VMAC structure containing the
  *  EUI64 address and endpoint.
  * @param mtu - Points to a buffer containing the MPDU data to send.
  * @param mtu_len - number of bytes of MPDU data to send
+ *
  * @return number of bytes sent on success, negative value on failure
  */
 static int bzll_send_mpdu(
@@ -73,6 +101,7 @@ static bzll_get_address_callback BZLL_Get_My_Address_Callback;
 
 /**
  * @brief Set the callback function for getting my address
+ *
  * @param cb - callback function to be called when my address is needed
  */
 void bzll_get_my_address_callback_set(bzll_get_address_callback cb)
@@ -82,7 +111,9 @@ void bzll_get_my_address_callback_set(bzll_get_address_callback cb)
 
 /**
  * @brief Get my address via the callback function
+ *
  * @param addr - Points to a BZLL VMAC structure to be filled with my address
+ *
  * @return true if the address was obtained successfully
  */
 static bool bzll_get_addr(struct bzll_vmac_data *addr)
@@ -93,145 +124,87 @@ static bool bzll_get_addr(struct bzll_vmac_data *addr)
     return false;
 }
 
-/* Callback function for getting broadcast address */
-static bzll_get_address_callback BZLL_Get_Broadcast_Address_Callback;
+/* Callback function to advertise the new address */
+static bzll_advertise_address_callback BZLL_Advertise_Address_Callback;
 
 /**
- * @brief Set the callback function for getting broadcast address
- * @param cb - callback function to be called when broadcast address is needed
+ * @brief Set the callback function to advertise the new address
+ *
+ * @param cb [in] - Callback function to be called when a new address has to be
+ * advertised.
  */
-void bzll_get_broadcast_address_callback_set(bzll_get_address_callback cb)
+void bzll_advertise_address_callback_set(bzll_advertise_address_callback cb)
 {
-    BZLL_Get_Broadcast_Address_Callback = cb;
+    BZLL_Advertise_Address_Callback = cb;
 }
 
 /**
- * @brief Get the broadcast address via the callback function
- * @param addr - Points to a BZLL VMAC structure to be filled with my address
- * @return true if the address was obtained successfully
+ * @brief Advertise the new address.
+ * @param addr [in] - New address to be advertise
+ * @return 0 if success, negative values for error
  */
-static bool bzll_get_broadcast_addr(struct bzll_vmac_data *addr)
+static int bzll_advertise_address(const BACNET_ADDRESS *addr)
 {
-    if (BZLL_Get_Broadcast_Address_Callback) {
-        return BZLL_Get_Broadcast_Address_Callback(addr) == 0;
-    }
-    return false;
-}
-
-/**
- * @brief Generate a random VMAC address
- *
- * H.7.2 Using Device Instance as a VMAC Address
- *
- * The random portion of a random instance VMAC address
- * is a number in the range 0 to 4194303.
- * The resulting random instance VMAC address
- * is in the range 4194304 to 8388607 (X'100000' to X'7FFFFF ').
- * The generation of a random instance VMAC shall yield
- * any number in the entire range with equal probability.
- * A random instance VMAC is formatted as follows:
- *
- * Bit Number:
- *   7   6   5   4   3   2   1   0
- * |---|---|---|---|---|---|---|---|
- * | 0 | 1 |   High 6 Bits         |
- * |---|---|---|---|---|---|---|---|
- * |           Middle Octet        |
- * |---|---|---|---|---|---|---|---|
- * |           Low Octet           |
- * |---|---|---|---|---|---|---|---|
- *
- * @param src [out] returns the source address
- * @param npdu [out] The buffer to receive the NPDU.
- * @param npdu_len [in] The maximum number of bytes that can be received in
- * npdu[].
- */
-uint32_t bzll_random_instance_vmac(void)
-{
-    uint32_t random_instance;
-
-    /* The random portion of a random instance VMAC address
-       is a number in the range 0 to 4194303. */
-    random_instance = (uint32_t)(rand() % 4194304UL) + 4194304UL;
-
-    return random_instance;
-}
-
-/**
- * @brief A timer function that is called about once a second.
- * @param seconds - number of elapsed seconds since the last call
- */
-void bzll_maintenance_timer(uint16_t seconds)
-{
-    /* To be able to detect new nodes on the network,
-       the BZLL on a router shall periodically issue
-       a Read Attribute command requesting the Protocol
-       Address attribute from all network nodes.
-
-       The period at which a router requests all Protocol
-       Address attributes is a local matter. */
-    (void)seconds;
-}
-
-/**
- * Adds an Zigbee source address and Device ID key to a VMAC address cache
- * @param device_id - device ID used as the key-pair
- * @param addr - Zigbee source address
- */
-static void bzll_add_vmac(uint32_t device_id, const struct bzll_vmac_data *addr)
-{
-    bool found = false;
-    uint32_t list_device_id = 0;
-    struct bzll_vmac_data *vmac = NULL;
-    struct bzll_vmac_data new_vmac = { 0 };
-    unsigned i = 0;
-
-    if (BZLL_VMAC_Entry_To_Device_ID(addr, &list_device_id)) {
-        if (list_device_id == device_id) {
-            /* valid VMAC entry exists. */
-            found = true;
-        } else {
-            /* VMAC exists, but device ID changed */
-            BZLL_VMAC_Delete(list_device_id);
-            debug_printf(
-                "BZLL: VMAC existed for %u [", (unsigned int)list_device_id);
-            for (i = 0; i < sizeof(new_vmac.mac); i++) {
-                debug_printf("%02X", new_vmac.mac[i]);
-            }
-            debug_printf("]\n");
-            debug_printf(
-                "BZLL: Removed VMAC for %lu.\n", (unsigned long)list_device_id);
+    if (BZLL_Advertise_Address_Callback) {
+        if (addr->mac_len == BZLL_ADDRESS_SIZE) {
+            return BZLL_Advertise_Address_Callback(
+                addr->mac, BZLL_ADDRESS_SIZE);
         }
     }
-    if (!found) {
-        if (BZLL_VMAC_Entry_By_Device_ID(device_id, vmac)) {
-            /* device ID already exists. Update MAC. */
-            BZLL_VMAC_Copy(vmac, &new_vmac);
-            debug_printf("BZLL: VMAC for %u [", (unsigned int)device_id);
-            for (i = 0; i < sizeof(new_vmac.mac); i++) {
-                debug_printf("%02X", new_vmac.mac[i]);
-            }
-            debug_printf("]\n");
-            debug_printf(
-                "BZLL: Updated VMAC for %lu.\n", (unsigned long)device_id);
-        } else {
-            /* new entry - add it! */
-            BZLL_VMAC_Add(device_id, &new_vmac);
-            debug_printf("BZLL: VMAC for %u [", (unsigned int)device_id);
-            for (i = 0; i < sizeof(new_vmac.mac); i++) {
-                debug_printf("%02X", new_vmac.mac[i]);
-            }
-            debug_printf("]\n");
-            debug_printf(
-                "BZLL: Added VMAC for %lu.\n", (unsigned long)device_id);
-        }
+    return -1;
+}
+
+/**
+ * @brief Pointer to the callback stored.
+ */
+static bzll_request_read_property_address_callback
+    BZLL_Request_Read_Property_Address_Callback;
+
+/**
+ * @brief Set callback to request read property address
+ *
+ * @param cb [in] Pointer to the callback.
+ */
+void bzll_request_read_property_address_callback_set(
+    bzll_request_read_property_address_callback cb)
+{
+    BZLL_Request_Read_Property_Address_Callback = cb;
+}
+
+/**
+ * @brief Call the callback to request the read of the address property
+ *
+ * @param dest [in] - Destination address. It can be a broadcast address.
+ *
+ * @return return 0 for success. Negative values for error.
+ */
+static int bzll_request_read_property_address(const struct bzll_vmac_data *dest)
+{
+    if (BZLL_Request_Read_Property_Address_Callback) {
+        return BZLL_Request_Read_Property_Address_Callback(dest);
+    }
+    return -1;
+}
+
+/**
+ * @brief Update the status and ttl of the node.
+ *
+ * @param vmac_data [in] - VMAC address of the node.
+ */
+static void bzll_update_node_status(struct bzll_vmac_data *vmac_data)
+{
+    struct bzll_node_status_table_entry *status_entry;
+    bool status = BZLL_VMAC_Node_Status_Entry(vmac_data, &status_entry);
+    if (status && status_entry) {
+        status_entry->valid = true;
+        status_entry->ttl_seconds_remaining = BZLL_NODE_TIME_TO_LIVE_S;
     }
 }
 
 /**
- * Compares the Zigbee source address to my VMAC
+ * @brief Compares the Zigbee source address to my VMAC
  *
- * @param addr - Zigbee source address
+ * @param addr [in] - Zigbee source address
  *
  * @return true if the Zigbee source address matches my VMAC
  */
@@ -250,11 +223,11 @@ static bool bzll_address_match_self(const struct bzll_vmac_data *addr)
 }
 
 /**
- * Finds the BZLL address for the #BACNET_ADDRESS via VMAC
+ * @brief Finds the BZLL address for the #BACNET_ADDRESS via VMAC
  *
- * @param addr - BZLL address
- * @param vmac_src - VMAC address (Device ID)
- * @param baddr - Points to a #BACNET_ADDRESS structure containing the
+ * @param addr [out]- BZLL address
+ * @param vmac_src [out] - VMAC address (Device ID)
+ * @param baddr [in] - Points to a #BACNET_ADDRESS structure containing the
  *  VMAC address.
  *
  * @return true if the address was in the VMAC table
@@ -271,7 +244,8 @@ static bool bzll_address_from_bacnet_address(
     if (addr && baddr) {
         status = BZLL_VMAC_Device_ID_From_Address(baddr, &device_id);
         if (status) {
-            if (BZLL_VMAC_Entry_By_Device_ID(device_id, vmac)) {
+            status = BZLL_VMAC_Entry_By_Device_ID(device_id, vmac);
+            if (status) {
                 BZLL_VMAC_Copy(addr, vmac);
                 debug_printf(
                     "BZLL: Found VMAC %lu.\n", (unsigned long)device_id);
@@ -285,48 +259,93 @@ static bool bzll_address_from_bacnet_address(
     return status;
 }
 
-int bzll_encode_original_broadcast(
-    uint8_t *pdu,
-    uint16_t pdu_size,
-    uint32_t vmac,
-    const uint8_t *npdu,
-    uint16_t npdu_len)
+/**
+ * @brief Fill the bzll_vmac_data with the reserved value to indicate broadcast.
+ * The Zigbee layer shall send to the GroupId of the BACnet cluster.
+ *
+ * @param vmac_data [out] - Address
+ */
+static void bzll_fill_vmac_broadcast_addr(struct bzll_vmac_data *vmac_data)
 {
-    /* FIXME: */
-    (void)vmac;
-    (void)pdu;
-    (void)pdu_size;
-    (void)npdu;
-    (void)npdu_len;
-    return 0;
+    uint8_t i = 0;
+    for (i = 0; i < BZLL_VMAC_EUI64; i++) {
+        vmac_data->mac[i] = 0xFF;
+    }
+    vmac_data->endpoint = 0xFF;
 }
 
-int bzll_encode_original_unicast(
-    uint8_t *pdu,
-    uint16_t pdu_size,
-    uint32_t vmac_src,
-    uint32_t vmac_dst,
-    const uint8_t *npdu,
-    uint16_t npdu_len)
+/**
+ * @brief A timer function that is called about once a second.
+ *
+ * @param seconds [in] - number of elapsed seconds since the last call
+ */
+void bzll_maintenance_timer(uint16_t seconds)
 {
-    /* FIXME: */
-    (void)vmac_src;
-    (void)vmac_dst;
-    (void)pdu;
-    (void)pdu_size;
-    (void)npdu;
-    (void)npdu_len;
-    return 0;
+    struct bzll_node_status_table_entry *status_entry;
+    struct bzll_vmac_data dest;
+    uint32_t device_id = 0;
+    bool status = false;
+    int count = 0;
+    int i = 0;
+
+    /* Verifies each of the nodes. */
+    count = BZLL_VMAC_Count();
+    for (i = 0; i < count; i++) {
+        status = BZLL_VMAC_Node_Status_By_Index_Entry(i, &status_entry);
+        if (status && status_entry) {
+            if (status_entry->ttl_seconds_remaining > seconds) {
+                status_entry->ttl_seconds_remaining -= seconds;
+                continue;
+            } else {
+                if (status_entry->valid) {
+                    /* The flag has to be valid when the response arrives */
+                    status_entry->valid = false;
+                    status_entry->ttl_seconds_remaining =
+                        BZLL_NODE_TIME_TO_LIVE_S;
+                    BZLL_VMAC_Entry_By_Index(i, NULL, &dest);
+                    if (!bzll_request_read_property_address(&dest)) {
+                        debug_printf("Read request Failed");
+                    }
+                    continue;
+                } /* else remove */
+            } /* else remove */
+        } /* else remove */
+        /* Remove from the broadcast table */
+        BZLL_VMAC_Entry_By_Index(i, &device_id, NULL);
+        BZLL_VMAC_Delete(device_id);
+    }
+
+    /* Scan all nodes */
+    if (bzll_time_scan_nodes_remaining <= seconds) {
+        bzll_time_scan_nodes_remaining = BZLL_SCAN_NODES_INTERVAL_S;
+        count = BZLL_VMAC_Count();
+        for (i = 0; i < count; i++) {
+            status = BZLL_VMAC_Node_Status_By_Index_Entry(i, &status_entry);
+            if (status && status_entry) {
+                /* The flag has to be valid when the response arrives */
+                status_entry->valid = false;
+                status_entry->ttl_seconds_remaining = BZLL_NODE_TIME_TO_LIVE_S;
+            }
+        }
+        bzll_fill_vmac_broadcast_addr(&dest);
+        if (!bzll_request_read_property_address(&dest)) {
+            debug_printf("Read request Failed");
+        }
+    } else {
+        bzll_time_scan_nodes_remaining -= seconds;
+    }
 }
 
 /**
  * @brief The common send function for BACnet Zigbee application layer
- * @param dest - Points to a #BACNET_ADDRESS structure containing the
+ *
+ * @param dest [in] - Points to a #BACNET_ADDRESS structure containing the
  *  destination address.
- * @param npdu_data - Points to a BACNET_NPDU_DATA structure containing the
+ * @param npdu_data [in] - Points to a BACNET_NPDU_DATA structure containing the
  *  destination network layer control flags and data.
- * @param pdu - the bytes of data to send
- * @param pdu_len - the number of bytes of data to send
+ * @param pdu [in] - the bytes of data to send
+ * @param pdu_len [in] - the number of bytes of data to send
+ *
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned to indicate the error.
  */
@@ -337,72 +356,60 @@ int bzll_send_pdu(
     unsigned pdu_len)
 {
     struct bzll_vmac_data bzll_dest = { 0 };
-    uint8_t mtu[BZLL_MPDU_MAX] = { 0 };
-    uint16_t mtu_len = 0;
-    uint32_t vmac_src = 0;
     uint32_t vmac_dst = 0;
 
     /* this datalink doesn't need to know the npdu data */
     (void)npdu_data;
     /* handle various broadcasts: */
-    if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
+    if ( (dest->len == 0)) {
+        /* SADR empty, Invalid, shall have source endpoint */
+        debug_printf("BZLL: Send failure. Invalid SADR Address.\n");
+        return -1;
+    } else if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
         /* mac_len = 0 is a broadcast address */
         /* net = 0 indicates local, net = 65535 indicates global */
-        vmac_src = Device_Object_Instance_Number();
-        mtu_len = bzll_encode_original_broadcast(
-            mtu, sizeof(mtu), vmac_src, pdu, pdu_len);
+        bzll_fill_vmac_broadcast_addr(&bzll_dest);
+
         debug_printf("BZLL: Sent Original-Broadcast-NPDU.\n");
-    } else if ((dest->net > 0) && (dest->len == 0)) {
-        /* net > 0 and net < 65535 are network specific broadcast if len = 0 */
-        if (dest->mac_len == 3) {
-            /* network specific broadcast to address */
-            bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest);
-        } else {
-            bzll_get_broadcast_addr(&bzll_dest);
-        }
-        vmac_src = Device_Object_Instance_Number();
-        mtu_len = bzll_encode_original_broadcast(
-            mtu, sizeof(mtu), vmac_src, pdu, pdu_len);
-        debug_printf("BZLL: Sent Original-Broadcast-NPDU.\n");
-    } else if (dest->mac_len == 3) {
+    } else if (dest->mac_len == BZLL_ADDRESS_SIZE) {
         /* valid unicast */
-        bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest);
+        if(!bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest))
+        {
+            return -1;
+        }
         debug_printf("BZLL: Sending to VMAC %lu.\n", (unsigned long)vmac_dst);
-        vmac_src = Device_Object_Instance_Number();
-        mtu_len = bzll_encode_original_unicast(
-            mtu, sizeof(mtu), vmac_src, vmac_dst, pdu, pdu_len);
         debug_printf("BZLL: Sent Original-Unicast-NPDU.\n");
     } else {
         debug_printf("BZLL: Send failure. Invalid Address.\n");
         return -1;
     }
 
-    return bzll_send_mpdu(&bzll_dest, mtu, mtu_len);
+    return bzll_send_mpdu(&bzll_dest, pdu, pdu_len);
 }
 
 /**
- * BACnet/IP Datalink Receive handler.
+ * @brief BACnet/Zigbee Datalink Receive handler.
  *
- * @param src - returns the source address
- * @param npdu - returns the NPDU buffer
- * @param max_npdu -maximum size of the NPDU buffer
- * @param timeout - number of milliseconds to wait for a packet
+ * @param src [out] - returns the source address
+ * @param npdu [out] - returns the NPDU buffer
+ * @param max_npdu [in] -maximum size of the NPDU buffer
+ * @param timeout [in] - number of milliseconds to wait for a packet
  *
  * @return Number of bytes received, or 0 if none or timeout.
  */
 uint16_t bzll_receive(
     BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu, unsigned timeout)
 {
-    struct bzll_packet *pkt;
+    struct bzll_packet pkt;
     uint16_t npdu_len = 0;
 
     (void)timeout;
     if (npdu && src) {
         if (Ringbuf_Pop(&Receive_Queue, (uint8_t *)&pkt)) {
-            if (max_npdu <= sizeof(pkt->buffer)) {
-                memcpy(npdu, pkt->buffer, pkt->length);
-                bacnet_address_copy(src, &pkt->src);
-                npdu_len = pkt->length;
+            if (max_npdu >= sizeof(pkt.buffer)) {
+                memcpy(npdu, pkt.buffer, pkt.length);
+                bacnet_address_copy(src, &pkt.src);
+                npdu_len = pkt.length;
             }
         }
     }
@@ -412,28 +419,29 @@ uint16_t bzll_receive(
 
 /**
  * @brief Handler for received packets from the datalink layer
+ *
  * @param src [in] address to send any ACK or NAK back to.
  * @param npdu [in] The received BACnet NPDU buffer.
  * @param npdu_len [in] The number of bytes in the NPDU buffer.
  */
 static void
-bzll_receive_handler(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu)
+bzll_receive_handler(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t npdu_len)
 {
     struct bzll_packet *pkt = NULL;
 
     if (npdu && src) {
         pkt = (struct bzll_packet *)Ringbuf_Data_Peek(&Receive_Queue);
-        if (pkt && (max_npdu < sizeof(pkt->buffer))) {
-            memcpy(pkt->buffer, npdu, max_npdu);
+        if (pkt && (npdu_len < sizeof(pkt->buffer))) {
+            memcpy(pkt->buffer, npdu, npdu_len);
             bacnet_address_copy(&pkt->src, src);
-            pkt->length = max_npdu;
+            pkt->length = npdu_len;
             Ringbuf_Data_Put(&Receive_Queue, (volatile uint8_t *)pkt);
         }
     }
 }
 
 /**
- * Use this handler for BACnet/Zigbee received packets.
+ * @brief Use this handler for BACnet/Zigbee received packets.
  *
  * @param src [in] address to send any ACK or NAK back to.
  * @param npdu [in] The received BACnet NPDU buffer.
@@ -442,8 +450,9 @@ bzll_receive_handler(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu)
 void bzll_receive_pdu(
     struct bzll_vmac_data *src, uint8_t *npdu, uint16_t npdu_len)
 {
-    uint32_t device_id = 0;
+    uint32_t device_id = BACNET_NO_DEV_ID;
     BACNET_ADDRESS baddr = { 0 };
+    bool status = false;
 
     if (bzll_address_match_self(src)) {
         /* ignore messages from my BACnet/Zigbee address */
@@ -452,39 +461,193 @@ void bzll_receive_pdu(
         debug_printf(
             "BZLL: Received packet from device %lu.\n",
             (unsigned long)device_id);
+
+        /* update the status of the node */
+        bzll_update_node_status(src);
+
         BZLL_VMAC_Device_ID_To_Address(&baddr, device_id);
         bzll_receive_handler(&baddr, npdu, npdu_len);
     } else {
         /* this is an unknown BACnet/Zigbee VMAC address */
-        do {
-            /* generate a new random instance VMAC address */
-            device_id = bzll_random_instance_vmac();
-            /* check if the generated device ID is already in use */
-        } while (BZLL_VMAC_Entry_By_Device_ID(device_id, NULL));
-        bzll_add_vmac(device_id, src);
+        status = BZLL_VMAC_Add(&device_id, src);
+        if (status) {
+            /* update the status of the node */
+            bzll_update_node_status(src);
+        }
+
         BZLL_VMAC_Device_ID_To_Address(&baddr, device_id);
         bzll_receive_handler(&baddr, npdu, npdu_len);
     }
 }
 
 /**
- * Cleanup any memory usage
+ * @brief Cleanup any memory usage
  */
 void bzll_cleanup(void)
 {
     BZLL_VMAC_Cleanup();
+    while (!Ringbuf_Empty(&Receive_Queue)) {
+        Ringbuf_Pop(&Receive_Queue, NULL);
+    }
 }
 
 /**
- * Initialize any tables or other memory
+ * @brief Initialize any tables or other memory
+ * @param interface_name
+ *
+ * @return true if initialized
  */
 bool bzll_init(char *interface_name)
 {
     (void)interface_name;
-    Ringbuf_Init(
-        &Receive_Queue, (uint8_t *)&Receive_Buffer, sizeof(struct bzll_packet),
-        BZLL_RECEIVE_PACKET_COUNT);
+    Ringbuf_Initialize(
+        &Receive_Queue, (uint8_t *)&Receive_Buffer, sizeof(Receive_Buffer),
+        sizeof(struct bzll_packet), BZLL_RECEIVE_PACKET_COUNT);
     BZLL_VMAC_Init();
+    bzll_time_scan_nodes_remaining = BZLL_SCAN_NODES_INTERVAL_S;
 
     return true;
+}
+
+/**
+ * @brief Initialize the a data link broadcast address
+ *
+ * @param dest - address to be filled with broadcast designator
+ */
+void bzll_get_broadcast_address(BACNET_ADDRESS *dest)
+{
+    int i = 0;
+
+    if (dest) {
+        dest->mac_len = BZLL_ADDRESS_SIZE;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->mac[i] = 0xFF;
+        }
+        dest->net = BACNET_BROADCAST_NETWORK;
+        /* always zero when DNET is broadcast */
+        dest->len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->adr[i] = 0;
+        }
+    }
+    return;
+}
+
+/**
+ * @brief Get the BACnet address for my interface
+ *
+ * @param my_address [out] - address to be filled with my interface address
+ */
+void bzll_get_my_address(BACNET_ADDRESS *my_address)
+{
+    uint32_t instance;
+
+    instance = Device_Object_Instance_Number();
+    bacnet_vmac_address_set(my_address, instance);
+
+    return;
+}
+
+/**
+ * @brief Get the maximum incoming transfer size read attribute
+ *
+ * @param transfer_size [out] - Get the maximum outgoing transfer size read
+ * attribute.
+ */
+void bzll_get_maximum_incoming_transfer_size(uint32_t *transfer_size)
+{
+    *transfer_size = BZLL_MPDU_MAX;
+}
+
+/**
+ * @brief Get the maximum outgoing transfer size read attribute.
+ *
+ * @param transfer_size [out] - Return the transfer size.
+ */
+void bzll_get_maximum_outgoing_transfer_size(uint32_t *transfer_size)
+{
+    *transfer_size = BZLL_MPDU_MAX;
+}
+
+/**
+ * @brief Handler to the match protocol address command
+ *
+ * @param protocol_addr [in] - Instance Protocol address array
+ * @param address_size [in] - Instance Protocol address array size
+ *
+ * @return true if the address is the same of my address
+ */
+bool bzll_match_protocol_address(uint8_t *protocol_addr, uint16_t address_size)
+{
+    BACNET_ADDRESS my_addr;
+    BACNET_ADDRESS addr;
+    uint32_t instance;
+
+    if (address_size == BZLL_ADDRESS_SIZE) {
+        decode_unsigned24(protocol_addr, &instance);
+        bacnet_vmac_address_set(&addr, instance);
+
+        bzll_get_my_address(&my_addr);
+
+        return bacnet_address_same(&my_addr, &addr);
+    }
+    return false;
+}
+
+/**
+ * @brief Response to the Read Property request.
+ *
+ * @param vmac_data [in] - The MAC address of the node
+ * @param protocol_addr [in] Instance Address of the node
+ * @param address_size [in] - Instance Address size of the node
+ *
+ * @return true if the VMAC table was updated successfully.
+ */
+bool bzll_update_node_protocol_address(
+    struct bzll_vmac_data *vmac_data,
+    uint8_t *protocol_addr,
+    uint16_t address_size)
+{
+    uint32_t instance;
+    bool status = false;
+
+    if (address_size == BZLL_ADDRESS_SIZE) {
+        decode_unsigned24(protocol_addr, &instance);
+        status = BZLL_VMAC_Add(&instance, vmac_data);
+        if (status) {
+            bzll_update_node_status(vmac_data);
+        }
+        return status;
+    }
+    return false;
+}
+
+/**
+ * @brief Handler to update the BACnet Object number after a write property
+ * request.
+ *
+ * @param protocol_addr [in] - New address array
+ * @param address_size [in] - New address array size
+ *
+ * @return true if the address was changed successfully
+ */
+bool bzll_update_object_protocol_address(
+    uint8_t *protocol_addr, uint16_t address_size)
+{
+    uint32_t instance;
+    if (address_size == BZLL_ADDRESS_SIZE) {
+        decode_unsigned24(protocol_addr, &instance);
+        return Device_Set_Object_Instance_Number(instance);
+    }
+    return false;
+}
+
+/**
+ * @brief Call when the BACNET address changes
+ *
+ * @param my_address [in] - New address to be broadcast.
+ */
+void bzll_set_my_address(const BACNET_ADDRESS *my_address)
+{
+    bzll_advertise_address(my_address);
 }
