@@ -1,5 +1,35 @@
 #!/bin/sh
-# Nothing to do
+# BACnet Stack Configuration Script
+# Usage: ./configure [OPTIONS]
+# Options:
+#   --help, -h              Show this help message
+#   --with-bacnet-sc        Install BACnet/SC dependencies (optional, default: no)
+
+# Parse command line arguments
+INSTALL_BACNET_SC=0
+
+for arg in "$@"; do
+  case $arg in
+    -h|--help)
+      echo "BACnet Stack Configuration Script"
+      echo "Usage: $0 [OPTIONS]"
+      echo ""
+      echo "Options:"
+      echo "  --help, -h              Show this help message"
+      echo "  --with-bacnet-sc        Install BACnet/SC dependencies (optional, default: no)"
+      exit 0
+      ;;
+    --with-bacnet-sc)
+      INSTALL_BACNET_SC=1
+      ;;
+    *)
+      echo "Unknown option: $arg"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
+  esac
+done
+
 sudo apt-get update -qq
 # install core development packages
 sudo apt-get install -qq build-essential
@@ -44,14 +74,16 @@ sudo apt-get install -qq sloccount
 sudo apt-get install -qq complexity
 sudo apt-get install -qq pmccabe
 
-# install BACnet Secure Connect (BACnet/SC) dependencies
-sudo apt-get install -qq libconfig-dev
-sudo apt-get install -qq libcap-dev
-sudo apt-get install -qq libssl-dev
-sudo apt-get install -qq libuv1-dev
-git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
-bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5;make'
-sudo bash -c 'cd libwebsockets;cd build;make install'
+# install BACnet Secure Connect (BACnet/SC) dependencies (optional)
+if [ $INSTALL_BACNET_SC -eq 1 ]; then
+  sudo apt-get install -qq libconfig-dev
+  sudo apt-get install -qq libcap-dev
+  sudo apt-get install -qq libssl-dev
+  sudo apt-get install -qq libuv1-dev
+  git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
+  bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5;make'
+  sudo bash -c 'cd libwebsockets;cd build;make install'
+fi
 
 # all complete!
 echo "🚀  ALL GOOD TO GO"
