@@ -75,16 +75,16 @@ static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 
 /**
  * @brief Deletes a subscription
- * @param subscription_idx - subscription index
+ * @param list_idx - keylist index
  * @return true if the subscription was deleted
  */
-static bool cov_subscription_delete(uint32_t subscription_idx)
+static bool cov_subscription_delete(uint32_t list_idx)
 {
     bool status = false;
     BACNET_COV_SUBSCRIPTION *subscription = NULL;
 
     subscription =
-        Keylist_Data_Delete_By_Index(COV_Subscriptions, subscription_idx);
+        Keylist_Data_Delete_By_Index(COV_Subscriptions, list_idx);
     if (subscription) {
         free(subscription);
         status = true;
@@ -95,21 +95,26 @@ static bool cov_subscription_delete(uint32_t subscription_idx)
 
 /**
  * @brief Creates a subscription
- * @param subscription_idx - subscription index
+ * @param list_key - keylist key
  * @return the subscription that was created, or NULL
  */
 static BACNET_COV_SUBSCRIPTION *
-cov_subscription_create(uint32_t subscription_idx)
+cov_subscription_create(uint32_t list_key)
 {
     BACNET_COV_SUBSCRIPTION *subscription = NULL;
-    if (subscription_idx >= MAX_COV_SUBSCRIPTIONS) {
+    int index = 0;
+    if (list_key >= MAX_COV_SUBSCRIPTIONS) {
         return NULL;
     }
-    subscription = Keylist_Data(COV_Subscriptions, subscription_idx);
+    subscription = Keylist_Data(COV_Subscriptions, list_key);
     if (!subscription) {
         subscription = calloc(1, sizeof(BACNET_COV_SUBSCRIPTION));
         if (subscription) {
-            Keylist_Data_Add(COV_Subscriptions, subscription_idx, subscription);
+            index = Keylist_Data_Add(COV_Subscriptions, list_key, subscription);
+            if (index < 0) {
+                free(subscription);
+                return NULL;
+            }
         } else {
             return NULL;
         }
@@ -490,8 +495,8 @@ static bool cov_list_subscribe(
             *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
             found = false;
         } else {
-            index = Keylist_Count(COV_Subscriptions);
             found = true;
+            index = Keylist_Next_Empty_Key(COV_Subscriptions, 0);
             subscription = cov_subscription_create(index);
             if (subscription) {
                 subscription->dest_index = addr_add_ret;
@@ -506,6 +511,10 @@ static bool cov_list_subscribe(
                 subscription->invokeID = 0;
                 subscription->lifetime = cov_data->lifetime;
                 subscription->flag.send_requested = true;
+            } else {
+                *error_class = ERROR_CLASS_RESOURCES;
+                *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+                found = false;
             }
         }
     } else if (!existing_entry) {
