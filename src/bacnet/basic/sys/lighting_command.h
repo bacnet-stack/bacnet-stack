@@ -42,6 +42,13 @@ struct lighting_command_timer_notification {
 };
 
 /**
+ * @brief Callback for locking shared state during lighting command processing
+ * @param data - dimmer data structure
+ */
+typedef void (*lighting_command_lock_callback)(
+    struct bacnet_lighting_command_data *);
+
+/**
  * @brief Callback that manipulates the value at the specified priority slot
     after a delay of Egress_Time seconds.
  * @param object_instance object-instance number of the object
@@ -91,6 +98,10 @@ typedef struct bacnet_lighting_command_data {
     uint32_t Key;
     struct lighting_command_notification Notification_Head;
     struct lighting_command_timer_notification Timer_Notification_Head;
+    /* lock for accessing shared state */
+    lighting_command_lock_callback Lock;
+    lighting_command_lock_callback Unlock;
+    void *Context;
 } BACNET_LIGHTING_COMMAND_DATA;
 
 #ifdef __cplusplus

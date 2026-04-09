@@ -918,6 +918,9 @@ void lighting_command_timer(
     if (!data) {
         return;
     }
+    if (data->Lock) {
+        data->Lock(data);
+    }
     if (data->Overridden) {
         data->Lighting_Operation = BACNET_LIGHTS_NONE;
     }
@@ -961,6 +964,9 @@ void lighting_command_timer(
             break;
     }
     lighting_command_timer_notify(data, milliseconds);
+    if (data->Unlock) {
+        data->Unlock(data);
+    }
 }
 
 /**

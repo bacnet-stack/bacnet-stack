@@ -249,6 +249,13 @@ BACNET_STACK_EXPORT
 void Lighting_Output_Context_Set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
+BACNET_LIGHTING_COMMAND_DATA *
+Lighting_Output_Lighting_Command_Data(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Lighting_Output_Lighting_Command_Data_Set(
+    uint32_t object_instance, BACNET_LIGHTING_COMMAND_DATA *data);
+
+BACNET_STACK_EXPORT
 uint32_t Lighting_Output_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Delete(uint32_t object_instance);
