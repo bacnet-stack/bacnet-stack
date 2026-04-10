@@ -69,7 +69,7 @@ static bool CheckArraySize(OS_Keylist list)
 
         /* See if we got the memory we wanted */
         if (!new_array) {
-            return true;
+            return false;
         }
 
         /* copy the nodes from the old array to the new array */
@@ -171,6 +171,11 @@ int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
     int i; /* counts through the array */
 
     if (list && CheckArraySize(list)) {
+        node = NodeCreate();
+        if (!node) {
+            return -1;
+        }
+
         /* figure out where to put the new node */
         if (list->count) {
             (void)FindIndex(list, key, &index);
@@ -190,14 +195,11 @@ int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
             index = 0;
         }
 
-        /* create and add the node */
-        node = NodeCreate();
-        if (node) {
-            list->count++;
-            node->key = key;
-            node->data = data;
-            list->array[index] = node;
-        }
+        /* add the node */
+        list->count++;
+        node->key = key;
+        node->data = data;
+        list->array[index] = node;
     }
     return index;
 }
