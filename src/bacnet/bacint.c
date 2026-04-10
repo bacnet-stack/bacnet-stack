@@ -326,14 +326,17 @@ int encode_signed16(uint8_t *apdu, int16_t value)
 int decode_signed16(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
+        uint32_t unsigned_value;
+
         /* negative - bit 7 is set */
         if (apdu[0] & 0x80) {
-            *value = 0xFFFF0000;
+            unsigned_value = 0xFFFF0000;
         } else {
-            *value = 0;
+            unsigned_value = 0;
         }
-        *value |= (int32_t)apdu[0] << 8;
-        *value |= (int32_t)apdu[1];
+        unsigned_value |= (uint32_t)apdu[0] << 8;
+        unsigned_value |= (uint32_t)apdu[1];
+        *value = (int32_t)unsigned_value;
     }
 
     return 2;
@@ -353,15 +356,18 @@ int encode_signed24(uint8_t *apdu, int32_t value)
 int decode_signed24(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
+        uint32_t unsigned_value;
+
         /* negative - bit 7 is set */
         if (apdu[0] & 0x80) {
-            *value = 0xFF000000;
+            unsigned_value = 0xFF000000;
         } else {
-            *value = 0;
+            unsigned_value = 0;
         }
-        *value |= (int32_t)apdu[0] << 16;
-        *value |= (int32_t)apdu[1] << 8;
-        *value |= (int32_t)apdu[2];
+        unsigned_value |= (uint32_t)apdu[0] << 16;
+        unsigned_value |= (uint32_t)apdu[1] << 8;
+        unsigned_value |= (uint32_t)apdu[2];
+        *value = (int32_t)unsigned_value;
     }
 
     return 3;
@@ -382,10 +388,13 @@ int encode_signed32(uint8_t *apdu, int32_t value)
 int decode_signed32(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
-        *value = (int32_t)apdu[0] << 24;
-        *value |= (int32_t)apdu[1] << 16;
-        *value |= (int32_t)apdu[2] << 8;
-        *value |= (int32_t)apdu[3];
+        uint32_t unsigned_value;
+
+        unsigned_value = (uint32_t)apdu[0] << 24;
+        unsigned_value |= (uint32_t)apdu[1] << 16;
+        unsigned_value |= (uint32_t)apdu[2] << 8;
+        unsigned_value |= (uint32_t)apdu[3];
+        *value = (int32_t)unsigned_value;
     }
 
     return 4;
