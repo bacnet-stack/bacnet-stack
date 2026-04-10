@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [Unreleased] - 2026-02-13
+## [Unreleased] - 2026-04-10
 
 ### Security
 
@@ -38,6 +38,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed C undefined behavior in decode_signed32(), decode_signed24(),
+  and decode_signed16() functions. CWE-758 — Undefined Behavior. (#1300)
 * Fixed conditional compilation of mstp.c and mstptext.c based
   on BACDL_MSTP option (#1229)
 * Fixed bacfile-posix file write to return the number of bytes written. (#1223)
