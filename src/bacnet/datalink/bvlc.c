@@ -682,7 +682,8 @@ int bvlc_broadcast_distribution_table_decode(
 {
     int len = 0, apdu_len = 0;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
-    BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
+    BACNET_HOST_N_PORT host_n_port = { 0 };
+    BACNET_OCTET_STRING broadcast_mask = { 0 };
 
     /* default reject code */
     if (error_code) {
@@ -694,21 +695,22 @@ int bvlc_broadcast_distribution_table_decode(
     }
     bdt_entry = bdt_head;
     while (bdt_entry) {
-        len = host_n_port_minimal_context_decode(
+        len = host_n_port_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 0, error_code, &host_n_port);
         if (len > 0) {
             apdu_len += len;
             bdt_entry->dest_address.port = host_n_port.port;
-            if (host_n_port.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+            if (host_n_port.host_ip_address &&
+                (host_n_port.host.ip_address.length == IP_ADDRESS_MAX)) {
                 bdt_entry->valid = true;
                 bdt_entry->dest_address.address[0] =
-                    host_n_port.host.ip_address.address[0];
+                    host_n_port.host.ip_address.value[0];
                 bdt_entry->dest_address.address[1] =
-                    host_n_port.host.ip_address.address[1];
+                    host_n_port.host.ip_address.value[1];
                 bdt_entry->dest_address.address[2] =
-                    host_n_port.host.ip_address.address[2];
+                    host_n_port.host.ip_address.value[2];
                 bdt_entry->dest_address.address[3] =
-                    host_n_port.host.ip_address.address[3];
+                    host_n_port.host.ip_address.value[3];
             } else {
                 bdt_entry->valid = false;
             }
@@ -716,12 +718,18 @@ int bvlc_broadcast_distribution_table_decode(
             return BACNET_STATUS_REJECT;
         }
         /* broadcast-mask [1] OCTET STRING */
-        len = bacnet_octet_string_buffer_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 1,
-            bdt_entry->broadcast_mask.address,
-            sizeof(bdt_entry->broadcast_mask.address));
+        len = bacnet_octet_string_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &broadcast_mask);
         if (len > 0) {
             apdu_len += len;
+            if (broadcast_mask.length == IP_ADDRESS_MAX) {
+                bdt_entry->broadcast_mask.address[0] = broadcast_mask.value[0];
+                bdt_entry->broadcast_mask.address[1] = broadcast_mask.value[1];
+                bdt_entry->broadcast_mask.address[2] = broadcast_mask.value[2];
+                bdt_entry->broadcast_mask.address[3] = broadcast_mask.value[3];
+            } else {
+                bdt_entry->valid = false;
+            }
         } else {
             if (error_code) {
                 *error_code = ERROR_CODE_REJECT_INVALID_TAG;
