@@ -193,6 +193,8 @@ list(APPEND testdirs
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic
+  # basic/service
+  bacnet/basic/service/h_cov
   # basic/server
   bacnet/basic/server/bacnet_device
   # basic/sys

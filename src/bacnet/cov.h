@@ -14,6 +14,8 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacapp.h"
+#include "bacnet/bacdest.h"
+#include "bacnet/bacdevobjpropref.h"
 
 typedef struct BACnet_COV_Data {
     uint32_t subscriberProcessIdentifier;
@@ -40,6 +42,25 @@ typedef struct BACnet_Subscribe_COV_Data {
     struct BACnet_Subscribe_COV_Data *next;
 } BACNET_SUBSCRIBE_COV_DATA;
 
+/**
+ * BACnetCOVSubscription ::= SEQUENCE {
+ *     recipient[0] BACnetRecipientProcess,
+ *     monitored-property-reference[1] BACnetObjectPropertyReference,
+ *     issue-confirmed-notifications[2] Boolean,
+ *     time-remaining[3] Unsigned,
+ *     cov-increment[4] Real OPTIONAL-- used only with monitored
+ *     -- properties with a numeric datatype
+ * }
+ */
+typedef struct BACnetCOVSubscription {
+    uint32_t time_remaining; /* seconds */
+    BACNET_RECIPIENT_PROCESS recipient;
+    BACNET_OBJECT_PROPERTY_REFERENCE monitored_property_reference;
+    bool issue_confirmed_notifications;
+    bool cov_increment_present; /* true if present */
+    float cov_increment; /* optional */
+} BACNET_COV_SUBSCRIPTION;
+
 /* generic callback for COV notifications */
 typedef void (*BACnet_COV_Notification_Callback)(BACNET_COV_DATA *cov_data);
 struct BACnet_COV_Notification;
@@ -51,6 +72,16 @@ typedef struct BACnet_COV_Notification {
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
+size_t
+cov_subscription_encode(uint8_t *apdu, const BACNET_COV_SUBSCRIPTION *data);
+BACNET_STACK_EXPORT
+size_t bacnet_cov_subscription_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_COV_SUBSCRIPTION *data);
+BACNET_STACK_EXPORT
+int bacnet_cov_subscription_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_COV_SUBSCRIPTION *data);
 
 BACNET_STACK_EXPORT
 size_t cov_notify_service_request_encode(
