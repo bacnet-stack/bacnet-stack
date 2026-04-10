@@ -63,8 +63,8 @@ static void testTimeSyncRecipient(void)
     /* network = non-zero */
     recipient[2].recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
     recipient[2].recipient.type.address.net = 4201;
-    recipient[2].recipient.type.address.adr[0] = 127;
-    recipient[2].recipient.type.address.len = 1;
+    recipient[2].recipient.type.address.mac[0] = 127;
+    recipient[2].recipient.type.address.mac_len = 1;
     /* network = zero */
     recipient[3].recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
     recipient[3].recipient.type.address.net = 0;

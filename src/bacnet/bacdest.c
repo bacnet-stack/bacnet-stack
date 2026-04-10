@@ -580,7 +580,7 @@ int bacnet_recipient_decode(
     int len = 0, apdu_len = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
     uint32_t instance = 0;
-    BACNET_ADDRESS address;
+    BACNET_ADDRESS address = { 0 };
 
     if (!apdu) {
         return BACNET_STATUS_REJECT;
