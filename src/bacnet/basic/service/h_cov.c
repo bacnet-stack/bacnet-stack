@@ -83,8 +83,7 @@ static bool cov_subscription_delete(uint32_t list_idx)
     bool status = false;
     BACNET_COV_SUBSCRIPTION *subscription = NULL;
 
-    subscription =
-        Keylist_Data_Delete_By_Index(COV_Subscriptions, list_idx);
+    subscription = Keylist_Data_Delete_By_Index(COV_Subscriptions, list_idx);
     if (subscription) {
         free(subscription);
         status = true;
@@ -98,8 +97,7 @@ static bool cov_subscription_delete(uint32_t list_idx)
  * @param list_key - keylist key
  * @return the subscription that was created, or NULL
  */
-static BACNET_COV_SUBSCRIPTION *
-cov_subscription_create(uint32_t list_key)
+static BACNET_COV_SUBSCRIPTION *cov_subscription_create(uint32_t list_key)
 {
     BACNET_COV_SUBSCRIPTION *subscription = NULL;
     int index = 0;
