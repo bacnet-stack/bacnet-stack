@@ -44,6 +44,12 @@ bacge - BACnet GetEventInformation service
 bacco - BACnet CreateObject service
 bacdo - BACnet DeleteObject service
 bacrr - BACnet ReadRange service
+bacptr - BACnet ConfirmedPrivateTransfer service
+bacapdu - BACnet send arbitrary APDU service
+bacwhoami - BACnet Who-Am-I service
+bacwg - BACnet WriteGroup service
+bacyouare - BACnet You-Are service
+bacdiscover-gtk - BACnet discovery tool with GTK GUI
 
 Client Error/Abort
 -----------------
@@ -54,6 +60,18 @@ Server Tools
 ------------
 bacserv - BACnet Device Simulator with example objects
 bacpoll - BACnet Device with client polling example
+bacbasic - BACnet Basic Server simulator
+bacmini - BACnet Mini Server simulator
+bacschub - BACnet/SC Hub simulator
+bacgateway - BACnet virtual gateway application
+bacgateway2 - BACnet virtual gateway application 2
+bacdiscover - BACnet server-discovery device simulator
+
+Raspberry-Pi Server Tools
+-------------------------
+
+bacblinkt - BACnet server for Raspberry Pi with Blinkt! LEDs
+bacpiface - BACnet server for Raspberry Pi with PiFace Digital
 
 Router Tools
 ------------
@@ -62,6 +80,9 @@ bacinitr - BACnet Initialize Router message
 bacwir - BACnet Who-Is Router to Network message
 bacnni - BACnet Network-Number-Is message
 bacwinn - BACnet Who-Is-Network-Number message
+router - BACnet Router
+router-ipv6 - BACnet IPv6 Router
+router-mstp - BACnet MS/TP Router
 
 MS/TP Tools
 ------------------
@@ -78,9 +99,14 @@ BACnet/IP Tools
 bacwbdt - BACnet/IP Write-Distribution-Table message
 bacrbdt - BACnet/IP Read-Distribution-Table message
 bacrfdt - BACnet/IP Read-Foreign-Device-Table message
+dmbrcap - DMBR capture tool that generates a Wireshark PCAP format file from CreateObject services
 
 Environment Variables
 ---------------------
+BACNET_DATALINK - sets the active datalink layer (e.g., ether, arcnet, mstp, bip, bip6, bsc, zigbee).
+
+BACNET_INVOKE_ID - specifies the APDU invoke ID to use.
+
 BACNET_APDU_TIMEOUT - set this value in milliseconds to change
     the APDU timeout.  APDU Timeout is how much time a client
     waits for a response from a BACnet device. Default is 3000ms.
@@ -115,7 +141,32 @@ BACNET_BDT_MASK_1 - dotted IPv4 mask of the BBMD table
 
 BACNET_IP_NAT_ADDR - dotted IPv4 address of the public facing router
 
+BACNET_IP_NAT_PORT - UDP port of the public facing router
+
 BACNET_IP_BROADCAST_BIND_ADDR - dotted IPv4 address to bind broadcasts
+
+When the tools are compiled to use BACnet/IPv6 datalink, the following
+environment variables are used:
+
+BACNET_BIP6_PORT - UDP/IP port number for BACnet/IPv6 communications.
+BACNET_BIP6_BROADCAST - IPv6 multicast/broadcast address identifier.
+BACNET_BBMD6_PORT - IPv6 BBMD UDP port.
+BACNET_BBMD6_TIMETOLIVE - IPv6 BBMD time-to-live in seconds.
+BACNET_BBMD6_ADDRESS - IPv6 address of the BBMD or Foreign Device Registrar.
+
+When the tools are compiled to use BACnet/SC (Secure Connect) datalink, the following
+environment variables are used:
+
+BACNET_SC_PRIMARY_HUB_URI - URI for the Primary Hub.
+BACNET_SC_FAILOVER_HUB_URI - URI for the Failover Hub.
+BACNET_SC_HUB_FUNCTION_BINDING - Binding for the local Hub function.
+BACNET_SC_DIRECT_CONNECT_BINDING - URI binding for direct connections.
+BACNET_SC_DIRECT_CONNECT_INITIATE - Set to enable direct connection initiation.
+BACNET_SC_DIRECT_CONNECT_ACCEPT_URLS - Specify acceptable URLs for direct connections.
+BACNET_SC_ISSUER_1_CERTIFICATE_FILE - Path to issuer 1 certificate.
+BACNET_SC_ISSUER_2_CERTIFICATE_FILE - Path to issuer 2 certificate.
+BACNET_SC_OPERATIONAL_CERTIFICATE_FILE - Path to the operational certificate.
+BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE - Path to the operational private key.
 
 When the tools are compiled to use MS/TP datalink, the following
 environment variables are used:
@@ -137,6 +188,15 @@ BACNET_IFACE - interface to use for the MS/TP datalink layer
   For Windows, this is something like COM4 or COM23
   Defaults to /dev/ttyUSB0 on Linux and COM4 on Windows
   and /dev/cu.usbserial-7 on macOS.
+
+Debug Environment Variables
+---------------------------
+BACNET_DATALINK_DEBUG - Enable general datalink debugging.
+BACNET_IP_DEBUG - Enable BACnet/IPv4 debugging.
+BACNET_BIP6_DEBUG - Enable BACnet/IPv6 debugging.
+BACNET_MSTP_DEBUG - Enable BACnet MS/TP debugging.
+BACNET_SC_DEBUG - Enable BACnet/SC debugging.
+BACNET_ZIGBEE_DEBUG - Enable BACnet Zigbee debugging.
 
 Example Usage
 -------------
@@ -242,4 +302,45 @@ bacwh - bacnet-stack/apps/whohas
 bacwi - bacnet-stack/apps/whois
 bacwp - bacnet-stack/apps/writeprop
 bacserv - bacnet-stack/apps/server
-etc.
+bacwpm - bacnet-stack/apps/writepropm
+bacale - bacnet-stack/apps/add-list-element
+bacrle - bacnet-stack/apps/remove-list-element
+bacackalarm - bacnet-stack/apps/ack-alarm
+bacevent - bacnet-stack/apps/event
+bacuevent - bacnet-stack/apps/uevent
+baciam - bacnet-stack/apps/iam
+bacge - bacnet-stack/apps/getevent
+bacco - bacnet-stack/apps/create-object
+bacdo - bacnet-stack/apps/delete-object
+bacrr - bacnet-stack/apps/readrange
+bacerror - bacnet-stack/apps/error
+bacabort - bacnet-stack/apps/abort
+bacpoll - bacnet-stack/apps/server-client
+baciamr - bacnet-stack/apps/iamrouter
+bacinitr - bacnet-stack/apps/initrouter
+bacwir - bacnet-stack/apps/whoisrouter
+bacnni - bacnet-stack/apps/netnumis
+bacwinn - bacnet-stack/apps/whatisnetnum
+mstpcap - bacnet-stack/apps/mstpcap
+mstpcrc - bacnet-stack/apps/mstpcrc
+bacwbdt - bacnet-stack/apps/writebdt
+bacrbdt - bacnet-stack/apps/readbdt
+bacrfdt - bacnet-stack/apps/readfdt
+bacptr - bacnet-stack/apps/ptransfer
+bacapdu - bacnet-stack/apps/apdu
+bacwhoami - bacnet-stack/apps/who-am-i
+bacwg - bacnet-stack/apps/writegroup
+bacyouare - bacnet-stack/apps/you-are
+bacbasic - bacnet-stack/apps/server-basic
+bacmini - bacnet-stack/apps/server-mini
+bacschub - bacnet-stack/apps/sc-hub
+bacgateway - bacnet-stack/apps/gateway
+bacgateway2 - bacnet-stack/apps/gateway2
+bacdiscover - bacnet-stack/apps/server-discover
+bacblinkt - bacnet-stack/apps/blinkt
+bacpiface - bacnet-stack/apps/piface
+router - bacnet-stack/apps/router
+router-ipv6 - bacnet-stack/apps/router-ipv6
+router-mstp - bacnet-stack/apps/router-mstp
+dmbrcap - bacnet-stack/apps/dmbrcap
+bacdiscover-gtk - bacnet-stack/apps/gtk-discover

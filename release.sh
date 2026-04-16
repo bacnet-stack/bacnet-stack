@@ -15,7 +15,7 @@ USERNAME='skarg'
 if [ -z "$1" ]
 then
   echo "Usage: `basename $0` 0.0.0"
-  echo "Builds the Win32 release files, archives the source, and uploads them to sf.net"
+  echo "Builds Win32 release files. Archives source. Uploads files to sf.net"
   exit 1
 fi
 
