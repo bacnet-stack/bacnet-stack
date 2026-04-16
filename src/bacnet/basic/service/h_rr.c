@@ -95,6 +95,10 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return apdu_len;
 }
 
+void Validate_RR_parameters()
+{
+}
+
 /**
  * Handle the received ReadRange request and encode a response.
  *
