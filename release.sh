@@ -7,6 +7,9 @@
 # Prior to running this script, be sure to:
 # a) update CHANGELOG, version.h and CMakeLists.txt with new version number
 # b) commit those changes into this long term branch bacnet-stack-1.4
+# After running this script, be sure to:
+# c) push tags and branch to github
+# d) mirror github to sourceforge using mirror.sh
 
 USERNAME='skarg'
 
