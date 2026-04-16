@@ -6,16 +6,14 @@
 #
 # Prior to running this script, be sure to:
 # a) update CHANGELOG, version.h and CMakeLists.txt with new version number
-# b) commit changes into master branch
-# After running this script, be sure to:
-# c) create long term branch as bacnet-stack-x.y if needed
+# b) commit those changes into this long term branch bacnet-stack-1.4
 
 USERNAME='skarg'
 
 if [ -z "$1" ]
 then
   echo "Usage: `basename $0` 0.0.0"
-  echo "Builds the Win32 release files, archives the source, and uploads them to sf.net"
+  echo "Builds Win32 release files. Archives source. Uploads to sf.net site."
   exit 1
 fi
 
