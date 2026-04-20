@@ -179,6 +179,11 @@ BACNET_STACK_EXPORT
 float lighting_command_physical_range_clamp(float value);
 
 BACNET_STACK_EXPORT
+void lighting_command_lock(struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_unlock(struct bacnet_lighting_command_data *data);
+
+BACNET_STACK_EXPORT
 void lighting_command_refresh(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
 void lighting_command_init(struct bacnet_lighting_command_data *data);
