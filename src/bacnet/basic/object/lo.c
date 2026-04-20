@@ -3836,7 +3836,7 @@ Lighting_Output_Lighting_Command_Data(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        data = pObject->Lighting_Command;
+        data = &pObject->Lighting_Command;
     }
 
     return data;
