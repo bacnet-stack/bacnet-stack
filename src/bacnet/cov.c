@@ -44,6 +44,9 @@ cov_subscription_encode(uint8_t *apdu, const BACNET_COV_SUBSCRIPTION *data)
     int len;
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
+    if (!data) {
+        return 0;
+    }
     /* Recipient [0] BACnetRecipientProcess */
     len = bacnet_recipient_process_context_encode(apdu, 0, &data->recipient);
     apdu_len += len;
@@ -126,6 +129,7 @@ int bacnet_cov_subscription_decode(
     BACNET_OBJECT_PROPERTY_REFERENCE monitored_property_reference = { 0 };
     bool issue_confirmed_notifications = false;
     float float_value = 1.0f;
+    bool cov_increment_present = false;
 
     if (!apdu || (apdu_size == 0)) {
         return 0;
@@ -133,44 +137,43 @@ int bacnet_cov_subscription_decode(
     /* Recipient [0] BACnetRecipientProcess */
     len = bacnet_recipient_process_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &recipient);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    /*  MonitoredPropertyReference [1] BACnetObjectPropertyReference, */
+    /*  MonitoredPropertyReference [1] BACnetObjectPropertyReference */
     len = bacapp_decode_context_obj_property_ref(
         &apdu[apdu_len], apdu_size - apdu_len, 1,
         &monitored_property_reference);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    /* IssueConfirmedNotifications [2] BOOLEAN, */
+    /* IssueConfirmedNotifications [2] BOOLEAN */
     len = bacnet_boolean_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 2,
         &issue_confirmed_notifications);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    /* TimeRemaining [3] Unsigned, */
+    /* TimeRemaining [3] Unsigned */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    /* CovIncrement [4] Real OPTIONAL, */
+    /* CovIncrement [4] Real OPTIONAL */
     len = bacnet_real_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 4, &float_value);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     } else if (len == 0) {
         /* not present - skip */
+        cov_increment_present = false;
     } else {
-        if (data) {
-            data->cov_increment_present = true;
-        }
+        cov_increment_present = true;
         apdu_len += len;
     }
     /* copy into the data structure */
@@ -181,6 +184,7 @@ int bacnet_cov_subscription_decode(
         data->issue_confirmed_notifications = issue_confirmed_notifications;
         data->time_remaining = unsigned_value;
         data->cov_increment = float_value;
+        data->cov_increment_present = cov_increment_present;
     }
 
     return apdu_len;

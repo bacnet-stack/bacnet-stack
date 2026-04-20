@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -56,7 +55,7 @@ typedef struct My_BACnet_COV_Subscription {
     uint32_t subscriberProcessIdentifier;
     uint32_t lifetime; /* optional */
     BACNET_OBJECT_ID monitoredObjectIdentifier;
-} MY_BACNET_COV_SUBSCRIPTION;
+} BACNET_COV_HANDLER_SUBSCRIPTION;
 
 #ifndef MAX_COV_SUBSCRIPTIONS
 #define MAX_COV_SUBSCRIPTIONS 128
@@ -81,7 +80,7 @@ static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 static bool cov_subscription_delete(uint32_t list_idx)
 {
     bool status = false;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
     subscription = Keylist_Data_Delete_By_Index(COV_Subscriptions, list_idx);
     if (subscription) {
@@ -97,16 +96,17 @@ static bool cov_subscription_delete(uint32_t list_idx)
  * @param list_key - keylist key
  * @return the subscription that was created, or NULL
  */
-static BACNET_COV_SUBSCRIPTION *cov_subscription_create(uint32_t list_key)
+static BACNET_COV_HANDLER_SUBSCRIPTION *
+cov_subscription_create(uint32_t list_key)
 {
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
     int index = 0;
     if (list_key >= MAX_COV_SUBSCRIPTIONS) {
         return NULL;
     }
     subscription = Keylist_Data(COV_Subscriptions, list_key);
     if (!subscription) {
-        subscription = calloc(1, sizeof(BACNET_COV_SUBSCRIPTION));
+        subscription = calloc(1, sizeof(BACNET_COV_HANDLER_SUBSCRIPTION));
         if (subscription) {
             index = Keylist_Data_Add(COV_Subscriptions, list_key, subscription);
             if (index < 0) {
@@ -150,7 +150,7 @@ static void cov_address_remove_unused(void)
     unsigned index = 0;
     unsigned cov_index = 0;
     bool found = false;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
@@ -250,54 +250,42 @@ static int cov_address_add(const BACNET_ADDRESS *dest)
  * and, for each valid one, adds its description to the APDU.
  *  @param apdu [out] Buffer in which the APDU contents are built.
  *  @param apdu_size [in] Max length of the APDU buffer.
- *  @return How many bytes were encoded in the buffer, or
+ *  @return Number of bytes encoded in the buffer, or
  *   #BACNET_STATUS_ABORT if the response would not fit within the buffer.
  */
 int handler_cov_encode_subscriptions(uint8_t *apdu, int apdu_size)
 {
-    if (apdu) {
-        uint8_t cov_sub[MAX_COV_SUB_SIZE] = {
-            0,
-        };
-        unsigned index = 0;
-        int apdu_len = 0;
-        BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_SUBSCRIPTION data = { 0 };
+    BACNET_ADDRESS *dest = NULL;
+    int len = 0;
+    int apdu_len = 0;
+    unsigned index = 0;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
-        for (index = 0; index < Keylist_Count(COV_Subscriptions); index++) {
-            subscription = Keylist_Data_Index(COV_Subscriptions, index);
-            if (subscription) {
-                /* Lets encode a COV subscription into an intermediate buffer
-                 * that can hold it */
-                int len = cov_encode_subscription(
-                    &cov_sub[0], max_apdu - apdu_len, subscription);
-
-                if ((apdu_len + len) > max_apdu) {
-                    return -2;
-                }
-
-                /* Lets copy if and only if it fits in the buffer */
-                memcpy(&apdu[apdu_len], cov_sub, len);
-                apdu_len += len;
-            }
+    for (index = 0; index < Keylist_Count(COV_Subscriptions); index++) {
+        subscription = Keylist_Data_Index(COV_Subscriptions, index);
+        if (!subscription) {
+            continue;
         }
-        dest = cov_address_get(COV_Subscriptions[index].dest_index);
+        dest = cov_address_get(subscription->dest_index);
         if (!dest) {
             continue;
         }
+        data.time_remaining = subscription->lifetime;
         data.cov_increment_present = false;
         data.cov_increment = 1.0f; /* dummy value */
         data.issue_confirmed_notifications =
-            COV_Subscriptions[index].flag.issueConfirmedNotifications;
+            subscription->flag.issueConfirmedNotifications;
         data.monitored_property_reference.object_identifier.type =
-            COV_Subscriptions[index].monitoredObjectIdentifier.type;
+            subscription->monitoredObjectIdentifier.type;
         data.monitored_property_reference.object_identifier.instance =
-            COV_Subscriptions[index].monitoredObjectIdentifier.instance;
+            subscription->monitoredObjectIdentifier.instance;
         data.monitored_property_reference.property_identifier =
             PROP_PRESENT_VALUE;
         data.monitored_property_reference.property_array_index =
             BACNET_ARRAY_ALL;
         data.recipient.process_identifier =
-            COV_Subscriptions[index].subscriberProcessIdentifier;
+            subscription->subscriberProcessIdentifier;
         data.recipient.recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
         bacnet_address_copy(&data.recipient.recipient.type.address, dest);
         len = bacnet_cov_subscription_encode(apdu, apdu_size - apdu_len, &data);
@@ -305,6 +293,9 @@ int handler_cov_encode_subscriptions(uint8_t *apdu, int apdu_size)
             return BACNET_STATUS_ABORT;
         }
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
     }
 
     return apdu_len;
@@ -351,7 +342,7 @@ static bool cov_list_subscribe(
     bool found = true;
     bool address_match = false;
     const BACNET_ADDRESS *dest = NULL;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
@@ -446,7 +437,7 @@ static bool cov_list_subscribe(
 }
 
 static bool cov_send_request(
-    MY_BACNET_COV_SUBSCRIPTION *cov_subscription,
+    BACNET_COV_HANDLER_SUBSCRIPTION *cov_subscription,
     BACNET_PROPERTY_VALUE *value_list)
 {
     int len = 0;
@@ -531,7 +522,7 @@ static void cov_lifetime_expiration_handler(
     unsigned index, uint32_t elapsed_seconds, uint32_t lifetime_seconds)
 {
     if (index < MAX_COV_SUBSCRIPTIONS) {
-        BACNET_COV_SUBSCRIPTION *subscription =
+        BACNET_COV_HANDLER_SUBSCRIPTION *subscription =
             Keylist_Data_Index(COV_Subscriptions, index);
         /* handle lifetime expiration */
         if (lifetime_seconds >= elapsed_seconds) {
@@ -566,8 +557,8 @@ static void cov_lifetime_expiration_handler(
     }
 }
 
-/** Handler to check the list of subscribed objects for any that have changed
- *  and so need to have notifications sent.
+/** Handler to check the list of subscribed objects for any that have
+ * changed and so need to have notifications sent.
  * @ingroup DSCOV
  * This handler will be invoked by the main program every second or so.
  * This example only handles Binary Inputs, but can be easily extended to
@@ -585,13 +576,14 @@ static void cov_lifetime_expiration_handler(
  * @note worst case tasking: MS/TP with the ability to send only
  *        one notification per task cycle.
  *
- * @param elapsed_seconds [in] How many seconds have elapsed since last called.
+ * @param elapsed_seconds [in] How many seconds have elapsed since last
+ * called.
  */
 void handler_cov_timer_seconds(uint32_t elapsed_seconds)
 {
     int index = 0;
     uint32_t lifetime_seconds = 0;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
     int list_cnt = 0;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
@@ -666,7 +658,7 @@ bool handler_cov_fsm(void)
 
     int index = indices[dev_id];
     cov_fsm_state_t cov_task_state = cov_task_states[dev_id];
-    BACNET_COV_SUBSCRIPTION *subscription =
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription =
         Keylist_Data_Index(COV_Subscriptions, index);
     int list_cnt = Keylist_Count(COV_Subscriptions);
 

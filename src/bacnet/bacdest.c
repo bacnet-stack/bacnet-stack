@@ -829,7 +829,7 @@ int bacnet_recipient_process_decode(
     /* Recipient */
     len = bacnet_recipient_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &recipient);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     if (recipient_process) {
@@ -856,7 +856,7 @@ int bacnet_recipient_process_decode(
  * @param apdu_size - the APDU buffer length
  * @param tag_number  The tag number that shall hold the time stamp.
  * @param value  Pointer to the variable that shall take the time stamp values.
- * @return number of bytes decoded, zero if tag mismatch,
+ * @return number of bytes decoded, zero on opening tag mismatch,
  *  or BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_recipient_process_context_decode(
@@ -881,7 +881,7 @@ int bacnet_recipient_process_context_decode(
     apdu_len += len;
     if (!bacnet_is_closing_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return 0;
+        return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
 
