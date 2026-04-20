@@ -36,20 +36,20 @@
 #define MAX_COV_PROPERTIES 2
 #endif
 
-typedef struct BACnet_COV_Address {
+typedef struct BACnet_COV_Handler_Address {
     bool valid : 1;
     BACNET_ADDRESS dest;
-} BACNET_COV_ADDRESS;
+} BACNET_COV_HANDLER_ADDRESS;
 
 /* note: This COV service only monitors the properties
    of an object that have been specified in the standard.  */
-typedef struct BACnet_COV_Subscription_Flags {
+typedef struct BACnet_COV_Handler_Subscription_Flags {
     bool issueConfirmedNotifications : 1; /* optional */
     bool send_requested : 1;
-} BACNET_COV_SUBSCRIPTION_FLAGS;
+} BACNET_COV_HANDLER_SUBSCRIPTION_FLAGS;
 
-typedef struct My_BACnet_COV_Subscription {
-    BACNET_COV_SUBSCRIPTION_FLAGS flag;
+typedef struct BACnet_COV_Handler_Subscription {
+    BACNET_COV_HANDLER_SUBSCRIPTION_FLAGS flag;
     unsigned dest_index;
     uint8_t invokeID; /* for confirmed COV */
     uint32_t subscriberProcessIdentifier;
@@ -70,7 +70,7 @@ static OS_Keylist COV_Subscriptions_List[MAX_NUM_DEVICES];
 #ifndef MAX_COV_ADDRESSES
 #define MAX_COV_ADDRESSES 16
 #endif
-static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
+static BACNET_COV_HANDLER_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 
 /**
  * @brief Deletes a subscription
