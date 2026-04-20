@@ -1215,6 +1215,32 @@ void lighting_command_blink_warn(
 }
 
 /**
+ * @brief Copy the current blink data from the lighting command
+ * @param data [in] dimmer object instance
+ * @param blink [out] BACnet blink data to copy into
+ */
+void lighting_command_blink_copy(
+    struct bacnet_lighting_command_data *data,
+    struct bacnet_lighting_command_warn_data *blink)
+{
+    if (!data || !blink) {
+        return;
+    }
+    lighting_command_lock(data);
+    blink->On_Value = data->Blink.On_Value;
+    blink->Off_Value = data->Blink.Off_Value;
+    blink->End_Value = data->Blink.End_Value;
+    blink->Priority = data->Blink.Priority;
+    blink->Callback = data->Blink.Callback;
+    blink->Target_Interval = data->Blink.Target_Interval;
+    blink->Interval = data->Blink.Interval;
+    blink->Duration = data->Blink.Duration;
+    blink->Count = data->Blink.Count;
+    blink->State = data->Blink.State;
+    lighting_command_unlock(data);
+}
+
+/**
  * @brief Set the lighting command to perform a stop operation
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
@@ -1348,6 +1374,250 @@ void lighting_command_toggle_default(
         data->Target_Level = 0.0f;
     }
     lighting_command_unlock(data);
+}
+
+/**
+ * @brief Configure the lighting command to apply low or high trim
+ * @param data [in] dimmer data
+ */
+void lighting_command_trim_set(
+    struct bacnet_lighting_command_data *data,
+    float High_End_Trim,
+    float Low_End_Trim,
+    uint32_t Trim_Fade_Time)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    /* apply high and low trim */
+    data->High_Trim_Value = High_End_Trim;
+    data->Low_Trim_Value = Low_End_Trim;
+    data->Trim_Fade_Time = Trim_Fade_Time;
+    lighting_command_unlock(data);
+}
+
+void lighting_command_key_set(
+    struct bacnet_lighting_command_data *data, uint32_t key)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Key = key;
+    lighting_command_unlock(data);
+}
+
+void lighting_command_tracking_value_callback_set(
+    struct bacnet_lighting_command_data *data,
+    lighting_command_tracking_value_callback cb)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Notification_Head.callback = cb;
+    lighting_command_unlock(data);
+}
+
+BACNET_LIGHTING_IN_PROGRESS
+lighting_command_in_progress_get(struct bacnet_lighting_command_data *data)
+{
+    BACNET_LIGHTING_IN_PROGRESS in_progress = BACNET_LIGHTING_IDLE;
+
+    if (!data) {
+        return in_progress;
+    }
+    lighting_command_lock(data);
+    in_progress = data->In_Progress;
+    lighting_command_unlock(data);
+
+    return in_progress;
+}
+
+void lighting_command_in_progress_set(
+    struct bacnet_lighting_command_data *data,
+    BACNET_LIGHTING_IN_PROGRESS in_progress)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->In_Progress = in_progress;
+    lighting_command_unlock(data);
+}
+
+float lighting_command_tracking_value_get(
+    struct bacnet_lighting_command_data *data)
+{
+    float value = 0.0f;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Tracking_Value;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+void lighting_command_tracking_value_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Tracking_Value = value;
+    lighting_command_unlock(data);
+}
+
+void lighting_command_blink_warn_feature_set(
+    struct bacnet_lighting_command_data *data,
+    float off_value,
+    uint16_t interval,
+    uint16_t count)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Blink.Off_Value = off_value;
+    data->Blink.Interval = interval;
+    data->Blink.Count = count;
+    lighting_command_unlock(data);
+}
+
+bool lighting_command_blink_egress_active(
+    struct bacnet_lighting_command_data *data)
+{
+    bool active = false;
+
+    if (!data) {
+        return active;
+    }
+    lighting_command_lock(data);
+    active = data->Blink.Duration > 0;
+    lighting_command_unlock(data);
+
+    return active;
+}
+
+bool lighting_command_out_of_service_get(
+    struct bacnet_lighting_command_data *data)
+{
+    bool value = false;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Out_Of_Service;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+void lighting_command_out_of_service_set(
+    struct bacnet_lighting_command_data *data, bool value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Out_Of_Service = value;
+    lighting_command_unlock(data);
+}
+
+float lighting_command_last_on_value_get(
+    struct bacnet_lighting_command_data *data)
+{
+    float value = 0.0f;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Last_On_Value;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+void lighting_command_last_on_value_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Last_On_Value = value;
+    lighting_command_unlock(data);
+}
+
+float lighting_command_default_on_value_get(
+    struct bacnet_lighting_command_data *data)
+{
+    float value = 0.0f;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Default_On_Value;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+void lighting_command_default_on_value_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Default_On_Value = value;
+    lighting_command_unlock(data);
+}
+
+bool lighting_command_overridden_status(
+    struct bacnet_lighting_command_data *data)
+{
+    bool status = false;
+
+    if (!data) {
+        return status;
+    }
+    lighting_command_lock(data);
+    status = data->Overridden || data->Overridden_Momentary;
+    lighting_command_unlock(data);
+
+    return status;
+}
+
+/**
+ * @brief Determine if fade, ramp, or warn command is currently executing
+ * @param pObject [in] object to apply the trim values to
+ * @param priority [in] priority of the command
+ */
+bool lighting_command_active(struct bacnet_lighting_command_data *data)
+{
+    bool in_progress = false;
+
+    if (!data) {
+        return in_progress;
+    }
+    lighting_command_lock(data);
+    if ((data->In_Progress == BACNET_LIGHTING_FADE_ACTIVE) ||
+        (data->In_Progress == BACNET_LIGHTING_RAMP_ACTIVE) ||
+        (data->Blink.Duration > 0)) {
+        in_progress = true;
+    }
+    lighting_command_unlock(data);
+
+    return in_progress;
 }
 
 /**
