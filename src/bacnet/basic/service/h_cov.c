@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -37,26 +36,26 @@
 #define MAX_COV_PROPERTIES 2
 #endif
 
-typedef struct BACnet_COV_Address {
+typedef struct BACnet_COV_Handler_Address {
     bool valid : 1;
     BACNET_ADDRESS dest;
-} BACNET_COV_ADDRESS;
+} BACNET_COV_HANDLER_ADDRESS;
 
 /* note: This COV service only monitors the properties
    of an object that have been specified in the standard.  */
-typedef struct BACnet_COV_Subscription_Flags {
+typedef struct BACnet_COV_Handler_Subscription_Flags {
     bool issueConfirmedNotifications : 1; /* optional */
     bool send_requested : 1;
-} BACNET_COV_SUBSCRIPTION_FLAGS;
+} BACNET_COV_HANDLER_SUBSCRIPTION_FLAGS;
 
-typedef struct BACnet_COV_Subscription {
-    BACNET_COV_SUBSCRIPTION_FLAGS flag;
+typedef struct BACnet_COV_Handler_Subscription {
+    BACNET_COV_HANDLER_SUBSCRIPTION_FLAGS flag;
     unsigned dest_index;
     uint8_t invokeID; /* for confirmed COV */
     uint32_t subscriberProcessIdentifier;
     uint32_t lifetime; /* optional */
     BACNET_OBJECT_ID monitoredObjectIdentifier;
-} BACNET_COV_SUBSCRIPTION;
+} BACNET_COV_HANDLER_SUBSCRIPTION;
 
 #ifndef MAX_COV_SUBSCRIPTIONS
 #define MAX_COV_SUBSCRIPTIONS 128
@@ -71,7 +70,7 @@ static OS_Keylist COV_Subscriptions_List[MAX_NUM_DEVICES];
 #ifndef MAX_COV_ADDRESSES
 #define MAX_COV_ADDRESSES 16
 #endif
-static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
+static BACNET_COV_HANDLER_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 
 /**
  * @brief Deletes a subscription
@@ -81,7 +80,7 @@ static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 static bool cov_subscription_delete(uint32_t list_idx)
 {
     bool status = false;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
     subscription = Keylist_Data_Delete_By_Index(COV_Subscriptions, list_idx);
     if (subscription) {
@@ -97,16 +96,17 @@ static bool cov_subscription_delete(uint32_t list_idx)
  * @param list_key - keylist key
  * @return the subscription that was created, or NULL
  */
-static BACNET_COV_SUBSCRIPTION *cov_subscription_create(uint32_t list_key)
+static BACNET_COV_HANDLER_SUBSCRIPTION *
+cov_subscription_create(uint32_t list_key)
 {
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
     int index = 0;
     if (list_key >= MAX_COV_SUBSCRIPTIONS) {
         return NULL;
     }
     subscription = Keylist_Data(COV_Subscriptions, list_key);
     if (!subscription) {
-        subscription = calloc(1, sizeof(BACNET_COV_SUBSCRIPTION));
+        subscription = calloc(1, sizeof(BACNET_COV_HANDLER_SUBSCRIPTION));
         if (subscription) {
             index = Keylist_Data_Add(COV_Subscriptions, list_key, subscription);
             if (index < 0) {
@@ -150,7 +150,7 @@ static void cov_address_remove_unused(void)
     unsigned index = 0;
     unsigned cov_index = 0;
     bool found = false;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
@@ -243,160 +243,62 @@ static int cov_address_add(const BACNET_ADDRESS *dest)
     return index;
 }
 
-/*
-BACnetCOVSubscription ::= SEQUENCE {
-Recipient [0] BACnetRecipientProcess,
-    BACnetRecipient ::= CHOICE {
-    device [0] BACnetObjectIdentifier,
-    address [1] BACnetAddress
-        BACnetAddress ::= SEQUENCE {
-        network-number Unsigned16, -- A value of 0 indicates the local network
-        mac-address OCTET STRING -- A string of length 0 indicates a broadcast
-        }
-    }
-    BACnetRecipientProcess ::= SEQUENCE {
-    recipient [0] BACnetRecipient,
-    processIdentifier [1] Unsigned32
-    }
-MonitoredPropertyReference [1] BACnetObjectPropertyReference,
-    BACnetObjectPropertyReference ::= SEQUENCE {
-    objectIdentifier [0] BACnetObjectIdentifier,
-    propertyIdentifier [1] BACnetPropertyIdentifier,
-    propertyArrayIndex [2] Unsigned OPTIONAL -- used only with array datatype
-    -- if omitted with an array the entire array is referenced
-    }
-IssueConfirmedNotifications [2] BOOLEAN,
-TimeRemaining [3] Unsigned,
-COVIncrement [4] REAL OPTIONAL
-*/
-
-static int cov_encode_subscription(
-    uint8_t *apdu,
-    int max_apdu,
-    const BACNET_COV_SUBSCRIPTION *cov_subscription)
-{
-    int len = 0;
-    int apdu_len = 0;
-    BACNET_OCTET_STRING octet_string = { 0 };
-    BACNET_ADDRESS *dest = NULL;
-
-    (void)max_apdu;
-    if (!cov_subscription) {
-        return 0;
-    }
-    dest = cov_address_get(cov_subscription->dest_index);
-    if (!dest) {
-        return 0;
-    }
-    /* Recipient [0] BACnetRecipientProcess - opening */
-    len = encode_opening_tag(&apdu[apdu_len], 0);
-    apdu_len += len;
-    /*  recipient [0] BACnetRecipient - opening */
-    len = encode_opening_tag(&apdu[apdu_len], 0);
-    apdu_len += len;
-    /* CHOICE - address [1] BACnetAddress - opening */
-    len = encode_opening_tag(&apdu[apdu_len], 1);
-    apdu_len += len;
-    /* network-number Unsigned16, */
-    /* -- A value of 0 indicates the local network */
-    len = encode_application_unsigned(&apdu[apdu_len], dest->net);
-    apdu_len += len;
-    /* mac-address OCTET STRING */
-    /* -- A string of length 0 indicates a broadcast */
-    if (dest->net) {
-        octetstring_init(&octet_string, &dest->adr[0], dest->len);
-    } else {
-        octetstring_init(&octet_string, &dest->mac[0], dest->mac_len);
-    }
-    len = encode_application_octet_string(&apdu[apdu_len], &octet_string);
-    apdu_len += len;
-    /* CHOICE - address [1] BACnetAddress - closing */
-    len = encode_closing_tag(&apdu[apdu_len], 1);
-    apdu_len += len;
-    /*  recipient [0] BACnetRecipient - closing */
-    len = encode_closing_tag(&apdu[apdu_len], 0);
-    apdu_len += len;
-    /* processIdentifier [1] Unsigned32 */
-    len = encode_context_unsigned(
-        &apdu[apdu_len], 1, cov_subscription->subscriberProcessIdentifier);
-    apdu_len += len;
-    /* Recipient [0] BACnetRecipientProcess - closing */
-    len = encode_closing_tag(&apdu[apdu_len], 0);
-    apdu_len += len;
-    /*  MonitoredPropertyReference [1] BACnetObjectPropertyReference, */
-    len = encode_opening_tag(&apdu[apdu_len], 1);
-    apdu_len += len;
-    /* objectIdentifier [0] */
-    len = encode_context_object_id(
-        &apdu[apdu_len], 0, cov_subscription->monitoredObjectIdentifier.type,
-        cov_subscription->monitoredObjectIdentifier.instance);
-    apdu_len += len;
-    /* propertyIdentifier [1] */
-    /* FIXME: we are monitoring 2 properties! How to encode? */
-    len = encode_context_enumerated(&apdu[apdu_len], 1, PROP_PRESENT_VALUE);
-    apdu_len += len;
-    /* MonitoredPropertyReference [1] - closing */
-    len = encode_closing_tag(&apdu[apdu_len], 1);
-    apdu_len += len;
-    /* IssueConfirmedNotifications [2] BOOLEAN, */
-    len = encode_context_boolean(
-        &apdu[apdu_len], 2, cov_subscription->flag.issueConfirmedNotifications);
-    apdu_len += len;
-    /* TimeRemaining [3] Unsigned, */
-    len =
-        encode_context_unsigned(&apdu[apdu_len], 3, cov_subscription->lifetime);
-    apdu_len += len;
-
-    return apdu_len;
-}
-
 /** Handle a request to list all the COV subscriptions.
  * @ingroup DSCOV
  *  Invoked by a request to read the Device object's
  * PROP_ACTIVE_COV_SUBSCRIPTIONS. Loops through the list of COV Subscriptions,
  * and, for each valid one, adds its description to the APDU.
  *  @param apdu [out] Buffer in which the APDU contents are built.
- *  @param max_apdu [in] Max length of the APDU buffer.
- *  @return How many bytes were encoded in the buffer, or -2 if the response
- *          would not fit within the buffer.
+ *  @param apdu_size [in] Max length of the APDU buffer.
+ *  @return Number of bytes encoded in the buffer, or
+ *   #BACNET_STATUS_ABORT if the response would not fit within the buffer.
  */
-/* Maximume length for an encoded COV subscription  - 31 bytes for BACNET IP6
- * 35 bytes for IPv4 (longest MAC) with the maximum length
- * of PID (5 bytes) and lets round it up to the 64bit machine word
- * alignment */
-#define MAX_COV_SUB_SIZE (40)
-int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
+int handler_cov_encode_subscriptions(uint8_t *apdu, int apdu_size)
 {
-    if (apdu) {
-        uint8_t cov_sub[MAX_COV_SUB_SIZE] = {
-            0,
-        };
-        unsigned index = 0;
-        int apdu_len = 0;
-        BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_SUBSCRIPTION data = { 0 };
+    BACNET_ADDRESS *dest = NULL;
+    int len = 0;
+    int apdu_len = 0;
+    unsigned index = 0;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
-        for (index = 0; index < Keylist_Count(COV_Subscriptions); index++) {
-            subscription = Keylist_Data_Index(COV_Subscriptions, index);
-            if (subscription) {
-                /* Lets encode a COV subscription into an intermediate buffer
-                 * that can hold it */
-                int len = cov_encode_subscription(
-                    &cov_sub[0], max_apdu - apdu_len, subscription);
-
-                if ((apdu_len + len) > max_apdu) {
-                    return -2;
-                }
-
-                /* Lets copy if and only if it fits in the buffer */
-                memcpy(&apdu[apdu_len], cov_sub, len);
-                apdu_len += len;
-            }
+    for (index = 0; index < Keylist_Count(COV_Subscriptions); index++) {
+        subscription = Keylist_Data_Index(COV_Subscriptions, index);
+        if (!subscription) {
+            continue;
         }
-
-        return apdu_len;
+        dest = cov_address_get(subscription->dest_index);
+        if (!dest) {
+            continue;
+        }
+        data.time_remaining = subscription->lifetime;
+        data.cov_increment_present = false;
+        data.cov_increment = 1.0f; /* dummy value */
+        data.issue_confirmed_notifications =
+            subscription->flag.issueConfirmedNotifications;
+        data.monitored_property_reference.object_identifier.type =
+            subscription->monitoredObjectIdentifier.type;
+        data.monitored_property_reference.object_identifier.instance =
+            subscription->monitoredObjectIdentifier.instance;
+        data.monitored_property_reference.property_identifier =
+            PROP_PRESENT_VALUE;
+        data.monitored_property_reference.property_array_index =
+            BACNET_ARRAY_ALL;
+        data.recipient.process_identifier =
+            subscription->subscriberProcessIdentifier;
+        data.recipient.recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
+        bacnet_address_copy(&data.recipient.recipient.type.address, dest);
+        len = bacnet_cov_subscription_encode(apdu, apdu_size - apdu_len, &data);
+        if (len <= 0) {
+            return BACNET_STATUS_ABORT;
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
     }
 
-    return 0;
+    return apdu_len;
 }
 
 /** Handler to initialize the COV list, clearing and disabling each entry.
@@ -440,7 +342,7 @@ static bool cov_list_subscribe(
     bool found = true;
     bool address_match = false;
     const BACNET_ADDRESS *dest = NULL;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
 
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
@@ -535,7 +437,7 @@ static bool cov_list_subscribe(
 }
 
 static bool cov_send_request(
-    BACNET_COV_SUBSCRIPTION *cov_subscription,
+    BACNET_COV_HANDLER_SUBSCRIPTION *cov_subscription,
     BACNET_PROPERTY_VALUE *value_list)
 {
     int len = 0;
@@ -620,7 +522,7 @@ static void cov_lifetime_expiration_handler(
     unsigned index, uint32_t elapsed_seconds, uint32_t lifetime_seconds)
 {
     if (index < MAX_COV_SUBSCRIPTIONS) {
-        BACNET_COV_SUBSCRIPTION *subscription =
+        BACNET_COV_HANDLER_SUBSCRIPTION *subscription =
             Keylist_Data_Index(COV_Subscriptions, index);
         /* handle lifetime expiration */
         if (lifetime_seconds >= elapsed_seconds) {
@@ -655,8 +557,8 @@ static void cov_lifetime_expiration_handler(
     }
 }
 
-/** Handler to check the list of subscribed objects for any that have changed
- *  and so need to have notifications sent.
+/** Handler to check the list of subscribed objects for any that have
+ * changed and so need to have notifications sent.
  * @ingroup DSCOV
  * This handler will be invoked by the main program every second or so.
  * This example only handles Binary Inputs, but can be easily extended to
@@ -674,13 +576,14 @@ static void cov_lifetime_expiration_handler(
  * @note worst case tasking: MS/TP with the ability to send only
  *        one notification per task cycle.
  *
- * @param elapsed_seconds [in] How many seconds have elapsed since last called.
+ * @param elapsed_seconds [in] How many seconds have elapsed since last
+ * called.
  */
 void handler_cov_timer_seconds(uint32_t elapsed_seconds)
 {
     int index = 0;
     uint32_t lifetime_seconds = 0;
-    BACNET_COV_SUBSCRIPTION *subscription = NULL;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
     int list_cnt = 0;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
@@ -755,7 +658,7 @@ bool handler_cov_fsm(void)
 
     int index = indices[dev_id];
     cov_fsm_state_t cov_task_state = cov_task_states[dev_id];
-    BACNET_COV_SUBSCRIPTION *subscription =
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription =
         Keylist_Data_Index(COV_Subscriptions, index);
     int list_cnt = Keylist_Count(COV_Subscriptions);
 
