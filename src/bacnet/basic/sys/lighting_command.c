@@ -49,9 +49,7 @@ void lighting_command_notification_add(
     if (!data || !notification) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
 
     head = &data->Notification_Head;
     do {
@@ -65,9 +63,7 @@ void lighting_command_notification_add(
         }
         head = head->next;
     } while (head);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -103,9 +99,7 @@ void lighting_command_timer_notfication_add(
     if (!data || !notification) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
 
     head = &data->Timer_Notification_Head;
     do {
@@ -119,9 +113,7 @@ void lighting_command_timer_notfication_add(
         }
         head = head->next;
     } while (head);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -358,14 +350,10 @@ float lighting_command_operating_range_clamp_fade(
     if (!data) {
         return value;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     clamped_value = lighting_command_operating_range_clamp_fade_nolock(
         data, value, milliseconds);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 
     return clamped_value;
 }
@@ -398,13 +386,9 @@ float lighting_command_operating_range_clamp(
     if (!data) {
         return value;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     clamped_value = lighting_command_operating_range_clamp_nolock(data, value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 
     return clamped_value;
 }
@@ -458,14 +442,10 @@ float lighting_command_normalized_on_range_clamp(
     if (!data) {
         return value;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     clamped_value =
         lighting_command_normalized_on_range_clamp_nolock(data, value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 
     return clamped_value;
 }
@@ -525,13 +505,9 @@ float lighting_command_normalized_range_clamp(
     if (!data) {
         return value;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     clamped_value = lighting_command_normalized_range_clamp_nolock(data, value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 
     return clamped_value;
 }
@@ -946,13 +922,9 @@ void lighting_command_override(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     lighting_command_override_nolock(data, value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -965,15 +937,11 @@ void lighting_command_override_set(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     data->Overridden = true;
     data->Overridden_Momentary = false;
     lighting_command_override_nolock(data, value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -988,9 +956,7 @@ void lighting_command_override_clear(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     data->Overridden = false;
     data->Overridden_Momentary = false;
     old_value = data->Tracking_Value;
@@ -1002,9 +968,7 @@ void lighting_command_override_clear(
         lighting_command_operating_range_clamp_nolock(data, normalized_value);
     data->Tracking_Value = operating_value;
     lighting_command_tracking_value_event(data, old_value, operating_value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1017,15 +981,11 @@ void lighting_command_override_momentary(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     data->Overridden = true;
     data->Overridden_Momentary = true;
     lighting_command_override_nolock(data, value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1039,14 +999,10 @@ void lighting_command_refresh(struct bacnet_lighting_command_data *data)
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     value = data->Tracking_Value;
     lighting_command_tracking_value_event(data, value, value);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1061,9 +1017,7 @@ void lighting_command_timer(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     if (data->Overridden) {
         data->Lighting_Operation = BACNET_LIGHTS_NONE;
     }
@@ -1107,9 +1061,7 @@ void lighting_command_timer(
             break;
     }
     lighting_command_timer_notify(data, milliseconds);
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1124,9 +1076,7 @@ void lighting_command_fade_to(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
@@ -1137,9 +1087,7 @@ void lighting_command_fade_to(
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = value;
     }
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1154,9 +1102,7 @@ void lighting_command_ramp_to(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
@@ -1167,9 +1113,7 @@ void lighting_command_ramp_to(
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = value;
     }
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1188,9 +1132,7 @@ void lighting_command_step(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
@@ -1234,9 +1176,7 @@ void lighting_command_step(
     }
 
 done:
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1253,9 +1193,7 @@ void lighting_command_blink_warn(
     if (!data || !blink) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the new warning */
@@ -1273,9 +1211,7 @@ void lighting_command_blink_warn(
     /* configure next interval */
     data->Blink.State = false;
     data->Blink.Interval = blink->Interval;
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1288,9 +1224,7 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
@@ -1299,9 +1233,7 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = data->Tracking_Value;
     }
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1314,16 +1246,12 @@ void lighting_command_none(struct bacnet_lighting_command_data *data)
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
     data->Lighting_Operation = BACNET_LIGHTS_NONE;
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1337,18 +1265,14 @@ void lighting_command_restore_on(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
     data->Lighting_Operation = BACNET_LIGHTS_RESTORE_ON;
     data->Target_Level = data->Last_On_Value;
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1362,18 +1286,14 @@ void lighting_command_default_on(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
     data->Lighting_Operation = BACNET_LIGHTS_DEFAULT_ON;
     data->Target_Level = data->Default_On_Value;
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1387,9 +1307,7 @@ void lighting_command_toggle_restore(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
@@ -1402,9 +1320,7 @@ void lighting_command_toggle_restore(
         /* not OFF, write 0.0% */
         data->Target_Level = 0.0f;
     }
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1418,9 +1334,7 @@ void lighting_command_toggle_default(
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
@@ -1433,9 +1347,7 @@ void lighting_command_toggle_default(
         /* not OFF, write 0.0% */
         data->Target_Level = 0.0f;
     }
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
 
 /**
@@ -1474,9 +1386,7 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     if (!data) {
         return;
     }
-    if (data->Lock) {
-        data->Lock(data);
-    }
+    lighting_command_lock(data);
     data->Tracking_Value = 0.0f;
     data->Lighting_Operation = BACNET_LIGHTS_NONE;
     data->In_Progress = BACNET_LIGHTING_NOT_CONTROLLED;
@@ -1503,7 +1413,5 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Notification_Head.callback = NULL;
     data->Timer_Notification_Head.next = NULL;
     data->Timer_Notification_Head.callback = NULL;
-    if (data->Unlock) {
-        data->Unlock(data);
-    }
+    lighting_command_unlock(data);
 }
