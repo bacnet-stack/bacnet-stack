@@ -45,7 +45,12 @@ static uint16_t BBMD_TTL_Seconds = 60000;
 /* BBMD variables */
 static BACNET_IP_ADDRESS BBMD_Address;
 static bool BBMD_Address_Valid;
-static uint16_t BBMD_Result = 0;
+/** BBMD Result:
+ * Positive number (of bytes sent) if registration was successful,
+ * 0 if no registration request was made, or
+ * -1 if registration attempt failed.
+ */
+static int BBMD_Result;
 #if defined(BACDL_BIP) && BBMD_ENABLED
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
 #endif
@@ -130,7 +135,7 @@ int dlenv_bbmd_result(void)
  */
 static int bbmd_register_as_foreign_device(void)
 {
-    int retval = -1;
+    int registration = 0;
 #if defined(BACDL_BIP) && BBMD_CLIENT_ENABLED
     char *pEnv = NULL;
     long long_value = 0;
@@ -176,8 +181,8 @@ static int bbmd_register_as_foreign_device(void)
                 (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port,
                 (unsigned)BBMD_TTL_Seconds);
         }
-        retval = bvlc_register_with_bbmd(&BBMD_Address, BBMD_TTL_Seconds);
-        if (retval < 0) {
+        registration = bvlc_register_with_bbmd(&BBMD_Address, BBMD_TTL_Seconds);
+        if (registration < 0) {
             fprintf(
                 stderr, "FAILED to Register with BBMD at %u.%u.%u.%u:%u\n",
                 (unsigned)BBMD_Address.address[0],
@@ -266,9 +271,9 @@ static int bbmd_register_as_foreign_device(void)
     }
 #endif
 #endif
-    BBMD_Result = retval;
+    BBMD_Result = registration;
 
-    return retval;
+    return registration;
 }
 
 /** Register as a Foreign Device with the designated BBMD.
@@ -287,7 +292,7 @@ static int bbmd_register_as_foreign_device(void)
  */
 static int bbmd6_register_as_foreign_device(void)
 {
-    int retval = -1;
+    int registration = 0;
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
     char *pEnv = NULL;
     long long_value = 0;
@@ -315,8 +320,8 @@ static int bbmd6_register_as_foreign_device(void)
                 stderr, "Registering with BBMD6 at %s:0x%04x for %u seconds\n",
                 pEnv, (unsigned)bip6_port, (unsigned)BBMD_TTL_Seconds);
         }
-        retval = bvlc6_register_with_bbmd(&bip6_addr, BBMD_TTL_Seconds);
-        if (retval < 0) {
+        registration = bvlc6_register_with_bbmd(&bip6_addr, BBMD_TTL_Seconds);
+        if (registration < 0) {
             fprintf(
                 stderr, "FAILED to Register with BBMD6 at %s:%u\n", pEnv,
                 (unsigned)BBMD_Address.port);
@@ -324,9 +329,9 @@ static int bbmd6_register_as_foreign_device(void)
         BBMD_Timer_Seconds = BBMD_TTL_Seconds;
     }
 #endif
-    BBMD_Result = retval;
+    BBMD_Result = registration;
 
-    return retval;
+    return registration;
 }
 
 /**
@@ -902,10 +907,10 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
         }
         if (BBMD_Timer_Seconds == 0) {
             if (Network_Port_Type(Network_Port_Instance) == PORT_TYPE_BIP) {
-                bbmd_register_as_foreign_device();
+                (void)bbmd_register_as_foreign_device();
             } else if (
                 Network_Port_Type(Network_Port_Instance) == PORT_TYPE_BIP6) {
-                bbmd6_register_as_foreign_device();
+                (void)bbmd6_register_as_foreign_device();
             }
             /* If that failed (negative), maybe just a network issue.
              * If nothing happened (0), may be un/misconfigured.
