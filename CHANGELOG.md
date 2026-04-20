@@ -13,7 +13,15 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-04-01
+## [Unreleased] - 2026-04-19
+
+### Security
+### Added
+### Changed
+### Fixed
+### Removed
+
+## [1.5.0] - 2026-04-16
 
 ### Security
 

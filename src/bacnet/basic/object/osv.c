@@ -58,7 +58,8 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, PROP_OBJECT_NAME, PROP_DESCRIPTION,
+    -1
 };
 
 /**
@@ -678,19 +679,16 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_OCTET_STRING);
             if (status) {
-                /* Command priority 6 is reserved for use by Minimum On/Off
-                   algorithm and may not be used for other purposes in any
-                   object. */
-                if (OctetString_Value_Present_Value_Set(
-                        wp_data->object_instance, &value.type.Octet_String,
-                        wp_data->priority)) {
-                    status = true;
-                } else if (wp_data->priority == 6) {
+                if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
                        object. */
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else if (OctetString_Value_Present_Value_Set(
+                               wp_data->object_instance,
+                               &value.type.Octet_String, wp_data->priority)) {
+                    status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
