@@ -16,7 +16,11 @@ The git repositories are hosted at the following sites:
 ## [1.5.1-rc1] - 2026-04-20
 
 ### Security
+
 ### Fixed
+
+* Fix BBMD_Result handling to avoid false positive error message
+  when no registration is requested. (#1305)
 
 ## [1.5.0] - 2026-04-16
 
