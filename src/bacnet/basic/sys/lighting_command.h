@@ -42,6 +42,13 @@ struct lighting_command_timer_notification {
 };
 
 /**
+ * @brief Callback for locking shared state during lighting command processing
+ * @param data - dimmer data structure
+ */
+typedef void (*lighting_command_lock_callback)(
+    struct bacnet_lighting_command_data *);
+
+/**
  * @brief Callback that manipulates the value at the specified priority slot
     after a delay of Egress_Time seconds.
  * @param object_instance object-instance number of the object
@@ -91,6 +98,10 @@ typedef struct bacnet_lighting_command_data {
     uint32_t Key;
     struct lighting_command_notification Notification_Head;
     struct lighting_command_timer_notification Timer_Notification_Head;
+    /* lock for accessing shared state */
+    lighting_command_lock_callback Lock;
+    lighting_command_lock_callback Unlock;
+    void *Context;
 } BACNET_LIGHTING_COMMAND_DATA;
 
 #ifdef __cplusplus
@@ -115,6 +126,10 @@ BACNET_STACK_EXPORT
 void lighting_command_blink_warn(
     struct bacnet_lighting_command_data *data,
     BACNET_LIGHTING_OPERATION operation,
+    struct bacnet_lighting_command_warn_data *blink);
+BACNET_STACK_EXPORT
+void lighting_command_blink_copy(
+    struct bacnet_lighting_command_data *data,
     struct bacnet_lighting_command_warn_data *blink);
 BACNET_STACK_EXPORT
 void lighting_command_stop(struct bacnet_lighting_command_data *data);
@@ -166,6 +181,71 @@ float lighting_command_normalized_on_range_clamp(
     struct bacnet_lighting_command_data *data, float value);
 BACNET_STACK_EXPORT
 float lighting_command_physical_range_clamp(float value);
+
+BACNET_STACK_EXPORT
+void lighting_command_trim_set(
+    struct bacnet_lighting_command_data *data,
+    float High_End_Trim,
+    float Low_End_Trim,
+    uint32_t Trim_Fade_Time);
+BACNET_STACK_EXPORT
+void lighting_command_key_set(
+    struct bacnet_lighting_command_data *data, uint32_t key);
+BACNET_STACK_EXPORT
+void lighting_command_tracking_value_callback_set(
+    struct bacnet_lighting_command_data *data,
+    lighting_command_tracking_value_callback cb);
+BACNET_STACK_EXPORT
+BACNET_LIGHTING_IN_PROGRESS
+lighting_command_in_progress_get(struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_in_progress_set(
+    struct bacnet_lighting_command_data *data,
+    BACNET_LIGHTING_IN_PROGRESS in_progress);
+BACNET_STACK_EXPORT
+float lighting_command_tracking_value_get(
+    struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_tracking_value_set(
+    struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
+void lighting_command_blink_warn_feature_set(
+    struct bacnet_lighting_command_data *data,
+    float off_value,
+    uint16_t interval,
+    uint16_t count);
+BACNET_STACK_EXPORT
+bool lighting_command_blink_egress_active(
+    struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+bool lighting_command_out_of_service_get(
+    struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_out_of_service_set(
+    struct bacnet_lighting_command_data *data, bool value);
+BACNET_STACK_EXPORT
+float lighting_command_last_on_value_get(
+    struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_last_on_value_set(
+    struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
+float lighting_command_default_on_value_get(
+    struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_default_on_value_set(
+    struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
+bool lighting_command_overridden_status(
+    struct bacnet_lighting_command_data *data);
+
+BACNET_STACK_EXPORT
+bool lighting_command_active(struct bacnet_lighting_command_data *data);
+
+BACNET_STACK_EXPORT
+void lighting_command_lock(struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_unlock(struct bacnet_lighting_command_data *data);
 
 BACNET_STACK_EXPORT
 void lighting_command_refresh(struct bacnet_lighting_command_data *data);
