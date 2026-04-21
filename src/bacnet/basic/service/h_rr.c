@@ -155,26 +155,29 @@ void handler_read_range(
         } else {
             /* assume that there is an error */
             error = true;
-            data.application_data = &Temp_Buf[0];
-            data.application_data_len = sizeof(Temp_Buf);
-            /* note: legacy API passed buffer separately */
-            len = Encode_RR_payload(&Temp_Buf[0], &data);
+            len = validate_rr_request(&data);
             if (len >= 0) {
-                data.application_data_len = len;
-                /* encode the APDU portion of the packet */
-                len = rr_ack_encode_apdu(NULL, service_data->invoke_id, &data);
-                if (len < sizeof(Handler_Transmit_Buffer) - pdu_len) {
-                    len = rr_ack_encode_apdu(
+                data.application_data = &Temp_Buf[0];
+                data.application_data_len = sizeof(Temp_Buf);
+                /* note: legacy API passed buffer separately */
+                len = Encode_RR_payload(&Temp_Buf[0], &data);
+                if (len >= 0) {
+                    data.application_data_len = len;
+                    /* encode the APDU portion of the packet */
+                    len = rr_ack_encode_apdu(NULL, service_data->invoke_id, &data);
+                    if (len < sizeof(Handler_Transmit_Buffer) - pdu_len) {
+                        len = rr_ack_encode_apdu(
                         &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
-                    debug_print("RR: Sending Ack!\n");
-                    error = false;
-                } else {
-                    len = -2; /* too big */
+                        debug_print("RR: Sending Ack!\n");
+                        error = false;
+                    } else {
+                        len = -2; /* too big */
+                    }
                 }
-            }
+            }            
             if (error) {
-                if (len == -2) {
+                if (len == BACNET_STATUS_ABORT) {
                     /* BACnet APDU too small to fit data, so proper response is
                      * Abort */
                     len = abort_encode_apdu(
@@ -182,13 +185,18 @@ void handler_read_range(
                         service_data->invoke_id,
                         ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
                     debug_print("RR: Reply too big to fit into APDU!\n");
-                } else {
+                 } else if (len == BACNET_STATUS_ERROR) {
                     len = bacerror_encode_apdu(
                         &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, SERVICE_CONFIRMED_READ_RANGE,
                         data.error_class, data.error_code);
                     debug_print("RR: Sending Error!\n");
-                }
+                 } else if (len == BACNET_STATUS_REJECT) {
+                    len = reject_encode_apdu(
+                        &Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id,
+                        REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+                    debug_print("RR: Sending Reject!\n");
             }
         }
     }
