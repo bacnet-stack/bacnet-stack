@@ -4108,7 +4108,7 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_AUTHENTICATION)
             case BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT:
-                slen = bacapp_snprintf(
+                ret_val = bacapp_snprintf(
                     str, str_len, "{%s,%lu,%lu}",
                     bactext_authentication_factor_type_name(
                         value->type.Authentication_Format.format_type),
