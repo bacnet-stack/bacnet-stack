@@ -34,6 +34,7 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
+    ${SRC_DIR}/bacnet/authentication_factor.c
     ${SRC_DIR}/bacnet/authentication_factor_format.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/bacaction.c

@@ -191,6 +191,10 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     { BACNET_APPLICATION_TAG_TIMER_VALUE, "BACnetTimerStateChangeValue" },
     { BACNET_APPLICATION_TAG_ADDRESS_BINDING, "BACnetAddressBinding" },
     { BACNET_APPLICATION_TAG_NO_VALUE, "BACnetNoValue" },
+    { BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT,
+      "BACnetAuthenticationFormat" },
+    { BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR,
+      "BACnetAuthenticationFactor" },
     { BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX, "ABSTRACT-SYNTAX" },
     { 0, NULL }
 };
