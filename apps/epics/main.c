@@ -245,7 +245,7 @@ static void MyReadPropertyAckHandler(
             len = rp_ack_fully_decode_service_request(
                 service_request, service_len, rp_data);
         }
-        if (len > 0) {
+        if (len >= 0) {
             memmove(
                 &Read_Property_Multiple_Data.service_data, service_data,
                 sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
