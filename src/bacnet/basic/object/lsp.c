@@ -570,7 +570,7 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], mode);
             break;
         case PROP_ACCEPTED_MODES:
-            for (mode = 0; mode <= LIFE_SAFETY_MODE_RESERVED_MIN; mode++) {
+            for (mode = 0; mode < LIFE_SAFETY_MODE_RESERVED_MIN; mode++) {
                 len = encode_application_enumerated(&apdu[apdu_len], mode);
                 apdu_len += len;
             }
