@@ -1269,7 +1269,7 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
         "1.0>\n");
     printf("  double: <minimum: 2.2250738585072016E-38; maximum: "
            "1.7976931348623157E38; resolution: 0.0001>\n");
-    printf("  date: <minimum: 01-January-1970; maximum: 31-December-2038>\n");
+    printf("  date: <minimum: 01-January-1900; maximum: 31-December-2154>\n");
     printf("  octet-string: <maximum length string: 122>\n");
     printf("  character-string: <maximum length string: 122>\n");
     printf("  list: <maximum length list: 10>\n");
