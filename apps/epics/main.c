@@ -928,9 +928,10 @@ static void print_help(const char *filename)
     printf("-d: show only device object properties\n");
     printf("-p: Use sport for \"my\" port. 47808 is default.\n");
     printf("    Allows you to communicate with a localhost target.\n");
-    printf("-t: declare target's MAC instead of using Who-Is to bind to  \n");
-    printf("    device-instance. Format is \"192.168.1.42:47808\"\n");
-    printf("    Use \"127.0.0.1:47808\" for loopback testing \n");
+    printf("-t: declare target's MAC or IP address instead of using Who-Is\n");
+    printf("    to bind to device-instance.\n");
+    printf("    Format is \"192.168.1.42:47808\" or \"C0:A8:01:2A:BA:C0\".\n");
+    printf("    Use \"127.0.0.1:47808\" for loopback testing.\n");
     printf("-n: specify target's DNET if not local BACnet network  \n");
     printf("    or on routed Virtual Network \n");
     printf("\n");
