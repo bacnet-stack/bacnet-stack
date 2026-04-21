@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.5.0
+  VERSION 1.6.0
   LANGUAGES C)
 
 #
@@ -109,6 +109,11 @@ option(
   BACNET_BACKUP_RESTORE
   "enable backup and restore support"
   ON)
+
+option(
+  INTRINSIC_REPORTING
+  "enable intrinsic reporting"
+  OFF)
 
 set(BACNET_PROTOCOL_REVISION 28)
 
@@ -751,6 +756,7 @@ target_compile_definitions(
   $<$<BOOL:${BACNET_SEGMENTATION_ENABLED}>:BACNET_SEGMENTATION_ENABLED=1>
   $<$<BOOL:${BACNET_BACKUP_RESTORE}>:BACNET_BACKUP_RESTORE>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
+  $<$<BOOL:${INTRINSIC_REPORTING}>:INTRINSIC_REPORTING>
   PRIVATE
   PRINT_ENABLED=1)
 
@@ -1011,6 +1017,15 @@ if(BACNET_STACK_BUILD_APPS)
     add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
     target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
     target_compile_options(gateway PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif()
+
+  if(BAC_ROUTING)
+    add_executable(gateway2 apps/gateway2/main.c apps/gateway2/gateway.h)
+    target_link_libraries(gateway2 PRIVATE ${PROJECT_NAME})
+    target_compile_options(gateway2 PRIVATE
       # Unreachable code because we have endless loop.
       $<$<C_COMPILER_ID:MSVC>:/wd4702>
     )

@@ -25,6 +25,7 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
+/* BACnet Stack Objects */
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
@@ -129,7 +130,13 @@ struct object_data {
 #define BACNET_NETWORK_PORTS_MAX 1
 #endif
 
-static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
+static struct object_data Object_Lists[MAX_NUM_DEVICES]
+                                      [BACNET_NETWORK_PORTS_MAX];
+#ifdef BAC_ROUTING
+#define Object_List (Object_Lists[Routed_Device_Object_Index()])
+#else
+#define Object_List (Object_Lists[0])
+#endif
 
 /* BACnetARRAY of REAL, is an array of the link speeds
    supported by this network port */
@@ -4833,13 +4840,27 @@ void Network_Port_Cleanup(void)
 {
 #if defined(BACDL_BSC) && defined(BACNET_SECURE_CONNECT_ROUTING_TABLE)
     unsigned index = 0;
-    for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
-        BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
-        if (sc->Routing_Table) {
-            Keylist_Delete(sc->Routing_Table);
-            sc->Routing_Table = NULL;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
+
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+            BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
+            if (sc->Routing_Table) {
+                Keylist_Delete(sc->Routing_Table);
+                sc->Routing_Table = NULL;
+            }
         }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 #endif
 }
 
@@ -4881,35 +4902,46 @@ void Network_Port_Context_Set(uint32_t object_instance, void *context)
 void Network_Port_Init(void)
 {
     unsigned index = 0;
+    uint16_t dev_id = 0;
+#ifdef BAC_ROUTING
+    const uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
 #ifdef BACDL_BSC
     BACNET_SC_PARAMS *sc;
 #endif /* BACDL_BSC */
 
     /* do something interesting */
-
-    for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
-        memset(&Object_List[index], 0, sizeof(Object_List[index]));
-#ifdef BACDL_BSC
-        Object_List[index].Network_Type = PORT_TYPE_BSC;
-        sc = &Object_List[index].Network.BSC.Parameters;
-        Object_List[index].Activate_Changes =
-            Network_Port_SC_Pending_Params_Apply;
-        Object_List[index].Discard_Changes =
-            Network_Port_SC_Pending_Params_Discard;
-#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
-        sc->Routing_Table = Keylist_Create();
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
 #endif
-        sc->SC_Failed_Connection_Requests_Count = 0;
+        for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+            memset(&Object_List[index], 0, sizeof(Object_List[index]));
+#ifdef BACDL_BSC
+            Object_List[index].Network_Type = PORT_TYPE_BSC;
+            sc = &Object_List[index].Network.BSC.Parameters;
+            Object_List[index].Activate_Changes =
+                Network_Port_SC_Pending_Params_Apply;
+            Object_List[index].Discard_Changes =
+                Network_Port_SC_Pending_Params_Discard;
+#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
+            sc->Routing_Table = Keylist_Create();
+#endif
+            sc->SC_Failed_Connection_Requests_Count = 0;
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-        sc->SC_Hub_Function_Connection_Status_Count = 0;
+            sc->SC_Hub_Function_Connection_Status_Count = 0;
 #endif
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
-        sc->SC_Direct_Connect_Connection_Status_Count = 0;
+            sc->SC_Direct_Connect_Connection_Status_Count = 0;
 #endif
-        (void)sc;
+            (void)sc;
 #endif /* BACDL_BSC */
+        }
     }
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }
 
 #ifdef BACDL_BSC

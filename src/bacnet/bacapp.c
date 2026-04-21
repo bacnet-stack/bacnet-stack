@@ -3613,7 +3613,7 @@ static int bacapp_snprintf_special_event(
     }
     slen = bacapp_snprintf_daily_schedule(str, str_len, &value->timeValues);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = bacapp_snprintf(str, str_len, "}");
+    slen = bacapp_snprintf(str, str_len, ",%u}", (unsigned)value->priority);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
@@ -4147,7 +4147,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
     char *chunk, *comma, *space, *t, *v, *colonpos, *sqpos;
     int daynum = 0, tvnum = 0;
-    unsigned int inner_tag;
+    uint32_t inner_tag;
     BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
     BACNET_DAILY_SCHEDULE *dsch;
 
@@ -4179,7 +4179,7 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
             return false;
         }
     } else {
-        inner_tag = (int)dummy_value.type.Unsigned_Int;
+        inner_tag = (uint32_t)dummy_value.type.Unsigned_Int;
     }
 
     chunk = strtok(NULL, ";");
@@ -4424,6 +4424,380 @@ static bool object_property_reference_from_ascii(
 }
 #endif
 
+#if defined(BACAPP_SPECIAL_EVENT)
+/**
+ * @brief Find the next occurrence of sep_char at brace/paren/bracket depth 0
+ * @param p - pointer into the string to search from
+ * @param sep_char - the separator character to find at depth 0
+ * @return pointer to sep_char, or pointer to NUL terminator if not found
+ */
+static char *bacapp_find_depth0(char *p, char sep_char)
+{
+    int depth = 0;
+
+    while (*p) {
+        if (*p == '(' || *p == '{' || *p == '[') {
+            depth++;
+        } else if (*p == ')' || *p == '}' || *p == ']') {
+            if (depth > 0) {
+                depth--;
+            }
+        } else if (*p == sep_char && depth == 0) {
+            return p;
+        }
+        p++;
+    }
+    return p; /* points to NUL when not found */
+}
+
+/**
+ * @brief Parse a BACnetWeekNDay from ASCII
+ *
+ * Format: month,week,day  or  {month,week,day}
+ *
+ * Each field may be numeric, a text name (resolved via bactext), or '*'
+ * (maps to 255).
+ * Special month names: "odd" (13), "even" (14).
+ * Special week name: "last" (6).
+ *
+ * @param wnd - output BACnetWeekNDay value
+ * @param str - input string (will be modified)
+ * @return true on parse success
+ */
+static bool weeknday_from_ascii(BACNET_WEEKNDAY *wnd, char *str)
+{
+    char *p, *tok[3];
+    uint32_t found = 0;
+    int i;
+
+    p = bacnet_trim(str, "{ }");
+    if (!p || p[0] == '\0') {
+        return false;
+    }
+    tok[0] = strtok(p, ",");
+    tok[1] = strtok(NULL, ",");
+    tok[2] = strtok(NULL, ",");
+    if (!tok[0] || !tok[1] || !tok[2]) {
+        return false;
+    }
+    for (i = 0; i < 3; i++) {
+        tok[i] = bacnet_trim(tok[i], " ");
+    }
+    /* month: 1-12, 13=odd, 14=even, 255=any '*' */
+    if (tok[0][0] == '*') {
+        wnd->month = 255;
+    } else if (bacnet_stricmp(tok[0], "odd") == 0) {
+        wnd->month = 13;
+    } else if (bacnet_stricmp(tok[0], "even") == 0) {
+        wnd->month = 14;
+    } else if (bactext_month_strtol(tok[0], &found)) {
+        wnd->month = (uint8_t)found;
+    } else {
+        wnd->month = (uint8_t)strtoul(tok[0], NULL, 10);
+    }
+    /* week-of-month: 1-5, 6=last, 255=any '*' */
+    if (tok[1][0] == '*') {
+        wnd->weekofmonth = 255;
+    } else if (bacnet_stricmp(tok[1], "last") == 0) {
+        wnd->weekofmonth = 6;
+    } else if (bactext_week_of_month_strtol(tok[1], &found)) {
+        wnd->weekofmonth = (uint8_t)found;
+    } else {
+        wnd->weekofmonth = (uint8_t)strtoul(tok[1], NULL, 10);
+    }
+    /* day-of-week: 1=Monday..7=Sunday, 255=any '*' */
+    if (tok[2][0] == '*') {
+        wnd->dayofweek = 255;
+    } else if (bactext_day_of_week_strtol(tok[2], &found)) {
+        wnd->dayofweek = (uint8_t)found;
+    } else {
+        wnd->dayofweek = (uint8_t)strtoul(tok[2], NULL, 10);
+    }
+    return true;
+}
+
+/**
+ * @brief Parse a BACnetCalendarEntry from ASCII
+ *
+ * Pattern-based detection (no keyword required):
+ *   starts with '{'       weekNDay: {month,week,day}
+ *   contains ".."         date-range: YYYY/MM/DD..YYYY/MM/DD
+ *   contains '/'          date: YYYY/MM/DD or YYYY/MM/DD:wday
+ *
+ * @param entry - output BACnetCalendarEntry value
+ * @param str - input string (will be modified)
+ * @return true on parse success
+ */
+static bool calendar_entry_from_ascii(BACNET_CALENDAR_ENTRY *entry, char *str)
+{
+    char *dotdot;
+
+    if (str[0] == '{') {
+        entry->tag = BACNET_CALENDAR_WEEK_N_DAY;
+        return weeknday_from_ascii(&entry->type.WeekNDay, str);
+    }
+    dotdot = strstr(str, "..");
+    if (dotdot) {
+        entry->tag = BACNET_CALENDAR_DATE_RANGE;
+        *dotdot = '\0';
+        if (!datetime_date_init_ascii(&entry->type.DateRange.startdate, str)) {
+            return false;
+        }
+        return datetime_date_init_ascii(
+            &entry->type.DateRange.enddate, dotdot + 2);
+    }
+    if (strchr(str, '/')) {
+        entry->tag = BACNET_CALENDAR_DATE;
+        return datetime_date_init_ascii(&entry->type.Date, str);
+    }
+    return false;
+}
+
+/**
+ * @brief Parse a primitive schedule value from an ASCII token
+ *
+ * Tag is inferred from the token content:
+ *   "null"               BACNET_APPLICATION_TAG_NULL
+ *   "true" / "active"    BACNET_APPLICATION_TAG_BOOLEAN true
+ *   "false" / "inactive" BACNET_APPLICATION_TAG_BOOLEAN false
+ *   contains '.'         BACNET_APPLICATION_TAG_REAL
+ *   leading '-'          BACNET_APPLICATION_TAG_SIGNED_INT
+ *   pure digits          BACNET_APPLICATION_TAG_UNSIGNED_INT
+ *
+ * @param prim - output primitive data value
+ * @param str - null-terminated value token (not modified)
+ * @return true on parse success
+ */
+static bool
+primitive_from_ascii(BACNET_PRIMITIVE_DATA_VALUE *prim, const char *str)
+{
+    BACNET_APPLICATION_DATA_VALUE app_val = { 0 };
+
+    if (bacnet_stricmp(str, "null") == 0) {
+        prim->tag = BACNET_APPLICATION_TAG_NULL;
+        return true;
+    }
+    if (bacnet_stricmp(str, "true") == 0 ||
+        bacnet_stricmp(str, "active") == 0) {
+        prim->tag = BACNET_APPLICATION_TAG_BOOLEAN;
+        prim->type.Boolean = true;
+        return true;
+    }
+    if (bacnet_stricmp(str, "false") == 0 ||
+        bacnet_stricmp(str, "inactive") == 0) {
+        prim->tag = BACNET_APPLICATION_TAG_BOOLEAN;
+        prim->type.Boolean = false;
+        return true;
+    }
+    /* real: must contain a decimal point */
+    if (strchr(str, '.')) {
+        if (bacapp_parse_application_data(
+                BACNET_APPLICATION_TAG_REAL, (char *)str, &app_val)) {
+            if (BACNET_STATUS_OK ==
+                bacnet_application_to_primitive_data_value(prim, &app_val)) {
+                return true;
+            }
+        }
+    }
+    /* signed integer: starts with '-' */
+    if (str[0] == '-') {
+        if (bacapp_parse_application_data(
+                BACNET_APPLICATION_TAG_SIGNED_INT, (char *)str, &app_val)) {
+            if (BACNET_STATUS_OK ==
+                bacnet_application_to_primitive_data_value(prim, &app_val)) {
+                return true;
+            }
+        }
+    }
+    /* unsigned integer */
+    if (bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_UNSIGNED_INT, (char *)str, &app_val)) {
+        if (BACNET_STATUS_OK ==
+            bacnet_application_to_primitive_data_value(prim, &app_val)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief Parse a BACnetDailySchedule from ASCII
+ *
+ * Format: {HH:MM:SS.FF,value,HH:MM:SS.FF,value,...}
+ * An empty schedule is {}.
+ *
+ * Tokens alternate: time, value, time, value ...
+ * The time token is always in HH:MM:SS.FF format.
+ * The value tag is auto-inferred from the token content.
+ *
+ * @param sched - output BACnetDailySchedule value
+ * @param str - input string (will be modified)
+ * @return true on parse success
+ */
+static bool daily_schedule_from_ascii(BACNET_DAILY_SCHEDULE *sched, char *str)
+{
+    char *p, *comma;
+    int tvnum = 0;
+    bool is_time = true;
+    BACNET_APPLICATION_DATA_VALUE tval = { 0 };
+
+    p = bacnet_trim(str, "{ }");
+    sched->TV_Count = 0;
+    if (!p || p[0] == '\0') {
+        return true; /* empty schedule is valid */
+    }
+    do {
+        comma = strchr(p, ',');
+        if (comma) {
+            *comma = '\0';
+        }
+        p = bacnet_trim(p, " ");
+        if (is_time) {
+            if (tvnum >= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
+                return false;
+            }
+            if (!bacapp_parse_application_data(
+                    BACNET_APPLICATION_TAG_TIME, p, &tval)) {
+                return false;
+            }
+            sched->Time_Values[tvnum].Time = tval.type.Time;
+        } else {
+            if (!primitive_from_ascii(&sched->Time_Values[tvnum].Value, p)) {
+                return false;
+            }
+            tvnum++;
+        }
+        is_time = !is_time;
+        p = comma ? comma + 1 : NULL;
+    } while (p && *p);
+    if (!is_time) {
+        /* dangling time token with no corresponding value */
+        return false;
+    }
+    sched->TV_Count = (uint16_t)tvnum;
+    return true;
+}
+
+/**
+ * @brief Parse a BACnetSpecialEvent from a single no-space ASCII argument
+ *
+ * Top-level format (three depth-0 comma-separated segments):
+ *   period,{schedule},priority
+ *
+ * Period variants detected by pattern, no keyword required:
+ *   starts with '{'          weekNDay calendar entry: {month,week,day}
+ *   contains ".."            date-range entry: YYYY/MM/DD..YYYY/MM/DD
+ *   contains '/'             date entry: YYYY/MM/DD or YYYY/MM/DD:wday
+ *   object-type-name:inst    calendar reference (text via bactext)
+ *   object-type-num:inst     calendar reference (numeric object type)
+ *
+ * Priority is stored as-is without range validation, allowing deliberate
+ * out-of-range values for protocol-level testing.
+ *
+ * Examples (no spaces):
+ *   "2023/10/24,{12:30:00.00,100,14:00:00.00,50},5"
+ *   "2023/01/01..2023/12/31,{},8"
+ *   "{10,1,Monday},{08:00:00.00,active},3"
+ *   "calendar:5,{12:30:00.00,15,16:01:02.03,0},5"
+ *   "6:5,{},10"
+ *
+ * @param value - output BACNET_APPLICATION_DATA_VALUE
+ * @param str - input string (will be modified)
+ * @return true on parse success
+ */
+static bool
+special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, char *str)
+{
+    char *sep1, *sep2;
+    char *period_str, *sched_str, *prio_str;
+    BACNET_SPECIAL_EVENT *ev = &value->type.Special_Event;
+    BACNET_UNSIGNED_INTEGER prio = 0;
+    long unsigned int unsigned_value = 0;
+    uint32_t found_index = 0;
+    char type_buf[64];
+    char *colon;
+    size_t tlen;
+    int count;
+
+    if (!str || !value) {
+        return false;
+    }
+    /* split into three top-level tokens at depth-0 commas */
+    sep1 = bacapp_find_depth0(str, ',');
+    if (*sep1 == '\0') {
+        return false;
+    }
+    *sep1 = '\0';
+    period_str = bacnet_trim(str, " ");
+    sep2 = bacapp_find_depth0(sep1 + 1, ',');
+    if (*sep2 == '\0') {
+        return false;
+    }
+    *sep2 = '\0';
+    sched_str = bacnet_trim(sep1 + 1, " ");
+    prio_str = bacnet_trim(sep2 + 1, " ");
+    /* priority - no range check, allows out-of-range testing */
+    if (!bacnet_string_to_unsigned(prio_str, &prio)) {
+        return false;
+    }
+    ev->priority = (uint8_t)prio;
+    /* schedule */
+    if (!daily_schedule_from_ascii(&ev->timeValues, sched_str)) {
+        return false;
+    }
+    /* period: pattern-based detection */
+    if (period_str[0] == '{') {
+        /* weekNDay calendar entry */
+        ev->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+        if (!calendar_entry_from_ascii(&ev->period.calendarEntry, period_str)) {
+            return false;
+        }
+    } else if (strstr(period_str, "..")) {
+        /* date-range calendar entry */
+        ev->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+        if (!calendar_entry_from_ascii(&ev->period.calendarEntry, period_str)) {
+            return false;
+        }
+    } else if (strchr(period_str, '/')) {
+        /* date calendar entry */
+        ev->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+        if (!calendar_entry_from_ascii(&ev->period.calendarEntry, period_str)) {
+            return false;
+        }
+    } else {
+        /* calendar reference: object-type-name:instance or numeric:instance */
+        ev->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+        colon = strchr(period_str, ':');
+        if (!colon) {
+            return false;
+        }
+        tlen = (size_t)(colon - period_str);
+        if (tlen >= sizeof(type_buf)) {
+            tlen = sizeof(type_buf) - 1;
+        }
+        memcpy(type_buf, period_str, tlen);
+        type_buf[tlen] = '\0';
+        count = sscanf(colon + 1, "%7lu", &unsigned_value);
+        if (count != 1) {
+            return false;
+        }
+        ev->period.calendarReference.instance = (uint32_t)unsigned_value;
+        if (bactext_object_type_strtol(type_buf, &found_index)) {
+            ev->period.calendarReference.type = (BACNET_OBJECT_TYPE)found_index;
+        } else {
+            count = sscanf(type_buf, "%4lu", &unsigned_value);
+            if (count != 1) {
+                return false;
+            }
+            ev->period.calendarReference.type =
+                (BACNET_OBJECT_TYPE)unsigned_value;
+        }
+    }
+    value->tag = BACNET_APPLICATION_TAG_SPECIAL_EVENT;
+    return true;
+}
+#endif /* BACAPP_SPECIAL_EVENT */
+
 /* used to load the app data struct with the proper data
    converted from a command line argument.
    "argv" is not const to allow using strtok internally. It MAY be modified. */
@@ -4438,8 +4812,8 @@ bool bacapp_parse_application_data(
 #if defined(BACAPP_DATE)
     int year, month, day, wday;
 #endif
-    int object_type = 0;
-    uint32_t instance = 0;
+    unsigned int object_type = 0;
+    unsigned int object_instance = 0;
     bool status = false;
     long long_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_long_value = 0;
@@ -4585,10 +4959,10 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                count = sscanf(argv, "%4d:%7u", &object_type, &instance);
+                count = sscanf(argv, "%4u:%7u", &object_type, &object_instance);
                 if (count == 2) {
                     value->type.Object_Id.type = (uint16_t)object_type;
-                    value->type.Object_Id.instance = instance;
+                    value->type.Object_Id.instance = (uint32_t)object_instance;
                 } else {
                     status = false;
                 }
@@ -4632,7 +5006,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_SPECIAL_EVENT)
             case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
-                /* FIXME: add parsing for BACnetSpecialEvent */
+                status = special_event_from_ascii(value, argv);
                 break;
 #endif
 #if defined(BACAPP_CALENDAR_ENTRY)

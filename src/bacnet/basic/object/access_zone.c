@@ -15,12 +15,19 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
 /* me! */
 #include "access_zone.h"
 
 static bool Access_Zone_Initialized = false;
 
-static ACCESS_ZONE_DESCR az_descr[MAX_ACCESS_ZONES];
+static ACCESS_ZONE_DESCR az_descrs[MAX_NUM_DEVICES][MAX_ACCESS_ZONES];
+#ifdef BAC_ROUTING
+#define az_descr (az_descrs[Routed_Device_Object_Index()])
+#else
+#define az_descr (az_descrs[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -81,22 +88,36 @@ void Access_Zone_Writable_Property_List(
 void Access_Zone_Init(void)
 {
     unsigned i;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
     if (!Access_Zone_Initialized) {
         Access_Zone_Initialized = true;
 
-        for (i = 0; i < MAX_ACCESS_ZONES; i++) {
-            az_descr[i].global_identifier =
-                0; /* set to some meaningful value */
-            az_descr[i].occupancy_state = ACCESS_ZONE_OCCUPANCY_STATE_DISABLED;
-            az_descr[i].event_state = EVENT_STATE_NORMAL;
-            az_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
-            az_descr[i].out_of_service = false;
-            az_descr[i].entry_points_count = 0;
-            az_descr[i].exit_points_count = 0;
-            /* fill in the entry points and exit points with proper ids */
+        for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+            Set_Routed_Device_Object_Index(dev_id);
+#endif
+            for (i = 0; i < MAX_ACCESS_ZONES; i++) {
+                az_descr[i].global_identifier =
+                    0; /* set to some meaningful value */
+                az_descr[i].occupancy_state =
+                    ACCESS_ZONE_OCCUPANCY_STATE_DISABLED;
+                az_descr[i].event_state = EVENT_STATE_NORMAL;
+                az_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
+                az_descr[i].out_of_service = false;
+                az_descr[i].entry_points_count = 0;
+                az_descr[i].exit_points_count = 0;
+                /* fill in the entry points and exit points with proper ids */
+            }
         }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 
     return;
 }

@@ -30,8 +30,19 @@
 #define MAX_TREND_LOGS 8
 #endif
 
-static TL_DATA_REC Logs[MAX_TREND_LOGS][TL_MAX_ENTRIES];
-static TL_LOG_INFO LogInfo[MAX_TREND_LOGS];
+static TL_DATA_REC Logs_Records[MAX_NUM_DEVICES][MAX_TREND_LOGS]
+                               [TL_MAX_ENTRIES];
+#ifdef BAC_ROUTING
+#define Logs (Logs_Records[Routed_Device_Object_Index()])
+#else
+#define Logs (Logs_Records[0])
+#endif
+static TL_LOG_INFO LogInfos[MAX_NUM_DEVICES][MAX_TREND_LOGS];
+#ifdef BAC_ROUTING
+#define LogInfo (LogInfos[Routed_Device_Object_Index()])
+#else
+#define LogInfo (LogInfos[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Trend_Log_Properties_Required[] = {
@@ -195,85 +206,98 @@ static bacnet_time_t Trend_Log_Epoch_Seconds_Now(void)
 void Trend_Log_Init(void)
 {
     static bool initialized = false;
+    uint16_t dev_id;
     int iLog;
     int iEntry;
     BACNET_DATE_TIME bdatetime = { 0 };
     bacnet_time_t tClock;
     uint8_t month;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
     if (!initialized) {
         initialized = true;
 
         /* initialize all the values */
 
-        for (iLog = 0; iLog < MAX_TREND_LOGS; iLog++) {
-            /*
-             * Do we need to do anything here?
-             * Trend logs are usually assumed to survive over resets
-             * and are frequently implemented using Battery Backed RAM
-             * If they are implemented using Flash or SD cards or some
-             * such mechanism there may be some RAM based setup needed
-             * for log management purposes.
-             * We probably need to look at inserting LOG_INTERRUPTED
-             * entries into any active logs if the power down or reset
-             * may have caused us to miss readings.
-             */
+        for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+            Set_Routed_Device_Object_Index(dev_id);
+#endif
+            for (iLog = 0; iLog < MAX_TREND_LOGS; iLog++) {
+                /*
+                 * Do we need to do anything here?
+                 * Trend logs are usually assumed to survive over resets
+                 * and are frequently implemented using Battery Backed RAM
+                 * If they are implemented using Flash or SD cards or some
+                 * such mechanism there may be some RAM based setup needed
+                 * for log management purposes.
+                 * We probably need to look at inserting LOG_INTERRUPTED
+                 * entries into any active logs if the power down or reset
+                 * may have caused us to miss readings.
+                 */
 
-            /* We will just fill the logs with some entries for testing
-             * purposes.
-             */
-            /* Different month for each log */
-            month = iLog + 1;
-            datetime_set_values(&bdatetime, 2009, month, 1, 0, 0, 0, 0);
-            tClock = datetime_seconds_since_epoch(&bdatetime);
-            for (iEntry = 0; iEntry < TL_MAX_ENTRIES; iEntry++) {
-                Logs[iLog][iEntry].tTimeStamp = tClock;
-                Logs[iLog][iEntry].ucRecType = TL_TYPE_REAL;
-                Logs[iLog][iEntry].Datum.fReal =
-                    (float)(iEntry + (iLog * TL_MAX_ENTRIES));
-                /* Put status flags with every second log */
-                if ((iLog & 1) == 0) {
-                    Logs[iLog][iEntry].ucStatus = 128;
-                } else {
-                    Logs[iLog][iEntry].ucStatus = 0;
+                /* We will just fill the logs with some entries for testing
+                 * purposes.
+                 */
+                /* Different month for each log */
+                month = iLog + 1;
+                datetime_set_values(&bdatetime, 2009, month, 1, 0, 0, 0, 0);
+                tClock = datetime_seconds_since_epoch(&bdatetime);
+                for (iEntry = 0; iEntry < TL_MAX_ENTRIES; iEntry++) {
+                    Logs[iLog][iEntry].tTimeStamp = tClock;
+                    Logs[iLog][iEntry].ucRecType = TL_TYPE_REAL;
+                    Logs[iLog][iEntry].Datum.fReal =
+                        (float)(iEntry + (iLog * TL_MAX_ENTRIES));
+                    /* Put status flags with every second log */
+                    if ((iLog & 1) == 0) {
+                        Logs[iLog][iEntry].ucStatus = 128;
+                    } else {
+                        Logs[iLog][iEntry].ucStatus = 0;
+                    }
+                    /* advance 15 minutes, in seconds */
+                    tClock += 900;
                 }
-                /* advance 15 minutes, in seconds */
-                tClock += 900;
+
+                LogInfo[iLog].tLastDataTime = tClock - 900;
+                LogInfo[iLog].bAlignIntervals = true;
+                LogInfo[iLog].bEnable = true;
+                LogInfo[iLog].bStopWhenFull = false;
+                LogInfo[iLog].bTrigger = false;
+                LogInfo[iLog].LoggingType = LOGGING_TYPE_POLLED;
+                LogInfo[iLog].Source.arrayIndex = 0;
+                LogInfo[iLog].ucTimeFlags = 0;
+                LogInfo[iLog].ulIntervalOffset = 0;
+                LogInfo[iLog].iIndex = 0;
+                LogInfo[iLog].ulLogInterval = 900;
+                LogInfo[iLog].ulRecordCount = TL_MAX_ENTRIES;
+                LogInfo[iLog].ulTotalRecordCount = 10000;
+
+                LogInfo[iLog].Source.deviceIdentifier.instance =
+                    Device_Object_Instance_Number();
+                LogInfo[iLog].Source.deviceIdentifier.type = OBJECT_DEVICE;
+                LogInfo[iLog].Source.objectIdentifier.instance = iLog;
+                LogInfo[iLog].Source.objectIdentifier.type =
+                    OBJECT_ANALOG_INPUT;
+                LogInfo[iLog].Source.arrayIndex = BACNET_ARRAY_ALL;
+                LogInfo[iLog].Source.propertyIdentifier = PROP_PRESENT_VALUE;
+
+                datetime_set_values(
+                    &LogInfo[iLog].StartTime, 2009, 1, 1, 0, 0, 0, 0);
+                LogInfo[iLog].tStartTime =
+                    TL_BAC_Time_To_Local(&LogInfo[iLog].StartTime);
+                datetime_set_values(
+                    &LogInfo[iLog].StopTime, 2020, 12, 22, 23, 59, 59, 99);
+                LogInfo[iLog].tStopTime =
+                    TL_BAC_Time_To_Local(&LogInfo[iLog].StopTime);
             }
-
-            LogInfo[iLog].tLastDataTime = tClock - 900;
-            LogInfo[iLog].bAlignIntervals = true;
-            LogInfo[iLog].bEnable = true;
-            LogInfo[iLog].bStopWhenFull = false;
-            LogInfo[iLog].bTrigger = false;
-            LogInfo[iLog].LoggingType = LOGGING_TYPE_POLLED;
-            LogInfo[iLog].Source.arrayIndex = 0;
-            LogInfo[iLog].ucTimeFlags = 0;
-            LogInfo[iLog].ulIntervalOffset = 0;
-            LogInfo[iLog].iIndex = 0;
-            LogInfo[iLog].ulLogInterval = 900;
-            LogInfo[iLog].ulRecordCount = TL_MAX_ENTRIES;
-            LogInfo[iLog].ulTotalRecordCount = 10000;
-
-            LogInfo[iLog].Source.deviceIdentifier.instance =
-                Device_Object_Instance_Number();
-            LogInfo[iLog].Source.deviceIdentifier.type = OBJECT_DEVICE;
-            LogInfo[iLog].Source.objectIdentifier.instance = iLog;
-            LogInfo[iLog].Source.objectIdentifier.type = OBJECT_ANALOG_INPUT;
-            LogInfo[iLog].Source.arrayIndex = BACNET_ARRAY_ALL;
-            LogInfo[iLog].Source.propertyIdentifier = PROP_PRESENT_VALUE;
-
-            datetime_set_values(
-                &LogInfo[iLog].StartTime, 2009, 1, 1, 0, 0, 0, 0);
-            LogInfo[iLog].tStartTime =
-                TL_BAC_Time_To_Local(&LogInfo[iLog].StartTime);
-            datetime_set_values(
-                &LogInfo[iLog].StopTime, 2020, 12, 22, 23, 59, 59, 99);
-            LogInfo[iLog].tStopTime =
-                TL_BAC_Time_To_Local(&LogInfo[iLog].StopTime);
         }
     }
 
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
     return;
 }
 

@@ -26,6 +26,8 @@
 #include "bacnet/basic/sys/lighting_command.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
 /* me! */
 #include "bacnet/basic/object/lo.h"
 
@@ -59,7 +61,12 @@ struct object_data {
     bool Color_Override : 1;
 };
 /* Key List for storing the object data sorted by instance number  */
-static OS_Keylist Object_List;
+static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
+#ifdef BAC_ROUTING
+#define Object_List (Object_Lists[Routed_Device_Object_Index()])
+#else
+#define Object_List (Object_Lists[0])
+#endif
 /* callback for present value writes */
 static lighting_command_tracking_value_callback
     Lighting_Command_Tracking_Value_Callback;
@@ -501,29 +508,6 @@ unsigned Lighting_Output_Present_Value_Priority(uint32_t object_instance)
 }
 
 /**
- * @brief Determine if fade, ramp, or warn command is currently executing
- * @param pObject [in] object to apply the trim values to
- * @param priority [in] priority of the command
- */
-static bool Lighting_Command_In_Progress(struct object_data *pObject)
-{
-    bool in_progress = false;
-
-    if (!pObject) {
-        return in_progress;
-    }
-    if ((pObject->Lighting_Command.In_Progress ==
-         BACNET_LIGHTING_FADE_ACTIVE) ||
-        (pObject->Lighting_Command.In_Progress ==
-         BACNET_LIGHTING_RAMP_ACTIVE) ||
-        (pObject->Lighting_Command.Blink.Duration > 0)) {
-        in_progress = true;
-    }
-
-    return in_progress;
-}
-
-/**
  * @brief Configure the lighting command to apply low or high trim
  * to the tracking value based on the priority of the command
  * @param pObject [in] object to apply the trim values to
@@ -540,14 +524,12 @@ Lighting_Command_Trim_Apply(struct object_data *pObject, unsigned priority)
         the Tracking_Value shall not be clamped. */
     if ((priority == 1) || (priority == 2)) {
         /* remove any high or low trim */
-        pObject->Lighting_Command.High_Trim_Value = 100.0f;
-        pObject->Lighting_Command.Low_Trim_Value = 1.0f;
-        pObject->Lighting_Command.Trim_Fade_Time = 0;
+        lighting_command_trim_set(&pObject->Lighting_Command, 100.0f, 1.0f, 0);
     } else {
         /* apply high and low trim */
-        pObject->Lighting_Command.High_Trim_Value = pObject->High_End_Trim;
-        pObject->Lighting_Command.Low_Trim_Value = pObject->Low_End_Trim;
-        pObject->Lighting_Command.Trim_Fade_Time = pObject->Trim_Fade_Time;
+        lighting_command_trim_set(
+            &pObject->Lighting_Command, pObject->High_End_Trim,
+            pObject->Low_End_Trim, pObject->Trim_Fade_Time);
     }
 }
 
@@ -646,6 +628,7 @@ static void
 Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
 
     if (!pObject) {
         return;
@@ -662,9 +645,9 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
                 active priority, or
             (b) The value at the specified priority is 0.0%, or
             (c) Blink_Warn_Enable is FALSE. */
+        lighting_command_blink_copy(&pObject->Lighting_Command, &blink);
         lighting_command_blink_warn(
-            &pObject->Lighting_Command, BACNET_LIGHTS_WARN,
-            &pObject->Lighting_Command.Blink);
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN, &blink);
     }
 }
 
@@ -713,7 +696,7 @@ static void
 Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
-    BACNET_LIGHTING_COMMAND_WARN_DATA blink;
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
 
     if (!pObject) {
         return;
@@ -733,9 +716,7 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
                     active priority, or
                 (b) The Present_Value is 0.0%, or
                 (c) Blink_Warn_Enable is FALSE. */
-            memmove(
-                &blink, &pObject->Lighting_Command.Blink,
-                sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
+            lighting_command_blink_copy(&pObject->Lighting_Command, &blink);
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
@@ -806,9 +787,7 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
                 (b) The Present_Value is 0.0%, or
                 (c) The Present_Value would not evaluate to 0.0% after
                     the priority slot is relinquished. */
-            memmove(
-                &blink, &pObject->Lighting_Command.Blink,
-                sizeof(BACNET_LIGHTING_COMMAND_WARN_DATA));
+            lighting_command_blink_copy(&pObject->Lighting_Command, &blink);
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
@@ -853,7 +832,7 @@ static void Lighting_Command_Step_Up_On(
     if (!pObject) {
         return;
     }
-    value = pObject->Lighting_Command.Tracking_Value;
+    value = lighting_command_tracking_value_get(&pObject->Lighting_Command);
     if (operation == BACNET_LIGHTS_STEP_UP) {
         if (is_float_equal(value, 0.0)) {
             /* If the starting level of Tracking_Value is 0.0%,
@@ -907,7 +886,7 @@ static void Lighting_Command_Step_Down_Off(
     if (!pObject) {
         return;
     }
-    value = pObject->Lighting_Command.Tracking_Value;
+    value = lighting_command_tracking_value_get(&pObject->Lighting_Command);
     if (is_float_equal(value, 0.0)) {
         /* If the starting level of Tracking_Value is 0.0%,
         then this operation is ignored. */
@@ -952,7 +931,7 @@ Lighting_Command_Restore_On(struct object_data *pObject, unsigned priority)
     if (!pObject) {
         return;
     }
-    value = pObject->Lighting_Command.Last_On_Value;
+    value = lighting_command_last_on_value_get(&pObject->Lighting_Command);
     Lighting_Command_Transition_Default(pObject, priority, value);
 }
 
@@ -971,7 +950,7 @@ Lighting_Command_Default_On(struct object_data *pObject, unsigned priority)
     if (!pObject) {
         return;
     }
-    value = pObject->Lighting_Command.Default_On_Value;
+    value = lighting_command_default_on_value_get(&pObject->Lighting_Command);
     Lighting_Command_Transition_Default(pObject, priority, value);
 }
 
@@ -994,7 +973,8 @@ Lighting_Command_Toggle_Restore(struct object_data *pObject, unsigned priority)
         /* Prior to the execution of this command, if Present_Value is 0.0%,
            write the Last_On_Value to the specified slot in the priority
            array. */
-        toggle_value = pObject->Lighting_Command.Last_On_Value;
+        toggle_value =
+            lighting_command_last_on_value_get(&pObject->Lighting_Command);
     } else {
         /* Prior to the execution of this command, if Present_Value is not 0.0%,
            write 0.0% to the specified slot in the priority array. */
@@ -1022,7 +1002,8 @@ Lighting_Command_Toggle_Default(struct object_data *pObject, unsigned priority)
         /* Prior to the execution of this command, if Present_Value is 0.0%,
            write the Default_On_Value to the specified slot in the priority
            array. */
-        toggle_value = pObject->Lighting_Command.Default_On_Value;
+        toggle_value =
+            lighting_command_default_on_value_get(&pObject->Lighting_Command);
     } else {
         /* Prior to the execution of this command, if Present_Value is not 0.0%,
            write 0.0% to the specified slot in the priority array. */
@@ -1460,10 +1441,11 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     }
     current_priority = Present_Value_Priority(pObject);
     if (priority == current_priority) {
-        if (Lighting_Command_In_Progress(pObject)) {
+        if (lighting_command_active(&pObject->Lighting_Command)) {
             /* fade, ramp, or warn command is currently
                executing at the specified priority */
-            value = pObject->Lighting_Command.Tracking_Value;
+            value =
+                lighting_command_tracking_value_get(&pObject->Lighting_Command);
             Present_Value_Set(pObject, value, priority);
             /* configure the Lighting Command */
             lighting_command_stop(&pObject->Lighting_Command);
@@ -1755,7 +1737,7 @@ Lighting_Output_In_Progress(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.In_Progress;
+        value = lighting_command_in_progress_get(&pObject->Lighting_Command);
     }
 
     return value;
@@ -1778,7 +1760,8 @@ bool Lighting_Output_In_Progress_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Lighting_Command.In_Progress = in_progress;
+        lighting_command_in_progress_set(
+            &pObject->Lighting_Command, in_progress);
     }
 
     return status;
@@ -1798,7 +1781,7 @@ float Lighting_Output_Tracking_Value(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.Tracking_Value;
+        value = lighting_command_tracking_value_get(&pObject->Lighting_Command);
     }
 
     return value;
@@ -1820,7 +1803,7 @@ bool Lighting_Output_Tracking_Value_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Lighting_Command.Tracking_Value = value;
+        lighting_command_tracking_value_set(&pObject->Lighting_Command, value);
         status = true;
     }
 
@@ -1909,9 +1892,8 @@ bool Lighting_Output_Blink_Warn_Feature_Set(
         } else if (isgreater(off_value, 100.0)) {
             off_value = 100.0f;
         }
-        pObject->Lighting_Command.Blink.Off_Value = off_value;
-        pObject->Lighting_Command.Blink.Interval = interval;
-        pObject->Lighting_Command.Blink.Count = count;
+        lighting_command_blink_warn_feature_set(
+            &pObject->Lighting_Command, off_value, interval, count);
         status = true;
     }
 
@@ -2016,9 +1998,8 @@ bool Lighting_Output_Egress_Active(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Lighting_Command.Blink.Duration > 0) {
-            value = true;
-        }
+        value =
+            lighting_command_blink_egress_active(&pObject->Lighting_Command);
     }
 
     return value;
@@ -2350,7 +2331,7 @@ bool Lighting_Output_Out_Of_Service(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.Out_Of_Service;
+        value = lighting_command_out_of_service_get(&pObject->Lighting_Command);
     }
 
     return value;
@@ -2370,7 +2351,7 @@ void Lighting_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Lighting_Command.Out_Of_Service = value;
+        lighting_command_out_of_service_set(&pObject->Lighting_Command, value);
     }
 }
 
@@ -2470,7 +2451,7 @@ float Lighting_Output_Last_On_Value(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.Last_On_Value;
+        value = lighting_command_last_on_value_get(&pObject->Lighting_Command);
     }
 
     return value;
@@ -2491,7 +2472,8 @@ bool Lighting_Output_Last_On_Value_Set(uint32_t object_instance, float value)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (isgreaterequal(value, 1.0) && islessequal(value, 100.0)) {
-            pObject->Lighting_Command.Last_On_Value = value;
+            lighting_command_last_on_value_set(
+                &pObject->Lighting_Command, value);
             status = true;
         }
     }
@@ -2540,7 +2522,8 @@ float Lighting_Output_Default_On_Value(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Lighting_Command.Default_On_Value;
+        value =
+            lighting_command_default_on_value_get(&pObject->Lighting_Command);
     }
 
     return value;
@@ -2561,7 +2544,8 @@ bool Lighting_Output_Default_On_Value_Set(uint32_t object_instance, float value)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (isgreaterequal(value, 1.0) && islessequal(value, 100.0)) {
-            pObject->Lighting_Command.Default_On_Value = value;
+            lighting_command_default_on_value_set(
+                &pObject->Lighting_Command, value);
             status = true;
         }
     }
@@ -2636,7 +2620,7 @@ bool Lighting_Output_High_End_Trim_Set(uint32_t object_instance, float value)
             pObject->High_End_Trim = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
-            if (!Lighting_Command_In_Progress(pObject)) {
+            if (!lighting_command_active(&pObject->Lighting_Command)) {
                 lighting_command_refresh(&pObject->Lighting_Command);
             }
             status = true;
@@ -2713,7 +2697,7 @@ bool Lighting_Output_Low_End_Trim_Set(uint32_t object_instance, float value)
             pObject->Low_End_Trim = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
-            if (!Lighting_Command_In_Progress(pObject)) {
+            if (!lighting_command_active(&pObject->Lighting_Command)) {
                 lighting_command_refresh(&pObject->Lighting_Command);
             }
             status = true;
@@ -2791,7 +2775,7 @@ bool Lighting_Output_Trim_Fade_Time_Set(
             pObject->Trim_Fade_Time = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
-            if (!Lighting_Command_In_Progress(pObject)) {
+            if (!lighting_command_active(&pObject->Lighting_Command)) {
                 lighting_command_refresh(&pObject->Lighting_Command);
             }
             status = true;
@@ -2920,8 +2904,7 @@ bool Lighting_Output_Overridden_Status(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = pObject->Lighting_Command.Overridden ||
-            pObject->Lighting_Command.Overridden_Momentary;
+        status = lighting_command_overridden_status(&pObject->Lighting_Command);
     }
 
     return status;
@@ -3817,6 +3800,25 @@ void Lighting_Output_Context_Set(uint32_t object_instance, void *context)
 }
 
 /**
+ * @brief Get the lighting command data for a specific object instance
+ * @param object_instance [in] BACnet object instance number
+ * @return pointer to the lighting command data, or NULL if not found
+ */
+BACNET_LIGHTING_COMMAND_DATA *
+Lighting_Output_Lighting_Command_Data(uint32_t object_instance)
+{
+    BACNET_LIGHTING_COMMAND_DATA *data = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        data = &pObject->Lighting_Command;
+    }
+
+    return data;
+}
+
+/**
  * @brief Creates a Color object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
@@ -3850,9 +3852,10 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Description = NULL;
         pObject->Present_Value = 0.0f;
         lighting_command_init(&pObject->Lighting_Command);
-        pObject->Lighting_Command.Key = object_instance;
-        pObject->Lighting_Command.Notification_Head.callback =
-            Lighting_Output_Tracking_Value_Callback;
+        lighting_command_key_set(&pObject->Lighting_Command, object_instance);
+        lighting_command_tracking_value_callback_set(
+            &pObject->Lighting_Command,
+            Lighting_Output_Tracking_Value_Callback);
         pObject->Last_Lighting_Command.operation = BACNET_LIGHTS_NONE;
         pObject->Last_Lighting_Command.use_target_level = false;
         pObject->Last_Lighting_Command.use_ramp_rate = false;
@@ -3861,9 +3864,10 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Last_Lighting_Command.use_priority = false;
         pObject->Blink_Warn_Enable = false;
         pObject->High_End_Trim = 100.0f;
-        pObject->Lighting_Command.High_Trim_Value = pObject->High_End_Trim;
         pObject->Low_End_Trim = 1.0f;
-        pObject->Lighting_Command.Low_Trim_Value = pObject->Low_End_Trim;
+        lighting_command_trim_set(
+            &pObject->Lighting_Command, pObject->High_End_Trim,
+            pObject->Low_End_Trim, pObject->Trim_Fade_Time);
         pObject->Trim_Fade_Time = 0;
         pObject->Egress_Time_Seconds = 0;
         pObject->Default_Fade_Time = 100;
@@ -3920,17 +3924,30 @@ bool Lighting_Output_Delete(uint32_t object_instance)
 void Lighting_Output_Cleanup(void)
 {
     struct object_data *pObject;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
-    if (Object_List) {
-        do {
-            pObject = Keylist_Data_Pop(Object_List);
-            if (pObject) {
-                free(pObject);
-            }
-        } while (pObject);
-        Keylist_Delete(Object_List);
-        Object_List = NULL;
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        if (Object_List) {
+            do {
+                pObject = Keylist_Data_Pop(Object_List);
+                if (pObject) {
+                    free(pObject);
+                }
+            } while (pObject);
+            Keylist_Delete(Object_List);
+            Object_List = NULL;
+        }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }
 
 /**
@@ -3938,7 +3955,21 @@ void Lighting_Output_Cleanup(void)
  */
 void Lighting_Output_Init(void)
 {
-    if (!Object_List) {
-        Object_List = Keylist_Create();
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
+
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        if (!Object_List) {
+            Object_List = Keylist_Create();
+        }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }

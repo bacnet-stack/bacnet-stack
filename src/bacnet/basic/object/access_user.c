@@ -17,10 +17,17 @@
 #include "bacnet/wp.h"
 #include "access_user.h"
 #include "bacnet/basic/services.h"
+/* BACnet Stack Objects */
+#include "bacnet/basic/object/device.h"
 
 static bool Access_User_Initialized = false;
 
-static ACCESS_USER_DESCR au_descr[MAX_ACCESS_USERS];
+static ACCESS_USER_DESCR au_descrs[MAX_NUM_DEVICES][MAX_ACCESS_USERS];
+#ifdef BAC_ROUTING
+#define au_descr (au_descrs[Routed_Device_Object_Index()])
+#else
+#define au_descr (au_descrs[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -79,19 +86,32 @@ void Access_User_Writable_Property_List(
 void Access_User_Init(void)
 {
     unsigned i;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
     if (!Access_User_Initialized) {
         Access_User_Initialized = true;
 
-        for (i = 0; i < MAX_ACCESS_USERS; i++) {
-            au_descr[i].global_identifier =
-                0; /* set to some meaningful value */
-            au_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
-            au_descr[i].user_type = ACCESS_USER_TYPE_PERSON;
-            au_descr[i].credentials_count = 0;
-            /* fill in the credentials with proper ids */
+        for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+            Set_Routed_Device_Object_Index(dev_id);
+#endif
+            for (i = 0; i < MAX_ACCESS_USERS; i++) {
+                au_descr[i].global_identifier =
+                    0; /* set to some meaningful value */
+                au_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
+                au_descr[i].user_type = ACCESS_USER_TYPE_PERSON;
+                au_descr[i].credentials_count = 0;
+                /* fill in the credentials with proper ids */
+            }
         }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 
     return;
 }

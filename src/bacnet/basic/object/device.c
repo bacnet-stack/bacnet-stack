@@ -2963,8 +2963,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-            if ((apdu_len = handler_cov_encode_subscriptions(
-                     &apdu[0], apdu_max)) < 0) {
+            apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max);
+            if (apdu_len < 0) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                 apdu_len = BACNET_STATUS_ABORT;
@@ -3942,12 +3942,31 @@ void Device_local_reporting(void)
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t idx = 0;
 
+/* loop for all objects */
+#ifdef BAC_ROUTING
+    uint16_t dev_id = 0;
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    for (dev_id = 0; dev_id < Get_Num_Managed_Devices(); dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+        objects_count = Device_Object_List_Count();
+        for (idx = 1; idx <= objects_count; idx++) {
+            Device_Object_List_Identifier(idx, &object_type, &object_instance);
+            pObject = Device_Object_Functions_Find(object_type);
+            if (pObject != NULL) {
+                if (pObject->Object_Valid_Instance &&
+                    pObject->Object_Valid_Instance(object_instance)) {
+                    if (pObject->Object_Intrinsic_Reporting) {
+                        pObject->Object_Intrinsic_Reporting(object_instance);
+                    }
+                }
+            }
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
     objects_count = Device_Object_List_Count();
-
-    /* loop for all objects */
     for (idx = 1; idx <= objects_count; idx++) {
         Device_Object_List_Identifier(idx, &object_type, &object_instance);
-
         pObject = Device_Object_Functions_Find(object_type);
         if (pObject != NULL) {
             if (pObject->Object_Valid_Instance &&
@@ -3958,6 +3977,7 @@ void Device_local_reporting(void)
             }
         }
     }
+#endif
 }
 #endif
 
@@ -4090,6 +4110,45 @@ void Device_Timer(uint16_t milliseconds)
     unsigned count = 0;
     uint32_t instance;
 
+#ifdef BAC_ROUTING
+    uint16_t dev_id = 0;
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    /* TODO: Multi-device Backup/Restore support
+     * Currently only Gateway (dev_id=0) supports Backup/Restore.
+     * Virtual devices are blocked by Routed_Device_Service_Approval().
+     * Plan to support after discussing with maintainer.
+     *
+     * To enable per-device Backup/Restore:
+     * 1. Move Backup-related static variables to DEVICE_OBJECT_DATA:
+     *    - Backup_State, Backup_Failure_Timeout_Milliseconds
+     *    - Backup_Failure_Timeout, Configuration_Files[]
+     *    - Last_Restore_Time, Backup/Restore_Preparation_Time
+     * 2. Modify Routed_Device_Service_Approval() to allow RD on virtual devices
+     * 3. Call Device_Backup_Failure_Timeout_Countdown() inside the for loop
+     *    for each device
+     */
+    Device_Backup_Failure_Timeout_Countdown(milliseconds);
+    for (dev_id = 0; dev_id < Get_Num_Managed_Devices(); dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+        pObject = Object_Table;
+        while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+            count = 0;
+            if (pObject->Object_Count) {
+                count = pObject->Object_Count();
+            }
+            while (count) {
+                count--;
+                if ((pObject->Object_Timer) &&
+                    (pObject->Object_Index_To_Instance)) {
+                    instance = pObject->Object_Index_To_Instance(count);
+                    pObject->Object_Timer(instance, milliseconds);
+                }
+            }
+            pObject++;
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
     Device_Backup_Failure_Timeout_Countdown(milliseconds);
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
@@ -4107,6 +4166,7 @@ void Device_Timer(uint16_t milliseconds)
         }
         pObject++;
     }
+#endif
 }
 
 #ifdef BAC_ROUTING

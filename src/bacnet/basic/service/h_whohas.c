@@ -113,7 +113,7 @@ void handler_who_has_for_routing(
     BACNET_WHO_HAS_DATA data;
     int32_t dev_instance;
     int cursor = 0; /* Starting hint */
-    int my_list[2] = { 0, -1 }; /* Not really used, so dummy values */
+    int32_t my_list[2] = { 0, -1 }; /* Not really used, so dummy values */
     BACNET_ADDRESS bcast_net;
 
     (void)src;

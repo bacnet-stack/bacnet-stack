@@ -109,7 +109,7 @@ target_include_directories(bacnet-pico-mstp PRIVATE
 target_compile_definitions(bacnet-pico-mstp PRIVATE
     BACDL_MSTP
     MAX_APDU=480
-    BIG_ENDIAN=0
+    BACNET_BIG_ENDIAN=0
     PRINT_ENABLED=0
     MAX_TSM_TRANSACTIONS=1
     CRC_USE_TABLE

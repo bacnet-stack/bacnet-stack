@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <time.h> /* for time */
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
@@ -337,6 +338,76 @@ static void print_help(const char *filename)
         filename, filename);
 }
 
+/**
+ * @brief Parse a BACnet property array string.
+ * The property array string can be either a property name or a
+ * property number, with an optional array index in square brackets.
+ * For example, "present-value" or "85" would parse the Present Value
+ * property with no array index, while "priority-array[3]" or "87[3]"
+ * would parse the Priority Array property with an array index of 3.
+ *
+ * @param argv [in] The property array string to parse.
+ * @param property_id [out] The parsed property ID, if the string is valid.
+ * @param array_index [out] The parsed array index, or 0 if no array index is
+ * specified.
+ * @return true if the string was successfully parsed, false if it was invalid
+ */
+static bool bacnet_property_array_parse(
+    char *argv, uint32_t *property_id, uint32_t *array_index)
+{
+    long unsigned int unsigned_value = 0;
+    unsigned int array_value = 0;
+    uint32_t found_index = 0;
+    char name[80] = "";
+    int scan_count = 0;
+
+    if (isalpha(argv[0])) {
+        /* choose a property by name with optional [] to denote array */
+        scan_count = sscanf(argv, "%79[^[][%u]", name, &array_value);
+        if (scan_count < 1) {
+            fprintf(stderr, "parse: missing property: %s.", argv);
+            return false;
+        }
+        if (!bactext_property_strtol(name, &found_index)) {
+            fprintf(stderr, "parse: invalid property name: %s.", argv);
+            return false;
+        }
+        if (property_id) {
+            *property_id = found_index;
+        }
+
+    } else {
+        /* choose a property by number */
+        scan_count = sscanf(argv, "%lu[%u]", &unsigned_value, &array_value);
+        if (scan_count < 1) {
+            fprintf(stderr, "parse: missing property: %s.", argv);
+            return false;
+        }
+        if (unsigned_value > UINT32_MAX) {
+            fprintf(
+                stderr, "parse: Invalid property: %s. Must be 0-%u.", argv,
+                UINT32_MAX);
+            return false;
+        }
+        if (property_id) {
+            *property_id = (uint32_t)unsigned_value;
+        }
+    }
+    if (scan_count >= 2) {
+        if (array_value > UINT32_MAX) {
+            fprintf(
+                stderr, "parse: Invalid array index: %s. Must be 0-%u.", argv,
+                UINT32_MAX);
+            return false;
+        }
+        if (array_index) {
+            *array_index = (uint32_t)array_value;
+        }
+    }
+
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -353,9 +424,8 @@ int main(int argc, char *argv[])
     BACNET_READ_ACCESS_DATA *rpm_object = NULL;
     BACNET_PROPERTY_REFERENCE *rpm_property = NULL;
     char *property_token = NULL;
-    unsigned property_id = 0;
-    unsigned property_array_index = 0;
-    int scan_count = 0;
+    uint32_t property_id = 0;
+    uint32_t property_array_index = 0;
     int argi = 0;
     long dnet = -1;
     unsigned object_type = 0;
@@ -460,27 +530,26 @@ int main(int argc, char *argv[])
                     property_token = strtok(argv[argi], ",");
                     /* add all the properties and optional index to our list */
                     while (rpm_property) {
-                        scan_count = sscanf(
-                            property_token, "%u[%u]", &property_id,
-                            &property_array_index);
-                        if (scan_count > 0) {
-                            rpm_property->propertyIdentifier = property_id;
-                            if (rpm_property->propertyIdentifier >
-                                MAX_BACNET_PROPERTY_ID) {
-                                fprintf(
-                                    stderr,
-                                    "property=%u - it must be less than %u\n",
-                                    rpm_property->propertyIdentifier,
-                                    MAX_BACNET_PROPERTY_ID + 1);
-                                return 1;
-                            }
+                        property_array_index = BACNET_ARRAY_ALL;
+                        if (!bacnet_property_array_parse(
+                                property_token, &property_id,
+                                &property_array_index)) {
+                            fprintf(
+                                stderr, "Error: property=%s invalid\n",
+                                property_token);
+                            return 1;
                         }
-                        if (scan_count > 1) {
-                            rpm_property->propertyArrayIndex =
-                                property_array_index;
-                        } else {
-                            rpm_property->propertyArrayIndex = BACNET_ARRAY_ALL;
+                        rpm_property->propertyIdentifier = property_id;
+                        if (rpm_property->propertyIdentifier >
+                            MAX_BACNET_PROPERTY_ID) {
+                            fprintf(
+                                stderr,
+                                "property=%u - it must be less than %u\n",
+                                rpm_property->propertyIdentifier,
+                                MAX_BACNET_PROPERTY_ID + 1);
+                            return 1;
                         }
+                        rpm_property->propertyArrayIndex = property_array_index;
                         /* is there another property? */
                         property_token = strtok(NULL, ",");
                         if (property_token) {

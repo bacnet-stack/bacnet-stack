@@ -328,3 +328,15 @@ jobs:
         gcc --version
         make clean
         make gtk-discover
+
+  ports-esp32:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install PlatformIO
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install platformio
+    - name: Build ESP32 Port
+      run: |
+        pio run -d ports/esp32

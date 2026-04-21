@@ -245,6 +245,89 @@ static void test_BACnetRecipient_ASCII(void)
     zassert_true(status, NULL);
 }
 
+/**
+ * @brief Test BACnetRecipientProcess encode, decode, copy functions
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_destination_tests, testBACnetRecipientProcess)
+#else
+static void testBACnetRecipientProcess(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_RECIPIENT_PROCESS value = { 0 }, test_value = { 0 };
+    BACNET_MAC_ADDRESS mac = { .len = 1, .adr[0] = 0x01 };
+    BACNET_MAC_ADDRESS adr = { .len = 1, .adr[0] = 0x02 };
+    uint16_t snet = 4321;
+    BACNET_ADDRESS address = { 0 };
+    int apdu_len = 0, null_len = 0, test_len = 0;
+    uint8_t tag_number = 3;
+    bool status = false;
+
+    /* device recipient */
+    bacnet_recipient_device_set(&value.recipient, OBJECT_DEVICE, 5678);
+    value.process_identifier = 99;
+    null_len = bacnet_recipient_process_encode(NULL, &value);
+    apdu_len = bacnet_recipient_process_encode(apdu, &value);
+    zassert_equal(apdu_len, null_len, NULL);
+    test_len = bacnet_recipient_process_decode(apdu, apdu_len, &test_value);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_equal(
+        value.process_identifier, test_value.process_identifier, NULL);
+    status = bacnet_recipient_same(&value.recipient, &test_value.recipient);
+    zassert_true(status, NULL);
+    /* NULL decode target - length-only */
+    test_len = bacnet_recipient_process_decode(apdu, apdu_len, NULL);
+    zassert_equal(apdu_len, test_len, NULL);
+
+    /* copy */
+    memset(&test_value, 0, sizeof(test_value));
+    bacnet_recipient_process_copy(&test_value, &value);
+    zassert_equal(
+        value.process_identifier, test_value.process_identifier, NULL);
+    status = bacnet_recipient_same(&value.recipient, &test_value.recipient);
+    zassert_true(status, NULL);
+
+    /* address recipient */
+    status = bacnet_address_init(&address, &mac, snet, &adr);
+    zassert_true(status, NULL);
+    bacnet_recipient_address_set(&value.recipient, &address);
+    value.process_identifier = 42;
+    null_len = bacnet_recipient_process_encode(NULL, &value);
+    apdu_len = bacnet_recipient_process_encode(apdu, &value);
+    zassert_equal(apdu_len, null_len, NULL);
+    test_len = bacnet_recipient_process_decode(apdu, apdu_len, &test_value);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_equal(
+        value.process_identifier, test_value.process_identifier, NULL);
+    status = bacnet_recipient_same(&value.recipient, &test_value.recipient);
+    zassert_true(status, NULL);
+
+    /* context encode/decode */
+    bacnet_recipient_device_set(&value.recipient, OBJECT_DEVICE, 1234);
+    value.process_identifier = 7;
+    null_len =
+        bacnet_recipient_process_context_encode(NULL, tag_number, &value);
+    apdu_len =
+        bacnet_recipient_process_context_encode(apdu, tag_number, &value);
+    zassert_equal(apdu_len, null_len, NULL);
+    test_len = bacnet_recipient_process_context_decode(
+        apdu, apdu_len, tag_number, &test_value);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_equal(
+        value.process_identifier, test_value.process_identifier, NULL);
+    status = bacnet_recipient_same(&value.recipient, &test_value.recipient);
+    zassert_true(status, NULL);
+    /* wrong tag - expect zero (tag mismatch) */
+    test_len = bacnet_recipient_process_context_decode(
+        apdu, apdu_len, tag_number + 1, &test_value);
+    zassert_equal(test_len, 0, NULL);
+
+    /* negative: NULL apdu */
+    test_len = bacnet_recipient_process_decode(NULL, apdu_len, &test_value);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bacnet_destination_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -254,7 +337,8 @@ void test_main(void)
         bacnet_destination_tests, ztest_unit_test(testBACnetDestination),
         ztest_unit_test(test_BACnetDestination_ASCII),
         ztest_unit_test(testBACnetRecipient),
-        ztest_unit_test(test_BACnetRecipient_ASCII));
+        ztest_unit_test(test_BACnetRecipient_ASCII),
+        ztest_unit_test(testBACnetRecipientProcess));
 
     ztest_run_test_suite(bacnet_destination_tests);
 }

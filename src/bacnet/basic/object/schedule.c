@@ -25,7 +25,12 @@
 #define MAX_SCHEDULES 4
 #endif
 
-static SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];
+static SCHEDULE_DESCR Schedule_Descrs[MAX_NUM_DEVICES][MAX_SCHEDULES];
+#ifdef BAC_ROUTING
+#define Schedule_Descr (Schedule_Descrs[Routed_Device_Object_Index()])
+#else
+#define Schedule_Descr (Schedule_Descrs[0])
+#endif
 
 static const int32_t Schedule_Properties_Required[] = {
     /* list of required properties */
@@ -134,12 +139,16 @@ SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
  */
 void Schedule_Init(void)
 {
+    uint16_t dev_id;
     unsigned i, j;
     BACNET_DATE start_date = { 0 }, end_date = { 0 };
     SCHEDULE_DESCR *psched;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     unsigned e;
     BACNET_SPECIAL_EVENT *event;
+#endif
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
 #endif
 
     /* whole year, change as necessary */
@@ -149,38 +158,49 @@ void Schedule_Init(void)
     datetime_set_date(&end_date, 0, 12, 31);
     datetime_wildcard_year_set(&end_date);
     datetime_wildcard_weekday_set(&end_date);
-    for (i = 0; i < MAX_SCHEDULES; i++, psched++) {
-        psched = &Schedule_Descr[i];
-        datetime_copy_date(&psched->Start_Date, &start_date);
-        datetime_copy_date(&psched->End_Date, &end_date);
-        for (j = 0; j < BACNET_WEEKLY_SCHEDULE_SIZE; j++) {
-            psched->Weekly_Schedule[j].TV_Count = 0;
-        }
-        memcpy(
-            &psched->Present_Value, &psched->Schedule_Default,
-            sizeof(psched->Present_Value));
-        psched->Schedule_Default.context_specific = false;
-        psched->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        psched->Schedule_Default.type.Real = 21.0f; /* 21 C, room temperature */
-        psched->obj_prop_ref_cnt = 0; /* no references, add as needed */
-        psched->Priority_For_Writing = 16; /* lowest priority */
-        psched->Out_Of_Service = false;
-#if BACNET_EXCEPTION_SCHEDULE_SIZE
-        for (e = 0; e < BACNET_EXCEPTION_SCHEDULE_SIZE; e++) {
-            event = &psched->Exception_Schedule[e];
-            event->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
-            event->period.calendarEntry.tag = BACNET_CALENDAR_DATE_RANGE;
-            datetime_copy_date(
-                &event->period.calendarEntry.type.DateRange.startdate,
-                &start_date);
-            datetime_copy_date(
-                &event->period.calendarEntry.type.DateRange.enddate, &end_date);
-            event->period.calendarEntry.next = NULL;
-            event->timeValues.TV_Count = 0;
-            event->priority = 16;
-        }
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
 #endif
+        for (i = 0; i < MAX_SCHEDULES; i++) {
+            psched = &Schedule_Descr[i];
+            datetime_copy_date(&psched->Start_Date, &start_date);
+            datetime_copy_date(&psched->End_Date, &end_date);
+            for (j = 0; j < BACNET_WEEKLY_SCHEDULE_SIZE; j++) {
+                psched->Weekly_Schedule[j].TV_Count = 0;
+            }
+            memcpy(
+                &psched->Present_Value, &psched->Schedule_Default,
+                sizeof(psched->Present_Value));
+            psched->Schedule_Default.context_specific = false;
+            psched->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
+            psched->Schedule_Default.type.Real =
+                21.0f; /* 21 C, room temperature */
+            psched->obj_prop_ref_cnt = 0; /* no references, add as needed */
+            psched->Priority_For_Writing = 16; /* lowest priority */
+            psched->Out_Of_Service = false;
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+            for (e = 0; e < BACNET_EXCEPTION_SCHEDULE_SIZE; e++) {
+                event = &psched->Exception_Schedule[e];
+                event->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+                event->period.calendarEntry.tag = BACNET_CALENDAR_DATE_RANGE;
+                datetime_copy_date(
+                    &event->period.calendarEntry.type.DateRange.startdate,
+                    &start_date);
+                datetime_copy_date(
+                    &event->period.calendarEntry.type.DateRange.enddate,
+                    &end_date);
+                event->period.calendarEntry.next = NULL;
+                event->timeValues.TV_Count = 0;
+                event->priority = 16;
+            }
+#endif
+        }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }
 
 /**

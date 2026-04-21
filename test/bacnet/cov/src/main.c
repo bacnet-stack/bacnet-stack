@@ -342,6 +342,69 @@ static void testCOVSubscribePropertyData(
     }
 }
 
+static void testCOVSubscriptionData(
+    const BACNET_COV_SUBSCRIPTION *data,
+    const BACNET_COV_SUBSCRIPTION *test_data)
+{
+    bool status = false;
+
+    zassert_equal(
+        test_data->time_remaining, data->time_remaining,
+        "time-remaining mismatch");
+    zassert_equal(
+        test_data->issue_confirmed_notifications,
+        data->issue_confirmed_notifications,
+        "issue-confirmed-notifications mismatch");
+    zassert_equal(
+        test_data->cov_increment_present, data->cov_increment_present,
+        "cov-increment-present mismatch");
+    if (test_data->cov_increment_present) {
+        zassert_false(
+            islessgreater(test_data->cov_increment, data->cov_increment),
+            "cov-increment mismatch");
+    }
+    zassert_equal(
+        test_data->recipient.process_identifier,
+        data->recipient.process_identifier,
+        "recipient process-identifier mismatch");
+    status = bacnet_recipient_same(
+        &test_data->recipient.recipient, &data->recipient.recipient);
+    zassert_true(status, "recipient mismatch");
+    status = bacnet_object_property_reference_same(
+        &test_data->monitored_property_reference,
+        &data->monitored_property_reference);
+    zassert_true(status, "monitored-property-reference mismatch");
+}
+
+static void testCOVSubscriptionEncoding(const BACNET_COV_SUBSCRIPTION *data)
+{
+    uint8_t apdu[480] = { 0 };
+    size_t len = 0, null_len = 0;
+    BACNET_COV_SUBSCRIPTION test_data = { 0 };
+    int decode_len = 0;
+
+    null_len = bacnet_cov_subscription_encode(NULL, sizeof(apdu), data);
+    len = bacnet_cov_subscription_encode(&apdu[0], sizeof(apdu), data);
+    zassert_true(len > 0, NULL);
+    zassert_equal(len, null_len, NULL);
+
+    if (len > 0) {
+        zassert_equal(
+            bacnet_cov_subscription_encode(&apdu[0], len - 1, data), 0, NULL);
+    }
+
+    decode_len = bacnet_cov_subscription_decode(NULL, len, &test_data);
+    zassert_equal(decode_len, 0, NULL);
+    decode_len = bacnet_cov_subscription_decode(&apdu[0], 0, &test_data);
+    zassert_equal(decode_len, 0, NULL);
+
+    decode_len = bacnet_cov_subscription_decode(&apdu[0], len, NULL);
+    zassert_equal(decode_len, (int)len, NULL);
+    decode_len = bacnet_cov_subscription_decode(&apdu[0], len, &test_data);
+    zassert_equal(decode_len, (int)len, NULL);
+    testCOVSubscriptionData(data, &test_data);
+}
+
 static void testCOVSubscribeEncoding(
     uint8_t invoke_id, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
@@ -448,6 +511,33 @@ static void testCOVSubscribeProperty(void)
     data.cancellationRequest = false;
     data.covIncrementPresent = false;
     testCOVSubscribePropertyEncoding(invoke_id, &data);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(cov_tests, testCOVSubscription)
+#else
+static void testCOVSubscription(void)
+#endif
+{
+    BACNET_COV_SUBSCRIPTION data = { 0 };
+
+    data.time_remaining = 456;
+    data.issue_confirmed_notifications = true;
+    data.recipient.process_identifier = 1;
+    bacnet_recipient_device_set(&data.recipient.recipient, OBJECT_DEVICE, 123);
+    data.monitored_property_reference.object_identifier.type =
+        OBJECT_ANALOG_INPUT;
+    data.monitored_property_reference.object_identifier.instance = 321;
+    data.monitored_property_reference.property_identifier = PROP_PRESENT_VALUE;
+    data.monitored_property_reference.property_array_index = BACNET_ARRAY_ALL;
+
+    data.cov_increment_present = false;
+    data.cov_increment = 0.0f;
+    testCOVSubscriptionEncoding(&data);
+
+    data.cov_increment_present = true;
+    data.cov_increment = 1.5f;
+    testCOVSubscriptionEncoding(&data);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -606,6 +696,7 @@ void test_main(void)
         cov_tests, ztest_unit_test(testCOVNotify),
         ztest_unit_test(testCOVSubscribe),
         ztest_unit_test(testCOVSubscribeProperty),
+        ztest_unit_test(testCOVSubscription),
         ztest_unit_test(test_COV_Value_List_Encode));
 
     ztest_run_test_suite(cov_tests);

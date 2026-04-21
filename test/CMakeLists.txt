@@ -48,7 +48,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
 
     # some consistent defines used for all builds - avoids inconsistent error
     add_compile_definitions(
-      BIG_ENDIAN=0
+      BACNET_BIG_ENDIAN=0
       PRINT_ENABLED=1
       BACAPP_PRINT_ENABLED=1
     )
@@ -193,6 +193,8 @@ list(APPEND testdirs
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic
+  # basic/service
+  bacnet/basic/service/h_cov
   # basic/server
   bacnet/basic/server/bacnet_device
   # basic/sys

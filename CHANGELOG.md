@@ -13,7 +13,31 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-03-25
+## [Unreleased] - 2026-04-21
+
+### Security
+### Added
+### Changed
+
+* Changed lighting output object and lighting command structure to enable
+loose coupling.  Added locking callbacks in lighting command that are
+engaged when accessing any of the lighting command structure data. (#1306)
+* Changed COV subscription encoding and decoding functions to reduce code
+size and reuse existing unit tested functions. Added BACnetRecipientProcess
+type encoding and decoding functions with associated tests. (#1296)
+* Changed COV Subscriptions handling to use use keylist instead of array
+for performance optimization. (#1295)
+
+### Fixed
+
+* Fixed BBMD_Result handling to avoid false positive error message when no
+registration is requested. (#1305)
+* Fixed keylist CheckArraySize return value, and added memory exhaustion
+check to Keylist_Data_Add. (#1295)
+
+### Removed
+
+## [1.5.0] - 2026-04-16
 
 ### Security
 
@@ -53,6 +77,20 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added parsing for property name and optional array in ReadPropertyMultiple
+  example application. Added the priority value when printing special-event
+  property types, specificially for exception-schedule property. (#1291)
+* Added parsing for BACnetSpecialEvent in bacapp for use in apps/writeproperty
+  and add unit tests. (#1290)
+* Added multi-device support for BACnet gateway routing. Expanded Object_List
+  to Object_List[MAX_NUM_DEVICES] array to support per-device objects for
+  virtual remote devices. Added multi-device iteration for COV handler,
+  device timer, and intrinsic reporting. Added apps/gateway2 demo application.
+  When MAX_NUM_DEVICES == 1, behavior is identical to the original
+  gateway implementation. Conditional compilation with macros ensures
+  no impact on non-gateway applications. (#1279)
+* Added structured-view object subordinate-list add, remove, exist, same
+  API for interfacing as a list.  Added purge API for unit testing. (#1283)
 * Added ports/pico for Raspberry Pi Pico port of the BACnet stack
   supporting both BACnet/IP and BACnet MS/TP. (#1232)
 * Added new functions for duplicating and copying octet string buffers.
@@ -202,6 +240,16 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed type definition compiler warnings in DNET list when int32_t is
+  defined as long int instead of int on 32-bit platforms, and in bacapp
+  module for inner_tag and object_instance when uint32_t is defined
+  as long unsigned int instead of unsigned int on 32-bit platforms. (#1293)
+* Fixed CMakeLists.txt by replacing BIG_ENDIAN definition with
+  BACNET_BIG_ENDIAN to fix missing function in builds. (#1284)
+* Fixed CMakeLists.txt by adding INTRINSIC_REPORTING CMake option
+  to enable intrinsic reporting at build time. (#1275)
+* Fixed missing keylist.h include in objects.h for OS_Keylist type
+  dependency (#1277)
 * Fixed lighting output and lighting command low and high trim fade. (#1268)
 * Fixed FQDN hostname size in minimal hostnport implementation. (#1263)
 * Fixed segmentation fault in Schedule_Recalculate_PV() during application

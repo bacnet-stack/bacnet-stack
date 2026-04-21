@@ -53,7 +53,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /** The list of DNETs that our router can reach.
  *  Only one entry since we don't support downstream routers.
  */
-int DNET_list[2] = {
+int32_t DNET_list[2] = {
     VIRTUAL_DNET, -1 /* Need -1 terminator */
 };
 
@@ -61,7 +61,7 @@ int DNET_list[2] = {
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
 /* routed devices - I-Am on startup */
-static unsigned Routed_Device_Index;
+static unsigned Routed_Device_Index = 1;
 
 /** Initialize the Device Objects and each of the child Object instances.
  * @param first_object_instance Set the first (gateway) Device to this
@@ -278,10 +278,10 @@ int main(int argc, char *argv[])
         }
         handler_cov_task();
         if (Routed_Device_Index < MAX_NUM_DEVICES) {
-            Routed_Device_Index++;
             Get_Routed_Device_Object(Routed_Device_Index);
             /* broadcast an I-Am for each routed Device now */
             Send_I_Am(&Handler_Transmit_Buffer[0]);
+            Routed_Device_Index++;
         }
     }
     /* Dummy return */

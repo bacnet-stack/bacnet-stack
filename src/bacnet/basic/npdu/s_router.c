@@ -46,12 +46,12 @@
 int Send_Network_Layer_Message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     BACNET_ADDRESS *dst,
-    const int *iArgs)
+    const int32_t *iArgs)
 {
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
-    const int *pVal = iArgs; /* Start with first value */
+    const int32_t *pVal = iArgs; /* Start with first value */
     bool data_expecting_reply = false;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS bcastDest;
@@ -189,7 +189,7 @@ int Send_Network_Layer_Message(
  *                 will be sent and the receiving router(s) will send
  *                 their full list of reachable BACnet networks.
  */
-void Send_Who_Is_Router_To_Network(BACNET_ADDRESS *dst, int dnet)
+void Send_Who_Is_Router_To_Network(BACNET_ADDRESS *dst, int32_t dnet)
 {
     Send_Network_Layer_Message(
         NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, dst, &dnet);
@@ -204,7 +204,7 @@ void Send_Who_Is_Router_To_Network(BACNET_ADDRESS *dst, int dnet)
  * @param DNET_list [in] List of BACnet network numbers for which I am a router,
  *                       terminated with -1
  */
-void Send_I_Am_Router_To_Network(const int DNET_list[])
+void Send_I_Am_Router_To_Network(const int32_t DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
     Send_Network_Layer_Message(
@@ -222,9 +222,9 @@ void Send_I_Am_Router_To_Network(const int DNET_list[])
  * @param dnet [in] Which BACnet network originated the message.
  */
 void Send_Reject_Message_To_Network(
-    BACNET_ADDRESS *dst, uint8_t reject_reason, int dnet)
+    BACNET_ADDRESS *dst, uint8_t reject_reason, int32_t dnet)
 {
-    int iArgs[2];
+    int32_t iArgs[2];
     iArgs[0] = reject_reason;
     iArgs[1] = dnet;
     Send_Network_Layer_Message(
@@ -248,7 +248,8 @@ void Send_Reject_Message_To_Network(
  *                       terminated with -1.  Will be just -1 when we are
  *                       requesting a routing table.
  */
-void Send_Initialize_Routing_Table(BACNET_ADDRESS *dst, const int DNET_list[])
+void Send_Initialize_Routing_Table(
+    BACNET_ADDRESS *dst, const int32_t DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
     Send_Network_Layer_Message(NETWORK_MESSAGE_INIT_RT_TABLE, dst, DNET_list);
@@ -272,7 +273,7 @@ void Send_Initialize_Routing_Table(BACNET_ADDRESS *dst, const int DNET_list[])
  *                       should be sent.
  */
 void Send_Initialize_Routing_Table_Ack(
-    BACNET_ADDRESS *dst, const int DNET_list[])
+    BACNET_ADDRESS *dst, const int32_t DNET_list[])
 {
     Send_Network_Layer_Message(
         NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst, DNET_list);
@@ -288,9 +289,9 @@ void Send_Initialize_Routing_Table_Ack(
  *                 will be sent and the receiving router(s) will send
  *                 their full list of reachable BACnet networks.
  */
-void Send_Network_Number_Is(BACNET_ADDRESS *dst, int dnet, int status)
+void Send_Network_Number_Is(BACNET_ADDRESS *dst, int32_t dnet, int status)
 {
-    int iArgs[2];
+    int32_t iArgs[2];
     iArgs[0] = dnet;
     iArgs[1] = status;
 

@@ -7,24 +7,38 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.5.x   | :white_check_mark: |
 | 1.4.x   | :white_check_mark: |
-| 1.3.x   | :white_check_mark: |
-| 1.2.x   | :white_check_mark: |
-| 1.1.x   | :white_check_mark: |
-| 1.0.x   | :white_check_mark: |
+| 1.3.x   | :x:                |
+| 1.2.x   | :x:                |
+| 1.1.x   | :x:                |
+| 1.0.x   | :x:                |
 | 0.9.x   | :x:                |
-| 0.8.x   | :white_check_mark: |
+| 0.8.x   | :x:                |
 | 0.7.x   | :x:                |
 | < 0.6.x | :x:                |
 
 
 ## Coordinated Vulnerability Disclosure
 
-From time to time a vulnerability is disclosed to [CVE](https://www.cve.org/)
+Vulnerabilites are disclosed to [CVE](https://www.cve.org/)
+or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state=published)
 and a record is created to identify, define, and catalog publicly disclosed
-cybersecurity vulnerabilities.
+cybersecurity vulnerabilities. Here are the published vulnerability records:
 
-Here are the known CVE records:
+[CVE-2026-26264](https://www.cve.org/CVERecord?id=CVE-2026-26264) -
+Undefined-behavior signed left shift in `decode_signed32()`
+[GHSA-326g-j95f-gmxv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-326g-j95f-gmxv)
+
+Out-of-Bounds Read in ReadPropertyMultiple Property Decoder via Deprecated Tag Parser
+[GHSA-5w2v-mwqj-pr2c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-5w2v-mwqj-pr2c)
+
+Off-by-One Out-of-Bounds Read in ReadPropertyMultiple Object ID Decoder
+[GHSA-7545-3fpx-4xw3](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7545-3fpx-4xw3)
+
+[CVE-2026-41475](https://www.cve.org/CVERecord?id=CVE-2026-41475) -
+Out-of-Bounds Read in WritePropertyMultiple Decoder via Deprecated Tag Parser
+[GHSA-cvv4-v3g6-4jmv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cvv4-v3g6-4jmv)
 
 [CVE-2026-26264](https://www.cve.org/CVERecord?id=CVE-2026-26264) -
 WriteProperty decoding length underflow leads to OOB read and crash
@@ -64,9 +78,9 @@ Segmentation fault leading to denial of service
 
 ## Reporting a Vulnerability
 
-Please use the "bugs" feature of Sourceforge.net to report a vulnerability,
-where it will be tracked until it is resolved.
-https://sourceforge.net/p/bacnet/bugs/
+Privately discuss, fix, and publish information about security
+vulnerabilities in this library using Github Security Advisories:
+https://github.com/bacnet-stack/bacnet-stack/security/advisories/new
 
-Vulnerabilities can also be reported using "issues" at Github.
+Alternatively, vulnerabilities can be reported using "issues" at Github.
 https://github.com/bacnet-stack/bacnet-stack/issues

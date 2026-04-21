@@ -34,7 +34,13 @@
 #endif
 
 #if defined(INTRINSIC_REPORTING)
-static NOTIFICATION_CLASS_INFO NC_Info[MAX_NOTIFICATION_CLASSES];
+static NOTIFICATION_CLASS_INFO NC_Infos[MAX_NUM_DEVICES]
+                                       [MAX_NOTIFICATION_CLASSES];
+#ifdef BAC_ROUTING
+#define NC_Info (NC_Infos[Routed_Device_Object_Index()])
+#else
+#define NC_Info (NC_Infos[0])
+#endif
 /* buffer for sending event messages */
 static uint8_t Event_Buffer[MAX_APDU];
 
@@ -119,25 +125,38 @@ static void Notification_Class_I_Am_Router_To_Network_Handler(
 
 void Notification_Class_Init(void)
 {
+    uint16_t dev_id;
     uint8_t NotifyIdx = 0;
     unsigned i;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
 
-    for (NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++) {
-        /* init with zeros */
-        memset(&NC_Info[NotifyIdx], 0x00, sizeof(NOTIFICATION_CLASS_INFO));
-        /* set the basic parameters */
-        NC_Info[NotifyIdx].Ack_Required = 0;
-        /* The lowest priority for Normal message = 255 */
-        NC_Info[NotifyIdx].Priority[TRANSITION_TO_OFFNORMAL] = 255;
-        NC_Info[NotifyIdx].Priority[TRANSITION_TO_FAULT] = 255;
-        NC_Info[NotifyIdx].Priority[TRANSITION_TO_NORMAL] = 255;
-        /* note: default uses wildcard device destination */
-        for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
-            BACNET_DESTINATION *destination;
-            destination = &NC_Info[NotifyIdx].Recipient_List[i];
-            bacnet_destination_default_init(destination);
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        for (NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++) {
+            /* init with zeros */
+            memset(&NC_Info[NotifyIdx], 0x00, sizeof(NOTIFICATION_CLASS_INFO));
+            /* set the basic parameters */
+            NC_Info[NotifyIdx].Ack_Required = 0;
+            /* The lowest priority for Normal message = 255 */
+            NC_Info[NotifyIdx].Priority[TRANSITION_TO_OFFNORMAL] = 255;
+            NC_Info[NotifyIdx].Priority[TRANSITION_TO_FAULT] = 255;
+            NC_Info[NotifyIdx].Priority[TRANSITION_TO_NORMAL] = 255;
+            /* note: default uses wildcard device destination */
+            for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
+                BACNET_DESTINATION *destination;
+                destination = &NC_Info[NotifyIdx].Recipient_List[i];
+                bacnet_destination_default_init(destination);
+            }
         }
     }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
     npdu_set_i_am_router_to_network_handler(
         Notification_Class_I_Am_Router_To_Network_Handler);
 

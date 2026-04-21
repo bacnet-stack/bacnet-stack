@@ -31,7 +31,12 @@ struct object_data {
 };
 
 /* Key List for storing object data sorted by instance number */
-static OS_Keylist Object_List = NULL;
+static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
+#ifdef BAC_ROUTING
+#define Object_List (Object_Lists[Routed_Device_Object_Index()])
+#else
+#define Object_List (Object_Lists[0])
+#endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -53,7 +58,8 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, PROP_OBJECT_NAME, PROP_DESCRIPTION,
+    -1
 };
 
 /**
@@ -167,11 +173,23 @@ bool OctetString_Value_Delete(uint32_t object_instance)
 void OctetString_Value_Init(void)
 {
 #ifdef MAX_OCTETSTRING_VALUES
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
     unsigned i = 0;
-
+    uint16_t dev_id;
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+        for (i = 0; i < MAX_OCTETSTRING_VALUES; i++) {
+            OctetString_Value_Create(i);
+        }
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#else
+    unsigned i = 0;
     for (i = 0; i < MAX_OCTETSTRING_VALUES; i++) {
         OctetString_Value_Create(i);
     }
+#endif
 #endif
 }
 
@@ -661,19 +679,16 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_OCTET_STRING);
             if (status) {
-                /* Command priority 6 is reserved for use by Minimum On/Off
-                   algorithm and may not be used for other purposes in any
-                   object. */
-                if (OctetString_Value_Present_Value_Set(
-                        wp_data->object_instance, &value.type.Octet_String,
-                        wp_data->priority)) {
-                    status = true;
-                } else if (wp_data->priority == 6) {
+                if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
                        object. */
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else if (OctetString_Value_Present_Value_Set(
+                               wp_data->object_instance,
+                               &value.type.Octet_String, wp_data->priority)) {
+                    status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

@@ -9,13 +9,15 @@
 # b) commit changes into master branch
 # After running this script, be sure to:
 # c) create long term branch as bacnet-stack-x.y if needed
+# d) push tags and branch to github
+# e) mirror github to sourceforge using mirror.sh script
 
 USERNAME='skarg'
 
 if [ -z "$1" ]
 then
   echo "Usage: `basename $0` 0.0.0"
-  echo "Builds the Win32 release files, archives the source, and uploads them to sf.net"
+  echo "Builds Win32 release files. Archives source. Uploads files to sf.net"
   exit 1
 fi
 
