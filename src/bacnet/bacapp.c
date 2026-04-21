@@ -3799,8 +3799,7 @@ int bacapp_snprintf_authentication_factor(
         bactext_authentication_factor_type_name(value->format_type),
         (unsigned long)value->format_class);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = bacapp_snprintf_octet_string(
-        str, str_len, &value->value);
+    slen = bacapp_snprintf_octet_string(str, str_len, &value->value);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, "}");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -4114,7 +4113,8 @@ int bacapp_snprintf_value(
                     bactext_authentication_factor_type_name(
                         value->type.Authentication_Format.format_type),
                     (unsigned long)value->type.Authentication_Format.vendor_id,
-                    (unsigned long)value->type.Authentication_Format.vendor_format);
+                    (unsigned long)
+                        value->type.Authentication_Format.vendor_format);
                 break;
             case BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR:
                 /* BACnetAuthenticationFactor */
@@ -4918,8 +4918,7 @@ static bool bacnet_authentication_factor_from_ascii(
     count = sscanf(
         argv, "%lu,%lu,%255s", &format_type, &format_class, factor_value);
     if (count == 3) {
-        value->format_type =
-            (BACNET_AUTHENTICATION_FACTOR_TYPE)format_type;
+        value->format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)format_type;
         value->format_class = (uint32_t)format_class;
         octetstring_init_ascii_epics(&value->value, factor_value);
         status = true;
@@ -4929,9 +4928,21 @@ static bool bacnet_authentication_factor_from_ascii(
 }
 #endif
 
-/* used to load the app data struct with the proper data
-   converted from a command line argument.
-   "argv" is not const to allow using strtok internally. It MAY be modified. */
+/**
+ * @brief Load the app data struct with the proper data converted from a command
+ * line argument. "argv" is not const to allow using strtok internally. It MAY
+ * be modified.
+ * @param tag_number The expected application tag number of the value to parse.
+ * This is used to determine how to parse the argv string.
+ * @param argv The string to parse into the value struct. This is typically a
+ * command line argument, and may be modified by this function.
+ * @param value [out] The BACNET_APPLICATION_DATA_VALUE struct to load with the
+ * parsed value. The tag field will be set to tag_number, and the type field
+ * will be set based on the tag. The value field will be set to the parsed value
+ * from argv.
+ * @return true if the data was successfully parsed and loaded into the value
+ * struct, else false
+ */
 bool bacapp_parse_application_data(
     BACNET_APPLICATION_TAG tag_number,
     char *argv,
