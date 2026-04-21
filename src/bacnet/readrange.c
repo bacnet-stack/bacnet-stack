@@ -267,6 +267,10 @@ int rr_decode_service_request(
     } else {
         return BACNET_STATUS_ERROR;
     }
+
+    /* Added to identify the missing mandatory parameter */
+    data->Range.RefIndex = UINT32_MAX;
+    data->Count = INT32_MAX;
     if (bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
         /*
@@ -946,4 +950,29 @@ int readrange_ack_by_sequence_encode(
     data->FirstSequence = uiBegin;
 
     return apdu_len;
+}
+
+/**
+ * @brief Validates the parameters of a Read Range request.
+ *
+ * This function checks for missing required parameters in the Read Range
+ * request. If a required parameter is missing, it returns -3 to indicate a
+ * reject.
+ *
+ * @param pRequest Pointer to the BACNET_READ_RANGE_DATA request to validate.
+ * @return int Returns -3 if a required parameter is missing, otherwise returns
+ * 0.
+ */
+int validate_rr_request(BACNET_READ_RANGE_DATA *pRequest)
+{
+    if ((pRequest->Count == INT32_MAX) &&
+        (pRequest->RequestType != RR_READ_ALL)) {
+        return (-3); /* Reject - missing required parameter - Count */
+    } else if (
+        (pRequest->Range.RefIndex == UINT32_MAX) &&
+        ((pRequest->RequestType == RR_BY_POSITION) ||
+         (pRequest->RequestType == RR_BY_SEQUENCE))) {
+        return (-3); /* Reject - missing required parameter- Refernce index */
+    }
+    return 0;
 }
