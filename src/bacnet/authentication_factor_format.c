@@ -223,3 +223,34 @@ int bacapp_decode_context_authentication_factor_format(
         apdu, MAX_APDU, tag, data);
 }
 #endif
+
+/**
+ * @brief Compare two BACNET_AUTHENTICATION_FACTOR_FORMAT structures
+ * @param data1  Pointer to the first structure to compare
+ * @param data2  Pointer to the second structure to compare
+ * @return true if the structures are the same, false otherwise
+ * @details The structures are considered the same if they have the same format
+ * type, and if the format type is CUSTOM, they must also have the same vendor
+ * ID and vendor format.
+ */
+bool bacnet_authentication_factor_format_same(
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *data1,
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *data2)
+{
+    if (!data1 || !data2) {
+        return false;
+    }
+    if (data1->format_type != data2->format_type) {
+        return false;
+    }
+    if (data1->format_type == AUTHENTICATION_FACTOR_CUSTOM) {
+        if (data1->vendor_id != data2->vendor_id) {
+            return false;
+        }
+        if (data1->vendor_format != data2->vendor_format) {
+            return false;
+        }
+    }
+
+    return true;
+}

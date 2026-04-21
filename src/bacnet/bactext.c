@@ -3379,6 +3379,65 @@ const char *bactext_authentication_status_name(uint32_t index)
         bactext_authentication_status_names, index, ASHRAE_Reserved_String);
 }
 
+INDTEXT_DATA bactext_authentication_disable_reason_names[] = {
+    /* BACnetAuthenticationDisableReason enumerations */
+    { AUTHENTICATION_NONE, "none" },
+    { AUTHENTICATION_DISABLED, "disabled" },
+    { AUTHENTICATION_DISABLED_LOST, "lost" },
+    { AUTHENTICATION_DISABLED_STOLEN, "stolen" },
+    { AUTHENTICATION_DISABLED_DAMAGED, "damaged" },
+    { AUTHENTICATION_DISABLED_DESTROYED, "destroyed" },
+    { 0, NULL }
+};
+
+const char *bactext_authentication_disable_reason_name(uint32_t index)
+{
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
+    return indtext_by_index_split_default(
+        bactext_authentication_disable_reason_names, index,
+        AUTHENTICATION_DISABLED_PROPRIETARY_MIN, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
+}
+
+INDTEXT_DATA bactext_authentication_factor_type_names[] = {
+    /* BACnetAuthenticationFactorType enumerations */
+    { AUTHENTICATION_FACTOR_UNDEFINED, "undefined" },
+    { AUTHENTICATION_FACTOR_ERROR, "error" },
+    { AUTHENTICATION_FACTOR_CUSTOM, "custom" },
+    { AUTHENTICATION_FACTOR_SIMPLE_NUMBER16, "simple-number16" },
+    { AUTHENTICATION_FACTOR_SIMPLE_NUMBER32, "simple-number32" },
+    { AUTHENTICATION_FACTOR_SIMPLE_NUMBER56, "simple-number56" },
+    { AUTHENTICATION_FACTOR_SIMPLE_ALPHA_NUMERIC, "simple-alpha-numeric" },
+    { AUTHENTICATION_FACTOR_ABA_TRACK2, "aba-track2" },
+    { AUTHENTICATION_FACTOR_WIEGAND26, "wiegand26" },
+    { AUTHENTICATION_FACTOR_WIEGAND37, "wiegand37" },
+    { AUTHENTICATION_FACTOR_WIEGAND37_FACILITY, "wiegand37-facility" },
+    { AUTHENTICATION_FACTOR_FACILITY16_CARD32, "facility16-card32" },
+    { AUTHENTICATION_FACTOR_FACILITY32_CARD32, "facility32-card32" },
+    { AUTHENTICATION_FACTOR_FASC_N, "fasc-n" },
+    { AUTHENTICATION_FACTOR_FASC_N_BCD, "fasc-n-bcd" },
+    { AUTHENTICATION_FACTOR_FASC_N_LARGE, "fasc-n-large" },
+    { AUTHENTICATION_FACTOR_FASC_N_LARGE_BCD, "fasc-n-large-bcd" },
+    { AUTHENTICATION_FACTOR_GSA75, "gsa75" },
+    { AUTHENTICATION_FACTOR_CHUID, "chuid" },
+    { AUTHENTICATION_FACTOR_CHUID_FULL, "chuid-full" },
+    { AUTHENTICATION_FACTOR_GUID, "guid" },
+    { AUTHENTICATION_FACTOR_CBEFF_A, "cbeff-a" },
+    { AUTHENTICATION_FACTOR_CBEFF_B, "cbeff-b" },
+    { AUTHENTICATION_FACTOR_CBEFF_C, "cbeff-c" },
+    { AUTHENTICATION_FACTOR_USER_PASSWORD, "user-password" },
+    { 0, NULL }
+};
+
+const char *bactext_authentication_factor_type_name(uint32_t index)
+{
+    return indtext_by_index_default(
+        bactext_authentication_factor_type_names, index,
+        ASHRAE_Reserved_String);
+}
+
 INDTEXT_DATA bactext_authorization_mode_names[] = {
     /* BACnetAuthorizationMode enumerations */
     { AUTHORIZATION_MODE_AUTHORIZE, "authorize" },
