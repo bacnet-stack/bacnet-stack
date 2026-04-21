@@ -13,12 +13,28 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-04-19
+## [Unreleased] - 2026-04-21
 
 ### Security
 ### Added
 ### Changed
+
+* Changed lighting output object and lighting command structure to enable
+loose coupling.  Added locking callbacks in lighting command that are
+engaged when accessing any of the lighting command structure data. (#1306)
+* Changed COV subscription encoding and decoding functions to reduce code
+size and reuse existing unit tested functions. Added BACnetRecipientProcess
+type encoding and decoding functions with associated tests. (#1296)
+* Changed COV Subscriptions handling to use use keylist instead of array
+for performance optimization. (#1295)
+
 ### Fixed
+
+* Fixed BBMD_Result handling to avoid false positive error message when no
+registration is requested. (#1305)
+* Fixed keylist CheckArraySize return value, and added memory exhaustion
+check to Keylist_Data_Add. (#1295)
+
 ### Removed
 
 ## [1.5.0] - 2026-04-16
