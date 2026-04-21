@@ -472,7 +472,11 @@ static void PrintReadPropertyArray(
     if (Walked_List_Index == 1) {
         /* If the array is empty, make it VTS3-friendly */
         if (value->tag == BACNET_APPLICATION_TAG_EMPTYLIST) {
-            fprintf(stdout, "?\n        ");
+            if (ShowValues) {
+                fprintf(stdout, "{}\n");
+            } else {
+                fprintf(stdout, "{?}\n");
+            }
             return;
         }
 
@@ -575,7 +579,7 @@ static void PrintReadPropertyData(
          * But are we showing Values?  We (VTS3) want ? instead of {?,?} to show
          * up. */
         switch (rpm_property->propertyIdentifier) {
-                /* Screen the Properties that can be arrays or Sequences */
+            /* Screen the Properties that can be arrays or Sequences */
             case PROP_PRESENT_VALUE:
             case PROP_PRIORITY_ARRAY:
                 if (!ShowValues) {
