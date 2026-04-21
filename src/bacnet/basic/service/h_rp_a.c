@@ -170,24 +170,39 @@ int rp_ack_fully_decode_service_request(
         }
         rp1_property->propertyIdentifier = rp1data.object_property;
         rp1_property->propertyArrayIndex = rp1data.array_index;
-        /* Is there no Error case possible here, as there is when decoding RPM?
-         */
-        /* rp1_property->error.error_class = ?? */
         /* rp_ack_decode_service_request() processing already removed the
-         * Opening and Closing '3' Tags.
-         * note: if this is an array, there will be
-         more than one element to decode */
+         * Opening and Closing '3' Tags. */
         vdata = rp1data.application_data;
         vlen = rp1data.application_data_len;
         value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+        if (value == NULL) {
+            /* can't proceed if calloc failed. */
+            free(rp1_property);
+            return BACNET_STATUS_ERROR;
+        }
+        /* check for empty list */
+        if (rp1data.application_data_len == 0) {
+            bacapp_value_list_init(value, 1);
+            value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+            rp1data.error_class = ERROR_CLASS_SERVICES;
+            rp1data.error_code = ERROR_CODE_SUCCESS;
+            return 0;
+        }
         rp1_property->value = value;
         while (value && vdata && (vlen > 0)) {
+#if 0
+            /* for debugging, print the raw data */
             if (IS_CONTEXT_SPECIFIC(*vdata)) {
                 len = bacapp_decode_context_data(
                     vdata, vlen, value, rp1_property->propertyIdentifier);
             } else {
                 len = bacapp_decode_application_data(vdata, vlen, value);
             }
+#else
+            len = bacapp_decode_known_array_property(
+                vdata, (unsigned)vlen, value, rp1data.object_type,
+                rp1data.object_property, rp1data.array_index);
+#endif
             if (len < 0) {
                 /* unable to decode the data */
                 while (value) {
