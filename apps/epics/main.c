@@ -926,11 +926,11 @@ static void print_help(const char *filename)
     printf("-v: show values instead of '?' \n");
     printf("-c: columns break for BACnetARRAY. Default is 0=always\n");
     printf("-d: show only device object properties\n");
-    printf("-p: Use sport for \"my\" port.  0xBAC0 is default.\n");
+    printf("-p: Use sport for \"my\" port. 47808 is default.\n");
     printf("    Allows you to communicate with a localhost target.\n");
     printf("-t: declare target's MAC instead of using Who-Is to bind to  \n");
-    printf("    device-instance. Format is \"C0:A8:00:18:BA:C0\"\n");
-    printf("    Use \"7F:00:00:01:BA:C0\" for loopback testing \n");
+    printf("    device-instance. Format is \"192.168.1.42:47808\"\n");
+    printf("    Use \"127.0.0.1:47808\" for loopback testing \n");
     printf("-n: specify target's DNET if not local BACnet network  \n");
     printf("    or on routed Virtual Network \n");
     printf("\n");
@@ -942,6 +942,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
 {
     int i;
     bool bFoundTarget = false;
+    BACNET_MAC_ADDRESS mac = { 0 };
     int argi = 0;
     const char *filename = NULL;
 
@@ -1006,22 +1007,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                     break;
                 case 't':
                     if (++i < argc) {
-                        /* decoded MAC addresses */
-                        unsigned mac[6];
-                        /* number of successful decodes */
-                        int count;
-                        /* loop counter */
-                        unsigned j;
-                        count = sscanf(
-                            argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
-                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                        if (count == 6) { /* success */
-                            Target_Address.mac_len = count;
-                            for (j = 0; j < 6; j++) {
-                                Target_Address.mac[j] = (uint8_t)mac[j];
-                            }
-                            Target_Address.net = 0;
-                            Target_Address.len = 0; /* No src address */
+                        if (bacnet_address_mac_from_ascii(&mac, argv[i])) {
+                            bacnet_address_init(&Target_Address, &mac, 0, NULL);
                             Provided_Targ_MAC = true;
                             break;
                         } else {
