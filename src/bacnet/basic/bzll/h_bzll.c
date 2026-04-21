@@ -577,7 +577,9 @@ void bzll_get_maximum_outgoing_transfer_size(uint32_t *transfer_size)
  *
  * @return true if the address is the same of my address
  */
-bool bzll_match_protocol_address(uint8_t *protocol_addr, uint16_t address_size)
+bool bzll_match_protocol_address(
+    const uint8_t *protocol_addr,
+    const uint8_t address_size)
 {
     BACNET_ADDRESS my_addr;
     BACNET_ADDRESS addr;
@@ -650,4 +652,13 @@ bool bzll_update_object_protocol_address(
 void bzll_set_my_address(const BACNET_ADDRESS *my_address)
 {
     bzll_advertise_address(my_address);
+}
+
+void bzll_get_my_protocol_address(
+    uint8_t *protocol_address, uint8_t *protocol_address_size)
+{
+    BACNET_ADDRESS addr;
+    bzll_get_my_address(&addr);
+    *protocol_address_size = addr.mac_len;
+    memcpy(protocol_address, addr.mac, addr.mac_len);
 }

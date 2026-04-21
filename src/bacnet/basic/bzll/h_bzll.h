@@ -48,7 +48,12 @@ void bzll_get_maximum_incoming_transfer_size(uint32_t *transfer_size);
 BACNET_STACK_EXPORT
 void bzll_get_maximum_outgoing_transfer_size(uint32_t *transfer_size);
 BACNET_STACK_EXPORT
-bool bzll_match_protocol_address(uint8_t *protocol_addr, uint16_t address_size);
+void bzll_get_my_protocol_address(
+    uint8_t *protocol_address, uint8_t *protocol_address_size);
+BACNET_STACK_EXPORT
+bool bzll_match_protocol_address(
+    const uint8_t *protocol_addr,
+    const uint8_t address_size);
 BACNET_STACK_EXPORT
 bool bzll_update_object_protocol_address(
     uint8_t *protocol_addr,
