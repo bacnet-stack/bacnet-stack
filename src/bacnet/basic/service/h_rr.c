@@ -174,29 +174,27 @@ void handler_read_range(
             }
         }
         if (error) {
-            if (len == BACNET_STATUS_ABORT) {
-                /* BACnet APDU too small to fit data, so proper response is
-                * Abort */
-                len = abort_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-                debug_print("RR: Reply too big to fit into APDU!\n");
-            } else if (len == BACNET_STATUS_ERROR) {
-                len = bacerror_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, SERVICE_CONFIRMED_READ_RANGE,
-                    data.error_class, data.error_code);
-                debug_print("RR: Sending Error!\n");
-            } else if (len == BACNET_STATUS_REJECT) {
-                len = reject_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-                debug_print("RR: Sending Reject!\n");
-            }
-        }
-    }
+    		if (len == BACNET_STATUS_ABORT) {
+    			/* BACnet APDU too small to fit data, so proper response is
+    			 * Abort */
+    			len = abort_encode_apdu(
+    				&Handler_Transmit_Buffer[pdu_len],
+    				service_data->invoke_id,
+    				ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+    			debug_print("RR: Reply too big to fit into APDU!\n");
+    		} else if (len == BACNET_STATUS_REJECT) {
+    			len = reject_encode_apdu(
+    				&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+    				REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+    			debug_print("RR: Sending Reject!\n");
+    		} else {
+    			len = bacerror_encode_apdu(
+    				&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+    				SERVICE_CONFIRMED_READ_RANGE, data.error_class,
+    				data.error_code);
+    			debug_print("RR: Sending Error!\n");
+    		}
+	}
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
