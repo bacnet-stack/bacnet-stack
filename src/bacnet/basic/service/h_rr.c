@@ -163,8 +163,8 @@ void handler_read_range(
                     len = rr_ack_encode_apdu(NULL, service_data->invoke_id, &data);
                     if (len < sizeof(Handler_Transmit_Buffer) - pdu_len) {
                         len = rr_ack_encode_apdu(
-                        &Handler_Transmit_Buffer[pdu_len],
-                        service_data->invoke_id, &data);
+                            &Handler_Transmit_Buffer[pdu_len],
+                            service_data->invoke_id, &data);
                         debug_print("RR: Sending Ack!\n");
                         error = false;
                     } else {
