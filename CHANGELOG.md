@@ -24,6 +24,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed EPICS values for recipient list, empty lists, and authentication
+  factors. Fixed EPICS app to allow target MAC or IP address format. (#1310)
 * Fixed BBMD_Result handling to avoid false positive error message
   when no registration is requested. (#1305)
 * Fixed Keylist memory allocation check in CheckArraySize and handle

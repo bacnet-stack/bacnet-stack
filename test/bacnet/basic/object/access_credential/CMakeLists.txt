@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/assigned_access_rights.c
     ${SRC_DIR}/bacnet/authentication_factor.c
+    ${SRC_DIR}/bacnet/authentication_factor_format.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c

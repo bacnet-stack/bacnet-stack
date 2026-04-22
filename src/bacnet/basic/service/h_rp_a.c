@@ -131,6 +131,25 @@ void handler_read_property_ack(
     }
 }
 
+/**
+ * @brief Free the memory allocated for a ReadProperty ACK service request.
+ * @param value [in] The head of the linked list of values to free.
+ * @param property [in] The property reference to free.
+ */
+static void rp_ack_service_request_free(
+    BACNET_APPLICATION_DATA_VALUE *value, BACNET_PROPERTY_REFERENCE *property)
+{
+    BACNET_APPLICATION_DATA_VALUE *old_value;
+
+    while (value) {
+        /* free the linked list of values */
+        old_value = value;
+        value = value->next;
+        free(old_value);
+    }
+    free(property);
+}
+
 /** Decode the received RP data into a linked list of the results, with the
  *  same data structure used by RPM ACK replies.
  *  This function is provided to provide common handling for RP and RPM data,
@@ -149,7 +168,7 @@ int rp_ack_fully_decode_service_request(
     uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)
 {
     int decoded_len = 0; /* return value */
-    BACNET_READ_PROPERTY_DATA rp1data;
+    BACNET_READ_PROPERTY_DATA rp1data = { 0 };
     BACNET_PROPERTY_REFERENCE *rp1_property; /* single property */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     uint8_t *vdata;
@@ -170,33 +189,31 @@ int rp_ack_fully_decode_service_request(
         }
         rp1_property->propertyIdentifier = rp1data.object_property;
         rp1_property->propertyArrayIndex = rp1data.array_index;
-        /* Is there no Error case possible here, as there is when decoding RPM?
-         */
-        /* rp1_property->error.error_class = ?? */
         /* rp_ack_decode_service_request() processing already removed the
-         * Opening and Closing '3' Tags.
-         * note: if this is an array, there will be
-         more than one element to decode */
+         * Opening and Closing '3' Tags. */
         vdata = rp1data.application_data;
         vlen = rp1data.application_data_len;
         value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+        if (value == NULL) {
+            /* can't proceed if calloc failed. */
+            rp_ack_service_request_free(NULL, rp1_property);
+            read_access_data->listOfProperties = NULL;
+            return BACNET_STATUS_ERROR;
+        }
         rp1_property->value = value;
+        /* check for empty list */
+        if (rp1data.application_data_len == 0) {
+            bacapp_value_list_init(value, 1);
+            value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+            return 0;
+        }
         while (value && vdata && (vlen > 0)) {
-            if (IS_CONTEXT_SPECIFIC(*vdata)) {
-                len = bacapp_decode_context_data(
-                    vdata, vlen, value, rp1_property->propertyIdentifier);
-            } else {
-                len = bacapp_decode_application_data(vdata, vlen, value);
-            }
+            len = bacapp_decode_known_array_property(
+                vdata, (unsigned)vlen, value, rp1data.object_type,
+                rp1data.object_property, rp1data.array_index);
             if (len < 0) {
                 /* unable to decode the data */
-                while (value) {
-                    /* free the linked list of values */
-                    old_value = value;
-                    value = value->next;
-                    free(old_value);
-                }
-                free(rp1_property);
+                rp_ack_service_request_free(value, rp1_property);
                 read_access_data->listOfProperties = NULL;
                 return len;
             }
@@ -211,13 +228,7 @@ int rp_ack_fully_decode_service_request(
             } else {
                 if (len == 0) {
                     /* nothing decoded and no closing tag, so malformed */
-                    while (value) {
-                        /* free the linked list of values */
-                        old_value = value;
-                        value = value->next;
-                        free(old_value);
-                    }
-                    free(rp1_property);
+                    rp_ack_service_request_free(value, rp1_property);
                     read_access_data->listOfProperties = NULL;
                     return BACNET_STATUS_ERROR;
                 }

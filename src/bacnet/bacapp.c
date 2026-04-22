@@ -409,6 +409,18 @@ int bacapp_encode_application_data(
                 apdu_len = bacnet_timer_value_no_value_encode(apdu);
                 break;
 #endif
+#if defined(BACAPP_AUTHENTICATION)
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT:
+                /* BACnetAuthenticationFactorFormat */
+                apdu_len = bacapp_encode_authentication_factor_format(
+                    apdu, &value->type.Authentication_Format);
+                break;
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR:
+                /* BACnetAuthenticationFactor */
+                apdu_len = bacapp_encode_authentication_factor(
+                    apdu, &value->type.Authentication_Factor);
+                break;
+#endif
 #if defined(BACAPP_LOG_RECORD)
             case BACNET_APPLICATION_TAG_LOG_RECORD:
                 /* BACnetLogRecord */
@@ -1138,6 +1150,9 @@ int bacapp_known_property_tag(
             } else if (object_type == OBJECT_CHANNEL) {
                 /* Properties using BACnetChannelValue */
                 return BACNET_APPLICATION_TAG_CHANNEL_VALUE;
+            } else if (object_type == OBJECT_CREDENTIAL_DATA_INPUT) {
+                /* Properties using BACnetAuthenticationFactor */
+                return BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR;
             }
             /* note: primitive application tagged present-values return '-1' */
             return -1;
@@ -1193,7 +1208,9 @@ int bacapp_known_property_tag(
         case PROP_SLAVE_ADDRESS_BINDING:
             /* BACnetAddressBinding */
             return BACNET_APPLICATION_TAG_ADDRESS_BINDING;
-
+        case PROP_SUPPORTED_FORMATS:
+            /* BACnetAuthenticationFactorFormat */
+            return BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT;
         case PROP_LOG_BUFFER:
             /* BACnetLogRecord */
             return BACNET_APPLICATION_TAG_LOG_RECORD;
@@ -1573,6 +1590,19 @@ int bacapp_decode_application_tag_value(
                 apdu, apdu_size, &value->type.Address_Binding);
             break;
 #endif
+#if defined(BACAPP_AUTHENTICATION)
+        case BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT:
+            /* BACnetAuthenticationFactorFormat */
+            apdu_len = bacnet_authentication_factor_format_decode(
+                apdu, apdu_size, &value->type.Authentication_Format);
+            break;
+        case BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR:
+            /* BACnetAuthenticationFactor */
+            apdu_len = bacnet_authentication_factor_decode(
+                apdu, apdu_size, &value->type.Authentication_Factor);
+            break;
+
+#endif
 #if defined(BACAPP_LOG_RECORD)
         case BACNET_APPLICATION_TAG_LOG_RECORD:
             /* BACnetLogRecord */
@@ -1629,7 +1659,7 @@ int bacapp_decode_known_array_property(
     int apdu_len = 0;
     int tag;
 
-    if (bacnet_is_closing_tag(apdu, apdu_size)) {
+    if ((apdu_size == 0) || bacnet_is_closing_tag(apdu, apdu_size)) {
         if (value) {
             value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
         }
@@ -3755,6 +3785,29 @@ static int bacapp_snprintf_action_command(
 }
 #endif
 
+#if defined(BACAPP_AUTHENTICATION)
+int bacapp_snprintf_authentication_factor(
+    char *str, size_t str_len, const BACNET_AUTHENTICATION_FACTOR *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(
+        str, str_len, "%s,%lu,",
+        bactext_authentication_factor_type_name(value->format_type),
+        (unsigned long)value->format_class);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf_octet_string(str, str_len, &value->value);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
 /**
  * @brief Extract the value into a text string
  * @param str - the buffer to store the extracted value, or NULL for length
@@ -4051,6 +4104,22 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_NO_VALUE)
             case BACNET_APPLICATION_TAG_NO_VALUE:
                 ret_val = bacnet_timer_value_no_value_to_ascii(str, str_len);
+                break;
+#endif
+#if defined(BACAPP_AUTHENTICATION)
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT:
+                ret_val = bacapp_snprintf(
+                    str, str_len, "{%s,%lu,%lu}",
+                    bactext_authentication_factor_type_name(
+                        value->type.Authentication_Format.format_type),
+                    (unsigned long)value->type.Authentication_Format.vendor_id,
+                    (unsigned long)
+                        value->type.Authentication_Format.vendor_format);
+                break;
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR:
+                /* BACnetAuthenticationFactor */
+                ret_val = bacapp_snprintf_authentication_factor(
+                    str, str_len, &value->type.Authentication_Factor);
                 break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
@@ -4798,9 +4867,82 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, char *str)
 }
 #endif /* BACAPP_SPECIAL_EVENT */
 
-/* used to load the app data struct with the proper data
-   converted from a command line argument.
-   "argv" is not const to allow using strtok internally. It MAY be modified. */
+#if defined(BACAPP_AUTHENTICATION)
+/**
+ * @brief Parse a string into a BACnetAuthenticationFactorFormat value
+ * @param value [out] The BACnetAuthenticationFactorFormat value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
+ */
+static bool bacnet_authentication_format_from_ascii(
+    BACNET_AUTHENTICATION_FACTOR_FORMAT *value, const char *argv)
+{
+    bool status = false;
+    int count;
+    unsigned long format_type, vendor_id, vendor_format;
+
+    if (!status) {
+        count = sscanf(
+            argv, "%lu,%lu,%lu", &format_type, &vendor_id, &vendor_format);
+        if (count == 3) {
+            /*  optional fields are required when Format-Type
+                field has a value of CUSTOM. */
+            value->format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)format_type;
+            value->vendor_id = (uint32_t)vendor_id;
+            value->vendor_format = (uint32_t)vendor_format;
+            status = true;
+        } else if (count == 1) {
+            value->format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)format_type;
+            value->vendor_id = 0;
+            value->vendor_format = 0;
+            status = true;
+        }
+    }
+
+    return status;
+}
+/**
+ * @brief Parse a string into a BACnetAuthenticationFactor value
+ * @param value [out] The BACnetAuthenticationFactor value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
+ */
+static bool bacnet_authentication_factor_from_ascii(
+    BACNET_AUTHENTICATION_FACTOR *value, const char *argv)
+{
+    bool status = false;
+    int count;
+    unsigned long format_type, format_class;
+    char factor_value[256] = { 0 };
+
+    count = sscanf(
+        argv, "%lu,%lu,%255s", &format_type, &format_class, factor_value);
+    if (count == 3) {
+        value->format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)format_type;
+        value->format_class = (uint32_t)format_class;
+        octetstring_init_ascii_epics(&value->value, factor_value);
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
+/**
+ * @brief Load the app data struct with the proper data converted from a command
+ * line argument. "argv" is not const to allow using strtok internally. It MAY
+ * be modified.
+ * @param tag_number The expected application tag number of the value to parse.
+ * This is used to determine how to parse the argv string.
+ * @param argv The string to parse into the value struct. This is typically a
+ * command line argument, and may be modified by this function.
+ * @param value [out] The BACNET_APPLICATION_DATA_VALUE struct to load with the
+ * parsed value. The tag field will be set to tag_number, and the type field
+ * will be set based on the tag. The value field will be set to the parsed value
+ * from argv.
+ * @return true if the data was successfully parsed and loaded into the value
+ * struct, else false
+ */
 bool bacapp_parse_application_data(
     BACNET_APPLICATION_TAG tag_number,
     char *argv,
@@ -5106,6 +5248,18 @@ bool bacapp_parse_application_data(
             case BACNET_APPLICATION_TAG_NO_VALUE:
                 status =
                     bacnet_timer_value_no_value_from_ascii(&value->tag, argv);
+                break;
+#endif
+#if defined(BACAPP_AUTHENTICATION)
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT:
+                /* BACnetAuthenticationFactorFormat */
+                status = bacnet_authentication_format_from_ascii(
+                    &value->type.Authentication_Format, argv);
+                break;
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR:
+                /* BACnetAuthenticationFactor */
+                status = bacnet_authentication_factor_from_ascii(
+                    &value->type.Authentication_Factor, argv);
                 break;
 #endif
 #if defined(BACAPP_LOG_RECORD)
@@ -5874,6 +6028,20 @@ bool bacapp_same_value(
                 if (value->tag == test_value->tag) {
                     status = true;
                 }
+                break;
+#endif
+#if defined(BACAPP_AUTHENTICATION)
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT:
+                /* BACnetAuthenticationFactorFormat */
+                status = bacnet_authentication_factor_format_same(
+                    &value->type.Authentication_Format,
+                    &test_value->type.Authentication_Format);
+                break;
+            case BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR:
+                /* BACnetAuthenticationFactor */
+                status = bacnet_authentication_factor_same(
+                    &value->type.Authentication_Factor,
+                    &test_value->type.Authentication_Factor);
                 break;
 #endif
 #if defined(BACAPP_LOG_RECORD)

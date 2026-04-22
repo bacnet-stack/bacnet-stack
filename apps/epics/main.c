@@ -245,7 +245,7 @@ static void MyReadPropertyAckHandler(
             len = rp_ack_fully_decode_service_request(
                 service_request, service_len, rp_data);
         }
-        if (len > 0) {
+        if (len >= 0) {
             memmove(
                 &Read_Property_Multiple_Data.service_data, service_data,
                 sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
@@ -472,7 +472,11 @@ static void PrintReadPropertyArray(
     if (Walked_List_Index == 1) {
         /* If the array is empty, make it VTS3-friendly */
         if (value->tag == BACNET_APPLICATION_TAG_EMPTYLIST) {
-            fprintf(stdout, "?\n        ");
+            if (ShowValues) {
+                fprintf(stdout, "{}\n");
+            } else {
+                fprintf(stdout, "{?}\n");
+            }
             return;
         }
 
@@ -575,7 +579,7 @@ static void PrintReadPropertyData(
          * But are we showing Values?  We (VTS3) want ? instead of {?,?} to show
          * up. */
         switch (rpm_property->propertyIdentifier) {
-                /* Screen the Properties that can be arrays or Sequences */
+            /* Screen the Properties that can be arrays or Sequences */
             case PROP_PRESENT_VALUE:
             case PROP_PRIORITY_ARRAY:
                 if (!ShowValues) {
@@ -922,11 +926,12 @@ static void print_help(const char *filename)
     printf("-v: show values instead of '?' \n");
     printf("-c: columns break for BACnetARRAY. Default is 0=always\n");
     printf("-d: show only device object properties\n");
-    printf("-p: Use sport for \"my\" port.  0xBAC0 is default.\n");
+    printf("-p: Use sport for \"my\" port. 47808 is default.\n");
     printf("    Allows you to communicate with a localhost target.\n");
-    printf("-t: declare target's MAC instead of using Who-Is to bind to  \n");
-    printf("    device-instance. Format is \"C0:A8:00:18:BA:C0\"\n");
-    printf("    Use \"7F:00:00:01:BA:C0\" for loopback testing \n");
+    printf("-t: declare target's MAC or IP address instead of using Who-Is\n");
+    printf("    to bind to device-instance.\n");
+    printf("    Format is \"192.168.1.42:47808\" or \"C0:A8:01:2A:BA:C0\".\n");
+    printf("    Use \"127.0.0.1:47808\" for loopback testing.\n");
     printf("-n: specify target's DNET if not local BACnet network  \n");
     printf("    or on routed Virtual Network \n");
     printf("\n");
@@ -938,6 +943,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
 {
     int i;
     bool bFoundTarget = false;
+    BACNET_MAC_ADDRESS mac = { 0 };
     int argi = 0;
     const char *filename = NULL;
 
@@ -1002,22 +1008,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                     break;
                 case 't':
                     if (++i < argc) {
-                        /* decoded MAC addresses */
-                        unsigned mac[6];
-                        /* number of successful decodes */
-                        int count;
-                        /* loop counter */
-                        unsigned j;
-                        count = sscanf(
-                            argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
-                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                        if (count == 6) { /* success */
-                            Target_Address.mac_len = count;
-                            for (j = 0; j < 6; j++) {
-                                Target_Address.mac[j] = (uint8_t)mac[j];
-                            }
-                            Target_Address.net = 0;
-                            Target_Address.len = 0; /* No src address */
+                        if (bacnet_address_mac_from_ascii(&mac, argv[i])) {
+                            bacnet_address_init(&Target_Address, &mac, 0, NULL);
                             Provided_Targ_MAC = true;
                             break;
                         } else {

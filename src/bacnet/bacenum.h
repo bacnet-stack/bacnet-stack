@@ -1705,6 +1705,10 @@ typedef enum {
     BACNET_APPLICATION_TAG_ADDRESS_BINDING,
     /* no-value - context tagged null */
     BACNET_APPLICATION_TAG_NO_VALUE,
+    /* BACnetAuthenticationFactorFormat */
+    BACNET_APPLICATION_TAG_AUTHENTICATION_FORMAT,
+    /* BACnetAuthenticationFactor */
+    BACNET_APPLICATION_TAG_AUTHENTICATION_FACTOR,
     /* ABSTRACT-SYNTAX - constructed value */
     BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX,
     /* == mark the end of this list == */
@@ -2965,10 +2969,14 @@ typedef enum BACnetAuthenticationDisableReason {
     AUTHENTICATION_DISABLED_STOLEN = 3,
     AUTHENTICATION_DISABLED_DAMAGED = 4,
     AUTHENTICATION_DISABLED_DESTROYED = 5,
-    AUTHENTICATION_DISABLED_MAX = 6
+    AUTHENTICATION_DISABLED_MAX = 6,
+    AUTHENTICATION_DISABLED_RESERVED_MIN = 6,
+    AUTHENTICATION_DISABLED_RESERVED_MAX = 63,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-65535 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    AUTHENTICATION_DISABLED_PROPRIETARY_MIN = 64,
+    AUTHENTICATION_DISABLED_PROPRIETARY_MAX = 65535
 } BACNET_AUTHENTICATION_DISABLE_REASON;
 
 typedef enum BACnetAuthenticationFactorType {
