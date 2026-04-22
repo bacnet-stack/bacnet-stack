@@ -6,13 +6,17 @@ or documentation to the project.
 
 ## GitLab Workflow and Versioning
 
+The CMakeLists.txt, CHANGELOG.md, and version.h contain the version number.
+
+This project aspires to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 We utilize a GitLab-style workflow for managing changes and releases.
 When developing features or preparing release candidates, please reflect
 the release candidate stages using `-rc1`, `-rc2`, etc., in the
 `src/bacnet/version.h` file.
 
-Specifically, update the `BACNET_VERSION_TEXT` string to include the `-rc`
-suffix during the release candidate phase. For example:
+Specifically, update the `BACNET_VERSION_TEXT` string in the version.h file
+to include the `-rc` suffix during the release candidate phase. For example:
 ```c
 #define BACNET_VERSION_TEXT "1.6.0-rc1"
 ```
@@ -23,13 +27,18 @@ for that release.
 ## Pre-commit Hooks
 
 This project uses `pre-commit` to ensure code formatting and quality standards.
-You are expected to install and use it locally so that checks and formatting
-happen automatically before every commit.
+Developers are expected to install and use it locally so that checks and
+formatting happen automatically before every commit.
 
-To install:
+Setting up a Python virtual environment and configuring pre-commit involves
+four primary steps: environment creation, tool installation, configuration,
+and Git hook activation. For example:
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install pre-commit
 pre-commit install
+pre-commit --version
 ```
 
 This ensures that your code complies with our coding conventions and saves time
@@ -57,7 +66,7 @@ although there is precedent for no underscores (whois.c, iam.c) or BACnet
 standard name acronyms (rpm.c, npdu.c, apdu.c).
 
 New functions should be named in snake_case_with_underscores using
-bacnet_ as a prefix for core BACnet modules, followed by the module name,
+`bacnet_` as a prefix for core BACnet modules, followed by the module name,
 and using a verb suffix to describe the function's action.
 From left to right the name would read general to specific.
 For example:
@@ -65,11 +74,19 @@ For example:
 `bacnet_address_from_ascii()` - create an address from an ASCII string
 `bacnet_address_to_ascii()` - create an ASCII string from an address
 
+Although there is precedent for names prefixed with the BACnet defined
+name, such as `whois_request_encode`, using `bacnet_` prefix integrates
+easier into larger project namespaces.
+
+Functions in the `basic/object` and `basic/service` tree are typcially
+named in mixed case Snake_Case to indicate that they are example user
+functions.
+
 BACnet ASN.1 types are typically defined in the standard using
 CamelCase and are likewise defined in the code enums and structs
 using the same name as used in the standard, albeit in Snake_Case.
 Most (all?) of the BACnet complex data types are typedef'd using
-uppercase names in snake_case. For example:
+uppercase names in SNAKE_CASE. For example:
 ```c
 /* BACnetDate */
 typedef struct BACnet_Date {
@@ -81,12 +98,11 @@ typedef struct BACnet_Date {
 ```
 
 All BACnet enumerations from the ASN.1 standard are defined in bacenum.h and
-mirror the naming convention as the BACnet standard, but in uppercase.
-`_MAX` is added to the end of each enumeration to indicate the maximum value
-which is used for array sizing, loop bounds, or range validation.
-Enumerations always define the value as expressed in the standard.
-Most BACnet enumerations have a text equivalent in bactext.c module
-that is used for EPICS and logging.
+mirror the naming convention from the BACnet standard. Enumerations always
+define and include the integer value as expressed in the standard.
+The typedef name is written in in ALL uppercase. The suffix `_MAX` is
+appended to indicate the maximum value which is used for array sizing,
+loop bounds, or range validation. For example:
 ```c
 typedef enum BACnetSuccessFilter {
     BACNET_SUCCESS_FILTER_ALL = 0,
@@ -94,4 +110,39 @@ typedef enum BACnetSuccessFilter {
     BACNET_SUCCESS_FILTER_FAILURES_ONLY = 2,
     BACNET_SUCCESS_FILTER_MAX = 3
 } BACNET_SUCCESS_FILTER;
+```
+
+Alternate suffix for enumerations that have vendor defined ranges include
+`_RESERVED_MIN`, `_RESERVED_MAX`, `_PROPRIETARY_MIN`, and `_PROPRIETARY_MAX`.
+For example:
+```c
+typedef enum BACnetAuthenticationDisableReason {
+    AUTHENTICATION_NONE = 0,
+    AUTHENTICATION_DISABLED = 1,
+    AUTHENTICATION_DISABLED_LOST = 2,
+    AUTHENTICATION_DISABLED_STOLEN = 3,
+    AUTHENTICATION_DISABLED_DAMAGED = 4,
+    AUTHENTICATION_DISABLED_DESTROYED = 5,
+    AUTHENTICATION_DISABLED_MAX = 6,
+    AUTHENTICATION_DISABLED_RESERVED_MIN = 6,
+    AUTHENTICATION_DISABLED_RESERVED_MAX = 63,
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
+    AUTHENTICATION_DISABLED_PROPRIETARY_MIN = 64,
+    AUTHENTICATION_DISABLED_PROPRIETARY_MAX = 65535
+} BACNET_AUTHENTICATION_DISABLE_REASON;
+```
+
+Most BACnet enumerations have a text equivalent in bactext.c module
+that is used for EPICS and logging. For example:
+```c
+static INDTEXT_DATA bactext_audit_level_names[] = {
+    /* BACnetAuditLevel enumerations */
+    { AUDIT_LEVEL_NONE, "none" },
+    { AUDIT_LEVEL_AUDIT_ALL, "audit-all" },
+    { AUDIT_LEVEL_AUDIT_CONFIG, "audit-config" },
+    { AUDIT_LEVEL_DEFAULT, "default" },
+    { 0, NULL }
+};
 ```
