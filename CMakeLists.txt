@@ -274,9 +274,9 @@ add_library(${PROJECT_NAME}
   src/bacnet/assigned_access_rights.c
   src/bacnet/assigned_access_rights.h
   src/bacnet/authentication_factor.c
+  src/bacnet/authentication_factor.h
   src/bacnet/authentication_factor_format.c
   src/bacnet/authentication_factor_format.h
-  src/bacnet/authentication_factor.h
   src/bacnet/awf.c
   src/bacnet/awf.h
   src/bacnet/bacaddr.c
