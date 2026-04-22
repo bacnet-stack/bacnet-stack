@@ -26,13 +26,15 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities. Here are the published vulnerability records:
 
-[CVE-2026-26264](https://www.cve.org/CVERecord?id=CVE-2026-26264) -
+[CVE-2026-40279](https://www.cve.org/CVERecord?id=CVE-2026-40279) -
 Undefined-behavior signed left shift in `decode_signed32()`
 [GHSA-326g-j95f-gmxv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-326g-j95f-gmxv)
 
+[CVE-2026-41503](https://www.cve.org/CVERecord?id=CVE-2026-41503) -
 Out-of-Bounds Read in ReadPropertyMultiple Property Decoder via Deprecated Tag Parser
 [GHSA-5w2v-mwqj-pr2c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-5w2v-mwqj-pr2c)
 
+[CVE-2026-41502](https://www.cve.org/CVERecord?id=CVE-2026-41502) -
 Off-by-One Out-of-Bounds Read in ReadPropertyMultiple Object ID Decoder
 [GHSA-7545-3fpx-4xw3](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7545-3fpx-4xw3)
 
