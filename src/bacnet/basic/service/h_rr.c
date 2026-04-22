@@ -171,7 +171,7 @@ void handler_read_range(
                         len = -2; /* too big */
                     }
                 }
-            }  
+            }
         }
         if (error) {
             if (len == BACNET_STATUS_ABORT) {
