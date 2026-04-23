@@ -834,7 +834,9 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     uint32_t len_value = 0;
 
     len_value = encode_application_unsigned(&array[0], value);
-    len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
+    len = bacnet_tag_number_and_value_decode(
+        &array[0], sizeof(array), &tag_number, &len_value);
+    zassert_true(len > 0, NULL);
     len = decode_unsigned(&array[len], len_value, &decoded_value);
     zassert_equal(
         decoded_value, value, "value=%lu decoded_value=%lu\n",
@@ -847,9 +849,13 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     null_len = encode_application_unsigned(NULL, value);
     zassert_equal(len, null_len, NULL);
     /* apdu_len varies... */
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
-    zassert_equal(len, 1, NULL);
-    zassert_equal(tag_number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    {
+        int apdu_size = len;
+        len = bacnet_tag_number_and_value_decode(
+            &apdu[0], (uint32_t)apdu_size, &tag_number, &len_value);
+        zassert_true(len > 0, NULL);
+        zassert_equal(tag_number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    }
     zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
 }
 
@@ -2261,7 +2267,8 @@ static void test_bacnet_array_encode(void)
         object_instance, apdu_index, bacnet_apdu_property_element_encode,
         array_count, apdu, sizeof(apdu));
     zassert_true(apdu_len > 0, NULL);
-    len = decode_tag_number_and_value(apdu, &tag_number, &len_value);
+    len = bacnet_tag_number_and_value_decode(
+        apdu, (uint32_t)apdu_len, &tag_number, &len_value);
     zassert_true(len > 0, NULL);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
     /* element 1 - APDU too small */
