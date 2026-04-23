@@ -26,10 +26,12 @@ engaged when accessing any of the lighting command structure data. (#1306)
 size and reuse existing unit tested functions. Added BACnetRecipientProcess
 type encoding and decoding functions with associated tests. (#1296)
 * Changed COV Subscriptions handling to use use keylist instead of array
-for performance optimization. (#1295)
+for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed EPICS values for recipient list, empty lists, and authentication
+  factors. Changed EPICS app to allow target MAC or IP address format. (#1310)
 * Fixed BBMD_Result handling to avoid false positive error message when no
 registration is requested. (#1305)
 * Fixed keylist CheckArraySize return value, and added memory exhaustion

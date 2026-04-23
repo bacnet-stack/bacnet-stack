@@ -241,6 +241,7 @@
     defined(BACAPP_RECIPIENT) || \
     defined(BACAPP_ADDRESS_BINDING) || \
     defined(BACAPP_NO_VALUE) || \
+    defined(BACAPP_AUTHENTICATION) || \
     defined(BACAPP_LOG_RECORD) || \
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
@@ -335,6 +336,8 @@
 #define BACAPP_ADDRESS_BINDING
 #undef BACAPP_NO_VALUE
 #define BACAPP_NO_VALUE
+#undef BACAPP_AUTHENTICATION
+#define BACAPP_AUTHENTICATION
 #undef BACAPP_LOG_RECORD
 #define BACAPP_LOG_RECORD
 #undef BACAPP_SECURE_CONNECT
@@ -368,6 +371,7 @@
     defined(BACAPP_RECIPIENT) || \
     defined(BACAPP_ADDRESS_BINDING) || \
     defined(BACAPP_NO_VALUE) || \
+    defined(BACAPP_AUTHENTICATION) || \
     defined(BACAPP_LOG_RECORD)
 #undef BACAPP_COMPLEX_TYPES
 #define BACAPP_COMPLEX_TYPES

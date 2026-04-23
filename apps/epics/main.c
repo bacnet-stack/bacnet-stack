@@ -621,41 +621,55 @@ static void print_help(const char *filename)
 {
     (void)filename;
     printf("Generates Full EPICS file, including Object and Property List\n");
-    printf("--mac A\n"
-           "Optional BACnet mac address."
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf(
+        "--mac A\n"
+        "Optional BACnet mac address."
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("--dnet N\n"
-           "Optional BACnet network number N for directed requests.\n"
-           "Valid range is from 0 to 65535 where 0 is the local connection\n"
-           "and 65535 is network broadcast.\n");
+    printf(
+        "--dnet N\n"
+        "Optional BACnet network number N for directed requests.\n"
+        "Valid range is from 0 to 65535 where 0 is the local connection\n"
+        "and 65535 is network broadcast.\n");
     printf("\n");
-    printf("--dadr A\n"
-           "Optional BACnet mac address on the destination BACnet network "
-           "number.\n"
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf(
+        "--dadr A\n"
+        "Optional BACnet mac address on the destination BACnet network "
+        "number.\n"
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("device-instance:\n"
-           "BACnet Device Object Instance number that you are\n"
-           "trying to communicate to.  This number will be used\n"
-           "to try and bind with the device using Who-Is and\n"
-           "I-Am services.  For example, if you were reading\n"
-           "Device Object 123, the device-instance would be 123.\n");
+    printf(
+        "device-instance:\n"
+        "BACnet Device Object Instance number that you are\n"
+        "trying to communicate to.  This number will be used\n"
+        "to try and bind with the device using Who-Is and\n"
+        "I-Am services.  For example, if you were reading\n"
+        "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("-d: show only device object properties\n");
+    printf("-p: Use sport for \"my\" port. 47808 is default.\n");
+    printf("    Allows you to communicate with a localhost target.\n");
+    printf("-t: declare target's MAC or IP address instead of using Who-Is\n");
+    printf("    to bind to device-instance.\n");
+    printf("    Format is \"192.168.1.42:47808\" or \"C0:A8:01:2A:BA:C0\".\n");
+    printf("    Use \"127.0.0.1:47808\" for loopback testing.\n");
+    printf("-n: specify target's DNET if not local BACnet network  \n");
+    printf("    or on routed Virtual Network \n");
     printf("\n");
     printf("-h: omit the BIBBs header\n");
     printf("\n");
-    printf("-r: disable the write to property during discovery which\n"
-           "is enabled by default.\n");
+    printf(
+        "-r: disable the write to property during discovery which\n"
+        "is enabled by default.\n");
     printf("-v: show values instead of '?' for changing values\n");
     printf("\n");
-    printf("-w: enable the write to property during discovery to\n"
-           "determine writable property status.\n");
+    printf(
+        "-w: enable the write to property during discovery to\n"
+        "determine writable property status.\n");
     printf("\n");
     printf("To generate output directly to a .tpi file for VTS or BTF:\n");
     printf("$ bacepics 4194302 > epics-4194302.tpi \n");
@@ -664,6 +678,7 @@ static void print_help(const char *filename)
 static int CheckCommandLineArgs(int argc, char *argv[])
 {
     bool bFoundTarget = false;
+    BACNET_MAC_ADDRESS mac = { 0 };
     int argi = 0;
     const char *filename = NULL;
 
@@ -679,11 +694,12 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             exit(0);
         } else if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
-                   "This is free software; see the source for copying "
-                   "conditions.\n"
-                   "There is NO warranty; not even for MERCHANTABILITY or\n"
-                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf(
+                "Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         } else if (strcmp(argv[argi], "--debug") == 0) {
             Debug_Enabled = true;
@@ -732,6 +748,18 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                 case 'w':
                     WritePropertyEnabled = true;
                     break;
+                case 't':
+                    if (++i < argc) {
+                        if (bacnet_address_mac_from_ascii(&mac, argv[i])) {
+                            bacnet_address_init(&Target_Address, &mac, 0, NULL);
+                            Provided_Targ_MAC = true;
+                            break;
+                        } else {
+                            printf("ERROR: invalid Target MAC %s \n", argv[i]);
+                        }
+                        /* fall through to print_usage */
+                    }
+                    BACNET_STACK_FALLTHROUGH();
                 default:
                     print_usage(filename);
                     exit(0);
@@ -932,8 +960,9 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
             "Product Description: \"%s\"\n\n",
             (char *)&data_value.type.Character_String.value);
     } else {
-        printf("Product Description: "
-               "\"your product description here\"\n\n");
+        printf(
+            "Product Description: "
+            "\"your product description here\"\n\n");
     }
     printf("--Use '--' to indicate unsupported Functionality.\n\n");
 
@@ -1267,8 +1296,9 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
     printf(
         "  real: <minimum: -3.40282347E38; maximum: 3.40282347E38; resolution: "
         "1.0>\n");
-    printf("  double: <minimum: 2.2250738585072016E-38; maximum: "
-           "1.7976931348623157E38; resolution: 0.0001>\n");
+    printf(
+        "  double: <minimum: 2.2250738585072016E-38; maximum: "
+        "1.7976931348623157E38; resolution: 0.0001>\n");
     printf("  date: <minimum: 01-January-1900; maximum: 31-December-2154>\n");
     printf("  octet-string: <maximum length string: 122>\n");
     printf("  character-string: <maximum length string: 122>\n");

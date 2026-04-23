@@ -871,6 +871,10 @@ void handler_cov_subscribe(
     BACNET_ADDRESS my_address = { 0 };
     bool error = false;
 
+    /* Has the COV Initialization been called? */
+    if (!COV_Subscriptions) {
+        handler_cov_init();
+    }
     /* initialize a common abort code */
     cov_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
     /* encode the NPDU portion of the packet */

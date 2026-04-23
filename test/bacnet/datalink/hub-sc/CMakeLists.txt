@@ -163,6 +163,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   ${SRC_DIR}/bacnet/basic/sys/keylist.c
   ${SRC_DIR}/bacnet/basic/sys/mstimer.c
   ${SRC_DIR}/bacnet/access_rule.c
+  ${SRC_DIR}/bacnet/authentication_factor.c
+  ${SRC_DIR}/bacnet/authentication_factor_format.c
   ${SRC_DIR}/bacnet/arf.c
   ${SRC_DIR}/bacnet/bacaction.c
   ${SRC_DIR}/bacnet/bacapp.c

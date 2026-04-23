@@ -13,7 +13,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 
 typedef struct BACnetAuthenticationFactor {
     BACNET_AUTHENTICATION_FACTOR_TYPE format_type;
@@ -51,6 +51,10 @@ BACNET_STACK_DEPRECATED(
 BACNET_STACK_EXPORT
 int bacapp_decode_context_authentication_factor(
     const uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af);
+BACNET_STACK_EXPORT
+bool bacnet_authentication_factor_same(
+    const BACNET_AUTHENTICATION_FACTOR *value,
+    const BACNET_AUTHENTICATION_FACTOR *test_value);
 
 #ifdef __cplusplus
 }
