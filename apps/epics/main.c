@@ -73,10 +73,8 @@ bool Target_Specific_Address = false;
 static uint8_t Request_Invoke_ID = 0;
 /* loopback address to talk to myself */
 /* = { 6, { 127, 0, 0, 1, 0xBA, 0xC0, 0 }, 0 }; */
-#if defined(BACDL_BIP)
 /* If set, use this as the source port. */
 static uint16_t My_BIP_Port = 0;
-#endif
 static bool Provided_Targ_MAC = false;
 /* any errors are picked up in main loop */
 static bool Error_Detected = false;
@@ -651,8 +649,8 @@ static void print_help(const char *filename)
         "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("-d: show only device object properties\n");
-    printf("-p: Use sport for \"my\" port. 47808 is default.\n");
-    printf("    Allows you to communicate with a localhost target.\n");
+    printf("-p: UDP port number for local BACnet/IP. Default=47808.\n");
+    printf("    Enables loopback testing with localhost.\n");
     printf("-t: declare target's MAC or IP address instead of using Who-Is\n");
     printf("    to bind to device-instance.\n");
     printf("    Format is \"192.168.1.42:47808\" or \"C0:A8:01:2A:BA:C0\".\n");
@@ -742,24 +740,27 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                 case 'd':
                     ShowDeviceObjectOnly = true;
                     break;
+                case 'p':
+                    if (++argi < argc) {
+                        My_BIP_Port = (uint16_t)strtol(argv[argi], NULL, 0);
+                    }
+                    break;
                 case 'r':
                     WritePropertyEnabled = false;
+                    break;
+                case 't':
+                    if (++argi < argc) {
+                        if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
+                            bacnet_address_init(&Target_Address, &mac, 0, NULL);
+                            Provided_Targ_MAC = true;
+                        } else {
+                            printf("ERROR: invalid Target MAC %s \n", argv[i]);
+                        }
+                    }
                     break;
                 case 'w':
                     WritePropertyEnabled = true;
                     break;
-                case 't':
-                    if (++i < argc) {
-                        if (bacnet_address_mac_from_ascii(&mac, argv[i])) {
-                            bacnet_address_init(&Target_Address, &mac, 0, NULL);
-                            Provided_Targ_MAC = true;
-                            break;
-                        } else {
-                            printf("ERROR: invalid Target MAC %s \n", argv[i]);
-                        }
-                        /* fall through to print_usage */
-                    }
-                    BACNET_STACK_FALLTHROUGH();
                 default:
                     print_usage(filename);
                     exit(0);
