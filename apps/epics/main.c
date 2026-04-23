@@ -60,8 +60,8 @@ typedef enum {
     EPICS_STATE_EXIT
 } EPICS_STATES;
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
-static uint8_t Rx_RP_Data[sizeof(BACNET_READ_ACCESS_DATA)] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU];
+static BACNET_READ_ACCESS_DATA Read_Data_Head;
 /* target information converted from command line */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
@@ -98,6 +98,8 @@ static bool ShowDeviceObjectOnly = false;
 static bool Optional_Properties = false;
 /* write to properties to determine their writability */
 static bool WritePropertyEnabled = true;
+/* RPM is supported */
+static bool RPM_Service_Supported;
 
 /* Track the response from the target */
 typedef enum {
@@ -188,25 +190,49 @@ static void MyReadPropertyAckHandler(
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_READ_ACCESS_DATA *rp_data;
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
-        rp_data = (BACNET_READ_ACCESS_DATA *)&Rx_RP_Data[0];
-        if (rp_data) {
-            len = rp_ack_fully_decode_service_request(
-                service_request, service_len, rp_data);
-            memmove(
-                &Read_Property_Multiple_Data.service_data, service_data,
-                sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
-            if (len >= 0) {
-                Read_Property_Multiple_Data.rpm_data = rp_data;
-                Response_Status = RESP_SUCCESS;
-            } else { /* failed decode for some reason */
-                Error_Detected = true;
-                Response_Status = RESP_FAILED_TO_DECODE;
-            }
+        len = rp_ack_fully_decode_service_request(
+            service_request, service_len, &Read_Data_Head);
+        memmove(
+            &Read_Property_Multiple_Data.service_data, service_data,
+            sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
+        if (len >= 0) {
+            Read_Property_Multiple_Data.rpm_data = &Read_Data_Head;
+            Response_Status = RESP_SUCCESS;
+        } else { /* failed decode for some reason */
+            Error_Detected = true;
+            Response_Status = RESP_FAILED_TO_DECODE;
         }
+    }
+}
+
+static void MyReadPropertyMultipleAckHandler(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+{
+    int len = 0;
+
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len = rpm_ack_decode_service_request(
+            service_request, service_len, &Read_Data_Head);
+    }
+    if (len > 0) {
+        memmove(
+            &Read_Property_Multiple_Data.service_data, service_data,
+            sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
+        Read_Property_Multiple_Data.rpm_data = &Read_Data_Head;
+        Response_Status = RESP_SUCCESS;
+    } else {
+        if (len < 0) { /* Eg, failed due to no segmentation */
+            Error_Detected = true;
+            Response_Status = RESP_FAILED_TO_DECODE;
+        }
+        rpm_data_free(&Read_Data_Head);
     }
 }
 
@@ -272,6 +298,8 @@ static void Init_Service_Handlers(void)
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, MyReadPropertyAckHandler);
+    apdu_set_confirmed_ack_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, MyReadPropertyMultipleAckHandler);
     /* handle the ack coming back */
     apdu_set_confirmed_simple_ack_handler(
         SERVICE_CONFIRMED_WRITE_PROPERTY, MyWritePropertySimpleAckHandler);
@@ -610,43 +638,42 @@ static void PrintReadPropertyData(
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [-d] [-h] [-v] [-w] device-instance\n", filename);
-    printf("       [--dnet][--dadr][--mac]\n");
-    printf("       [--version][--help][--debug]\n");
+    printf("Usage: %s [options] [device-instance]\n", filename);
+    printf("    [-h] [-v] [-d] [-r] [-w]\n");
+    printf("    [-t <device MAC or IP:port>]\n");
+    printf("    [-p <local-port>]\n");
+    printf("    [--dnet <dnet>] [--dadr <dadr>] [--mac <MAC-address>]\n");
+    printf("    [--help] [--version]\n");
 }
 
 static void print_help(const char *filename)
 {
     (void)filename;
     printf("Generates Full EPICS file, including Object and Property List\n");
-    printf(
-        "--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf(
-        "--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+    printf("--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
-    printf(
-        "--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network "
-        "number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf(
-        "device-instance:\n"
-        "BACnet Device Object Instance number that you are\n"
-        "trying to communicate to.  This number will be used\n"
-        "to try and bind with the device using Who-Is and\n"
-        "I-Am services.  For example, if you were reading\n"
-        "Device Object 123, the device-instance would be 123.\n");
+    printf("device-instance:\n"
+           "BACnet Device Object Instance number that you are\n"
+           "trying to communicate to.  This number will be used\n"
+           "to try and bind with the device using Who-Is and\n"
+           "I-Am services.  For example, if you were reading\n"
+           "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("-d: show only device object properties\n");
     printf("-p: UDP port number for local BACnet/IP. Default=47808.\n");
@@ -660,14 +687,12 @@ static void print_help(const char *filename)
     printf("\n");
     printf("-h: omit the BIBBs header\n");
     printf("\n");
-    printf(
-        "-r: disable the write to property during discovery which\n"
-        "is enabled by default.\n");
+    printf("-r: disable the write to property during discovery which\n"
+           "is enabled by default.\n");
     printf("-v: show values instead of '?' for changing values\n");
     printf("\n");
-    printf(
-        "-w: enable the write to property during discovery to\n"
-        "determine writable property status.\n");
+    printf("-w: enable the write to property during discovery to\n"
+           "determine writable property status.\n");
     printf("\n");
     printf("To generate output directly to a .tpi file for VTS or BTF:\n");
     printf("$ bacepics 4194302 > epics-4194302.tpi \n");
@@ -692,12 +717,11 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             exit(0);
         } else if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         } else if (strcmp(argv[argi], "--debug") == 0) {
             Debug_Enabled = true;
@@ -754,7 +778,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                             bacnet_address_init(&Target_Address, &mac, 0, NULL);
                             Provided_Targ_MAC = true;
                         } else {
-                            printf("ERROR: invalid Target MAC %s \n", argv[i]);
+                            printf(
+                                "ERROR: invalid Target MAC %s \n", argv[argi]);
                         }
                     }
                     break;
@@ -780,9 +805,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
         }
     }
     if (!bFoundTarget) {
-        printf("Error: Must provide a device-instance\n");
-        print_usage(filename);
-        exit(0);
+        Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
     }
 
     return 0; /* All OK if we reach here */
@@ -798,9 +821,13 @@ static RESPONSE_STATUS get_primitive_value(
     uint8_t i;
 
     for (i = 0; i < apdu_retries(); i++) {
-        Request_Invoke_ID = Send_Read_Property_Request(
-            device_instance, object.type, object.instance, property,
-            array_index);
+        if (property == PROP_ALL) {
+            /* FIXME: later */
+        } else {
+            Request_Invoke_ID = Send_Read_Property_Request(
+                device_instance, object.type, object.instance, property,
+                array_index);
+        }
         wait_for_response();
         if (Response_Status == RESP_SUCCESS) {
             *value_ptr =
@@ -961,9 +988,8 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
             "Product Description: \"%s\"\n\n",
             (char *)&data_value.type.Character_String.value);
     } else {
-        printf(
-            "Product Description: "
-            "\"your product description here\"\n\n");
+        printf("Product Description: "
+               "\"your product description here\"\n\n");
     }
     printf("--Use '--' to indicate unsupported Functionality.\n\n");
 
@@ -1169,9 +1195,7 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
     printf("BACnet Standard Application Services Supported:\n");
     printf("{\n");
 
-    /* We have to process this bit string and determine which Object Types we
-     * have, and show them
-     */
+    /* Get the Application Services Supported BitString and print each */
     status = get_primitive_value(
         device_instance, device_object, PROP_PROTOCOL_SERVICES_SUPPORTED,
         BACNET_ARRAY_ALL, &data_value);
@@ -1183,6 +1207,11 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
                 printf(
                     " %s\t\tInitiate Execute\n",
                     protocol_services_supported_text(i));
+                /* we can use RPM to find object proprietary properties and
+                   speed up the acquisition of object property values. */
+                if (i == SERVICE_SUPPORTED_READ_PROP_MULTIPLE) {
+                    RPM_Service_Supported = true;
+                }
             } else {
                 printf(
                     "-- %s\t\tInitiate Execute\n",
@@ -1198,9 +1227,7 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
     printf("Standard Object Types Supported:\n");
     printf("{\n");
 
-    /* We have to process this bit string and determine which Object Types we
-     * have, and show them
-     */
+    /* Get the Object Types Supported BitString and print each */
     status = get_primitive_value(
         device_instance, device_object, PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
         BACNET_ARRAY_ALL, &data_value);
@@ -1294,12 +1321,11 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
     printf("{\n");
     printf("  unsigned-integer: <minimum: 0; maximum: 4294967295>\n");
     printf("  signed-integer: <minimum: -2147483647; maximum: 2147483647>\n");
-    printf(
-        "  real: <minimum: -3.40282347E38; maximum: 3.40282347E38; resolution: "
-        "1.0>\n");
-    printf(
-        "  double: <minimum: 2.2250738585072016E-38; maximum: "
-        "1.7976931348623157E38; resolution: 0.0001>\n");
+    printf("  real: <minimum: -3.40282347E38; maximum: 3.40282347E38; "
+           "resolution: "
+           "1.0>\n");
+    printf("  double: <minimum: 2.2250738585072016E-38; maximum: "
+           "1.7976931348623157E38; resolution: 0.0001>\n");
     printf("  date: <minimum: 01-January-1900; maximum: 31-December-2154>\n");
     printf("  octet-string: <maximum length string: 122>\n");
     printf("  character-string: <maximum length string: 122>\n");
@@ -1376,8 +1402,8 @@ static void print_property_list(
 
     if (type >= OBJECT_PROPRIETARY_MIN && type <= OBJECT_PROPRIETARY_MAX) {
         /* propriatary object */
-        /* standard property, other than above, in a proprietary object - BTF
-         * wants them remmed out */
+        /* standard property, other than above, in a proprietary object -
+         * BTF wants them remmed out */
         is_proprietary = true;
     }
     printf(
@@ -1464,7 +1490,8 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                     prop_list[j].property = data_value.type.Unsigned_Int;
                     prop_list[j].printed = false;
                 } else {
-                    /* failed to read the PROPERTY_LIST element, skip print */
+                    /* failed to read the PROPERTY_LIST element, skip print
+                     */
                     prop_list[j].property = MAX_BACNET_PROPERTY_ID;
                     prop_list[j].printed = true;
                 }
@@ -1570,6 +1597,10 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                 num_properties = data_value.type.Unsigned_Int;
                 property_list_supported = true;
             } else {
+                if (RPM_Service_Supported) {
+                    status = get_primitive_value(
+                        device_instance, object, PROP_ALL, 0, &data_value);
+                }
                 /* failed to read the PROPERTY_LIST - use synthetic */
                 num_properties =
                     property_list_special_count(object.type, PROP_ALL);
@@ -1817,7 +1848,8 @@ int main(int argc, char *argv[])
                 if (pdu_len) {
                     npdu_handler(&src, &Rx_Buf[0], pdu_len);
                 }
-                /* will wait until the device is bound, or timeout and quit */
+                /* will wait until the device is bound, or timeout and quit
+                 */
                 found = address_bind_request(
                     Target_Device_Object_Instance, &max_apdu, &Target_Address);
                 if (!found) {
