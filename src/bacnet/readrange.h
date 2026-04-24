@@ -156,6 +156,9 @@ int readrange_ack_by_sequence_encode(
     uint8_t *apdu,
     size_t apdu_size);
 
+BACNET_STACK_EXPORT
+int validate_rr_request(BACNET_READ_RANGE_DATA *pRequest);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
