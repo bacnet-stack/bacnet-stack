@@ -24,6 +24,8 @@
 static uint8_t BIP_Socket = MAX_SOCK_NUM;
 /* port to use - stored in network byte order */
 static uint16_t BIP_Port = 0; /* this will force initialization in demos */
+/* broadcast destination port to use */
+static uint16_t BIP_Broadcast_Port;
 /* IP Address - stored in network byte order */
 // static struct in_addr BIP_Address;
 static uint8_t BIP_Address[4] = { 0, 0, 0, 0 };
@@ -105,9 +107,23 @@ void bip_set_port(uint16_t port)
     BIP_Port = htons(port);
 }
 
+void bip_set_broadcast_port(uint16_t port)
+{ /* in network byte order */
+    BIP_Broadcast_Port = htons(port);
+}
+
 /* returns network byte order */
 uint16_t bip_get_port(void)
 {
+    return ntohs(BIP_Port);
+}
+
+uint16_t bip_get_broadcast_port(void)
+{
+    if (BIP_Broadcast_Port) {
+        return ntohs(BIP_Broadcast_Port);
+    }
+
     return ntohs(BIP_Port);
 }
 
@@ -166,7 +182,7 @@ int bip_send_pdu(
         for (uint8_t i = 0; i < 4; i++) {
             address[i] = BIP_Broadcast_Address[i];
         }
-        port = BIP_Port;
+        port = htons(bip_get_broadcast_port());
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
 #ifdef DEBUG
         fprintf(
@@ -386,11 +402,12 @@ void bip_get_my_address(BACNET_ADDRESS *my_address)
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 { /* destination address */
     int i = 0; /* counter */
+    uint16_t port = htons(bip_get_broadcast_port());
 
     if (dest) {
         dest->mac_len = 6;
         memcpy(&dest->mac[0], &BIP_Broadcast_Address, 4);
-        memcpy(&dest->mac[4], &BIP_Port, 2);
+        memcpy(&dest->mac[4], &port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {

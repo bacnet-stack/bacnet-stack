@@ -23,6 +23,8 @@
 
 static uint8_t BIP_Socket = MAX_SOCK_NUM;
 static uint16_t BIP_Port = 0;
+/* broadcast destination port to use */
+static uint16_t BIP_Broadcast_Port = 0;
 static uint8_t BIP_Address[4] = { 0, 0, 0, 0 };
 static uint8_t BIP_Broadcast_Address[4] = { 0, 0, 0, 0 };
 
@@ -131,11 +133,33 @@ void bip_set_port(uint16_t port)
 }
 
 /**
+ * @brief Store the UDP broadcast destination port used by BACnet/IP
+ * @param port UDP port number
+ */
+void bip_set_broadcast_port(uint16_t port)
+{
+    BIP_Broadcast_Port = port;
+}
+
+/**
  * @brief Get the UDP port used by BACnet/IP
  * @return UDP port number
  */
 uint16_t bip_get_port(void)
 {
+    return BIP_Port;
+}
+
+/**
+ * @brief Get the UDP broadcast destination port used by BACnet/IP
+ * @return UDP port number
+ */
+uint16_t bip_get_broadcast_port(void)
+{
+    if (BIP_Broadcast_Port) {
+        return BIP_Broadcast_Port;
+    }
+
     return BIP_Port;
 }
 
@@ -193,7 +217,7 @@ int bip_send_pdu(
         for (i = 0; i < 4; i++) {
             address[i] = BIP_Broadcast_Address[i];
         }
-        port = BIP_Port;
+        port = bip_get_broadcast_port();
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     } else if (dest->mac_len == 6) {
         bip_decode_bip_address(dest, address, &port);
@@ -330,7 +354,11 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
     if (dest) {
         dest->mac_len = 6;
         memcpy(&dest->mac[0], &BIP_Broadcast_Address[0], 4);
-        memcpy(&dest->mac[4], &BIP_Port, 2);
+        {
+            uint16_t port = bip_get_broadcast_port();
+
+            memcpy(&dest->mac[4], &port, 2);
+        }
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0;
     }

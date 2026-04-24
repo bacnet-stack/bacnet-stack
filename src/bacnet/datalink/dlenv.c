@@ -404,6 +404,10 @@ static void dlenv_network_port_bip_init(uint32_t instance)
             bip_set_port(0xBAC0);
         }
     }
+    pEnv = getenv("BACNET_IP_BROADCAST_PORT");
+    if (pEnv) {
+        bip_set_broadcast_port((uint16_t)strtol(pEnv, NULL, 0));
+    }
     pEnv = getenv("BACNET_IP_BROADCAST_BIND_ADDR");
     if (pEnv) {
         bip_set_broadcast_binding(pEnv);
@@ -1168,6 +1172,8 @@ bool dlenv_register_device(uint8_t port_type, bool wait_until_connected)
  * - BACDL_BIP: (BACnet/IP)
  *   - BACNET_IP_PORT - UDP/IP port number (0..65534) used for BACnet/IP
  *     communications.  Default is 47808 (0xBAC0).
+ *   - BACNET_IP_BROADCAST_PORT - UDP/IP destination port number (0..65534)
+ *     used for BACnet/IP broadcasts. Default is BACNET_IP_PORT.
  *   - BACNET_BBMD_PORT - UDP/IP port number (0..65534) used for Foreign
  *       Device Registration.  Defaults to 47808 (0xBAC0).
  *   - BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device

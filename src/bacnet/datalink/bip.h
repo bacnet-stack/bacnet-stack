@@ -72,11 +72,17 @@ BACNET_STACK_EXPORT
 void bip_set_port(uint16_t port);
 
 BACNET_STACK_EXPORT
+void bip_set_broadcast_port(uint16_t port);
+
+BACNET_STACK_EXPORT
 bool bip_port_changed(void);
 
 /* returns host byte order of UDP port */
 BACNET_STACK_EXPORT
 uint16_t bip_get_port(void);
+
+BACNET_STACK_EXPORT
+uint16_t bip_get_broadcast_port(void);
 
 BACNET_STACK_EXPORT
 bool bip_set_addr(const BACNET_IP_ADDRESS *addr);
