@@ -63,6 +63,10 @@ bool bzll_update_node_protocol_address(
     struct bzll_vmac_data *vmac_data,
     uint8_t *protocol_addr,
     uint16_t address_size);
+BACNET_STACK_EXPORT
+void bzll_set_broadcast_group_id(uint16_t group_id);
+BACNET_STACK_EXPORT
+uint16_t bzll_get_broadcast_group_id(void);
 
 BACNET_STACK_EXPORT
 bool bzll_bacnet_address_from_device_id(

@@ -44,6 +44,7 @@ struct bzll_packet {
 #define BZLL_RECEIVE_PACKET_COUNT 2
 #endif
 
+static uint16_t bzll_broadcast_group_id = 0;
 static struct bzll_packet Receive_Buffer[BZLL_RECEIVE_PACKET_COUNT];
 static RING_BUFFER Receive_Queue;
 static uint32_t bzll_time_scan_nodes_remaining = BZLL_SCAN_NODES_INTERVAL_S;
@@ -654,6 +655,12 @@ void bzll_set_my_address(const BACNET_ADDRESS *my_address)
     bzll_advertise_address(my_address);
 }
 
+/**
+ * @brief Retrieves device protocol address
+ *
+ * @param protocol_address [out] - Protocol address
+ * @param protocol_address_size  [out] - Address Size
+ */
 void bzll_get_my_protocol_address(
     uint8_t *protocol_address, uint8_t *protocol_address_size)
 {
@@ -661,4 +668,23 @@ void bzll_get_my_protocol_address(
     bzll_get_my_address(&addr);
     *protocol_address_size = addr.mac_len;
     memcpy(protocol_address, addr.mac, addr.mac_len);
+}
+
+/**
+ * @brief Set broadcast group Id
+ * @param group_id [in] - Group Id to be stored
+ */
+void bzll_set_broadcast_group_id(uint16_t group_id)
+{
+    bzll_broadcast_group_id = group_id;
+}
+
+/**
+ * @brief Get broadcast group Id
+ *
+ * @return Stored group Id
+ */
+uint16_t bzll_get_broadcast_group_id(void)
+{
+    return bzll_broadcast_group_id;
 }

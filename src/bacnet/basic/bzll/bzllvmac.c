@@ -228,7 +228,7 @@ bool BZLL_VMAC_Entry_By_Device_ID(
  * @brief Finds a VMAC in the list by seeking the list index
  *
  * @param index [in] - Index that shall be returned
- * @param device_id [in] - BACnet device object instance number
+ * @param device_id [out] - BACnet device object instance number
  * @param vmac [out] - the VMAC data from the list
  *
  * @return true if the device_id and vmac are found
