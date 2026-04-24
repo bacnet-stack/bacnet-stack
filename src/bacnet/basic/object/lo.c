@@ -2620,9 +2620,7 @@ bool Lighting_Output_High_End_Trim_Set(uint32_t object_instance, float value)
             pObject->High_End_Trim = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
-            if (!lighting_command_active(&pObject->Lighting_Command)) {
-                lighting_command_refresh(&pObject->Lighting_Command);
-            }
+            lighting_command_refresh(&pObject->Lighting_Command);
             status = true;
         }
     }
@@ -2697,9 +2695,7 @@ bool Lighting_Output_Low_End_Trim_Set(uint32_t object_instance, float value)
             pObject->Low_End_Trim = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
-            if (!lighting_command_active(&pObject->Lighting_Command)) {
-                lighting_command_refresh(&pObject->Lighting_Command);
-            }
+            lighting_command_refresh(&pObject->Lighting_Command);
             status = true;
         }
     }
@@ -2775,9 +2771,7 @@ bool Lighting_Output_Trim_Fade_Time_Set(
             pObject->Trim_Fade_Time = value;
             Lighting_Command_Trim_Apply(
                 pObject, Present_Value_Priority(pObject));
-            if (!lighting_command_active(&pObject->Lighting_Command)) {
-                lighting_command_refresh(&pObject->Lighting_Command);
-            }
+            lighting_command_refresh(&pObject->Lighting_Command);
             status = true;
         }
     }
