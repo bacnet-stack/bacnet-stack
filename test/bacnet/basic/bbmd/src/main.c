@@ -186,6 +186,34 @@ static void test_Initiate_Original_Broadcast_NPDU(void)
     test_cleanup();
 }
 
+static void test_Initiate_Original_Broadcast_NPDU_Uses_Broadcast_Port(void)
+{
+    uint8_t pdu[MAX_APDU] = { 0 };
+    int npdu_len = 0;
+    int apdu_len = 0;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+
+    test_setup();
+    IUT.BIP_Addr.port = 0xBAC1U;
+    IUT.BIP_Broadcast_Addr.port = 0xBAC2U;
+
+    dest.net = BACNET_BROADCAST_NETWORK;
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_len = npdu_encode_pdu(&pdu[0], &dest, &IUT.BACnet_Address, &npdu_data);
+    apdu_len = iam_encode_apdu(
+        &pdu[npdu_len], IUT.Device_ID, MAX_APDU, SEGMENTATION_NONE,
+        BACNET_VENDOR_ID);
+    pdu_len = npdu_len + apdu_len;
+    bvlc_send_pdu(&dest, &npdu_data, pdu, pdu_len);
+
+    assert(Test_Sent_Message_Type == BVLC_ORIGINAL_BROADCAST_NPDU);
+    assert(Test_Sent_Message_Dest.port == IUT.BIP_Broadcast_Addr.port);
+    assert(Test_Sent_Message_Dest.port != IUT.BIP_Addr.port);
+    test_cleanup();
+}
+
 static void test_BBMD_Result(void)
 {
     int result = 0;
@@ -232,6 +260,7 @@ int main(void)
     /* individual tests */
     test_BBMD_Result();
     test_Initiate_Original_Broadcast_NPDU();
+    test_Initiate_Original_Broadcast_NPDU_Uses_Broadcast_Port();
 
     return 0;
 }

@@ -141,6 +141,7 @@ void bip_cleanup(void)
         close_func(sock_fd);
     }
     bip_set_socket(MAX_SOCK_NUM);
+    bip_set_broadcast_port(0);
 
     return;
 }
