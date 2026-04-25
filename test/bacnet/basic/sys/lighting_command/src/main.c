@@ -277,6 +277,18 @@ static void test_lighting_command_unit(void)
     zassert_true(
         is_float_equal(data.Last_On_Value, 100.0f), "last-on-value=%f",
         data.Last_On_Value);
+    /* off to off should not clamp to the minimum ON level */
+    data.Tracking_Value = 0.0f;
+    Tracking_Value = data.Tracking_Value;
+    target_level = 0.0f;
+    lighting_command_fade_to(&data, target_level, fade_time);
+    milliseconds = fade_time / 2;
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
+    zassert_true(is_float_equal(data.Tracking_Value, 0.0f), NULL);
+    zassert_true(data.Lighting_Operation == BACNET_LIGHTS_STOP, NULL);
+    zassert_true(is_float_equal(data.Last_On_Value, 100.0f), NULL);
     /* low trim */
     data.Low_Trim_Value = 10.0f;
     target_level = 1.0f;
@@ -610,6 +622,20 @@ static void test_lighting_command_unit(void)
                 "Tracking_Value=%f", Tracking_Value);
         }
     } while (data.Lighting_Operation != BACNET_LIGHTS_STOP);
+    zassert_true(
+        is_float_equal(data.Last_On_Value, data.Max_Actual_Value), NULL);
+    /* off to off should not clamp to the minimum ON level */
+    data.Tracking_Value = 0.0f;
+    Tracking_Value = data.Tracking_Value;
+    target_level = 0.0f;
+    milliseconds = 100;
+    ramp_rate = 1.0f;
+    lighting_command_ramp_to(&data, target_level, ramp_rate);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
+    zassert_true(is_float_equal(data.Tracking_Value, 0.0f), NULL);
+    zassert_true(data.Lighting_Operation == BACNET_LIGHTS_STOP, NULL);
     zassert_true(
         is_float_equal(data.Last_On_Value, data.Max_Actual_Value), NULL);
 

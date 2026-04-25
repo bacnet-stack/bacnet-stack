@@ -394,6 +394,45 @@ float lighting_command_operating_range_clamp(
 }
 
 /**
+ * @brief Determine if the values are both within the normalized OFF range
+ * @details The physical output level, or non-normalized range,
+ *  is specified as the linearized percentage (0..100%)
+ *  of the possible light output range with 0.0% being off,
+ *  1.0% being dimmest, and 100.0% being brightest.
+ *  The actual range represents the subset of physical output levels
+ *  defined by Min_Actual_Value and Max_Actual_Value
+ *  (or 1.0 to 100.0% if these properties are not present).
+ *  The normalized range is always 0.0 to 100.0% where
+ *  1.0% = bottom of the actual range and 100.0% = top of the actual range.
+ * @param data - dimmer data structure
+ * @param value1 [in] value to check if it is within the normalized OFF range
+ * @param value2 [in] value to check if it is within the normalized OFF range
+ * @return true if both values are within the normalized OFF range, false
+ * otherwise
+ */
+static bool lighting_command_is_normalized_off_to_off_nolock(
+    struct bacnet_lighting_command_data *data, float value1, float value2)
+{
+    float min_value, max_value, swap_value;
+
+    /* check normalized range within physical limits */
+    max_value = lighting_command_physical_range_clamp(data->Max_Actual_Value);
+    min_value = lighting_command_physical_range_clamp(data->Min_Actual_Value);
+    /* valid range check for high and low trim values */
+    if (isgreater(min_value, max_value)) {
+        /* swap the trims if they are inverse */
+        swap_value = min_value;
+        min_value = max_value;
+        max_value = swap_value;
+    }
+    if (isless(value1, min_value) && isless(value2, min_value)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Clamp the value within the normalized ON range 1% to 100%.
  * @details The physical output level, or non-normalized range,
  *  is specified as the linearized percentage (0..100%)
@@ -551,39 +590,48 @@ static void lighting_command_fade_handler(
     float target_value;
 
     old_value = data->Tracking_Value;
-    /* clamp Tracking value within the Normalized ON Range */
-    target_value = lighting_command_normalized_on_range_clamp_nolock(
-        data, data->Target_Level);
-    if ((milliseconds >= data->Fade_Time) ||
-        (!islessgreater(data->Tracking_Value, target_value))) {
-        /* stop fading */
-        if (isless(data->Target_Level, 1.0f)) {
-            /* jump target to OFF if below normalized min */
-            data->Tracking_Value = 0.0f;
-        } else {
-            data->Tracking_Value = target_value;
-        }
+    if (lighting_command_is_normalized_off_to_off_nolock(
+            data, old_value, data->Target_Level)) {
+        /* check for OFF to OFF transition */
+        data->Tracking_Value = 0.0f;
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
-        data->Fade_Time = 0;
     } else {
-        /* fading */
-        x1 = 0.0f;
-        x2 = (float)milliseconds;
-        x3 = (float)data->Fade_Time;
-        if (isless(old_value, data->Min_Actual_Value)) {
-            y1 = data->Min_Actual_Value;
+        /* clamp Target value within the Normalized ON Range */
+        target_value = lighting_command_normalized_on_range_clamp_nolock(
+            data, data->Target_Level);
+        if ((milliseconds >= data->Fade_Time) ||
+            (!islessgreater(data->Tracking_Value, target_value))) {
+            /* stop fading */
+            if (isless(data->Target_Level, 1.0f)) {
+                /* jump target to OFF if below normalized min */
+                data->Tracking_Value = 0.0f;
+            } else {
+                data->Tracking_Value = target_value;
+            }
+            data->In_Progress = BACNET_LIGHTING_IDLE;
+            data->Lighting_Operation = BACNET_LIGHTS_STOP;
+            data->Fade_Time = 0;
         } else {
-            y1 = old_value;
+            /* fading */
+            x1 = 0.0f;
+            x2 = (float)milliseconds;
+            x3 = (float)data->Fade_Time;
+            if (isless(old_value, data->Min_Actual_Value)) {
+                y1 = data->Min_Actual_Value;
+            } else {
+                y1 = old_value;
+            }
+            y3 = target_value;
+            data->Tracking_Value = linear_interpolate(x1, x2, x3, y1, y3);
+            data->Fade_Time -= milliseconds;
+            data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
         }
-        y3 = target_value;
-        data->Tracking_Value = linear_interpolate(x1, x2, x3, y1, y3);
-        data->Fade_Time -= milliseconds;
-        data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
+        /* clamp Tracking Value inclusively within the Operating Range */
+        data->Tracking_Value =
+            lighting_command_operating_range_clamp_fade_nolock(
+                data, data->Tracking_Value, milliseconds);
     }
-    /* clamp Tracking Value inclusively within the Operating Range */
-    data->Tracking_Value = lighting_command_operating_range_clamp_fade_nolock(
-        data, data->Tracking_Value, milliseconds);
     /* notify */
     lighting_command_tracking_value_event(
         data, old_value, data->Tracking_Value);
@@ -611,70 +659,78 @@ static void lighting_command_ramp_handler(
         operating_value;
 
     old_value = data->Tracking_Value;
-    /* clamp Tracking value within the Normalized ON Range */
-    target_value = lighting_command_normalized_on_range_clamp_nolock(
-        data, data->Target_Level);
-    if (!islessgreater(data->Tracking_Value, target_value)) {
-        /* stop ramping */
-        if (isless(data->Target_Level, 1.0f)) {
-            /* jump target to OFF if below normalized min */
-            data->Tracking_Value = 0.0f;
-        } else {
-            data->Tracking_Value = target_value;
-        }
+    if (lighting_command_is_normalized_off_to_off_nolock(
+            data, old_value, data->Target_Level)) {
+        /* check for OFF to OFF transition */
+        data->Tracking_Value = 0.0f;
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
     } else {
-        ramp_rate = lighting_command_ramp_rate_clamp(data->Ramp_Rate);
-        /* determine the number of steps */
-        if (milliseconds <= 1000) {
-            /* percent per second */
-            steps = linear_interpolate(
-                0.0f, (float)milliseconds, 1000.0f, 0.0f, ramp_rate);
-        } else {
-            steps = ((float)milliseconds * ramp_rate) / 1000.0f;
-        }
-        if (isless(old_value, target_value)) {
-            step_value = old_value + steps;
-            if (isgreater(step_value, target_value)) {
-                /* stop ramping */
-                data->Lighting_Operation = BACNET_LIGHTS_STOP;
-            }
-        } else if (isgreater(old_value, target_value)) {
-            if (isgreater(old_value, steps)) {
-                step_value = old_value - steps;
-            } else {
-                step_value = target_value;
-            }
-            if (isless(step_value, target_value)) {
-                /* stop ramping */
-                data->Lighting_Operation = BACNET_LIGHTS_STOP;
-            }
-        } else {
+        /* clamp Tracking value within the Normalized ON Range */
+        target_value = lighting_command_normalized_on_range_clamp_nolock(
+            data, data->Target_Level);
+        if (!islessgreater(data->Tracking_Value, target_value)) {
             /* stop ramping */
-            step_value = target_value;
-            data->Lighting_Operation = BACNET_LIGHTS_STOP;
-        }
-        /* clamp target within min/max, if needed */
-        step_value =
-            lighting_command_normalized_on_range_clamp_nolock(data, step_value);
-        if (data->Lighting_Operation == BACNET_LIGHTS_STOP) {
             if (isless(data->Target_Level, 1.0f)) {
                 /* jump target to OFF if below normalized min */
                 data->Tracking_Value = 0.0f;
             } else {
-                data->Tracking_Value = step_value;
+                data->Tracking_Value = target_value;
             }
             data->In_Progress = BACNET_LIGHTING_IDLE;
+            data->Lighting_Operation = BACNET_LIGHTS_STOP;
         } else {
-            data->Tracking_Value = step_value;
-            data->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
+            ramp_rate = lighting_command_ramp_rate_clamp(data->Ramp_Rate);
+            /* determine the number of steps */
+            if (milliseconds <= 1000) {
+                /* percent per second */
+                steps = linear_interpolate(
+                    0.0f, (float)milliseconds, 1000.0f, 0.0f, ramp_rate);
+            } else {
+                steps = ((float)milliseconds * ramp_rate) / 1000.0f;
+            }
+            if (isless(old_value, target_value)) {
+                step_value = old_value + steps;
+                if (isgreater(step_value, target_value)) {
+                    /* stop ramping */
+                    data->Lighting_Operation = BACNET_LIGHTS_STOP;
+                }
+            } else if (isgreater(old_value, target_value)) {
+                if (isgreater(old_value, steps)) {
+                    step_value = old_value - steps;
+                } else {
+                    step_value = target_value;
+                }
+                if (isless(step_value, target_value)) {
+                    /* stop ramping */
+                    data->Lighting_Operation = BACNET_LIGHTS_STOP;
+                }
+            } else {
+                /* stop ramping */
+                step_value = target_value;
+                data->Lighting_Operation = BACNET_LIGHTS_STOP;
+            }
+            /* clamp target within min/max, if needed */
+            step_value = lighting_command_normalized_on_range_clamp_nolock(
+                data, step_value);
+            if (data->Lighting_Operation == BACNET_LIGHTS_STOP) {
+                if (isless(data->Target_Level, 1.0f)) {
+                    /* jump target to OFF if below normalized min */
+                    data->Tracking_Value = 0.0f;
+                } else {
+                    data->Tracking_Value = step_value;
+                }
+                data->In_Progress = BACNET_LIGHTING_IDLE;
+            } else {
+                data->Tracking_Value = step_value;
+                data->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
+            }
         }
+        /* clamp Tracking_Value inclusively within the Operating Range */
+        operating_value = lighting_command_operating_range_clamp_fade_nolock(
+            data, data->Tracking_Value, milliseconds);
+        data->Tracking_Value = operating_value;
     }
-    /* clamp Tracking_Value inclusively within the Operating Range */
-    operating_value = lighting_command_operating_range_clamp_fade_nolock(
-        data, data->Tracking_Value, milliseconds);
-    data->Tracking_Value = operating_value;
     /* notify */
     lighting_command_tracking_value_event(
         data, old_value, data->Tracking_Value);
