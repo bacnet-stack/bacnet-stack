@@ -24,8 +24,15 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed lighting command update notifications to use scaled physical
+  values using min/max actual value. (#1315)
+* Fixed lighting command off to off behavior. (#1314)
+* Fixed lighting command refresh logic in trim set functions. (#1313)
 * Fixed EPICS values for recipient list, empty lists, and authentication
   factors. Fixed EPICS app to allow target MAC or IP address format. (#1310)
+* Fixed coupling between lighting output object and lighting command structure
+  by using locking callbacks in lighting command that are engaged when accessing
+  any of the lighting command structure data. (#1306)
 * Fixed BBMD_Result handling to avoid false positive error message
   when no registration is requested. (#1305)
 * Fixed Keylist memory allocation check in CheckArraySize and handle
