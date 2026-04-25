@@ -413,17 +413,14 @@ float lighting_command_operating_range_clamp(
 static bool lighting_command_is_normalized_off_to_off_nolock(
     struct bacnet_lighting_command_data *data, float value1, float value2)
 {
-    float min_value, max_value, swap_value;
+    float min_value, max_value;
 
     /* check normalized range within physical limits */
     max_value = lighting_command_physical_range_clamp(data->Max_Actual_Value);
     min_value = lighting_command_physical_range_clamp(data->Min_Actual_Value);
-    /* valid range check for high and low trim values */
     if (isgreater(min_value, max_value)) {
-        /* swap the trims if they are inverse */
-        swap_value = min_value;
+        /* the high and low configured actual values are swapped */
         min_value = max_value;
-        max_value = swap_value;
     }
     if (isless(value1, min_value) && isless(value2, min_value)) {
         return true;
@@ -456,14 +453,13 @@ static float lighting_command_normalized_on_range_clamp_nolock(
     /* clamp range within physical limits */
     max_value = lighting_command_physical_range_clamp(data->Max_Actual_Value);
     min_value = lighting_command_physical_range_clamp(data->Min_Actual_Value);
-    /* valid range check for high and low trim values */
     if (isgreater(min_value, max_value)) {
-        /* swap the trims if they are inverse */
+        /* swap the configured high and low actual values if they are inverse */
         swap_value = min_value;
         min_value = max_value;
         max_value = swap_value;
     }
-    /* clamp value within trim values, if non-zero */
+    /* clamp value within actual min/max values */
     if (isgreater(value, max_value)) {
         value = max_value;
     } else if (isless(value, min_value)) {
