@@ -666,7 +666,7 @@ static void lighting_command_ramp_handler(
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
     } else {
-        /* clamp Tracking value within the Normalized ON Range */
+        /* clamp Target value within the Normalized ON Range */
         target_value = lighting_command_normalized_on_range_clamp_nolock(
             data, data->Target_Level);
         if (!islessgreater(data->Tracking_Value, target_value)) {
