@@ -243,7 +243,7 @@ static void test_lighting_command_unit(void)
     zassert_true(is_float_equal(target_level, 0.0f), NULL);
     target_level = lighting_command_normalized_to_physical_value(
         data.Min_Actual_Value, data.Max_Actual_Value, 100.1f);
-    zassert_true(is_float_equal(target_level, 100.0f), NULL);
+    zassert_true(is_float_equal(target_level, data.Max_Actual_Value), NULL);
     target_level = lighting_command_normalized_to_physical_value(
         data.Min_Actual_Value, data.Max_Actual_Value, 50.0f);
     zassert_true(

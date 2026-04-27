@@ -132,7 +132,7 @@ float lighting_command_normalized_to_physical_value(
     if (isless(normalized_value, 1.0f)) {
         physical_value = 0.0f;
     } else if (isgreater(normalized_value, 100.0f)) {
-        physical_value = 100.0f;
+        physical_value = max_value;
     } else {
         x1 = 1.0f;
         x2 = normalized_value;
