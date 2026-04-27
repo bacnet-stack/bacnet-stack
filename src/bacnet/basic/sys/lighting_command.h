@@ -13,10 +13,10 @@
 #include "bacnet/bacdef.h"
 
 /**
- * @brief Callback for tracking value updates
+ * @brief Callback for lighting command notifications
  * @param  key - key used to link to specific light
- * @param  old_value - value prior to write
- * @param  value - value of the write
+ * @param  old_value - physical value prior to write
+ * @param  value - physical value of the write
  */
 typedef void (*lighting_command_tracking_value_callback)(
     uint32_t key, float old_value, float value);
@@ -165,22 +165,23 @@ BACNET_STACK_EXPORT
 float lighting_command_ramp_rate_clamp(float ramp_rate);
 BACNET_STACK_EXPORT
 float lighting_command_step_increment_clamp(float step_increment);
-BACNET_STACK_EXPORT
-float lighting_command_operating_range_clamp(
-    struct bacnet_lighting_command_data *data, float value);
+
 BACNET_STACK_EXPORT
 float lighting_command_operating_range_clamp_fade(
     struct bacnet_lighting_command_data *data,
     float value,
     uint16_t milliseconds);
 BACNET_STACK_EXPORT
-float lighting_command_normalized_range_clamp(
-    struct bacnet_lighting_command_data *data, float value);
+float lighting_command_normalized_range_clamp(float value);
+
 BACNET_STACK_EXPORT
-float lighting_command_normalized_on_range_clamp(
-    struct bacnet_lighting_command_data *data, float value);
+float lighting_command_normalized_on_range_clamp(float value);
 BACNET_STACK_EXPORT
-float lighting_command_physical_range_clamp(float value);
+float lighting_command_normalized_to_physical_value(
+    float min_value, float max_value, float normalized_value);
+BACNET_STACK_EXPORT
+float lighting_command_feedback_value(
+    struct bacnet_lighting_command_data *data);
 
 BACNET_STACK_EXPORT
 void lighting_command_trim_set(
