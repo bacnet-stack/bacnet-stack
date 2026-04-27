@@ -235,15 +235,23 @@ static void test_lighting_command_unit(void)
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
 
-    /* normalized range clamp testing */
+    /* normalized range scaling to physical values */
     data.Max_Actual_Value = 95.0f;
     data.Min_Actual_Value = 5.0f;
-    target_level = lighting_command_normalized_range_clamp(&data, 0.1f);
+    target_level = lighting_command_normalized_to_physical_value(
+        data.Min_Actual_Value, data.Max_Actual_Value, 0.1f);
     zassert_true(is_float_equal(target_level, 0.0f), NULL);
-    target_level = lighting_command_normalized_range_clamp(&data, 100.0f);
-    zassert_true(is_float_equal(target_level, data.Max_Actual_Value), NULL);
-    target_level = lighting_command_normalized_range_clamp(&data, 1.0f);
-    zassert_true(is_float_equal(target_level, data.Min_Actual_Value), NULL);
+    target_level = lighting_command_normalized_to_physical_value(
+        data.Min_Actual_Value, data.Max_Actual_Value, 100.1f);
+    zassert_true(is_float_equal(target_level, 100.0f), NULL);
+    target_level = lighting_command_normalized_to_physical_value(
+        data.Min_Actual_Value, data.Max_Actual_Value, 50.0f);
+    zassert_true(
+        islessequal(target_level, data.Max_Actual_Value), "physical-value=%.2f",
+        target_level);
+    zassert_true(
+        isgreaterequal(target_level, data.Min_Actual_Value),
+        "physical-value=%.2f", target_level);
     data.Max_Actual_Value = 100.0f;
     data.Min_Actual_Value = 1.0f;
 
@@ -306,8 +314,8 @@ static void test_lighting_command_unit(void)
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
-    data.Low_Trim_Value = data.Min_Actual_Value;
     zassert_true(is_float_equal(data.Last_On_Value, 1.0f), NULL);
+    data.Low_Trim_Value = 1.0f;
     /* high trim */
     data.High_Trim_Value = 90.0f;
     target_level = 100.0f;
@@ -317,8 +325,8 @@ static void test_lighting_command_unit(void)
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.High_Trim_Value), NULL);
-    data.High_Trim_Value = data.Max_Actual_Value;
     zassert_true(is_float_equal(data.Last_On_Value, target_level), NULL);
+    data.High_Trim_Value = 100.0f;
     /* trim fade time */
     target_level = 80.0f;
     milliseconds = 10;
@@ -408,21 +416,21 @@ static void test_lighting_command_unit(void)
     zassert_true(is_float_equal(target_step, 100.0f), NULL);
 
     /* physical range clamping */
-    target_level = lighting_command_physical_range_clamp(0.0f);
+    target_level = lighting_command_normalized_range_clamp(0.0f);
     zassert_true(is_float_equal(target_level, 0.0f), NULL);
-    target_level = lighting_command_physical_range_clamp(0.5f);
+    target_level = lighting_command_normalized_range_clamp(0.5f);
     zassert_true(is_float_equal(target_level, 0.0f), NULL);
-    target_level = lighting_command_physical_range_clamp(0.9f);
+    target_level = lighting_command_normalized_range_clamp(0.9f);
     zassert_true(is_float_equal(target_level, 0.0f), NULL);
-    target_level = lighting_command_physical_range_clamp(1.0f);
+    target_level = lighting_command_normalized_range_clamp(1.0f);
     zassert_true(is_float_equal(target_level, 1.0f), NULL);
-    target_level = lighting_command_physical_range_clamp(50.0f);
+    target_level = lighting_command_normalized_range_clamp(50.0f);
     zassert_true(is_float_equal(target_level, 50.0f), NULL);
-    target_level = lighting_command_physical_range_clamp(100.0f);
+    target_level = lighting_command_normalized_range_clamp(100.0f);
     zassert_true(is_float_equal(target_level, 100.0f), NULL);
-    target_level = lighting_command_physical_range_clamp(100.1f);
+    target_level = lighting_command_normalized_range_clamp(100.1f);
     zassert_true(is_float_equal(target_level, 100.0f), NULL);
-    target_level = lighting_command_physical_range_clamp(150.0f);
+    target_level = lighting_command_normalized_range_clamp(150.0f);
     zassert_true(is_float_equal(target_level, 100.0f), NULL);
 
     /* step UP - inhibit ON */
@@ -483,7 +491,7 @@ static void test_lighting_command_unit(void)
         is_float_equal(data.Last_On_Value, data.Max_Actual_Value), NULL);
     /* step DOWN, not off */
     target_step = 1.0f;
-    target_level = data.Min_Actual_Value + target_step;
+    target_level = 1.0f + target_step;
     milliseconds = 10;
     lighting_command_fade_to(&data, target_level, 0);
     lighting_command_timer(&data, milliseconds);
@@ -492,18 +500,17 @@ static void test_lighting_command_unit(void)
     lighting_command_step(&data, BACNET_LIGHTS_STEP_DOWN, target_step);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
-    zassert_true(is_float_equal(Tracking_Value, data.Min_Actual_Value), NULL);
-    zassert_true(
-        is_float_equal(data.Last_On_Value, data.Min_Actual_Value), NULL);
-    /* clamp to min */
+    zassert_true(is_float_equal(Tracking_Value, 1.0f), NULL);
+    zassert_true(is_float_equal(data.Last_On_Value, 1.0f), NULL);
+    /* clamp to min normal */
     target_step = 100.0f;
     lighting_command_step(&data, BACNET_LIGHTS_STEP_DOWN, target_step);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
-    zassert_true(is_float_equal(Tracking_Value, data.Min_Actual_Value), NULL);
+    zassert_true(is_float_equal(Tracking_Value, 1.0f), NULL);
     /* step DOWN and off */
     target_step = 100.0f;
-    target_level = data.Min_Actual_Value;
+    target_level = 1.0f;
     milliseconds = 10;
     lighting_command_fade_to(&data, target_level, 0);
     lighting_command_timer(&data, milliseconds);
@@ -513,8 +520,7 @@ static void test_lighting_command_unit(void)
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
-    zassert_true(
-        is_float_equal(data.Last_On_Value, data.Min_Actual_Value), NULL);
+    zassert_true(is_float_equal(data.Last_On_Value, 1.0f), NULL);
     /* blink warn - immediate off */
     data.Blink.Interval = 0;
     data.Blink.Duration = 0;
@@ -574,8 +580,8 @@ static void test_lighting_command_unit(void)
                 data.In_Progress == BACNET_LIGHTING_RAMP_ACTIVE,
                 "In_Progress=%d", data.In_Progress);
             zassert_true(
-                isgreater(data.Tracking_Value, data.Min_Actual_Value),
-                "Tracking_Value=%f", Tracking_Value);
+                isgreater(data.Tracking_Value, 1.0f), "Tracking_Value=%f",
+                Tracking_Value);
             zassert_true(
                 isless(data.Tracking_Value, data.Max_Actual_Value),
                 "Tracking_Value=%f", Tracking_Value);
@@ -583,7 +589,7 @@ static void test_lighting_command_unit(void)
     } while (data.Lighting_Operation != BACNET_LIGHTS_STOP);
 
     /* slower ramp down */
-    target_level = data.Min_Actual_Value;
+    target_level = 1.0f;
     milliseconds = 33;
     ramp_rate = 0.1f;
     do {
@@ -594,15 +600,14 @@ static void test_lighting_command_unit(void)
                 data.In_Progress == BACNET_LIGHTING_RAMP_ACTIVE,
                 "In_Progress=%d", data.In_Progress);
             zassert_true(
-                isgreater(data.Tracking_Value, data.Min_Actual_Value),
-                "Tracking_Value=%f", Tracking_Value);
+                isgreater(data.Tracking_Value, 1.0f), "Tracking_Value=%f",
+                Tracking_Value);
             zassert_true(
                 isless(data.Tracking_Value, data.Max_Actual_Value),
                 "Tracking_Value=%f", Tracking_Value);
         }
     } while (data.Lighting_Operation != BACNET_LIGHTS_STOP);
-    zassert_true(
-        is_float_equal(data.Last_On_Value, data.Min_Actual_Value), NULL);
+    zassert_true(is_float_equal(data.Last_On_Value, 1.0f), NULL);
     /* large elapsed timer - ramp up */
     target_level = data.Max_Actual_Value;
     milliseconds = 2000;
@@ -615,8 +620,8 @@ static void test_lighting_command_unit(void)
                 data.In_Progress == BACNET_LIGHTING_RAMP_ACTIVE,
                 "In_Progress=%d", data.In_Progress);
             zassert_true(
-                isgreater(data.Tracking_Value, data.Min_Actual_Value),
-                "Tracking_Value=%f", Tracking_Value);
+                isgreater(data.Tracking_Value, 1.0f), "Tracking_Value=%f",
+                Tracking_Value);
             zassert_true(
                 isless(data.Tracking_Value, data.Max_Actual_Value),
                 "Tracking_Value=%f", Tracking_Value);
