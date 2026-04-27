@@ -269,8 +269,10 @@ int rr_decode_service_request(
     }
 
     /* Added to identify the missing mandatory parameter */
-    data->Range.RefIndex = UINT32_MAX;
-    data->Count = INT32_MAX;
+    if (data) {
+        data->Range.RefIndex = UINT32_MAX;
+        data->Count = INT32_MAX;
+    }
     if (bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
         /*
@@ -972,7 +974,7 @@ int validate_rr_request(BACNET_READ_RANGE_DATA *pRequest)
         (pRequest->Range.RefIndex == UINT32_MAX) &&
         ((pRequest->RequestType == RR_BY_POSITION) ||
          (pRequest->RequestType == RR_BY_SEQUENCE))) {
-        return (-3); /* Reject - missing required parameter- Refernce index */
+        return (-3); /* Reject - missing required parameter- Reference index */
     }
     return 0;
 }
