@@ -13,10 +13,10 @@
 #include "bacnet/bacdef.h"
 
 /**
- * @brief Callback for tracking value updates
+ * @brief Callback for lighting command notifications
  * @param  key - key used to link to specific light
- * @param  old_value - value prior to write
- * @param  value - value of the write
+ * @param  old_value - physical value prior to write
+ * @param  value - physical value of the write
  */
 typedef void (*lighting_command_tracking_value_callback)(
     uint32_t key, float old_value, float value);

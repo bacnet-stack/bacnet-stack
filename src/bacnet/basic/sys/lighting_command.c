@@ -146,12 +146,12 @@ float lighting_command_normalized_to_physical_value(
 }
 
 /**
- * @brief call the lighting command tracking value callbacks
+ * @brief call the lighting command notification callbacks
  * @param data - dimmer data structure
- * @param old_value - value prior to write
- * @param value - value of the write
+ * @param old_value - physical value prior to write
+ * @param value - physical value of the write
  */
-static void lighting_command_tracking_value_notify(
+static void lighting_command_notify(
     struct bacnet_lighting_command_data *data, float old_value, float value)
 {
     struct lighting_command_notification *head;
@@ -469,15 +469,13 @@ static void lighting_command_tracking_value_event(
     old_physical_value = lighting_command_normalized_to_physical_value(
         data->Min_Actual_Value, data->Max_Actual_Value, old_value);
     if (data->Overridden) {
-        lighting_command_tracking_value_notify(
-            data, old_physical_value, physical_value);
+        lighting_command_notify(data, old_physical_value, physical_value);
         if (data->Overridden_Momentary) {
             data->Overridden = false;
         }
     } else if (!data->Out_Of_Service) {
         data->Overridden_Momentary = false;
-        lighting_command_tracking_value_notify(
-            data, old_physical_value, physical_value);
+        lighting_command_notify(data, old_physical_value, physical_value);
     } else {
         debug_printf(
             "Lighting-Command[%lu]-Out-of-Service\n", (unsigned long)data->Key);
