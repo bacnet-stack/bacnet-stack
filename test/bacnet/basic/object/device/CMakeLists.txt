@@ -25,6 +25,11 @@ add_compile_definitions(
     CONFIG_ZTEST=1
     )
 
+option(
+    BACNET_BACKUP_RESTORE
+    "enable backup and restore support"
+    ON)
+
 include_directories(
     ${SRC_DIR}
     ${TST_DIR}/ztest/include
@@ -139,4 +144,17 @@ add_executable(${PROJECT_NAME}
     ${TST_DIR}/bacnet/basic/object/test/tsm_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
+    )
+
+if(BAC_ROUTING)
+    target_sources(${PROJECT_NAME}
+        PRIVATE
+        ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c
+        )
+endif()
+
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+    $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
+    $<$<BOOL:${BACNET_BACKUP_RESTORE}>:BACNET_BACKUP_RESTORE>
     )
