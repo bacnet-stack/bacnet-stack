@@ -178,6 +178,22 @@ typedef struct commonBacObj_s {
  *  This may be useful for implementations which manage multiple Devices,
  *  eg, a Gateway.
  */
+#if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
+#ifndef BACNET_BACKUP_FILE_COUNT
+#define BACNET_BACKUP_FILE_COUNT 1
+#endif
+typedef struct bacnet_backup_restore_data_s {
+    BACNET_BACKUP_STATE Backup_State;
+    uint16_t Backup_Failure_Timeout;
+    uint32_t Backup_Failure_Timeout_Milliseconds;
+    uint32_t Configuration_Files[BACNET_BACKUP_FILE_COUNT];
+    BACNET_TIMESTAMP Last_Restore_Time;
+    uint16_t Backup_Preparation_Time;
+    uint16_t Restore_Preparation_Time;
+    uint16_t Restore_Completion_Time;
+} BACNET_BACKUP_RESTORE_DATA;
+#endif
+
 typedef struct devObj_s {
     /** The BACnet Device Address for this device; ->len depends on DLL type. */
     BACNET_ADDRESS bacDevAddr;
@@ -191,6 +207,14 @@ typedef struct devObj_s {
     /** The upcounter that shows if the Device ID or object structure has
      * changed. */
     uint32_t Database_Revision;
+
+#if defined(BAC_ROUTING)
+    BACNET_REINITIALIZED_STATE Reinitialize_State;
+    const char *Reinit_Password;
+#if defined(BACNET_BACKUP_RESTORE)
+    BACNET_BACKUP_RESTORE_DATA Backup;
+#endif
+#endif
 } DEVICE_OBJECT_DATA;
 
 #ifdef __cplusplus
