@@ -65,8 +65,10 @@ uint16_t bip_receive(
 
 /* use host byte order for setting */
 void bip_set_port(uint16_t port);
+void bip_set_broadcast_port(uint16_t port);
 /* returns host byte order */
 uint16_t bip_get_port(void);
+uint16_t bip_get_broadcast_port(void);
 
 /* use network byte order for setting */
 void bip_set_addr(const uint8_t *net_address);

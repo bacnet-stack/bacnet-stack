@@ -15,6 +15,8 @@
 static int BIP_Socket = -1;
 /* port to use - stored in host byte order */
 static uint16_t BIP_Port = 0xBAC0U;
+/* broadcast destination port to use */
+static uint16_t BIP_Broadcast_Port;
 /* IP Address - stored in host byte order */
 static struct in_addr BIP_Address;
 /* Broadcast Address - stored in host byte order */
@@ -40,6 +42,7 @@ void bip_cleanup(void)
     /*    if (bip_valid()) */
     /*        close(BIP_Socket); */
     BIP_Socket = -1;
+    BIP_Broadcast_Port = 0;
 
     return;
 }
@@ -76,9 +79,25 @@ void bip_set_port(uint16_t port)
     BIP_Port = port;
 }
 
+/* set using host byte order */
+void bip_set_broadcast_port(uint16_t port)
+{
+    BIP_Broadcast_Port = port;
+}
+
 /* returns host byte order */
 uint16_t bip_get_port(void)
 {
+    return BIP_Port;
+}
+
+/* returns host byte order */
+uint16_t bip_get_broadcast_port(void)
+{
+    if (BIP_Broadcast_Port) {
+        return BIP_Broadcast_Port;
+    }
+
     return BIP_Port;
 }
 
@@ -116,7 +135,7 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     /* broadcast */
     else if (dest->mac_len == 0) {
         bip_dest.sin_addr.s_addr = BIP_Broadcast_Address.s_addr;
-        bip_dest.sin_port = htons(BIP_Port);
+        bip_dest.sin_port = htons(bip_get_broadcast_port());
         memset(&(bip_dest.sin_zero), '\0', 8);
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     } else
@@ -197,7 +216,8 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
         dest->mac_len = 6;
         (void)encode_unsigned32(
             &dest->mac[0], htonl(BIP_Broadcast_Address.s_addr));
-        (void)encode_unsigned16(&dest->mac[4], htons(BIP_Port));
+        (void)encode_unsigned16(
+            &dest->mac[4], htons(bip_get_broadcast_port()));
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {
