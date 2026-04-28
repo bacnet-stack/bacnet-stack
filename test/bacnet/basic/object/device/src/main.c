@@ -91,6 +91,49 @@ static bool Write_Property_Proprietary(BACNET_WRITE_PROPERTY_DATA *data)
     return status;
 }
 
+#if defined(BAC_ROUTING)
+/**
+ * @brief Verify routed virtual devices still do not expose DCC.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_DCC_Remains_Blocked)
+#else
+static void test_Routed_Device_DCC_Remains_Blocked(void)
+#endif
+{
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint16_t device_index = 0;
+    int len = 0;
+    bool status = false;
+
+    Device_Init(NULL);
+    Routing_Device_Init(1000);
+    status = characterstring_init_ansi(&object_name, "Virtual Device");
+    zassert_true(status, NULL);
+    device_index = Add_Routed_Device(1001, &object_name, "Virtual Device");
+    zassert_equal(device_index, 1, NULL);
+
+    status = Set_Routed_Device_Object_Index(0);
+    zassert_true(status, NULL);
+    len = Routed_Device_Service_Approval(
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, NULL, 0);
+    zassert_equal(len, 0, NULL);
+
+    status = Set_Routed_Device_Object_Index(device_index);
+    zassert_true(status, NULL);
+    len = Routed_Device_Service_Approval(
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, NULL, 0);
+    zassert_not_equal(len, 0, NULL);
+
+    len = Routed_Device_Service_Approval(
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, apdu, 1);
+    zassert_true(len > 0, NULL);
+    status = Set_Routed_Device_Object_Index(0);
+    zassert_true(status, NULL);
+}
+#endif
+
 /**
  * @brief ReadProperty handler for this objects proprietary properties.
  * For the given ReadProperty data, the application_data is loaded

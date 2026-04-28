@@ -147,14 +147,10 @@ add_executable(${PROJECT_NAME}
     )
 
 if(BAC_ROUTING)
-    target_sources(${PROJECT_NAME}
-        PRIVATE
+    target_sources(${PROJECT_NAME} PRIVATE
         ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c
         )
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        BAC_ROUTING
+        )
 endif()
-
-target_compile_definitions(${PROJECT_NAME}
-    PRIVATE
-    $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
-    $<$<BOOL:${BACNET_BACKUP_RESTORE}>:BACNET_BACKUP_RESTORE>
-    )
