@@ -146,6 +146,12 @@ add_executable(${PROJECT_NAME}
     ${ZTST_DIR}/ztest.c
     )
 
+if(BACNET_BACKUP_RESTORE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        BACNET_BACKUP_RESTORE
+        )
+endif()
+
 if(BAC_ROUTING)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c

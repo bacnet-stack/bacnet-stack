@@ -521,6 +521,8 @@ uint16_t Add_Routed_Device(
     const BACNET_CHARACTER_STRING *Object_Name,
     const char *Description);
 BACNET_STACK_EXPORT
+void Routed_Device_Table_Reset(void);
+BACNET_STACK_EXPORT
 DEVICE_OBJECT_DATA *Get_Routed_Device_Object(int idx);
 BACNET_STACK_EXPORT
 BACNET_ADDRESS *Get_Routed_Device_Address(int idx);

@@ -285,50 +285,74 @@ cmake --build /tmp/bacnet-test-root-no-routing --target test_device
 
 ### 현재 구조 이해
 
-- [ ] PR 설명에 “BAC_ROUTING per-device 구조는 이미 있음”을 명시
-- [ ] 이번 변경 범위가 “Reinitialize/Backup/Restore static 상태의 BAC_ROUTING 조건부 per-device화”임을 명시
+- [x] PR 설명에 “BAC_ROUTING per-device 구조는 이미 있음”을 명시
+- [x] 이번 변경 범위가 “Reinitialize/Backup/Restore static 상태의 BAC_ROUTING 조건부 per-device화”임을 명시
 
 ### 데이터 구조
 
-- [ ] 새 필드가 `#if defined(BAC_ROUTING)` 안에만 추가됨
-- [ ] `BAC_ROUTING` OFF 빌드에서 `DEVICE_OBJECT_DATA` 크기/동작이 기존과 동일함
-- [ ] `Reinitialize_State` / `Reinit_Password`가 `BAC_ROUTING` 조건부 필드로 추가됨
-- [ ] `BACNET_BACKUP_RESTORE_DATA`가 `BAC_ROUTING && BACNET_BACKUP_RESTORE` 조건으로 정의됨
-- [ ] `DEVICE_OBJECT_DATA.Backup`이 `BAC_ROUTING && BACNET_BACKUP_RESTORE` 조건으로 추가됨
-- [ ] Reinitialize/Backup 기본값 초기화
+- [x] 새 필드가 `#if defined(BAC_ROUTING)` 안에만 추가됨
+- [x] `BAC_ROUTING` OFF 빌드에서 `DEVICE_OBJECT_DATA` 크기/동작이 기존과 동일함
+- [x] `Reinitialize_State` / `Reinit_Password`가 `BAC_ROUTING` 조건부 필드로 추가됨
+- [x] `BACNET_BACKUP_RESTORE_DATA`가 `BAC_ROUTING && BACNET_BACKUP_RESTORE` 조건으로 정의됨
+- [x] `DEVICE_OBJECT_DATA.Backup`이 `BAC_ROUTING && BACNET_BACKUP_RESTORE` 조건으로 추가됨
+- [x] Reinitialize/Backup 기본값 초기화
 
 ### 접근 경로
 
-- [ ] Reinitialize getter/setter/password 경로가 routing 모드에서 `Get_Routed_Device_Object(-1)` 사용
-- [ ] Backup getter/setter가 routing 모드에서 `Get_Routed_Device_Object(-1)` 사용
-- [ ] service handler가 직접 static 대신 wrapper 사용
-- [ ] timer/countdown 경로가 per-device 상태 사용
+- [x] Reinitialize getter/setter/password 경로가 routing 모드에서 `Get_Routed_Device_Object(-1)` 사용
+- [x] Backup getter/setter가 routing 모드에서 `Get_Routed_Device_Object(-1)` 사용
+- [x] service handler가 직접 static 대신 wrapper 사용
+- [x] timer/countdown 경로가 per-device 상태 사용
 
 ### routed property
 
-- [ ] routed read에 Backup property case 추가
-- [ ] routed write에 Backup property case 추가
-- [ ] `Configuration_Files` array helper 추가
+- [x] routed read에서 Backup property가 per-device helper 경로 사용
+- [x] routed write에서 Backup property가 per-device helper 경로 사용
+- [x] `Configuration_Files` array helper 추가
 
 ### 정책
 
-- [ ] virtual device에서 RD 서비스 허용
-- [ ] virtual device의 Backup/Restore RD state는 per-device Backup 상태로 처리
-- [ ] virtual device의 `COLDSTART` / `WARMSTART` / `ACTIVATE_CHANGES`는 `ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED` Error 응답
-- [ ] `Reinit_Password`는 `BAC_ROUTING`에서 per-device로 적용
-- [ ] DCC service gate는 이번 범위에서 기존처럼 유지
+- [x] virtual device에서 RD 서비스 허용
+- [x] virtual device의 Backup/Restore RD state는 per-device Backup 상태로 처리
+- [x] virtual device의 `COLDSTART` / `WARMSTART` / `ACTIVATE_CHANGES`는 `ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED` Error 응답
+- [x] `Reinit_Password`는 `BAC_ROUTING`에서 per-device로 적용
+- [x] DCC service gate는 이번 범위에서 기존처럼 유지
 
 ### 검증
 
-- [ ] 기존 `test_device` 통과
-- [ ] `BAC_ROUTING=ON` 조합 통과
-- [ ] `BAC_ROUTING=OFF` 조합에서 기존 동작 통과
-- [ ] Backup read/write 테스트 통과
-- [ ] Reinitialize 상태 전이 테스트 통과
-- [ ] virtual device RD 서비스 허용 테스트 통과
-- [ ] virtual device unsupported RD state Error 응답 테스트 추가 및 통과
-  - [ ] `COLDSTART`
-  - [ ] `WARMSTART`
-  - [ ] `ACTIVATE_CHANGES`
-- [ ] virtual device system-level side effect 차단 테스트 통과
-- [ ] timeout countdown 회귀 테스트 통과
+- [x] 기존 `test_device` 통과
+- [x] `BAC_ROUTING=ON` 조합 통과
+- [x] `BAC_ROUTING=OFF` 조합에서 기존 동작 통과
+- [x] Backup helper read/write 및 RD state 테스트 통과
+- [x] Reinitialize 상태 전이 테스트 통과
+- [x] virtual device RD 서비스 허용 테스트 통과
+- [x] virtual device unsupported RD state Error 응답 테스트 추가 및 통과
+  - [x] `COLDSTART`
+  - [x] `WARMSTART`
+  - [x] `ACTIVATE_CHANGES`
+- [x] virtual device system-level side effect 차단 테스트 통과
+- [x] timeout countdown 회귀 테스트 통과
+
+## 구현 결과 메모 (2026-04-28)
+
+- `DEVICE_OBJECT_DATA`에 `BAC_ROUTING` 조건부 Reinitialize 상태/암호 필드와 `BAC_ROUTING && BACNET_BACKUP_RESTORE` 조건부 Backup 중첩 상태를 둔다.
+- `Device_Reinitialize()`는 routing 모드에서 현재 routed device의 상태 포인터를 사용한다. virtual device의 `COLDSTART`, `WARMSTART`, `ACTIVATE_CHANGES`는 `Routed_Device_Service_Approval()`에서 Reject하지 않고 여기서 `ERROR_CLASS_SERVICES` + `ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED`를 반환한다.
+- `Routed_Device_Service_Approval()`은 RD를 virtual device에도 허용하지만 DCC는 계속 virtual device에서 Reject한다.
+- Backup/Restore helper와 timeout countdown은 routing 모드에서 현재 routed device의 `Backup` 상태를 사용한다. `Device_Timer()`는 routing 모드에서 managed device별로 countdown을 한 번씩만 수행한다.
+- test target은 `BACNET_BACKUP_RESTORE` 옵션을 compile definition으로 연결한다. 현재 top-level `test` CMake에는 `test_gateway` target이 없어서 top-level 추가 검증은 `test_device`로 수행했다.
+
+검증 명령:
+
+```bash
+cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-routing-tdd -DBAC_ROUTING=ON -DBACNET_BACKUP_RESTORE=ON
+cmake --build /tmp/bacnet-device-routing-tdd --target test_device -j2
+/tmp/bacnet-device-routing-tdd/test_device
+
+cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-no-routing -DBACNET_BACKUP_RESTORE=ON
+cmake --build /tmp/bacnet-device-no-routing --target test_device -j2
+/tmp/bacnet-device-no-routing/test_device
+
+cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-routing-no-backup -DBAC_ROUTING=ON -DBACNET_BACKUP_RESTORE=OFF
+cmake --build /tmp/bacnet-device-routing-no-backup --target test_device -j2
+/tmp/bacnet-device-routing-no-backup/test_device
+```
