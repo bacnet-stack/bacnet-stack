@@ -14,7 +14,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h> /* for time */
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
 #endif
@@ -488,42 +487,53 @@ static void PrintReadPropertyData(
         if (Writeable_Properties(
                 object_value.object_type, object_value.object_property)) {
             /* attempt to write the received value back to the device */
-            switch(rpm_property->value->tag) {
+            switch (rpm_property->value->tag) {
                 case BACNET_APPLICATION_TAG_NULL:
                     bacnet_write_property_null_queue(
                         Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance, object_value.object_property,
-                        BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
+                        object_value.object_instance,
+                        object_value.object_property, BACNET_NO_PRIORITY,
+                        rpm_property->propertyArrayIndex);
                     break;
                 case BACNET_APPLICATION_TAG_BOOLEAN:
                     bacnet_write_property_boolean_queue(
                         Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance, object_value.object_property,
-                        rpm_property->value->type.Boolean, BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
+                        object_value.object_instance,
+                        object_value.object_property,
+                        rpm_property->value->type.Boolean, BACNET_NO_PRIORITY,
+                        rpm_property->propertyArrayIndex);
                     break;
                 case BACNET_APPLICATION_TAG_REAL:
                     bacnet_write_property_real_queue(
                         Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance, object_value.object_property,
-                        rpm_property->value->type.Real, BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
+                        object_value.object_instance,
+                        object_value.object_property,
+                        rpm_property->value->type.Real, BACNET_NO_PRIORITY,
+                        rpm_property->propertyArrayIndex);
                     break;
                 case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                     bacnet_write_property_unsigned_queue(
                         Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance, object_value.object_property,
-                        rpm_property->value->type.Unsigned_Int, BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
+                        object_value.object_instance,
+                        object_value.object_property,
+                        rpm_property->value->type.Unsigned_Int,
+                        BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
                     break;
                 case BACNET_APPLICATION_TAG_SIGNED_INT:
                     bacnet_write_property_signed_queue(
                         Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance, object_value.object_property,
-                        rpm_property->value->type.Signed_Int, BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
+                        object_value.object_instance,
+                        object_value.object_property,
+                        rpm_property->value->type.Signed_Int,
+                        BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
                     break;
                 case BACNET_APPLICATION_TAG_ENUMERATED:
                     bacnet_write_property_enumerated_queue(
                         Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance, object_value.object_property,
-                        rpm_property->value->type.Enumerated, BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
+                        object_value.object_instance,
+                        object_value.object_property,
+                        rpm_property->value->type.Enumerated,
+                        BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
                     break;
                 default:
                     /* not supported for writing yet */
@@ -830,14 +840,17 @@ static void get_print_value(
         case RESP_TSM_FAILED:
         case RESP_WAITING:
         case RESP_FAILED:
+            if (ShowErrors) {
+                /* read failed for some reason after TSM retried */
+                printf(
+                    "    %s: ? -- ERROR - IUT Failed to respond to request!\n",
+                    bactext_property_name(property));
+            }
+            break;
         default:
             break;
     }
     free_value_list();
-    /* read failed for some reason after TSM retried */
-    printf(
-        "    %s: ? -- ERROR - IUT Failed to respond to request!\n",
-        bactext_property_name(property));
 }
 
 static uint32_t Print_EPICS_Header(uint32_t device_instance)
@@ -1662,10 +1675,9 @@ int main(int argc, char *argv[])
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
-    time_t elapsed_seconds = 0;
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    time_t timeout_seconds = 0;
+    uint32_t timeout_seconds = 0;
+    struct mstimer Maintenance_Timer;
+    struct mstimer Timeout_Timer;
     bool found = false;
 
     CheckCommandLineArgs(argc, argv); /* Won't return if there is an issue. */
@@ -1709,8 +1721,12 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
 
     /* configure the timeout values */
-    current_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    if (timeout_seconds < 1) {
+        timeout_seconds = 1;
+    }
+    mstimer_set(&Maintenance_Timer, 1000);
+    mstimer_set(&Timeout_Timer, timeout_seconds * 1000);
     mstimer_set(&APDU_Timer, (uint32_t)apdu_timeout());
 
 #if defined(BACDL_BIP)
@@ -1748,13 +1764,11 @@ int main(int argc, char *argv[])
     myState = EPICS_STATE_BIND;
     do {
         /* increment timer - will exit if timed out */
-        last_seconds = current_seconds;
-        current_seconds = time(NULL);
-        /* Has at least one second passed ? */
-        if (current_seconds != last_seconds) {
-            tsm_timer_milliseconds(
-                (uint16_t)((current_seconds - last_seconds) * 1000));
-            datalink_maintenance_timer(current_seconds - last_seconds);
+        if (mstimer_expired(&Maintenance_Timer)) {
+            tsm_timer_milliseconds(mstimer_interval(&Maintenance_Timer));
+            datalink_maintenance_timer(
+                mstimer_interval(&Maintenance_Timer) / 1000);
+            mstimer_reset(&Maintenance_Timer);
         }
         /* OK to proceed; see what we are up to now */
         switch (myState) {
@@ -1773,13 +1787,11 @@ int main(int argc, char *argv[])
                     Target_Device_Object_Instance, &max_apdu, &Target_Address);
                 if (!found) {
                     /* increment timer - exit if timed out */
-                    elapsed_seconds += (current_seconds - last_seconds);
-                    if (elapsed_seconds > timeout_seconds) {
+                    if (mstimer_expired(&Timeout_Timer)) {
                         printf(
                             "\rError: Unable to bind to %u. "
-                            "Waited for %ld seconds.\n",
-                            Target_Device_Object_Instance,
-                            (long int)elapsed_seconds);
+                            "Waited for %u seconds.\n",
+                            Target_Device_Object_Instance, timeout_seconds);
                         break;
                     }
                     /* else, loop back and try again */
@@ -1807,11 +1819,8 @@ int main(int argc, char *argv[])
         /* Check for timeouts */
         if (!found || !bacnet_read_write_idle()) {
             /* increment timer - exit if timed out */
-            elapsed_seconds += (current_seconds - last_seconds);
-            if (elapsed_seconds > timeout_seconds) {
-                printf(
-                    "\rError: APDU Timeout! (%lds)\n",
-                    (long int)elapsed_seconds);
+            if (mstimer_expired(&Timeout_Timer)) {
+                printf("\rError: APDU Timeout! (%us)\n", timeout_seconds);
                 break;
             }
         }
