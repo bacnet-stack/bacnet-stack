@@ -1215,6 +1215,7 @@ static const int32_t Device_Properties_Optional[] = {
 #endif
     PROP_SERIAL_NUMBER,
     PROP_TIME_OF_DEVICE_RESTART,
+    PROP_LAST_RESTART_REASON,
 #if defined(BACNET_TIME_MASTER)
     PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
     PROP_TIME_SYNCHRONIZATION_INTERVAL,
@@ -1268,6 +1269,7 @@ static const int32_t Writable_Properties[] = {
     PROP_RESTORE_PREPARATION_TIME,
 #endif
     PROP_TIME_OF_DEVICE_RESTART,
+    PROP_LAST_RESTART_REASON,
     -1
 };
 
@@ -1368,6 +1370,7 @@ static list_element_function Device_Add_List_Element_Callback;
 static list_element_function Device_Remove_List_Element_Callback;
 static uint8_t Device_UUID[16];
 static const char *Serial_Number = BACNET_DEVICE_SERIAL_NUMBER;
+static BACNET_RESTART_REASON Last_Restart_Reason = RESTART_REASON_UNKNOWN;
 static BACNET_TIMESTAMP Time_Of_Device_Restart;
 static BACNET_TIME Local_Time; /* rely on OS, if there is one */
 static BACNET_DATE Local_Date; /* rely on OS, if there is one */
@@ -1931,6 +1934,33 @@ bool Device_Serial_Number_Set(const char *str, size_t length)
     (void)length;
     Serial_Number = str ? str : BACNET_DEVICE_SERIAL_NUMBER;
     return true;
+}
+
+/**
+ * @brief Set the device last-restart-reason property value.
+ * @param restart_reason [in] The new device last-restart-reason, as a
+ * BACNET_RESTART_REASON.
+ * @return true if the device last-restart-reason was set
+ */
+bool Device_Last_Restart_Reason_Set(const BACNET_RESTART_REASON restart_reason)
+{
+    bool status = false; /*return value */
+
+    if (restart_reason < BACNET_RESTART_REASON_MAX) {
+        Last_Restart_Reason = restart_reason;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the device last-restart-reason property value.
+ * @return The device last-restart-reason, as a BACNET_RESTART_REASON.
+ */
+BACNET_RESTART_REASON Device_Last_Restart_Reason(void)
+{
+    return Last_Restart_Reason;
 }
 
 void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart)
@@ -2843,6 +2873,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 bacapp_encode_timestamp(&apdu[0], &Time_Of_Device_Restart);
             break;
+        case PROP_LAST_RESTART_REASON:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], Last_Restart_Reason);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -3223,6 +3257,18 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 bacapp_timestamp_copy(
                     &Time_Of_Device_Restart, &value.type.Time_Stamp);
 #endif
+            }
+            break;
+        case PROP_LAST_RESTART_REASON:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                status = Device_Last_Restart_Reason_Set(
+                    (BACNET_RESTART_REASON)value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:
