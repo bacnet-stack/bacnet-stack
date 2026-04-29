@@ -418,6 +418,11 @@ BACNET_STACK_EXPORT
 bool Device_Serial_Number_Set(const char *name, size_t length);
 
 BACNET_STACK_EXPORT
+bool Device_Last_Restart_Reason_Set(const BACNET_RESTART_REASON restart_reason);
+BACNET_STACK_EXPORT
+BACNET_RESTART_REASON Device_Last_Restart_Reason(void);
+
+BACNET_STACK_EXPORT
 void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart);
 BACNET_STACK_EXPORT
 bool Device_Set_Time_Of_Restart(const BACNET_TIMESTAMP *time_of_restart);

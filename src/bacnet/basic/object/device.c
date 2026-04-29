@@ -1279,6 +1279,7 @@ static const int32_t Device_Properties_Optional[] = {
     PROP_ACTIVE_COV_SUBSCRIPTIONS,
     PROP_SERIAL_NUMBER,
     PROP_TIME_OF_DEVICE_RESTART,
+    PROP_LAST_RESTART_REASON,
 #if defined(BACNET_TIME_MASTER)
     PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
     PROP_TIME_SYNCHRONIZATION_INTERVAL,
@@ -1331,7 +1332,10 @@ static const int32_t Writable_Properties[] = {
     PROP_BACKUP_PREPARATION_TIME,
     PROP_RESTORE_PREPARATION_TIME,
 #endif
+#if defined(BACAPP_TIMESTAMP)
     PROP_TIME_OF_DEVICE_RESTART,
+#endif
+    PROP_LAST_RESTART_REASON,
     -1
 };
 
@@ -1434,6 +1438,7 @@ static uint8_t Device_UUID[16];
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
+static BACNET_RESTART_REASON Last_Restart_Reason = RESTART_REASON_UNKNOWN;
 static BACNET_TIMESTAMP Time_Of_Device_Restart;
 static BACNET_TIME Local_Time; /* rely on OS, if there is one */
 static BACNET_DATE Local_Date; /* rely on OS, if there is one */
@@ -2058,6 +2063,33 @@ bool Device_Serial_Number_Set(const char *str, size_t length)
     return status;
 }
 
+/**
+ * @brief Set the device last-restart-reason property value.
+ * @param restart_reason [in] The new device last-restart-reason, as a
+ * BACNET_RESTART_REASON.
+ * @return true if the device last-restart-reason was set
+ */
+bool Device_Last_Restart_Reason_Set(const BACNET_RESTART_REASON restart_reason)
+{
+    bool status = false; /*return value */
+
+    if (restart_reason < BACNET_RESTART_REASON_MAX) {
+        Last_Restart_Reason = restart_reason;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the device last-restart-reason property value.
+ * @return The device last-restart-reason, as a BACNET_RESTART_REASON.
+ */
+BACNET_RESTART_REASON Device_Last_Restart_Reason(void)
+{
+    return Last_Restart_Reason;
+}
+
 void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart)
 {
     bacapp_timestamp_copy(time_of_restart, &Time_Of_Device_Restart);
@@ -2559,10 +2591,10 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
     (void)object_instance;
     if (array_index == 0) {
         /* This array is not required to be resizable
-            through BACnet write services */
+           through BACnet write services */
         (void)array_size;
         error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-    } else {
+    } else if (array_index <= BACNET_BACKUP_FILE_COUNT) {
         len = bacnet_object_id_application_decode(
             application_data, application_data_len, &object_type, &instance);
         if (len > 0) {
@@ -2579,6 +2611,8 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
         } else {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
+    } else {
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
     }
 
     return error_code;
@@ -2979,6 +3013,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 bacapp_encode_timestamp(&apdu[0], &Time_Of_Device_Restart);
             break;
+        case PROP_LAST_RESTART_REASON:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], Last_Restart_Reason);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -3351,14 +3389,26 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
+#if defined(BACAPP_TIMESTAMP)
         case PROP_TIME_OF_DEVICE_RESTART:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
             if (status) {
-#if defined(BACAPP_TIMESTAMP)
                 bacapp_timestamp_copy(
                     &Time_Of_Device_Restart, &value.type.Time_Stamp);
+            }
+            break;
 #endif
+        case PROP_LAST_RESTART_REASON:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                status = Device_Last_Restart_Reason_Set(
+                    (BACNET_RESTART_REASON)value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:
