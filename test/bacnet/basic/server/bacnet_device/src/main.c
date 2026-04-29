@@ -465,6 +465,81 @@ static void testDevice(void)
     }
 }
 /**
+ * @brief Test Device_Last_Restart_Reason_Set() and Device_Last_Restart_Reason()
+ */
+static void test_Device_Last_Restart_Reason(void)
+{
+    BACNET_RESTART_REASON reason;
+    bool status;
+
+    Device_Init(NULL);
+    /* default value after init shall be RESTART_REASON_UNKNOWN */
+    reason = Device_Last_Restart_Reason();
+    zassert_equal(reason, RESTART_REASON_UNKNOWN, NULL);
+
+    /* test every standard enumerated value */
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_COLDSTART);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Last_Restart_Reason(), RESTART_REASON_COLDSTART, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_WARMSTART);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Last_Restart_Reason(), RESTART_REASON_WARMSTART, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_DETECTED_POWER_LOST);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_DETECTED_POWER_LOST, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_DETECTED_POWER_OFF);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_DETECTED_POWER_OFF, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_HARDWARE_WATCHDOG);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_HARDWARE_WATCHDOG, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_SOFTWARE_WATCHDOG);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_SOFTWARE_WATCHDOG, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_SUSPENDED);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Last_Restart_Reason(), RESTART_REASON_SUSPENDED, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_ACTIVATE_CHANGES);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_ACTIVATE_CHANGES, NULL);
+
+    /* test proprietary range boundaries */
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_PROPRIETARY_MIN);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_PROPRIETARY_MIN, NULL);
+
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_PROPRIETARY_MAX);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_PROPRIETARY_MAX, NULL);
+
+    /* BACNET_RESTART_REASON_MAX (256) is out-of-range and must be rejected;
+     * the previously stored value shall be unchanged */
+    status = Device_Last_Restart_Reason_Set(BACNET_RESTART_REASON_MAX);
+    zassert_false(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(), RESTART_REASON_PROPRIETARY_MAX, NULL);
+
+    /* restore to unknown */
+    status = Device_Last_Restart_Reason_Set(RESTART_REASON_UNKNOWN);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Last_Restart_Reason(), RESTART_REASON_UNKNOWN, NULL);
+}
+
+/**
  * @}
  */
 
@@ -475,7 +550,8 @@ void test_main(void)
 {
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
-        ztest_unit_test(test_Device_Data_Sharing));
+        ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Device_Last_Restart_Reason));
 
     ztest_run_test_suite(device_tests);
 }
