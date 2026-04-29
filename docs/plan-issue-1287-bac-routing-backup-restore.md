@@ -339,26 +339,22 @@ cmake --build /tmp/bacnet-test-root-no-routing --target test_device
 - `Device_Reinitialize()`는 routing 모드에서 현재 routed device의 상태 포인터를 사용한다. virtual device의 `COLDSTART`, `WARMSTART`, `ACTIVATE_CHANGES`는 `Routed_Device_Service_Approval()`에서 Reject하지 않고 여기서 `ERROR_CLASS_SERVICES` + `ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED`를 반환한다.
 - `Routed_Device_Service_Approval()`은 RD를 virtual device에도 허용하지만 DCC는 계속 virtual device에서 Reject한다.
 - Backup/Restore helper와 timeout countdown은 routing 모드에서 현재 routed device의 `Backup` 상태를 사용한다. `Device_Timer()`는 routing 모드에서 managed device별로 countdown을 한 번씩만 수행한다.
-- test target은 `BACNET_BACKUP_RESTORE` 옵션을 compile definition으로 연결한다. 현재 관리되는 `test_gateway` source/target은 없고, ignored build artifact만 남아 있었으므로 검증 대상으로 보지 않았다. top-level 추가 검증은 관리되는 `test_device`와 `test_bacnet_device` target으로 수행했다.
+- test target은 기본 `test_device`(BAC_ROUTING OFF)와 `test_device_bac_routing`(BAC_ROUTING ON) 두 타깃으로 나눠 같은 테스트 소스를 재사용한다. 현재 관리되는 `test_gateway` source/target은 없고, ignored build artifact만 남아 있었으므로 검증 대상으로 보지 않았다. 기존 CI의 `make test`/top-level `ctest` 경로는 두 device 타깃을 모두 수행한다.
 
 검증 명령:
 
 ```bash
-cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-routing-tdd -DBAC_ROUTING=ON -DBACNET_BACKUP_RESTORE=ON
-cmake --build /tmp/bacnet-device-routing-tdd --target test_device -j2
-/tmp/bacnet-device-routing-tdd/test_device
+cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-dual-targets -DBACNET_BACKUP_RESTORE=ON
+cmake --build /tmp/bacnet-device-dual-targets --target test_device test_device_bac_routing -j2
+/tmp/bacnet-device-dual-targets/test_device
+/tmp/bacnet-device-dual-targets/test_device_bac_routing
 
-cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-no-routing -DBACNET_BACKUP_RESTORE=ON
-cmake --build /tmp/bacnet-device-no-routing --target test_device -j2
-/tmp/bacnet-device-no-routing/test_device
+cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-dual-targets-no-backup -DBACNET_BACKUP_RESTORE=OFF
+cmake --build /tmp/bacnet-device-dual-targets-no-backup --target test_device test_device_bac_routing -j2
+/tmp/bacnet-device-dual-targets-no-backup/test_device
+/tmp/bacnet-device-dual-targets-no-backup/test_device_bac_routing
 
-cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-routing-no-backup -DBAC_ROUTING=ON -DBACNET_BACKUP_RESTORE=OFF
-cmake --build /tmp/bacnet-device-routing-no-backup --target test_device -j2
-/tmp/bacnet-device-routing-no-backup/test_device
-
-cmake -S test -B /tmp/bacnet-test-root-routing -DBAC_ROUTING=ON -DBACNET_BACKUP_RESTORE=ON
-cmake --build /tmp/bacnet-test-root-routing --target test_device -j2
-/tmp/bacnet-test-root-routing/bacnet/basic/object/device/test_device
-cmake --build /tmp/bacnet-test-root-routing --target test_bacnet_device -j2
-ctest --test-dir /tmp/bacnet-test-root-routing -R test_bacnet_device --output-on-failure
+cmake -S test -B /tmp/bacnet-test-root-dual-targets -DBACNET_BACKUP_RESTORE=ON
+cmake --build /tmp/bacnet-test-root-dual-targets --target test_device test_device_bac_routing test_bacnet_device -j2
+ctest --test-dir /tmp/bacnet-test-root-dual-targets -R "test_device|test_device_bac_routing|test_bacnet_device" --output-on-failure
 ```

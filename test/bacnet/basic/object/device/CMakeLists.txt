@@ -35,7 +35,7 @@ include_directories(
     ${TST_DIR}/ztest/include
     )
 
-add_executable(${PROJECT_NAME}
+set(TEST_DEVICE_SOURCES
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/object/device.c
     # Support files and stubs (pathname alphabetical)
@@ -146,17 +146,37 @@ add_executable(${PROJECT_NAME}
     ${ZTST_DIR}/ztest.c
     )
 
-if(BACNET_BACKUP_RESTORE)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        BACNET_BACKUP_RESTORE
-        )
-endif()
+function(configure_device_test_target target_name)
+    if(BACNET_BACKUP_RESTORE)
+        target_compile_definitions(${target_name} PRIVATE
+            BACNET_BACKUP_RESTORE
+            )
+    endif()
+endfunction()
 
-if(BAC_ROUTING)
-    target_sources(${PROJECT_NAME} PRIVATE
-        ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c
-        )
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        BAC_ROUTING
-        )
-endif()
+add_executable(${PROJECT_NAME}
+    ${TEST_DEVICE_SOURCES}
+    )
+configure_device_test_target(${PROJECT_NAME})
+
+set(ROUTING_PROJECT_NAME ${PROJECT_NAME}_bac_routing)
+add_executable(${ROUTING_PROJECT_NAME}
+    ${TEST_DEVICE_SOURCES}
+    ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c
+    )
+configure_device_test_target(${ROUTING_PROJECT_NAME})
+target_compile_definitions(${ROUTING_PROJECT_NAME} PRIVATE
+    BAC_ROUTING
+    )
+
+add_test(
+    NAME build_${basename}_bac_routing
+    COMMAND ${CMAKE_COMMAND}
+        --build "${CMAKE_BINARY_DIR}"
+        --config $<CONFIG>
+        --target ${ROUTING_PROJECT_NAME}
+    )
+add_test(
+    NAME test_${basename}_bac_routing
+    COMMAND $<TARGET_FILE:${ROUTING_PROJECT_NAME}>
+    )
