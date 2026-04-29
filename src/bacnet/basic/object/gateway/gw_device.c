@@ -75,6 +75,14 @@ uint16_t Num_Managed_Devices = 0;
  */
 uint16_t iCurrent_Device_Idx = 0;
 
+/** Reset the routed Device table before rebuilding the gateway/virtual list. */
+void Routed_Device_Table_Reset(void)
+{
+    memset(&Devices[0], 0, sizeof(Devices));
+    Num_Managed_Devices = 0;
+    iCurrent_Device_Idx = 0;
+}
+
 /** Get the current routed device object index.
  * @return Index of the currently active routed device in Devices[] array
  */
@@ -150,6 +158,15 @@ uint16_t Add_Routed_Device(
             Routed_Device_Set_Description("No Descr", strlen("No Descr"));
         }
         pDev->Database_Revision = 0; /* Reset/Initialize now */
+#if defined(BAC_ROUTING)
+        pDev->Reinitialize_State = BACNET_REINIT_IDLE;
+        pDev->Reinit_Password = "filister";
+#if defined(BACNET_BACKUP_RESTORE)
+        memset(&pDev->Backup, 0, sizeof(pDev->Backup));
+        pDev->Backup.Backup_State = BACKUP_STATE_IDLE;
+        pDev->Backup.Backup_Failure_Timeout = 60 * 60;
+#endif
+#endif
         return i;
     } else {
         return UINT16_MAX;
@@ -606,8 +623,8 @@ void Routed_Device_Inc_Database_Revision(void)
 }
 
 /** Check to see if the current Device supports this service.
- * Presently checks for RD and DCC and only allows them if the current
- * device is the gateway device.
+ * Presently allows ReinitializeDevice for routed virtual devices and keeps
+ * DeviceCommunicationControl restricted to the gateway device.
  *
  * @param service [in] The service being requested.
  * @param service_argument [in] An optional argument (eg, service type).
@@ -629,16 +646,9 @@ int Routed_Device_Service_Approval(
     (void)service_argument;
     switch (service) {
         case SERVICE_SUPPORTED_REINITIALIZE_DEVICE:
-            /* If not the gateway device, we don't support RD */
-            if (iCurrent_Device_Idx > 0) {
-                if (apdu_buff != NULL) {
-                    len = reject_encode_apdu(
-                        apdu_buff, invoke_id,
-                        REJECT_REASON_UNRECOGNIZED_SERVICE);
-                } else {
-                    len = 1; /* Non-zero return */
-                }
-            }
+            /* RD is accepted for virtual devices. Device_Reinitialize()
+               handles state-specific support and returns service errors for
+               virtual-device states that have gateway/system side effects. */
             break;
         case SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL:
             /* If not the gateway device, we don't support DCC */
