@@ -489,8 +489,10 @@ int bacnet_device_object_reference_decode(
         return BACNET_STATUS_ERROR;
     } else {
         /* OPTIONAL - skip apdu_len increment */
-        value->deviceIdentifier.type = BACNET_NO_DEV_TYPE;
-        value->deviceIdentifier.instance = BACNET_NO_DEV_ID;
+        if (value) {
+            value->deviceIdentifier.type = BACNET_NO_DEV_TYPE;
+            value->deviceIdentifier.instance = BACNET_NO_DEV_ID;
+        }
     }
     /* object-identifier [1] BACnetObjectIdentifier */
     len = bacnet_object_id_context_decode(

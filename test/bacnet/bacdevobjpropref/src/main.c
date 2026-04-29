@@ -172,6 +172,14 @@ static void testDevIdRef(void)
     test_len =
         bacnet_device_object_reference_decode(NULL, sizeof(apdu), &test_data);
     zassert_true(test_len <= 0, NULL);
+    /* verify that NULL value pointer does not crash when the optional
+       device-identifier field is absent (regression test for the fix
+       that adds a null check before writing to value->deviceIdentifier) */
+    data.deviceIdentifier.instance = 0;
+    data.deviceIdentifier.type = BACNET_NO_DEV_TYPE;
+    len = bacapp_encode_device_obj_ref(apdu, &data);
+    null_len = bacnet_device_object_reference_decode(apdu, len, NULL);
+    zassert_equal(null_len, len, "null_len=%d len=%d", null_len, len);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
