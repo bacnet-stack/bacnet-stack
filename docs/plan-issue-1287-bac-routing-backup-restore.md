@@ -250,21 +250,46 @@ DCC까지 virtual device별로 허용하려면 `System_Status` per-device화가 
 
 ### 빌드 검증
 
+`test_device`는 configure 옵션을 바꿔 재생성하지 않고, 같은 테스트 소스에서 아래 4개 compile-definition 조합을 모두 타깃으로 만든다.
+
+| Target | `BAC_ROUTING` | `BACNET_BACKUP_RESTORE` |
+|---|---:|---:|
+| `test_device` | OFF | OFF |
+| `test_device_backup_restore` | OFF | ON |
+| `test_device_bac_routing` | ON | OFF |
+| `test_device_bac_routing_backup_restore` | ON | ON |
+
+단일 device 테스트 디렉터리 검증:
+
 ```bash
-cmake -S test -B /tmp/bacnet-test-root -DBAC_ROUTING=ON
-cmake --build /tmp/bacnet-test-root --target test_device
-/tmp/bacnet-test-root/bacnet/basic/object/device/test_device
+cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-matrix
+cmake --build /tmp/bacnet-device-matrix --target \
+  test_device \
+  test_device_backup_restore \
+  test_device_bac_routing \
+  test_device_bac_routing_backup_restore \
+  -j2
+/tmp/bacnet-device-matrix/test_device
+/tmp/bacnet-device-matrix/test_device_backup_restore
+/tmp/bacnet-device-matrix/test_device_bac_routing
+/tmp/bacnet-device-matrix/test_device_bac_routing_backup_restore
 ```
 
-Backup/Restore 테스트는 `BACNET_BACKUP_RESTORE` 정의가 필요하다. 현재 `test/` CMake가 이 옵션을 직접 노출하지 않으면, 해당 테스트 target의 compile definition에 `BACNET_BACKUP_RESTORE`를 명시적으로 추가한다.
-
-non-routing 회귀:
+상위 `test/` CMake 검증:
 
 ```bash
-cmake -S test -B /tmp/bacnet-test-root-no-routing
-cmake --build /tmp/bacnet-test-root-no-routing --target test_device
-/tmp/bacnet-test-root-no-routing/bacnet/basic/object/device/test_device
+cmake -S test -B /tmp/bacnet-test-root-matrix
+cmake --build /tmp/bacnet-test-root-matrix --target \
+  test_device \
+  test_device_backup_restore \
+  test_device_bac_routing \
+  test_device_bac_routing_backup_restore \
+  test_bacnet_device \
+  -j2
+ctest --test-dir /tmp/bacnet-test-root-matrix -R "device" --output-on-failure
 ```
+
+이 방식이면 기존 CI의 `make test` 경로는 `BAC_ROUTING` OFF/ON과 `BACNET_BACKUP_RESTORE` OFF/ON device 조합을 한 번에 컴파일하고 실행한다. top-level CMake build 경로도 같은 4개 device 타깃을 컴파일한다.
 
 ### 추가할 테스트 시나리오
 
@@ -321,8 +346,10 @@ cmake --build /tmp/bacnet-test-root-no-routing --target test_device
 ### 검증
 
 - [x] 기존 `test_device` 통과
-- [x] `BAC_ROUTING=ON` 조합 통과
-- [x] `BAC_ROUTING=OFF` 조합에서 기존 동작 통과
+- [x] `test_device` (`BAC_ROUTING` OFF, `BACNET_BACKUP_RESTORE` OFF) 조합 통과
+- [x] `test_device_backup_restore` (`BAC_ROUTING` OFF, `BACNET_BACKUP_RESTORE` ON) 조합 통과
+- [x] `test_device_bac_routing` (`BAC_ROUTING` ON, `BACNET_BACKUP_RESTORE` OFF) 조합 통과
+- [x] `test_device_bac_routing_backup_restore` (`BAC_ROUTING` ON, `BACNET_BACKUP_RESTORE` ON) 조합 통과
 - [x] Backup helper read/write 및 RD state 테스트 통과
 - [x] Reinitialize 상태 전이 테스트 통과
 - [x] virtual device RD 서비스 허용 테스트 통과
@@ -339,22 +366,30 @@ cmake --build /tmp/bacnet-test-root-no-routing --target test_device
 - `Device_Reinitialize()`는 routing 모드에서 현재 routed device의 상태 포인터를 사용한다. virtual device의 `COLDSTART`, `WARMSTART`, `ACTIVATE_CHANGES`는 `Routed_Device_Service_Approval()`에서 Reject하지 않고 여기서 `ERROR_CLASS_SERVICES` + `ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED`를 반환한다.
 - `Routed_Device_Service_Approval()`은 RD를 virtual device에도 허용하지만 DCC는 계속 virtual device에서 Reject한다.
 - Backup/Restore helper와 timeout countdown은 routing 모드에서 현재 routed device의 `Backup` 상태를 사용한다. `Device_Timer()`는 routing 모드에서 managed device별로 countdown을 한 번씩만 수행한다.
-- test target은 기본 `test_device`(BAC_ROUTING OFF)와 `test_device_bac_routing`(BAC_ROUTING ON) 두 타깃으로 나눠 같은 테스트 소스를 재사용한다. 현재 관리되는 `test_gateway` source/target은 없고, ignored build artifact만 남아 있었으므로 검증 대상으로 보지 않았다. 기존 CI의 `make test`/top-level `ctest` 경로는 두 device 타깃을 모두 수행한다.
+- test target은 기본 `test_device`와 3개 variant를 합쳐 4개 타깃으로 나눠 같은 테스트 소스를 재사용한다. 현재 관리되는 `test_gateway` source/target은 없고, ignored build artifact만 남아 있었으므로 검증 대상으로 보지 않았다. 기존 CI의 `make test` 경로는 아래 device matrix를 모두 컴파일/실행하고, top-level CMake build 경로도 같은 4개 device 타깃을 컴파일한다.
 
 검증 명령:
 
 ```bash
-cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-dual-targets -DBACNET_BACKUP_RESTORE=ON
-cmake --build /tmp/bacnet-device-dual-targets --target test_device test_device_bac_routing -j2
-/tmp/bacnet-device-dual-targets/test_device
-/tmp/bacnet-device-dual-targets/test_device_bac_routing
+cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-matrix
+cmake --build /tmp/bacnet-device-matrix --target \
+  test_device \
+  test_device_backup_restore \
+  test_device_bac_routing \
+  test_device_bac_routing_backup_restore \
+  -j2
+/tmp/bacnet-device-matrix/test_device
+/tmp/bacnet-device-matrix/test_device_backup_restore
+/tmp/bacnet-device-matrix/test_device_bac_routing
+/tmp/bacnet-device-matrix/test_device_bac_routing_backup_restore
 
-cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-dual-targets-no-backup -DBACNET_BACKUP_RESTORE=OFF
-cmake --build /tmp/bacnet-device-dual-targets-no-backup --target test_device test_device_bac_routing -j2
-/tmp/bacnet-device-dual-targets-no-backup/test_device
-/tmp/bacnet-device-dual-targets-no-backup/test_device_bac_routing
-
-cmake -S test -B /tmp/bacnet-test-root-dual-targets -DBACNET_BACKUP_RESTORE=ON
-cmake --build /tmp/bacnet-test-root-dual-targets --target test_device test_device_bac_routing test_bacnet_device -j2
-ctest --test-dir /tmp/bacnet-test-root-dual-targets -R "test_device|test_device_bac_routing|test_bacnet_device" --output-on-failure
+cmake -S test -B /tmp/bacnet-test-root-matrix
+cmake --build /tmp/bacnet-test-root-matrix --target \
+  test_device \
+  test_device_backup_restore \
+  test_device_bac_routing \
+  test_device_bac_routing_backup_restore \
+  test_bacnet_device \
+  -j2
+ctest --test-dir /tmp/bacnet-test-root-matrix -R "device" --output-on-failure
 ```
