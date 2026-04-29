@@ -1362,7 +1362,7 @@ static const char *Device_Location_Default = BACNET_DEVICE_LOCATION_NAME;
 static const char *Device_Description_Default = BACNET_DEVICE_DESCRIPTION;
 static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static BACNET_CHARACTER_STRING Reinit_Password;
+static const char *Reinit_Password = "filister";
 static write_property_function Device_Write_Property_Store_Callback;
 static list_element_function Device_Add_List_Element_Callback;
 static list_element_function Device_Remove_List_Element_Callback;
@@ -1445,7 +1445,7 @@ static BACNET_BACKUP_STATE Backup_State = BACKUP_STATE_IDLE;
  */
 bool Device_Reinitialize_Password_Set(const char *password)
 {
-    characterstring_init_ansi(&Reinit_Password, password);
+    Reinit_Password = password;
 
     return true;
 }
@@ -1477,7 +1477,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         protection, the service request shall be denied if the parameter
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
-    if (characterstring_length(&Reinit_Password) > 0) {
+    if (Reinit_Password && strlen(Reinit_Password) > 0) {
         if (characterstring_encoding(&rd_data->password) == CHARACTER_UTF8) {
             length = characterstring_utf8_length(&rd_data->password);
         } else {
@@ -1486,7 +1486,8 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         if (length > 20) {
             rd_data->error_class = ERROR_CLASS_SERVICES;
             rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-        } else if (characterstring_same(&rd_data->password, &Reinit_Password)) {
+        } else if (characterstring_ansi_same(
+                       &rd_data->password, Reinit_Password)) {
             password_success = true;
         } else {
             rd_data->error_class = ERROR_CLASS_SECURITY;
