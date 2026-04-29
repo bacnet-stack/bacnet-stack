@@ -491,9 +491,9 @@ static void test_Routed_Device_Reinitialize_Unsupported_State(
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(device_tests, testRoutedDeviceReinitialize)
+ZTEST(device_tests, test_Routed_Device_Reinitialize)
 #else
-static void testRoutedDeviceReinitialize(void)
+static void test_Routed_Device_Reinitialize(void)
 #endif
 {
     bool status = false;
@@ -544,9 +544,9 @@ static void testRoutedDeviceReinitialize(void)
 
 #if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(device_tests, testRoutedDeviceBackupRestoreIndependence)
+ZTEST(device_tests, test_Routed_Device_Backup_Restore_Independence)
 #else
-static void testRoutedDeviceBackupRestoreIndependence(void)
+static void test_Routed_Device_Backup_Restore_Independence(void)
 #endif
 {
     bool status = false;
@@ -607,9 +607,9 @@ static void testRoutedDeviceBackupRestoreIndependence(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(device_tests, testRoutedDeviceBackupCountdownPerDevice)
+ZTEST(device_tests, test_Routed_Device_Backup_Countdown_Per_Device)
 #else
-static void testRoutedDeviceBackupCountdownPerDevice(void)
+static void test_Routed_Device_Backup_Countdown_Per_Device(void)
 #endif
 {
     bool status = false;
@@ -662,15 +662,15 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
-        ztest_unit_test(testRoutedDeviceReinitialize),
-        ztest_unit_test(testRoutedDeviceBackupRestoreIndependence),
-        ztest_unit_test(testRoutedDeviceBackupCountdownPerDevice));
+        ztest_unit_test(test_Routed_Device_Reinitialize),
+        ztest_unit_test(test_Routed_Device_Backup_Restore_Independence),
+        ztest_unit_test(test_Routed_Device_Backup_Countdown_Per_Device));
 #elif defined(BAC_ROUTING)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
-        ztest_unit_test(testRoutedDeviceReinitialize));
+        ztest_unit_test(test_Routed_Device_Reinitialize));
 #else
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
