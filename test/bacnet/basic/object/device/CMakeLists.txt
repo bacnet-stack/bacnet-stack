@@ -30,7 +30,7 @@ include_directories(
     ${TST_DIR}/ztest/include
     )
 
-add_executable(${PROJECT_NAME}
+set(TEST_DEVICE_SOURCES
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/object/device.c
     # Support files and stubs (pathname alphabetical)
@@ -140,3 +140,53 @@ add_executable(${PROJECT_NAME}
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
+
+function(configure_device_test_target
+    target_name routing_enabled backup_restore_enabled)
+    if(routing_enabled)
+        target_sources(${target_name} PRIVATE
+            ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c
+            )
+        target_compile_definitions(${target_name} PRIVATE
+            BAC_ROUTING
+            )
+    endif()
+    if(backup_restore_enabled)
+        target_compile_definitions(${target_name} PRIVATE
+            BACNET_BACKUP_RESTORE
+            )
+    endif()
+endfunction()
+
+function(add_device_test_variant
+    target_name test_name routing_enabled backup_restore_enabled)
+    add_executable(${target_name}
+        ${TEST_DEVICE_SOURCES}
+        )
+    configure_device_test_target(
+        ${target_name} ${routing_enabled} ${backup_restore_enabled})
+    add_test(
+        NAME build_${test_name}
+        COMMAND ${CMAKE_COMMAND}
+            --build "${CMAKE_BINARY_DIR}"
+            --config $<CONFIG>
+            --target ${target_name}
+        )
+    add_test(
+        NAME test_${test_name}
+        COMMAND $<TARGET_FILE:${target_name}>
+        )
+endfunction()
+
+add_executable(${PROJECT_NAME}
+    ${TEST_DEVICE_SOURCES}
+    )
+configure_device_test_target(${PROJECT_NAME} OFF OFF)
+
+add_device_test_variant(
+    ${PROJECT_NAME}_backup_restore ${basename}_backup_restore OFF ON)
+add_device_test_variant(
+    ${PROJECT_NAME}_bac_routing ${basename}_bac_routing ON OFF)
+add_device_test_variant(
+    ${PROJECT_NAME}_bac_routing_backup_restore
+    ${basename}_bac_routing_backup_restore ON ON)
