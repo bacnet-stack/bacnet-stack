@@ -339,7 +339,7 @@ cmake --build /tmp/bacnet-test-root-no-routing --target test_device
 - `Device_Reinitialize()`는 routing 모드에서 현재 routed device의 상태 포인터를 사용한다. virtual device의 `COLDSTART`, `WARMSTART`, `ACTIVATE_CHANGES`는 `Routed_Device_Service_Approval()`에서 Reject하지 않고 여기서 `ERROR_CLASS_SERVICES` + `ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED`를 반환한다.
 - `Routed_Device_Service_Approval()`은 RD를 virtual device에도 허용하지만 DCC는 계속 virtual device에서 Reject한다.
 - Backup/Restore helper와 timeout countdown은 routing 모드에서 현재 routed device의 `Backup` 상태를 사용한다. `Device_Timer()`는 routing 모드에서 managed device별로 countdown을 한 번씩만 수행한다.
-- test target은 `BACNET_BACKUP_RESTORE` 옵션을 compile definition으로 연결한다. 현재 top-level `test` CMake에는 `test_gateway` target이 없어서 top-level 추가 검증은 `test_device`로 수행했다.
+- test target은 `BACNET_BACKUP_RESTORE` 옵션을 compile definition으로 연결한다. 현재 관리되는 `test_gateway` source/target은 없고, ignored build artifact만 남아 있었으므로 검증 대상으로 보지 않았다. top-level 추가 검증은 관리되는 `test_device`와 `test_bacnet_device` target으로 수행했다.
 
 검증 명령:
 
@@ -355,4 +355,10 @@ cmake --build /tmp/bacnet-device-no-routing --target test_device -j2
 cmake -S test/bacnet/basic/object/device -B /tmp/bacnet-device-routing-no-backup -DBAC_ROUTING=ON -DBACNET_BACKUP_RESTORE=OFF
 cmake --build /tmp/bacnet-device-routing-no-backup --target test_device -j2
 /tmp/bacnet-device-routing-no-backup/test_device
+
+cmake -S test -B /tmp/bacnet-test-root-routing -DBAC_ROUTING=ON -DBACNET_BACKUP_RESTORE=ON
+cmake --build /tmp/bacnet-test-root-routing --target test_device -j2
+/tmp/bacnet-test-root-routing/bacnet/basic/object/device/test_device
+cmake --build /tmp/bacnet-test-root-routing --target test_bacnet_device -j2
+ctest --test-dir /tmp/bacnet-test-root-routing -R test_bacnet_device --output-on-failure
 ```
