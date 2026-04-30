@@ -30,7 +30,7 @@ include_directories(
     ${TST_DIR}/ztest/include
     )
 
-add_executable(${PROJECT_NAME}
+set(TEST_DEVICE_SOURCES
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/object/device.c
     # Support files and stubs (pathname alphabetical)
@@ -140,3 +140,65 @@ add_executable(${PROJECT_NAME}
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
+
+function(configure_device_test_target
+    target_name routing_enabled backup_restore_enabled)
+    if(routing_enabled)
+        target_sources(${target_name} PRIVATE
+            ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c
+            )
+        target_compile_definitions(${target_name} PRIVATE
+            BAC_ROUTING
+            )
+    endif()
+    if(backup_restore_enabled)
+        target_compile_definitions(${target_name} PRIVATE
+            BACNET_BACKUP_RESTORE
+            )
+    endif()
+endfunction()
+
+# Register a CTest build/run pair for one device test binary.
+function(
+  add_device_ctest
+  target_name
+  test_name)
+  add_test(NAME build_${test_name} COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}" --config $<CONFIG> --target
+                                           ${target_name})
+  add_test(NAME test_${test_name} COMMAND $<TARGET_FILE:${target_name}>)
+  set_tests_properties(test_${test_name} PROPERTIES FIXTURES_REQUIRED fixture_${test_name})
+  set_tests_properties(build_${test_name} PROPERTIES FIXTURES_SETUP fixture_${test_name})
+endfunction()
+
+add_executable(${PROJECT_NAME}
+    ${TEST_DEVICE_SOURCES}
+    )
+configure_device_test_target(${PROJECT_NAME} OFF OFF)
+
+# Backup/Restore-only test binary.
+add_executable(${PROJECT_NAME}_backup_restore ${TEST_DEVICE_SOURCES})
+configure_device_test_target(
+  ${PROJECT_NAME}_backup_restore
+  OFF
+  ON)
+
+# BAC_ROUTING-only test binary.
+add_executable(${PROJECT_NAME}_bac_routing ${TEST_DEVICE_SOURCES})
+configure_device_test_target(
+  ${PROJECT_NAME}_bac_routing
+  ON
+  OFF)
+
+# BAC_ROUTING with Backup/Restore test binary.
+add_executable(${PROJECT_NAME}_bac_routing_backup_restore ${TEST_DEVICE_SOURCES})
+configure_device_test_target(
+  ${PROJECT_NAME}_bac_routing_backup_restore
+  ON
+  ON)
+
+# CTest pair for the Backup/Restore-only binary.
+add_device_ctest(${PROJECT_NAME}_backup_restore ${basename}_backup_restore)
+# CTest pair for the BAC_ROUTING-only binary.
+add_device_ctest(${PROJECT_NAME}_bac_routing ${basename}_bac_routing)
+# CTest pair for the BAC_ROUTING with Backup/Restore binary.
+add_device_ctest(${PROJECT_NAME}_bac_routing_backup_restore ${basename}_bac_routing_backup_restore)
