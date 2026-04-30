@@ -91,6 +91,49 @@ static bool Write_Property_Proprietary(BACNET_WRITE_PROPERTY_DATA *data)
     return status;
 }
 
+#if defined(BAC_ROUTING)
+/**
+ * @brief Verify routed virtual devices still do not expose DCC.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_DCC_Remains_Blocked)
+#else
+static void test_Routed_Device_DCC_Remains_Blocked(void)
+#endif
+{
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint16_t device_index = 0;
+    int len = 0;
+    bool status = false;
+
+    Device_Init(NULL);
+    Routing_Device_Init(1000);
+    status = characterstring_init_ansi(&object_name, "Virtual Device");
+    zassert_true(status, NULL);
+    device_index = Add_Routed_Device(1001, &object_name, "Virtual Device");
+    zassert_equal(device_index, 1, NULL);
+
+    status = Set_Routed_Device_Object_Index(0);
+    zassert_true(status, NULL);
+    len = Routed_Device_Service_Approval(
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, NULL, 0);
+    zassert_equal(len, 0, NULL);
+
+    status = Set_Routed_Device_Object_Index(device_index);
+    zassert_true(status, NULL);
+    len = Routed_Device_Service_Approval(
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, NULL, 0);
+    zassert_not_equal(len, 0, NULL);
+
+    len = Routed_Device_Service_Approval(
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, apdu, 1);
+    zassert_true(len > 0, NULL);
+    status = Set_Routed_Device_Object_Index(0);
+    zassert_true(status, NULL);
+}
+#endif
+
 /**
  * @brief ReadProperty handler for this objects proprietary properties.
  * For the given ReadProperty data, the application_data is loaded
@@ -421,6 +464,190 @@ static void testDevice(void)
 
     return;
 }
+
+#if defined(BAC_ROUTING)
+static void test_Routed_Device_Reinitialize_Unsupported_State(
+    BACNET_REINITIALIZED_STATE state)
+{
+    bool status = false;
+    BACNET_REINITIALIZE_DEVICE_DATA rd_data = { 0 };
+
+    Device_Reinitialize_State_Set(BACNET_REINIT_IDLE);
+    Device_Reinitialize_Password_Set(NULL);
+    rd_data.error_class = ERROR_CLASS_DEVICE;
+    rd_data.error_code = ERROR_CODE_SUCCESS;
+    rd_data.state = state;
+    characterstring_init_ansi(&rd_data.password, NULL);
+
+    status = Device_Reinitialize(&rd_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        rd_data.error_class, ERROR_CLASS_SERVICES, "error-class=%s",
+        bactext_error_class_name(rd_data.error_class));
+    zassert_equal(
+        rd_data.error_code, ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED,
+        "error-code=%s", bactext_error_code_name(rd_data.error_code));
+    zassert_equal(Device_Reinitialized_State(), BACNET_REINIT_IDLE, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_Reinitialize)
+#else
+static void test_Routed_Device_Reinitialize(void)
+#endif
+{
+    bool status = false;
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    BACNET_REINITIALIZE_DEVICE_DATA rd_data = { 0 };
+
+    Device_Init(NULL);
+    Routing_Device_Init(100);
+    characterstring_init_ansi(&object_name, "VirtualDevice");
+    zassert_equal(Add_Routed_Device(101, &object_name, "Virtual"), 1, NULL);
+
+    status = Set_Routed_Device_Object_Index(0);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Routed_Device_Service_Approval(
+            SERVICE_SUPPORTED_REINITIALIZE_DEVICE, 0, NULL, 0),
+        0, NULL);
+    zassert_equal(
+        Routed_Device_Service_Approval(
+            SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, NULL, 0),
+        0, NULL);
+    Device_Reinitialize_State_Set(BACNET_REINIT_IDLE);
+    Device_Reinitialize_Password_Set(NULL);
+    rd_data.error_class = ERROR_CLASS_DEVICE;
+    rd_data.error_code = ERROR_CODE_SUCCESS;
+    rd_data.state = BACNET_REINIT_COLDSTART;
+    characterstring_init_ansi(&rd_data.password, NULL);
+    status = Device_Reinitialize(&rd_data);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Reinitialized_State(), BACNET_REINIT_COLDSTART, NULL);
+
+    status = Set_Routed_Device_Object_Index(1);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Routed_Device_Service_Approval(
+            SERVICE_SUPPORTED_REINITIALIZE_DEVICE, 0, NULL, 0),
+        0, NULL);
+    zassert_not_equal(
+        Routed_Device_Service_Approval(
+            SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, 0, NULL, 0),
+        0, NULL);
+    test_Routed_Device_Reinitialize_Unsupported_State(BACNET_REINIT_COLDSTART);
+    test_Routed_Device_Reinitialize_Unsupported_State(BACNET_REINIT_WARMSTART);
+    test_Routed_Device_Reinitialize_Unsupported_State(
+        BACNET_REINIT_ACTIVATE_CHANGES);
+}
+#endif
+
+#if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_Backup_Restore_Independence)
+#else
+static void test_Routed_Device_Backup_Restore_Independence(void)
+#endif
+{
+    bool status = false;
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    BACNET_REINITIALIZE_DEVICE_DATA rd_data = { 0 };
+
+    Device_Init(NULL);
+    Routing_Device_Init(200);
+    characterstring_init_ansi(&object_name, "VirtualDevice1");
+    zassert_equal(Add_Routed_Device(201, &object_name, "Virtual1"), 1, NULL);
+    characterstring_init_ansi(&object_name, "VirtualDevice2");
+    zassert_equal(Add_Routed_Device(202, &object_name, "Virtual2"), 2, NULL);
+
+    rd_data.error_class = ERROR_CLASS_DEVICE;
+    rd_data.error_code = ERROR_CODE_SUCCESS;
+    rd_data.state = BACNET_REINIT_STARTRESTORE;
+    characterstring_init_ansi(&rd_data.password, NULL);
+
+    Set_Routed_Device_Object_Index(1);
+    Device_Reinitialize_Password_Set(NULL);
+    status = Device_Reinitialize(&rd_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_PERFORMING_A_RESTORE,
+        NULL);
+
+    rd_data.error_class = ERROR_CLASS_DEVICE;
+    rd_data.error_code = ERROR_CODE_SUCCESS;
+    status = Device_Reinitialize(&rd_data);
+    zassert_false(status, NULL);
+    zassert_equal(rd_data.error_class, ERROR_CLASS_DEVICE, NULL);
+    zassert_equal(
+        rd_data.error_code, ERROR_CODE_CONFIGURATION_IN_PROGRESS, NULL);
+
+    Set_Routed_Device_Object_Index(0);
+    zassert_equal(Device_Backup_And_Restore_State(), BACKUP_STATE_IDLE, NULL);
+    Set_Routed_Device_Object_Index(2);
+    Device_Reinitialize_Password_Set(NULL);
+    zassert_equal(Device_Backup_And_Restore_State(), BACKUP_STATE_IDLE, NULL);
+    status = Device_Reinitialize(&rd_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_PERFORMING_A_RESTORE,
+        NULL);
+
+    Set_Routed_Device_Object_Index(1);
+    rd_data.error_class = ERROR_CLASS_DEVICE;
+    rd_data.error_code = ERROR_CODE_SUCCESS;
+    rd_data.state = BACNET_REINIT_ABORTRESTORE;
+    status = Device_Reinitialize(&rd_data);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Backup_And_Restore_State(), BACKUP_STATE_IDLE, NULL);
+
+    Set_Routed_Device_Object_Index(2);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_PERFORMING_A_RESTORE,
+        NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_Backup_Countdown_Per_Device)
+#else
+static void test_Routed_Device_Backup_Countdown_Per_Device(void)
+#endif
+{
+    bool status = false;
+    BACNET_CHARACTER_STRING object_name = { 0 };
+
+    Device_Init(NULL);
+    Routing_Device_Init(300);
+    characterstring_init_ansi(&object_name, "VirtualDevice1");
+    zassert_equal(Add_Routed_Device(301, &object_name, "Virtual1"), 1, NULL);
+    characterstring_init_ansi(&object_name, "VirtualDevice2");
+    zassert_equal(Add_Routed_Device(302, &object_name, "Virtual2"), 2, NULL);
+
+    status = Set_Routed_Device_Object_Index(1);
+    zassert_true(status, NULL);
+    Device_Backup_Failure_Timeout_Set(1);
+    Device_Backup_And_Restore_State_Set(BACKUP_STATE_PERFORMING_A_BACKUP);
+    Device_Backup_Failure_Timeout_Restart();
+
+    status = Set_Routed_Device_Object_Index(2);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Backup_And_Restore_State(), BACKUP_STATE_IDLE, NULL);
+
+    status = Set_Routed_Device_Object_Index(1);
+    zassert_true(status, NULL);
+    Device_Timer(500);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_PERFORMING_A_BACKUP,
+        NULL);
+
+    Device_Timer(500);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_BACKUP_FAILURE, NULL);
+
+    status = Set_Routed_Device_Object_Index(2);
+    zassert_true(status, NULL);
+    zassert_equal(Device_Backup_And_Restore_State(), BACKUP_STATE_IDLE, NULL);
+}
+#endif
 /**
  * @}
  */
@@ -430,9 +657,25 @@ ZTEST_SUITE(device_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
+#if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
+    ztest_test_suite(
+        device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
+        ztest_unit_test(test_Routed_Device_Reinitialize),
+        ztest_unit_test(test_Routed_Device_Backup_Restore_Independence),
+        ztest_unit_test(test_Routed_Device_Backup_Countdown_Per_Device));
+#elif defined(BAC_ROUTING)
+    ztest_test_suite(
+        device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
+        ztest_unit_test(test_Routed_Device_Reinitialize));
+#else
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing));
+#endif
 
     ztest_run_test_suite(device_tests);
 }

@@ -13,12 +13,23 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-04-21
+## [Unreleased] - 2026-04-30
 
 ### Security
 ### Added
+
+* Added routed virtual device backup/restore reinitialization which enables
+  routed virtual devices to accept ReinitializeDevice so Backup and Restore
+  states can be handled per device. Gateway behavior remains unchanged, and
+  DeviceCommunicationControl remains disabled for virtual devices.
+  Virtual-device COLDSTART, WARMSTART, and ACTIVATE_CHANGES requests now return
+  OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED instead of being acknowledged. (#1320)
+* Added Last_Restart_Reason property support to Device object (#1323)
+
 ### Changed
 
+* Changed BACnet/IP broadcast destination port to be decoupled from bind
+  port. (#1311)
 * Changed lighting output object and lighting command structure to enable
 loose coupling.  Added locking callbacks in lighting command that are
 engaged when accessing any of the lighting command structure data. (#1306)
@@ -30,6 +41,12 @@ for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed null pointer check for value when resetting device identifier
+  in bacdevobjpropref. (#1321)
+* Fixed lighting command update notifications to use scaled physical
+  values using min/max actual value. (#1315)
+* Fixed lighting command off to off behavior. (#1314)
+* Fixed lighting command refresh logic in trim set functions. (#1313)
 * Fixed EPICS values for recipient list, empty lists, and authentication
   factors. Changed EPICS app to allow target MAC or IP address format. (#1310)
 * Fixed BBMD_Result handling to avoid false positive error message when no
@@ -38,6 +55,9 @@ registration is requested. (#1305)
 check to Keylist_Data_Add. (#1295)
 
 ### Removed
+
+* Removed unmaintained ports/uip, ports/arduino_uno, ports/pic18*,
+  and ports/rx62n folders and references. (#1324)
 
 ## [1.5.0] - 2026-04-16
 

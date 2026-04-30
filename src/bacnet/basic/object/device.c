@@ -1279,6 +1279,7 @@ static const int32_t Device_Properties_Optional[] = {
     PROP_ACTIVE_COV_SUBSCRIPTIONS,
     PROP_SERIAL_NUMBER,
     PROP_TIME_OF_DEVICE_RESTART,
+    PROP_LAST_RESTART_REASON,
 #if defined(BACNET_TIME_MASTER)
     PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
     PROP_TIME_SYNCHRONIZATION_INTERVAL,
@@ -1331,7 +1332,10 @@ static const int32_t Writable_Properties[] = {
     PROP_BACKUP_PREPARATION_TIME,
     PROP_RESTORE_PREPARATION_TIME,
 #endif
+#if defined(BACAPP_TIMESTAMP)
     PROP_TIME_OF_DEVICE_RESTART,
+#endif
+    PROP_LAST_RESTART_REASON,
     -1
 };
 
@@ -1434,6 +1438,7 @@ static uint8_t Device_UUID[16];
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
+static BACNET_RESTART_REASON Last_Restart_Reason = RESTART_REASON_UNKNOWN;
 static BACNET_TIMESTAMP Time_Of_Device_Restart;
 static BACNET_TIME Local_Time; /* rely on OS, if there is one */
 static BACNET_DATE Local_Date; /* rely on OS, if there is one */
@@ -1460,17 +1465,14 @@ static uint32_t Database_Revision = 0;
 /* Auto_Slave_Discovery */
 /* Slave_Address_Binding */
 /* Profile_Name */
-static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static const char *Reinit_Password = "filister";
+static BACNET_DEVICE_REINITIALIZE_DATA Reinitialize_Data = {
+    .State = BACNET_REINIT_IDLE, .Password = "filister"
+};
 static write_property_function Device_Write_Property_Store_Callback;
 static list_element_function Device_Add_List_Element_Callback;
 static list_element_function Device_Remove_List_Element_Callback;
 /* backup and restore */
 #if defined BACNET_BACKUP_RESTORE
-/* number of backup files */
-#ifndef BACNET_BACKUP_FILE_COUNT
-#define BACNET_BACKUP_FILE_COUNT 1
-#endif
 
 /* device A will read the Configuration_Files property of the Device object.
    This property will be used to determine the files to read and in what
@@ -1515,6 +1517,140 @@ static BACNET_BACKUP_STATE Backup_State = BACKUP_STATE_IDLE;
 
 #ifdef BAC_ROUTING
 static bool Device_Router_Mode = false;
+
+static DEVICE_OBJECT_DATA *Device_Routed_Data(void)
+{
+    if (Device_Router_Mode) {
+        return Get_Routed_Device_Object(-1);
+    }
+
+    return NULL;
+}
+
+static bool Device_Routed_Virtual_Device(void)
+{
+    return Device_Router_Mode && (Routed_Device_Object_Index() > 0);
+}
+
+#endif
+
+static BACNET_DEVICE_REINITIALIZE_DATA *Device_Reinitialize_Data(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Reinitialize;
+    }
+#endif
+
+    return &Reinitialize_Data;
+}
+
+#if defined(BACNET_BACKUP_RESTORE)
+static uint32_t *Device_Configuration_Files_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return pDev->Backup.Configuration_Files;
+    }
+#endif
+
+    return Configuration_Files;
+}
+
+static BACNET_TIMESTAMP *Device_Last_Restore_Time_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Backup.Last_Restore_Time;
+    }
+#endif
+
+    return &Last_Restore_Time;
+}
+
+static uint16_t *Device_Backup_Failure_Timeout_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Backup.Backup_Failure_Timeout;
+    }
+#endif
+
+    return &Backup_Failure_Timeout;
+}
+
+static uint32_t *Device_Backup_Failure_Timeout_Milliseconds_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Backup.Backup_Failure_Timeout_Milliseconds;
+    }
+#endif
+
+    return &Backup_Failure_Timeout_Milliseconds;
+}
+
+static uint16_t *Device_Backup_Preparation_Time_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Backup.Backup_Preparation_Time;
+    }
+#endif
+
+    return &Backup_Preparation_Time;
+}
+
+static uint16_t *Device_Restore_Preparation_Time_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Backup.Restore_Preparation_Time;
+    }
+#endif
+
+    return &Restore_Preparation_Time;
+}
+
+static uint16_t *Device_Restore_Completion_Time_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Backup.Restore_Completion_Time;
+    }
+#endif
+
+    return &Restore_Completion_Time;
+}
+
+static BACNET_BACKUP_STATE *Device_Backup_State_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Backup.Backup_State;
+    }
+#endif
+
+    return &Backup_State;
+}
 #endif
 
 /**
@@ -1530,7 +1666,10 @@ static bool Device_Router_Mode = false;
  */
 bool Device_Reinitialize_Password_Set(const char *password)
 {
-    Reinit_Password = password;
+    BACNET_DEVICE_REINITIALIZE_DATA *reinitialize_data =
+        Device_Reinitialize_Data();
+
+    reinitialize_data->Password = password;
 
     return true;
 }
@@ -1554,6 +1693,13 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     bool password_success = false;
     unsigned i;
     size_t length;
+    BACNET_DEVICE_REINITIALIZE_DATA *reinitialize_data =
+        Device_Reinitialize_Data();
+    BACNET_REINITIALIZED_STATE *reinitialize_state = &reinitialize_data->State;
+    const char *reinit_password = reinitialize_data->Password;
+#if defined BACNET_BACKUP_RESTORE
+    BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
+#endif
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to
@@ -1561,7 +1707,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         protection, the service request shall be denied if the parameter
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
-    if (Reinit_Password && strlen(Reinit_Password) > 0) {
+    if (reinit_password && strlen(reinit_password) > 0) {
         if (characterstring_encoding(&rd_data->password) == CHARACTER_UTF8) {
             length = characterstring_utf8_length(&rd_data->password);
         } else {
@@ -1571,7 +1717,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
             rd_data->error_class = ERROR_CLASS_SERVICES;
             rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
         } else if (characterstring_ansi_same(
-                       &rd_data->password, Reinit_Password)) {
+                       &rd_data->password, reinit_password)) {
             password_success = true;
         } else {
             rd_data->error_class = ERROR_CLASS_SECURITY;
@@ -1581,13 +1727,24 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         password_success = true;
     }
     if (password_success) {
+#if defined(BAC_ROUTING)
+        if (Device_Routed_Virtual_Device() &&
+            ((rd_data->state == BACNET_REINIT_COLDSTART) ||
+             (rd_data->state == BACNET_REINIT_WARMSTART) ||
+             (rd_data->state == BACNET_REINIT_ACTIVATE_CHANGES))) {
+            rd_data->error_class = ERROR_CLASS_SERVICES;
+            rd_data->error_code =
+                ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+            return false;
+        }
+#endif
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
-                Reinitialize_State = rd_data->state;
+                *reinitialize_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_WARMSTART:
@@ -1599,50 +1756,50 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
-                Reinitialize_State = rd_data->state;
+                *reinitialize_state = rd_data->state;
                 status = true;
                 break;
 #if defined BACNET_BACKUP_RESTORE
             case BACNET_REINIT_STARTBACKUP:
-                if (Device_Backup_State_In_Progress(Backup_State)) {
+                if (Device_Backup_State_In_Progress(*backup_state)) {
                     rd_data->error_class = ERROR_CLASS_DEVICE;
                     rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
                     break;
                 }
-                Backup_State = BACKUP_STATE_PREPARING_FOR_BACKUP;
+                *backup_state = BACKUP_STATE_PREPARING_FOR_BACKUP;
                 Device_Backup_Failure_Timeout_Restart();
                 Device_Start_Backup();
-                Reinitialize_State = rd_data->state;
+                *reinitialize_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_STARTRESTORE:
-                if (Device_Backup_State_In_Progress(Backup_State)) {
+                if (Device_Backup_State_In_Progress(*backup_state)) {
                     rd_data->error_class = ERROR_CLASS_DEVICE;
                     rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
                     break;
                 }
-                Backup_State = BACKUP_STATE_PREPARING_FOR_RESTORE;
+                *backup_state = BACKUP_STATE_PREPARING_FOR_RESTORE;
                 Device_Backup_Failure_Timeout_Restart();
                 Device_Start_Restore();
-                Reinitialize_State = rd_data->state;
+                *reinitialize_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_ENDRESTORE:
-                if (Backup_State != BACKUP_STATE_PERFORMING_A_RESTORE) {
+                if (*backup_state != BACKUP_STATE_PERFORMING_A_RESTORE) {
                     rd_data->error_class = ERROR_CLASS_DEVICE;
                     rd_data->error_code = ERROR_CODE_CONFIGURATION_IN_PROGRESS;
                     break;
                 }
                 Device_Backup_Failure_Timeout_Restart();
                 Device_End_Restore();
-                Reinitialize_State = rd_data->state;
+                *reinitialize_state = rd_data->state;
                 status = true;
                 break;
             case BACNET_REINIT_ENDBACKUP:
             case BACNET_REINIT_ABORTRESTORE:
-                Backup_State = BACKUP_STATE_IDLE;
+                *backup_state = BACKUP_STATE_IDLE;
                 Device_Backup_Failure_Timeout_Reset();
-                Reinitialize_State = rd_data->state;
+                *reinitialize_state = rd_data->state;
                 status = true;
                 break;
 #else
@@ -1667,7 +1824,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                     Network_Port_Changes_Pending_Activate(
                         Network_Port_Index_To_Instance(i));
                 }
-                Reinitialize_State = rd_data->state;
+                *reinitialize_state = rd_data->state;
                 status = true;
                 break;
             default:
@@ -1682,12 +1839,13 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 
 BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
 {
-    return Reinitialize_State;
+    return Device_Reinitialize_Data()->State;
 }
 
 bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state)
 {
-    Reinitialize_State = state;
+    Device_Reinitialize_Data()->State = state;
+
     return true;
 }
 
@@ -2056,6 +2214,33 @@ bool Device_Serial_Number_Set(const char *str, size_t length)
     }
 
     return status;
+}
+
+/**
+ * @brief Set the device last-restart-reason property value.
+ * @param restart_reason [in] The new device last-restart-reason, as a
+ * BACNET_RESTART_REASON.
+ * @return true if the device last-restart-reason was set
+ */
+bool Device_Last_Restart_Reason_Set(const BACNET_RESTART_REASON restart_reason)
+{
+    bool status = false; /*return value */
+
+    if (restart_reason < BACNET_RESTART_REASON_MAX) {
+        Last_Restart_Reason = restart_reason;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the device last-restart-reason property value.
+ * @return The device last-restart-reason, as a BACNET_RESTART_REASON.
+ */
+BACNET_RESTART_REASON Device_Last_Restart_Reason(void)
+{
+    return Last_Restart_Reason;
 }
 
 void Device_Time_Of_Restart(BACNET_TIMESTAMP *time_of_restart)
@@ -2435,9 +2620,11 @@ uint32_t Device_Interval_Offset(void)
 bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
 {
     bool status = false;
-#if BACNET_BACKUP_FILE_COUNT
+#if defined(BACNET_BACKUP_RESTORE)
+    uint32_t *configuration_files = Device_Configuration_Files_Value();
+
     if (index < BACNET_BACKUP_FILE_COUNT) {
-        Configuration_Files[index] = instance;
+        configuration_files[index] = instance;
         status = true;
     }
 #else
@@ -2451,10 +2638,11 @@ bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
 uint32_t Device_Configuration_File(unsigned index)
 {
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
+#if defined(BACNET_BACKUP_RESTORE)
+    uint32_t *configuration_files = Device_Configuration_Files_Value();
 
-#if BACNET_BACKUP_FILE_COUNT
     if (index < BACNET_BACKUP_FILE_COUNT) {
-        instance = Configuration_Files[index];
+        instance = configuration_files[index];
     }
 #else
     (void)index;
@@ -2473,11 +2661,12 @@ uint32_t Device_Configuration_File(unsigned index)
 bool Device_Is_Configuration_File(uint32_t instance)
 {
     bool status = false;
-
-#if BACNET_BACKUP_FILE_COUNT
+#if defined(BACNET_BACKUP_RESTORE)
     unsigned i;
+    uint32_t *configuration_files = Device_Configuration_Files_Value();
+
     for (i = 0; i < BACNET_BACKUP_FILE_COUNT; i++) {
-        if (Configuration_Files[i] == instance) {
+        if (configuration_files[i] == instance) {
             status = true;
             break;
         }
@@ -2505,10 +2694,12 @@ int Device_Configuration_File_Encode(
     int apdu_len = BACNET_STATUS_ERROR;
 
     (void)object_instance;
-#if BACNET_BACKUP_FILE_COUNT
+#if defined(BACNET_BACKUP_RESTORE)
+    uint32_t *configuration_files = Device_Configuration_Files_Value();
+
     if (array_index < BACNET_BACKUP_FILE_COUNT) {
         apdu_len = encode_application_object_id(
-            apdu, OBJECT_FILE, Configuration_Files[array_index]);
+            apdu, OBJECT_FILE, configuration_files[array_index]);
     }
 #else
     (void)array_index;
@@ -2559,10 +2750,10 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
     (void)object_instance;
     if (array_index == 0) {
         /* This array is not required to be resizable
-            through BACnet write services */
+           through BACnet write services */
         (void)array_size;
         error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-    } else {
+    } else if (array_index <= BACNET_BACKUP_FILE_COUNT) {
         len = bacnet_object_id_application_decode(
             application_data, application_data_len, &object_type, &instance);
         if (len > 0) {
@@ -2579,6 +2770,8 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
         } else {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
+    } else {
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
     }
 
     return error_code;
@@ -2586,56 +2779,67 @@ static BACNET_ERROR_CODE Device_Configuration_File_Write(
 
 uint16_t Device_Backup_Failure_Timeout(void)
 {
-    return Backup_Failure_Timeout;
+    return *Device_Backup_Failure_Timeout_Value();
 }
 
 bool Device_Backup_Failure_Timeout_Set(uint16_t timeout)
 {
-    Backup_Failure_Timeout = timeout;
+    uint16_t *backup_failure_timeout = Device_Backup_Failure_Timeout_Value();
+
+    *backup_failure_timeout = timeout;
     return true;
 }
 
 uint16_t Device_Backup_Preparation_Time(void)
 {
-    return Backup_Preparation_Time;
+    return *Device_Backup_Preparation_Time_Value();
 }
 
 bool Device_Backup_Preparation_Time_Set(uint16_t time)
 {
-    Backup_Preparation_Time = time;
+    uint16_t *backup_preparation_time = Device_Backup_Preparation_Time_Value();
+
+    *backup_preparation_time = time;
     return true;
 }
 
 uint16_t Device_Restore_Preparation_Time(void)
 {
-    return Restore_Preparation_Time;
+    return *Device_Restore_Preparation_Time_Value();
 }
 
 bool Device_Restore_Preparation_Time_Set(uint16_t time)
 {
-    Restore_Preparation_Time = time;
+    uint16_t *restore_preparation_time =
+        Device_Restore_Preparation_Time_Value();
+
+    *restore_preparation_time = time;
     return true;
 }
 
 uint16_t Device_Restore_Completion_Time(void)
 {
-    return Restore_Completion_Time;
+    return *Device_Restore_Completion_Time_Value();
 }
 
 bool Device_Restore_Completion_Time_Set(uint16_t time)
 {
-    Restore_Completion_Time = time;
+    uint16_t *restore_completion_time = Device_Restore_Completion_Time_Value();
+
+    *restore_completion_time = time;
     return true;
 }
 
 BACNET_BACKUP_STATE Device_Backup_And_Restore_State(void)
 {
-    return Backup_State;
+    return *Device_Backup_State_Value();
 }
 
 bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state)
 {
-    Backup_State = state;
+    BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
+
+    *backup_state = state;
     return true;
 }
 
@@ -2646,7 +2850,10 @@ bool Device_Backup_And_Restore_State_Set(BACNET_BACKUP_STATE state)
  */
 void Device_Backup_Failure_Timeout_Reset(void)
 {
-    Backup_Failure_Timeout_Milliseconds = 0;
+    uint32_t *backup_failure_timeout_milliseconds =
+        Device_Backup_Failure_Timeout_Milliseconds_Value();
+
+    *backup_failure_timeout_milliseconds = 0;
 }
 #endif
 
@@ -2675,10 +2882,15 @@ bool Device_Backup_State_In_Progress(BACNET_BACKUP_STATE state)
 void Device_Backup_Failure_Timeout_Restart(void)
 {
 #if defined(BACNET_BACKUP_RESTORE)
-    if (Device_Backup_State_In_Progress(Backup_State)) {
+    BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
+    uint16_t *backup_failure_timeout = Device_Backup_Failure_Timeout_Value();
+    uint32_t *backup_failure_timeout_milliseconds =
+        Device_Backup_Failure_Timeout_Milliseconds_Value();
+
+    if (Device_Backup_State_In_Progress(*backup_state)) {
         /* service related to backup & restore will reset the backup failure
            timeout during a backup or restore operation */
-        Backup_Failure_Timeout_Milliseconds = Backup_Failure_Timeout * 1000UL;
+        *backup_failure_timeout_milliseconds = *backup_failure_timeout * 1000UL;
     }
 #endif
 }
@@ -2700,20 +2912,24 @@ void Device_Backup_Failure_Timeout_Restart(void)
 void Device_Backup_Failure_Timeout_Countdown(uint32_t milliseconds)
 {
 #if defined(BACNET_BACKUP_RESTORE)
-    if (Device_Backup_State_In_Progress(Backup_State)) {
+    BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
+    uint32_t *backup_failure_timeout_milliseconds =
+        Device_Backup_Failure_Timeout_Milliseconds_Value();
+
+    if (Device_Backup_State_In_Progress(*backup_state)) {
         /* service related to backup & restore will restart the backup
            failure timer during a backup or restore operation */
-        if (Backup_Failure_Timeout_Milliseconds > 0) {
-            if (milliseconds >= Backup_Failure_Timeout_Milliseconds) {
-                Backup_Failure_Timeout_Milliseconds = 0;
+        if (*backup_failure_timeout_milliseconds > 0) {
+            if (milliseconds >= *backup_failure_timeout_milliseconds) {
+                *backup_failure_timeout_milliseconds = 0;
             } else {
-                Backup_Failure_Timeout_Milliseconds -= milliseconds;
+                *backup_failure_timeout_milliseconds -= milliseconds;
             }
-            if (Backup_Failure_Timeout_Milliseconds == 0) {
-                if (Backup_State == BACKUP_STATE_PERFORMING_A_BACKUP) {
-                    Backup_State = BACKUP_STATE_BACKUP_FAILURE;
-                } else if (Backup_State == BACKUP_STATE_PERFORMING_A_RESTORE) {
-                    Backup_State = BACKUP_STATE_RESTORE_FAILURE;
+            if (*backup_failure_timeout_milliseconds == 0) {
+                if (*backup_state == BACKUP_STATE_PERFORMING_A_BACKUP) {
+                    *backup_state = BACKUP_STATE_BACKUP_FAILURE;
+                } else if (*backup_state == BACKUP_STATE_PERFORMING_A_RESTORE) {
+                    *backup_state = BACKUP_STATE_RESTORE_FAILURE;
                 }
             }
         }
@@ -2978,6 +3194,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_TIME_OF_DEVICE_RESTART:
             apdu_len =
                 bacapp_encode_timestamp(&apdu[0], &Time_Of_Device_Restart);
+            break;
+        case PROP_LAST_RESTART_REASON:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], Last_Restart_Reason);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -3351,14 +3571,26 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
+#if defined(BACAPP_TIMESTAMP)
         case PROP_TIME_OF_DEVICE_RESTART:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
             if (status) {
-#if defined(BACAPP_TIMESTAMP)
                 bacapp_timestamp_copy(
                     &Time_Of_Device_Restart, &value.type.Time_Stamp);
+            }
+            break;
 #endif
+        case PROP_LAST_RESTART_REASON:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            if (status) {
+                status = Device_Last_Restart_Reason_Set(
+                    (BACNET_RESTART_REASON)value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:
@@ -3838,6 +4070,8 @@ void Device_Start_Backup(void)
     BACNET_CREATE_OBJECT_DATA create_data = { 0 };
     bool status = false;
     int32_t len = 0, offset = 0;
+    BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
+    uint32_t *configuration_files = Device_Configuration_Files_Value();
 
     object_count = Device_Object_List_Count();
     for (i = 0; i < object_count; i++) {
@@ -3859,13 +4093,13 @@ void Device_Start_Backup(void)
                 Device_Read_Property);
             if (len > 0) {
                 (void)bacfile_write_offset(
-                    Configuration_Files[0], offset, &object_apdu[0],
+                    configuration_files[0], offset, &object_apdu[0],
                     (uint32_t)len);
                 offset += len;
             }
         }
     }
-    Backup_State = BACKUP_STATE_PERFORMING_A_BACKUP;
+    *backup_state = BACKUP_STATE_PERFORMING_A_BACKUP;
 #endif
 }
 
@@ -3876,7 +4110,9 @@ void Device_Start_Backup(void)
 void Device_Start_Restore(void)
 {
 #if defined BACNET_BACKUP_RESTORE
-    Backup_State = BACKUP_STATE_PERFORMING_A_RESTORE;
+    BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
+
+    *backup_state = BACKUP_STATE_PERFORMING_A_RESTORE;
 #endif
 }
 
@@ -3893,16 +4129,19 @@ void Device_End_Restore(void)
     uint8_t apdu[MAX_APDU] = { 0 };
     int32_t apdu_len = 0, offset = 0, file_size = 0;
     int decoded_len = 0;
+    BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
+    BACNET_TIMESTAMP *last_restore_time = Device_Last_Restore_Time_Value();
+    uint32_t *configuration_files = Device_Configuration_Files_Value();
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
-    bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
+    bacapp_timestamp_datetime_set(last_restore_time, &bdateTime);
     /* delete all existing objects before restore */
     Device_Delete_Objects();
     /* create objects from the backup file */
-    file_size = bacfile_file_size(Configuration_Files[0]);
+    file_size = bacfile_file_size(configuration_files[0]);
     while (offset < file_size) {
         apdu_len = bacfile_read_offset(
-            Configuration_Files[0], offset, &apdu[0], sizeof(apdu));
+            configuration_files[0], offset, &apdu[0], sizeof(apdu));
         if (apdu_len > 0) {
             decoded_len = create_object_decode_service_request(
                 apdu, apdu_len, &create_data);
@@ -3917,18 +4156,18 @@ void Device_End_Restore(void)
                     /* error creating object - keep going */
                 }
             } else {
-                Backup_State = BACKUP_STATE_RESTORE_FAILURE;
+                *backup_state = BACKUP_STATE_RESTORE_FAILURE;
                 /* error while decoding object  */
                 break;
             }
         } else {
-            Backup_State = BACKUP_STATE_RESTORE_FAILURE;
+            *backup_state = BACKUP_STATE_RESTORE_FAILURE;
             /* error while reading file  */
             break;
         }
     }
-    if (Backup_State != BACKUP_STATE_RESTORE_FAILURE) {
-        Backup_State = BACKUP_STATE_IDLE;
+    if (*backup_state != BACKUP_STATE_RESTORE_FAILURE) {
+        *backup_state = BACKUP_STATE_IDLE;
     }
 #endif
 }
@@ -4113,23 +4352,31 @@ void Device_Timer(uint16_t milliseconds)
 #ifdef BAC_ROUTING
     uint16_t dev_id = 0;
     uint16_t current_dev_id = Routed_Device_Object_Index();
-    /* TODO: Multi-device Backup/Restore support
-     * Currently only Gateway (dev_id=0) supports Backup/Restore.
-     * Virtual devices are blocked by Routed_Device_Service_Approval().
-     * Plan to support after discussing with maintainer.
-     *
-     * To enable per-device Backup/Restore:
-     * 1. Move Backup-related static variables to DEVICE_OBJECT_DATA:
-     *    - Backup_State, Backup_Failure_Timeout_Milliseconds
-     *    - Backup_Failure_Timeout, Configuration_Files[]
-     *    - Last_Restore_Time, Backup/Restore_Preparation_Time
-     * 2. Modify Routed_Device_Service_Approval() to allow RD on virtual devices
-     * 3. Call Device_Backup_Failure_Timeout_Countdown() inside the for loop
-     *    for each device
-     */
-    Device_Backup_Failure_Timeout_Countdown(milliseconds);
-    for (dev_id = 0; dev_id < Get_Num_Managed_Devices(); dev_id++) {
-        Set_Routed_Device_Object_Index(dev_id);
+
+    if (Device_Router_Mode) {
+        for (dev_id = 0; dev_id < Get_Num_Managed_Devices(); dev_id++) {
+            Set_Routed_Device_Object_Index(dev_id);
+            Device_Backup_Failure_Timeout_Countdown(milliseconds);
+            pObject = Object_Table;
+            while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+                count = 0;
+                if (pObject->Object_Count) {
+                    count = pObject->Object_Count();
+                }
+                while (count) {
+                    count--;
+                    if ((pObject->Object_Timer) &&
+                        (pObject->Object_Index_To_Instance)) {
+                        instance = pObject->Object_Index_To_Instance(count);
+                        pObject->Object_Timer(instance, milliseconds);
+                    }
+                }
+                pObject++;
+            }
+        }
+        Set_Routed_Device_Object_Index(current_dev_id);
+    } else {
+        Device_Backup_Failure_Timeout_Countdown(milliseconds);
         pObject = Object_Table;
         while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
             count = 0;
@@ -4147,7 +4394,6 @@ void Device_Timer(uint16_t milliseconds)
             pObject++;
         }
     }
-    Set_Routed_Device_Object_Index(current_dev_id);
 #else
     Device_Backup_Failure_Timeout_Countdown(milliseconds);
     pObject = Object_Table;
@@ -4190,6 +4436,7 @@ void Routing_Device_Init(uint32_t first_object_instance)
     Device_Router_Mode = true;
 
     /* Initialize with our preset strings */
+    Routed_Device_Table_Reset();
     Add_Routed_Device(first_object_instance, &My_Object_Name, Description);
 
     /* Now substitute our routed versions of the main object functions. */

@@ -465,6 +465,38 @@ static void testDevice(void)
     }
 }
 /**
+ * @brief Test Device_Last_Restart_Reason_Set() and Device_Last_Restart_Reason()
+ */
+static void test_Device_Last_Restart_Reason(void)
+{
+    BACNET_RESTART_REASON reason;
+    bool status;
+    unsigned i;
+
+    Device_Init(NULL);
+    /* default value after init shall be RESTART_REASON_UNKNOWN */
+    reason = Device_Last_Restart_Reason();
+    zassert_equal(reason, RESTART_REASON_UNKNOWN, NULL);
+
+    /* loop over every valid value (0..BACNET_RESTART_REASON_MAX-1) */
+    for (i = 0; i < BACNET_RESTART_REASON_MAX; i++) {
+        reason = (BACNET_RESTART_REASON)i;
+        status = Device_Last_Restart_Reason_Set(reason);
+        zassert_true(status, "reason=%u rejected", i);
+        zassert_equal(
+            Device_Last_Restart_Reason(), reason, "reason=%u mismatch", i);
+    }
+
+    /* BACNET_RESTART_REASON_MAX (256) is out-of-range and must be rejected;
+     * the previously stored value shall be unchanged */
+    status = Device_Last_Restart_Reason_Set(BACNET_RESTART_REASON_MAX);
+    zassert_false(status, NULL);
+    zassert_equal(
+        Device_Last_Restart_Reason(),
+        (BACNET_RESTART_REASON)(BACNET_RESTART_REASON_MAX - 1), NULL);
+}
+
+/**
  * @}
  */
 
@@ -475,7 +507,8 @@ void test_main(void)
 {
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
-        ztest_unit_test(test_Device_Data_Sharing));
+        ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Device_Last_Restart_Reason));
 
     ztest_run_test_suite(device_tests);
 }
