@@ -1465,9 +1465,7 @@ static uint32_t Database_Revision = 0;
 /* Auto_Slave_Discovery */
 /* Slave_Address_Binding */
 /* Profile_Name */
-static BACNET_DEVICE_REINITIALIZE_DATA Reinitialize_Data = {
-    .State = BACNET_REINIT_IDLE, .Password = "filister"
-};
+static BACNET_DEVICE_REINITIALIZE_DATA Reinitialize_Data;
 static write_property_function Device_Write_Property_Store_Callback;
 static list_element_function Device_Add_List_Element_Callback;
 static list_element_function Device_Remove_List_Element_Callback;
@@ -2692,11 +2690,10 @@ int Device_Configuration_File_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-
-    (void)object_instance;
 #if defined(BACNET_BACKUP_RESTORE)
-    uint32_t *configuration_files = Device_Configuration_Files_Value();
+    uint32_t *configuration_files;
 
+    configuration_files = Device_Configuration_Files_Value();
     if (array_index < BACNET_BACKUP_FILE_COUNT) {
         apdu_len = encode_application_object_id(
             apdu, OBJECT_FILE, configuration_files[array_index]);
@@ -2705,6 +2702,7 @@ int Device_Configuration_File_Encode(
     (void)array_index;
     (void)apdu;
 #endif
+    (void)object_instance;
 
     return apdu_len;
 }
@@ -4285,6 +4283,8 @@ void Device_Init(object_functions_t *object_table)
     /* link WriteProperty to Timer object for references */
     Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
+    Reinitialize_Data.State = BACNET_REINIT_IDLE;
+    Reinitialize_Data.Password = "filister";
 }
 
 bool DeviceGetRRInfo(
