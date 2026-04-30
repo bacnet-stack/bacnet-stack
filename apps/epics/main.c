@@ -21,29 +21,20 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/abort.h"
-#include "bacnet/apdu.h"
-#include "bacnet/arf.h"
+#include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
-#include "bacnet/bacerror.h"
-#include "bacnet/iam.h"
-#include "bacnet/npdu.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
 #include "bacnet/property.h"
-#include "bacnet/reject.h"
 #include "bacnet/version.h"
-#include "bacnet/whois.h"
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/sys/keylist.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/bip.h"
-#include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/client/bac-rw.h"
@@ -164,6 +155,17 @@ static void epics_value_callback(
     }
 }
 
+/**
+ * @brief Callback for successful WriteProperty response
+ *
+ * @param device_id [in] device instance number where data originated
+ */
+static void epics_success_callback(uint32_t device_id)
+{
+    (void)device_id;
+    Response_Status = RESP_SUCCESS;
+}
+
 static void Init_Service_Handlers(void)
 {
 #if BAC_ROUTING
@@ -194,6 +196,7 @@ static void Init_Service_Handlers(void)
 
     bacnet_read_write_init();
     bacnet_read_write_value_callback_set(epics_value_callback);
+    bacnet_read_write_success_callback_set(epics_success_callback);
 }
 
 static const char *protocol_services_supported_text(size_t bit_index)
@@ -315,6 +318,13 @@ static void wait_for_response(void)
     Response_Status = RESP_TIMEOUT;
 }
 
+/**
+ * @brief Check if the property is writable
+ *
+ * @param object_type [in] Object type
+ * @param property [in] Property identifier
+ * @return true if writable, false otherwise
+ */
 bool Writeable_Properties(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID property)
 {
@@ -343,6 +353,25 @@ bool Writeable_Properties(
     return true;
 }
 
+/**
+ * @brief Append error message to the output for a property.
+ * @param property - Property identifier
+ */
+static void print_property_error_suffix(BACNET_PROPERTY_ID property)
+{
+    if (bactext_property_name_proprietary(property)) {
+        printf(
+            "    -- proprietary-%u: ? --%s:%s\n", property,
+            bactext_error_class_name(Last_Error_Class),
+            bactext_error_code_name(Last_Error_Code));
+    } else {
+        printf(
+            "    %s: ? --%s:%s\n", bactext_property_name(property),
+            bactext_error_class_name(Last_Error_Class),
+            bactext_error_code_name(Last_Error_Code));
+    }
+}
+
 /** Print out the value(s) for one Property.
  * This function may be called repeatedly for one property if we are walking
  * through a list
@@ -353,6 +382,7 @@ bool Writeable_Properties(
  *                          Value, and Error information.
  */
 static void PrintReadPropertyData(
+    uint32_t device_instance,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_REFERENCE *rpm_property)
@@ -362,6 +392,8 @@ static void PrintReadPropertyData(
     bool is_array = false;
     bool print_finished = false;
     uint32_t array_index;
+    int apdu_len = 0;
+    uint8_t *apdu = NULL;
 
     if (rpm_property == NULL) {
         printf("? --no-property\n");
@@ -487,70 +519,36 @@ static void PrintReadPropertyData(
         if (Writeable_Properties(
                 object_value.object_type, object_value.object_property)) {
             /* attempt to write the received value back to the device */
-            switch (rpm_property->value->tag) {
-                case BACNET_APPLICATION_TAG_NULL:
-                    bacnet_write_property_null_queue(
-                        Target_Device_Object_Instance, object_value.object_type,
+            apdu_len = bacapp_encode_data_list(NULL, object_value.value);
+            if (apdu_len > 0) {
+                apdu = calloc(1, apdu_len);
+                if (apdu) {
+                    bacapp_encode_data_list(apdu, object_value.value);
+                    bacnet_write_property_abstract_syntax_queue(
+                        device_instance, object_value.object_type,
                         object_value.object_instance,
-                        object_value.object_property, BACNET_NO_PRIORITY,
-                        rpm_property->propertyArrayIndex);
-                    break;
-                case BACNET_APPLICATION_TAG_BOOLEAN:
-                    bacnet_write_property_boolean_queue(
-                        Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance,
-                        object_value.object_property,
-                        rpm_property->value->type.Boolean, BACNET_NO_PRIORITY,
-                        rpm_property->propertyArrayIndex);
-                    break;
-                case BACNET_APPLICATION_TAG_REAL:
-                    bacnet_write_property_real_queue(
-                        Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance,
-                        object_value.object_property,
-                        rpm_property->value->type.Real, BACNET_NO_PRIORITY,
-                        rpm_property->propertyArrayIndex);
-                    break;
-                case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                    bacnet_write_property_unsigned_queue(
-                        Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance,
-                        object_value.object_property,
-                        rpm_property->value->type.Unsigned_Int,
-                        BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
-                    break;
-                case BACNET_APPLICATION_TAG_SIGNED_INT:
-                    bacnet_write_property_signed_queue(
-                        Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance,
-                        object_value.object_property,
-                        rpm_property->value->type.Signed_Int,
-                        BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
-                    break;
-                case BACNET_APPLICATION_TAG_ENUMERATED:
-                    bacnet_write_property_enumerated_queue(
-                        Target_Device_Object_Instance, object_value.object_type,
-                        object_value.object_instance,
-                        object_value.object_property,
-                        rpm_property->value->type.Enumerated,
-                        BACNET_NO_PRIORITY, rpm_property->propertyArrayIndex);
-                    break;
-                default:
-                    /* not supported for writing yet */
-                    break;
-            }
-            if (!bacnet_read_write_idle()) {
-                Response_Status = RESP_WAITING;
-                wait_for_response();
-                if (Response_Status == RESP_SUCCESS) {
-                    /* successfully wrote back what was read */
-                    printf(" W");
+                        object_value.object_property, apdu, apdu_len,
+                        BACNET_NO_PRIORITY, object_value.array_index);
+                    wait_for_response();
+                    if (Response_Status == RESP_SUCCESS) {
+                        /* successfully wrote back what was read */
+                        printf(" W");
+                    } else {
+                        if (ShowErrors) {
+                            print_property_error_suffix(
+                                object_value.object_property);
+                        }
+                    }
+                    free(apdu);
+                } else {
+                    fprintf(stderr, "Failed to allocate for Writing!\n");
                 }
+            } else {
+                fprintf(stderr, "Failed to encode value for Writing!\n");
             }
         }
     }
     printf("\n");
-
     value = rpm_property->value;
     while (value != NULL) {
         old_value = value;
@@ -794,8 +792,8 @@ static void get_print_value(
                     bactext_property_name(property));
             }
             PrintReadPropertyData(
-                Saved_RP_Data.object_type, Saved_RP_Data.object_instance,
-                &rpm_property);
+                device_instance, Saved_RP_Data.object_type,
+                Saved_RP_Data.object_instance, &rpm_property);
             /* valid response received - done */
             /* PrintReadPropertyData frees the Value_List_Head */
             Value_List_Head = NULL;
@@ -806,17 +804,7 @@ static void get_print_value(
         case RESP_REJECT_CODE:
         case RESP_ERROR_CODE:
             if (ShowErrors) {
-                if (bactext_property_name_proprietary(property)) {
-                    printf(
-                        "    -- proprietary-%u: ? --%s:%s\n", property,
-                        bactext_error_class_name(Last_Error_Class),
-                        bactext_error_code_name(Last_Error_Code));
-                } else {
-                    printf(
-                        "    %s: ? --%s:%s\n", bactext_property_name(property),
-                        bactext_error_class_name(Last_Error_Class),
-                        bactext_error_code_name(Last_Error_Code));
-                }
+                print_property_error_suffix(property);
             }
             break;
         case RESP_FAILED_TO_DECODE:

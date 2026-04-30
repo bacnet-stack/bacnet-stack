@@ -1766,6 +1766,28 @@ int bacapp_encode_data(
 /**
  * @brief Encode the data and store it into apdu.
  * @param apdu  Buffer to store the encoded data, or NULL for length only
+ * @param value  Pointer to a list of application value structures
+ * @return Length of the encoded data in bytes
+ */
+int bacapp_encode_data_list(
+    uint8_t *apdu, const BACNET_APPLICATION_DATA_VALUE *object_value)
+{
+    int apdu_len = 0, len = 0;
+
+    while (object_value) {
+        len = bacapp_encode_data(apdu, object_value);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        object_value = object_value->next;
+    }
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the data and store it into apdu.
+ * @param apdu  Buffer to store the encoded data, or NULL for length only
  * @param value  Pointer to the application value structure with tag set
  * the specific primitive types (gets overwritten for complex types)
  * @return Length of the encoded data in bytes

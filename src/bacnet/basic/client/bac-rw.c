@@ -29,6 +29,8 @@ static struct mstimer Cache_Timer;
 #define CACHE_CYCLE_SECONDS 60
 /* timeout timer for read-write task */
 static struct mstimer Read_Write_Timer;
+/* where the write success callback is stored */
+static bacnet_read_write_success_callback_t bacnet_read_write_success_callback;
 /* where the data from the read is stored */
 static bacnet_read_write_value_callback_t bacnet_read_write_value_callback;
 /* where the data from the I-Am is called */
@@ -61,6 +63,10 @@ typedef struct target_data_t {
         uint32_t Enumerated;
         uint32_t Unsigned_Int;
         int32_t Signed_Int;
+        struct {
+            uint8_t *value;
+            uint16_t length;
+        } Abstract_Syntax;
     } type;
 } TARGET_DATA;
 #define TARGET_DATA_QUEUE_SIZE (sizeof(struct target_data_t))
@@ -80,6 +86,7 @@ static uint16_t Target_Vendor_ID;
 static bool Error_Detected = false;
 static BACNET_ERROR_CLASS Error_Class;
 static BACNET_ERROR_CODE Error_Code;
+static BACNET_OBJECT_PROPERTY_VALUE Last_Written_Object;
 static BACNET_CLIENT_STATE RW_State = BACNET_CLIENT_IDLE;
 
 /**
@@ -191,9 +198,15 @@ static void My_I_Am_Bind(
 static void
 MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
+    uint32_t device_id = 0;
+
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        /* nothing to do */
+        address_get_device_id(src, &device_id);
+        /* call the callback for the SimpleAck */
+        if (bacnet_read_write_success_callback) {
+            bacnet_read_write_success_callback(device_id);
+        }
     }
 }
 
@@ -387,7 +400,7 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
     unsigned max_apdu = 0;
     uint8_t application_data[16] = { 0 };
     int application_data_len = 0;
-    bool valid_tag = false;
+    bool send_write_request = false;
 
     switch (RW_State) {
         case BACNET_CLIENT_IDLE:
@@ -434,37 +447,55 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
                     case BACNET_APPLICATION_TAG_NULL:
                         application_data_len =
                             encode_application_null(&application_data[0]);
-                        valid_tag = true;
+                        send_write_request = true;
                         break;
                     case BACNET_APPLICATION_TAG_BOOLEAN:
                         application_data_len = encode_application_boolean(
                             &application_data[0], target->type.Boolean);
-                        valid_tag = true;
+                        send_write_request = true;
                         break;
                     case BACNET_APPLICATION_TAG_REAL:
                         application_data_len = encode_application_real(
                             &application_data[0], target->type.Real);
-                        valid_tag = true;
+                        send_write_request = true;
                         break;
                     case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                         application_data_len = encode_application_unsigned(
                             &application_data[0], target->type.Unsigned_Int);
-                        valid_tag = true;
+                        send_write_request = true;
                         break;
                     case BACNET_APPLICATION_TAG_SIGNED_INT:
                         application_data_len = encode_application_signed(
                             &application_data[0], target->type.Signed_Int);
-                        valid_tag = true;
+                        send_write_request = true;
                         break;
                     case BACNET_APPLICATION_TAG_ENUMERATED:
                         application_data_len = encode_application_enumerated(
                             &application_data[0], target->type.Enumerated);
-                        valid_tag = true;
+                        send_write_request = true;
                         break;
+                    case BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX:
+                        Last_Written_Object.object_type = target->object_type;
+                        Last_Written_Object.object_instance =
+                            target->object_instance;
+                        Last_Written_Object.object_property =
+                            target->object_property;
+                        Request_Invoke_ID = Send_Write_Property_Request_Data(
+                            target->device_id, target->object_type,
+                            target->object_instance, target->object_property,
+                            target->type.Abstract_Syntax.value,
+                            target->type.Abstract_Syntax.length,
+                            target->priority, target->array_index);
+                        send_write_request = false;
                     default:
                         break;
                 }
-                if (valid_tag) {
+                if (send_write_request) {
+                    Last_Written_Object.object_type = target->object_type;
+                    Last_Written_Object.object_instance =
+                        target->object_instance;
+                    Last_Written_Object.object_property =
+                        target->object_property;
                     Request_Invoke_ID = Send_Write_Property_Request_Data(
                         target->device_id, target->object_type,
                         target->object_instance, target->object_property,
@@ -517,6 +548,17 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
     }
 
     return (RW_State == BACNET_CLIENT_FINISHED);
+}
+
+/**
+ * @brief Sets the callback for when a read-property returns data
+ *
+ * @param callback - function for callback
+ */
+void bacnet_read_write_success_callback_set(
+    bacnet_read_write_success_callback_t callback)
+{
+    bacnet_read_write_success_callback = callback;
 }
 
 /**
@@ -846,6 +888,49 @@ bool bacnet_write_property_boolean_queue(
     target.object_property = object_property;
     target.tag = BACNET_APPLICATION_TAG_BOOLEAN;
     target.type.Boolean = value;
+    target.priority = priority;
+    target.array_index = array_index;
+    status = Ringbuf_Put(&Target_Data_Queue, (uint8_t *)&target);
+
+    return status;
+}
+
+/**
+ * @brief Adds a WriteProperty request to a remote data point - REAL
+ * @param device_id - ID of the destination device
+ * @param object_type - Type of the object whose property is to be read.
+ * @param object_instance - Instance # of the object to be read.
+ * @param object_property - Property to be read, but not ALL, REQUIRED, or
+ * OPTIONAL.
+ * @param value - property value of type Abstract Syntax
+ * @param priority - BACnet priority for writing 1..16, or 0 if not set
+ * @param array_index [in] Optional: if the Property is an array,
+ *   - 0 for the array size
+ *   - 1 to n for individual array members
+ *   - BACNET_ARRAY_ALL (~0) for the full array to be read.
+ * @return true if added, false if not added
+ */
+bool bacnet_write_property_abstract_syntax_queue(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint8_t *value,
+    uint16_t value_length,
+    uint8_t priority,
+    uint32_t array_index)
+{
+    bool status = false;
+    TARGET_DATA target = { 0 };
+
+    target.write_property = true;
+    target.device_id = device_id;
+    target.object_type = object_type;
+    target.object_instance = object_instance;
+    target.object_property = object_property;
+    target.tag = BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX;
+    target.type.Abstract_Syntax.value = value;
+    target.type.Abstract_Syntax.length = value_length;
     target.priority = priority;
     target.array_index = array_index;
     status = Ringbuf_Put(&Target_Data_Queue, (uint8_t *)&target);

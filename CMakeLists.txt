@@ -355,6 +355,8 @@ add_library(${PROJECT_NAME}
   $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
   src/bacnet/basic/npdu/s_router.c
   src/bacnet/basic/npdu/s_router.h
+  src/bacnet/basic/client/bac-rw.c
+  src/bacnet/basic/client/bac-rw.h
   src/bacnet/basic/object/access_credential.c
   src/bacnet/basic/object/access_credential.h
   src/bacnet/basic/object/access_door.c
