@@ -94,7 +94,7 @@ static bool ShowDeviceObjectOnly = false;
 /* read required and optional properties when RPM ALL does not work */
 static bool Optional_Properties = false;
 /* write to properties to determine their writability */
-static bool WritePropertyEnabled = true;
+static bool WritePropertyEnabled = false;
 /* RPM is supported */
 static bool RPM_Service_Supported;
 
@@ -562,7 +562,7 @@ static void PrintReadPropertyData(
 static void print_usage(const char *filename)
 {
     printf("Usage: %s [options] [device-instance]\n", filename);
-    printf("    [-h] [-v] [-d] [-r] [-w]\n");
+    printf("    [-h] [-v] [-d] [-w]\n");
     printf("    [-t <device MAC or IP:port>]\n");
     printf("    [-p <local-port>]\n");
     printf("    [--dnet <dnet>] [--dadr <dadr>] [--mac <MAC-address>]\n");
@@ -610,12 +610,10 @@ static void print_help(const char *filename)
     printf("\n");
     printf("-h: omit the BIBBs header\n");
     printf("\n");
-    printf("-r: disable the write to property during discovery which\n"
-           "is enabled by default.\n");
     printf("-v: show values instead of '?' for changing values\n");
     printf("\n");
     printf("-w: enable the write to property during discovery to\n"
-           "determine writable property status.\n");
+           "determine which properties are writable.\n");
     printf("\n");
     printf("To generate output directly to a .tpi file for VTS or BTF:\n");
     printf("$ bacepics 4194302 > epics-4194302.tpi \n");
@@ -691,9 +689,6 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                     if (++argi < argc) {
                         My_BIP_Port = (uint16_t)strtol(argv[argi], NULL, 0);
                     }
-                    break;
-                case 'r':
-                    WritePropertyEnabled = false;
                     break;
                 case 't':
                     if (++argi < argc) {
