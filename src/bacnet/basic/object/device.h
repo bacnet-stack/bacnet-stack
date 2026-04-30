@@ -178,10 +178,17 @@ typedef struct commonBacObj_s {
  *  This may be useful for implementations which manage multiple Devices,
  *  eg, a Gateway.
  */
-#if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
+/* number of backup files */
+#if defined(BACNET_BACKUP_RESTORE)
 #ifndef BACNET_BACKUP_FILE_COUNT
 #define BACNET_BACKUP_FILE_COUNT 1
+#elif (BACNET_BACKUP_FILE_COUNT < 1)
+#error \
+    "BACNET_BACKUP_FILE_COUNT must be at least 1 when BACNET_BACKUP_RESTORE is enabled"
 #endif
+#endif
+
+#if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
 typedef struct bacnet_backup_restore_data_s {
     BACNET_BACKUP_STATE Backup_State;
     uint16_t Backup_Failure_Timeout;
@@ -193,6 +200,11 @@ typedef struct bacnet_backup_restore_data_s {
     uint16_t Restore_Completion_Time;
 } BACNET_BACKUP_RESTORE_DATA;
 #endif
+
+typedef struct bacnet_device_reinitialize_data_s {
+    BACNET_REINITIALIZED_STATE State;
+    const char *Password;
+} BACNET_DEVICE_REINITIALIZE_DATA;
 
 typedef struct devObj_s {
     /** The BACnet Device Address for this device; ->len depends on DLL type. */
@@ -209,8 +221,7 @@ typedef struct devObj_s {
     uint32_t Database_Revision;
 
 #if defined(BAC_ROUTING)
-    BACNET_REINITIALIZED_STATE Reinitialize_State;
-    const char *Reinit_Password;
+    BACNET_DEVICE_REINITIALIZE_DATA Reinitialize;
 #if defined(BACNET_BACKUP_RESTORE)
     BACNET_BACKUP_RESTORE_DATA Backup;
 #endif

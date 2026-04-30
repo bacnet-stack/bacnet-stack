@@ -1460,17 +1460,14 @@ static uint32_t Database_Revision = 0;
 /* Auto_Slave_Discovery */
 /* Slave_Address_Binding */
 /* Profile_Name */
-static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static const char *Reinit_Password = "filister";
+static BACNET_DEVICE_REINITIALIZE_DATA Reinitialize_Data = {
+    .State = BACNET_REINIT_IDLE, .Password = "filister"
+};
 static write_property_function Device_Write_Property_Store_Callback;
 static list_element_function Device_Add_List_Element_Callback;
 static list_element_function Device_Remove_List_Element_Callback;
 /* backup and restore */
 #if defined BACNET_BACKUP_RESTORE
-/* number of backup files */
-#ifndef BACNET_BACKUP_FILE_COUNT
-#define BACNET_BACKUP_FILE_COUNT 1
-#endif
 
 /* device A will read the Configuration_Files property of the Device object.
    This property will be used to determine the files to read and in what
@@ -1530,31 +1527,22 @@ static bool Device_Routed_Virtual_Device(void)
     return Device_Router_Mode && (Routed_Device_Object_Index() > 0);
 }
 
-static BACNET_REINITIALIZED_STATE *Device_Reinitialize_State_Value(void)
-{
-    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
-
-    if (pDev) {
-        return &pDev->Reinitialize_State;
-    }
-
-    return &Reinitialize_State;
-}
-
-static const char **Device_Reinit_Password_Value(void)
-{
-    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
-
-    if (pDev) {
-        return &pDev->Reinit_Password;
-    }
-
-    return &Reinit_Password;
-}
 #endif
 
+static BACNET_DEVICE_REINITIALIZE_DATA *Device_Reinitialize_Data(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->Reinitialize;
+    }
+#endif
+
+    return &Reinitialize_Data;
+}
+
 #if defined(BACNET_BACKUP_RESTORE)
-#if BACNET_BACKUP_FILE_COUNT
 static uint32_t *Device_Configuration_Files_Value(void)
 {
 #if defined(BAC_ROUTING)
@@ -1567,7 +1555,6 @@ static uint32_t *Device_Configuration_Files_Value(void)
 
     return Configuration_Files;
 }
-#endif
 
 static BACNET_TIMESTAMP *Device_Last_Restore_Time_Value(void)
 {
@@ -1674,13 +1661,10 @@ static BACNET_BACKUP_STATE *Device_Backup_State_Value(void)
  */
 bool Device_Reinitialize_Password_Set(const char *password)
 {
-#if defined(BAC_ROUTING)
-    const char **reinit_password = Device_Reinit_Password_Value();
+    BACNET_DEVICE_REINITIALIZE_DATA *reinitialize_data =
+        Device_Reinitialize_Data();
 
-    *reinit_password = password;
-#else
-    Reinit_Password = password;
-#endif
+    reinitialize_data->Password = password;
 
     return true;
 }
@@ -1704,14 +1688,10 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     bool password_success = false;
     unsigned i;
     size_t length;
-#if defined(BAC_ROUTING)
-    BACNET_REINITIALIZED_STATE *reinitialize_state =
-        Device_Reinitialize_State_Value();
-    const char *reinit_password = *Device_Reinit_Password_Value();
-#else
-    BACNET_REINITIALIZED_STATE *reinitialize_state = &Reinitialize_State;
-    const char *reinit_password = Reinit_Password;
-#endif
+    BACNET_DEVICE_REINITIALIZE_DATA *reinitialize_data =
+        Device_Reinitialize_Data();
+    BACNET_REINITIALIZED_STATE *reinitialize_state = &reinitialize_data->State;
+    const char *reinit_password = reinitialize_data->Password;
 #if defined BACNET_BACKUP_RESTORE
     BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
 #endif
@@ -1854,23 +1834,13 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 
 BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
 {
-#if defined(BAC_ROUTING)
-    return *Device_Reinitialize_State_Value();
-#else
-    return Reinitialize_State;
-#endif
+    return Device_Reinitialize_Data()->State;
 }
 
 bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state)
 {
-#if defined(BAC_ROUTING)
-    BACNET_REINITIALIZED_STATE *reinitialize_state =
-        Device_Reinitialize_State_Value();
+    Device_Reinitialize_Data()->State = state;
 
-    *reinitialize_state = state;
-#else
-    Reinitialize_State = state;
-#endif
     return true;
 }
 
@@ -2618,7 +2588,7 @@ uint32_t Device_Interval_Offset(void)
 bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
 {
     bool status = false;
-#if BACNET_BACKUP_FILE_COUNT
+#if defined(BACNET_BACKUP_RESTORE)
     uint32_t *configuration_files = Device_Configuration_Files_Value();
 
     if (index < BACNET_BACKUP_FILE_COUNT) {
@@ -2636,8 +2606,7 @@ bool Device_Configuration_File_Set(unsigned index, uint32_t instance)
 uint32_t Device_Configuration_File(unsigned index)
 {
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
-
-#if BACNET_BACKUP_FILE_COUNT
+#if defined(BACNET_BACKUP_RESTORE)
     uint32_t *configuration_files = Device_Configuration_Files_Value();
 
     if (index < BACNET_BACKUP_FILE_COUNT) {
@@ -2660,8 +2629,7 @@ uint32_t Device_Configuration_File(unsigned index)
 bool Device_Is_Configuration_File(uint32_t instance)
 {
     bool status = false;
-
-#if BACNET_BACKUP_FILE_COUNT
+#if defined(BACNET_BACKUP_RESTORE)
     unsigned i;
     uint32_t *configuration_files = Device_Configuration_Files_Value();
 
@@ -2694,7 +2662,7 @@ int Device_Configuration_File_Encode(
     int apdu_len = BACNET_STATUS_ERROR;
 
     (void)object_instance;
-#if BACNET_BACKUP_FILE_COUNT
+#if defined(BACNET_BACKUP_RESTORE)
     uint32_t *configuration_files = Device_Configuration_Files_Value();
 
     if (array_index < BACNET_BACKUP_FILE_COUNT) {
@@ -4053,9 +4021,7 @@ void Device_Start_Backup(void)
     bool status = false;
     int32_t len = 0, offset = 0;
     BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
-#if BACNET_BACKUP_FILE_COUNT
     uint32_t *configuration_files = Device_Configuration_Files_Value();
-#endif
 
     object_count = Device_Object_List_Count();
     for (i = 0; i < object_count; i++) {
@@ -4076,11 +4042,9 @@ void Device_Start_Backup(void)
                 property_list.Proprietary.pList, writable_properties,
                 Device_Read_Property);
             if (len > 0) {
-#if BACNET_BACKUP_FILE_COUNT
                 (void)bacfile_write_offset(
                     configuration_files[0], offset, &object_apdu[0],
                     (uint32_t)len);
-#endif
                 offset += len;
             }
         }
@@ -4117,18 +4081,14 @@ void Device_End_Restore(void)
     int decoded_len = 0;
     BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
     BACNET_TIMESTAMP *last_restore_time = Device_Last_Restore_Time_Value();
-#if BACNET_BACKUP_FILE_COUNT
     uint32_t *configuration_files = Device_Configuration_Files_Value();
-#endif
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(last_restore_time, &bdateTime);
     /* delete all existing objects before restore */
     Device_Delete_Objects();
     /* create objects from the backup file */
-#if BACNET_BACKUP_FILE_COUNT
     file_size = bacfile_file_size(configuration_files[0]);
-#endif
     while (offset < file_size) {
         apdu_len = bacfile_read_offset(
             configuration_files[0], offset, &apdu[0], sizeof(apdu));

@@ -159,8 +159,8 @@ uint16_t Add_Routed_Device(
         }
         pDev->Database_Revision = 0; /* Reset/Initialize now */
 #if defined(BAC_ROUTING)
-        pDev->Reinitialize_State = BACNET_REINIT_IDLE;
-        pDev->Reinit_Password = "filister";
+        pDev->Reinitialize.State = BACNET_REINIT_IDLE;
+        pDev->Reinitialize.Password = "filister";
 #if defined(BACNET_BACKUP_RESTORE)
         memset(&pDev->Backup, 0, sizeof(pDev->Backup));
         pDev->Backup.Backup_State = BACKUP_STATE_IDLE;
