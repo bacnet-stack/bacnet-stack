@@ -297,7 +297,7 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned object_index = 0;
     bool state = false;
     uint8_t *apdu = NULL;
-    size_t apdu_max = 0;
+    int apdu_size = 0;
     unsigned count = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -305,7 +305,7 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
-    apdu_max = rpdata->application_data_len;
+    apdu_size = rpdata->application_data_len;
     object_index = Access_Point_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -379,7 +379,7 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             count = Access_Point_Access_Doors_Count(rpdata->object_instance);
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                Access_Point_Access_Doors_Member_Encode, count, apdu, apdu_max);
+                Access_Point_Access_Doors_Member_Encode, count, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
