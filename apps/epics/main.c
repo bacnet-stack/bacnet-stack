@@ -544,7 +544,9 @@ static void PrintReadPropertyData(
                     fprintf(stderr, "Failed to allocate for Writing!\n");
                 }
             } else {
-                fprintf(stderr, "Failed to encode value for Writing!\n");
+                fprintf(
+                    stderr, "Failed to encode %s value for Writing!\n",
+                    bactext_property_name(object_value.object_property));
             }
         }
     }
