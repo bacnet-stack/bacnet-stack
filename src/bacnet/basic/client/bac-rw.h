@@ -120,13 +120,30 @@ bool bacnet_write_property_boolean_queue(
     bool value,
     uint8_t priority,
     uint32_t array_index);
+/**
+ * Queue a WriteProperty request using abstract-syntax encoded application data.
+ *
+ * @param device_id [in] target device instance number
+ * @param object_type [in] target object type
+ * @param object_instance [in] target object instance
+ * @param object_property [in] target property identifier
+ * @param value [in] pointer to the encoded application data buffer
+ * @param value_length [in] length of the encoded application data buffer
+ * @param priority [in] BACnet write priority
+ * @param array_index [in] target array index
+ *
+ * The buffer referenced by @p value is treated as read-only. Ownership remains
+ * with the caller, and this API does not deep-copy the buffer when queuing the
+ * request. Therefore, @p value must remain valid and unchanged until the queued
+ * write operation has been processed/completed.
+ */
 BACNET_STACK_EXPORT
 bool bacnet_write_property_abstract_syntax_queue(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
-    uint8_t *value,
+    const uint8_t *value,
     uint16_t value_length,
     uint8_t priority,
     uint32_t array_index);
