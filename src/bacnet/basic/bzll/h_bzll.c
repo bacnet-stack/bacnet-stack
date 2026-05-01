@@ -238,16 +238,14 @@ static bool bzll_address_from_bacnet_address(
     uint32_t *vmac_device_id,
     const BACNET_ADDRESS *baddr)
 {
-    struct bzll_vmac_data *vmac = NULL;
     bool status = false;
     uint32_t device_id = 0;
 
     if (addr && baddr) {
         status = BZLL_VMAC_Device_ID_From_Address(baddr, &device_id);
         if (status) {
-            status = BZLL_VMAC_Entry_By_Device_ID(device_id, vmac);
+            status = BZLL_VMAC_Entry_By_Device_ID(device_id, addr);
             if (status) {
-                BZLL_VMAC_Copy(addr, vmac);
                 debug_printf(
                     "BZLL: Found VMAC %lu.\n", (unsigned long)device_id);
                 if (vmac_device_id) {
@@ -362,11 +360,12 @@ int bzll_send_pdu(
     /* this datalink doesn't need to know the npdu data */
     (void)npdu_data;
     /* handle various broadcasts: */
-    if ( (dest->len == 0)) {
-        /* SADR empty, Invalid, shall have source endpoint */
-        debug_printf("BZLL: Send failure. Invalid SADR Address.\n");
-        return -1;
-    } else if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
+    // if ( (dest->len == 0)) {
+    //     /* SADR empty, Invalid, shall have source endpoint */
+    //     debug_printf("BZLL: Send failure. Invalid SADR Address.\n");
+    //     return -1;
+    // } else
+    if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
         /* mac_len = 0 is a broadcast address */
         /* net = 0 indicates local, net = 65535 indicates global */
         bzll_fill_vmac_broadcast_addr(&bzll_dest);
