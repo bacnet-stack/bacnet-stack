@@ -32,6 +32,7 @@ BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/client/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/npdu/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
