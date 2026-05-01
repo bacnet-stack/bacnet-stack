@@ -15,6 +15,12 @@
 #include "bacnet/rp.h"
 
 /**
+ * Callback for successful WriteProperty response
+ *
+ * @param device_instance [in] device instance number where data originated
+ */
+typedef void (*bacnet_read_write_success_callback_t)(uint32_t device_instance);
+/**
  * Save the requested ReadProperty data to a data store
  *
  * @param device_instance [in] device instance number where data originated
@@ -114,6 +120,20 @@ bool bacnet_write_property_boolean_queue(
     bool value,
     uint8_t priority,
     uint32_t array_index);
+BACNET_STACK_EXPORT
+bool bacnet_write_property_abstract_syntax_queue(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint8_t *value,
+    uint16_t value_length,
+    uint8_t priority,
+    uint32_t array_index);
+
+BACNET_STACK_EXPORT
+void bacnet_read_write_success_callback_set(
+    bacnet_read_write_success_callback_t callback);
 BACNET_STACK_EXPORT
 void bacnet_read_write_value_callback_set(
     bacnet_read_write_value_callback_t callback);
