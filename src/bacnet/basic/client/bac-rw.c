@@ -86,7 +86,6 @@ static uint16_t Target_Vendor_ID;
 static bool Error_Detected = false;
 static BACNET_ERROR_CLASS Error_Class;
 static BACNET_ERROR_CODE Error_Code;
-static BACNET_OBJECT_PROPERTY_VALUE Last_Written_Object;
 static BACNET_CLIENT_STATE RW_State = BACNET_CLIENT_IDLE;
 
 /**
@@ -475,11 +474,6 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
                         send_write_request = true;
                         break;
                     case BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX:
-                        Last_Written_Object.object_type = target->object_type;
-                        Last_Written_Object.object_instance =
-                            target->object_instance;
-                        Last_Written_Object.object_property =
-                            target->object_property;
                         Request_Invoke_ID = Send_Write_Property_Request_Data(
                             target->device_id, target->object_type,
                             target->object_instance, target->object_property,
@@ -491,11 +485,6 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
                         break;
                 }
                 if (send_write_request) {
-                    Last_Written_Object.object_type = target->object_type;
-                    Last_Written_Object.object_instance =
-                        target->object_instance;
-                    Last_Written_Object.object_property =
-                        target->object_property;
                     Request_Invoke_ID = Send_Write_Property_Request_Data(
                         target->device_id, target->object_type,
                         target->object_instance, target->object_property,
