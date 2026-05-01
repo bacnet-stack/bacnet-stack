@@ -481,6 +481,7 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
                             target->type.Abstract_Syntax.length,
                             target->priority, target->array_index);
                         send_write_request = false;
+                        break;
                     default:
                         break;
                 }
