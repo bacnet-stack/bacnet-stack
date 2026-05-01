@@ -221,23 +221,91 @@ void Access_Point_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
     }
 }
 
+/**
+ * @brief For a given object instance-number, returns the number of
+ * Subordinate_List elements
+ * @param  object_instance - object-instance number of the object
+ * @return number of subordinate list elements
+ */
+unsigned Access_Point_Access_Doors_Count(uint32_t object_instance)
+{
+    unsigned count = 0;
+    unsigned object_index = 0;
+
+    object_index = Access_Point_Instance_To_Index(object_instance);
+    if (object_index < MAX_ACCESS_POINTS) {
+        count = ap_descr[object_index].num_doors;
+    }
+
+    return count;
+}
+
+/**
+ * @brief For a given object instance-number, returns the number of
+ * Subordinate_List elements
+ * @param  object_instance - object-instance number of the object
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @return Subordinate_List element or NULL if not found
+ */
+BACNET_DEVICE_OBJECT_REFERENCE *Access_Point_Access_Doors_Member(
+    uint32_t instance, BACNET_ARRAY_INDEX array_index)
+{
+    BACNET_DEVICE_OBJECT_REFERENCE *element = NULL;
+    unsigned object_index = 0;
+
+    object_index = Access_Point_Instance_To_Index(instance);
+    if (object_index < MAX_ACCESS_POINTS) {
+        if (array_index < ap_descr[object_index].num_doors) {
+            element = &ap_descr[object_index].access_doors[array_index];
+        }
+    }
+
+    return element;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int Access_Point_Access_Doors_Member_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_DEVICE_OBJECT_REFERENCE *element = NULL;
+
+    element = Access_Point_Access_Doors_Member(object_instance, array_index);
+    if (element) {
+        apdu_len = bacapp_encode_device_obj_ref(apdu, element);
+    }
+
+    return apdu_len;
+}
+
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
-    unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
+    int apdu_size = 0;
+    unsigned count = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     object_index = Access_Point_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -308,33 +376,17 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], &ap_descr[object_index].access_event_credential);
             break;
         case PROP_ACCESS_DOORS:
-            if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(
-                    &apdu[0], ap_descr[object_index].num_doors);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0; i < ap_descr[object_index].num_doors; i++) {
-                    len = bacapp_encode_device_obj_ref(
-                        &apdu[0], &ap_descr[object_index].access_doors[i]);
-                    if (apdu_len + len < MAX_APDU) {
-                        apdu_len += len;
-                    } else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <= ap_descr[object_index].num_doors) {
-                    apdu_len = bacapp_encode_device_obj_ref(
-                        &apdu[0],
-                        &ap_descr[object_index]
-                             .access_doors[rpdata->array_index - 1]);
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            count = Access_Point_Access_Doors_Count(rpdata->object_instance);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Access_Point_Access_Doors_Member_Encode, count, apdu,
+                apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         case PROP_PRIORITY_FOR_WRITING:
