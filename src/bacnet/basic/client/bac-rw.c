@@ -886,13 +886,17 @@ bool bacnet_write_property_boolean_queue(
 }
 
 /**
- * @brief Adds a WriteProperty request to a remote data point - REAL
+ * @brief Adds a WriteProperty request to a remote data point - Abstract
+ * Syntax
  * @param device_id - ID of the destination device
- * @param object_type - Type of the object whose property is to be read.
- * @param object_instance - Instance # of the object to be read.
- * @param object_property - Property to be read, but not ALL, REQUIRED, or
- * OPTIONAL.
- * @param value - property value of type Abstract Syntax
+ * @param object_type - Type of the object whose property is to be written.
+ * @param object_instance - Instance # of the object to be written.
+ * @param object_property - Property to be written, but not ALL, REQUIRED,
+ *   or OPTIONAL.
+ * @param value - pointer to the Abstract Syntax value bytes, already encoded
+ *   as BACnet application data for this type and sent as provided by the
+ *   write path
+ * @param value_length - number of bytes available at @p value
  * @param priority - BACnet priority for writing 1..16, or 0 if not set
  * @param array_index [in] Optional: if the Property is an array,
  *   - 0 for the array size
