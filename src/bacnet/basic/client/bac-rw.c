@@ -201,7 +201,9 @@ MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        address_get_device_id(src, &device_id);
+        if (!address_get_device_id(src, &device_id)) {
+            device_id = Target_Device_ID;
+        }
         /* call the callback for the SimpleAck */
         if (bacnet_read_write_success_callback) {
             bacnet_read_write_success_callback(device_id);
