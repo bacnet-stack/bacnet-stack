@@ -64,7 +64,7 @@ typedef struct target_data_t {
         uint32_t Unsigned_Int;
         int32_t Signed_Int;
         struct {
-            uint8_t *value;
+            const uint8_t *value;
             uint16_t length;
         } Abstract_Syntax;
     } type;
@@ -911,7 +911,7 @@ bool bacnet_write_property_abstract_syntax_queue(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
-    uint8_t *value,
+    const uint8_t *value,
     uint16_t value_length,
     uint8_t priority,
     uint32_t array_index)
