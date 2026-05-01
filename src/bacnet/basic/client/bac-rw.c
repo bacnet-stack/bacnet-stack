@@ -541,7 +541,7 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
 }
 
 /**
- * @brief Sets the callback for when a read-property returns data
+ * @brief Sets the callback for when a write-property request succeeds
  *
  * @param callback - function for callback
  */
