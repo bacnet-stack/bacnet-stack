@@ -379,7 +379,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             count = Access_Point_Access_Doors_Count(rpdata->object_instance);
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                Access_Point_Access_Doors_Member_Encode, count, apdu, apdu_size);
+                Access_Point_Access_Doors_Member_Encode, count, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
