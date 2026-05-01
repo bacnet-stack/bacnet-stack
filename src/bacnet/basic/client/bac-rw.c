@@ -64,7 +64,7 @@ typedef struct target_data_t {
         uint32_t Unsigned_Int;
         int32_t Signed_Int;
         struct {
-            uint8_t *value;
+            const uint8_t *value;
             uint16_t length;
         } Abstract_Syntax;
     } type;
@@ -202,7 +202,9 @@ MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        address_get_device_id(src, &device_id);
+        if (!address_get_device_id(src, &device_id)) {
+            device_id = Target_Device_ID;
+        }
         /* call the callback for the SimpleAck */
         if (bacnet_read_write_success_callback) {
             bacnet_read_write_success_callback(device_id);
@@ -475,6 +477,15 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
                         send_write_request = true;
                         break;
                     case BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX:
+                        Request_Invoke_ID = Send_Write_Property_Request_Data(
+                            target->device_id, target->object_type,
+                            target->object_instance, target->object_property,
+                            target->type.Abstract_Syntax.value,
+                            target->type.Abstract_Syntax.length,
+                            target->priority, target->array_index);
+                        send_write_request = false;
+                        break;
+                    case BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX:
                         Last_Written_Object.object_type = target->object_type;
                         Last_Written_Object.object_instance =
                             target->object_instance;
@@ -491,11 +502,6 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
                         break;
                 }
                 if (send_write_request) {
-                    Last_Written_Object.object_type = target->object_type;
-                    Last_Written_Object.object_instance =
-                        target->object_instance;
-                    Last_Written_Object.object_property =
-                        target->object_property;
                     Request_Invoke_ID = Send_Write_Property_Request_Data(
                         target->device_id, target->object_type,
                         target->object_instance, target->object_property,
@@ -548,6 +554,17 @@ static bool bacnet_read_write_process(const TARGET_DATA *target)
     }
 
     return (RW_State == BACNET_CLIENT_FINISHED);
+}
+
+/**
+ * @brief Sets the callback for when a write-property request succeeds
+ *
+ * @param callback - function for callback
+ */
+void bacnet_read_write_success_callback_set(
+    bacnet_read_write_success_callback_t callback)
+{
+    bacnet_read_write_success_callback = callback;
 }
 
 /**
@@ -896,13 +913,17 @@ bool bacnet_write_property_boolean_queue(
 }
 
 /**
- * @brief Adds a WriteProperty request to a remote data point - REAL
+ * @brief Adds a WriteProperty request to a remote data point - Abstract
+ * Syntax
  * @param device_id - ID of the destination device
- * @param object_type - Type of the object whose property is to be read.
- * @param object_instance - Instance # of the object to be read.
- * @param object_property - Property to be read, but not ALL, REQUIRED, or
- * OPTIONAL.
- * @param value - property value of type Abstract Syntax
+ * @param object_type - Type of the object whose property is to be written.
+ * @param object_instance - Instance # of the object to be written.
+ * @param object_property - Property to be written, but not ALL, REQUIRED,
+ *   or OPTIONAL.
+ * @param value - pointer to the Abstract Syntax value bytes, already encoded
+ *   as BACnet application data for this type and sent as provided by the
+ *   write path
+ * @param value_length - number of bytes available at @p value
  * @param priority - BACnet priority for writing 1..16, or 0 if not set
  * @param array_index [in] Optional: if the Property is an array,
  *   - 0 for the array size
@@ -915,7 +936,7 @@ bool bacnet_write_property_abstract_syntax_queue(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
-    uint8_t *value,
+    const uint8_t *value,
     uint16_t value_length,
     uint8_t priority,
     uint32_t array_index)
