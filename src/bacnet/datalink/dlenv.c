@@ -423,6 +423,7 @@ static void dlenv_network_port_bip_init(uint32_t instance)
             bvlc_set_global_address_for_nat(&addr);
         }
     }
+    /* IP Address */
     bip_get_addr(&addr);
     prefix = bip_get_subnet_prefix();
     if (Datalink_Debug) {
@@ -438,6 +439,11 @@ static void dlenv_network_port_bip_init(uint32_t instance)
         addr.address[3]);
     Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
     Network_Port_Link_Speed_Set(instance, 0.0);
+    /* IP Gateway */
+    bip_get_gateway_addr(&addr);
+    Network_Port_IP_Gateway_Set(
+        instance, addr.address[0], addr.address[1], addr.address[2],
+        addr.address[3]);
 #if BBMD_ENABLED
     bdt_table = bvlc_bdt_list();
     fdt_table = bvlc_fdt_list();

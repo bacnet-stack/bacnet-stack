@@ -8,6 +8,13 @@
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <ifaddrs.h>
+#include <sys/sysctl.h>
+#include <net/route.h>
+#include <net/if_dl.h>
+#include <net/if.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -34,6 +41,8 @@ static struct in_addr BIP_Broadcast_Addr;
 /* broadcast binding mechanism */
 static bool BIP_Broadcast_Binding_Address_Override;
 static struct in_addr BIP_Broadcast_Binding_Address;
+/* IP gateway - stored here in network byte order */
+static struct in_addr BIP_Gateway_Addr;
 /* point-to-point interface flag - uses the unicast socket for broadcast */
 static bool BIP_Point_To_Point = false;
 /* enable debugging */
@@ -236,6 +245,21 @@ bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
     }
 
     return true;
+}
+
+/**
+ * @brief Get the BACnet/IP default gateway address
+ * @param addr - network IPv4 address of the gateway
+ * @return true if a gateway address was found
+ */
+bool bip_get_gateway_addr(BACNET_IP_ADDRESS *addr)
+{
+    if (addr) {
+        memcpy(&addr->address[0], &BIP_Gateway_Addr.s_addr, 4);
+        addr->port = 0;
+    }
+
+    return (BIP_Gateway_Addr.s_addr != 0);
 }
 
 /**
@@ -601,6 +625,76 @@ int bip_set_broadcast_binding(const char *ip4_broadcast)
     return 0;
 }
 
+/**
+ * @brief Get the default gateway address
+ * @param gateway [out] The gateway address
+ * @return 0 on success, else -1
+ */
+static int bip_get_local_gateway(struct in_addr *gateway)
+{
+    int mib[] = { CTL_NET, PF_ROUTE, 0, AF_INET, NET_RT_DUMP, 0 };
+    size_t l;
+    char *p, *next, *lim;
+    struct rt_msghdr *rtm;
+    struct sockaddr *sa;
+    struct sockaddr_in *sin;
+    bool found = false;
+
+    if (sysctl(mib, 6, NULL, &l, NULL, 0) < 0) {
+        return -1;
+    }
+    if (l == 0) {
+        return -1;
+    }
+    p = malloc(l);
+    if (!p) {
+        return -1;
+    }
+    if (sysctl(mib, 6, p, &l, NULL, 0) < 0) {
+        free(p);
+        return -1;
+    }
+    lim = p + l;
+    for (next = p; next < lim; next += rtm->rtm_msglen) {
+        rtm = (struct rt_msghdr *)next;
+        sa = (struct sockaddr *)(rtm + 1);
+        /* Check if it's the default route (dst is 0.0.0.0) */
+        if (sa->sa_family == AF_INET) {
+            sin = (struct sockaddr_in *)sa;
+            if (sin->sin_addr.s_addr == 0) {
+                /* The gateway is the second sockaddr after the destination */
+                unsigned int i;
+                char *cp = (char *)(rtm + 1);
+                for (i = 1; i < RTAX_MAX; i++) {
+                    if (rtm->rtm_addrs & (1 << i)) {
+                        sa = (struct sockaddr *)cp;
+                        if (i == RTAX_GATEWAY && sa->sa_family == AF_INET) {
+                            gateway->s_addr =
+                                ((struct sockaddr_in *)sa)->sin_addr.s_addr;
+                            found = true;
+                            break;
+                        }
+                        /* advance pointer to next sockaddr */
+                        if (sa->sa_len > 0) {
+                            cp +=
+                                ((sa->sa_len + sizeof(long) - 1) &
+                                 ~(sizeof(long) - 1));
+                        } else {
+                            cp += sizeof(long);
+                        }
+                    }
+                }
+            }
+        }
+        if (found) {
+            break;
+        }
+    }
+    free(p);
+
+    return found ? 0 : -1;
+}
+
 /** Gets the local IP address and local broadcast address from the system,
  *  and saves it into the BACnet/IP data structures.
  *
@@ -671,6 +765,10 @@ void bip_set_interface(const char *ifname)
             stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
             ntohs(BIP_Port));
         fflush(stderr);
+    }
+    /* setup local gateway address */
+    if (BIP_Gateway_Addr.s_addr == 0) {
+        bip_get_local_gateway(&BIP_Gateway_Addr);
     }
 }
 
@@ -839,6 +937,7 @@ void bip_cleanup(void)
     /* these were set non-zero during interface configuration */
     BIP_Address.s_addr = 0;
     BIP_Broadcast_Addr.s_addr = 0;
+    BIP_Gateway_Addr.s_addr = 0;
     BIP_Broadcast_Port = 0;
 
     return;
