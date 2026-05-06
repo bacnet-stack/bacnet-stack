@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [1.5.1-rc1] - 2026-04-20
+## [1.5.1-rc2] - 2026-05-26
 
 ### Security
 
@@ -24,6 +24,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Network Port object local IPv4 gateway address configuration for
+  Linux/BSD/Windows. (#1335)
 * Fixed lighting command update notifications to use scaled physical
   values using min/max actual value. (#1315)
 * Fixed lighting command off to off behavior. (#1314)
