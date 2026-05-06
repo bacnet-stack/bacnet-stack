@@ -1207,6 +1207,21 @@ if(BACNET_STACK_BUILD_APPS)
     )
   endif()
 
+  # Modbus Gateway - POSIX only (uses serial port / Modbus RTU)
+  if(NOT WIN32)
+    add_executable(modbusgw
+      apps/modbus-gateway/main.c
+      apps/modbus-gateway/point_table.c
+      apps/modbus-gateway/modbus_rtu.c
+      src/bacnet/basic/sys/cJSON.c)
+    target_include_directories(modbusgw PRIVATE
+      apps/modbus-gateway
+      src/bacnet/basic/sys)
+    target_link_libraries(modbusgw PRIVATE ${PROJECT_NAME} m)
+  else()
+    message(STATUS "BACNET: modbusgw skipped (Windows/MinGW not supported)")
+  endif()
+
   if(BACDL_BIP AND BACDL_BIP6)
     add_executable(
       router-ipv6
