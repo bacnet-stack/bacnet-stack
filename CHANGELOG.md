@@ -13,11 +13,17 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-04-30
+## [Unreleased] - 2026-05-06
 
 ### Security
 ### Added
 
+* Added generic Modbus RTU to BACnet gateway application that bridges
+  Modbus RTU devices to a BACnet network via a JSON-based runtime
+  configuration. (#1316)
+* Added pseudo abstract-syntax data write in bac-rw module with WriteProperty
+  write success callback. Added bacapp encode data for a possible array of
+  values used in EPICS WriteProperty service option. (#1331)
 * Added routed virtual device backup/restore reinitialization which enables
   routed virtual devices to accept ReinitializeDevice so Backup and Restore
   states can be handled per device. Gateway behavior remains unchanged, and
@@ -41,6 +47,12 @@ for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed access-doors array to be in array list and use common array
+  encoding function.(#1331)
+* Fixed Network Port object local IPv4 gateway address configuration for
+  Linux/BSD/Windows. (#1335)
+* Fixed Device_Reinitialize_Data initialization at runtime and clean up
+  unused variables in Device_Configuration_Files_Value. (#1325)
 * Fixed null pointer check for value when resetting device identifier
   in bacdevobjpropref. (#1321)
 * Fixed lighting command update notifications to use scaled physical
