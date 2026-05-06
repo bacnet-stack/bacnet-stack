@@ -100,6 +100,9 @@ BACNET_STACK_EXPORT
 bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr);
 
 BACNET_STACK_EXPORT
+bool bip_get_gateway_addr(BACNET_IP_ADDRESS *addr);
+
+BACNET_STACK_EXPORT
 bool bip_set_subnet_prefix(uint8_t prefix);
 
 BACNET_STACK_EXPORT
