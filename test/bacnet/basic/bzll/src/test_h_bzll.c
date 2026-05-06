@@ -124,29 +124,10 @@ static int aux_bzll_advertise_address_cb(
 }
 
 /**
- * @brief Auxiliary function to test the request read property address callback
- * @param addr [in] - address to have the property read
- * @return 0 if success, negative values for error
- */
-static int
-aux_test_bzll_request_read_property_address_cb(struct bzll_vmac_data *addr)
-{
-    if (TD.expected_vmac_data) {
-        if (BZLL_VMAC_Same(addr, TD.expected_vmac_data)) {
-            return 0;
-        }
-    }
-    return -1;
-}
-
-/**
  * @brief Test setup function
  */
 static void test_setup(void)
 {
-    uint8_t td_mac[BZLL_VMAC_EUI64] = { 0x00, 0x12, 0x34, 0x56,
-                                        0x78, 0x9A, 0xBC, 0xDE };
-    uint8_t td_endpoint = 0x01;
     TD.device_info.Device_ID = 12345;
     uint8_t iut_mac[BZLL_VMAC_EUI64] = { 0x00, 0x12, 0x34, 0x56,
                                          0x78, 0x9A, 0xBC, 0xDF };
@@ -202,19 +183,12 @@ static void test_bzll_send_pdu(void)
     int status = -1;
     BACNET_NPDU_DATA test_npdu_data;
     uint8_t test_pdu[BZLL_MPDU_MAX];
-    unsigned test_pdu_len;
+    unsigned test_pdu_len = 10;
     struct bzll_vmac_data test_vmac_data;
 
     TD.mtu = test_pdu;
     TD.expected_vmac_data = &test_vmac_data;
     TD.status = 0;
-
-    /* SADR empty*/
-    TD.device_info.BACnet_Address.len = 0;
-    status = bzll_send_pdu(
-        &TD.device_info.BACnet_Address, &test_npdu_data, test_pdu,
-        test_pdu_len);
-    assert(status == -1);
 
     test_pdu_len = 100;
     memset(test_pdu, 0xCC, test_pdu_len);

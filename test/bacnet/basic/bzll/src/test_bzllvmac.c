@@ -197,7 +197,7 @@ static void test_Debug_Enable(void)
     bool status = false;
     BZLL_VMAC_Debug_Enable();
     status = BZLL_VMAC_Debug_Enabled();
-    assert(status = true);
+    assert(status == true);
 }
 
 /**
