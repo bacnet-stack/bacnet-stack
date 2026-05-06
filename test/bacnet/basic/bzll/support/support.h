@@ -35,7 +35,10 @@ typedef struct {
     } while (0)
 #endif
 
-#define TEST_ENTRY(f) { #f, f }
+#define TEST_ENTRY(f) \
+    {                 \
+        #f, f         \
+    }
 #define RUN_TESTS(array, setup, cleanup)                              \
     do {                                                              \
         SUPPORT_PRINT("Testing %s\n", __FILE_NAME__);                 \

@@ -25,8 +25,7 @@
 /**
  * @brief Struct to be used during the test. Expands #device_info_t
  */
-struct bzll_device_info_t
-{
+struct bzll_device_info_t {
     struct device_info_t device_info;
     uint8_t *mtu;
     int mtu_len;
@@ -129,8 +128,8 @@ static int aux_bzll_advertise_address_cb(
  * @param addr [in] - address to have the property read
  * @return 0 if success, negative values for error
  */
-static int aux_test_bzll_request_read_property_address_cb(
-    struct bzll_vmac_data *addr)
+static int
+aux_test_bzll_request_read_property_address_cb(struct bzll_vmac_data *addr)
 {
     if (TD.expected_vmac_data) {
         if (BZLL_VMAC_Same(addr, TD.expected_vmac_data)) {
@@ -448,8 +447,7 @@ static void test_bzll_timer_handling(void)
     count = BZLL_VMAC_Count();
     assert(count == 1);
     BZLL_VMAC_Node_Status_Entry(&TD.device_info.VMAC_Data, &status_entry);
-    assert(
-        status_entry->ttl_seconds_remaining == (BZLL_NODE_TIME_TO_LIVE_S));
+    assert(status_entry->ttl_seconds_remaining == (BZLL_NODE_TIME_TO_LIVE_S));
     assert(status_entry->valid == false);
 
     /* Request Scan */

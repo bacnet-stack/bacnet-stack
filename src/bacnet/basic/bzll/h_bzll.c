@@ -37,7 +37,7 @@ struct bzll_packet {
 #endif
 
 /* Size of the protocol address size */
-#define BZLL_ADDRESS_SIZE   (3)
+#define BZLL_ADDRESS_SIZE (3)
 
 /* count must be a power of 2 for ringbuf library */
 #ifndef BZLL_RECEIVE_PACKET_COUNT
@@ -369,7 +369,8 @@ int bzll_send_pdu(
         /* net > 0 and net < 65535 are network specific broadcast if len = 0 */
         if (dest->mac_len == BZLL_ADDRESS_SIZE) {
             /* network specific broadcast to address */
-            if(!bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest)){
+            if (!bzll_address_from_bacnet_address(
+                    &bzll_dest, &vmac_dst, dest)) {
                 return -1;
             }
             debug_printf("BZLL: Sent Network-Specific-Broadcast-NPDU.\n");
@@ -379,8 +380,7 @@ int bzll_send_pdu(
         }
     } else if (dest->mac_len == BZLL_ADDRESS_SIZE) {
         /* valid unicast */
-        if(!bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest))
-        {
+        if (!bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest)) {
             return -1;
         }
         debug_printf("BZLL: Sending to VMAC %lu.\n", (unsigned long)vmac_dst);
@@ -584,8 +584,7 @@ void bzll_get_maximum_outgoing_transfer_size(uint32_t *transfer_size)
  * @return true if the address is the same of my address
  */
 bool bzll_match_protocol_address(
-    const uint8_t *protocol_addr,
-    const uint8_t address_size)
+    const uint8_t *protocol_addr, const uint8_t address_size)
 {
     BACNET_ADDRESS my_addr;
     BACNET_ADDRESS addr;
