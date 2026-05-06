@@ -778,9 +778,6 @@ static char *ifname_default(void)
                     BIP_Interface_Name, rtInfo->ifName,
                     sizeof(BIP_Interface_Name));
             }
-            if ((BIP_Gateway_Addr.s_addr == 0) && (rtInfo->gateWay != 0)) {
-                BIP_Gateway_Addr.s_addr = rtInfo->gateWay;
-            }
         }
     }
     free(rtInfo);
@@ -818,6 +815,58 @@ int bip_set_broadcast_binding(const char *ip4_broadcast)
     BIP_Broadcast_Binding_Address_Override = true;
 
     return 0;
+}
+
+/**
+ * @brief Find and set the default gateway for the interface via netlink
+ * @param ifname [in] The named interface
+ */
+static void bip_set_gateway(const char *ifname)
+{
+    struct nlmsghdr *nlMsg = NULL;
+    struct route_info *rtInfo = NULL;
+    char msgBuf[8192] = { 0 };
+    int sock, len, msgSeq = 0;
+
+    if (BIP_Gateway_Addr.s_addr != 0) {
+        return;
+    }
+    if ((sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE)) < 0) {
+        perror("Socket Creation: ");
+        return;
+    }
+    nlMsg = (struct nlmsghdr *)msgBuf;
+    nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg));
+    nlMsg->nlmsg_type = RTM_GETROUTE;
+    nlMsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
+    nlMsg->nlmsg_seq = msgSeq++;
+    nlMsg->nlmsg_pid = getpid();
+
+    if (send(sock, nlMsg, nlMsg->nlmsg_len, 0) < 0) {
+        debug_fprintf(stderr, "BIP: Write To Socket Failed...\n");
+        close(sock);
+        return;
+    }
+    if ((len = readNlSock(sock, msgBuf, sizeof(msgBuf), msgSeq, getpid())) <
+        0) {
+        debug_fprintf(stderr, "BIP: Read From Socket Failed...\n");
+        close(sock);
+        return;
+    }
+
+    rtInfo = (struct route_info *)malloc(sizeof(struct route_info));
+    for (; NLMSG_OK(nlMsg, len); nlMsg = NLMSG_NEXT(nlMsg, len)) {
+        memset(rtInfo, 0, sizeof(struct route_info));
+        parseRoutes(nlMsg, rtInfo);
+        if ((rtInfo->dstAddr == 0) && (rtInfo->gateWay != 0)) {
+            if (ifname == NULL || strcmp(ifname, rtInfo->ifName) == 0) {
+                BIP_Gateway_Addr.s_addr = rtInfo->gateWay;
+                break;
+            }
+        }
+    }
+    free(rtInfo);
+    close(sock);
 }
 
 /** Gets the local IP address and local broadcast address from the system,
@@ -890,6 +939,7 @@ void bip_set_interface(const char *ifname)
             ntohs(BIP_Port));
         fflush(stderr);
     }
+    bip_set_gateway(ifname);
 }
 
 const char *bip_get_interface(void)

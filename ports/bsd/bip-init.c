@@ -627,10 +627,11 @@ int bip_set_broadcast_binding(const char *ip4_broadcast)
 
 /**
  * @brief Get the default gateway address
+ * @param ifname [in] The interface name
  * @param gateway [out] The gateway address
  * @return 0 on success, else -1
  */
-static int bip_get_local_gateway(struct in_addr *gateway)
+static int bip_get_local_gateway(const char *ifname, struct in_addr *gateway)
 {
     int mib[] = { CTL_NET, PF_ROUTE, 0, AF_INET, NET_RT_DUMP, 0 };
     size_t l;
@@ -639,6 +640,11 @@ static int bip_get_local_gateway(struct in_addr *gateway)
     struct sockaddr *sa;
     struct sockaddr_in *sin;
     bool found = false;
+    unsigned int if_index = 0;
+
+    if (ifname != NULL) {
+        if_index = if_nametoindex(ifname);
+    }
 
     if (sysctl(mib, 6, NULL, &l, NULL, 0) < 0) {
         return -1;
@@ -659,13 +665,14 @@ static int bip_get_local_gateway(struct in_addr *gateway)
         rtm = (struct rt_msghdr *)next;
         sa = (struct sockaddr *)(rtm + 1);
         /* Check if it's the default route (dst is 0.0.0.0) */
-        if (sa->sa_family == AF_INET) {
+        if (sa->sa_family == AF_INET &&
+            (if_index == 0 || rtm->rtm_index == if_index)) {
             sin = (struct sockaddr_in *)sa;
             if (sin->sin_addr.s_addr == 0) {
                 /* The gateway is the second sockaddr after the destination */
                 unsigned int i;
                 char *cp = (char *)(rtm + 1);
-                for (i = 1; i < RTAX_MAX; i++) {
+                for (i = 0; i < RTAX_MAX; i++) {
                     if (rtm->rtm_addrs & (1 << i)) {
                         sa = (struct sockaddr *)cp;
                         if (i == RTAX_GATEWAY && sa->sa_family == AF_INET) {
@@ -768,7 +775,7 @@ void bip_set_interface(const char *ifname)
     }
     /* setup local gateway address */
     if (BIP_Gateway_Addr.s_addr == 0) {
-        bip_get_local_gateway(&BIP_Gateway_Addr);
+        bip_get_local_gateway(ifname, &BIP_Gateway_Addr);
     }
 }
 
