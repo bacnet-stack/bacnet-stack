@@ -360,17 +360,23 @@ int bzll_send_pdu(
     /* this datalink doesn't need to know the npdu data */
     (void)npdu_data;
     /* handle various broadcasts: */
-    // if ( (dest->len == 0)) {
-    //     /* SADR empty, Invalid, shall have source endpoint */
-    //     debug_printf("BZLL: Send failure. Invalid SADR Address.\n");
-    //     return -1;
-    // } else
     if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
         /* mac_len = 0 is a broadcast address */
         /* net = 0 indicates local, net = 65535 indicates global */
         bzll_fill_vmac_broadcast_addr(&bzll_dest);
-
         debug_printf("BZLL: Sent Original-Broadcast-NPDU.\n");
+    } else if ((dest->net > 0) && (dest->len == 0)) {
+        /* net > 0 and net < 65535 are network specific broadcast if len = 0 */
+        if (dest->mac_len == BZLL_ADDRESS_SIZE) {
+            /* network specific broadcast to address */
+            if(!bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest)){
+                return -1;
+            }
+            debug_printf("BZLL: Sent Network-Specific-Broadcast-NPDU.\n");
+        } else {
+            bzll_fill_vmac_broadcast_addr(&bzll_dest);
+            debug_printf("BZLL: Sent Original-Broadcast-NPDU.\n");
+        }
     } else if (dest->mac_len == BZLL_ADDRESS_SIZE) {
         /* valid unicast */
         if(!bzll_address_from_bacnet_address(&bzll_dest, &vmac_dst, dest))
