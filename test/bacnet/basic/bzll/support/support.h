@@ -21,8 +21,6 @@ struct device_info_t {
     BACNET_ADDRESS BACnet_Address;
 };
 
-
-
 typedef void (*test_ptr_t)(void);
 typedef struct {
     const char *func_name;
