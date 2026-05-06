@@ -32,7 +32,7 @@ typedef enum {
     GW_BACNET_TYPE_AI = 0, /**< Analog Input  */
     GW_BACNET_TYPE_AO, /**< Analog Output */
     GW_BACNET_TYPE_BI, /**< Binary Input  */
-    GW_BACNET_TYPE_BO, /**< Binary Output */
+    GW_BACNET_TYPE_BO /**< Binary Output */
 } GW_BACNET_TYPE;
 
 /** Modbus function codes */
@@ -40,7 +40,7 @@ typedef enum {
     GW_MODBUS_FUNC_COIL = 0x01, /**< FC01 Read Coils */
     GW_MODBUS_FUNC_DISCRETE_INPUT = 0x02, /**< FC02 Read Discrete Inputs */
     GW_MODBUS_FUNC_HOLDING_REG = 0x03, /**< FC03 Read Holding Registers */
-    GW_MODBUS_FUNC_INPUT_REG = 0x04, /**< FC04 Read Input Registers */
+    GW_MODBUS_FUNC_INPUT_REG = 0x04 /**< FC04 Read Input Registers */
 } GW_MODBUS_FUNC;
 
 /* -----------------------------------------------------------------------

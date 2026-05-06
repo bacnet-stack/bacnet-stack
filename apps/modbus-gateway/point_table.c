@@ -362,6 +362,8 @@ bool point_table_load_json(
 
     cJSON_ArrayForEach(item, points_arr)
     {
+        GW_POINT *p;
+
         if (idx >= GW_MAX_POINTS) {
             fprintf(
                 stderr, "[PT] Max points (%d) reached, remaining ignored\n",
@@ -379,8 +381,7 @@ bool point_table_load_json(
             continue;
         }
 
-        GW_POINT *p = &table->points[idx];
-
+        p = &table->points[idx];
         j = cJSON_GetObjectItem(item, "name");
         if (cJSON_IsString(j)) {
             strncpy(p->name, j->valuestring, sizeof(p->name) - 1);
