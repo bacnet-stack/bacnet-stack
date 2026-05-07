@@ -3701,6 +3701,10 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     Device_Backup_Failure_Timeout_Restart();
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -3726,6 +3730,15 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             wp_data->object_type, wp_data->object_instance,
                             wp_data->object_property)) {
                         status = Write_Property_Proprietary_Callback(wp_data);
+                    } else if (
+                        (wp_data->application_data_len == 0) &&
+                        !property_list_bacnet_list_member(
+                            wp_data->object_type, wp_data->object_property)) {
+                        /* only list properties can be written with
+                           an empty application payload */
+                        wp_data->error_class = ERROR_CLASS_SERVICES;
+                        wp_data->error_code = ERROR_CODE_INVALID_TAG;
+                        status = false;
                     } else {
                         status = pObject->Object_Write_Property(wp_data);
                     }

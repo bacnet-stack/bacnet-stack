@@ -1534,6 +1534,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0, count = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
+    /* Valid data? */
     if (wp_data == NULL) {
         debug_printf("Load_Control_Write_Property(): invalid data\n");
         return false;

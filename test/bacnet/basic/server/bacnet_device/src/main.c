@@ -497,6 +497,32 @@ static void test_Device_Last_Restart_Reason(void)
 }
 
 /**
+ * @brief Test Device_Write_Property with empty application payload
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Write_Property_Empty_Payload)
+#else
+static void test_Device_Write_Property_Empty_Payload(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool status;
+
+    Device_Init(NULL);
+    wp_data.object_type = OBJECT_DEVICE;
+    wp_data.object_instance = Device_Object_Instance_Number();
+    /* Choose a property that is NOT a list property */
+    wp_data.object_property = PROP_DESCRIPTION;
+    wp_data.application_data_len = 0;
+
+    status = Device_Write_Property(&wp_data);
+
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_TAG, NULL);
+}
+
+/**
  * @}
  */
 
@@ -508,7 +534,8 @@ void test_main(void)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
-        ztest_unit_test(test_Device_Last_Restart_Reason));
+        ztest_unit_test(test_Device_Last_Restart_Reason),
+        ztest_unit_test(test_Device_Write_Property_Empty_Payload));
 
     ztest_run_test_suite(device_tests);
 }

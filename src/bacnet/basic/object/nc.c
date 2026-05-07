@@ -370,6 +370,10 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     uint8_t idx;
     int len = 0;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(
         wp_data->object_instance)];
 

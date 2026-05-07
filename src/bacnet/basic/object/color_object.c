@@ -1026,6 +1026,10 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int apdu_size = 0;
     const uint8_t *apdu = NULL;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* decode the some of the request */
     apdu = wp_data->application_data;
     apdu_size = wp_data->application_data_len;
