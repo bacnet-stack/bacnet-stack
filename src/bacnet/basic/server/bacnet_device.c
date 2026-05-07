@@ -3382,11 +3382,11 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
-    Device_Backup_Failure_Timeout_Restart();
     /* Valid data? */
     if (wp_data == NULL) {
         return false;
     }
+    Device_Backup_Failure_Timeout_Restart();
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;

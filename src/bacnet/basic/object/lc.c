@@ -1534,6 +1534,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0, count = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
+    /* Valid data? */
     if (wp_data == NULL) {
         debug_printf("Load_Control_Write_Property(): invalid data\n");
         return false;
@@ -1543,10 +1544,6 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a smaller larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /* Valid data? */
-    if (wp_data == NULL) {
         return false;
     }
     /* decode the the request or the first element in array */
