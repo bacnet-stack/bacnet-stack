@@ -790,7 +790,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/linux/bzll-init.c>
     $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
@@ -824,7 +823,6 @@ elseif(WIN32)
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/win32/bzll-init.c>
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -877,7 +875,6 @@ elseif(APPLE)
     ports/posix/bacfile-posix.c
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
@@ -934,7 +931,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     ports/posix/bacfile-posix.c
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
