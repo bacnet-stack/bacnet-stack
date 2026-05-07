@@ -47,6 +47,10 @@ for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed WriteProperty handling across the stack by rejecting zero-length
+  application payloads for non-list properties (returning
+  ERROR_CODE_INVALID_TAG) and by adding defensive wp_data == NULL checks
+  in many object *_Write_Property() handlers. (#1337)
 * Fixed access-doors array to be in array list and use common array
   encoding function.(#1331)
 * Fixed Network Port object local IPv4 gateway address configuration for
