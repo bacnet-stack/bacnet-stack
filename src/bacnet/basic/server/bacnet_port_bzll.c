@@ -19,6 +19,8 @@
 /* me! */
 #include "bacnet/basic/server/bacnet_port_bzll.h"
 
+#if defined(BACDL_ZIGBEE)
+
 /**
  * @brief Periodic tasks for the BACnet datalink layer
  */
@@ -78,3 +80,4 @@ bool bacnet_port_bzll_init(void)
 
     return true;
 }
+#endif
