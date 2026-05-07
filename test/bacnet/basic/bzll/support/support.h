@@ -39,18 +39,17 @@ typedef struct {
     {                 \
         #f, f         \
     }
-#define RUN_TESTS(array, setup, cleanup)                              \
-    do {                                                              \
-        SUPPORT_PRINT("Testing %s\n", __FILE_NAME__);                 \
-        for (size_t i = 0; i < ARRAY_SIZE(array); i++) {              \
-            setup();                                                  \
-            SUPPORT_PRINT(                                            \
-                "\t\tTest %ld - %s", i + 1, test_suite[i].func_name); \
-            test_suite[i].func();                                     \
-            SUPPORT_PRINT("\r\t OK -\n");                             \
-            cleanup();                                                \
-        }                                                             \
-        SUPPORT_PRINT("%s - OK\n", __FILE_NAME__);                    \
+#define RUN_TESTS(array, setup, cleanup)                                  \
+    do {                                                                  \
+        SUPPORT_PRINT("Testing %s\n", __FILE__);                          \
+        for (size_t i = 0; i < ARRAY_SIZE(array); i++) {                  \
+            setup();                                                      \
+            SUPPORT_PRINT("\t\tTest %d - %s", i + 1, array[i].func_name); \
+            array[i].func();                                              \
+            SUPPORT_PRINT("\r\t OK -\n");                                 \
+            cleanup();                                                    \
+        }                                                                 \
+        SUPPORT_PRINT("%s - OK\n", __FILE__);                             \
     } while (0)
 
 void support_set_device_info(struct device_info_t *device_info);

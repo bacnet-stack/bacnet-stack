@@ -124,7 +124,7 @@ bool BZLL_VMAC_Add(uint32_t *device_id, const struct bzll_vmac_data *vmac)
         dev_id = *device_id;
     }
 
-    if (dev_id == BACNET_MAX_INSTANCE) {
+    if (dev_id >= BACNET_MAX_INSTANCE) {
         do {
             /* generate a new random instance VMAC address */
             dev_id = bzll_random_instance_vmac();
@@ -149,7 +149,7 @@ bool BZLL_VMAC_Add(uint32_t *device_id, const struct bzll_vmac_data *vmac)
         list_vmac = Keylist_Data(VMAC_List, dev_id);
         if (list_vmac) {
             /* device ID already exists. Update MAC. */
-            memmove(list_vmac, vmac, sizeof(struct bzll_node_table_entry));
+            memmove(list_vmac, vmac, sizeof(struct bzll_vmac_data));
             found = true;
             status = true;
         }
