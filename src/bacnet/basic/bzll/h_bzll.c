@@ -302,7 +302,7 @@ void bzll_maintenance_timer(uint16_t seconds)
                     status_entry->ttl_seconds_remaining =
                         BZLL_NODE_TIME_TO_LIVE_S;
                     BZLL_VMAC_Entry_By_Index(i, NULL, &dest);
-                    if (bzll_request_read_property_address(&dest) != 0) {
+                    if (bzll_request_read_property_address(&dest)) {
                         debug_printf("Read request Failed");
                     }
                     continue;
@@ -327,7 +327,7 @@ void bzll_maintenance_timer(uint16_t seconds)
             }
         }
         bzll_fill_vmac_broadcast_addr(&dest);
-        if (bzll_request_read_property_address(&dest) != 0) {
+        if (bzll_request_read_property_address(&dest)) {
             debug_printf("Read request Failed");
         }
     } else {
@@ -412,7 +412,7 @@ uint16_t bzll_receive(
     (void)timeout;
     if (npdu && src) {
         if (Ringbuf_Pop(&Receive_Queue, (uint8_t *)&pkt)) {
-            if (pkt.length <= max_npdu) {
+            if (max_npdu >= sizeof(pkt.buffer)) {
                 memcpy(npdu, pkt.buffer, pkt.length);
                 bacnet_address_copy(src, &pkt.src);
                 npdu_len = pkt.length;
@@ -442,8 +442,6 @@ bzll_receive_handler(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t npdu_len)
             bacnet_address_copy(&pkt->src, src);
             pkt->length = npdu_len;
             Ringbuf_Data_Put(&Receive_Queue, (volatile uint8_t *)pkt);
-        } else {
-            debug_printf("Received package is bigger than the buffer.");
         }
     }
 }
@@ -693,9 +691,4 @@ void bzll_set_broadcast_group_id(uint16_t group_id)
 uint16_t bzll_get_broadcast_group_id(void)
 {
     return bzll_broadcast_group_id;
-}
-
-bool bzll_valid(void)
-{
-    return true;
 }
