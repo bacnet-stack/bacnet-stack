@@ -180,7 +180,9 @@ target_sources(${PROJECT_NAME} PRIVATE
   ${SRC_DIR}/bacnet/bacdcode.c
   ${SRC_DIR}/bacnet/bacdest.c
   ${SRC_DIR}/bacnet/bacdevobjpropref.c
+  ${SRC_DIR}/bacnet/abort.c
   ${SRC_DIR}/bacnet/bacerror.c
+  ${SRC_DIR}/bacnet/reject.c
   ${SRC_DIR}/bacnet/bacint.c
   ${SRC_DIR}/bacnet/baclog.c
   ${SRC_DIR}/bacnet/bacreal.c
