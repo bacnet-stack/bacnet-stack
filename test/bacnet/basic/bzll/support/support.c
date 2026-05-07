@@ -45,6 +45,7 @@ uint32_t Device_Object_Instance_Number(void)
  */
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
-    assert(object_id == device_info_ptr->Device_ID);
-    return true;
+    bool status = (object_id == device_info_ptr->Device_ID);
+    assert(status);
+    return status;
 }

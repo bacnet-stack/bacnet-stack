@@ -80,14 +80,18 @@ static void aux_test_vmac_data_broadcast(struct bzll_vmac_data *vmac_data)
 static int aux_test_bzll_send_mpdu_cb(
     const struct bzll_vmac_data *dest, const uint8_t *mtu, int mtu_len)
 {
+    bool status = false;
+
     if (TD.status) {
         return TD.status;
     }
-
-    assert(BZLL_VMAC_Same(dest, TD.expected_vmac_data));
-    assert(mtu_len == TD.mtu_len);
+    status = BZLL_VMAC_Same(dest, TD.expected_vmac_data);
+    assert(status);
+    status = (mtu_len == TD.mtu_len);
+    assert(status);
     for (size_t i = 0; i < TD.mtu_len; i++) {
-        assert(mtu[i] == TD.mtu[i]);
+        status = (mtu[i] == TD.mtu[i]);
+        assert(status);
     }
 
     return mtu_len;
@@ -116,9 +120,11 @@ static int aux_test_bzll_get_my_addr_cb(struct bzll_vmac_data *addr)
 static int aux_bzll_advertise_address_cb(
     const uint8_t *protocol_addr, const uint16_t address_size)
 {
+    bool status = false;
     assert(address_size == TD.device_info.BACnet_Address.mac_len);
     for (size_t i = 0; i < address_size; i++) {
-        assert(protocol_addr[i] == TD.device_info.BACnet_Address.mac[i]);
+        status = (protocol_addr[i] == TD.device_info.BACnet_Address.mac[i]);
+        assert(status);
     }
     return TD.status;
 }
