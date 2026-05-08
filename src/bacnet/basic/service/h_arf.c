@@ -149,7 +149,12 @@ void handler_atomic_read_file(
                     (int)octetstring_capacity(&data.fileData[0]));
             }
         } else if (data.access == FILE_RECORD_ACCESS) {
-            if (data.type.record.fileStartRecord >=
+            if (data.type.record.RecordCount > BACNET_READ_FILE_RECORD_COUNT) {
+                error_class = ERROR_CLASS_SERVICES;
+                error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                error = true;
+            } else if (
+                data.type.record.fileStartRecord >=
                 BACNET_READ_FILE_RECORD_COUNT) {
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
