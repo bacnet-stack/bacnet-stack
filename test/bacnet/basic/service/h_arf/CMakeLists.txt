@@ -7,22 +7,23 @@ project(test_${basename}
     VERSION 1.0.0
     LANGUAGES C)
 
-
 string(REGEX REPLACE
-    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/test/bacnet/[a-zA-Z0-9_/-]*$"
     "/src"
     SRC_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
 string(REGEX REPLACE
-    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/test/bacnet/[a-zA-Z0-9_/-]*$"
     "/test"
     TST_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
     BACNET_BIG_ENDIAN=0
     CONFIG_ZTEST=1
+    BACDL_NONE=1
     )
 
 include_directories(
@@ -32,43 +33,28 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-    ${SRC_DIR}/bacnet/write_group.c
+    ${SRC_DIR}/bacnet/basic/service/h_arf.c
     # Support files and stubs (pathname alphabetical)
-    ${SRC_DIR}/bacnet/access_rule.c
-    ${SRC_DIR}/bacnet/authentication_factor.c
-    ${SRC_DIR}/bacnet/authentication_factor_format.c
-    ${SRC_DIR}/bacnet/bacaction.c
-    ${SRC_DIR}/bacnet/bacaddr.c
-    ${SRC_DIR}/bacnet/bacapp.c
-    ${SRC_DIR}/bacnet/bacdcode.c
-    ${SRC_DIR}/bacnet/bacdest.c
-    ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/abort.c
+    ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacerror.c
-    ${SRC_DIR}/bacnet/reject.c
+    ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacint.c
-    ${SRC_DIR}/bacnet/baclog.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
-    ${SRC_DIR}/bacnet/datetime.c
-    ${SRC_DIR}/bacnet/basic/sys/days.c
-    ${SRC_DIR}/bacnet/hostnport.c
-    ${SRC_DIR}/bacnet/lighting.c
-    ${SRC_DIR}/bacnet/shed_level.c
-    ${SRC_DIR}/bacnet/timer_value.c
-    ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/indtext.c
-    ${SRC_DIR}/bacnet/weeklyschedule.c
-    ${SRC_DIR}/bacnet/bactimevalue.c
-    ${SRC_DIR}/bacnet/dailyschedule.c
-    ${SRC_DIR}/bacnet/calendar_entry.c
-    ${SRC_DIR}/bacnet/special_event.c
-    ${SRC_DIR}/bacnet/secure_connect.c
-    ${SRC_DIR}/bacnet/channel_value.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/tsm/tsm.c
+    ${SRC_DIR}/bacnet/datalink/datalink.c
+    ${SRC_DIR}/bacnet/npdu.c
+    ${SRC_DIR}/bacnet/reject.c
     # Test and test library files
+    ./src/bacfile_stub.c
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/apdu_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

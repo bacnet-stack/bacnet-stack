@@ -77,119 +77,171 @@ last octet or record of the file, then the 'End Of File' parameter
 shall be TRUE, otherwise FALSE.
 */
 
+/**
+ * @brief Encode an AtomicReadFile ACK or Error response based on the
+ *       provided request and service data.
+ * @param service_request The APDU portion of the request, starting with the
+ * service choice.
+ * @param service_len The length of the service_request buffer.
+ * @param apdu The buffer to encode the response APDU into.
+ * @param apdu_size The size of the apdu buffer.
+ * @param src The source address to send the response to.
+ * @param npdu_data The NPDU data to use for encoding the response.
+ * @param service_data The confirmed service data from the request, used for
+ * encoding the response.
+ * @return The number of bytes encoded into the apdu buffer, or a negative value
+ * on encoding error.
+ */
+int handler_atomic_read_file_encode(
+    uint8_t *apdu,
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
+{
+    BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
+    int len = 0;
+    int pdu_len = 0;
+    bool error = false;
+    BACNET_ADDRESS my_address;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    uint8_t *apdu_start;
+
+    DEBUG_PRINTF("Received Atomic-Read-File Request!\n");
+    /* encode the NPDU portion of the packet */
+    datalink_get_my_address(&my_address);
+    npdu_encode_npdu_data(npdu_data, false, service_data->priority);
+    len = npdu_encode_pdu(apdu, src, &my_address, npdu_data);
+    pdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* APDU starts after the NPDU portion */
+    apdu_start = apdu;
+    if (service_len == 0) {
+        error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        error = true;
+        DEBUG_PRINTF("ARF: Missing Required Parameter. Sending Reject!\n");
+    } else if (service_data->segmented_message) {
+        error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+        error = true;
+    }
+    if (!error) {
+        len = arf_decode_service_request(service_request, service_len, &data);
+    }
+    /* bad decoding - send an abort */
+    if (!error) {
+        if (len < 0) {
+            DEBUG_PRINTF("ARF: Bad Encoding. Sending Abort!\n");
+            error_code = ERROR_CODE_ABORT_OTHER;
+            error = true;
+        } else if (data.object_type == OBJECT_FILE) {
+            if (!bacfile_valid_instance(data.object_instance)) {
+                error = true;
+            } else if (data.access == FILE_STREAM_ACCESS) {
+                if (data.type.stream.requestedOctetCount <=
+                    octetstring_capacity(&data.fileData[0])) {
+                    bacfile_read_stream_data(&data);
+                    DEBUG_PRINTF(
+                        "ARF: Stream offset %d, %d octets.\n",
+                        (int)data.type.stream.fileStartPosition,
+                        (int)data.type.stream.requestedOctetCount);
+                    len = arf_ack_encode_apdu(
+                        apdu, service_data->invoke_id, &data);
+                    pdu_len += len;
+                } else {
+                    error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    error = true;
+                    DEBUG_PRINTF(
+                        "ARF: Too Big To Send (%d >= %d). "
+                        "Sending Abort!\n",
+                        (int)data.type.stream.requestedOctetCount,
+                        (int)octetstring_capacity(&data.fileData[0]));
+                }
+            } else if (data.access == FILE_RECORD_ACCESS) {
+                if (data.type.record.RecordCount > ARRAY_SIZE(data.fileData)) {
+                    DEBUG_PRINTF(
+                        "ARF: RecordCount %u > %u. Sending Reject!\n",
+                        (unsigned)data.type.record.RecordCount,
+                        (unsigned)ARRAY_SIZE(data.fileData));
+                    error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+                    error = true;
+                } else if (
+                    data.type.record.fileStartRecord >=
+                    ARRAY_SIZE(data.fileData)) {
+                    DEBUG_PRINTF(
+                        "ARF: fileStartRecord %d >= %u. Sending Error!\n",
+                        (int)data.type.record.fileStartRecord,
+                        (unsigned)ARRAY_SIZE(data.fileData));
+                    error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+                    error = true;
+                } else if (bacfile_read_record_data(&data)) {
+                    DEBUG_PRINTF(
+                        "ARF: fileStartRecord %d, %u RecordCount.\n",
+                        (int)data.type.record.fileStartRecord,
+                        (unsigned)data.type.record.RecordCount);
+                    len = arf_ack_encode_apdu(
+                        apdu, service_data->invoke_id, &data);
+                    pdu_len += len;
+                } else {
+                    DEBUG_PRINTF("ARF: file_access_denied! Sending Error!");
+                    error = true;
+                    error_code = ERROR_CODE_FILE_ACCESS_DENIED;
+                }
+            } else {
+                DEBUG_PRINTF(
+                    "ARF: Invalid File Access Method. Sending Error!\n");
+                error = true;
+                error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
+            }
+        } else {
+            DEBUG_PRINTF("ARF: Inconsistent Object Type. Sending Error!\n");
+            error = true;
+            error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
+        }
+    }
+    if (error) {
+        len = bacnet_error_encode_apdu(
+            apdu_start, service_data->invoke_id,
+            SERVICE_CONFIRMED_ATOMIC_READ_FILE, error_code);
+        pdu_len += len;
+    }
+
+    return pdu_len;
+}
+
+/**
+ * @brief Handler for the AtomicReadFile service. Encodes and sends an ACK or
+ * Error response based on the provided request and service data.
+ * @param service_request The APDU portion of the request, starting with the
+ * service choice.
+ * @param service_len The length of the service_request buffer.
+ * @param src The source address to send the response to.
+ * @param service_data The confirmed service data from the request, used for
+ * encoding the response.
+ */
 void handler_atomic_read_file(
     uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_ATOMIC_READ_FILE_DATA data;
-    int len = 0;
-    int pdu_len = 0;
-    bool error = false;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
-    BACNET_ADDRESS my_address;
-    BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    int pdu_len = 0, bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data = { 0 };
 
-#if PRINT_ENABLED
-    fprintf(stderr, "Received Atomic-Read-File Request!\n");
-#endif
-    /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
-    pdu_len = npdu_encode_pdu(
-        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_len == 0) {
-        len = reject_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_print("ARF: Missing Required Parameter. Sending Reject!\n");
-        goto ARF_ABORT;
-    } else if (service_data->segmented_message) {
-        len = abort_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_print("ARF: Segmented Message. Sending Abort!\n");
-        goto ARF_ABORT;
-    }
-    len = arf_decode_service_request(service_request, service_len, &data);
-    /* bad decoding - send an abort */
-    if (len < 0) {
-        len = abort_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            ABORT_REASON_OTHER, true);
-        debug_print("ARF: Bad Encoding. Sending Abort!\n");
-        goto ARF_ABORT;
-    }
-    if (data.object_type == OBJECT_FILE) {
-        if (!bacfile_valid_instance(data.object_instance)) {
-            error = true;
-        } else if (data.access == FILE_STREAM_ACCESS) {
-            if (data.type.stream.requestedOctetCount <=
-                octetstring_capacity(&data.fileData[0])) {
-                bacfile_read_stream_data(&data);
-                debug_fprintf(
-                    stderr, "ARF: Stream offset %d, %d octets.\n",
-                    (int)data.type.stream.fileStartPosition,
-                    (int)data.type.stream.requestedOctetCount);
-                len = arf_ack_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    &data);
-            } else {
-                len = abort_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-                debug_fprintf(
-                    stderr,
-                    "ARF: Too Big To Send (%d >= %d). "
-                    "Sending Abort!\n",
-                    (int)data.type.stream.requestedOctetCount,
-                    (int)octetstring_capacity(&data.fileData[0]));
-            }
-        } else if (data.access == FILE_RECORD_ACCESS) {
-            if (data.type.record.fileStartRecord >=
-                BACNET_READ_FILE_RECORD_COUNT) {
-                error_class = ERROR_CLASS_SERVICES;
-                error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
-                error = true;
-            } else if (bacfile_read_record_data(&data)) {
-                debug_fprintf(
-                    stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
-                    (int)data.type.record.fileStartRecord,
-                    (unsigned)data.type.record.RecordCount);
-                len = arf_ack_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    &data);
-            } else {
-                error = true;
-                error_class = ERROR_CLASS_OBJECT;
-                error_code = ERROR_CODE_FILE_ACCESS_DENIED;
-            }
-        } else {
-            error = true;
-            error_class = ERROR_CLASS_SERVICES;
-            error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
-            debug_print("ARF: Record Access Requested. Sending Error!\n");
-        }
+    pdu_len = handler_atomic_read_file_encode(
+        NULL, service_request, service_len, src, &npdu_data, service_data);
+    if (pdu_len > sizeof(Handler_Transmit_Buffer)) {
+        debug_perror("ARF: Encoded PDU length exceeds transmit buffer size");
     } else {
-        error = true;
-        error_class = ERROR_CLASS_SERVICES;
-        error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
+        pdu_len = handler_atomic_read_file_encode(
+            Handler_Transmit_Buffer, service_request, service_len, src,
+            &npdu_data, service_data);
+        bytes_sent = datalink_send_pdu(
+            src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+        if (bytes_sent <= 0) {
+            debug_perror("ARF: Failed to send PDU");
+        }
     }
-    if (error) {
-        len = bacerror_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            SERVICE_CONFIRMED_ATOMIC_READ_FILE, error_class, error_code);
-    }
-ARF_ABORT:
-    pdu_len += len;
-    bytes_sent = datalink_send_pdu(
-        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-    if (bytes_sent <= 0) {
-        debug_perror("ARF: Failed to send PDU");
-    }
-
-    return;
 }

@@ -44,6 +44,13 @@ int bacerror_decode_error_class_and_code(
 BACNET_STACK_EXPORT
 BACNET_ERROR_CLASS bacerror_code_class(BACNET_ERROR_CODE error_code);
 
+BACNET_STACK_EXPORT
+int bacnet_error_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    BACNET_CONFIRMED_SERVICE service,
+    BACNET_ERROR_CODE error_code);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

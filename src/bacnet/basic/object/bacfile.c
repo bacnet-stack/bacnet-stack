@@ -1067,20 +1067,28 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     bool found = false;
     bool status = false;
     uint32_t i = 0;
+    size_t max_records = 0;
 
+    if (!data) {
+        return false;
+    }
+    max_records =
+        min(data->type.record.RecordCount, ARRAY_SIZE(data->fileData));
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
-        data->endOfFile = false;
-        for (i = 0; i < data->type.record.RecordCount; i++) {
-            status = bacfile_read_record_data_callback(
-                pathname, data->type.record.fileStartRecord, i,
-                octetstring_value(&data->fileData[i]),
-                octetstring_capacity(&data->fileData[i]));
-            if (!status) {
-                data->endOfFile = true;
-                data->type.record.RecordCount = i;
-                break;
+        if (max_records > 0) {
+            data->endOfFile = false;
+            for (i = 0; i < max_records; i++) {
+                status = bacfile_read_record_data_callback(
+                    pathname, data->type.record.fileStartRecord, i,
+                    octetstring_value(&data->fileData[i]),
+                    octetstring_capacity(&data->fileData[i]));
+                if (!status) {
+                    data->endOfFile = true;
+                    data->type.record.RecordCount = i;
+                    break;
+                }
             }
         }
     }
