@@ -150,9 +150,6 @@ int handler_atomic_read_file_encode(
                     len = arf_ack_encode_apdu(
                         apdu, service_data->invoke_id, &data);
                     pdu_len += len;
-                    if (apdu) {
-                        apdu += len;
-                    }
                 } else {
                     error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     error = true;
@@ -187,9 +184,6 @@ int handler_atomic_read_file_encode(
                     len = arf_ack_encode_apdu(
                         apdu, service_data->invoke_id, &data);
                     pdu_len += len;
-                    if (apdu) {
-                        apdu += len;
-                    }
                 } else {
                     DEBUG_PRINTF("ARF: file_access_denied! Sending Error!");
                     error = true;
