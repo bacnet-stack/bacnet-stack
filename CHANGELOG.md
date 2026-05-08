@@ -12,6 +12,15 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
+## [UNRELEASED] - 2026-05-07
+
+### Security
+
+* Secured AtomicReadFile handler by implementing bounds checks for
+  RecordCount stack based out-of-bounds write. (#1340)
+
+### Fixed
+
 ## [1.4.3] - 2026-04-16
 
 ### Security
