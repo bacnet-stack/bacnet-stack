@@ -1104,15 +1104,14 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 static int Channel_List_Of_Object_Property_References_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
     int len = 0;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        len = bacapp_decode_known_property(
-            apdu, apdu_size, &value, OBJECT_CHANNEL,
-            PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+        len = bacnet_device_object_property_reference_decode(
+            apdu, apdu_size, &value);
     }
 
     return len;
@@ -1156,7 +1155,7 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
     int len = 0;
     bool status;
     struct object_data *pObject;
@@ -1169,30 +1168,24 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
             (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else {
-            len = bacapp_decode_known_property(
-                application_data, application_data_len, &value, OBJECT_CHANNEL,
-                PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+            len = bacnet_device_object_property_reference_decode(
+                application_data, application_data_len, &value);
             if (len > 0) {
-                if (value.tag ==
-                    BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE) {
-                    status = Channel_Member_Is_Direct_Self_Present_Value(
-                        object_instance,
-                        &value.type.Device_Object_Property_Reference);
-                    if (status) {
-                        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    } else {
-                        status = List_Of_Object_Property_References_Set(
-                            pObject, array_index - 1,
-                            &value.type.Device_Object_Property_Reference);
-                        if (status) {
-                            error_code = ERROR_CODE_SUCCESS;
-                        } else {
-                            error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                        }
-                    }
+                status = Channel_Member_Is_Direct_Self_Present_Value(
+                    object_instance, &value);
+                if (status) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 } else {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    status = List_Of_Object_Property_References_Set(
+                        pObject, array_index - 1, &value);
+                    if (status) {
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
                 }
+            } else if (len == 0) {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
@@ -1212,14 +1205,14 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
 static int Channel_Control_Groups_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_UNSIGNED_INTEGER value_unsigned = 0;
     int len = 0;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        len = bacapp_decode_known_property(
-            apdu, apdu_size, &value, OBJECT_CHANNEL, PROP_CONTROL_GROUPS);
+        len = bacnet_unsigned_application_decode(
+            apdu, apdu_size, &value_unsigned);
     }
 
     return len;
@@ -1243,7 +1236,7 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_UNSIGNED_INTEGER value_unsigned = 0;
     uint16_t control_group;
     int len = 0;
     bool status;
@@ -1257,26 +1250,23 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
             (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else {
-            len = bacapp_decode_known_property(
-                application_data, application_data_len, &value, OBJECT_CHANNEL,
-                PROP_CONTROL_GROUPS);
+            len = bacnet_unsigned_application_decode(
+                application_data, application_data_len, &value_unsigned);
             if (len > 0) {
-                if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                    if (value.type.Unsigned_Int <= UINT16_MAX) {
-                        control_group = (uint16_t)value.type.Unsigned_Int;
-                        status = Control_Groups_Element_Set(
-                            pObject, array_index, control_group);
-                        if (status) {
-                            error_code = ERROR_CODE_SUCCESS;
-                        } else {
-                            error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                        }
+                if (value_unsigned <= UINT16_MAX) {
+                    control_group = (uint16_t)value_unsigned;
+                    status = Control_Groups_Element_Set(
+                        pObject, array_index, control_group);
+                    if (status) {
+                        error_code = ERROR_CODE_SUCCESS;
                     } else {
                         error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
                 } else {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            } else if (len == 0) {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
