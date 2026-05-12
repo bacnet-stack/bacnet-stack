@@ -334,6 +334,7 @@ int arf_ack_service_encode_apdu(
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
     uint32_t i = 0;
+    BACNET_UNSIGNED_INTEGER record_count = 0;
 
     /* endOfFile */
     len = encode_application_boolean(apdu, data->endOfFile);
@@ -374,13 +375,17 @@ int arf_ack_service_encode_apdu(
             if (apdu) {
                 apdu += len;
             }
-            len = encode_application_unsigned(
-                apdu, data->type.record.RecordCount);
+            /* restrict the record count to the size of the fileData array */
+            record_count = data->type.record.RecordCount;
+            if (record_count > ARRAY_SIZE(data->fileData)) {
+                record_count = ARRAY_SIZE(data->fileData);
+            }
+            len = encode_application_unsigned(apdu, record_count);
             apdu_len += len;
             if (apdu) {
                 apdu += len;
             }
-            for (i = 0; i < data->type.record.RecordCount; i++) {
+            for (i = 0; i < record_count; i++) {
                 len = encode_application_octet_string(apdu, &data->fileData[i]);
                 apdu_len += len;
                 if (apdu) {
@@ -520,6 +525,9 @@ int arf_ack_decode_service_request(
         len = bacnet_unsigned_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &record_count);
         if (len <= 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (record_count > BACNET_READ_FILE_RECORD_COUNT) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {

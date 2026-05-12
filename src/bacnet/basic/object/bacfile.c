@@ -1232,17 +1232,17 @@ bool bacfile_read_ack_record_data(
     bool found = false;
     const char *pathname = NULL;
     uint32_t i = 0;
-    size_t max_records = 0;
 
     if (!data) {
+        return false;
+    }
+    if (data->type.record.RecordCount > ARRAY_SIZE(data->fileData)) {
         return false;
     }
     pathname = bacfile_pathname(instance);
     if (pathname) {
         found = true;
-        max_records =
-            min(data->type.record.RecordCount, ARRAY_SIZE(data->fileData));
-        for (i = 0; i < max_records; i++) {
+        for (i = 0; i < data->type.record.RecordCount; i++) {
             bacfile_write_record_data_callback(
                 pathname, data->type.record.fileStartRecord, i,
                 octetstring_value((BACNET_OCTET_STRING *)&data->fileData[i]),
