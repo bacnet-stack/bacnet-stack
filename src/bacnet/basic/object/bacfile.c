@@ -1030,6 +1030,12 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
 }
 #endif
 
+/**
+ * @brief Read stream data from a file
+ * @param data - pointer to the data structure to fill
+ * @return true - if successful
+ * @return false - if failed or file not found
+ */
 bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     const char *pathname = NULL;
@@ -1037,6 +1043,9 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     size_t len = 0;
     size_t requestedOctetCount = 0;
 
+    if (!data) {
+        return false;
+    }
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
@@ -1061,6 +1070,12 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     return found;
 }
 
+/**
+ * @brief Read record data from a file
+ * @param data - pointer to the data structure to fill
+ * @return true - if successful
+ * @return false - if failed or file not found
+ */
 bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     const char *pathname = NULL;
@@ -1108,6 +1123,9 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     bool status = false;
     size_t bytes_written = 0;
 
+    if (!data) {
+        return false;
+    }
     if (bacfile_read_only(data->object_instance)) {
         /* if the file is read-only, then we cannot write to it */
         return false;
@@ -1143,11 +1161,17 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
     const char *pathname = NULL;
     bool found = false;
     size_t i = 0;
+    size_t max_records = 0;
 
+    if (!data) {
+        return false;
+    }
     if (bacfile_read_only(data->object_instance)) {
         /* if the file is read-only, then we cannot write to it */
         return false;
     }
+    max_records =
+        min(data->type.record.returnedRecordCount, ARRAY_SIZE(data->fileData));
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
@@ -1156,7 +1180,7 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
             as an append to the current end of file.
             If the 'File Start Record' parameter is 0,
             open the file as a clean slate. */
-        for (i = 0; i < data->type.record.returnedRecordCount; i++) {
+        for (i = 0; i < max_records; i++) {
             bacfile_write_record_data_callback(
                 pathname, data->type.record.fileStartRecord, i,
                 octetstring_value((BACNET_OCTET_STRING *)&data->fileData[i]),
@@ -1180,6 +1204,9 @@ bool bacfile_read_ack_stream_data(
     bool found = false;
     const char *pathname = NULL;
 
+    if (!data) {
+        return false;
+    }
     pathname = bacfile_pathname(instance);
     if (pathname) {
         found = true;
@@ -1205,11 +1232,17 @@ bool bacfile_read_ack_record_data(
     bool found = false;
     const char *pathname = NULL;
     uint32_t i = 0;
+    size_t max_records = 0;
 
+    if (!data) {
+        return false;
+    }
     pathname = bacfile_pathname(instance);
     if (pathname) {
         found = true;
-        for (i = 0; i < data->type.record.RecordCount; i++) {
+        max_records =
+            min(data->type.record.RecordCount, ARRAY_SIZE(data->fileData));
+        for (i = 0; i < max_records; i++) {
             bacfile_write_record_data_callback(
                 pathname, data->type.record.fileStartRecord, i,
                 octetstring_value((BACNET_OCTET_STRING *)&data->fileData[i]),
