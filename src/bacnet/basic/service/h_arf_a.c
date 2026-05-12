@@ -32,7 +32,7 @@ void handler_atomic_read_file_ack(
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_ATOMIC_READ_FILE_DATA data;
+    BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint32_t instance = 0;
 
     (void)src;

@@ -1290,18 +1290,21 @@ int bacnet_channel_value_no_coerce_decode(
 #endif
 #if defined(CHANNEL_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
+            octetstring_init(&value->type.Octet_String, NULL, 0);
             len = bacnet_octet_string_application_decode(
                 apdu, apdu_size, &value->type.Octet_String);
             break;
 #endif
 #if defined(CHANNEL_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            characterstring_init_ansi(&value->type.Character_String, "");
             len = bacnet_character_string_application_decode(
                 apdu, apdu_size, &value->type.Character_String);
             break;
 #endif
 #if defined(CHANNEL_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
+            bitstring_init(&value->type.Bit_String);
             len = bacnet_bitstring_application_decode(
                 apdu, apdu_size, &value->type.Bit_String);
             break;
