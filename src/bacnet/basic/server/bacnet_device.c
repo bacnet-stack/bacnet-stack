@@ -1083,11 +1083,13 @@ struct object_functions *Device_Object_Functions_Index(unsigned index)
 }
 
 /**
- * @brief Add an object list element to the end of the Device object
- *  list functions table
- * @param object_table [in] array of structure with object functions.
- *  Each Child Object must provide some implementation of each of these
- *  functions in order to properly support the default handlers.
+ * @brief Add an object functions element to the Device object list
+ *  functions table using its object type as the key.
+ * @param element [in] structure containing the object functions for a
+ *  BACnet object type. Each Child Object must provide some implementation
+ *  of each of these functions in order to properly support the default
+ *  handlers.
+ * @return true if the element was added; false otherwise.
  */
 bool Device_Object_Functions_Add(object_functions_t *element)
 {
