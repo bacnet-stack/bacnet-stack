@@ -1141,6 +1141,25 @@ Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type)
 }
 
 /**
+ * @brief Get the number of object functions elements in the Device object list.
+ * @return The count of object functions elements.
+ */
+unsigned Device_Object_Functions_Count(void)
+{
+    struct object_functions *pObject = NULL;
+    unsigned count = 0;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        /* handle each object type */
+        pObject++;
+        count++;
+    }
+
+    return (count);
+}
+
+/**
  * @brief Gets an object functions element from the Device object list
  *  using its index in the list.
  * @param  index - index of the object functions element in the list
