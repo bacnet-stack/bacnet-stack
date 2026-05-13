@@ -84,7 +84,7 @@ Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 /* may be overridden by outside table */
 static object_functions_t *Object_Table;
 
-static object_functions_t My_Object_Table[] = {
+static object_functions_t Default_Object_Table[] = {
     { OBJECT_DEVICE,
       NULL /* Init - don't init Device or it will recourse! */,
       Device_Count,
@@ -1025,7 +1025,11 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Timer */,
       Audit_Log_Writable_Property_List },
 #endif
-    { MAX_BACNET_OBJECT_TYPE,
+    { /** @note The array of object functions must be terminated
+       *  with an entry with an Object_Type of MAX_BACNET_OBJECT_TYPE
+       *  or greater, which will signal the end of the array.
+       */
+      MAX_BACNET_OBJECT_TYPE,
       NULL /* Init */,
       NULL /* Count */,
       NULL /* Index_To_Instance */,
@@ -1134,6 +1138,61 @@ Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type)
     }
 
     return (NULL);
+}
+
+/**
+ * @brief Gets an object functions element from the Device object list
+ *  using its index in the list.
+ * @param  index - index of the object functions element in the list
+ * @return object functions element found in the list, or NULL if not found
+ */
+struct object_functions *Device_Object_Functions_Index(unsigned index)
+{
+    struct object_functions *pObject = NULL;
+    unsigned count = 0;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        /* handle each object type */
+        if (count == index) {
+            return (pObject);
+        }
+        pObject++;
+        count++;
+    }
+
+    return (NULL);
+}
+
+/**
+ * @brief Add an object functions element to the Device object list
+ *  functions table using its object type as the key.
+ * @param element [in] structure containing the object functions for a
+ *  BACnet object type. Each Child Object must provide some implementation
+ *  of each of these functions in order to properly support the default
+ *  handlers.
+ * @return true if the element was added; false otherwise.
+ */
+bool Device_Object_Functions_Add(object_functions_t *element)
+{
+    (void)element;
+    return false;
+}
+
+/**
+ * @brief Initialize the Device Object List with the given array of object
+ * functions.
+ * @param object_table [in] array of structure with object functions.
+ *  Each Child Object must provide some implementation of each of these
+ *  functions in order to properly support the default handlers.
+ */
+void Device_Object_Functions_Init(object_functions_t *object_table)
+{
+    if (object_table) {
+        Object_Table = object_table;
+    } else {
+        Object_Table = &Default_Object_Table[0];
+    }
 }
 
 /** Try to find a rr_info_function helper function for the requested object
@@ -4274,9 +4333,9 @@ void Device_Init(object_functions_t *object_table)
     characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     datetime_init();
     if (object_table) {
-        Object_Table = object_table;
+        Device_Object_Functions_Init(object_table);
     } else {
-        Object_Table = &My_Object_Table[0];
+        Device_Object_Functions_Init(&Default_Object_Table[0]);
     }
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {

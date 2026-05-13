@@ -421,6 +421,7 @@ static void testDevice(void)
         OBJECT_ANALOG_VALUE, BACNET_MAX_INSTANCE, NULL);
     zassert_false(status, NULL);
     /* create/delete object tests */
+    uint32_t count_before = Device_Object_List_Count();
     create_data.object_type = OBJECT_ANALOG_VALUE;
     create_data.object_instance = BACNET_MAX_INSTANCE;
     create_data.application_data_len = 0;
@@ -431,6 +432,10 @@ static void testDevice(void)
     zassert_true(status, NULL);
     zassert_equal(create_data.error_code, ERROR_CODE_SUCCESS, NULL);
     zassert_not_equal(create_data.object_instance, BACNET_MAX_INSTANCE, NULL);
+    uint32_t count_after_create = Device_Object_List_Count();
+    zassert_equal(
+        count_after_create, count_before + 1,
+        "object list count should increase by 1");
     status = Device_Valid_Object_Id(
         create_data.object_type, create_data.object_instance);
     zassert_true(status, NULL);
@@ -441,6 +446,10 @@ static void testDevice(void)
     status = Device_Delete_Object(&delete_data);
     zassert_true(status, NULL);
     zassert_equal(delete_data.error_code, ERROR_CODE_SUCCESS, NULL);
+    uint32_t count_after_delete = Device_Object_List_Count();
+    zassert_equal(
+        count_after_delete, count_before,
+        "object list count should return to prior value");
     status = Device_Valid_Object_Id(
         delete_data.object_type, delete_data.object_instance);
     zassert_false(status, NULL);

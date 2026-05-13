@@ -1073,9 +1073,10 @@ Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type)
 }
 
 /**
- * @brief Gets an object from the list using an instance number as the key
- * @param  object_instance - object-instance number of the object
- * @return object found in the list, or NULL if not found
+ * @brief Gets an object functions element from the Device object list
+ *  using its index in the list.
+ * @param  index - index of the object functions element in the list
+ * @return object functions element found in the list, or NULL if not found
  */
 struct object_functions *Device_Object_Functions_Index(unsigned index)
 {
@@ -1099,9 +1100,13 @@ bool Device_Object_Functions_Add(object_functions_t *element)
     if (!Object_Table) {
         Object_Table = Keylist_Create();
     }
-
+    if (!Object_Table) {
+        return false;
+    }
     if (element && (element->Object_Type < MAX_BACNET_OBJECT_TYPE)) {
         key = element->Object_Type;
+        /* unique object types: replace any existing entry */
+        (void)Keylist_Data_Delete(Object_Table, key);
         index = Keylist_Data_Add(Object_Table, key, element);
     }
 
@@ -1125,13 +1130,13 @@ void Device_Object_Functions_Init(object_functions_t *object_functions)
     if (!Object_Table) {
         Object_Table = Keylist_Create();
     } else {
+        /* clear the existing Object_Table */
         while (Keylist_Count(Object_Table) > 0) {
-            index = Keylist_Count(Object_Table) - 1;
-            Keylist_Data_Delete_By_Index(Object_Table, index);
+            (void)Keylist_Data_Pop(Object_Table);
         }
     }
-    /* add the object table functions into the Object_Table using
-       the Object_Type as the Key. */
+    /* add the static object table functions into the Object_Table using
+       the Object_Type as the Key (and table delimiter). */
     while (object_functions) {
         if (object_functions->Object_Type >= MAX_BACNET_OBJECT_TYPE) {
             break;
