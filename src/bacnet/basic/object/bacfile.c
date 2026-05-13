@@ -1081,6 +1081,7 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     const char *pathname = NULL;
     bool found = false;
     bool status = false;
+    size_t len = 0;
     uint32_t i = 0;
     size_t max_records = 0;
 
@@ -1099,7 +1100,14 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
                     pathname, data->type.record.fileStartRecord, i,
                     octetstring_value(&data->fileData[i]),
                     octetstring_capacity(&data->fileData[i]));
-                if (!status) {
+                if (status) {
+                    /* our records are NULL terminated C strings
+                       read with fgets() */
+                    len = bacnet_strnlen(
+                        (const char *)octetstring_value(&data->fileData[i]),
+                        octetstring_capacity(&data->fileData[i]));
+                    octetstring_truncate(&data->fileData[i], len);
+                } else {
                     data->endOfFile = true;
                     data->type.record.RecordCount = i;
                     break;
