@@ -1125,8 +1125,6 @@ bool Device_Object_Functions_Add(object_functions_t *element)
  */
 void Device_Object_Functions_Init(object_functions_t *object_functions)
 {
-    int index;
-
     if (!Object_Table) {
         Object_Table = Keylist_Create();
     } else {
