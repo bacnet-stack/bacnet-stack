@@ -23,6 +23,36 @@ static bool Test_Write_Property_Store(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return Test_Write_Property_Return_Value;
 }
 
+static BACNET_OBJECT_TYPE test_find_free_object_type(
+    BACNET_OBJECT_TYPE avoid_1, BACNET_OBJECT_TYPE avoid_2)
+{
+    BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
+    unsigned i = 0;
+    unsigned start = OBJECT_PROPRIETARY_MIN;
+
+    if (start >= MAX_BACNET_OBJECT_TYPE) {
+        start = 0;
+    }
+
+    for (i = start; i < MAX_BACNET_OBJECT_TYPE; i++) {
+        object_type = (BACNET_OBJECT_TYPE)i;
+        if ((object_type != avoid_1) && (object_type != avoid_2) &&
+            (Device_Object_Functions_Find(object_type) == NULL)) {
+            return object_type;
+        }
+    }
+
+    for (i = 0; i < start; i++) {
+        object_type = (BACNET_OBJECT_TYPE)i;
+        if ((object_type != avoid_1) && (object_type != avoid_2) &&
+            (Device_Object_Functions_Find(object_type) == NULL)) {
+            return object_type;
+        }
+    }
+
+    return MAX_BACNET_OBJECT_TYPE;
+}
+
 /**
  * @brief Test ReadProperty API
  */
@@ -76,7 +106,7 @@ static void testDevice(void)
     BACNET_TIMESTAMP time_of_restart = { 0 }, test_time_of_restart = { 0 };
     BACNET_DATE_TIME date_time = { 0 }, test_date_time = { 0 };
     const char *name_string = NULL;
-    unsigned count = 0, test_count = 0;
+    unsigned count = 0;
     int len = 0, time_diff = 0;
     unsigned i, writable;
     const int32_t *properties;
@@ -391,7 +421,7 @@ static void testDevice(void)
         OBJECT_ANALOG_VALUE, BACNET_MAX_INSTANCE, NULL);
     zassert_false(status, NULL);
     /* create/delete object tests */
-    count = Device_Object_List_Count();
+    uint32_t count_before = Device_Object_List_Count();
     create_data.object_type = OBJECT_ANALOG_VALUE;
     create_data.object_instance = BACNET_MAX_INSTANCE;
     create_data.application_data_len = 0;
@@ -401,9 +431,14 @@ static void testDevice(void)
     status = Device_Create_Object(&create_data);
     zassert_true(status, NULL);
     zassert_equal(create_data.error_code, ERROR_CODE_SUCCESS, NULL);
-    zassert_equal(create_data.object_instance, 1, NULL);
-    test_count = Device_Object_List_Count();
-    zassert_equal(count + 1, test_count, NULL);
+    zassert_not_equal(create_data.object_instance, BACNET_MAX_INSTANCE, NULL);
+    uint32_t count_after_create = Device_Object_List_Count();
+    zassert_equal(
+        count_after_create, count_before + 1,
+        "object list count should increase by 1");
+    status = Device_Valid_Object_Id(
+        create_data.object_type, create_data.object_instance);
+    zassert_true(status, NULL);
     delete_data.object_type = create_data.object_type;
     delete_data.object_instance = create_data.object_instance;
     delete_data.error_class = ERROR_CLASS_DEVICE;
@@ -411,8 +446,13 @@ static void testDevice(void)
     status = Device_Delete_Object(&delete_data);
     zassert_true(status, NULL);
     zassert_equal(delete_data.error_code, ERROR_CODE_SUCCESS, NULL);
-    test_count = Device_Object_List_Count();
-    zassert_equal(count, test_count, NULL);
+    uint32_t count_after_delete = Device_Object_List_Count();
+    zassert_equal(
+        count_after_delete, count_before,
+        "object list count should return to prior value");
+    status = Device_Valid_Object_Id(
+        delete_data.object_type, delete_data.object_instance);
+    zassert_false(status, NULL);
     status = Device_Delete_Object(&delete_data);
     zassert_false(status, NULL);
     /* known object without delete */
@@ -497,6 +537,69 @@ static void test_Device_Last_Restart_Reason(void)
 }
 
 /**
+ * @brief Test object function table APIs for index/add/init
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Object_Functions_APIs)
+#else
+static void test_Device_Object_Functions_APIs(void)
+#endif
+{
+    bool status;
+    bool indexed = false;
+    unsigned index;
+    struct object_functions *entry = NULL;
+    BACNET_OBJECT_TYPE add_type;
+    BACNET_OBJECT_TYPE init_type;
+    BACNET_OBJECT_TYPE skipped_type;
+    object_functions_t proprietary_object = { 0 };
+    object_functions_t proprietary_init_table[3] = { 0 };
+
+    Device_Init(NULL);
+
+    add_type = test_find_free_object_type(
+        MAX_BACNET_OBJECT_TYPE, MAX_BACNET_OBJECT_TYPE);
+    zassert_true(add_type < MAX_BACNET_OBJECT_TYPE, NULL);
+
+    proprietary_object.Object_Type = add_type;
+    status = Device_Object_Functions_Add(&proprietary_object);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Object_Functions_Find(add_type), &proprietary_object, NULL);
+
+    for (index = 0; true; index++) {
+        entry = Device_Object_Functions_Index(index);
+        if (!entry) {
+            break;
+        }
+        if (entry == &proprietary_object) {
+            indexed = true;
+            break;
+        }
+    }
+    zassert_true(indexed, NULL);
+
+    init_type = test_find_free_object_type(add_type, MAX_BACNET_OBJECT_TYPE);
+    zassert_true(init_type < MAX_BACNET_OBJECT_TYPE, NULL);
+    skipped_type = test_find_free_object_type(add_type, init_type);
+    zassert_true(skipped_type < MAX_BACNET_OBJECT_TYPE, NULL);
+
+    proprietary_init_table[0].Object_Type = init_type;
+    proprietary_init_table[1].Object_Type = MAX_BACNET_OBJECT_TYPE;
+    proprietary_init_table[2].Object_Type = skipped_type;
+
+    zassert_is_null(Device_Object_Functions_Find(init_type), NULL);
+    zassert_is_null(Device_Object_Functions_Find(skipped_type), NULL);
+
+    Device_Object_Functions_Init(proprietary_init_table);
+
+    zassert_equal(
+        Device_Object_Functions_Find(init_type), &proprietary_init_table[0],
+        NULL);
+    zassert_is_null(Device_Object_Functions_Find(skipped_type), NULL);
+}
+
+/**
  * @brief Test Device_Write_Property with empty application payload
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -535,6 +638,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Last_Restart_Reason),
+        ztest_unit_test(test_Device_Object_Functions_APIs),
         ztest_unit_test(test_Device_Write_Property_Empty_Payload));
 
     ztest_run_test_suite(device_tests);

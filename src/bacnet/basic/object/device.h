@@ -239,6 +239,12 @@ struct object_functions *Device_Object_Functions(void);
 BACNET_STACK_EXPORT
 struct object_functions *
 Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type);
+BACNET_STACK_EXPORT
+struct object_functions *Device_Object_Functions_Index(unsigned index);
+BACNET_STACK_EXPORT
+bool Device_Object_Functions_Add(object_functions_t *element);
+BACNET_STACK_EXPORT
+void Device_Object_Functions_Init(object_functions_t *object_functions);
 
 BACNET_STACK_EXPORT
 void Device_Timer(uint16_t milliseconds);
