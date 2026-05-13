@@ -717,71 +717,116 @@ static bool Channel_Write_Members(
     unsigned m = 0;
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
 
-    if (pObject && value) {
-        pObject->Write_Status = BACNET_WRITE_STATUS_IN_PROGRESS;
-        debug_printf(
-            "channel[%lu].Channel_Write_Members\n",
-            (unsigned long)object_instance);
+    if (!pObject) {
+        return false;
+    }
+    if (!value) {
+        return false;
+    }
+    if (pObject->Write_Status == BACNET_WRITE_STATUS_IN_PROGRESS) {
+        return false;
+    }
+    pObject->Write_Status = BACNET_WRITE_STATUS_IN_PROGRESS;
+    debug_printf(
+        "channel[%lu].Channel_Write_Members\n", (unsigned long)object_instance);
 
-        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
-            pMember = &pObject->Members[m];
-            /* NOTE: our implementation is for internal objects only */
-            /* NOTE: we could check to match our Device ID, but then
-               we would need to update all channels when our device ID
-               changed.  Instead, we'll just screen when members are
-               set. */
-            if ((pMember->deviceIdentifier.type == OBJECT_DEVICE) &&
-                (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE) &&
-                (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE)) {
-                wp_data.object_type = pMember->objectIdentifier.type;
-                wp_data.object_instance = pMember->objectIdentifier.instance;
-                wp_data.object_property = pMember->propertyIdentifier;
-                wp_data.array_index = pMember->arrayIndex;
-                wp_data.error_class = ERROR_CLASS_PROPERTY;
-                wp_data.error_code = ERROR_CODE_SUCCESS;
-                wp_data.priority = priority;
-                wp_data.application_data_len = sizeof(wp_data.application_data);
-                status = Channel_Write_Member_Value(&wp_data, value);
-                if (status) {
-                    debug_printf(
-                        "channel[%lu].Channel_Write_Member[%u] coerced\n",
-                        (unsigned long)object_instance, m);
-                    if (Write_Property_Internal_Callback) {
-                        status = write_property_bacnet_array_valid(&wp_data);
+    for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
+        pMember = &pObject->Members[m];
+        /* NOTE: our implementation is for internal objects only */
+        /* NOTE: we could check to match our Device ID, but then
+            we would need to update all channels when our device ID
+            changed.  Instead, we'll just screen when members are
+            set. */
+        if ((pMember->deviceIdentifier.type == OBJECT_DEVICE) &&
+            (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE) &&
+            (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE)) {
+            wp_data.object_type = pMember->objectIdentifier.type;
+            wp_data.object_instance = pMember->objectIdentifier.instance;
+            wp_data.object_property = pMember->propertyIdentifier;
+            wp_data.array_index = pMember->arrayIndex;
+            wp_data.error_class = ERROR_CLASS_PROPERTY;
+            wp_data.error_code = ERROR_CODE_SUCCESS;
+            wp_data.priority = priority;
+            wp_data.application_data_len = sizeof(wp_data.application_data);
+            status = Channel_Write_Member_Value(&wp_data, value);
+            if (status) {
+                debug_printf(
+                    "channel[%lu].Channel_Write_Member[%u] coerced\n",
+                    (unsigned long)object_instance, m);
+                if (Write_Property_Internal_Callback) {
+                    status = write_property_bacnet_array_valid(&wp_data);
+                    if (status) {
+                        status = Write_Property_Internal_Callback(&wp_data);
                         if (status) {
-                            status = Write_Property_Internal_Callback(&wp_data);
-                            if (status) {
-                                wp_data.error_code = ERROR_CODE_SUCCESS;
-                            }
+                            wp_data.error_code = ERROR_CODE_SUCCESS;
                         }
-                        debug_printf(
-                            "channel[%lu].Channel_Write_Member[%u] "
-                            "%s-%u %s %s\n",
-                            (unsigned long)object_instance, m,
-                            bactext_object_type_name(wp_data.object_type),
-                            wp_data.object_instance,
-                            bactext_property_name(wp_data.object_property),
-                            bactext_error_code_name(wp_data.error_code));
                     }
-                } else {
-                    wp_data.error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
                     debug_printf(
                         "channel[%lu].Channel_Write_Member[%u] "
-                        "coercion failed!\n",
-                        (unsigned long)object_instance, m);
-                    pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
+                        "%s-%u %s %s\n",
+                        (unsigned long)object_instance, m,
+                        bactext_object_type_name(wp_data.object_type),
+                        wp_data.object_instance,
+                        bactext_property_name(wp_data.object_property),
+                        bactext_error_code_name(wp_data.error_code));
+                    if (!status) {
+                        if ((bacnet_null_application_decode(
+                                 wp_data.application_data,
+                                 wp_data.application_data_len) > 0) &&
+                            ((wp_data.error_code ==
+                              ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE) ||
+                             (wp_data.error_code ==
+                              ERROR_CODE_INVALID_DATA_TYPE))) {
+                            /* A special exception shall be the writing of
+                            a Null value. If a Null value is written and
+                            WriteProperty or WritePropertyMultiple services
+                            subsequently receive an ERROR_INVALID_DATATYPE or
+                            REJECT_INVALID_PARAMETER_DATA_TYPE,
+                            it shall not be treated as a FAILED value.
+                            This is specifically to allow Channel objects
+                            to point to both commandable and non-commandable
+                            properties with the same channel.*/
+                        } else {
+                            /* The FAILED value indicates that the Channel
+                               object has processed a property in and received
+                               an error, reject, or abort for at least one
+                               of the writes. */
+                            pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
+                        }
+                    }
+                } else {
+                    /* NOTE: internal callback not valid,
+                       so ignore the writes and report no error */
                 }
-                Channel_Write_Property_Notify(
-                    object_instance, status, &wp_data);
             } else {
+                /* coercion failed */
+                wp_data.error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
                 debug_printf(
-                    "channel[%lu].Channel_Write_Member[%u] invalid!\n",
+                    "channel[%lu].Channel_Write_Member[%u] "
+                    "coercion failed!\n",
                     (unsigned long)object_instance, m);
+                /* The FAILED value indicates that the Channel object
+                   has processed all of the properties in
+                   List_Of_Object_Property_References and
+                   encountered a coercion failure, or received an error,
+                   reject, or abort for at least one of the writes.*/
+                pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
             }
+            Channel_Write_Property_Notify(object_instance, status, &wp_data);
+        } else {
+            debug_printf(
+                "channel[%lu].Channel_Write_Member[%u] invalid!\n",
+                (unsigned long)object_instance, m);
         }
-        if (pObject->Write_Status == BACNET_WRITE_STATUS_IN_PROGRESS) {
-            pObject->Write_Status = BACNET_WRITE_STATUS_SUCCESSFUL;
-        }
+    }
+    if (pObject->Write_Status == BACNET_WRITE_STATUS_IN_PROGRESS) {
+        /* the Write_Status property shall be set to either
+           SUCCESSFUL or FAILED. The SUCCESSFUL value indicates
+           that the Channel object has processed all of the properties
+           in List_Of_Object_Property_References and did not have
+           any coercion errors, and did not receive any errors,
+           rejects, or aborts. */
+        pObject->Write_Status = BACNET_WRITE_STATUS_SUCCESSFUL;
     }
 
     return status;
@@ -1099,18 +1144,37 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 static int Channel_List_Of_Object_Property_References_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
     int len = 0;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        len = bacapp_decode_known_property(
-            apdu, apdu_size, &value, OBJECT_CHANNEL,
-            PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+        len = bacnet_device_object_property_reference_decode(
+            apdu, apdu_size, &value);
     }
 
     return len;
+}
+
+/**
+ * @brief For a given object instance-number and reference, determines if the
+ * reference is for a direct self present-value reference
+ * @param channel_instance [in] BACnet channel object instance number
+ * @param ref [in] BACnet device object property reference
+ * @return true if the reference is for a direct self present-value
+ */
+static bool Channel_Member_Is_Direct_Self_Present_Value(
+    uint32_t channel_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *ref)
+{
+    if (!ref) {
+        return false;
+    }
+
+    return (ref->objectIdentifier.type == OBJECT_CHANNEL) &&
+        (ref->objectIdentifier.instance == channel_instance) &&
+        (ref->propertyIdentifier == PROP_PRESENT_VALUE);
 }
 
 /**
@@ -1131,7 +1195,7 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
     int len = 0;
     bool status;
     struct object_data *pObject;
@@ -1144,23 +1208,24 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
             (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else {
-            len = bacapp_decode_known_property(
-                application_data, application_data_len, &value, OBJECT_CHANNEL,
-                PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+            len = bacnet_device_object_property_reference_decode(
+                application_data, application_data_len, &value);
             if (len > 0) {
-                if (value.tag ==
-                    BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE) {
+                status = Channel_Member_Is_Direct_Self_Present_Value(
+                    object_instance, &value);
+                if (status) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
                     status = List_Of_Object_Property_References_Set(
-                        pObject, array_index - 1,
-                        &value.type.Device_Object_Property_Reference);
+                        pObject, array_index - 1, &value);
                     if (status) {
                         error_code = ERROR_CODE_SUCCESS;
                     } else {
                         error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
-                } else {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
+            } else if (len == 0) {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
@@ -1180,14 +1245,14 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
 static int Channel_Control_Groups_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_UNSIGNED_INTEGER value_unsigned = 0;
     int len = 0;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        len = bacapp_decode_known_property(
-            apdu, apdu_size, &value, OBJECT_CHANNEL, PROP_CONTROL_GROUPS);
+        len = bacnet_unsigned_application_decode(
+            apdu, apdu_size, &value_unsigned);
     }
 
     return len;
@@ -1211,7 +1276,7 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_UNSIGNED_INTEGER value_unsigned = 0;
     uint16_t control_group;
     int len = 0;
     bool status;
@@ -1225,26 +1290,23 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
             (void)array_size;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else {
-            len = bacapp_decode_known_property(
-                application_data, application_data_len, &value, OBJECT_CHANNEL,
-                PROP_CONTROL_GROUPS);
+            len = bacnet_unsigned_application_decode(
+                application_data, application_data_len, &value_unsigned);
             if (len > 0) {
-                if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                    if (value.type.Unsigned_Int <= UINT16_MAX) {
-                        control_group = (uint16_t)value.type.Unsigned_Int;
-                        status = Control_Groups_Element_Set(
-                            pObject, array_index, control_group);
-                        if (status) {
-                            error_code = ERROR_CODE_SUCCESS;
-                        } else {
-                            error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                        }
+                if (value_unsigned <= UINT16_MAX) {
+                    control_group = (uint16_t)value_unsigned;
+                    status = Control_Groups_Element_Set(
+                        pObject, array_index, control_group);
+                    if (status) {
+                        error_code = ERROR_CODE_SUCCESS;
                     } else {
                         error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
                 } else {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            } else if (len == 0) {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
             } else {
                 error_code = ERROR_CODE_ABORT_OTHER;
             }
