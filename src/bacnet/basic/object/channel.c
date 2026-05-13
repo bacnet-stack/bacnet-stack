@@ -769,13 +769,47 @@ static bool Channel_Write_Members(
                         wp_data.object_instance,
                         bactext_property_name(wp_data.object_property),
                         bactext_error_code_name(wp_data.error_code));
+                    if (!status) {
+                        if ((bacnet_null_application_decode(
+                                 wp_data.application_data,
+                                 wp_data.application_data_len) > 0) &&
+                            ((wp_data.error_code ==
+                              ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE) ||
+                             (wp_data.error_code ==
+                              ERROR_CODE_INVALID_DATA_TYPE))) {
+                            /* A special exception shall be the writing of
+                            a Null value. If a Null value is written and
+                            WriteProperty or WritePropertyMultiple services
+                            subsequently receive an ERROR_INVALID_DATATYPE or
+                            REJECT_INVALID_PARAMETER_DATA_TYPE,
+                            it shall not be treated as a FAILED value.
+                            This is specifically to allow Channel objects
+                            to point to both commandable and non-commandable
+                            properties with the same channel.*/
+                        } else {
+                            /* The FAILED value indicates that the Channel
+                               object has processed a property in and received
+                               an error, reject, or abort for at least one
+                               of the writes. */
+                            pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
+                        }
+                    }
+                } else {
+                    /* NOTE: internal callback not valid,
+                       so ignore the writes and report no error */
                 }
             } else {
+                /* coercion failed */
                 wp_data.error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
                 debug_printf(
                     "channel[%lu].Channel_Write_Member[%u] "
                     "coercion failed!\n",
                     (unsigned long)object_instance, m);
+                /* The FAILED value indicates that the Channel object
+                   has processed all of the properties in
+                   List_Of_Object_Property_References and
+                   encountered a coercion failure, or received an error,
+                   reject, or abort for at least one of the writes.*/
                 pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
             }
             Channel_Write_Property_Notify(object_instance, status, &wp_data);
@@ -786,6 +820,12 @@ static bool Channel_Write_Members(
         }
     }
     if (pObject->Write_Status == BACNET_WRITE_STATUS_IN_PROGRESS) {
+        /* the Write_Status property shall be set to either
+           SUCCESSFUL or FAILED. The SUCCESSFUL value indicates
+           that the Channel object has processed all of the properties
+           in List_Of_Object_Property_References and did not have
+           any coercion errors, and did not receive any errors,
+           rejects, or aborts. */
         pObject->Write_Status = BACNET_WRITE_STATUS_SUCCESSFUL;
     }
 
