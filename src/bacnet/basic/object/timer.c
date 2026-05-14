@@ -1891,7 +1891,7 @@ static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Add(
     bool status = false;
 
     if ((!application_data) && (application_data_len == 0)) {
-        /* empty the BACnetLIST - remove all before adding */
+        /* empty the BACnetLIST - remove all */
         (void)Timer_Reference_List_Member_Element_Remove(object_instance, NULL);
         error_code = ERROR_CODE_SUCCESS;
     } else {
