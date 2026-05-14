@@ -536,9 +536,11 @@ static void testCharacterStringBufferApi(void)
     BACNET_CHARACTER_STRING src = { 0 };
     BACNET_CHARACTER_STRING out = { 0 };
     BACNET_CHARACTER_STRING_BUFFER buffer = { 0 };
+    char long_value[MAX_CHARACTER_STRING_BYTES + 16] = { 0 };
     const char *value = "Buffer API";
     const char *buf_value = NULL;
     bool status = false;
+    size_t i = 0;
 
     status = characterstring_buffer_ansi_init(NULL, value);
     zassert_false(status, NULL);
@@ -588,6 +590,25 @@ static void testCharacterStringBufferApi(void)
     zassert_true(status, NULL);
     zassert_equal(characterstring_buffer_length(&buffer), 0, NULL);
 
+    memset(long_value, 'A', sizeof(long_value) - 1);
+    status = characterstring_buffer_ansi_init(&buffer, long_value);
+    zassert_true(status, NULL);
+    zassert_equal(
+        characterstring_buffer_length(&buffer), strlen(long_value), NULL);
+    status = characterstring_buffer_to_characterstring(&out, &buffer);
+    zassert_false(status, NULL);
+
+    for (i = 0; i < 8; i++) {
+        status = characterstring_buffer_ansi_init(
+            &buffer, (i % 2) ? "Cycle-1" : "Cycle-2");
+        zassert_true(status, NULL);
+        characterstring_buffer_free(&buffer);
+        zassert_is_null(buffer.buffer, NULL);
+        zassert_equal(buffer.buffer_size, 0, NULL);
+        zassert_equal(buffer.buffer_length, 0, NULL);
+    }
+
+    characterstring_buffer_free(&buffer);
     characterstring_buffer_free(&buffer);
     zassert_is_null(buffer.buffer, NULL);
     zassert_equal(buffer.buffer_size, 0, NULL);
