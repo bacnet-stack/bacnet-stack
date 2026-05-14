@@ -67,9 +67,9 @@ static void testStateNameByIndex(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(state_name_tests, testStateNameFromIndex)
+ZTEST(state_name_tests, testStateNameToIndex)
 #else
-static void testStateNameFromIndex(void)
+static void testStateNameToIndex(void)
 #endif
 {
     unsigned index = 0;
@@ -102,7 +102,7 @@ void test_main(void)
     ztest_test_suite(
         state_name_tests, ztest_unit_test(testStateNameCount),
         ztest_unit_test(testStateNameByIndex),
-        ztest_unit_test(testStateNameFromIndex));
+        ztest_unit_test(testStateNameToIndex));
 
     ztest_run_test_suite(state_name_tests);
 }
