@@ -91,6 +91,17 @@ jobs:
     - name: Run Unit Test with Code Coverage
       run: make test
 
+  unittest-bacstr-dual-mode:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [test-bacstr-strdup, test-bacstr-const]
+    steps:
+    - uses: actions/checkout@v6
+    - name: Build and run bacstr unit tests via Makefile (${{ matrix.target }})
+      run: make ${{ matrix.target }}
+
   unittest-secure-connect:
     runs-on: ubuntu-latest
     steps:
