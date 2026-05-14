@@ -9,22 +9,23 @@
 #include <string.h>
 
 /* me! */
-#include "state_name.h"
+#include "bacnet/basic/sys/state_name.h"
 
 /**
  * @brief Count the number of states
  * @details The state names are stored as a list of state-text from
  * a C string array. The state_text_list consists of C strings separated
  * by '\0'. For example:
- * {@code
- * static const char *baud_rate_names = {
+ * @code
+ * static const char baud_rate_names[] =
  *     "9600\0"
  *     "19200\0"
  *     "38400\0"
  *     "57600\0"
  *     "76800\0"
  *     "115200\0"
- * };
+ *     "\0";
+ * @endcode
  *
  * @param state_names - string of null-terminated state names
  * @return number of states
@@ -48,9 +49,9 @@ unsigned state_name_count(const char *state_names)
 }
 
 /**
- * @brief Get the specific state name at index 0..N
+ * @brief Get the specific state name at index 1..N
  * @param state_names - string of null-terminated state names
- * @param state_index - state index number 1..N of the state names
+ * @param index - state index number 1..N of the state names
  * @return state name, or NULL
  */
 const char *state_name_by_index(const char *state_names, unsigned index)
