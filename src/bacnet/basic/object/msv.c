@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -19,6 +18,7 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/sys/keylist.h"
+#include "bacnet/basic/sys/state_name.h"
 #include "bacnet/basic/services.h"
 /* BACnet Stack Objects */
 #include "bacnet/basic/object/device.h"
@@ -181,56 +181,6 @@ bool Multistate_Value_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * @brief Count the number of states
- * @param state_names - string of null-terminated state names
- * @return number of states
- */
-static unsigned state_name_count(const char *state_names)
-{
-    unsigned count = 0;
-    int len = 0;
-
-    if (state_names) {
-        do {
-            len = strlen(state_names);
-            if (len > 0) {
-                count++;
-                state_names = state_names + len + 1;
-            }
-        } while (len > 0);
-    }
-
-    return count;
-}
-
-/**
- * @brief Get the specific state name at index 0..N
- * @param state_names - string of null-terminated state names
- * @param state_index - state index number 1..N of the state names
- * @return state name, or NULL
- */
-static const char *state_name_by_index(const char *state_names, unsigned index)
-{
-    unsigned count = 0;
-    int len = 0;
-
-    if (state_names) {
-        do {
-            len = strlen(state_names);
-            if (len > 0) {
-                count++;
-                if (index == count) {
-                    return state_names;
-                }
-                state_names = state_names + len + 1;
-            }
-        } while (len > 0);
-    }
-
-    return NULL;
-}
-
-/**
  * @brief For a given object instance-number, determines number of states
  * @param  object_instance - object-instance number of the object
  * @return  number of states 1..N
@@ -246,6 +196,27 @@ uint32_t Multistate_Value_Max_States(uint32_t object_instance)
     }
 
     return count;
+}
+
+/**
+ * @brief For a given object instance-number, determines the state index
+ * from a state text.
+ * @param  object_instance - object-instance number of the object
+ * @param  state_text - C string of the state text
+ * @return  state index 1..N, or 0 if not found
+ */
+uint32_t Multistate_Value_State_From_Text(
+    uint32_t object_instance, const char *state_text)
+{
+    unsigned index = 0;
+    const struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        index = state_name_to_index(pObject->State_Text, state_text);
+    }
+
+    return index;
 }
 
 /**
@@ -381,6 +352,34 @@ bool Multistate_Value_Present_Value_Set(
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         max_states = state_name_count(pObject->State_Text);
+        if ((value >= 1) && (value <= max_states)) {
+            Multistate_Value_Present_Value_COV_Detect(pObject, value);
+            pObject->Present_Value = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the present-value
+ * @param  object_instance - object-instance number of the object
+ * @param  state_name - state name to set the present value to
+ * @return  true if value is within range and present-value is set.
+ */
+bool Multistate_Value_Present_Value_By_Name_Set(
+    uint32_t object_instance, const char *state_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+    unsigned max_states = 0;
+    unsigned value = 0;
+
+    pObject = Multistate_Value_Object(object_instance);
+    if (pObject) {
+        max_states = state_name_count(pObject->State_Text);
+        value = state_name_to_index(pObject->State_Text, state_name);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;

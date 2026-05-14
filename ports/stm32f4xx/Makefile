@@ -70,6 +70,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
 	$(BACNET_BASIC)/sys/keylist.c \
+	$(BACNET_BASIC)/sys/state_name.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/tsm/tsm.c
 

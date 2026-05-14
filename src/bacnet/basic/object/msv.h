@@ -112,6 +112,12 @@ bool Multistate_Value_Max_States_Set(
 BACNET_STACK_EXPORT
 uint32_t Multistate_Value_Max_States(uint32_t instance);
 BACNET_STACK_EXPORT
+uint32_t Multistate_Value_State_From_Text(
+    uint32_t object_instance, const char *state_text);
+BACNET_STACK_EXPORT
+bool Multistate_Value_Present_Value_By_Name_Set(
+    uint32_t object_instance, const char *state_name);
+BACNET_STACK_EXPORT
 const char *
 Multistate_Value_State_Text(uint32_t object_instance, uint32_t state_index);
 
