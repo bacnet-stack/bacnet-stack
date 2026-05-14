@@ -625,6 +625,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/sys/ringbuf.h
   src/bacnet/basic/sys/sbuf.c
   src/bacnet/basic/sys/sbuf.h
+  src/bacnet/basic/sys/state_name.c
+  src/bacnet/basic/sys/state_name.h
   src/bacnet/basic/tsm/tsm.c
   src/bacnet/basic/tsm/tsm.h
   src/bacnet/basic/sys/bits.h

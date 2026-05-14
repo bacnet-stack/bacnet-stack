@@ -71,6 +71,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/state_name.c
     # Test and test library files
     ./src/main.c
     ${TST_DIR}/bacnet/basic/object/test/property_test.c

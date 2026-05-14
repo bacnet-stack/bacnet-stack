@@ -69,6 +69,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/state_name.c
     ${SRC_DIR}/bacnet/channel_value.c
     # Test and test library files
     ./src/main.c
