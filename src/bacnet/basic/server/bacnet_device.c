@@ -222,15 +222,6 @@
 /* ObjectList */
 static OS_Keylist Object_Table;
 
-static unsigned Device_Object_Functions_Count(void)
-{
-    if (!Object_Table) {
-        return 0;
-    }
-
-    return (unsigned)Keylist_Count(Object_Table);
-}
-
 static object_functions_t Default_Object_Table[] = {
     { OBJECT_DEVICE,
       NULL /* Init - don't init Device or it will recourse! */,
@@ -1070,6 +1061,19 @@ Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type)
 
     key = Object_Type;
     return Keylist_Data(Object_Table, key);
+}
+
+/**
+ * @brief Get the number of object functions elements in the Device object list.
+ * @return The count of object functions elements.
+ */
+unsigned Device_Object_Functions_Count(void)
+{
+    if (!Object_Table) {
+        return 0;
+    }
+
+    return (unsigned)Keylist_Count(Object_Table);
 }
 
 /**
@@ -3379,7 +3383,7 @@ static bool Device_Write_Property_Object_Name(
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_CHARACTER_STRING value;
+    BACNET_CHARACTER_STRING value = { 0 };
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     int apdu_size = 0;
