@@ -525,6 +525,76 @@ static void testCharacterStringUtf8Strdup(void)
 }
 
 /**
+ * @brief Test dynamic/const BACNET_CHARACTER_STRING_BUFFER APIs
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringBufferApi)
+#else
+static void testCharacterStringBufferApi(void)
+#endif
+{
+    BACNET_CHARACTER_STRING src = { 0 };
+    BACNET_CHARACTER_STRING out = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER buffer = { 0 };
+    const char *value = "Buffer API";
+    const char *buf_value = NULL;
+    bool status = false;
+
+    status = characterstring_buffer_ansi_init(NULL, value);
+    zassert_false(status, NULL);
+    zassert_equal(characterstring_buffer_length(NULL), 0, NULL);
+    zassert_false(characterstring_buffer_strdup(NULL, &src), NULL);
+    zassert_false(characterstring_buffer_strdup(&buffer, NULL), NULL);
+    zassert_false(
+        characterstring_buffer_to_characterstring(NULL, &buffer), NULL);
+    zassert_false(characterstring_buffer_to_characterstring(&out, NULL), NULL);
+
+    status = characterstring_buffer_ansi_init(&buffer, value);
+    zassert_true(status, NULL);
+    zassert_equal(buffer.encoding, CHARACTER_UTF8, NULL);
+    zassert_equal(characterstring_buffer_length(&buffer), strlen(value), NULL);
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&buffer), value), 0, NULL);
+#if BACNET_CHARACTER_STRING_BUFFER_STRDUP
+    zassert_not_equal((uintptr_t)buffer.buffer, (uintptr_t)value, NULL);
+#else
+    zassert_equal((uintptr_t)buffer.buffer, (uintptr_t)value, NULL);
+#endif
+
+    status = characterstring_init_ansi(&src, value);
+    zassert_true(status, NULL);
+    status = characterstring_buffer_strdup(&buffer, &src);
+    zassert_true(status, NULL);
+    zassert_equal(buffer.encoding, characterstring_encoding(&src), NULL);
+    zassert_equal(
+        characterstring_buffer_length(&buffer), characterstring_length(&src),
+        NULL);
+    buf_value = characterstring_buffer_value(&buffer);
+    zassert_equal(
+        bacnet_strcmp(buf_value, characterstring_value(&src)), 0, NULL);
+#if BACNET_CHARACTER_STRING_BUFFER_STRDUP
+    zassert_not_equal(
+        (uintptr_t)buf_value, (uintptr_t)characterstring_value(&src), NULL);
+#else
+    zassert_equal(
+        (uintptr_t)buf_value, (uintptr_t)characterstring_value(&src), NULL);
+#endif
+
+    status = characterstring_buffer_to_characterstring(&out, &buffer);
+    zassert_true(status, NULL);
+    zassert_true(characterstring_same(&src, &out), NULL);
+
+    status = characterstring_buffer_ansi_init(&buffer, NULL);
+    zassert_true(status, NULL);
+    zassert_equal(characterstring_buffer_length(&buffer), 0, NULL);
+
+    characterstring_buffer_free(&buffer);
+    zassert_is_null(buffer.buffer, NULL);
+    zassert_equal(buffer.buffer_size, 0, NULL);
+    zassert_equal(buffer.buffer_length, 0, NULL);
+}
+
+/**
  * @brief Test encode/decode API for octet strings
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1407,6 +1477,7 @@ void test_main(void)
         ztest_unit_test(testCharacterString), ztest_unit_test(testUtf8IsValid),
         ztest_unit_test(testCharacterStringUtf8Valid),
         ztest_unit_test(testCharacterStringUtf8Strdup),
+        ztest_unit_test(testCharacterStringBufferApi),
         ztest_unit_test(testOctetString),
         ztest_unit_test(test_octetstring_init_ascii_epics),
         ztest_unit_test(test_bacnet_stricmp),
