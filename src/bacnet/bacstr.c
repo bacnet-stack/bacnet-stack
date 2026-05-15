@@ -1145,7 +1145,7 @@ bool characterstring_buffer_strdup(
     }
 #else
     dest->buffer = (char *)value;
-    dest->buffer_size = length;
+    dest->buffer_size = characterstring_capacity(src);
     dest->buffer_length = length;
 #endif
 
