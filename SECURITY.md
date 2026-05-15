@@ -8,12 +8,12 @@ currently being supported with security updates.
 | Version | Supported          |
 | ------- | ------------------ |
 | 1.4.x   | :white_check_mark: |
-| 1.3.x   | :white_check_mark: |
-| 1.2.x   | :white_check_mark: |
-| 1.1.x   | :white_check_mark: |
-| 1.0.x   | :white_check_mark: |
+| 1.3.x   | :x:                |
+| 1.2.x   | :x:                |
+| 1.1.x   | :x:                |
+| 1.0.x   | :x:                |
 | 0.9.x   | :x:                |
-| 0.8.x   | :white_check_mark: |
+| 0.8.x   | :x:                |
 | 0.7.x   | :x:                |
 | < 0.6.x | :x:                |
 
@@ -25,6 +25,10 @@ and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
 Here are the known CVE records:
+
+[CVE-2026-45265](https://www.cve.org/CVERecord?id=CVE-2026-45265) -
+Atomic-Read-File RecordCount Stack-Based Out-of-Bounds Write
+[GHSA-v3gx-mwrp-xvh5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-v3gx-mwrp-xvh5)
 
 [CVE-2026-26264](https://www.cve.org/CVERecord?id=CVE-2026-26264) -
 WriteProperty decoding length underflow leads to OOB read and crash
