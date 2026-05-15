@@ -591,16 +591,6 @@ test-bsc:
 	$(MAKE) -s -C test clean
 	$(MAKE) -s -j -C test test-bsc
 
-.PHONY: test-bacstr-strdup
-test-bacstr-strdup:
-	$(MAKE) -s -C test clean
-	$(MAKE) -s -j -C test test-bacstr-strdup
-
-.PHONY: test-bacstr-const
-test-bacstr-const:
-	$(MAKE) -s -C test clean
-	$(MAKE) -s -j -C test test-bacstr-const
-
 # Zephyr unit testing with twister
 # expects zephyr to be installed in ../zephyr in Workspace
 # expects ZEPHYR_BASE to be set. E.g. source ../zephyr/zephyr-env.sh

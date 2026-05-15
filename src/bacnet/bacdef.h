@@ -226,9 +226,6 @@ typedef struct BACnet_Object_Id {
 #if !defined(MAX_APDU)
 #define MAX_APDU 1476
 #endif
-#ifndef BACNET_CHARACTER_STRING_BUFFER_STRDUP
-#define BACNET_CHARACTER_STRING_BUFFER_STRDUP 1
-#endif
 #define MAX_NPDU (1 + 1 + 2 + 1 + MAX_MAC_LEN + 2 + 1 + MAX_MAC_LEN + 1 + 1 + 2)
 #define MAX_PDU (MAX_APDU + MAX_NPDU)
 /* Application Service Data Unit (ASDU) that has not yet been segmented

@@ -142,23 +142,6 @@ libwebsockets:
 
 test-bsc: bsc-datalink bsc-node bsc-hub bsc-bvlc bsc-socket websockets
 
-BACSTR_DIR := $(realpath ./bacnet/bacstr)
-BACSTR_STRDUP_BUILD_DIR := $(realpath ./build-bacstr-1)
-.PHONY: test-bacstr-strdup
-test-bacstr-strdup:
-	[ -d $(BACSTR_STRDUP_BUILD_DIR) ] || mkdir -p $(BACSTR_STRDUP_BUILD_DIR)
-	[ -d $(BACSTR_STRDUP_BUILD_DIR) ] && cd $(BACSTR_STRDUP_BUILD_DIR) && cmake $(BACSTR_DIR) -DCMAKE_C_FLAGS="-DBACNET_CHARACTER_STRING_BUFFER_STRDUP=1" && cd ..
-	[ -d $(BACSTR_STRDUP_BUILD_DIR) ] && cd $(BACSTR_STRDUP_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BACSTR_STRDUP_BUILD_DIR) ] && cd $(BACSTR_STRDUP_BUILD_DIR) && ./test_bacstr && cd ..
-
-BACSTR_CONST_BUILD_DIR := $(realpath ./build-bacstr-0)
-.PHONY: test-bacstr-const
-test-bacstr-const:
-	[ -d $(BACSTR_CONST_BUILD_DIR) ] || mkdir -p $(BACSTR_CONST_BUILD_DIR)
-	[ -d $(BACSTR_CONST_BUILD_DIR) ] && cd $(BACSTR_CONST_BUILD_DIR) && cmake $(BACSTR_DIR) -DCMAKE_C_FLAGS="-DBACNET_CHARACTER_STRING_BUFFER_STRDUP=0" && cd ..
-	[ -d $(BACSTR_CONST_BUILD_DIR) ] && cd $(BACSTR_CONST_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BACSTR_CONST_BUILD_DIR) ] && cd $(BACSTR_CONST_BUILD_DIR) && ./test_bacstr && cd ..
-
 .PHONY: clean
 clean:
 	-rm -rf $(BUILD_DIR)

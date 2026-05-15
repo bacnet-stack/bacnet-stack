@@ -153,14 +153,21 @@ BACNET_STACK_EXPORT
 bool characterstring_utf8_valid(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string);
+
 BACNET_STACK_EXPORT
 bool characterstring_buffer_ansi_init(
+    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_ansi_strdup(
     BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
 BACNET_STACK_EXPORT
 size_t characterstring_buffer_length(
     const BACNET_CHARACTER_STRING_BUFFER *char_string);
 BACNET_STACK_EXPORT
 bool characterstring_buffer_strdup(
+    BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_from_characterstring(
     BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
 bool characterstring_buffer_to_characterstring(
