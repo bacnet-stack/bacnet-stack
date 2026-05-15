@@ -12,10 +12,15 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [1.4.4-rc1] - 2026-05-15
+## [1.4.4-rc2] - 2026-05-15
 
 ### Security
 
+* Secured AtomicReadFile-ACK Record-Access Encoder by initializing
+  BACNET_CHARACTER_STRING and OCTET_STRING to prevent uninitialized
+  usage and conditional information disclosure. (#1344)
+* Secured AtomicReadFile and AtomicWriteFile callbacks into bacfile.c
+  by adding null checks and fixing out-of-bounds read/write.(#1344)
 * Secured WriteProperty to Structured View subordinate-list that caused a NULL
   pointer dereference in bacnet_device_object_reference_decode(). (#1321)
 * Secured AtomicReadFile handler by implementing bounds checks for
