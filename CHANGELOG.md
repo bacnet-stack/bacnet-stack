@@ -12,10 +12,12 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [1.4.4-rc1] - 2026-05-07
+## [1.4.4-rc1] - 2026-05-15
 
 ### Security
 
+* Secured WriteProperty to Structured View subordinate-list that caused a NULL
+  pointer dereference in bacnet_device_object_reference_decode(). (#1321)
 * Secured AtomicReadFile handler by implementing bounds checks for
   RecordCount stack based out-of-bounds write. (#1340)
 

@@ -26,6 +26,10 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records:
 
+[CVE-2026-45341](https://www.cve.org/CVERecord?id=CVE-2026-45341) -
+WriteProperty to Structured View subordinate-list causes NULL pointer dereference
+[GHSA-fv2r-c2m2-7qhh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-fv2r-c2m2-7qhh)
+
 [CVE-2026-45265](https://www.cve.org/CVERecord?id=CVE-2026-45265) -
 Atomic-Read-File RecordCount Stack-Based Out-of-Bounds Write
 [GHSA-v3gx-mwrp-xvh5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-v3gx-mwrp-xvh5)
