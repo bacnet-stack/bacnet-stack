@@ -39,14 +39,14 @@ typedef struct BACnetCharacterStringBuffer {
     uint8_t encoding;
     char *buffer;
     size_t buffer_size;
-    uint32_t buffer_length;
+    size_t buffer_length;
 } BACNET_CHARACTER_STRING_BUFFER;
 
 /* buffer pointer version of Octet String */
 typedef struct BACnetOctetStringBuffer {
     uint8_t *buffer;
     size_t buffer_size;
-    uint32_t buffer_length;
+    size_t buffer_length;
 } BACNET_OCTET_STRING_BUFFER;
 
 #ifdef __cplusplus
