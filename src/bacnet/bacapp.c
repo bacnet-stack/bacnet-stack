@@ -1467,6 +1467,7 @@ int bacapp_decode_application_tag_value(
 #endif
 #if defined(BACAPP_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
+            octetstring_init(&value->type.Octet_String, NULL, 0);
             apdu_len = bacnet_octet_string_application_decode(
                 apdu, apdu_size, &value->type.Octet_String);
             if (apdu_len == 0) {
@@ -1478,6 +1479,7 @@ int bacapp_decode_application_tag_value(
 #endif
 #if defined(BACAPP_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            characterstring_init_ansi(&value->type.Character_String, "");
             apdu_len = bacnet_character_string_application_decode(
                 apdu, apdu_size, &value->type.Character_String);
             if (apdu_len == 0) {

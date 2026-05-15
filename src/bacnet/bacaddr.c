@@ -279,6 +279,7 @@ int bacnet_address_decode(
     }
     apdu_len += len;
     /* mac address as an octet-string */
+    octetstring_init(&mac_addr, NULL, 0);
     len = bacnet_octet_string_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &mac_addr);
     if (len <= 0) {

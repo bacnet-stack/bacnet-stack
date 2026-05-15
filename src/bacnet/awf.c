@@ -226,6 +226,7 @@ int awf_decode_service_request(
         if (data) {
             octet_string = &data->fileData[0];
         }
+        octetstring_init(octet_string, NULL, 0);
         len = bacnet_octet_string_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, octet_string);
         if (len <= 0) {
@@ -274,6 +275,7 @@ int awf_decode_service_request(
             } else {
                 octet_string = NULL;
             }
+            octetstring_init(octet_string, NULL, 0);
             len = bacnet_octet_string_application_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, octet_string);
             if (len <= 0) {
