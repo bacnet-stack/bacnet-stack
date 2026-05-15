@@ -39,14 +39,14 @@ typedef struct BACnetCharacterStringBuffer {
     uint8_t encoding;
     char *buffer;
     size_t buffer_size;
-    uint32_t buffer_length;
+    size_t buffer_length;
 } BACNET_CHARACTER_STRING_BUFFER;
 
 /* buffer pointer version of Octet String */
 typedef struct BACnetOctetStringBuffer {
     uint8_t *buffer;
     size_t buffer_size;
-    uint32_t buffer_length;
+    size_t buffer_length;
 } BACNET_OCTET_STRING_BUFFER;
 
 #ifdef __cplusplus
@@ -153,6 +153,30 @@ BACNET_STACK_EXPORT
 bool characterstring_utf8_valid(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string);
+
+BACNET_STACK_EXPORT
+bool characterstring_buffer_ansi_init(
+    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_ansi_strdup(
+    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
+BACNET_STACK_EXPORT
+size_t characterstring_buffer_length(
+    const BACNET_CHARACTER_STRING_BUFFER *char_string);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_strdup(
+    BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_from_characterstring(
+    BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_to_characterstring(
+    BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING_BUFFER *src);
+BACNET_STACK_EXPORT
+const char *
+characterstring_buffer_value(const BACNET_CHARACTER_STRING_BUFFER *char_string);
+BACNET_STACK_EXPORT
+void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
