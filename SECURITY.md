@@ -26,6 +26,26 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities. Here are the published vulnerability records:
 
+[CVE-2026-46677](https://www.cve.org/CVERecord?id=CVE-2026-46677) -
+Client-Side Out-of-Bounds Read in AtomicReadFile-ACK Record-Access Handling via RecordCount / fileData[] Mismatch
+[GHSA-rv5h-cxwq-q3mh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rv5h-cxwq-q3mh)
+
+[CVE-2026-46676](https://www.cve.org/CVERecord?id=CVE-2026-46676) -
+Uninitialized Value Use in AtomicReadFile-ACK Record-Access Encoder Causes Response Corruption and Conditional Information Disclosure
+[GHSA-2fwp-32cj-g3x4](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2fwp-32cj-g3x4)
+
+[CVE-2026-46674](https://www.cve.org/CVERecord?id=CVE-2026-46674) -
+Out-of-Bounds Read in AtomicWriteFile Record Decoder via Unbounded returnedRecordCount
+[GHSA-8384-pwhh-cxjh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8384-pwhh-cxjh)
+
+[CVE-2026-45341](https://www.cve.org/CVERecord?id=CVE-2026-45341) -
+WriteProperty to Structured View subordinate-list causes NULL pointer dereference
+[GHSA-fv2r-c2m2-7qhh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-fv2r-c2m2-7qhh)
+
+[CVE-2026-45265](https://www.cve.org/CVERecord?id=CVE-2026-45265) -
+Atomic-Read-File RecordCount Stack-Based Out-of-Bounds Write
+[GHSA-v3gx-mwrp-xvh5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-v3gx-mwrp-xvh5)
+
 [CVE-2026-40279](https://www.cve.org/CVERecord?id=CVE-2026-40279) -
 Undefined-behavior signed left shift in `decode_signed32()`
 [GHSA-326g-j95f-gmxv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-326g-j95f-gmxv)
