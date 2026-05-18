@@ -38,6 +38,7 @@ typedef struct BACnet_Octet_String {
 typedef struct BACnetCharacterStringBuffer {
     uint8_t encoding;
     char *buffer;
+    bool buffer_allocated : 1;
     size_t buffer_size;
     size_t buffer_length;
 } BACNET_CHARACTER_STRING_BUFFER;
@@ -167,6 +168,8 @@ BACNET_STACK_EXPORT
 bool characterstring_buffer_strdup(
     BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
+void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string);
+BACNET_STACK_EXPORT
 bool characterstring_buffer_from_characterstring(
     BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
@@ -176,7 +179,8 @@ BACNET_STACK_EXPORT
 const char *
 characterstring_buffer_value(const BACNET_CHARACTER_STRING_BUFFER *char_string);
 BACNET_STACK_EXPORT
-void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string);
+uint8_t characterstring_buffer_encoding(
+    const BACNET_CHARACTER_STRING_BUFFER *char_string);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
