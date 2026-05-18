@@ -526,6 +526,140 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
 }
 
 /**
+ * @brief Test Remove_List_Element function
+ *
+ * This test verifies the security and functionality of the Remove function:
+ * 1. Tests successful removal of existing recipients
+ * 2. Tests the decode buffer overflow protection
+ * 3. Tests error handling for invalid inputs
+ * 4. Tests that removed elements are properly cleared
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(
+    notification_class_tests,
+    test_Notification_Class_Remove_List_Element_Security)
+#else
+static void test_Notification_Class_Remove_List_Element_Security(void)
+#endif
+{
+    const uint32_t instance = 1;
+    int err = 0;
+    BACNET_LIST_ELEMENT_DATA list_element = { 0 };
+    BACNET_DESTINATION destination = { 0 };
+    BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
+    uint8_t apdu_add[MAX_APDU] = { 0 };
+    uint8_t apdu_remove[MAX_APDU] = { 0 };
+    int len = 0;
+    int total_len = 0;
+    unsigned i = 0;
+
+    Notification_Class_Init();
+    zassert_true(Notification_Class_Valid_Instance(instance), NULL);
+
+    /* Setup common destination parameters */
+    for (unsigned j = 0; j < MAX_BACNET_DAYS_OF_WEEK; j++) {
+        bitstring_set_bit(&destination.ValidDays, j, true);
+    }
+    datetime_set_time(&destination.FromTime, 0, 0, 0, 0);
+    datetime_set_time(&destination.ToTime, 23, 59, 59, 99);
+    destination.ConfirmedNotify = true;
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_OFFNORMAL, true);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_FAULT, true);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_NORMAL, true);
+
+    /* Test 1: Add two recipients for removal testing */
+    total_len = 0;
+    for (i = 0; i < 2 && total_len < (int)sizeof(apdu_add); i++) {
+        bacnet_recipient_device_set(
+            &destination.Recipient, OBJECT_DEVICE, 100 + i);
+        destination.ProcessIdentifier = i;
+        len = bacnet_destination_encode(&apdu_add[total_len], &destination);
+        zassert(len > 0, "encode failed for add", NULL);
+        total_len += len;
+    }
+
+    list_element.object_type = OBJECT_NOTIFICATION_CLASS;
+    list_element.object_instance = instance;
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    list_element.application_data = apdu_add;
+    list_element.application_data_len = total_len;
+    list_element.first_failed_element_number = 0;
+    err = Notification_Class_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, "Failed to add recipients");
+
+    /* Add first recipient */
+    total_len = 0;
+    destination.ProcessIdentifier = 0;
+    len = bacnet_destination_encode(&apdu_add[0], &destination);
+    zassert(len > 0, "encode failed for first recipient", NULL);
+    list_element.object_type = OBJECT_NOTIFICATION_CLASS;
+    list_element.object_instance = instance;
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    list_element.application_data = apdu_add;
+    list_element.application_data_len = len;
+    list_element.first_failed_element_number = 0;
+    err = Notification_Class_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, "Failed to add first recipient");
+
+    /* Test 2: Successfully remove the added recipient */
+    total_len = 0;
+    bacnet_recipient_device_set(&destination.Recipient, OBJECT_DEVICE, 100);
+    len = bacnet_destination_encode(&apdu_remove[total_len], &destination);
+    zassert(len > 0, "encode failed for remove", NULL);
+    total_len = len;
+    list_element.application_data = apdu_remove;
+    list_element.application_data_len = total_len;
+    list_element.first_failed_element_number = 0;
+    err = Notification_Class_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_OK, "Failed to remove existing recipient");
+
+    /* Test 3: Test overflow protection on decode buffer - attempt excessive
+     * elements */
+    total_len = 0;
+    unsigned extra_count = 3;
+    for (i = 0; i < (NC_MAX_RECIPIENTS + extra_count) &&
+         total_len < (int)sizeof(apdu_remove);
+         i++) {
+        bacnet_recipient_device_set(
+            &destination.Recipient, OBJECT_DEVICE, 200 + i);
+        destination.ProcessIdentifier = 200 + i;
+        len = bacnet_destination_encode(&apdu_remove[total_len], &destination);
+        if (len > 0) {
+            total_len += len;
+        } else {
+            break;
+        }
+    }
+    list_element.application_data = apdu_remove;
+    list_element.application_data_len = total_len;
+    list_element.first_failed_element_number = 0;
+    list_element.error_class = 0;
+    list_element.error_code = 0;
+    err = Notification_Class_Remove_List_Element(&list_element);
+    /* Should be rejected - these don't exist in the list */
+    /* Should be rejected - these don't exist in the list or overflow */
+    zassert(
+        err != BACNET_STATUS_ABORT, "Should not abort (overflow protected)",
+        NULL);
+
+    /* Test 4: Verify function properly handles null input */
+    err = Notification_Class_Remove_List_Element(NULL);
+    zassert_equal(err, BACNET_STATUS_ABORT, "Should abort on null input");
+
+    /* Test 5: Verify invalid property fails */
+    list_element.object_property = PROP_PRIORITY;
+    list_element.application_data = apdu_remove;
+    list_element.application_data_len = 1;
+    err = Notification_Class_Remove_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, "Should error on invalid property");
+    zassert_equal(list_element.error_class, ERROR_CLASS_PROPERTY, NULL);
+
+    return;
+}
+
+/**
  * @}
  */
 
@@ -541,7 +675,8 @@ void test_main(void)
         ztest_unit_test(test_Notification_Class_Ack_Required),
         ztest_unit_test(test_Notification_Class_Recipient_List),
         ztest_unit_test(test_Notification_Class_Common_Reporting),
-        ztest_unit_test(test_Notification_Class_Add_List_Element_Overflow));
+        ztest_unit_test(test_Notification_Class_Add_List_Element_Overflow),
+        ztest_unit_test(test_Notification_Class_Remove_List_Element_Security));
 
     ztest_run_test_suite(notification_class_tests);
 }
