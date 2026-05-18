@@ -26,6 +26,12 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records:
 
+Stack-based buffer overflow in Notification Class RemoveListElement recipient-list decoding
+[GHSA-9w9m-w7w5-rrv3](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9w9m-w7w5-rrv3)
+
+Stack-based buffer overflow in Notification Class AddListElement recipient-list decoding
+[GHSA-rjmv-3mcm-r83j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rjmv-3mcm-r83j)
+
 Uncontrolled recursion in Timer object writeback path leads to remote server stack overflow
 [GHSA-7r8r-2rj2-5wvr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7r8r-2rj2-5wvr)
 
@@ -82,9 +88,9 @@ Segmentation fault leading to denial of service
 
 ## Reporting a Vulnerability
 
-Please use the "bugs" feature of Sourceforge.net to report a vulnerability,
-where it will be tracked until it is resolved.
-https://sourceforge.net/p/bacnet/bugs/
+Privately discuss, fix, and publish information about security
+vulnerabilities in this library using Github Security Advisories:
+https://github.com/bacnet-stack/bacnet-stack/security/advisories/new
 
-Vulnerabilities can also be reported using "issues" at Github.
+Alternatively, vulnerabilities can be reported using "issues" at Github.
 https://github.com/bacnet-stack/bacnet-stack/issues
