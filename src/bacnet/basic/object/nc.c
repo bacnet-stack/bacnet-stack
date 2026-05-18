@@ -928,7 +928,8 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
             application_data_len -= len;
             if (new_element_count >= NC_MAX_RECIPIENTS) {
                 list_element->error_class = ERROR_CLASS_RESOURCES;
-                list_element->error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+                list_element->error_code =
+                    ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
                 return BACNET_STATUS_ERROR;
             }
         } else {

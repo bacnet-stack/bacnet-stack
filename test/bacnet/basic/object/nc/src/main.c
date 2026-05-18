@@ -418,7 +418,8 @@ static void test_Notification_Class_Common_Reporting(void)
  * 4. The stack buffer is protected from overflow
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(notification_class_tests, test_Notification_Class_Add_List_Element_Overflow)
+ZTEST(
+    notification_class_tests, test_Notification_Class_Add_List_Element_Overflow)
 #else
 static void test_Notification_Class_Add_List_Element_Overflow(void)
 #endif
@@ -464,14 +465,14 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
     list_element.application_data_len = total_len;
     list_element.first_failed_element_number = 0;
     err = Notification_Class_Add_List_Element(&list_element);
-    zassert_equal(err, BACNET_STATUS_OK,
-        "Failed to add a single recipient");
+    zassert_equal(err, BACNET_STATUS_OK, "Failed to add a single recipient");
 
     /* Test 2: Attempt to add exactly NC_MAX_RECIPIENTS in a single request
        This should be rejected because the security fix prevents decoding more
        than NC_MAX_RECIPIENTS-1 elements to avoid buffer overflow */
     total_len = 0;
-    for (i = 0; i < NC_MAX_RECIPIENTS && total_len < (int)sizeof(apdu_large); i++) {
+    for (i = 0; i < NC_MAX_RECIPIENTS && total_len < (int)sizeof(apdu_large);
+         i++) {
         bacnet_recipient_device_set(
             &destination.Recipient, OBJECT_DEVICE, 200 + i);
         destination.ProcessIdentifier = 100 + i;
@@ -495,19 +496,21 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
 
     /* The security fix should reject this because it exceeds the buffer size */
     if (encoded_count >= NC_MAX_RECIPIENTS) {
-        zassert_not_equal(err, BACNET_STATUS_OK,
+        zassert_not_equal(
+            err, BACNET_STATUS_OK,
             "Should reject request to add NC_MAX_RECIPIENTS elements");
-        zassert_equal(list_element.error_class, ERROR_CLASS_RESOURCES,
+        zassert_equal(
+            list_element.error_class, ERROR_CLASS_RESOURCES,
             "Error class should be RESOURCES for overflow");
-        zassert_equal(list_element.error_code,
-            ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT,
+        zassert_equal(
+            list_element.error_code, ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT,
             "Error code should be NO_SPACE_TO_ADD_LIST_ELEMENT");
     }
 
     /* Test 3: Verify existing recipients are not corrupted */
     BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
-    bool status = Notification_Class_Get_Recipient_List(
-        instance, &recipient_list[0]);
+    bool status =
+        Notification_Class_Get_Recipient_List(instance, &recipient_list[0]);
     zassert_true(status, NULL);
 
     /* Verify we have at least one recipient (stack was not corrupted) */
