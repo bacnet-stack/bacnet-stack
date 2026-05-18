@@ -428,11 +428,13 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
     int err = 0;
     BACNET_LIST_ELEMENT_DATA list_element = { 0 };
     BACNET_DESTINATION destination = { 0 };
+    BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t apdu_large[MAX_APDU] = { 0 };
     int len = 0;
     int total_len = 0;
-    unsigned i = 0;
+    unsigned i = 0, count = 0, encoded_count = 0;
+    bool status = false;
 
     Notification_Class_Init();
     zassert_true(Notification_Class_Valid_Instance(instance), NULL);
@@ -483,17 +485,14 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
             break;
         }
     }
-    unsigned encoded_count = i;
-
+    encoded_count = i;
     /* Try to add all NC_MAX_RECIPIENTS in one request - should be rejected */
     list_element.application_data = apdu_large;
     list_element.application_data_len = total_len;
     list_element.first_failed_element_number = 0;
     list_element.error_class = 0;
     list_element.error_code = 0;
-
     err = Notification_Class_Add_List_Element(&list_element);
-
     /* The security fix should reject this because it exceeds the buffer size */
     if (encoded_count >= NC_MAX_RECIPIENTS) {
         zassert_not_equal(
@@ -508,13 +507,11 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
     }
 
     /* Test 3: Verify existing recipients are not corrupted */
-    BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
-    bool status =
+    status =
         Notification_Class_Get_Recipient_List(instance, &recipient_list[0]);
     zassert_true(status, NULL);
-
     /* Verify we have at least one recipient (stack was not corrupted) */
-    unsigned count = 0;
+    count = 0;
     for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
         if (!bacnet_recipient_device_wildcard(&recipient_list[i].Recipient)) {
             count++;
@@ -537,21 +534,22 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(
     notification_class_tests,
-    test_Notification_Class_Remove_List_Element_Security)
+    test_Notification_Class_Remove_List_Element_Overflow)
 #else
-static void test_Notification_Class_Remove_List_Element_Security(void)
+static void test_Notification_Class_Remove_List_Element_Overflow(void)
 #endif
 {
     const uint32_t instance = 1;
     int err = 0;
     BACNET_LIST_ELEMENT_DATA list_element = { 0 };
     BACNET_DESTINATION destination = { 0 };
-    BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
     uint8_t apdu_add[MAX_APDU] = { 0 };
     uint8_t apdu_remove[MAX_APDU] = { 0 };
     int len = 0;
     int total_len = 0;
     unsigned i = 0;
+    unsigned count = 0;
+    unsigned encoded_count = 0;
 
     Notification_Class_Init();
     zassert_true(Notification_Class_Valid_Instance(instance), NULL);
@@ -676,7 +674,7 @@ void test_main(void)
         ztest_unit_test(test_Notification_Class_Recipient_List),
         ztest_unit_test(test_Notification_Class_Common_Reporting),
         ztest_unit_test(test_Notification_Class_Add_List_Element_Overflow),
-        ztest_unit_test(test_Notification_Class_Remove_List_Element_Security));
+        ztest_unit_test(test_Notification_Class_Remove_List_Element_Overflow));
 
     ztest_run_test_suite(notification_class_tests);
 }
