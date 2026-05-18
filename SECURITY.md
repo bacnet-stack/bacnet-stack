@@ -26,6 +26,9 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records:
 
+Uncontrolled recursion in Timer object writeback path leads to remote server stack overflow
+[GHSA-7r8r-2rj2-5wvr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7r8r-2rj2-5wvr)
+
 Channel member self-reference causes uncontrolled recursion and stack overflow in default BACnet/IP server
 [GHSA-wjw5-q9g6-2764](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wjw5-q9g6-2764)
 
