@@ -16,8 +16,37 @@ The git repositories are hosted at the following sites:
 ## [Unreleased] - 2026-05-06
 
 ### Security
+
+* Secured Timer object State_Change_Values property self-reference that
+  caused uncontrolled recursion. (#1347)
+* Secured Channel object member self-reference that caused uncontrolled
+  recursion. Changed Channel property handling to use device object
+  property reference and unsigned value specific decoders. Fixed handling
+  of Write_Status in Channel_Write_Members to properly reflect success
+  or failure of property writes. (#1345)
+* Secured AtomicReadFile-ACK Record-Access Encoder by initializing
+  BACNET_CHARACTER_STRING and OCTET_STRING to prevent uninitialized
+  usage and conditional information disclosure. (#1344)
+* Secured AtomicReadFile and AtomicWriteFile callbacks into bacfile.c
+  by adding null checks and fixing out-of-bounds read/write.(#1344)
+* Secured WriteProperty to Structured View subordinate-list that caused a NULL
+  pointer dereference in bacnet_device_object_reference_decode(). (#1321)
+* Secured AtomicReadFile handler by implementing bounds checks for
+  RecordCount stack based out-of-bounds write. (#1340)
+
 ### Added
 
+* Added a mixed static-reference and dynamic-allocation characterstring
+  buffer API for object strings. The new character string buffer API functions
+  include init/strdup/length/value/free/conversion and use a flag to track
+  dynamic memory and mix static-reference and dynamic-allocation.
+  Changed buffer_length type from uint32_t to size_t so that smaller
+  bit-size devices are not penalized. (#1351)
+* Added multistate text to value and sys state text to basic multistate objects.
+  Added state name utility functions and corresponding unit tests.
+  Added multistate object API to set present-value using state-name. (#1348)
+* Added proprietary object functions to device object list (#1343)
+* Added a BACnet Zigbee link layer general handler. (#1336)
 * Added generic Modbus RTU to BACnet gateway application that bridges
   Modbus RTU devices to a BACnet network via a JSON-based runtime
   configuration. (#1316)
@@ -47,6 +76,8 @@ for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed off-by-one error in Life_Safety_Point_Read_Property for
+  accepted modes property. (#1349)
 * Fixed WriteProperty handling across the stack by rejecting zero-length
   application payloads for non-list properties (returning
   ERROR_CODE_INVALID_TAG) and by adding defensive wp_data == NULL checks
