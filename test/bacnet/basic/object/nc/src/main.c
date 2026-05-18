@@ -548,8 +548,6 @@ static void test_Notification_Class_Remove_List_Element_Overflow(void)
     int len = 0;
     int total_len = 0;
     unsigned i = 0;
-    unsigned count = 0;
-    unsigned encoded_count = 0;
 
     Notification_Class_Init();
     zassert_true(Notification_Class_Valid_Instance(instance), NULL);
@@ -636,7 +634,6 @@ static void test_Notification_Class_Remove_List_Element_Overflow(void)
     list_element.error_class = 0;
     list_element.error_code = 0;
     err = Notification_Class_Remove_List_Element(&list_element);
-    /* Should be rejected - these don't exist in the list */
     /* Should be rejected - these don't exist in the list or overflow */
     zassert(
         err != BACNET_STATUS_ABORT, "Should not abort (overflow protected)",
