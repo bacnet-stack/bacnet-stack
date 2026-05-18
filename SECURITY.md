@@ -23,8 +23,13 @@ currently being supported with security updates in this branch:
 Vulnerabilites are disclosed to [CVE](https://www.cve.org/)
 or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state=published)
 and a record is created to identify, define, and catalog publicly disclosed
-cybersecurity vulnerabilities. Here are the published vulnerability records
-for v1.5.x:
+cybersecurity vulnerabilities.
+
+Here are the published vulnerability records for v1.5.x:
+
+[CVE-2026-47257](https://www.cve.org/CVERecord?id=CVE-2026-47257) -
+ReinitializeDevice ENDRESTORE can delete existing objects on an empty restore file and still return success
+[GHSA-x6pp-3pf3-f87r](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-x6pp-3pf3-f87r)
 
 Uncontrolled recursion in Timer object writeback path leads to remote server stack overflow
 [GHSA-7r8r-2rj2-5wvr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7r8r-2rj2-5wvr)

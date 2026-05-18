@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured Device ENDRESTORE so that it does not delete existing objects
+  until after the first record is decoded. (#1352)
 * Secured Timer object State_Change_Values property self-reference that
   caused uncontrolled recursion. (#1347)
 * Secured Channel object member self-reference that caused uncontrolled

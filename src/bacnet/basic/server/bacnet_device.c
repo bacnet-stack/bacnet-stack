@@ -3773,8 +3773,6 @@ void Device_End_Restore(void)
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(&Last_Restore_Time, &bdateTime);
-    /* delete all existing objects before restore */
-    Device_Delete_Objects();
     /* create objects from the backup file */
     file_size = bacfile_file_size(Configuration_Files[0]);
     while (offset < file_size) {
@@ -3784,6 +3782,11 @@ void Device_End_Restore(void)
             decoded_len = create_object_decode_service_request(
                 apdu, apdu_len, &create_data);
             if (decoded_len > 0) {
+                if (offset == 0) {
+                    /* delete all existing objects before restore
+                       after the first record is successfully decoded */
+                    Device_Delete_Objects();
+                }
                 offset += decoded_len;
                 create_data.error_class = ERROR_CLASS_PROPERTY;
                 create_data.error_code = ERROR_CODE_SUCCESS;
