@@ -241,6 +241,19 @@ bool lighting_command_overridden_status(
     struct bacnet_lighting_command_data *data);
 
 BACNET_STACK_EXPORT
+float lighting_command_min_actual_value_get(
+    struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_min_actual_value_set(
+    struct bacnet_lighting_command_data *data, float value);
+BACNET_STACK_EXPORT
+float lighting_command_max_actual_value_get(
+    struct bacnet_lighting_command_data *data);
+BACNET_STACK_EXPORT
+void lighting_command_max_actual_value_set(
+    struct bacnet_lighting_command_data *data, float value);
+
+BACNET_STACK_EXPORT
 bool lighting_command_active(struct bacnet_lighting_command_data *data);
 
 BACNET_STACK_EXPORT
