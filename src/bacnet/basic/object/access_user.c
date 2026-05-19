@@ -228,10 +228,12 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], au_descr[object_index].user_type);
             break;
         case PROP_CREDENTIALS:
+            /* BACnetList */
             for (i = 0; i < au_descr[object_index].credentials_count; i++) {
-                len = bacapp_encode_device_obj_ref(
-                    &apdu[apdu_len], &au_descr[object_index].credentials[i]);
-                if (len > 0 && (apdu_len + len) <= apdu_size) {
+                len = bacnet_device_object_reference_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len,
+                    &au_descr[object_index].credentials[i]);
+                if (len > 0) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =

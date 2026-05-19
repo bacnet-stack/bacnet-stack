@@ -245,6 +245,33 @@ void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 }
 
 /**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Credential_Data_Input_Supported_Formats_Array_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    unsigned index = 0;
+
+    index = Credential_Data_Input_Instance_To_Index(object_instance);
+    if (index < MAX_CREDENTIAL_DATA_INPUTS) {
+        if (array_index < cdi_descr[index].supported_formats_count) {
+            apdu_len = bacapp_encode_authentication_factor_format(
+                apdu, &cdi_descr[index].supported_formats[array_index]);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Read a property value for a given Credential Data Input object
  * instance.
  * @param rpdata - pointer to a BACNET_READ_PROPERTY_DATA structure containing
@@ -254,13 +281,11 @@ void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
  */
 int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;
     int apdu_size = 0;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
-    unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
 
@@ -312,38 +337,19 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_SUPPORTED_FORMATS:
-            if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(
-                    &apdu[0], cdi_descr[object_index].supported_formats_count);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0; i < cdi_descr[object_index].supported_formats_count;
-                     i++) {
-                    len = bacapp_encode_authentication_factor_format(
-                        &apdu[apdu_len],
-                        &cdi_descr[object_index].supported_formats[i]);
-                    if (len > 0 && (apdu_len + len) <= apdu_size) {
-                        apdu_len += len;
-                    } else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <=
-                    cdi_descr[object_index].supported_formats_count) {
-                    apdu_len = bacapp_encode_authentication_factor_format(
-                        &apdu[0],
-                        &cdi_descr[object_index]
-                             .supported_formats[rpdata->array_index - 1]);
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            /* BACnetARRAY */
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Credential_Data_Input_Supported_Formats_Array_Encode,
+                cdi_descr[object_index].supported_formats_count, apdu,
+                apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
-
             break;
         case PROP_UPDATE_TIME:
             apdu_len = bacapp_encode_timestamp(

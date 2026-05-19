@@ -297,11 +297,12 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ac_descr[object_index].credential_status);
             break;
         case PROP_REASON_FOR_DISABLE:
+            /* BACnetList */
             for (i = 0; i < ac_descr[object_index].reasons_count; i++) {
-                len = encode_application_enumerated(
-                    &apdu[apdu_len],
+                len = bacnet_enumerated_application_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len,
                     ac_descr[object_index].reason_for_disable[i]);
-                if (len > 0 && (apdu_len + len) <= apdu_size) {
+                if (len > 0) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =

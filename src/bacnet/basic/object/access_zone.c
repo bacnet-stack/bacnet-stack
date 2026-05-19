@@ -267,10 +267,12 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_ENTRY_POINTS:
+            /* BACnetList */
             for (i = 0; i < az_descr[object_index].entry_points_count; i++) {
-                len = bacapp_encode_device_obj_ref(
-                    &apdu[apdu_len], &az_descr[object_index].entry_points[i]);
-                if (len > 0 && (apdu_len + len) <= apdu_size) {
+                len = bacnet_device_object_reference_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len,
+                    &az_descr[object_index].entry_points[i]);
+                if (len > 0) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =
@@ -281,10 +283,12 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_EXIT_POINTS:
+            /* BACnetList */
             for (i = 0; i < az_descr[object_index].exit_points_count; i++) {
-                len = bacapp_encode_device_obj_ref(
-                    &apdu[apdu_len], &az_descr[object_index].exit_points[i]);
-                if (len > 0 && (apdu_len + len) <= apdu_size) {
+                len = bacnet_device_object_reference_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len,
+                    &az_descr[object_index].exit_points[i]);
+                if (len > 0) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =
