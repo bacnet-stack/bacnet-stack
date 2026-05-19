@@ -42,6 +42,31 @@ int bacapp_encode_authentication_factor_format(
 }
 
 /**
+ * @brief Encode BACnetAuthenticationFactorFormat data if it fits in the buffer
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - bit string value to encode
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_authentication_factor_format_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = bacapp_encode_authentication_factor_format(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = bacapp_encode_authentication_factor_format(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Context encode BACnetAuthenticationFactorFormat data
  * @param apdu - buffer to store the encoding, or NULL for length
  * @param tag - tag number used to encapsulate the data within open/close tags
