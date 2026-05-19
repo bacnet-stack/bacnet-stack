@@ -207,7 +207,6 @@ void Access_Zone_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_size = 0;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
@@ -221,7 +220,6 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
-    apdu_size = rpdata->application_data_len;
     object_index = Access_Zone_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -269,8 +267,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_ENTRY_POINTS:
             for (i = 0; i < az_descr[object_index].entry_points_count; i++) {
                 len = bacapp_encode_device_obj_ref(
-                    &apdu[apdu_len], &az_descr[object_index].entry_points[i]);
-                if (len > 0 && (apdu_len + len) <= apdu_size) {
+                    &apdu[0], &az_descr[object_index].entry_points[i]);
+                if (apdu_len + len < MAX_APDU) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =
@@ -283,8 +281,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_EXIT_POINTS:
             for (i = 0; i < az_descr[object_index].exit_points_count; i++) {
                 len = bacapp_encode_device_obj_ref(
-                    &apdu[apdu_len], &az_descr[object_index].exit_points[i]);
-                if (len > 0 && (apdu_len + len) <= apdu_size) {
+                    &apdu[0], &az_descr[object_index].exit_points[i]);
+                if (apdu_len + len < MAX_APDU) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =

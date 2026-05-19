@@ -255,7 +255,6 @@ void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_size = 0;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
@@ -269,7 +268,6 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
-    apdu_size = rpdata->application_data_len;
     object_index =
         Credential_Data_Input_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
@@ -319,9 +317,9 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 for (i = 0; i < cdi_descr[object_index].supported_formats_count;
                      i++) {
                     len = bacapp_encode_authentication_factor_format(
-                        &apdu[apdu_len],
+                        &apdu[0],
                         &cdi_descr[object_index].supported_formats[i]);
-                    if (len > 0 && (apdu_len + len) <= apdu_size) {
+                    if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
                     } else {
                         rpdata->error_code =
