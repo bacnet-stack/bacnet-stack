@@ -1644,7 +1644,6 @@ float lighting_command_max_actual_value_get(
     lighting_command_unlock(data);
 
     return value;
-
 }
 
 /**
@@ -1661,7 +1660,6 @@ void lighting_command_max_actual_value_set(
     lighting_command_lock(data);
     data->Max_Actual_Value = value;
     lighting_command_unlock(data);
-
 }
 
 /**

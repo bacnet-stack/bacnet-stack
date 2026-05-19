@@ -683,6 +683,32 @@ static void testLightingOutput(void)
     /* context get/set */
     Lighting_Output_Context_Set(
         instance, Lighting_Output_Context_Get(instance));
+    /* min-actual-value get/set */
+    real_value = 5.0f;
+    status = Lighting_Output_Min_Actual_Value_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Min_Actual_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, real_value), "value=%f test=%f", real_value,
+        test_real);
+    real_value = 1.0f;
+    status = Lighting_Output_Min_Actual_Value_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Min_Actual_Value(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
+    /* max-actual-value get/set */
+    real_value = 95.0f;
+    status = Lighting_Output_Max_Actual_Value_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Max_Actual_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, real_value), "value=%f test=%f", real_value,
+        test_real);
+    real_value = 100.0f;
+    status = Lighting_Output_Max_Actual_Value_Set(instance, real_value);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Max_Actual_Value(instance);
+    zassert_true(is_float_equal(test_real, real_value), NULL);
     /* out-of-bounds */
     test_instance = Lighting_Output_Create(BACNET_MAX_INSTANCE + 1);
     zassert_equal(test_instance, BACNET_MAX_INSTANCE, NULL);

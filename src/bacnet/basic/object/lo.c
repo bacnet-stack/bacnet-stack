@@ -1048,9 +1048,9 @@ bool Lighting_Output_Present_Value_Set(
                     priority);
                 Lighting_Command_Warn(pObject, priority);
                 status = true;
-            } else if (
-                is_float_equal(
-                    value, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH)) {
+            } else if (is_float_equal(
+                           value,
+                           BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH)) {
                 /* Provides the same functionality as the
                    WARN_RELINQUISH lighting command. */
                 debug_printf(
@@ -1058,8 +1058,8 @@ bool Lighting_Output_Present_Value_Set(
                     object_instance, priority);
                 Lighting_Command_Warn_Relinquish(pObject, priority);
                 status = true;
-            } else if (
-                is_float_equal(value, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF)) {
+            } else if (is_float_equal(
+                           value, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF)) {
                 /* Provides the same functionality as the
                    WARN_OFF lighting command. */
                 debug_printf(
@@ -1068,9 +1068,8 @@ bool Lighting_Output_Present_Value_Set(
                 Lighting_Command_Warn_Off(pObject, priority);
                 status = true;
 #if (BACNET_PROTOCOL_REVISION >= 28)
-            } else if (
-                is_float_equal(
-                    value, BACNET_LIGHTING_SPECIAL_VALUE_RESTORE_ON)) {
+            } else if (is_float_equal(
+                           value, BACNET_LIGHTING_SPECIAL_VALUE_RESTORE_ON)) {
                 /* Provides the same functionality as the
                    RESTORE_ON lighting command. */
                 debug_printf(
@@ -1078,9 +1077,8 @@ bool Lighting_Output_Present_Value_Set(
                     priority);
                 Lighting_Command_Restore_On(pObject, priority);
                 status = true;
-            } else if (
-                is_float_equal(
-                    value, BACNET_LIGHTING_SPECIAL_VALUE_DEFAULT_ON)) {
+            } else if (is_float_equal(
+                           value, BACNET_LIGHTING_SPECIAL_VALUE_DEFAULT_ON)) {
                 /* Provides the same functionality as the
                    DEFAULT_ON lighting command. */
                 debug_printf(
@@ -1088,9 +1086,9 @@ bool Lighting_Output_Present_Value_Set(
                     priority);
                 Lighting_Command_Default_On(pObject, priority);
                 status = true;
-            } else if (
-                is_float_equal(
-                    value, BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_RESTORE)) {
+            } else if (is_float_equal(
+                           value,
+                           BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_RESTORE)) {
                 /* Provides the same functionality as the
                    TOGGLE_RESTORE lighting command. */
                 debug_printf(
@@ -1098,9 +1096,9 @@ bool Lighting_Output_Present_Value_Set(
                     object_instance, priority);
                 Lighting_Command_Toggle_Restore(pObject, priority);
                 status = true;
-            } else if (
-                is_float_equal(
-                    value, BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_DEFAULT)) {
+            } else if (is_float_equal(
+                           value,
+                           BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_DEFAULT)) {
                 /* Provides the same functionality as the
                    TOGGLE_DEFAULT lighting command. */
                 debug_printf(
