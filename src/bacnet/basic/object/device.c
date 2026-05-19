@@ -3195,7 +3195,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif
 #if defined(BACNET_TIME_MASTER)
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
-            apdu_len = handler_timesync_encode_recipients(&apdu[0], MAX_APDU);
+            apdu_len = handler_timesync_encode_recipients(&apdu[0], apdu_max);
             if (apdu_len < 0) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
