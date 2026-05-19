@@ -13,10 +13,15 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-05-06
+## [Unreleased] - 2026-05-18
 
 ### Security
 
+* Secured Loop object internal Read_Property function buffer overflow. (#1355)
+* Secured Life Safety Point and Zone Read_Property of accepted-modes property
+  buffer overflow. (#1354)
+* Secured Notification Class AddListElement and RemoveListElement stack
+  based buffer overflow. (#1353)
 * Secured Timer object State_Change_Values property self-reference that
   caused uncontrolled recursion. (#1347)
 * Secured Channel object member self-reference that caused uncontrolled
