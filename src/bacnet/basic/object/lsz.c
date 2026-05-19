@@ -745,8 +745,17 @@ int Life_Safety_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_ACCEPTED_MODES:
             for (mode = 0; mode < LIFE_SAFETY_MODE_RESERVED_MIN; mode++) {
-                len = encode_application_enumerated(&apdu[apdu_len], mode);
+                len = bacnet_enumerated_application_encode(
+                    apdu, apdu_size - apdu_len, mode);
+                if (len < 0) {
+                    rpdata->error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    return BACNET_STATUS_ABORT;
+                }
                 apdu_len += len;
+                if (apdu) {
+                    apdu += len;
+                }
             }
             break;
         case PROP_SILENCED:

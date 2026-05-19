@@ -502,12 +502,14 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
     uint8_t *apdu = NULL;
+    int apdu_size = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -571,8 +573,17 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_ACCEPTED_MODES:
             for (mode = 0; mode < LIFE_SAFETY_MODE_RESERVED_MIN; mode++) {
-                len = encode_application_enumerated(&apdu[apdu_len], mode);
+                len = bacnet_enumerated_application_encode(
+                    apdu, apdu_size - apdu_len, mode);
+                if (len < 0) {
+                    rpdata->error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    return BACNET_STATUS_ABORT;
+                }
                 apdu_len += len;
+                if (apdu) {
+                    apdu += len;
+                }
             }
             break;
         case PROP_SILENCED:
