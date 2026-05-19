@@ -503,7 +503,6 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
     uint8_t *apdu = NULL;
     int apdu_size = 0;
-    int apdu_size = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
