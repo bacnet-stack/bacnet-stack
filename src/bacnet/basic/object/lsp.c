@@ -510,7 +510,6 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
-    apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
