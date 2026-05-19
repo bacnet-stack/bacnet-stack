@@ -40,6 +40,7 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LOOP;
 /* handling for manipulated and reference properties */
 static write_property_function Write_Property_Internal_Callback;
 static read_property_function Read_Property_Internal_Callback;
+static uint8_t Read_Property_Buffer[MAX_APDU];
 
 struct object_data {
     /* internal variables for PID calculations */
@@ -1966,7 +1967,6 @@ static bool Loop_Read_Variable_Reference_Update(
     const BACNET_OBJECT_PROPERTY_REFERENCE *reference, float *value)
 {
     BACNET_READ_PROPERTY_DATA data = { 0 };
-    uint8_t apdu[32] = { 0 };
     int apdu_len = 0, len = 0;
     bool status = false;
 
@@ -1975,8 +1975,8 @@ static bool Loop_Read_Variable_Reference_Update(
         data.object_instance = reference->object_identifier.instance;
         data.object_property = reference->property_identifier;
         data.array_index = reference->property_array_index;
-        data.application_data = apdu;
-        data.application_data_len = sizeof(apdu);
+        data.application_data = Read_Property_Buffer;
+        data.application_data_len = sizeof(Read_Property_Buffer);
         data.error_class = ERROR_CLASS_PROPERTY;
         data.error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         if (Read_Property_Internal_Callback) {
@@ -1984,7 +1984,8 @@ static bool Loop_Read_Variable_Reference_Update(
         }
         if (apdu_len > 0) {
             /* expecting only application tagged REAL values */
-            len = bacnet_real_application_decode(apdu, apdu_len, value);
+            len = bacnet_real_application_decode(
+                Read_Property_Buffer, apdu_len, value);
             if (len > 0) {
                 status = true;
             }
