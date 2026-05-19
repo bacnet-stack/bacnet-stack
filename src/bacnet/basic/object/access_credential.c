@@ -299,8 +299,9 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_REASON_FOR_DISABLE:
             for (i = 0; i < ac_descr[object_index].reasons_count; i++) {
                 len = encode_application_enumerated(
-                    &apdu[0], ac_descr[object_index].reason_for_disable[i]);
-                if (apdu_len + len < MAX_APDU) {
+                    &apdu[apdu_len],
+                    ac_descr[object_index].reason_for_disable[i]);
+                if (len > 0 && (apdu_len + len) <= apdu_size) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =
