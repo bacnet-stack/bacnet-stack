@@ -202,6 +202,17 @@ bool Lighting_Output_Default_Priority_Set(
     uint32_t object_instance, unsigned priority);
 
 BACNET_STACK_EXPORT
+float Lighting_Output_Min_Actual_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Min_Actual_Value_Set(
+    uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+float Lighting_Output_Max_Actual_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Max_Actual_Value_Set(
+    uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
 bool Lighting_Output_Color_Override(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Color_Override_Set(uint32_t object_instance, bool value);
