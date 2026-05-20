@@ -722,6 +722,112 @@ static void testLightingOutput(void)
     return;
 }
 /**
+ * @brief Test boundary and relationship behavior for Min/Max Actual Value
+ *
+ * Verifies:
+ *  - values outside 1.0..100.0 are rejected
+ *  - exact boundary values 1.0 and 100.0 are accepted
+ *  - setting Min above Max clamps Min down to the current Max value
+ *  - setting Max below Min forces Min down to the new Max value
+ *  - calls on a non-existent instance fail gracefully
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputMinMaxActualValue)
+#else
+static void testLightingOutputMinMaxActualValue(void)
+#endif
+{
+    const uint32_t instance = 400;
+    bool status;
+    float test_real;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+
+    /* --- out-of-range rejection for Min_Actual_Value --- */
+    status = Lighting_Output_Min_Actual_Value_Set(instance, 0.0f);
+    zassert_false(status, "Min=0.0 should be rejected (below 1.0)");
+    status = Lighting_Output_Min_Actual_Value_Set(instance, -1.0f);
+    zassert_false(status, "Min=-1.0 should be rejected");
+    status = Lighting_Output_Min_Actual_Value_Set(instance, 100.1f);
+    zassert_false(status, "Min=100.1 should be rejected (above 100.0)");
+    status = Lighting_Output_Min_Actual_Value_Set(instance, 200.0f);
+    zassert_false(status, "Min=200.0 should be rejected");
+
+    /* --- out-of-range rejection for Max_Actual_Value --- */
+    status = Lighting_Output_Max_Actual_Value_Set(instance, 0.0f);
+    zassert_false(status, "Max=0.0 should be rejected (below 1.0)");
+    status = Lighting_Output_Max_Actual_Value_Set(instance, -1.0f);
+    zassert_false(status, "Max=-1.0 should be rejected");
+    status = Lighting_Output_Max_Actual_Value_Set(instance, 100.1f);
+    zassert_false(status, "Max=100.1 should be rejected (above 100.0)");
+    status = Lighting_Output_Max_Actual_Value_Set(instance, 200.0f);
+    zassert_false(status, "Max=200.0 should be rejected");
+
+    /* --- exact boundary values must be accepted --- */
+    status = Lighting_Output_Min_Actual_Value_Set(instance, 1.0f);
+    zassert_true(status, "Min=1.0 (lower bound) should be accepted");
+    status = Lighting_Output_Max_Actual_Value_Set(instance, 100.0f);
+    zassert_true(status, "Max=100.0 (upper bound) should be accepted");
+
+    /* --- relationship invariant: Min > Max clamps Min down to Max ---
+     * Per the implementation: when the requested Min exceeds the current Max,
+     * Min is clamped to the current Max value (Max is unchanged). */
+    status = Lighting_Output_Max_Actual_Value_Set(instance, 50.0f);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Min_Actual_Value_Set(instance, 1.0f);
+    zassert_true(status, NULL);
+    /* request Min=80 with Max=50: call succeeds, Min stored as 50 */
+    status = Lighting_Output_Min_Actual_Value_Set(instance, 80.0f);
+    zassert_true(status, "Min=80 > Max=50 should succeed (clamped)");
+    test_real = Lighting_Output_Min_Actual_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 50.0f),
+        "Min should be clamped to Max(50.0), got %f", test_real);
+    test_real = Lighting_Output_Max_Actual_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 50.0f), "Max should remain 50.0, got %f",
+        test_real);
+
+    /* --- relationship invariant: Max < Min forces Min down to new Max ---
+     * Per the implementation: when the requested Max is below the current Min,
+     * Min is set to the new Max and then Max is set to the new Max. */
+    status = Lighting_Output_Max_Actual_Value_Set(instance, 80.0f);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Min_Actual_Value_Set(instance, 60.0f);
+    zassert_true(status, NULL);
+    /* request Max=30 with Min=60: call succeeds, both become 30 */
+    status = Lighting_Output_Max_Actual_Value_Set(instance, 30.0f);
+    zassert_true(status, "Max=30 < Min=60 should succeed (forces Min down)");
+    test_real = Lighting_Output_Max_Actual_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 30.0f), "Max should be 30.0, got %f",
+        test_real);
+    test_real = Lighting_Output_Min_Actual_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 30.0f),
+        "Min should be forced to new Max(30.0), got %f", test_real);
+
+    /* --- non-existent instance fails gracefully --- */
+    status = Lighting_Output_Min_Actual_Value_Set(instance + 1, 50.0f);
+    zassert_false(status, "Min set on non-existent instance should fail");
+    status = Lighting_Output_Max_Actual_Value_Set(instance + 1, 50.0f);
+    zassert_false(status, "Max set on non-existent instance should fail");
+    test_real = Lighting_Output_Min_Actual_Value(instance + 1);
+    zassert_true(
+        is_float_equal(test_real, 0.0f),
+        "Min get on non-existent instance should return 0.0");
+    test_real = Lighting_Output_Max_Actual_Value(instance + 1);
+    zassert_true(
+        is_float_equal(test_real, 0.0f),
+        "Max get on non-existent instance should return 0.0");
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
+/**
  * @}
  */
 
@@ -734,7 +840,8 @@ void test_main(void)
         lo_tests, ztest_unit_test(testLightingOutput),
         ztest_unit_test(testLightingOutputWritablePropertyList),
         ztest_unit_test(testLightingOutputBlinkStop),
-        ztest_unit_test(testLightingOutputWarnRelinquishEgress));
+        ztest_unit_test(testLightingOutputWarnRelinquishEgress),
+        ztest_unit_test(testLightingOutputMinMaxActualValue));
 
     ztest_run_test_suite(lo_tests);
 }

@@ -2323,12 +2323,25 @@ bool Lighting_Output_Min_Actual_Value_Set(uint32_t object_instance, float value)
 {
     bool status = false;
     struct object_data *pObject;
+    float max_actual_value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        lighting_command_min_actual_value_set(
-            &pObject->Lighting_Command, value);
-        status = true;
+        if (isgreaterequal(value, 1.0f) && islessequal(value, 100.0f)) {
+            /* Min_Actual_Value shall always be a positive number
+               in the range 1.0% to 100.0%.*/
+            max_actual_value = lighting_command_max_actual_value_get(
+                &pObject->Lighting_Command);
+            if (value > max_actual_value) {
+                /* Changing Min_Actual_Value to a value greater than
+                Max_Actual_Value shall force Max_Actual_Value
+                to become equal to Min_Actual_Value. */
+                value = max_actual_value;
+            }
+            lighting_command_min_actual_value_set(
+                &pObject->Lighting_Command, value);
+            status = true;
+        }
     }
 
     return status;
@@ -2353,24 +2366,11 @@ static bool Lighting_Output_Min_Actual_Value_Write(
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        (void)priority;
-        if (isgreaterequal(value, 1.0f) && islessequal(value, 100.0f)) {
-            /* Min_Actual_Value shall always be a positive number
-               in the range 1.0% to 100.0%.*/
-            lighting_command_min_actual_value_set(
-                &pObject->Lighting_Command, value);
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        }
-    } else {
+    (void)priority;
+    status = Lighting_Output_Min_Actual_Value_Set(object_instance, value);
+    if (!status) {
         *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
 
     return status;
@@ -2407,12 +2407,26 @@ bool Lighting_Output_Max_Actual_Value_Set(uint32_t object_instance, float value)
 {
     bool status = false;
     struct object_data *pObject;
+    float min_actual_value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        lighting_command_max_actual_value_set(
-            &pObject->Lighting_Command, value);
-        status = true;
+        if (isgreaterequal(value, 1.0f) && islessequal(value, 100.0f)) {
+            /* Max_Actual_Value shall always be a positive number
+               in the range 1.0% to 100.0%.*/
+            min_actual_value = lighting_command_min_actual_value_get(
+                &pObject->Lighting_Command);
+            if (value < min_actual_value) {
+                /* Changing Max_Actual_Value to a value less than
+                   Min_Actual_Value shall force Min_Actual_Value
+                   to become equal to Max_Actual_Value. */
+                lighting_command_min_actual_value_set(
+                    &pObject->Lighting_Command, value);
+            }
+            lighting_command_max_actual_value_set(
+                &pObject->Lighting_Command, value);
+            status = true;
+        }
     }
 
     return status;
@@ -2437,24 +2451,12 @@ static bool Lighting_Output_Max_Actual_Value_Write(
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        (void)priority;
-        if (isgreaterequal(value, 1.0f) && islessequal(value, 100.0f)) {
-            /* Max_Actual_Value shall always be a positive number
-               in the range 1.0% to 100.0%.*/
-            lighting_command_max_actual_value_set(
-                &pObject->Lighting_Command, value);
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        }
-    } else {
+    (void)priority;
+    status = Lighting_Output_Max_Actual_Value_Set(object_instance, value);
+    if (!status) {
         *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
 
     return status;
