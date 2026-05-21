@@ -131,6 +131,8 @@ bool npdu_is_data_expecting_reply(
     uint16_t reply_pdu_len,
     uint8_t reply_mac);
 
+void npdu_debug_enable(void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

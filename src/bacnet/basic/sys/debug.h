@@ -21,9 +21,36 @@
 #define DEBUG_PRINTF_WITH_TIMESTAMP 0
 #endif
 
+/*
+ * Each message Priority also has a decimal Severity level indicator.
+ * These are described in the following table along with their numerical
+ * values.  Severity values MUST be in the range of 0 to 7 inclusive.
+ */
+#define DEBUG_LOG_EMERGENCY 0 /* system is unusable */
+#define DEBUG_LOG_ALERT 1 /* action must be taken immediately */
+#define DEBUG_LOG_CRITICAL 2 /* critical conditions */
+#define DEBUG_LOG_ERROR 3 /* error conditions */
+#define DEBUG_LOG_WARNING 4 /* warning conditions */
+#define DEBUG_LOG_NOTICE 5 /* normal but significant condition */
+#define DEBUG_LOG_INFO 6 /* informational */
+#define DEBUG_LOG_DEBUG 7 /* debug-level messages */
+#define DEBUG_LOG_PRIMASK 0x07 /* mask to extract priority part (internal) */
+#define DEBUG_LOG_PRIORITY(p) ((p) & DEBUG_LOG_PRIMASK)
+#define DEBUG_LOG_DISABLED -1 /* special 'set' value to indicate no logging */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
+int debug_log_fprintf(int severity, FILE *stream, const char *format, ...);
+BACNET_STACK_EXPORT
+int debug_log_fprintf_disabled(
+    int severity, FILE *stream, const char *format, ...);
+BACNET_STACK_EXPORT
+void debug_log_severity_set(int severity);
+BACNET_STACK_EXPORT
+int debug_log_severity_get(void);
 
 BACNET_STACK_EXPORT
 void debug_printf(const char *format, ...);

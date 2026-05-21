@@ -31,6 +31,7 @@
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
@@ -245,6 +246,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
+    long severity = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -291,6 +293,12 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
                     specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--debug") == 0) {
+            if (++argi < argc) {
+                if (bacnet_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
                 }
             }
         } else {
