@@ -62,13 +62,13 @@ static int npdu_encode_pdu_routing(BACNET_ADDRESS *src)
     if (is_routed_device) {
         bacnet_address_copy(src, &pDev->bacDevAddr);
         debug_log_fprintf(
-            DEBUG_LOG_INFO, stdout,
+            DEBUG_LOG_INFO, stderr,
             "Virtual Device NPDU: SNET=%d, Instance=%u\n", pDev->bacDevAddr.net,
             pDev->bacObj.Object_Instance_Number);
     } else {
         datalink_get_my_address(src);
         debug_log_fprintf(
-            DEBUG_LOG_INFO, stdout, "Gateway Device NPDU: Instance=%u\n",
+            DEBUG_LOG_INFO, stderr, "Gateway Device NPDU: Instance=%u\n",
             pDev->bacObj.Object_Instance_Number);
     }
 
