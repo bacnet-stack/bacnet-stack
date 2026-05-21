@@ -68,7 +68,7 @@ void dlenv_debug_enable(void)
  */
 void dlenv_debug_disable(void)
 {
-    debug_log_severity_set(DEBUG_LOG_DISABLED);
+    debug_log_severity_set(DEBUG_LOG_ERROR);
 }
 
 /* Simple setters for BBMD registration variables. */
@@ -316,7 +316,7 @@ static int bbmd6_register_as_foreign_device(void)
             debug_log_fprintf(
                 DEBUG_LOG_ERROR, stderr,
                 "FAILED to Register with BBMD6 at %s:%u\n", pEnv,
-                (unsigned)BBMD_Address.port);
+                (unsigned)bip6_port);
         }
         BBMD_Timer_Seconds = BBMD_TTL_Seconds;
     }
@@ -951,7 +951,7 @@ uint8_t dlenv_get_port_type(void)
 {
     uint8_t port_type = PORT_TYPE_BIP;
     char *pEnv = NULL;
-    long severity = -1;
+    long severity = 0;
 
     pEnv = getenv("BACNET_DATALINK_DEBUG");
     if (pEnv) {

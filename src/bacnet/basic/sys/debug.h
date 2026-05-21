@@ -24,7 +24,8 @@
 /*
  * Each message Priority also has a decimal Severity level indicator.
  * These are described in the following table along with their numerical
- * values.  Severity values MUST be in the range of 0 to 7 inclusive.
+ * values.  Severity values MUST be in the range of 0 to 7 inclusive,
+ * or a special value of -1 to indicate that logging is disabled.
  */
 #define DEBUG_LOG_EMERGENCY 0 /* system is unusable */
 #define DEBUG_LOG_ALERT 1 /* action must be taken immediately */

@@ -66,7 +66,7 @@ static void print_usage(const char *filename)
         "    [new-state status-flags message notify-type\n"
         "     ack-required from-state to-state]\n",
         filename);
-    printf("       [--dnet][--dadr][--mac][--debug][--device]\n");
+    printf("       [--dnet][--dadr][--mac][--device][--debug]\n");
     printf("       [--version][--help]\n");
 }
 
@@ -132,14 +132,14 @@ static void print_help(const char *filename)
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("--debug S\n"
-           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
-           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
-    printf("\n");
     printf("--device D:\n"
            "BACnet Device Object Instance number of the target device.\n"
            "This application will try and bind with this device using\n"
            "Who-Is and I-Am services.\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
+    printf("\n");
     printf("Example:\n");
     printf("%s 1 2 binary-value 4 5 6 7 message event\n", filename);
 }

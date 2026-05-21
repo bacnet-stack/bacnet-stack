@@ -32,7 +32,7 @@ static int Debug_Log_Severity = DEBUG_LOG_ERROR;
  * @param format - printf format string
  * @param ... - variable arguments
  * @note This function is only available if
- * PRINT_ENABLED is non-zero
+ * PRINT_ENABLED or DEBUG_ENABLED is non-zero
  * @return number of characters printed
  */
 int debug_log_fprintf(int severity, FILE *stream, const char *format, ...)
@@ -81,7 +81,11 @@ int debug_log_fprintf_disabled(
  */
 void debug_log_severity_set(int severity)
 {
-    Debug_Log_Severity = severity;
+    if (severity < 0) {
+        Debug_Log_Severity = DEBUG_LOG_DISABLED;
+    } else {
+        Debug_Log_Severity = DEBUG_LOG_PRIORITY(severity);
+    }
 }
 
 /**
