@@ -157,7 +157,7 @@ static void print_usage(const char *filename)
         "Usage: %s device-instance object-type object-instance "
         "property [index]\n",
         filename);
-    printf("       [--dnet][--dadr][--mac]\n");
+    printf("       [--dnet][--dadr][--mac][--debug][--]\n");
     printf("       [--version][--help]\n");
 }
 
@@ -183,6 +183,9 @@ static void print_help(const char *filename)
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
