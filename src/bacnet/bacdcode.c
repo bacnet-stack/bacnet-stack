@@ -3407,6 +3407,10 @@ int bacnet_character_string_buffer_decode(
                     value->buffer[i] = 0;
                 }
             }
+        } else {
+            /* no buffer provided; use zero copy */
+            value->buffer = (char *)&apdu[1];
+            value->buffer_size = string_length;
         }
     }
     len = (int)len_value;
