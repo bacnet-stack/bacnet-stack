@@ -2526,6 +2526,29 @@ int bacnet_snprintf(
 /**
  * @brief duplicate a string (replacement for POSIX strdup)
  * @param  s - string to duplicate
+ * @param  n - maximum number of characters to duplicate
+ * @return a pointer to a new string on success, or a null pointer
+ */
+char *bacnet_strndup(const char *s, size_t n)
+{
+    size_t size;
+    char *p = NULL;
+
+    if (s) {
+        size = n + 1;
+        p = malloc(size);
+        if (p != NULL) {
+            memcpy(p, s, n);
+            p[n] = '\0';
+        }
+    }
+
+    return p;
+}
+
+/**
+ * @brief duplicate a string (replacement for POSIX strdup)
+ * @param  s - string to duplicate
  * @return a pointer to a new string on success, or a null pointer
  */
 char *bacnet_strdup(const char *s)
@@ -2534,11 +2557,7 @@ char *bacnet_strdup(const char *s)
     char *p = NULL;
 
     if (s) {
-        size = strlen(s) + 1;
-        p = malloc(size);
-        if (p != NULL) {
-            memcpy(p, s, size);
-        }
+        p = bacnet_strndup(s, strlen(s));
     }
 
     return p;
