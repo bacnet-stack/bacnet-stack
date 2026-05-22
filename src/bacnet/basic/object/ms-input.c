@@ -33,8 +33,7 @@ struct object_data {
     uint8_t Present_Value;
     uint8_t Reliability;
     const char *Object_Name;
-    /* The state text functions expect a list of C strings separated by '\0' */
-    const char *State_Text;
+    OS_Keylist State_List;
     const char *Description;
     void *Context;
 };
@@ -182,6 +181,114 @@ bool Multistate_Input_Valid_Instance(uint32_t object_instance)
 }
 
 /**
+ * @brief Determines the number of state texts in a keylist
+ * @param  list - keylist of state texts
+ * @return  number of state texts
+ */
+static uint32_t State_Text_Count(OS_Keylist list)
+{
+    return Keylist_Count(list);
+}
+
+/**
+ * Find the index of the state text in the state list for
+ * a given state text name.
+ * @param list - keylist of state text
+ * @param search_name - state text name to find the index for
+ * @return state index 1..N, or 0 if not found
+ */
+static unsigned State_Text_Index(OS_Keylist list, const char *search_name)
+{
+    unsigned count, i, index = 0;
+    KEY key;
+    const char *name;
+
+    count = Keylist_Count(list);
+    for (i = 0; i < count; i++) {
+        name = Keylist_Data_Index(list, i);
+        if (strcmp(name, search_name) == 0) {
+            if (Keylist_Index_Key(list, i, &key)) {
+                index = key;
+            }
+            break;
+        }
+    }
+
+    return index;
+}
+
+/**
+ * @brief Sets the state text list for a given keylist
+ * @param list - keylist to set the state text
+ * @param state_text_list - array of state names to use in this keylist
+ * @return number of states set
+ */
+static unsigned State_Text_Init(OS_Keylist list, const char *state_text_list)
+{
+    unsigned count, i;
+    char *name;
+    int index;
+
+    /* State Text in a Keylist */
+    if (list) {
+        /* flush existing state list and free the data */
+        while ((name = Keylist_Data_Pop(list))) {
+            free(name);
+        }
+    } else {
+        list = Keylist_Create();
+    }
+    count = state_name_count(state_text_list);
+    for (i = 0; i < count; i++) {
+        name = bacnet_strdup(state_name_by_index(state_text_list, i));
+        index = Keylist_Data_Add(list, 1 + i, name);
+        if (index < 0) {
+            free(name);
+            break;
+        }
+    }
+
+    return count;
+}
+
+static bool State_Text_Set(
+    OS_Keylist list, const char *text, size_t text_length, unsigned array_index)
+{
+    bool status = false;
+    KEY key;
+    char *entry;
+
+    key = array_index;
+    entry = Keylist_Data(list, key);
+    /* same value? */
+    if (entry) {
+        if (strncmp(entry, text, text_length) == 0) {
+            status = true;
+        } else {
+            /* update the value in the list */
+            free(entry);
+            entry = bacnet_strndup(text, text_length);
+            if (entry) {
+                Keylist_Data_Set(list, key, entry);
+                status = true;
+            } else {
+                status = false;
+            }
+        }
+    } else {
+        entry = bacnet_strndup(text, text_length);
+        if (entry) {
+            Keylist_Data_Set(list, key, entry);
+            status = true;
+        } else {
+            status = false;
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief For a given object instance-number, determines number of states
  * @param  object_instance - object-instance number of the object
  * @return  number of states 1..N
@@ -193,7 +300,7 @@ uint32_t Multistate_Input_Max_States(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        count = state_name_count(pObject->State_Text);
+        count = State_Text_Count(pObject->State_List);
     }
 
     return count;
@@ -214,7 +321,7 @@ uint32_t Multistate_Input_State_From_Text(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        index = state_name_to_index(pObject->State_Text, state_text);
+        index = State_Text_Index(pObject->State_List, state_text);
     }
 
     return index;
@@ -232,11 +339,13 @@ Multistate_Input_State_Text(uint32_t object_instance, uint32_t state_index)
 {
     const char *pName = NULL; /* return value */
     const struct object_data *pObject;
+    KEY key;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (state_index > 0) {
-            pName = state_name_by_index(pObject->State_Text, state_index);
+            key = state_index;
+            pName = Keylist_Data(pObject->State_List, key);
         }
     }
 
@@ -297,7 +406,7 @@ bool Multistate_Input_State_Text_List_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->State_Text = state_text_list;
+        (void)State_Text_Init(pObject->State_List, state_text_list);
         status = true;
     }
 
@@ -352,7 +461,7 @@ bool Multistate_Input_Present_Value_Set(
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        max_states = state_name_count(pObject->State_Text);
+        max_states = State_Text_Count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Input_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
@@ -379,8 +488,8 @@ bool Multistate_Input_Present_Value_By_Name_Set(
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        max_states = state_name_count(pObject->State_Text);
-        value = state_name_to_index(pObject->State_Text, state_name);
+        value = State_Text_Index(pObject->State_List, state_name);
+        max_states = State_Text_Count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Input_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
@@ -414,7 +523,7 @@ static bool Multistate_Input_Present_Value_Write(
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        max_states = state_name_count(pObject->State_Text);
+        max_states = State_Text_Count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
             if (pObject->Write_Enabled) {
                 old_value = pObject->Present_Value;
@@ -871,6 +980,94 @@ int Multistate_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ *  used by BACnetARRAY write utility function
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int State_Text_Element_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_CHARACTER_STRING_BUFFER value = { 0 };
+    int len = 0;
+
+    (void)object_instance;
+    len = bacnet_character_string_buffer_application_decode(
+        apdu, apdu_size, &value);
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetLIST property element value
+ *  used by BACnetARRAY write utility function
+ * @param object_instance [in] BACnet object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ *  if writing array size
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE State_Text_Element_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_CHARACTER_STRING_BUFFER value = { 0 };
+    int len = 0;
+    int count = 0;
+    struct object_data *pObject = NULL;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        count = State_Text_Count(pObject->State_List);
+        if (array_index == 0) {
+            /* This array is not required to be resizable
+               through BACnet write services */
+            /* For resizable arrays, resize to the requested length.
+               If the new size is larger, new elements are created
+               and their values are initialized as defaults.
+               If the new size is smaller, the array is truncated and
+                elements beyond the new length are discarded. */
+            (void)array_size;
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else if (array_index <= count) {
+            len = bacnet_character_string_buffer_application_decode(
+                application_data, application_data_len, &value);
+            if (len > 0) {
+                if (value.encoding == CHARACTER_ANSI_X34) {
+                    if (State_Text_Set(
+                            pObject->State_List, value.buffer,
+                            value.buffer_length, array_index)) {
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
+                } else {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        } else {
+            /* If the array is resizable, the array is expanded
+               automatically to accommodate the array_index.
+               Intermediate elements (if any) are initialized as defaults */
+            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+        }
+    }
+
+    return error_code;
+}
+
+/**
  * @brief WriteProperty handler for this object.  For the given WriteProperty
  *  data, the application_data is loaded or the error flags are set.
  * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
@@ -882,6 +1079,7 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    unsigned count;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -914,6 +1112,16 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = Multistate_Input_Out_Of_Service_Write(
                     wp_data->object_instance, value.type.Boolean,
                     &wp_data->error_class, &wp_data->error_code);
+            }
+            break;
+        case PROP_STATE_TEXT:
+            count = Multistate_Input_Max_States(wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                State_Text_Element_Length, State_Text_Element_Write, count,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
         default:
@@ -1048,12 +1256,12 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
             pObject->Object_Name = NULL;
-            pObject->State_Text = Default_State_Text;
             pObject->Out_Of_Service = false;
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
             pObject->Write_Enabled = false;
+            (void)State_Text_Init(pObject->State_List, Default_State_Text);
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
