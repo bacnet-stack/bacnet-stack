@@ -37,7 +37,6 @@
 #endif
 
 /* enable debugging */
-static bool Datalink_Debug;
 static uint16_t Datalink_Debug_Timer_Seconds;
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
@@ -61,7 +60,7 @@ static uint32_t Network_Port_Instance = 1;
  */
 void dlenv_debug_enable(void)
 {
-    Datalink_Debug = true;
+    debug_log_severity_set(DEBUG_LOG_DEBUG);
 }
 
 /**
@@ -69,7 +68,7 @@ void dlenv_debug_enable(void)
  */
 void dlenv_debug_disable(void)
 {
-    Datalink_Debug = false;
+    debug_log_severity_set(DEBUG_LOG_ERROR);
 }
 
 /* Simple setters for BBMD registration variables. */
@@ -171,20 +170,19 @@ static int bbmd_register_as_foreign_device(void)
         BBMD_Address_Valid = bip_get_addr_by_name(pEnv, &BBMD_Address);
     }
     if (BBMD_Address_Valid) {
-        if (Datalink_Debug) {
-            debug_fprintf(
-                stderr,
-                "Registering with BBMD at %u.%u.%u.%u:%u for %u seconds\n",
-                (unsigned)BBMD_Address.address[0],
-                (unsigned)BBMD_Address.address[1],
-                (unsigned)BBMD_Address.address[2],
-                (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port,
-                (unsigned)BBMD_TTL_Seconds);
-        }
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Registering with BBMD at %u.%u.%u.%u:%u for %u seconds\n",
+            (unsigned)BBMD_Address.address[0],
+            (unsigned)BBMD_Address.address[1],
+            (unsigned)BBMD_Address.address[2],
+            (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port,
+            (unsigned)BBMD_TTL_Seconds);
         registration = bvlc_register_with_bbmd(&BBMD_Address, BBMD_TTL_Seconds);
         if (registration < 0) {
-            fprintf(
-                stderr, "FAILED to Register with BBMD at %u.%u.%u.%u:%u\n",
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "FAILED to Register with BBMD at %u.%u.%u.%u:%u\n",
                 (unsigned)BBMD_Address.address[0],
                 (unsigned)BBMD_Address.address[1],
                 (unsigned)BBMD_Address.address[2],
@@ -203,11 +201,9 @@ static int bbmd_register_as_foreign_device(void)
                 bdt_entry_valid =
                     bip_get_addr_by_name(pEnv, &BBMD_Table_Entry.dest_address);
                 if (entry_number == 1) {
-                    if (Datalink_Debug) {
-                        debug_fprintf(
-                            stderr, "BBMD 1 address overridden %s=%s!\n",
-                            bbmd_env, pEnv);
-                    }
+                    debug_log_fprintf(
+                        DEBUG_LOG_DEBUG, stderr,
+                        "BBMD 1 address overridden %s=%s!\n", bbmd_env, pEnv);
                 }
             } else if (entry_number == 1) {
                 /* BDT 1 is self (note: can be overridden) */
@@ -222,11 +218,9 @@ static int bbmd_register_as_foreign_device(void)
                 if (pEnv) {
                     bdt_entry_port = strtol(pEnv, NULL, 0);
                     if (entry_number == 1) {
-                        if (Datalink_Debug) {
-                            debug_fprintf(
-                                stderr, "BBMD 1 port overridden %s=%s!\n",
-                                bbmd_env, pEnv);
-                        }
+                        debug_log_fprintf(
+                            DEBUG_LOG_DEBUG, stderr,
+                            "BBMD 1 port overridden %s=%s!\n", bbmd_env, pEnv);
                     }
                 } else if (entry_number == 1) {
                     /* BDT 1 is self (note: can be overridden) */
@@ -252,20 +246,18 @@ static int bbmd_register_as_foreign_device(void)
                 bdt_table = bvlc_bdt_list();
                 bvlc_broadcast_distribution_table_entry_append(
                     bdt_table, &BBMD_Table_Entry);
-                if (Datalink_Debug) {
-                    debug_fprintf(
-                        stderr, "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n",
-                        entry_number,
-                        (unsigned)BBMD_Table_Entry.dest_address.address[0],
-                        (unsigned)BBMD_Table_Entry.dest_address.address[1],
-                        (unsigned)BBMD_Table_Entry.dest_address.address[2],
-                        (unsigned)BBMD_Table_Entry.dest_address.address[3],
-                        (unsigned)BBMD_Table_Entry.dest_address.port,
-                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[0],
-                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[1],
-                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[2],
-                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[3]);
-                }
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
+                    "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n", entry_number,
+                    (unsigned)BBMD_Table_Entry.dest_address.address[0],
+                    (unsigned)BBMD_Table_Entry.dest_address.address[1],
+                    (unsigned)BBMD_Table_Entry.dest_address.address[2],
+                    (unsigned)BBMD_Table_Entry.dest_address.address[3],
+                    (unsigned)BBMD_Table_Entry.dest_address.port,
+                    (unsigned)BBMD_Table_Entry.broadcast_mask.address[0],
+                    (unsigned)BBMD_Table_Entry.broadcast_mask.address[1],
+                    (unsigned)BBMD_Table_Entry.broadcast_mask.address[2],
+                    (unsigned)BBMD_Table_Entry.broadcast_mask.address[3]);
             }
         }
     }
@@ -315,16 +307,16 @@ static int bbmd6_register_as_foreign_device(void)
     }
     pEnv = getenv("BACNET_BBMD6_ADDRESS");
     if (bvlc6_address_from_ascii(&bip6_addr, pEnv)) {
-        if (Datalink_Debug) {
-            debug_fprintf(
-                stderr, "Registering with BBMD6 at %s:0x%04x for %u seconds\n",
-                pEnv, (unsigned)bip6_port, (unsigned)BBMD_TTL_Seconds);
-        }
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Registering with BBMD6 at %s:0x%04x for %u seconds\n", pEnv,
+            (unsigned)bip6_port, (unsigned)BBMD_TTL_Seconds);
         registration = bvlc6_register_with_bbmd(&bip6_addr, BBMD_TTL_Seconds);
         if (registration < 0) {
-            fprintf(
-                stderr, "FAILED to Register with BBMD6 at %s:%u\n", pEnv,
-                (unsigned)BBMD_Address.port);
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "FAILED to Register with BBMD6 at %s:%u\n", pEnv,
+                (unsigned)bip6_port);
         }
         BBMD_Timer_Seconds = BBMD_TTL_Seconds;
     }
@@ -426,13 +418,12 @@ static void dlenv_network_port_bip_init(uint32_t instance)
     /* IP Address */
     bip_get_addr(&addr);
     prefix = bip_get_subnet_prefix();
-    if (Datalink_Debug) {
-        debug_fprintf(
-            stderr, "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
-            (unsigned long)instance, (unsigned)addr.address[0],
-            (unsigned)addr.address[1], (unsigned)addr.address[2],
-            (unsigned)addr.address[3], (unsigned)addr.port, (unsigned)prefix);
-    }
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr,
+        "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
+        (unsigned long)instance, (unsigned)addr.address[0],
+        (unsigned)addr.address[1], (unsigned)addr.address[2],
+        (unsigned)addr.address[3], (unsigned)addr.port, (unsigned)prefix);
     Network_Port_BIP_Port_Set(instance, addr.port);
     Network_Port_IP_Address_Set(
         instance, addr.address[0], addr.address[1], addr.address[2],
@@ -509,14 +500,12 @@ void dlenv_network_port_mstp_init(uint32_t instance)
     if (pEnv) {
         mac_address = strtol(pEnv, NULL, 0);
     }
-    if (Datalink_Debug) {
-        debug_fprintf(
-            stderr,
-            "Network Port[%lu] mode=MSTP bitrate=%ld mac[0]=%ld "
-            "max_info_frames=%ld, max_master=%ld\n",
-            (unsigned long)instance, baud_rate, mac_address, max_info_frames,
-            max_master);
-    }
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr,
+        "Network Port[%lu] mode=MSTP bitrate=%ld mac[0]=%ld "
+        "max_info_frames=%ld, max_master=%ld\n",
+        (unsigned long)instance, baud_rate, mac_address, max_info_frames,
+        max_master);
 #ifdef BACDL_MSTP
     dlmstp_set_max_info_frames(max_info_frames);
     dlmstp_set_max_master(max_master);
@@ -713,94 +702,90 @@ void dlenv_network_port_bsc_init(uint32_t instance)
     Network_Port_SC_Maximum_Reconnect_Time_Set(
         instance, SC_NETPORT_RECONNECT_TIME);
     if (filename_ca_1_cert == NULL) {
-        fprintf(stderr, "BACNET_SC_ISSUER_1_CERTIFICATE_FILE must be set\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BACNET_SC_ISSUER_1_CERTIFICATE_FILE must be set\n");
         return;
     }
     file_instance = bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
     if (file_instance != BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE) {
-        fprintf(
-            stderr,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE was not created!\n");
         return;
     }
     bacfile_pathname_set(
         BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE, filename_ca_1_cert);
-    if (Datalink_Debug) {
-        fprintf(
-            stderr, "Issuer Certificate 1 file %u path=%s\n", file_instance,
-            bacfile_pathname(file_instance));
-    }
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "Issuer Certificate 1 file %u path=%s\n",
+        file_instance, bacfile_pathname(file_instance));
     Network_Port_Issuer_Certificate_File_Set(
         instance, 0, BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
 
     if (filename_ca_2_cert) {
         file_instance = bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
         if (file_instance != BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE) {
-            fprintf(
-                stderr,
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
                 "BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE was not created!\n");
             return;
         }
         bacfile_pathname_set(
             BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE, filename_ca_2_cert);
-        if (Datalink_Debug) {
-            fprintf(
-                stderr, "Issuer Certificate 2 file %u path=%s\n", file_instance,
-                bacfile_pathname(file_instance));
-        }
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Issuer Certificate 2 file %u path=%s\n",
+            file_instance, bacfile_pathname(file_instance));
         Network_Port_Issuer_Certificate_File_Set(
             instance, 1, BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
     }
 
     if (filename_cert == NULL) {
-        fprintf(stderr, "BACNET_SC_OPERATIONAL_CERTIFICATE_FILE must be set\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BACNET_SC_OPERATIONAL_CERTIFICATE_FILE must be set\n");
         return;
     }
     file_instance = bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
     if (file_instance != BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE) {
-        fprintf(
-            stderr,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE was not created!\n");
         return;
     }
     bacfile_pathname_set(
         BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE, filename_cert);
-    if (Datalink_Debug) {
-        fprintf(
-            stderr, "Operational Certificate file %u path=%s\n", file_instance,
-            bacfile_pathname(file_instance));
-    }
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "Operational Certificate file %u path=%s\n",
+        file_instance, bacfile_pathname(file_instance));
     Network_Port_Operational_Certificate_File_Set(
         instance, BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
 
     if (filename_key == NULL) {
-        fprintf(
-            stderr,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE must be set\n");
         return;
     }
     file_instance =
         bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
     if (file_instance != BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE) {
-        fprintf(
-            stderr,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE was not created!\n");
         return;
     }
     bacfile_pathname_set(
         BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE, filename_key);
-    if (Datalink_Debug) {
-        fprintf(
-            stderr, "Certificate Key file %u path=%s\n", file_instance,
-            bacfile_pathname(file_instance));
-    }
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "Certificate Key file %u path=%s\n",
+        file_instance, bacfile_pathname(file_instance));
     Network_Port_Certificate_Key_File_Set(
         instance, BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
     if ((primary_hub_uri == NULL) && (failover_hub_uri == NULL) &&
         (direct_binding == NULL) && (hub_binding == NULL)) {
-        fprintf(
-            stderr,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "At least must be set:\n"
             "BACNET_SC_HUB_FUNCTION_BINDING for HUB or\n"
             "BACNET_SC_PRIMARY_HUB_URI and BACNET_SC_FAILOVER_HUB_URI for node "
@@ -935,25 +920,20 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
         Datalink_Debug_Timer_Seconds += elapsed_seconds;
         if (Datalink_Debug_Timer_Seconds >= 60) {
             Datalink_Debug_Timer_Seconds = 0;
-            if (Datalink_Debug) {
 #ifdef BACDL_MSTP
-                dlmstp_fill_statistics(&statistics);
-                debug_fprintf(
-                    stderr,
-                    "MSTP: Frames Rx:%u/%u/%u Tx:%u PDU Rx:%u Tx:%u "
-                    "Lost:%u BadCRC:%u PFM:%u\n",
-                    statistics.receive_valid_frame_counter,
-                    statistics.receive_valid_frame_not_for_us_counter,
-                    statistics.receive_invalid_frame_counter,
-                    statistics.transmit_frame_counter,
-                    statistics.receive_pdu_counter,
-                    statistics.transmit_pdu_counter,
-                    statistics.lost_token_counter, statistics.bad_crc_counter,
-                    statistics.poll_for_master_counter);
-
-                fflush(stderr);
+            dlmstp_fill_statistics(&statistics);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr,
+                "MSTP: Frames Rx:%u/%u/%u Tx:%u PDU Rx:%u Tx:%u "
+                "Lost:%u BadCRC:%u PFM:%u\n",
+                statistics.receive_valid_frame_counter,
+                statistics.receive_valid_frame_not_for_us_counter,
+                statistics.receive_invalid_frame_counter,
+                statistics.transmit_frame_counter,
+                statistics.receive_pdu_counter, statistics.transmit_pdu_counter,
+                statistics.lost_token_counter, statistics.bad_crc_counter,
+                statistics.poll_for_master_counter);
 #endif
-            }
         }
     }
 }
@@ -970,12 +950,16 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 uint8_t dlenv_get_port_type(void)
 {
     uint8_t port_type = PORT_TYPE_BIP;
+    char *pEnv = NULL;
+    long severity = 0;
 
-    if (getenv("BACNET_DATALINK_DEBUG")) {
-        dlenv_debug_enable();
+    pEnv = getenv("BACNET_DATALINK_DEBUG");
+    if (pEnv) {
+        severity = strtol(pEnv, NULL, 0);
+        debug_log_severity_set(severity);
     }
 #if defined(BACDL_MULTIPLE)
-    char *pEnv = getenv("BACNET_DATALINK");
+    pEnv = getenv("BACNET_DATALINK");
     if (pEnv) {
         datalink_set(pEnv);
         if (bacnet_stricmp("none", pEnv) == 0) {
@@ -1061,9 +1045,8 @@ void dlenv_init_no_device_registration(uint8_t port_type)
 #if defined(BACFILE)
     /* initialize the POSIX file objects */
     bacfile_posix_init();
-    if (Datalink_Debug) {
-        debug_printf_stderr("POSIX file services initialized.\n");
-    }
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "POSIX file services initialized.\n");
 #endif
     /* === Initialize the Network Port Object Here === */
     Network_Port_Type_Set(Network_Port_Instance, port_type);
@@ -1100,9 +1083,8 @@ void dlenv_init_no_device_registration(uint8_t port_type)
     }
     /* === INIT - Initialize the Datalink Here === */
     pEnv = getenv("BACNET_IFACE");
-    if (Datalink_Debug) {
-        debug_fprintf(stderr, "BACNET_IFACE=%s\n", pEnv ? pEnv : "none");
-    }
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "BACNET_IFACE=%s\n", pEnv ? pEnv : "none");
     if (!datalink_init(pEnv)) {
         exit(1);
     }

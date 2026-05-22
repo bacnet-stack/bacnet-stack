@@ -295,14 +295,14 @@ static void MyReadPropertyMultipleAckHandler(
 
 static void Init_Service_Handlers(void)
 {
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
     uint32_t Object_Instance;
     BACNET_CHARACTER_STRING name_string;
 #endif
 
     Device_Init(NULL);
 
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
     Device_Object_Name(Object_Instance, &name_string);

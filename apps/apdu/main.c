@@ -132,7 +132,7 @@ static void print_usage(const char *filename)
     printf("Usage: %s", filename);
     printf(" <device-instance> <hex-ASCII>\n");
     printf("       [--repeat][--retry][--timeout][--delay]\n");
-    printf("       [--dnet][--dadr][--mac]\n");
+    printf("       [--dnet][--dadr][--mac][--debug]\n");
     printf("       [--version][--help]\n");
 }
 
@@ -164,6 +164,10 @@ static void print_help(const char *filename)
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
     printf("\n");
     printf("--repeat\n"
            "Send the message repeatedly until signalled to quit.\n"
@@ -288,6 +292,7 @@ int main(int argc, char *argv[])
     struct mstimer apdu_timer = { 0 };
     struct mstimer datalink_timer = { 0 };
     long dnet = -1;
+    long severity = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -359,6 +364,12 @@ int main(int argc, char *argv[])
         } else if (strcmp(argv[argi], "--delay") == 0) {
             if (++argi < argc) {
                 delay_milliseconds = strtol(argv[argi], NULL, 0);
+            }
+        } else if (strcmp(argv[argi], "--debug") == 0) {
+            if (++argi < argc) {
+                if (bacnet_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
+                }
             }
         } else {
             if (target_args == 0) {
