@@ -9,6 +9,8 @@
 #define BACNET_SYS_STATE_NAME_H
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet utilities */
+#include "bacnet/basic/sys/keylist.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +22,19 @@ BACNET_STACK_EXPORT
 const char *state_name_by_index(const char *state_names, unsigned index);
 BACNET_STACK_EXPORT
 unsigned state_name_to_index(const char *state_names, const char *state_name);
+
+BACNET_STACK_EXPORT
+unsigned state_name_list_count(OS_Keylist list);
+BACNET_STACK_EXPORT
+unsigned state_name_list_index(OS_Keylist list, const char *search_name);
+BACNET_STACK_EXPORT
+unsigned state_name_list_init(OS_Keylist list, const char *state_text_list);
+BACNET_STACK_EXPORT
+bool state_name_list_set(
+    OS_Keylist list,
+    const char *text,
+    size_t text_length,
+    unsigned array_index);
 
 #ifdef __cplusplus
 }
