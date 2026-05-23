@@ -2524,7 +2524,10 @@ int bacnet_snprintf(
 }
 
 /**
- * @brief duplicate a string (replacement for POSIX strdup)
+ * @brief duplicate a specific number of characters into a newly allocated
+ *  memory block (replacement for POSIX strndup).
+ *  strndup() copies at most size plus one bytes into the newly allocated
+ *  memory, terminating the new string with a NUL character.
  * @param  s - string to duplicate
  * @param  n - maximum number of characters to duplicate
  * @return a pointer to a new string on success, or a null pointer
@@ -2538,8 +2541,9 @@ char *bacnet_strndup(const char *s, size_t n)
         size = n + 1;
         p = malloc(size);
         if (p != NULL) {
-            memcpy(p, s, n);
-            p[n] = '\0';
+            size = min(strlen(s), n);
+            memcpy(p, s, size);
+            p[size] = '\0';
         }
     }
 
@@ -2557,7 +2561,11 @@ char *bacnet_strdup(const char *s)
     char *p = NULL;
 
     if (s) {
-        p = bacnet_strndup(s, strlen(s));
+        size = strlen(s) + 1;
+        p = malloc(size);
+        if (p != NULL) {
+            memcpy(p, s, size);
+        }
     }
 
     return p;
