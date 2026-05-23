@@ -35,6 +35,13 @@ bool state_name_list_set(
     const char *text,
     size_t text_length,
     unsigned array_index);
+BACNET_STACK_EXPORT
+BACNET_ERROR_CODE state_name_list_write(
+    OS_Keylist list,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *application_data,
+    size_t application_data_len);
 
 #ifdef __cplusplus
 }

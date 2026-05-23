@@ -913,48 +913,13 @@ static BACNET_ERROR_CODE State_Text_Element_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_CHARACTER_STRING_BUFFER value = { 0 };
-    int len = 0;
-    int count = 0;
     struct object_data *pObject = NULL;
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        count = state_name_list_count(pObject->State_List);
-        if (array_index == 0) {
-            /* This array is not required to be resizable
-               through BACnet write services */
-            /* For resizable arrays, resize to the requested length.
-               If the new size is larger, new elements are created
-               and their values are initialized as defaults.
-               If the new size is smaller, the array is truncated and
-                elements beyond the new length are discarded. */
-            (void)array_size;
-            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (array_index <= count) {
-            len = bacnet_character_string_buffer_application_decode(
-                application_data, application_data_len, &value);
-            if (len > 0) {
-                if (value.encoding == CHARACTER_ANSI_X34) {
-                    if (state_name_list_set(
-                            pObject->State_List, value.buffer,
-                            value.buffer_length, array_index)) {
-                        error_code = ERROR_CODE_SUCCESS;
-                    } else {
-                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    }
-                } else {
-                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            } else {
-                error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-        } else {
-            /* If the array is resizable, the array is expanded
-               automatically to accommodate the array_index.
-               Intermediate elements (if any) are initialized as defaults */
-            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-        }
+        error_code = state_name_list_write(
+            pObject->State_List, array_index, array_size, application_data,
+            application_data_len);
     }
 
     return error_code;

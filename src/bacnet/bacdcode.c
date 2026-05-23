@@ -5942,13 +5942,13 @@ BACNET_ERROR_CODE bacnet_array_write(
                 apdu_len += len;
             }
         }
-    } else if (array_index <= array_size) {
+    } else {
         /* index was specified; write a single array element */
+        /* note: write function is responsible for handling the array_index
+           bounds checking and return array_index out of range error if
+           the array is not resizable */
         error_code = write_function(
             object_instance, array_index, array_size, apdu, apdu_size);
-    } else {
-        /* array_index was specified out of range */
-        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
     }
 
     return error_code;
