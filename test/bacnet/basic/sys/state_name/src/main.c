@@ -101,6 +101,7 @@ static void testStateNameListCount(void)
 {
     OS_Keylist list;
     unsigned count;
+    bool status;
 
     list = Keylist_Create();
     zassert_not_null(list, NULL);
@@ -113,6 +114,9 @@ static void testStateNameListCount(void)
     count = state_name_list_count(list);
     zassert_equal(count, 3, NULL);
 
+    /* cleanup */
+    status = state_name_list_init(list, NULL);
+    zassert_true(status, NULL);
     Keylist_Delete(list);
 }
 
@@ -124,6 +128,7 @@ static void testStateNameListIndex(void)
 {
     OS_Keylist list;
     unsigned index;
+    bool status;
 
     list = Keylist_Create();
     zassert_not_null(list, NULL);
@@ -142,6 +147,9 @@ static void testStateNameListIndex(void)
     index = state_name_list_index(list, "Missing State");
     zassert_equal(index, 0, NULL);
 
+    /* cleanup */
+    status = state_name_list_init(list, NULL);
+    zassert_true(status, NULL);
     Keylist_Delete(list);
 }
 
@@ -153,12 +161,13 @@ static void testStateNameListInit(void)
 {
     OS_Keylist list;
     const char *name;
+    bool status;
 
     list = Keylist_Create();
     zassert_not_null(list, NULL);
 
-    list = state_name_list_init(list, State_Names);
-    zassert_not_null(list, NULL);
+    status = state_name_list_init(list, State_Names);
+    zassert_true(status, NULL);
     zassert_equal(state_name_list_count(list), 3, NULL);
 
     name = Keylist_Data(list, 1);
@@ -174,10 +183,13 @@ static void testStateNameListInit(void)
     zassert_equal(strcmp(name, "State 3"), 0, NULL);
 
     /* re-initialize with same data replaces existing entries */
-    list = state_name_list_init(list, State_Names);
-    zassert_not_null(list, NULL);
+    status = state_name_list_init(list, State_Names);
+    zassert_true(status, NULL);
     zassert_equal(state_name_list_count(list), 3, NULL);
 
+    /* cleanup */
+    status = state_name_list_init(list, NULL);
+    zassert_true(status, NULL);
     Keylist_Delete(list);
 }
 
@@ -190,33 +202,38 @@ static void testStateNameListSet(void)
     OS_Keylist list;
     bool status;
     const char *name;
-    const char *new_text = "Active";
+    const char *new_text = "Active", *test_name = "State 1";
+    unsigned count;
 
     list = Keylist_Create();
     zassert_not_null(list, NULL);
 
     state_name_list_init(list, State_Names);
+    count = state_name_list_count(list);
+    zassert_equal(count, 3, NULL);
 
     /* update an existing entry */
-    status = state_name_list_set(list, new_text, strlen(new_text), 1);
+    status = state_name_list_set(list, new_text, strlen(new_text), count - 1);
     zassert_true(status, NULL);
 
-    name = Keylist_Data(list, 1);
+    name = Keylist_Data(list, count - 1);
     zassert_not_null(name, NULL);
     zassert_equal(strcmp(name, new_text), 0, NULL);
 
     /* set the same value again - should succeed */
-    status = state_name_list_set(list, new_text, strlen(new_text), 1);
+    status = state_name_list_set(list, new_text, strlen(new_text), count - 1);
     zassert_true(status, NULL);
 
-    /* add a new entry beyond current size */
-    status = state_name_list_set(list, "New State", strlen("New State"), 10);
+    /* set an entry beyond current size - should fail */
+    status = state_name_list_set(list, test_name, strlen(test_name), count + 1);
+    zassert_false(status, NULL);
+
+    name = Keylist_Data(list, count + 1);
+    zassert_is_null(name, NULL);
+
+    /* cleanup */
+    status = state_name_list_init(list, NULL);
     zassert_true(status, NULL);
-
-    name = Keylist_Data(list, 10);
-    zassert_not_null(name, NULL);
-    zassert_equal(strcmp(name, "New State"), 0, NULL);
-
     Keylist_Delete(list);
 }
 
@@ -231,7 +248,9 @@ static void testStateNameListWrite(void)
     uint8_t apdu[64];
     int apdu_len;
     BACNET_CHARACTER_STRING cstr;
-    const char *name;
+    unsigned count;
+    bool status;
+    const char *name, *test_name = "Test State";
 
     list = Keylist_Create();
     zassert_not_null(list, NULL);
@@ -239,39 +258,52 @@ static void testStateNameListWrite(void)
     state_name_list_init(list, State_Names);
 
     /* write array size = 0 to resize to 2 entries */
-    error_code = state_name_list_write(list, 0, 2, NULL, 0);
+    error_code = state_name_list_write_resizable(list, 0, 2, NULL, 0);
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
     zassert_equal(state_name_list_count(list), 2, NULL);
 
     /* write array size = 0 to expand to 5 entries */
-    error_code = state_name_list_write(list, 0, 5, NULL, 0);
+    error_code = state_name_list_write_resizable(list, 0, 5, NULL, 0);
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
     zassert_equal(state_name_list_count(list), 5, NULL);
 
     /* write a character string to index 1 */
-    characterstring_init_ansi(&cstr, "Updated State");
+    characterstring_init_ansi(&cstr, test_name);
     apdu_len = encode_application_character_string(apdu, &cstr);
     zassert_true(apdu_len > 0, NULL);
 
-    error_code = state_name_list_write(list, 1, 5, apdu, apdu_len);
+    count = state_name_list_count(list);
+    error_code =
+        state_name_list_write_resizable(list, 1, count, apdu, apdu_len);
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
 
     name = Keylist_Data(list, 1);
     zassert_not_null(name, NULL);
-    zassert_equal(strcmp(name, "Updated State"), 0, NULL);
+    zassert_equal(strcmp(name, test_name), 0, NULL);
 
     /* write to an index beyond array size - auto-expands only */
-    error_code = state_name_list_write(list, 8, 5, apdu, apdu_len);
+    count = state_name_list_count(list);
+    error_code =
+        state_name_list_write_resizable(list, count + 3, count, apdu, apdu_len);
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
-    zassert_equal(state_name_list_count(list), 8, NULL);
+    zassert_equal(state_name_list_count(list), count + 3, NULL);
 
-    /* value is not written on auto-expand; key 8 is a placeholder NULL */
-    name = Keylist_Data(list, 8);
+    /* value is written on auto-expand, intermediate elements are NULL */
+    name = Keylist_Data(list, count + 1);
     zassert_is_null(name, NULL);
+    name = Keylist_Data(list, count + 2);
+    zassert_is_null(name, NULL);
+    name = Keylist_Data(list, count + 3);
+    zassert_not_null(name, NULL);
+    zassert_equal(strcmp(name, test_name), 0, NULL);
+
     /* invalid data type (empty application data) */
-    error_code = state_name_list_write(list, 1, 8, apdu, 0);
+    error_code = state_name_list_write_resizable(list, 1, count + 3, apdu, 0);
     zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
 
+    /* cleanup */
+    status = state_name_list_init(list, NULL);
+    zassert_true(status, NULL);
     Keylist_Delete(list);
 }
 

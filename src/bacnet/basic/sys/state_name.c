@@ -295,8 +295,8 @@ BACNET_ERROR_CODE state_name_list_write_resizable(
                 if (array_index > array_size) {
                     /* For resizable arrays, the array is expanded
                     automatically to accommodate the array_index.
-                    Intermediate elements (if any) are initialized as defaults
-                  */
+                    Intermediate elements (if any) are initialized as NULL.
+                    The new value is set at the requested array_index. */
                     while (Keylist_Count(list) < array_index) {
                         if (Keylist_Data_Add(
                                 list, Keylist_Count(list) + 1, NULL) < 0) {
