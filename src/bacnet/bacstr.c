@@ -2541,9 +2541,8 @@ char *bacnet_strndup(const char *s, size_t n)
         size = n + 1;
         p = malloc(size);
         if (p != NULL) {
-            size = min(strlen(s), n);
-            memcpy(p, s, size);
-            p[size] = '\0';
+            strncpy(p, s, n);
+            p[n] = '\0';
         }
     }
 

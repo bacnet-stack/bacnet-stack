@@ -154,11 +154,12 @@ unsigned state_name_list_index(OS_Keylist list, const char *search_name)
  * @param list - keylist to set the state text
  * @param state_text_list - array of state names to use in this keylist
  *  or NULL to clear the list
- * @return keylist with the state texts set
+ * @return true if the entire state text list was set or cleared
  */
-OS_Keylist state_name_list_init(OS_Keylist list, const char *state_text_list)
+bool state_name_list_init(OS_Keylist list, const char *state_text_list)
 {
-    unsigned count, i;
+    bool status = false;
+    unsigned count = 0, i;
     char *name;
     int index;
 
@@ -171,34 +172,36 @@ OS_Keylist state_name_list_init(OS_Keylist list, const char *state_text_list)
                 free(name);
             }
         }
-    } else {
-        list = Keylist_Create();
-    }
-    count = state_name_count(state_text_list);
-    if (count) {
-        for (i = 0; i < count; i++) {
-            name = bacnet_strdup(state_name_by_index(state_text_list, i + 1));
-            index = Keylist_Data_Add(list, 1 + i, name);
-            if (index < 0) {
-                free(name);
-                break;
+        count = state_name_count(state_text_list);
+        if (count) {
+            for (i = 0; i < count; i++) {
+                name =
+                    bacnet_strdup(state_name_by_index(state_text_list, i + 1));
+                index = Keylist_Data_Add(list, 1 + i, name);
+                if (index < 0) {
+                    free(name);
+                    break;
+                }
+            }
+        } else {
+            /* clear the list */
+            while (Keylist_Count(list) > 0) {
+                name = Keylist_Data_Pop(list);
+                if (name) {
+                    free(name);
+                }
             }
         }
-    } else {
-        /* clear the list */
-        while (Keylist_Count(list) > 0) {
-            name = Keylist_Data_Pop(list);
-            if (name) {
-                free(name);
-            }
+        if (count == Keylist_Count(list)) {
+            status = true;
         }
     }
 
-    return list;
+    return status;
 }
 
 /**
- * @brief Sets the state text for a given keylist and index
+ * @brief Sets the state text for an existing keylist and index
  * @param list - keylist to set the state text
  * @param text - state text to set
  * @param text_length - length of the state text
@@ -211,32 +214,27 @@ bool state_name_list_set(
     bool status = false;
     KEY key;
     char *entry;
+    int index;
 
     key = array_index;
-    entry = Keylist_Data(list, key);
-    /* same value? */
-    if (entry) {
-        if (strncmp(entry, text, text_length) == 0) {
+    index = Keylist_Index(list, key);
+    if (index >= 0) {
+        entry = Keylist_Data_Index(list, index);
+        if (entry && (strlen(entry) == text_length) &&
+            (strncmp(entry, text, text_length)) == 0) {
+            /* same text; nothing to update */
             status = true;
         } else {
-            /* update the value in the list */
+            /* replace the data in the list */
             free(entry);
             entry = bacnet_strndup(text, text_length);
             if (entry) {
-                Keylist_Data_Set(list, key, entry);
-                status = true;
-            } else {
-                status = false;
-            }
-        }
-    } else {
-        /* add a new entry to the list */
-        entry = bacnet_strndup(text, text_length);
-        if (entry) {
-            if (Keylist_Data_Add(list, key, entry) >= 0) {
-                status = true;
-            } else {
-                free(entry);
+                index = Keylist_Data_Set(list, key, entry);
+                if (index >= 0) {
+                    status = true;
+                } else {
+                    free(entry);
+                }
             }
         }
     }
@@ -253,7 +251,7 @@ bool state_name_list_set(
  *  otherwise it is the current size of the array
  * @return BACnet error code
  */
-BACNET_ERROR_CODE state_name_list_write(
+BACNET_ERROR_CODE state_name_list_write_resizable(
     OS_Keylist list,
     BACNET_ARRAY_INDEX array_index,
     BACNET_UNSIGNED_INTEGER array_size,
@@ -262,60 +260,63 @@ BACNET_ERROR_CODE state_name_list_write(
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     BACNET_CHARACTER_STRING_BUFFER value = { 0 };
+    void *data;
     int len = 0;
     int count = 0;
 
-    if (list) {
-        if (array_index == 0) {
-            /* For resizable arrays, resize to the requested length.
-               If the new size is larger, new elements are created
-               and their values are initialized as defaults.
-               If the new size is smaller, the array is truncated and
-                elements beyond the new length are discarded. */
-            count = Keylist_Count(list);
-            if (array_size < count) {
-                /* truncate the array */
-                while (Keylist_Count(list) > array_size) {
+    if (array_index == 0) {
+        /* For resizable arrays, resize to the requested length.
+            If the new size is larger, new elements are created
+            and their values are initialized as defaults.
+            If the new size is smaller, the array is truncated and
+            elements beyond the new length are discarded. */
+        count = Keylist_Count(list);
+        if (array_size < count) {
+            /* truncate the array */
+            while (Keylist_Count(list) > array_size) {
+                data =
                     Keylist_Data_Delete_By_Index(list, Keylist_Count(list) - 1);
-                }
-            } else if (array_size > count) {
-                /* expand the array */
-                while (Keylist_Count(list) < array_size) {
-                    if (Keylist_Data_Add(list, Keylist_Count(list) + 1, NULL) <
-                        0) {
-                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                        break;
-                    }
-                }
+                free(data);
             }
-        } else if (array_index <= array_size) {
-            len = bacnet_character_string_buffer_application_decode(
-                application_data, application_data_len, &value);
-            if (len > 0) {
-                if (value.encoding == CHARACTER_ANSI_X34) {
-                    if (state_name_list_set(
-                            list, value.buffer, value.buffer_length,
-                            array_index)) {
-                        error_code = ERROR_CODE_SUCCESS;
-                    } else {
-                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    }
-                } else {
-                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            } else {
-                error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-        } else {
-            /* For resizable arrays, the array is expanded
-               automatically to accommodate the array_index.
-               Intermediate elements (if any) are initialized as defaults */
-            while (Keylist_Count(list) < array_index) {
+        } else if (array_size > count) {
+            /* expand the array */
+            while (Keylist_Count(list) < array_size) {
                 if (Keylist_Data_Add(list, Keylist_Count(list) + 1, NULL) < 0) {
                     error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     break;
                 }
             }
+        }
+    } else {
+        len = bacnet_character_string_buffer_application_decode(
+            application_data, application_data_len, &value);
+        if (len > 0) {
+            if (value.encoding == CHARACTER_ANSI_X34) {
+                if (array_index > array_size) {
+                    /* For resizable arrays, the array is expanded
+                    automatically to accommodate the array_index.
+                    Intermediate elements (if any) are initialized as defaults
+                  */
+                    while (Keylist_Count(list) < array_index) {
+                        if (Keylist_Data_Add(
+                                list, Keylist_Count(list) + 1, NULL) < 0) {
+                            error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                            break;
+                        }
+                    }
+                }
+                if (error_code == ERROR_CODE_SUCCESS) {
+                    if (!state_name_list_set(
+                            list, value.buffer, value.buffer_length,
+                            array_index)) {
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
+                }
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
     }
 

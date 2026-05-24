@@ -299,9 +299,10 @@ bool Multistate_Input_State_Text_List_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->State_List =
-            state_name_list_init(pObject->State_List, state_text_list);
-        status = true;
+        if (!pObject->State_List) {
+            pObject->State_List = Keylist_Create();
+        }
+        status = state_name_list_init(pObject->State_List, state_text_list);
     }
 
     return status;
@@ -906,7 +907,7 @@ static int State_Text_Element_Length(
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
  */
-static BACNET_ERROR_CODE State_Text_Element_Write(
+static BACNET_ERROR_CODE State_Text_Element_Write_Resizable(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
     BACNET_UNSIGNED_INTEGER array_size,
@@ -918,7 +919,7 @@ static BACNET_ERROR_CODE State_Text_Element_Write(
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        error_code = state_name_list_write(
+        error_code = state_name_list_write_resizable(
             pObject->State_List, array_index, array_size, application_data,
             application_data_len);
     }
@@ -975,10 +976,11 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_STATE_TEXT:
             count = Multistate_Input_Max_States(wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_array_write_resizable(
                 wp_data->object_instance, wp_data->array_index,
-                State_Text_Element_Length, State_Text_Element_Write, count,
-                wp_data->application_data, wp_data->application_data_len);
+                State_Text_Element_Length, State_Text_Element_Write_Resizable,
+                count, wp_data->application_data,
+                wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
             }
@@ -1120,8 +1122,10 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
             pObject->Write_Enabled = false;
-            pObject->State_List =
-                state_name_list_init(pObject->State_List, Default_State_Text);
+            if (!pObject->State_List) {
+                pObject->State_List = Keylist_Create();
+            }
+            (void)state_name_list_init(pObject->State_List, Default_State_Text);
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
@@ -1144,13 +1148,12 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
 bool Multistate_Input_Delete(uint32_t object_instance)
 {
     bool status = false;
-    OS_Keylist list;
     struct object_data *pObject = NULL;
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        list = state_name_list_init(pObject->State_List, NULL);
-        Keylist_Delete(list);
+        (void)state_name_list_init(pObject->State_List, NULL);
+        Keylist_Delete(pObject->State_List);
         free(pObject);
         status = true;
     }
@@ -1164,7 +1167,6 @@ bool Multistate_Input_Delete(uint32_t object_instance)
 void Multistate_Input_Cleanup(void)
 {
     struct object_data *pObject;
-    OS_Keylist list;
     uint16_t dev_id;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
@@ -1178,8 +1180,8 @@ void Multistate_Input_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    list = state_name_list_init(pObject->State_List, NULL);
-                    Keylist_Delete(list);
+                    (void)state_name_list_init(pObject->State_List, NULL);
+                    Keylist_Delete(pObject->State_List);
                     free(pObject);
                 }
             } while (pObject);
