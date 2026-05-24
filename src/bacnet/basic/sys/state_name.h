@@ -28,7 +28,7 @@ unsigned state_name_list_count(OS_Keylist list);
 BACNET_STACK_EXPORT
 unsigned state_name_list_index(OS_Keylist list, const char *search_name);
 BACNET_STACK_EXPORT
-unsigned state_name_list_init(OS_Keylist list, const char *state_text_list);
+OS_Keylist state_name_list_init(OS_Keylist list, const char *state_text_list);
 BACNET_STACK_EXPORT
 bool state_name_list_set(
     OS_Keylist list,

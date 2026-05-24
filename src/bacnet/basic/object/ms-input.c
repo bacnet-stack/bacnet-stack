@@ -299,7 +299,8 @@ bool Multistate_Input_State_Text_List_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        (void)state_name_list_init(pObject->State_List, state_text_list);
+        pObject->State_List =
+            state_name_list_init(pObject->State_List, state_text_list);
         status = true;
     }
 
@@ -1119,7 +1120,8 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
             pObject->Write_Enabled = false;
-            (void)state_name_list_init(pObject->State_List, Default_State_Text);
+            pObject->State_List =
+                state_name_list_init(pObject->State_List, Default_State_Text);
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
@@ -1142,10 +1144,13 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
 bool Multistate_Input_Delete(uint32_t object_instance)
 {
     bool status = false;
+    OS_Keylist list;
     struct object_data *pObject = NULL;
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        list = state_name_list_init(pObject->State_List, NULL);
+        Keylist_Delete(list);
         free(pObject);
         status = true;
     }
@@ -1159,6 +1164,7 @@ bool Multistate_Input_Delete(uint32_t object_instance)
 void Multistate_Input_Cleanup(void)
 {
     struct object_data *pObject;
+    OS_Keylist list;
     uint16_t dev_id;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
@@ -1172,6 +1178,8 @@ void Multistate_Input_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    list = state_name_list_init(pObject->State_List, NULL);
+                    Keylist_Delete(list);
                     free(pObject);
                 }
             } while (pObject);

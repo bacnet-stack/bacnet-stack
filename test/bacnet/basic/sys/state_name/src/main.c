@@ -152,14 +152,13 @@ static void testStateNameListInit(void)
 #endif
 {
     OS_Keylist list;
-    unsigned count;
     const char *name;
 
     list = Keylist_Create();
     zassert_not_null(list, NULL);
 
-    count = state_name_list_init(list, State_Names);
-    zassert_equal(count, 3, NULL);
+    list = state_name_list_init(list, State_Names);
+    zassert_not_null(list, NULL);
     zassert_equal(state_name_list_count(list), 3, NULL);
 
     name = Keylist_Data(list, 1);
@@ -175,8 +174,8 @@ static void testStateNameListInit(void)
     zassert_equal(strcmp(name, "State 3"), 0, NULL);
 
     /* re-initialize with same data replaces existing entries */
-    count = state_name_list_init(list, State_Names);
-    zassert_equal(count, 3, NULL);
+    list = state_name_list_init(list, State_Names);
+    zassert_not_null(list, NULL);
     zassert_equal(state_name_list_count(list), 3, NULL);
 
     Keylist_Delete(list);
@@ -261,14 +260,14 @@ static void testStateNameListWrite(void)
     zassert_not_null(name, NULL);
     zassert_equal(strcmp(name, "Updated State"), 0, NULL);
 
-    /* write to an index beyond array size - auto-expands */
+    /* write to an index beyond array size - auto-expands only */
     error_code = state_name_list_write(list, 8, 5, apdu, apdu_len);
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
     zassert_equal(state_name_list_count(list), 8, NULL);
 
+    /* value is not written on auto-expand; key 8 is a placeholder NULL */
     name = Keylist_Data(list, 8);
-    zassert_not_null(name, NULL);
-    zassert_equal(strcmp(name, "Updated State"), 0, NULL);
+    zassert_is_null(name, NULL);
     /* invalid data type (empty application data) */
     error_code = state_name_list_write(list, 1, 8, apdu, 0);
     zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);

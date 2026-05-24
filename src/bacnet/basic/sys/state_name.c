@@ -153,9 +153,10 @@ unsigned state_name_list_index(OS_Keylist list, const char *search_name)
  * @brief Sets the state text list for a given keylist
  * @param list - keylist to set the state text
  * @param state_text_list - array of state names to use in this keylist
- * @return number of states set
+ *  or NULL to clear the list
+ * @return keylist with the state texts set
  */
-unsigned state_name_list_init(OS_Keylist list, const char *state_text_list)
+OS_Keylist state_name_list_init(OS_Keylist list, const char *state_text_list)
 {
     unsigned count, i;
     char *name;
@@ -164,23 +165,36 @@ unsigned state_name_list_init(OS_Keylist list, const char *state_text_list)
     /* State Text in a Keylist */
     if (list) {
         /* flush existing state list and free the data */
-        while ((name = Keylist_Data_Pop(list))) {
-            free(name);
+        while (Keylist_Count(list) > 0) {
+            name = Keylist_Data_Pop(list);
+            if (name) {
+                free(name);
+            }
         }
     } else {
         list = Keylist_Create();
     }
     count = state_name_count(state_text_list);
-    for (i = 0; i < count; i++) {
-        name = bacnet_strdup(state_name_by_index(state_text_list, i + 1));
-        index = Keylist_Data_Add(list, 1 + i, name);
-        if (index < 0) {
-            free(name);
-            break;
+    if (count) {
+        for (i = 0; i < count; i++) {
+            name = bacnet_strdup(state_name_by_index(state_text_list, i + 1));
+            index = Keylist_Data_Add(list, 1 + i, name);
+            if (index < 0) {
+                free(name);
+                break;
+            }
+        }
+    } else {
+        /* clear the list */
+        while (Keylist_Count(list) > 0) {
+            name = Keylist_Data_Pop(list);
+            if (name) {
+                free(name);
+            }
         }
     }
 
-    return count;
+    return list;
 }
 
 /**
