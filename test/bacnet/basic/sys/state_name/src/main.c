@@ -266,6 +266,9 @@ static void testStateNameListWrite(void)
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
     zassert_equal(state_name_list_count(list), 8, NULL);
 
+    name = Keylist_Data(list, 8);
+    zassert_not_null(name, NULL);
+    zassert_equal(strcmp(name, "Updated State"), 0, NULL);
     /* invalid data type (empty application data) */
     error_code = state_name_list_write(list, 1, 8, apdu, 0);
     zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
