@@ -128,9 +128,16 @@ unsigned state_name_list_index(OS_Keylist list, const char *search_name)
     KEY key;
     const char *name;
 
+    if (!list || !search_name) {
+        return 0;
+    }
+
     count = Keylist_Count(list);
     for (i = 0; i < count; i++) {
         name = Keylist_Data_Index(list, i);
+        if (!name) {
+            continue;
+        }
         if (strcmp(name, search_name) == 0) {
             if (Keylist_Index_Key(list, i, &key)) {
                 index = key;
