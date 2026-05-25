@@ -5982,7 +5982,7 @@ BACNET_ERROR_CODE bacnet_array_write(
 {
     BACNET_ERROR_CODE error_code;
 
-    if (array_index > array_size) {
+    if ((array_index != BACNET_ARRAY_ALL) && (array_index > array_size)) {
         /* array_index was specified out of range */
         error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
     } else {
