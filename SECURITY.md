@@ -18,15 +18,16 @@ currently being supported with security updates in this branch:
 | 0.7.x   | :x:                |
 | < 0.6.x | :x:                |
 
-
 ## Coordinated Vulnerability Disclosure
 
 Vulnerabilites are disclosed to [CVE](https://www.cve.org/)
 or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state=published)
 and a record is created to identify, define, and catalog publicly disclosed
-cybersecurity vulnerabilities. Here are the published vulnerability records:
+cybersecurity vulnerabilities. Here are the published vulnerability records
+for v1.5.x:
 
-Here are the known CVE records for v1.5.x:
+Uncontrolled recursion in Timer object writeback path leads to remote server stack overflow
+[GHSA-7r8r-2rj2-5wvr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7r8r-2rj2-5wvr)
 
 [CVE-2026-47217](https://www.cve.org/CVERecord?id=CVE-2026-47217) -
 Channel member self-reference causes uncontrolled recursion and stack overflow in default BACnet/IP server

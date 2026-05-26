@@ -69,6 +69,7 @@ struct object_data {
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changed : 1;
+    bool Writeback_Active : 1;
     void *Context;
 };
 
@@ -247,6 +248,34 @@ static bool Timer_Reference_List_Member_Empty(
     if (pMember) {
         if ((pMember->objectIdentifier.instance == BACNET_MAX_INSTANCE) ||
             (pMember->deviceIdentifier.instance == BACNET_MAX_INSTANCE)) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, determines if the member is a
+ * self-reference with properties that can re-enter Timer transition logic
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  pMember - object property reference element
+ * @return true if the member is self
+ */
+static bool Timer_Reference_List_Member_Self(
+    uint32_t object_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+
+    if (pMember) {
+        if ((pMember->objectIdentifier.type == OBJECT_TIMER) &&
+            (pMember->objectIdentifier.instance == object_instance) &&
+            (pMember->deviceIdentifier.type == OBJECT_DEVICE) &&
+            (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE) &&
+            (((pMember->propertyIdentifier == PROP_PRESENT_VALUE) ||
+              (pMember->propertyIdentifier == PROP_TIMER_RUNNING)))) {
             status = true;
         }
     }
@@ -519,6 +548,11 @@ static bool Timer_Write_Members(
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
 
     if (pObject && value) {
+        if (pObject->Writeback_Active) {
+            /* Prevent recursive writeback */
+            return false;
+        }
+        pObject->Writeback_Active = true;
         for (i = 0; i < BACNET_TIMER_MANIPULATED_PROPERTIES_MAX; i++) {
             pMember = &pObject->Manipulated_Properties[i];
             if (Timer_Reference_List_Member_Empty(pMember)) {
@@ -549,6 +583,7 @@ static bool Timer_Write_Members(
                 Timer_Write_Property_Notify(object_instance, status, &wp_data);
             }
         }
+        pObject->Writeback_Active = false;
     }
 
     return status;
@@ -1856,7 +1891,7 @@ static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Add(
     bool status = false;
 
     if ((!application_data) && (application_data_len == 0)) {
-        /* empty the BACnetLIST - remove all before adding */
+        /* empty the BACnetLIST - remove all */
         (void)Timer_Reference_List_Member_Element_Remove(object_instance, NULL);
         error_code = ERROR_CODE_SUCCESS;
     } else {
@@ -1865,6 +1900,11 @@ static BACNET_ERROR_CODE Timer_List_Of_Object_Property_References_Add(
         if (len > 0) {
             if (Timer_Reference_List_Member_Empty(&new_value)) {
                 /* The element value is out of range for the property. */
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            } else if (Timer_Reference_List_Member_Self(
+                           object_instance, &new_value)) {
+                /* The element value is a self-reference with
+                   properties that can re-enter Timer transition logic */
                 error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             } else {
                 status = Timer_Reference_List_Member_Element_Add(

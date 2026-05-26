@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured Timer object State_Change_Values property self-reference that
+  caused uncontrolled recursion. (#1347)
 * Secured Channel object member self-reference that caused uncontrolled
   recursion. Changed Channel property handling to use device object
   property reference and unsigned value specific decoders. Fixed handling
