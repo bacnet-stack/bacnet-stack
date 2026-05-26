@@ -30,15 +30,18 @@ Here are the known CVE records:
 Stack buffer overflow in Loop internal ReadProperty path via Life_Safety_Zone accepted-modes property
 [GHSA-vrpm-9gm2-x552](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-vrpm-9gm2-x552)
 
+[CVE-2026-47259](https://www.cve.org/CVERecord?id=CVE-2026-47259) -
 Stack-based buffer overflow in Notification Class RemoveListElement recipient-list decoding
 [GHSA-9w9m-w7w5-rrv3](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9w9m-w7w5-rrv3)
 
+[CVE-2026-47258](https://www.cve.org/CVERecord?id=CVE-2026-47258) -
 Stack-based buffer overflow in Notification Class AddListElement recipient-list decoding
 [GHSA-rjmv-3mcm-r83j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rjmv-3mcm-r83j)
 
 Uncontrolled recursion in Timer object writeback path leads to remote server stack overflow
 [GHSA-7r8r-2rj2-5wvr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7r8r-2rj2-5wvr)
 
+[CVE-2026-47217](https://www.cve.org/CVERecord?id=CVE-2026-47217) -
 Channel member self-reference causes uncontrolled recursion and stack overflow in default BACnet/IP server
 [GHSA-wjw5-q9g6-2764](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wjw5-q9g6-2764)
 
