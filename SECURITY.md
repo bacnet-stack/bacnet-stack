@@ -28,6 +28,10 @@ cybersecurity vulnerabilities. Here are the published vulnerability records:
 
 Here are the known CVE records for v1.5.x:
 
+[CVE-2026-47217](https://www.cve.org/CVERecord?id=CVE-2026-47217) -
+Channel member self-reference causes uncontrolled recursion and stack overflow in default BACnet/IP server
+[GHSA-wjw5-q9g6-2764](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wjw5-q9g6-2764)
+
 [CVE-2026-46677](https://www.cve.org/CVERecord?id=CVE-2026-46677) -
 Client-Side Out-of-Bounds Read in AtomicReadFile-ACK Record-Access Handling via RecordCount / fileData[] Mismatch
 [GHSA-rv5h-cxwq-q3mh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rv5h-cxwq-q3mh)

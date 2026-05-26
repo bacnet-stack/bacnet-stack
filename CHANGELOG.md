@@ -17,6 +17,11 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured Channel object member self-reference that caused uncontrolled
+  recursion. Changed Channel property handling to use device object
+  property reference and unsigned value specific decoders. Fixed handling
+  of Write_Status in Channel_Write_Members to properly reflect success
+  or failure of property writes. (#1345)
 * Secured AtomicReadFile-ACK Record-Access Encoder by initializing
   BACNET_CHARACTER_STRING and OCTET_STRING to prevent uninitialized
   usage and conditional information disclosure. (#1344)
