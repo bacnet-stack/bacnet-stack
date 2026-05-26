@@ -59,16 +59,16 @@ extern "C" {
  * Data structures
  * -----------------------------------------------------------------------*/
 
-/** Modbus RTU port handle */
+/** Modbus RTU port handle (platform-specific) */
 typedef struct {
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-    int fd; /**< POSIX file descriptor */
+#if defined(_WIN32)
+    void *handle;      /**< Windows HANDLE to COM port */
 #else
-    void *handle; /**< Platform-specific port handle (unused/stub) */
+    int fd;            /**< POSIX file descriptor */
 #endif
-    char port[64]; /**< Port name */
-    uint32_t baud; /**< Baud rate */
-    uint8_t slave_id; /**< Default slave ID */
+    char port[64];     /**< Port name (e.g. "COM1", "/dev/ttyUSB1") */
+    uint32_t baud;     /**< Baud rate */
+    uint8_t slave_id;  /**< Default slave ID */
 } MODBUS_PORT;
 
 /** Temperature and humidity sensor data (legacy, kept for compatibility) */

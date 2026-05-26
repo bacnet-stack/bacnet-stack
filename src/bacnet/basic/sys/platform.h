@@ -55,7 +55,7 @@
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 
-__inline int
+static __inline int
 c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
 {
     int count = -1;
@@ -70,7 +70,7 @@ c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
     return count;
 }
 
-__inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
+static __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 {
     int count;
     va_list ap;
@@ -100,6 +100,27 @@ __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 #define BACNET_STACK_FALLTHROUGH() __attribute__((fallthrough))
 #else
 #define BACNET_STACK_FALLTHROUGH() /* fall through */
+#endif
+
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <stdlib.h>
+#define setenv win32_setenv
+static __inline int
+win32_setenv(const char *envname, const char *envval, int overwrite)
+{
+    size_t envname_len;
+    char *env;
+    if (!overwrite) {
+        envname_len = strlen(envname);
+        env = getenv(envname);
+        if (env && (strlen(env) == envname_len) &&
+            (strncmp(env, envname, envname_len) == 0)) {
+            /* exists! do not overwrite */
+            return 0;
+        }
+    }
+    return _putenv_s(envname, envval);
+}
 #endif
 
 #endif

@@ -44,12 +44,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 #include <time.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <unistd.h>
-
 /* ── BACnet stack ── */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
@@ -67,7 +64,8 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/object/device.h"
-
+/* port agnostic file */
+#include "bacport.h"
 /* ── This project ── */
 #include "gateway_config.h"
 #include "modbus_rtu.h"
@@ -96,13 +94,40 @@ static GW_CONFIG Gw_Config;
 static GW_POINT_TABLE Point_Table;
 
 /* ────────────────────────────────────────────────────────────────────────
- * Signal handler
+ * CTRL-C handler
  * ──────────────────────────────────────────────────────────────────────*/
-static void signal_handler(int sig)
+#if defined(_WIN32)
+static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
 {
-    (void)sig;
+    dwCtrlType = dwCtrlType;
+
+    /* signal to main loop to exit */
+    Running = false;
+
+    return TRUE;
+}
+
+static void control_c_hooks(void)
+{
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE);
+}
+#else
+#include <signal.h>
+
+static void signal_handler(int signo)
+{
+    (void)signo;
     Running = false;
 }
+
+static void control_c_hooks(void)
+{
+    signal(SIGINT, signal_handler);
+    signal(SIGHUP, signal_handler);
+    signal(SIGTERM, signal_handler);
+}
+#endif
 
 /* ────────────────────────────────────────────────────────────────────────
  * Register BACnet service handlers
@@ -170,16 +195,10 @@ int main(int argc, char *argv[])
             config_file = argv[i];
         }
     }
-
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
-
+    control_c_hooks();
     /* Set stdout/stderr to unbuffered so log output appears immediately */
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
-#endif
-
     /* ── Load configuration and point table from JSON ── */
     if (!point_table_load_json(&Gw_Config, &Point_Table, config_file)) {
         fprintf(
@@ -228,10 +247,8 @@ int main(int argc, char *argv[])
      * All standard BACNET_* env vars can also be pre-set externally to
      * override any of these settings before the process starts.
      */
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
     setenv("BACNET_DATALINK", Gw_Config.datalink_type, 0);
     setenv("BACNET_IFACE", Gw_Config.bacnet_iface, 0);
-
     if (strcmp(Gw_Config.datalink_type, "mstp") == 0) {
         snprintf(baud_str, sizeof(baud_str), "%u", Gw_Config.mstp_baud);
         snprintf(mac_str, sizeof(mac_str), "%u", Gw_Config.mstp_mac);
@@ -251,9 +268,7 @@ int main(int argc, char *argv[])
             setenv("BACNET_IP_PORT", port_str, 1);
         }
     }
-#endif /* __linux__ || __unix__ || __APPLE__ */
     dlenv_init();
-
     if (!datalink_init(NULL)) {
         fprintf(
             stderr, "[GW] datalink_init() failed (datalink=%s, iface=%s)\n",

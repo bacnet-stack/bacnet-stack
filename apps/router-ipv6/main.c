@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <time.h>
 #include <assert.h>
 /* BACnet Stack defines - first */
@@ -1110,6 +1109,8 @@ static void control_c_hooks(void)
     SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE);
 }
 #else
+#include <signal.h>
+
 static void sig_int(int signo)
 {
     (void)signo;
