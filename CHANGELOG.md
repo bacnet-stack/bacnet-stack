@@ -22,6 +22,8 @@ The git repositories are hosted at the following sites:
   buffer overflow. (#1354)
 * Secured Notification Class AddListElement and RemoveListElement stack
   based buffer overflow. (#1353)
+* Secured Device ENDRESTORE so that it does not delete existing objects
+  until after the first record is decoded (#1352)
 * Secured Timer object State_Change_Values property self-reference that
   caused uncontrolled recursion. (#1347)
 * Secured Channel object member self-reference that caused uncontrolled
