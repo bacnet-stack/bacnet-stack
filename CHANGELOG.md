@@ -12,7 +12,7 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
-## [1.4.4-rc2] - 2026-05-18
+## [1.4.4] - 2026-05-26
 
 ### Security
 
@@ -39,6 +39,8 @@ The git repositories are hosted at the following sites:
   RecordCount stack based out-of-bounds write. (#1340)
 
 ### Fixed
+
+* Fixed _WIN32_WINNT definition for IPv6 compatibility on Windows.
 
 ## [1.4.3] - 2026-04-16
 
