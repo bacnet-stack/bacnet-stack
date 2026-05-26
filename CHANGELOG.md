@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured Life Safety Point and Zone Read_Property of accepted-modes property
+  buffer overflow. (#1354)
 * Secured Notification Class AddListElement and RemoveListElement stack
   based buffer overflow. (#1353)
 * Secured Device ENDRESTORE so that it does not delete existing objects
