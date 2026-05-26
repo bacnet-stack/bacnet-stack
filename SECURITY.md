@@ -27,6 +27,10 @@ cybersecurity vulnerabilities.
 
 Here are the published vulnerability records for v1.5.x:
 
+[CVE-2026-47710](https://www.cve.org/CVERecord?id=CVE-2026-47710) -
+Loop reference to long Structured View description causes stack-buffer-overflow
+[GHSA-2xm5-gjpc-9m6q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2xm5-gjpc-9m6q)
+
 [CVE-2026-47711](https://www.cve.org/CVERecord?id=CVE-2026-47711) -
 Stack buffer overflow in Loop internal ReadProperty path via Life_Safety_Zone accepted-modes property
 [GHSA-vrpm-9gm2-x552](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-vrpm-9gm2-x552)
