@@ -17,6 +17,11 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured AtomicReadFile-ACK Record-Access Encoder by initializing
+  BACNET_CHARACTER_STRING and OCTET_STRING to prevent uninitialized
+  usage and conditional information disclosure. (#1344)
+* Secured AtomicReadFile and AtomicWriteFile callbacks into bacfile.c
+  by adding null checks and fixing out-of-bounds read/write.(#1344)
 * Secured WriteProperty to Structured View subordinate-list that caused a NULL
   pointer dereference in bacnet_device_object_reference_decode(). (#1321)
 * Secured AtomicReadFile handler by implementing bounds checks for
@@ -24,6 +29,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed off-by-one error in Life_Safety_Point_Read_Property for
+  accepted modes property. (#1349)
 * Fixed WriteProperty handling across the stack by rejecting zero-length
   application payloads for non-list properties (returning
   ERROR_CODE_INVALID_TAG) and by adding defensive wp_data == NULL checks
