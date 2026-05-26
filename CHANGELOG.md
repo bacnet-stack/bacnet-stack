@@ -17,13 +17,17 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured WriteProperty to Structured View subordinate-list that caused a NULL
+  pointer dereference in bacnet_device_object_reference_decode(). (#1321)
 * Secured AtomicReadFile handler by implementing bounds checks for
   RecordCount stack based out-of-bounds write. (#1340)
 
 ### Fixed
 
-* Fix BBMD_Result handling to avoid false positive error message
+* Fixed BBMD_Result handling to avoid false positive error message
   when no registration is requested. (#1305)
+* Fixed Keylist memory allocation check in CheckArraySize and handle
+  node creation failure in Keylist_Data_Add (#1295)
 
 ## [1.5.0] - 2026-04-16
 
