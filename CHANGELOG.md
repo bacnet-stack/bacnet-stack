@@ -24,6 +24,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed access-doors array to be in array list. (#1331)
 * Fixed Network Port object local IPv4 gateway address configuration for
   Linux/BSD/Windows. (#1335)
 * Fixed lighting command update notifications to use scaled physical
