@@ -25,6 +25,18 @@ bool bacfile_valid_instance(uint32_t object_instance)
     return Bacfile_Valid_Instance_Result;
 }
 
+/** Control variable: value returned by bacfile_file_size() */
+BACNET_UNSIGNED_INTEGER Bacfile_File_Size_Result = 0;
+
+/**
+ * @brief Stub: return the configured file size for the instance
+ */
+BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
+{
+    (void)object_instance;
+    return Bacfile_File_Size_Result;
+}
+
 /** Control variable: set true to make bacfile_read_record_data() succeed */
 bool Bacfile_Read_Record_Data_Result = false;
 
