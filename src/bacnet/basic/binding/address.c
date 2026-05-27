@@ -795,9 +795,9 @@ address_list_encode_entry(uint8_t *apdu, struct Address_Cache_Entry *entry)
  *
  * @return Count of encoded bytes.
  */
-int address_list_encode(uint8_t *apdu, unsigned apdu_len)
+int address_list_encode(uint8_t *apdu, unsigned apdu_size)
 {
-    int len = 0;
+    int len = 0, apdu_len = 0;
     struct Address_Cache_Entry *pMatch;
     unsigned index;
 
@@ -807,23 +807,24 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
             /* encode matching addresses */
-            len += address_list_encode_entry(NULL, pMatch);
+            len = address_list_encode_entry(NULL, pMatch);
+            apdu_len += len;
         }
     }
     /* encode the address list if there is enough space */
-    if (apdu && (len <= (int)apdu_len)) {
+    if (apdu && (apdu_len <= (int)apdu_size)) {
         for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
             pMatch = &Address_Cache[index];
             if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
                 BAC_ADDR_IN_USE) {
                 /* encode matching addresses */
-                len += address_list_encode_entry(apdu, pMatch);
+                len = address_list_encode_entry(apdu, pMatch);
                 apdu += len;
             }
         }
     }
 
-    return len;
+    return apdu_len;
 }
 
 /**

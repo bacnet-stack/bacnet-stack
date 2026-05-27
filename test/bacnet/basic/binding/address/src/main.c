@@ -5,6 +5,7 @@
  * @date 2004
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacaddr.h>
 #include <bacnet/basic/binding/address.h>
@@ -263,6 +264,163 @@ static void testAddress(void)
     }
 }
 /**
+ * @brief Test address_list_encode for correct return value and no buffer
+ * overrun.
+ *
+ * The function has two phases:
+ *   1. A length-calculation pass (apdu == NULL) to find the total bytes needed.
+ *   2. An encoding pass that must write exactly those bytes into the caller's
+ *      buffer without exceeding it.
+ *
+ * Bugs guarded against:
+ *   - Writing past the end of a buffer whose size was obtained from the
+ *     NULL-apdu length-calculation call (original overrun).
+ *   - Double-counting encoded bytes in the return value when apdu != NULL
+ *     (second-loop len accumulation bug).
+ *   - Advancing the apdu pointer by the accumulated total rather than by the
+ *     per-entry size, which shifts subsequent entries to wrong offsets and
+ *     can push the write pointer past the buffer end.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(address_tests, test_address_list_encode)
+#else
+static void test_address_list_encode(void)
+#endif
+{
+    /* Large backing array; guard region sits immediately after apdu_len bytes
+     */
+    uint8_t apdu[1024];
+    BACNET_ADDRESS src = { 0 };
+    BACNET_ADDRESS addr = { 0 };
+    int len_null = 0;
+    int len_encoded = 0;
+    unsigned apdu_len = 0;
+    unsigned i = 0;
+    uint32_t device_id = 0;
+    unsigned max_apdu_size = 0;
+
+    /* Reset the cache.  In BACNET_ADDRESS_CACHE_FILE builds address_init()
+     * re-reads a file left by an earlier test, so drain any loaded entries
+     * explicitly so the "empty cache" assertions below are reliable. */
+    address_init();
+    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
+        if (address_get_by_index(i, &device_id, &max_apdu_size, &addr)) {
+            address_remove_device(device_id);
+        }
+    }
+    zassert_equal(address_count(), 0, "Cache must be empty at test start");
+
+    /* ------------------------------------------------------------------ */
+    /* empty cache                                                          */
+    /* ------------------------------------------------------------------ */
+    len_null = address_list_encode(NULL, 0);
+    zassert_equal(len_null, 0, "Empty cache: length-only call must return 0");
+
+    len_encoded = address_list_encode(apdu, sizeof(apdu));
+    zassert_equal(len_encoded, 0, "Empty cache: encode call must return 0");
+
+    /* ------------------------------------------------------------------ */
+    /* single MAC-layer entry (no routing, net == 0)                       */
+    /* ------------------------------------------------------------------ */
+    src.mac_len = 1;
+    src.mac[0] = 0x05;
+    src.net = 0;
+    src.len = 0;
+    address_add(1001, 480, &src);
+    zassert_equal(address_count(), 1, NULL);
+
+    /* length-only call must be positive */
+    len_null = address_list_encode(NULL, 0);
+    zassert_true(len_null > 0, "Single entry: length-only call must be > 0");
+
+    /* encode into a large buffer: return value must equal length-only result */
+    memset(apdu, 0, sizeof(apdu));
+    len_encoded = address_list_encode(apdu, sizeof(apdu));
+    zassert_equal(
+        len_encoded, len_null,
+        "Single entry: encoded length must match length-only call");
+
+    /* too-small buffer: length returned, no bytes written */
+    apdu_len = (unsigned)len_null - 1;
+    memset(apdu, 0xAA, sizeof(apdu));
+    len_encoded = address_list_encode(apdu, apdu_len);
+    zassert_equal(
+        len_encoded, len_null,
+        "Single entry: too-small buffer must still return required length");
+    zassert_equal(
+        apdu[0], 0xAA, "Single entry: too-small buffer must not be written");
+
+    /* exactly-right-sized buffer: guard bytes after it must survive */
+    apdu_len = (unsigned)len_null;
+    memset(apdu, 0, sizeof(apdu));
+    memset(apdu + apdu_len, 0xBB, 8);
+    len_encoded = address_list_encode(apdu, apdu_len);
+    zassert_equal(
+        len_encoded, len_null,
+        "Single entry: exact-sized buffer must return correct length");
+    for (i = 0; i < 8; i++) {
+        zassert_equal(
+            apdu[apdu_len + i], 0xBB,
+            "Single entry: guard bytes must not be overwritten");
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* two entries: this is the primary regression case for the overrun.   */
+    /* With the second-loop bug, `apdu += len` advances the write pointer  */
+    /* by the ever-growing accumulated total instead of by the per-entry   */
+    /* size.  When the buffer is exactly the right size the second entry   */
+    /* is written past the end of the buffer.                              */
+    /* ------------------------------------------------------------------ */
+    src.mac_len = 6;
+    src.mac[0] = 0xC0;
+    src.mac[1] = 0xA8;
+    src.mac[2] = 0x00;
+    src.mac[3] = 0x18;
+    src.mac[4] = 0xBA;
+    src.mac[5] = 0xC0;
+    src.net = 26001;
+    src.len = 1;
+    src.adr[0] = 0x19;
+    address_add(2002, 480, &src);
+    zassert_equal(address_count(), 2, NULL);
+
+    /* length-only call with 2 entries */
+    len_null = address_list_encode(NULL, 0);
+    zassert_true(len_null > 0, "Two entries: length-only call must be > 0");
+
+    /* encode into a large buffer: return value must equal length-only result */
+    memset(apdu, 0, sizeof(apdu));
+    len_encoded = address_list_encode(apdu, sizeof(apdu));
+    zassert_equal(
+        len_encoded, len_null,
+        "Two entries: encoded length must match length-only call");
+
+    /* exactly-right-sized buffer: guard bytes must survive */
+    apdu_len = (unsigned)len_null;
+    memset(apdu, 0, sizeof(apdu));
+    memset(apdu + apdu_len, 0xBB, 8);
+    len_encoded = address_list_encode(apdu, apdu_len);
+    zassert_equal(
+        len_encoded, len_null,
+        "Two entries: exact-sized buffer must return correct length");
+    for (i = 0; i < 8; i++) {
+        zassert_equal(
+            apdu[apdu_len + i], 0xBB,
+            "Two entries: guard bytes must not be overwritten");
+    }
+
+    /* too-small buffer with 2 entries: length returned, no bytes written */
+    apdu_len = (unsigned)len_null - 1;
+    memset(apdu, 0xAA, sizeof(apdu));
+    len_encoded = address_list_encode(apdu, apdu_len);
+    zassert_equal(
+        len_encoded, len_null,
+        "Two entries: too-small buffer must still return required length");
+    zassert_equal(
+        apdu[0], 0xAA, "Two entries: too-small buffer must not be written");
+}
+
+/**
  * @}
  */
 
@@ -274,13 +432,15 @@ void test_main(void)
 #ifdef BACNET_ADDRESS_CACHE_FILE
     ztest_test_suite(
         address_tests, ztest_unit_test(testAddressFile),
-        ztest_unit_test(testAddress), ztest_unit_test(test_rr_address));
+        ztest_unit_test(testAddress), ztest_unit_test(test_rr_address),
+        ztest_unit_test(test_address_list_encode));
 
     ztest_run_test_suite(address_tests);
 #else
     ztest_test_suite(
         address_tests, ztest_unit_test(testAddress),
-        ztest_unit_test(test_rr_address));
+        ztest_unit_test(test_rr_address),
+        ztest_unit_test(test_address_list_encode));
 
     ztest_run_test_suite(address_tests);
 #endif
