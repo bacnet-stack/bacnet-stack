@@ -15,6 +15,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/apdu.h"
+#include "bacnet/npdu.h"
 
 #ifdef __cplusplus
 extern "C" {

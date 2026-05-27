@@ -1123,6 +1123,9 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
                 break;
             }
         }
+    } else {
+        data->endOfFile = true;
+        data->type.record.RecordCount = 0;
     }
 
     return found;

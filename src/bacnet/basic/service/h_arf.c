@@ -107,7 +107,7 @@ int handler_atomic_read_file_encode(
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     uint8_t *apdu_start;
-    int32_t file_size;
+    BACNET_UNSIGNED_INTEGER file_size;
 
     DEBUG_PRINTF("Received Atomic-Read-File Request!\n");
     /* encode the NPDU portion of the packet */
@@ -143,6 +143,9 @@ int handler_atomic_read_file_encode(
                 error = true;
             } else if (data.access == FILE_STREAM_ACCESS) {
                 file_size = bacfile_file_size(data.object_instance);
+                if (file_size > INT32_MAX) {
+                    file_size = INT32_MAX;
+                }
                 if ((data.type.stream.fileStartPosition < 0) ||
                     (data.type.stream.fileStartPosition > file_size)) {
                     /* If the 'File Start Position' parameter is either less
