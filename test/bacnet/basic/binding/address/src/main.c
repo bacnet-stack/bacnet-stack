@@ -409,13 +409,13 @@ static void test_address_list_encode(void)
             "Two entries: guard bytes must not be overwritten");
     }
 
-    /* too-small buffer with 2 entries: length returned, no bytes written */
+    /* too-small buffer with 2 entries: must fail without writing */
     apdu_len = (unsigned)len_null - 1;
     memset(apdu, 0xAA, sizeof(apdu));
     len_encoded = address_list_encode(apdu, apdu_len);
     zassert_equal(
-        len_encoded, len_null,
-        "Two entries: too-small buffer must still return required length");
+        len_encoded, BACNET_STATUS_ABORT,
+        "Two entries: too-small buffer must return BACNET_STATUS_ABORT");
     zassert_equal(
         apdu[0], 0xAA, "Two entries: too-small buffer must not be written");
 }
