@@ -3407,6 +3407,10 @@ int bacnet_character_string_buffer_decode(
                     value->buffer[i] = 0;
                 }
             }
+        } else {
+            /* no buffer provided; use zero copy */
+            value->buffer = (char *)&apdu[1];
+            value->buffer_size = string_length;
         }
     }
     len = (int)len_value;
@@ -5868,8 +5872,8 @@ int bacnet_array_encode(
 }
 
 /**
- * @brief Decode a BACnetARRAY property value and call a function for each
- * element
+ * @brief Decode a resizable BACnetARRAY property value and call a function
+ *  for each element
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index to be decoded
  *    0 for the array size
@@ -5884,7 +5888,7 @@ int bacnet_array_encode(
  * @param max_apdu [in] Max length of the APDU buffer.
  * @return BACNET_ERROR_CODE value
  */
-BACNET_ERROR_CODE bacnet_array_write(
+BACNET_ERROR_CODE bacnet_array_write_resizable(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
     bacnet_array_property_element_decode_function decode_function,
@@ -5938,13 +5942,53 @@ BACNET_ERROR_CODE bacnet_array_write(
                 apdu_len += len;
             }
         }
-    } else if (array_index <= array_size) {
+    } else {
         /* index was specified; write a single array element */
+        /* note: write function is responsible for handling the array_index
+           bounds checking and return array_index out of range error if
+           the array is not resizable */
         error_code = write_function(
             object_instance, array_index, array_size, apdu, apdu_size);
-    } else {
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetARRAY property value and call a function for each
+ * element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to be decoded
+ *    0 for the array size
+ *    1 to n for individual array members
+ *    BACNET_ARRAY_ALL for the full array to be written.
+ * @param decode_function [in] function to decode one property array element and
+ * determine the length
+ * @param write_function [in] function to write one property array element with
+ * the encoded value
+ * @param array_size [in] number of elements in the array
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ * @return BACNET_ERROR_CODE value
+ */
+BACNET_ERROR_CODE bacnet_array_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_array_property_element_write_function write_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_ERROR_CODE error_code;
+
+    if ((array_index != BACNET_ARRAY_ALL) && (array_index > array_size)) {
         /* array_index was specified out of range */
         error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    } else {
+        error_code = bacnet_array_write_resizable(
+            object_instance, array_index, decode_function, write_function,
+            array_size, apdu, apdu_size);
     }
 
     return error_code;
