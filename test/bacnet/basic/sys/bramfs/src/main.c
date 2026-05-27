@@ -233,14 +233,12 @@ static void test_BRAMFS_invalid_stream_positions(void)
     len = bacfile_ramfs_read_stream_data(
         pathname, -1, read_buf, sizeof(read_buf));
     zassert_equal(
-        len, 0,
-        "Read with fileStartPosition=-1 must return 0, got %zu", len);
+        len, 0, "Read with fileStartPosition=-1 must return 0, got %zu", len);
 
     len = bacfile_ramfs_read_stream_data(
         pathname, -100, read_buf, sizeof(read_buf));
     zassert_equal(
-        len, 0,
-        "Read with fileStartPosition=-100 must return 0, got %zu", len);
+        len, 0, "Read with fileStartPosition=-100 must return 0, got %zu", len);
 
     /* read with start position exceeding file size must return 0 */
     len = bacfile_ramfs_read_stream_data(
@@ -254,8 +252,7 @@ static void test_BRAMFS_invalid_stream_positions(void)
     len = bacfile_ramfs_write_stream_data(
         pathname, -2, file_data, sizeof(file_data));
     zassert_equal(
-        len, 0,
-        "Write with fileStartPosition=-2 must return 0, got %zu", len);
+        len, 0, "Write with fileStartPosition=-2 must return 0, got %zu", len);
 
     bacfile_ramfs_deinit();
 }
@@ -287,21 +284,18 @@ static void test_BRAMFS_invalid_record_positions(void)
     status = bacfile_ramfs_write_record_data(
         pathname, -2, 0, (const uint8_t *)record_1, record_len);
     zassert_false(
-        status,
-        "write_record_data with fileStartRecord=-2 must return false");
+        status, "write_record_data with fileStartRecord=-2 must return false");
 
     /* read_record with negative fileStartRecord must return false */
     status = bacfile_ramfs_read_record_data(
         pathname, -1, 0, read_buf, sizeof(read_buf));
     zassert_false(
-        status,
-        "read_record_data with fileStartRecord=-1 must return false");
+        status, "read_record_data with fileStartRecord=-1 must return false");
 
     status = bacfile_ramfs_read_record_data(
         pathname, -2, 0, read_buf, sizeof(read_buf));
     zassert_false(
-        status,
-        "read_record_data with fileStartRecord=-2 must return false");
+        status, "read_record_data with fileStartRecord=-2 must return false");
 
     bacfile_ramfs_deinit();
 }

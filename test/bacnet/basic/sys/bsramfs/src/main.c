@@ -137,28 +137,25 @@ static void test_BSRAMFS_invalid_positions(void)
     uint8_t raw_data[] = { "HELLO" };
     /* records: two null-terminated strings */
     char rec_data[] = "First record.\0Second record.";
-    struct bacnet_file_sramfs_data stream_file = {
-        sizeof(raw_data), (char *)raw_data, "invalid_stream.txt", NULL
-    };
-    struct bacnet_file_sramfs_data record_file = {
-        sizeof(rec_data), rec_data, "invalid_record.txt", NULL
-    };
+    struct bacnet_file_sramfs_data stream_file = { sizeof(raw_data),
+                                                   (char *)raw_data,
+                                                   "invalid_stream.txt", NULL };
+    struct bacnet_file_sramfs_data record_file = { sizeof(rec_data), rec_data,
+                                                   "invalid_record.txt", NULL };
     uint8_t read_buf[64] = { 0 };
     size_t len = 0;
     bool status = false;
 
     bacfile_sramfs_init();
-    zassert_true(
-        bacfile_sramfs_add(&stream_file), "Failed to add stream_file");
-    zassert_true(
-        bacfile_sramfs_add(&record_file), "Failed to add record_file");
+    zassert_true(bacfile_sramfs_add(&stream_file), "Failed to add stream_file");
+    zassert_true(bacfile_sramfs_add(&record_file), "Failed to add record_file");
 
     /* read_stream with negative start position must return 0 */
     len = bacfile_sramfs_read_stream_data(
         stream_file.pathname, -1, read_buf, sizeof(read_buf));
     zassert_equal(
-        len, 0,
-        "read_stream with fileStartPosition=-1 must return 0, got %zu", len);
+        len, 0, "read_stream with fileStartPosition=-1 must return 0, got %zu",
+        len);
 
     len = bacfile_sramfs_read_stream_data(
         stream_file.pathname, -100, read_buf, sizeof(read_buf));
@@ -179,14 +176,12 @@ static void test_BSRAMFS_invalid_positions(void)
     status = bacfile_sramfs_read_record_data(
         record_file.pathname, -1, 0, read_buf, sizeof(read_buf));
     zassert_false(
-        status,
-        "read_record with fileStartRecord=-1 must return false");
+        status, "read_record with fileStartRecord=-1 must return false");
 
     status = bacfile_sramfs_read_record_data(
         record_file.pathname, -2, 0, read_buf, sizeof(read_buf));
     zassert_false(
-        status,
-        "read_record with fileStartRecord=-2 must return false");
+        status, "read_record with fileStartRecord=-2 must return false");
 }
 
 /**
