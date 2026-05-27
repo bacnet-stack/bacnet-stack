@@ -60,6 +60,14 @@ standard.
 */
 
 #if defined(BACFILE)
+/**
+ * @brief Handler for the AtomicWriteFile service. Encodes and sends an ACK or
+ * Error response based on the provided request and service data.
+ * @param service_request The APDU portion of the request.
+ * @param service_len The length of the service_request buffer.
+ * @param src The source address to send the response to.
+ * @param service_data The confirmed service data from the request.
+ */
 void handler_atomic_write_file(
     uint8_t *service_request,
     uint16_t service_len,
@@ -108,7 +116,11 @@ void handler_atomic_write_file(
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
-            if (bacfile_write_stream_data(&data)) {
+            if (data.type.stream.fileStartPosition < -1) {
+                error = true;
+                error_class = ERROR_CLASS_SERVICES;
+                error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+            } else if (bacfile_write_stream_data(&data)) {
                 debug_fprintf(
                     stderr, "AWF: Stream offset %d, %d bytes\n",
                     data.type.stream.fileStartPosition,
@@ -122,7 +134,11 @@ void handler_atomic_write_file(
                 error_code = ERROR_CODE_FILE_ACCESS_DENIED;
             }
         } else if (data.access == FILE_RECORD_ACCESS) {
-            if (bacfile_write_record_data(&data)) {
+            if (data.type.record.fileStartRecord < -1) {
+                error = true;
+                error_class = ERROR_CLASS_SERVICES;
+                error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+            } else if (bacfile_write_record_data(&data)) {
                 debug_fprintf(
                     stderr, "AWF: StartRecord %d, RecordCount %u\n",
                     data.type.record.fileStartRecord,

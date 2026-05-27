@@ -80,6 +80,16 @@ shall be TRUE, otherwise FALSE.
 */
 
 #if defined(BACFILE)
+/**
+ * @brief Handler for the AtomicReadFile service. Encodes and sends an ACK or
+ * Error response based on the provided request and service data.
+ * @param service_request The APDU portion of the request, starting with the
+ * service choice.
+ * @param service_len The length of the service_request buffer.
+ * @param src The source address to send the response to.
+ * @param service_data The confirmed service data from the request, used for
+ * encoding the response.
+ */
 void handler_atomic_read_file(
     uint8_t *service_request,
     uint16_t service_len,
@@ -95,6 +105,7 @@ void handler_atomic_read_file(
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_UNSIGNED_INTEGER file_size;
 
 #if PRINT_ENABLED
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
@@ -130,7 +141,19 @@ void handler_atomic_read_file(
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
-            if (data.type.stream.requestedOctetCount <=
+            file_size = bacfile_file_size(data.object_instance);
+            if (file_size > INT32_MAX) {
+                file_size = INT32_MAX;
+            }
+            if ((data.type.stream.fileStartPosition < 0) ||
+                (data.type.stream.fileStartPosition > file_size)) {
+                /* If the 'File Start Position' parameter is either less
+                than 0 or exceeds the actual file size, then the appropriate
+                error is returned in a 'Result(-)' response.*/
+                error = true;
+                error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+            } else if (
+                data.type.stream.requestedOctetCount <=
                 octetstring_capacity(&data.fileData[0])) {
                 bacfile_read_stream_data(&data);
                 debug_fprintf(
@@ -157,8 +180,9 @@ void handler_atomic_read_file(
                 error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
                 error = true;
             } else if (
-                data.type.record.fileStartRecord >=
-                BACNET_READ_FILE_RECORD_COUNT) {
+                (data.type.record.fileStartRecord < 0) ||
+                (data.type.record.fileStartRecord >=
+                 BACNET_READ_FILE_RECORD_COUNT)) {
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                 error = true;

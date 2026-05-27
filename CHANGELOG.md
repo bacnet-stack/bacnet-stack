@@ -12,6 +12,14 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
+## [1.4.5-rc1] - 2026-05-27
+
+### Security
+
+* Secured AtomicReadFile/AtomicWriteFile logic and underlying file backends
+  by adding explicit invalid-start-position guards which reject negative
+  and out-of-range positions/records. (#1362)
+
 ## [1.4.4] - 2026-05-26
 
 ### Security
