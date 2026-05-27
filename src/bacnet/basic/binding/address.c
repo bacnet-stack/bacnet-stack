@@ -749,44 +749,6 @@ unsigned address_count(void)
 }
 
 /**
- * @brief Encode the address list entry for the given cache entry.
- * @param apdu  Pointer to the APDU, or NULL for length calculation.
- * @param entry  Pointer to the cache entry to encode.
- * @return Count of encoded bytes.
- */
-static int
-address_list_encode_entry(uint8_t *apdu, struct Address_Cache_Entry *entry)
-{
-    int len = 0, apdu_len = 0;
-    BACNET_OCTET_STRING mac_address = { 0 };
-
-    len = encode_application_object_id(apdu, OBJECT_DEVICE, entry->device_id);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_application_unsigned(apdu, entry->address.net);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    /* pick the appropriate type of entry from the cache */
-    if (entry->address.len != 0) {
-        /* BAC */
-        octetstring_init(&mac_address, entry->address.adr, entry->address.len);
-        len = encode_application_octet_string(apdu, &mac_address);
-    } else {
-        /* MAC*/
-        octetstring_init(
-            &mac_address, entry->address.mac, entry->address.mac_len);
-        len = encode_application_octet_string(apdu, &mac_address);
-    }
-    apdu_len += len;
-
-    return apdu_len;
-}
-
-/**
  * Build a list of the current bindings for the device address binding
  * property. Basically encode the address list to be send out.
  *
@@ -807,7 +769,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
             /* encode matching addresses */
-            len = address_list_encode_entry(NULL, pMatch);
+            len = bacnet_address_binding_entry_encode(NULL, pMatch->device_id, &pMatch->address);
             apdu_len += len;
         }
     }
@@ -818,7 +780,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
             if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
                 BAC_ADDR_IN_USE) {
                 /* encode matching addresses */
-                len = address_list_encode_entry(apdu, pMatch);
+                len = bacnet_address_binding_entry_encode(apdu, pMatch->device_id, &pMatch->address);
                 apdu += len;
             }
         }
@@ -976,7 +938,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
             break;
         }
-        iTemp = address_list_encode_entry(&apdu[iLen], pMatch);
+        iTemp = bacnet_address_binding_entry_encode(&apdu[iLen], pMatch->device_id, &pMatch->address);
         /* Reduce the remaining space */
         uiRemaining -= iTemp;
         /* and increase the length consumed */
