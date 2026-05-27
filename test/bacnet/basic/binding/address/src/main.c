@@ -340,13 +340,13 @@ static void test_address_list_encode(void)
         len_encoded, len_null,
         "Single entry: encoded length must match length-only call");
 
-    /* too-small buffer: length returned, no bytes written */
+    /* too-small buffer: must fail without writing */
     apdu_len = (unsigned)len_null - 1;
     memset(apdu, 0xAA, sizeof(apdu));
     len_encoded = address_list_encode(apdu, apdu_len);
     zassert_equal(
-        len_encoded, len_null,
-        "Single entry: too-small buffer must still return required length");
+        len_encoded, BACNET_STATUS_ABORT,
+        "Single entry: too-small buffer must return BACNET_STATUS_ABORT");
     zassert_equal(
         apdu[0], 0xAA, "Single entry: too-small buffer must not be written");
 
