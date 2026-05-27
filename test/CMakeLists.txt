@@ -195,6 +195,7 @@ list(APPEND testdirs
   bacnet/basic/program/ubasic
   # basic/service
   bacnet/basic/service/h_arf
+  bacnet/basic/service/h_awf
   bacnet/basic/service/h_cov
   # basic/server
   bacnet/basic/server/bacnet_device

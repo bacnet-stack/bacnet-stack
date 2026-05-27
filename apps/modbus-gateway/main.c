@@ -147,11 +147,13 @@ int main(int argc, char *argv[])
     time_t last_sec = 0;
     time_t last_poll_sec = 0;
     uint32_t elapsed_sec = 0;
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
     char baud_str[16] = { 0 };
     char mac_str[8] = { 0 };
     char max_master_str[16] = { 0 };
     char net_str[16] = { 0 };
     char port_str[16] = { 0 };
+#endif /* __linux__ || __unix__ || __APPLE__ */
     int i;
 
     /* ── Parse CLI arguments ──
