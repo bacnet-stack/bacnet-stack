@@ -27,6 +27,9 @@ cybersecurity vulnerabilities.
 
 Here are the published vulnerability records for v1.5.x:
 
+AtomicReadFile/AtomicWriteFile stream fileStartPosition validation flaw causes out-of-bounds read/write in RAM file backends
+[GHSA-8759-hx7g-94qx](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8759-hx7g-94qx)
+
 [CVE-2026-47710](https://www.cve.org/CVERecord?id=CVE-2026-47710) -
 Loop reference to long Structured View description causes stack-buffer-overflow
 [GHSA-2xm5-gjpc-9m6q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2xm5-gjpc-9m6q)

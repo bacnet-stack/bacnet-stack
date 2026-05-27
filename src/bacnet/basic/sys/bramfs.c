@@ -150,6 +150,8 @@ bool bacfile_ramfs_file_size_set(const char *pathname, size_t new_size)
  * @brief Reads stream data from a file
  * @param pathname - name of the file to read from
  * @param fileStartPosition - starting position in the file
+ *  If the 'File Start Position' parameter less than 0
+ *  or exceeds the actual file size, then an error is returned.
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
  * @return number of bytes read, or 0 if not successful
@@ -163,8 +165,16 @@ size_t bacfile_ramfs_read_stream_data(
     struct file_data *pFile;
     size_t len = 0;
 
+    if (fileStartPosition < 0) {
+        /* invalid file start position */
+        return 0;
+    }
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
+        if (fileStartPosition > pFile->size) {
+            /* invalid file start position */
+            return 0;
+        }
         if (fileStartPosition + fileDataLen > pFile->size) {
             /* read only up to the end of the file */
             len = pFile->size - fileStartPosition;
@@ -180,7 +190,14 @@ size_t bacfile_ramfs_read_stream_data(
 /**
  * @brief Writes stream data to a file
  * @param pathname - name of the file to write to
- * @param fileStartPosition - starting position in the file
+ * @param fileStartPosition - starting position in the file.
+ *  If the 'File Start Position' parameter exceeds the actual file size,
+ *  then the file shall be extended to the size indicated,
+ *  but the contents of any intervening octets or records
+ *  shall be a local matter.
+ *  If this parameter has the special value -1,
+ *  then the write operation shall be treated
+ *  as an append to the current end of file.
  * @param fileData - data buffer to write from
  * @param fileDataLen - size of the data buffer
  * @return number of bytes written, or 0 if not successful
@@ -219,7 +236,7 @@ size_t bacfile_ramfs_write_stream_data(
                 memcpy(pFile->data + old_size, fileData, fileDataLen);
                 bytes_written = fileDataLen;
             }
-        } else {
+        } else if (fileStartPosition > 0) {
             /* open for update */
             if (fileStartPosition + fileDataLen > pFile->size) {
                 /* extend the file size */
@@ -296,6 +313,10 @@ static char *record_by_index(char *records, size_t index)
  * @brief Writes record data to a file
  * @param pathname - name of the file to write to
  * @param fileStartRecord - starting record in the file
+ *  If 'File Start Record' parameter has the special
+ *  value -1, then the write operation shall be treated
+ *  as an append to the current end of file,
+ *  and fileIndexRecord can be ignored.
  * @param fileIndexRecord - index of the record to read
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
@@ -329,12 +350,15 @@ bool bacfile_ramfs_write_record_data(
                as an append to the current end of file,
                and fileIndexRecord can be ignored. */
             fileSeekRecord = fileRecordCount;
-        } else {
+        } else if (fileStartRecord >= 0) {
             fileSeekRecord = fileStartRecord + fileIndexRecord;
             if (fileSeekRecord > fileRecordCount) {
                 /* cannot write more than 1 record beyond the end of the file */
                 return false;
             }
+        } else {
+            /* invalid file start record */
+            return false;
         }
         /* sanitize the incoming record; assume from an octetstring */
         fileDataStrLen = min(fileDataLen, MAX_OCTET_STRING_BYTES);
@@ -386,6 +410,8 @@ bool bacfile_ramfs_write_record_data(
  * @brief Reads record data from a file
  * @param pathname - name of the file to read from
  * @param fileStartRecord - starting record in the file
+ *  If the 'File Start Record' parameter is either less than 0
+ *  or exceeds the actual file size, then an error is returned.
  * @param fileIndexRecord - index of the record to read
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
@@ -404,6 +430,9 @@ bool bacfile_ramfs_read_record_data(
     char *record;
     size_t record_len;
 
+    if (fileStartRecord < 0) {
+        return false; /* invalid file start record */
+    }
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
         fileSeekRecord = fileStartRecord + fileIndexRecord;

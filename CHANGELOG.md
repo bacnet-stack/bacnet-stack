@@ -13,10 +13,13 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [1.5.1-rc2] - 2026-05-26
+## [1.5.1-rc3] - 2026-05-27
 
 ### Security
 
+* Secured AtomicReadFile/AtomicWriteFile logic and underlying file backends
+  by adding explicit invalid-start-position guards which reject negative
+  and out-of-range positions/records. (#1362)
 * Secured Loop object internal Read_Property function buffer overflow. (#1355)
 * Secured Life Safety Point and Zone Read_Property of accepted-modes property
   buffer overflow. (#1354)

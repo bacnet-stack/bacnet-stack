@@ -92,6 +92,7 @@ void handler_atomic_read_file(
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_UNSIGNED_INTEGER file_size;
 
 #if PRINT_ENABLED
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
@@ -116,57 +117,81 @@ void handler_atomic_read_file(
     }
     len = arf_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
-    if (len < 0) {
-        len = abort_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            ABORT_REASON_OTHER, true);
-        debug_print("ARF: Bad Encoding. Sending Abort!\n");
-        goto ARF_ABORT;
-    }
-    if (data.object_type == OBJECT_FILE) {
-        if (!bacfile_valid_instance(data.object_instance)) {
+    if (!error) {
+        if (len < 0) {
+            DEBUG_PRINTF("ARF: Bad Encoding. Sending Abort!\n");
+            error_code = ERROR_CODE_ABORT_OTHER;
             error = true;
-        } else if (data.access == FILE_STREAM_ACCESS) {
-            if (data.type.stream.requestedOctetCount <=
-                octetstring_capacity(&data.fileData[0])) {
-                bacfile_read_stream_data(&data);
-                debug_fprintf(
-                    stderr, "ARF: Stream offset %d, %d octets.\n",
-                    (int)data.type.stream.fileStartPosition,
-                    (int)data.type.stream.requestedOctetCount);
-                len = arf_ack_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    &data);
-            } else {
-                len = abort_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-                debug_fprintf(
-                    stderr,
-                    "ARF: Too Big To Send (%d >= %d). "
-                    "Sending Abort!\n",
-                    (int)data.type.stream.requestedOctetCount,
-                    (int)octetstring_capacity(&data.fileData[0]));
-            }
-        } else if (data.access == FILE_RECORD_ACCESS) {
-            if (data.type.record.RecordCount > BACNET_READ_FILE_RECORD_COUNT) {
-                error_class = ERROR_CLASS_SERVICES;
-                error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        } else if (data.object_type == OBJECT_FILE) {
+            if (!bacfile_valid_instance(data.object_instance)) {
+                error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 error = true;
-            } else if (
-                data.type.record.fileStartRecord >=
-                BACNET_READ_FILE_RECORD_COUNT) {
-                error_class = ERROR_CLASS_SERVICES;
-                error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
-                error = true;
-            } else if (bacfile_read_record_data(&data)) {
-                debug_fprintf(
-                    stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
-                    (int)data.type.record.fileStartRecord,
-                    (unsigned)data.type.record.RecordCount);
-                len = arf_ack_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                    &data);
+            } else if (data.access == FILE_STREAM_ACCESS) {
+                file_size = bacfile_file_size(data.object_instance);
+                if (file_size > INT32_MAX) {
+                    file_size = INT32_MAX;
+                }
+                if ((data.type.stream.fileStartPosition < 0) ||
+                    (data.type.stream.fileStartPosition > file_size)) {
+                    /* If the 'File Start Position' parameter is either less
+                    than 0 or exceeds the actual file size, then the appropriate
+                    error is returned in a 'Result(-)' response.*/
+                    error = true;
+                    error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+                } else if (
+                    data.type.stream.requestedOctetCount <=
+                    octetstring_capacity(&data.fileData[0])) {
+                    bacfile_read_stream_data(&data);
+                    DEBUG_PRINTF(
+                        "ARF: Stream offset %d, %d octets.\n",
+                        (int)data.type.stream.fileStartPosition,
+                        (int)data.type.stream.requestedOctetCount);
+                    len = arf_ack_encode_apdu(
+                        &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
+                    pdu_len += len;
+                } else {
+                    error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    error = true;
+                    DEBUG_PRINTF(
+                        "ARF: Too Big To Send (%d >= %d). "
+                        "Sending Abort!\n",
+                        (int)data.type.stream.requestedOctetCount,
+                        (int)octetstring_capacity(&data.fileData[0]));
+                }
+            } else if (data.access == FILE_RECORD_ACCESS) {
+                if (data.type.record.RecordCount > ARRAY_SIZE(data.fileData)) {
+                    DEBUG_PRINTF(
+                        "ARF: RecordCount %u > %u. Sending Reject!\n",
+                        (unsigned)data.type.record.RecordCount,
+                        (unsigned)ARRAY_SIZE(data.fileData));
+                    error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+                    error = true;
+                } else if (
+                    (data.type.record.fileStartRecord < 0) ||
+                    (data.type.record.fileStartRecord >=
+                     ARRAY_SIZE(data.fileData))) {
+                    /* If the 'File Start Record' parameter is either less
+                    than 0 or exceeds the actual file size, then the appropriate
+                    error is returned in a 'Result(-)' response.*/
+                    DEBUG_PRINTF(
+                        "ARF: fileStartRecord %d >= %u. Sending Error!\n",
+                        (int)data.type.record.fileStartRecord,
+                        (unsigned)ARRAY_SIZE(data.fileData));
+                    error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+                    error = true;
+                } else if (bacfile_read_record_data(&data)) {
+                    DEBUG_PRINTF(
+                        "ARF: fileStartRecord %d, %u RecordCount.\n",
+                        (int)data.type.record.fileStartRecord,
+                        (unsigned)data.type.record.RecordCount);
+                    len = arf_ack_encode_apdu(
+                        &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
+                    pdu_len += len;
+                } else {
+                    DEBUG_PRINTF("ARF: file_access_denied! Sending Error!");
+                    error = true;
+                    error_code = ERROR_CODE_FILE_ACCESS_DENIED;
+                }
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
