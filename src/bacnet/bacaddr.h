@@ -110,8 +110,8 @@ BACNET_STACK_EXPORT
 bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id);
 
 BACNET_STACK_EXPORT
-int bacnet_address_binding_entry_encode(uint8_t *apdu,
-    uint32_t device_id, const BACNET_ADDRESS *address);
+int bacnet_address_binding_entry_encode(
+    uint8_t *apdu, uint32_t device_id, const BACNET_ADDRESS *address);
 BACNET_STACK_EXPORT
 int bacnet_address_binding_type_encode(
     uint8_t *apdu, const BACNET_ADDRESS_BINDING *value);

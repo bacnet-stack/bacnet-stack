@@ -769,7 +769,8 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
             /* encode matching addresses */
-            len = bacnet_address_binding_entry_encode(NULL, pMatch->device_id, &pMatch->address);
+            len = bacnet_address_binding_entry_encode(
+                NULL, pMatch->device_id, &pMatch->address);
             apdu_len += len;
         }
     }
@@ -780,7 +781,8 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
             if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
                 BAC_ADDR_IN_USE) {
                 /* encode matching addresses */
-                len = bacnet_address_binding_entry_encode(apdu, pMatch->device_id, &pMatch->address);
+                len = bacnet_address_binding_entry_encode(
+                    apdu, pMatch->device_id, &pMatch->address);
                 apdu += len;
             }
         }
@@ -938,7 +940,8 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
             break;
         }
-        iTemp = bacnet_address_binding_entry_encode(&apdu[iLen], pMatch->device_id, &pMatch->address);
+        iTemp = bacnet_address_binding_entry_encode(
+            &apdu[iLen], pMatch->device_id, &pMatch->address);
         /* Reduce the remaining space */
         uiRemaining -= iTemp;
         /* and increase the length consumed */

@@ -779,8 +779,8 @@ bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
  * @param address  Pointer to the BACnet address to encode.
  * @return Count of encoded bytes.
  */
-int bacnet_address_binding_entry_encode(uint8_t *apdu,
-    uint32_t device_id, const BACNET_ADDRESS *address)
+int bacnet_address_binding_entry_encode(
+    uint8_t *apdu, uint32_t device_id, const BACNET_ADDRESS *address)
 {
     int len = 0, apdu_len = 0;
 
@@ -811,8 +811,8 @@ int bacnet_address_binding_type_encode(
     if (!value) {
         return 0;
     }
-    return bacnet_address_binding_entry_encode(apdu,
-        value->device_identifier, &value->device_address);
+    return bacnet_address_binding_entry_encode(
+        apdu, value->device_identifier, &value->device_address);
 }
 
 /**
