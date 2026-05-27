@@ -775,15 +775,19 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
         }
     }
     /* encode the address list if there is enough space */
-    if (apdu && (apdu_len <= (int)apdu_size)) {
-        for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-            pMatch = &Address_Cache[index];
-            if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-                BAC_ADDR_IN_USE) {
-                /* encode matching addresses */
-                len = bacnet_address_binding_entry_encode(
-                    apdu, pMatch->device_id, &pMatch->address);
-                apdu += len;
+    if (apdu) {
+        if (apdu_len > (int)apdu_size) {
+            apdu_len = BACNET_STATUS_ABORT;
+        } else {
+            for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
+                pMatch = &Address_Cache[index];
+                if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
+                    BAC_ADDR_IN_USE) {
+                    /* encode matching addresses */
+                    len = bacnet_address_binding_entry_encode(
+                        apdu, pMatch->device_id, &pMatch->address);
+                    apdu += len;
+                }
             }
         }
     }
