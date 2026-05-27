@@ -753,7 +753,7 @@ unsigned address_count(void)
  * property. Basically encode the address list to be send out.
  *
  * @param apdu  Pointer to the APDU
- * @param apdu_len  Remaining buffer size.
+ * @param apdu_size  Remaining buffer size.
  *
  * @return Count of encoded bytes.
  */
