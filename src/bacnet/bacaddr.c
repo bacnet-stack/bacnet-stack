@@ -784,6 +784,9 @@ int bacnet_address_binding_entry_encode(
 {
     int len = 0, apdu_len = 0;
 
+    if (!address) {
+        return 0;
+    }
     len = encode_application_object_id(apdu, OBJECT_DEVICE, device_id);
     apdu_len += len;
     if (apdu) {
