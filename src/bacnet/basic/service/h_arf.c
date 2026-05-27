@@ -107,6 +107,7 @@ int handler_atomic_read_file_encode(
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     uint8_t *apdu_start;
+    int32_t file_size;
 
     DEBUG_PRINTF("Received Atomic-Read-File Request!\n");
     /* encode the NPDU portion of the packet */
@@ -138,9 +139,19 @@ int handler_atomic_read_file_encode(
             error = true;
         } else if (data.object_type == OBJECT_FILE) {
             if (!bacfile_valid_instance(data.object_instance)) {
+                error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 error = true;
             } else if (data.access == FILE_STREAM_ACCESS) {
-                if (data.type.stream.requestedOctetCount <=
+                file_size = bacfile_file_size(data.object_instance);
+                if ((data.type.stream.fileStartPosition < 0) ||
+                    (data.type.stream.fileStartPosition > file_size)) {
+                    /* If the 'File Start Position' parameter is either less
+                    than 0 or exceeds the actual file size, then the appropriate
+                    error is returned in a 'Result(-)' response.*/
+                    error = true;
+                    error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+                } else if (
+                    data.type.stream.requestedOctetCount <=
                     octetstring_capacity(&data.fileData[0])) {
                     bacfile_read_stream_data(&data);
                     DEBUG_PRINTF(
@@ -168,8 +179,12 @@ int handler_atomic_read_file_encode(
                     error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
                     error = true;
                 } else if (
-                    data.type.record.fileStartRecord >=
-                    ARRAY_SIZE(data.fileData)) {
+                    (data.type.record.fileStartRecord < 0) ||
+                    (data.type.record.fileStartRecord >=
+                     ARRAY_SIZE(data.fileData))) {
+                    /* If the 'File Start Record' parameter is either less
+                    than 0 or exceeds the actual file size, then the appropriate
+                    error is returned in a 'Result(-)' response.*/
                     DEBUG_PRINTF(
                         "ARF: fileStartRecord %d >= %u. Sending Error!\n",
                         (int)data.type.record.fileStartRecord,

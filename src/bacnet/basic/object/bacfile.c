@@ -1040,7 +1040,7 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     const char *pathname = NULL;
     bool found = false;
-    size_t len = 0;
+    size_t len = 0, file_size = 0;
     size_t requestedOctetCount = 0;
 
     if (!data) {
@@ -1049,17 +1049,24 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
-        requestedOctetCount = data->type.stream.requestedOctetCount;
-        if (requestedOctetCount > octetstring_capacity(&data->fileData[0])) {
-            requestedOctetCount = octetstring_capacity(&data->fileData[0]);
-        }
-        len = bacfile_read_stream_data_callback(
-            pathname, data->type.stream.fileStartPosition,
-            octetstring_value(&data->fileData[0]), requestedOctetCount);
-        if (len < requestedOctetCount) {
-            data->endOfFile = true;
+        file_size = bacfile_file_size_callback(pathname);
+        if ((data->type.stream.fileStartPosition >= 0) &&
+            (data->type.stream.fileStartPosition < file_size)) {
+            requestedOctetCount = data->type.stream.requestedOctetCount;
+            if (requestedOctetCount >
+                octetstring_capacity(&data->fileData[0])) {
+                requestedOctetCount = octetstring_capacity(&data->fileData[0]);
+            }
+            len = bacfile_read_stream_data_callback(
+                pathname, data->type.stream.fileStartPosition,
+                octetstring_value(&data->fileData[0]), requestedOctetCount);
+            if (len < requestedOctetCount) {
+                data->endOfFile = true;
+            } else {
+                data->endOfFile = false;
+            }
         } else {
-            data->endOfFile = false;
+            data->endOfFile = true;
         }
         octetstring_truncate(&data->fileData[0], len);
     } else {
@@ -1093,25 +1100,27 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
-        if (max_records > 0) {
-            data->endOfFile = false;
-            for (i = 0; i < max_records; i++) {
-                status = bacfile_read_record_data_callback(
-                    pathname, data->type.record.fileStartRecord, i,
-                    octetstring_value(&data->fileData[i]),
+    }
+    if (found && (data->type.record.fileStartRecord >= 0) &&
+        (data->type.record.fileStartRecord < ARRAY_SIZE(data->fileData)) &&
+        (max_records > 0)) {
+        data->endOfFile = false;
+        for (i = 0; i < max_records; i++) {
+            status = bacfile_read_record_data_callback(
+                pathname, data->type.record.fileStartRecord, i,
+                octetstring_value(&data->fileData[i]),
+                octetstring_capacity(&data->fileData[i]));
+            if (status) {
+                /* our records are NULL terminated C strings
+                    read with fgets() */
+                len = bacnet_strnlen(
+                    (const char *)octetstring_value(&data->fileData[i]),
                     octetstring_capacity(&data->fileData[i]));
-                if (status) {
-                    /* our records are NULL terminated C strings
-                       read with fgets() */
-                    len = bacnet_strnlen(
-                        (const char *)octetstring_value(&data->fileData[i]),
-                        octetstring_capacity(&data->fileData[i]));
-                    octetstring_truncate(&data->fileData[i], len);
-                } else {
-                    data->endOfFile = true;
-                    data->type.record.RecordCount = i;
-                    break;
-                }
+                octetstring_truncate(&data->fileData[i], len);
+            } else {
+                data->endOfFile = true;
+                data->type.record.RecordCount = i;
+                break;
             }
         }
     }
