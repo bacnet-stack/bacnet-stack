@@ -32,8 +32,7 @@ struct object_data {
     uint8_t Present_Value;
     uint8_t Reliability;
     const char *Object_Name;
-    /* The state text functions expect a list of C strings separated by '\0' */
-    const char *State_Text;
+    OS_Keylist State_List;
     const char *Description;
     void *Context;
 };
@@ -192,7 +191,7 @@ uint32_t Multistate_Value_Max_States(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        count = state_name_count(pObject->State_Text);
+        count = state_name_list_count(pObject->State_List);
     }
 
     return count;
@@ -213,7 +212,7 @@ uint32_t Multistate_Value_State_From_Text(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        index = state_name_to_index(pObject->State_Text, state_text);
+        index = state_name_list_index(pObject->State_List, state_text);
     }
 
     return index;
@@ -231,11 +230,13 @@ Multistate_Value_State_Text(uint32_t object_instance, uint32_t state_index)
 {
     const char *pName = NULL; /* return value */
     const struct object_data *pObject;
+    KEY key;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (state_index > 0) {
-            pName = state_name_by_index(pObject->State_Text, state_index);
+            key = state_index;
+            pName = Keylist_Data(pObject->State_List, key);
         }
     }
 
@@ -296,8 +297,10 @@ bool Multistate_Value_State_Text_List_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->State_Text = state_text_list;
-        status = true;
+        if (!pObject->State_List) {
+            pObject->State_List = Keylist_Create();
+        }
+        status = state_name_list_init(pObject->State_List, state_text_list);
     }
 
     return status;
@@ -351,7 +354,7 @@ bool Multistate_Value_Present_Value_Set(
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        max_states = state_name_count(pObject->State_Text);
+        max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
@@ -378,8 +381,8 @@ bool Multistate_Value_Present_Value_By_Name_Set(
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        max_states = state_name_count(pObject->State_Text);
-        value = state_name_to_index(pObject->State_Text, state_name);
+        max_states = state_name_list_count(pObject->State_List);
+        value = state_name_list_index(pObject->State_List, state_name);
         if ((value >= 1) && (value <= max_states)) {
             Multistate_Value_Present_Value_COV_Detect(pObject, value);
             pObject->Present_Value = value;
@@ -413,7 +416,7 @@ static bool Multistate_Value_Present_Value_Write(
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        max_states = state_name_count(pObject->State_Text);
+        max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
             if (pObject->Write_Enabled) {
                 old_value = pObject->Present_Value;
@@ -872,6 +875,59 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ *  used by BACnetARRAY write utility function
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int State_Text_Element_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_CHARACTER_STRING_BUFFER value = { 0 };
+    int len = 0;
+
+    (void)object_instance;
+    len = bacnet_character_string_buffer_application_decode(
+        apdu, apdu_size, &value);
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a BACnetARRAY property element value
+ *  used by BACnetARRAY write utility function
+ * @param object_instance [in] BACnet object instance number
+ * @param array_index [in] array index to write:
+ *    0=array size, 1 to N for individual array members
+ * @param array_size [in] The total number of elements in the array,
+ *  if writing array size
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE State_Text_Element_Write_Resizable(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    struct object_data *pObject = NULL;
+
+    pObject = Multistate_Value_Object(object_instance);
+    if (pObject) {
+        error_code = state_name_list_write_resizable(
+            pObject->State_List, array_index, array_size, application_data,
+            application_data_len);
+    }
+
+    return error_code;
+}
+
+/**
  * @brief WriteProperty handler for this object.  For the given WriteProperty
  *  data, the application_data is loaded or the error flags are set.
  * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
@@ -883,6 +939,7 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    unsigned count;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -915,6 +972,17 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = Multistate_Value_Out_Of_Service_Write(
                     wp_data->object_instance, value.type.Boolean,
                     &wp_data->error_class, &wp_data->error_code);
+            }
+            break;
+        case PROP_STATE_TEXT:
+            count = Multistate_Value_Max_States(wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write_resizable(
+                wp_data->object_instance, wp_data->array_index,
+                State_Text_Element_Length, State_Text_Element_Write_Resizable,
+                count, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
         default:
@@ -1049,11 +1117,14 @@ uint32_t Multistate_Value_Create(uint32_t object_instance)
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
             pObject->Object_Name = NULL;
-            pObject->State_Text = Default_State_Text;
             pObject->Out_Of_Service = false;
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
+            if (!pObject->State_List) {
+                pObject->State_List = Keylist_Create();
+            }
+            (void)state_name_list_init(pObject->State_List, Default_State_Text);
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
@@ -1080,6 +1151,8 @@ bool Multistate_Value_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        (void)state_name_list_init(pObject->State_List, NULL);
+        Keylist_Delete(pObject->State_List);
         free(pObject);
         status = true;
     }
@@ -1106,6 +1179,8 @@ void Multistate_Value_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    (void)state_name_list_init(pObject->State_List, NULL);
+                    Keylist_Delete(pObject->State_List);
                     free(pObject);
                 }
             } while (pObject);
