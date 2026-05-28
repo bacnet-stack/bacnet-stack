@@ -87,7 +87,8 @@ int handler_atomic_write_file_encode(
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
-    debug_print("Received AtomicWriteFile Request!\n");
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "Received AtomicWriteFile Request!\n");
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(npdu_data, false, service_data->priority);
@@ -100,14 +101,18 @@ int handler_atomic_write_file_encode(
         len = reject_encode_apdu(
             apdu, service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_print("AWF: Missing Required Parameter. Sending Reject!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "AWF: Missing Required Parameter. Sending Reject!\n");
         pdu_len += len;
         return pdu_len;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             apdu, service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_print("AWF: Segmented Message. Sending Abort!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "AWF: Segmented Message. Sending Abort!\n");
         pdu_len += len;
         return pdu_len;
     }
@@ -116,7 +121,8 @@ int handler_atomic_write_file_encode(
     if (len < 0) {
         len = abort_encode_apdu(
             apdu, service_data->invoke_id, ABORT_REASON_OTHER, true);
-        debug_print("AWF: Bad Encoding. Sending Abort!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "AWF: Bad Encoding. Sending Abort!\n");
         pdu_len += len;
         return pdu_len;
     }
@@ -129,8 +135,9 @@ int handler_atomic_write_file_encode(
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
             } else if (bacfile_write_stream_data(&data)) {
-                debug_fprintf(
-                    stderr, "AWF: Stream offset %d, %d bytes\n",
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
+                    "AWF: Stream offset %d, %d bytes\n",
                     data.type.stream.fileStartPosition,
                     (int)octetstring_length(&data.fileData[0]));
                 len = awf_ack_encode_apdu(apdu, service_data->invoke_id, &data);
@@ -146,8 +153,9 @@ int handler_atomic_write_file_encode(
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
             } else if (bacfile_write_record_data(&data)) {
-                debug_fprintf(
-                    stderr, "AWF: StartRecord %d, RecordCount %u\n",
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
+                    "AWF: StartRecord %d, RecordCount %u\n",
                     data.type.record.fileStartRecord,
                     data.type.record.returnedRecordCount);
                 len = awf_ack_encode_apdu(apdu, service_data->invoke_id, &data);
@@ -161,7 +169,9 @@ int handler_atomic_write_file_encode(
             error = true;
             error_class = ERROR_CLASS_SERVICES;
             error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
-            debug_print("AWF: Invalid File Access Method. Sending Error!\n");
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "AWF: Invalid File Access Method. Sending Error!\n");
         }
     } else {
         error = true;

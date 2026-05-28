@@ -727,8 +727,9 @@ static bool Channel_Write_Members(
         return false;
     }
     pObject->Write_Status = BACNET_WRITE_STATUS_IN_PROGRESS;
-    debug_printf(
-        "channel[%lu].Channel_Write_Members\n", (unsigned long)object_instance);
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "channel[%lu].Channel_Write_Members\n",
+        (unsigned long)object_instance);
 
     for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
         pMember = &pObject->Members[m];
@@ -750,7 +751,8 @@ static bool Channel_Write_Members(
             wp_data.application_data_len = sizeof(wp_data.application_data);
             status = Channel_Write_Member_Value(&wp_data, value);
             if (status) {
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "channel[%lu].Channel_Write_Member[%u] coerced\n",
                     (unsigned long)object_instance, m);
                 if (Write_Property_Internal_Callback) {
@@ -761,7 +763,8 @@ static bool Channel_Write_Members(
                             wp_data.error_code = ERROR_CODE_SUCCESS;
                         }
                     }
-                    debug_printf(
+                    debug_log_fprintf(
+                        DEBUG_LOG_DEBUG, stderr,
                         "channel[%lu].Channel_Write_Member[%u] "
                         "%s-%u %s %s\n",
                         (unsigned long)object_instance, m,
@@ -801,7 +804,8 @@ static bool Channel_Write_Members(
             } else {
                 /* coercion failed */
                 wp_data.error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "channel[%lu].Channel_Write_Member[%u] "
                     "coercion failed!\n",
                     (unsigned long)object_instance, m);
@@ -814,7 +818,8 @@ static bool Channel_Write_Members(
             }
             Channel_Write_Property_Notify(object_instance, status, &wp_data);
         } else {
-            debug_printf(
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr,
                 "channel[%lu].Channel_Write_Member[%u] invalid!\n",
                 (unsigned long)object_instance, m);
         }
@@ -1469,7 +1474,8 @@ void Channel_Write_Group(
         }
     }
     if (!found) {
-        debug_printf(
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
             "Channel Objects: group_number=%u, channel=%u not found\n",
             data->group_number, change_list->channel);
     }
