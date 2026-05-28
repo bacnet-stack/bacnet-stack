@@ -55,21 +55,20 @@ static int npdu_encode_pdu_routing(BACNET_ADDRESS *src)
     /* get the currently active routed device object */
     pDev = Get_Routed_Device_Object(-1);
     if (pDev == NULL) {
-        debug_fprintf(stderr, "Device object not found\n");
+        debug_log_fprintf(DEBUG_LOG_ERROR, stderr, "Device object not found\n");
         return -1;
     }
-
     is_routed_device = (pDev->bacDevAddr.net != 0);
-
     if (is_routed_device) {
         bacnet_address_copy(src, &pDev->bacDevAddr);
-        debug_fprintf(
-            stdout, "Virtual Device NPDU: SNET=%d, Instance=%u\n",
-            pDev->bacDevAddr.net, pDev->bacObj.Object_Instance_Number);
+        debug_log_fprintf(
+            DEBUG_LOG_INFO, stderr,
+            "Virtual Device NPDU: SNET=%d, Instance=%u\n", pDev->bacDevAddr.net,
+            pDev->bacObj.Object_Instance_Number);
     } else {
         datalink_get_my_address(src);
-        debug_fprintf(
-            stdout, "Gateway Device NPDU: Instance=%u\n",
+        debug_log_fprintf(
+            DEBUG_LOG_INFO, stderr, "Gateway Device NPDU: Instance=%u\n",
             pDev->bacObj.Object_Instance_Number);
     }
 

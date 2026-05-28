@@ -31,6 +31,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
@@ -144,10 +145,16 @@ static void print_usage(const char *filename)
         "Usage: %s device-instance object-type object-instance "
         "property priority index tag value [tag value...]\n",
         filename);
+    printf("       [--dnet][--dadr][--mac][--debug]\n");
+    printf("       [--version][--help]\n");
 }
 
 static void print_help(const char *filename)
 {
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
+    printf("\n");
     printf(
         "device-instance:\n"
         "BACnet Device Object Instance number that you are trying to\n"
@@ -240,6 +247,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
+    long severity = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -294,7 +302,12 @@ int main(int argc, char *argv[])
                 }
             }
         } else if (strcmp(argv[argi], "--debug") == 0) {
-            debug_enabled = true;
+            if (++argi < argc) {
+                if (bacnet_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
+                    debug_enabled = true;
+                }
+            }
         } else {
             if (target_args == 0) {
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);

@@ -84,7 +84,7 @@ Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 /* may be overridden by outside table */
 static object_functions_t *Object_Table;
 
-static object_functions_t My_Object_Table[] = {
+static object_functions_t Default_Object_Table[] = {
     { OBJECT_DEVICE,
       NULL /* Init - don't init Device or it will recourse! */,
       Device_Count,
@@ -1025,7 +1025,11 @@ static object_functions_t My_Object_Table[] = {
       NULL /* Timer */,
       Audit_Log_Writable_Property_List },
 #endif
-    { MAX_BACNET_OBJECT_TYPE,
+    { /** @note The array of object functions must be terminated
+       *  with an entry with an Object_Type of MAX_BACNET_OBJECT_TYPE
+       *  or greater, which will signal the end of the array.
+       */
+      MAX_BACNET_OBJECT_TYPE,
       NULL /* Init */,
       NULL /* Count */,
       NULL /* Index_To_Instance */,
@@ -1134,6 +1138,80 @@ Device_Object_Functions_Find(BACNET_OBJECT_TYPE Object_Type)
     }
 
     return (NULL);
+}
+
+/**
+ * @brief Get the number of object functions elements in the Device object list.
+ * @return The count of object functions elements.
+ */
+unsigned Device_Object_Functions_Count(void)
+{
+    struct object_functions *pObject = NULL;
+    unsigned count = 0;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        /* handle each object type */
+        pObject++;
+        count++;
+    }
+
+    return (count);
+}
+
+/**
+ * @brief Gets an object functions element from the Device object list
+ *  using its index in the list.
+ * @param  index - index of the object functions element in the list
+ * @return object functions element found in the list, or NULL if not found
+ */
+struct object_functions *Device_Object_Functions_Index(unsigned index)
+{
+    struct object_functions *pObject = NULL;
+    unsigned count = 0;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        /* handle each object type */
+        if (count == index) {
+            return (pObject);
+        }
+        pObject++;
+        count++;
+    }
+
+    return (NULL);
+}
+
+/**
+ * @brief Add an object functions element to the Device object list
+ *  functions table using its object type as the key.
+ * @param element [in] structure containing the object functions for a
+ *  BACnet object type. Each Child Object must provide some implementation
+ *  of each of these functions in order to properly support the default
+ *  handlers.
+ * @return true if the element was added; false otherwise.
+ */
+bool Device_Object_Functions_Add(object_functions_t *element)
+{
+    (void)element;
+    return false;
+}
+
+/**
+ * @brief Initialize the Device Object List with the given array of object
+ * functions.
+ * @param object_table [in] array of structure with object functions.
+ *  Each Child Object must provide some implementation of each of these
+ *  functions in order to properly support the default handlers.
+ */
+void Device_Object_Functions_Init(object_functions_t *object_table)
+{
+    if (object_table) {
+        Object_Table = object_table;
+    } else {
+        Object_Table = &Default_Object_Table[0];
+    }
 }
 
 /** Try to find a rr_info_function helper function for the requested object
@@ -3101,6 +3179,11 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
             apdu_len = address_list_encode(&apdu[0], apdu_max);
+            if (apdu_len < 0) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                apdu_len = BACNET_STATUS_ABORT;
+            }
             break;
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(&apdu[0], Database_Revision);
@@ -3117,7 +3200,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif
 #if defined(BACNET_TIME_MASTER)
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
-            apdu_len = handler_timesync_encode_recipients(&apdu[0], MAX_APDU);
+            apdu_len = handler_timesync_encode_recipients(&apdu[0], apdu_max);
             if (apdu_len < 0) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -3619,7 +3702,7 @@ static bool Device_Write_Property_Object_Name(
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_CHARACTER_STRING value;
+    BACNET_CHARACTER_STRING value = { 0 };
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     int apdu_size = 0;
@@ -3701,6 +3784,10 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     Device_Backup_Failure_Timeout_Restart();
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -3726,6 +3813,15 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             wp_data->object_type, wp_data->object_instance,
                             wp_data->object_property)) {
                         status = Write_Property_Proprietary_Callback(wp_data);
+                    } else if (
+                        (wp_data->application_data_len == 0) &&
+                        !property_list_bacnet_list_member(
+                            wp_data->object_type, wp_data->object_property)) {
+                        /* only list properties can be written with
+                           an empty application payload */
+                        wp_data->error_class = ERROR_CLASS_SERVICES;
+                        wp_data->error_code = ERROR_CODE_INVALID_TAG;
+                        status = false;
                     } else {
                         status = pObject->Object_Write_Property(wp_data);
                     }
@@ -4133,8 +4229,6 @@ void Device_End_Restore(void)
 
     datetime_local(&bdateTime.date, &bdateTime.time, NULL, NULL);
     bacapp_timestamp_datetime_set(last_restore_time, &bdateTime);
-    /* delete all existing objects before restore */
-    Device_Delete_Objects();
     /* create objects from the backup file */
     file_size = bacfile_file_size(configuration_files[0]);
     while (offset < file_size) {
@@ -4144,6 +4238,11 @@ void Device_End_Restore(void)
             decoded_len = create_object_decode_service_request(
                 apdu, apdu_len, &create_data);
             if (decoded_len > 0) {
+                if (offset == 0) {
+                    /* delete all existing objects before restore
+                       after the first record is successfully decoded */
+                    Device_Delete_Objects();
+                }
                 offset += decoded_len;
                 create_data.error_class = ERROR_CLASS_PROPERTY;
                 create_data.error_code = ERROR_CODE_SUCCESS;
@@ -4261,9 +4360,9 @@ void Device_Init(object_functions_t *object_table)
     characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     datetime_init();
     if (object_table) {
-        Object_Table = object_table;
+        Device_Object_Functions_Init(object_table);
     } else {
-        Object_Table = &My_Object_Table[0];
+        Device_Object_Functions_Init(&Default_Object_Table[0]);
     }
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {

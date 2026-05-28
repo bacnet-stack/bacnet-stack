@@ -809,6 +809,15 @@ BACNET_ERROR_CODE bacnet_array_write(
     BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *apdu,
     size_t apdu_size);
+BACNET_STACK_EXPORT
+BACNET_ERROR_CODE bacnet_array_write_resizable(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_array_property_element_write_function write_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size);
 
 BACNET_STACK_EXPORT
 BACNET_ERROR_CODE bacnet_list_write(

@@ -194,6 +194,8 @@ list(APPEND testdirs
   # basic/program
   bacnet/basic/program/ubasic
   # basic/service
+  bacnet/basic/service/h_arf
+  bacnet/basic/service/h_awf
   bacnet/basic/service/h_cov
   # basic/server
   bacnet/basic/server/bacnet_device
@@ -209,6 +211,7 @@ list(APPEND testdirs
   bacnet/basic/sys/keylist
   bacnet/basic/sys/linear
   bacnet/basic/sys/ringbuf
+  bacnet/basic/sys/state_name
   bacnet/basic/sys/sbuf
   )
 

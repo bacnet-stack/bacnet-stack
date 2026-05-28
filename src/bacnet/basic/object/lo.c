@@ -106,6 +106,8 @@ static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_DESCRIPTION,
     PROP_TRANSITION,
+    PROP_MIN_ACTUAL_VALUE,
+    PROP_MAX_ACTUAL_VALUE,
 #if (BACNET_PROTOCOL_REVISION >= 24)
     PROP_COLOR_OVERRIDE,
     PROP_COLOR_REFERENCE,
@@ -139,7 +141,8 @@ static const int32_t Writable_Properties[] = {
     PROP_TRIM_FADE_TIME,      PROP_BLINK_WARN_ENABLE,
     PROP_EGRESS_TIME,         PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
     PROP_FEEDBACK_VALUE,      PROP_POWER,
-    PROP_INSTANTANEOUS_POWER, -1
+    PROP_INSTANTANEOUS_POWER, PROP_MIN_ACTUAL_VALUE,
+    PROP_MAX_ACTUAL_VALUE,    -1
 };
 
 /**
@@ -2290,6 +2293,176 @@ unsigned Lighting_Output_Default_Priority(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object instance-number, gets the minimum-actual-value
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @return the minimum-actual-value property value of this object
+ */
+float Lighting_Output_Min_Actual_Value(uint32_t object_instance)
+{
+    float value = 0.0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value =
+            lighting_command_min_actual_value_get(&pObject->Lighting_Command);
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the minimum-actual-value
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @param value - the minimum-actual-value property value to be set
+ * @return true if the minimum-actual-value property value was set
+ */
+bool Lighting_Output_Min_Actual_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+    float max_actual_value;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (isgreaterequal(value, 1.0f) && islessequal(value, 100.0f)) {
+            /* Min_Actual_Value shall always be a positive number
+               in the range 1.0% to 100.0%.*/
+            max_actual_value = lighting_command_max_actual_value_get(
+                &pObject->Lighting_Command);
+            if (value > max_actual_value) {
+                /* Changing Min_Actual_Value to a value greater than
+                Max_Actual_Value shall force Max_Actual_Value
+                to become equal to Min_Actual_Value. */
+                value = max_actual_value;
+            }
+            lighting_command_min_actual_value_set(
+                &pObject->Lighting_Command, value);
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * Handle a WriteProperty to a specific property.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - property value to be written
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Lighting_Output_Min_Actual_Value_Write(
+    uint32_t object_instance,
+    float value,
+    uint8_t priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    (void)priority;
+    status = Lighting_Output_Min_Actual_Value_Set(object_instance, value);
+    if (!status) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, gets the maximum-actual-value
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @return the maximum-actual-value property value of this object
+ */
+float Lighting_Output_Max_Actual_Value(uint32_t object_instance)
+{
+    float value = 0.0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value =
+            lighting_command_max_actual_value_get(&pObject->Lighting_Command);
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the maximum-actual-value
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @param value - the maximum-actual-value property value to be set
+ * @return true if the maximum-actual-value property value was set
+ */
+bool Lighting_Output_Max_Actual_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+    float min_actual_value;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (isgreaterequal(value, 1.0f) && islessequal(value, 100.0f)) {
+            /* Max_Actual_Value shall always be a positive number
+               in the range 1.0% to 100.0%.*/
+            min_actual_value = lighting_command_min_actual_value_get(
+                &pObject->Lighting_Command);
+            if (value < min_actual_value) {
+                /* Changing Max_Actual_Value to a value less than
+                   Min_Actual_Value shall force Min_Actual_Value
+                   to become equal to Max_Actual_Value. */
+                lighting_command_min_actual_value_set(
+                    &pObject->Lighting_Command, value);
+            }
+            lighting_command_max_actual_value_set(
+                &pObject->Lighting_Command, value);
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * Handle a WriteProperty to a specific property.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - property value to be written
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Lighting_Output_Max_Actual_Value_Write(
+    uint32_t object_instance,
+    float value,
+    uint8_t priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+
+    (void)priority;
+    status = Lighting_Output_Max_Actual_Value_Set(object_instance, value);
+    if (!status) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, sets the
  * lighting-command-default-priority property value of the object.
  *
@@ -3387,6 +3560,16 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(
                 apdu, Lighting_Output_Transition(rpdata->object_instance));
             break;
+        case PROP_MIN_ACTUAL_VALUE:
+            real_value =
+                Lighting_Output_Min_Actual_Value(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
+            break;
+        case PROP_MAX_ACTUAL_VALUE:
+            real_value =
+                Lighting_Output_Max_Actual_Value(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
+            break;
         case PROP_PRIORITY_ARRAY:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
@@ -3503,6 +3686,10 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* decode the some of the request */
     len = bacapp_decode_known_property(
         wp_data->application_data, wp_data->application_data_len, &value,
@@ -3587,6 +3774,26 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = Lighting_Output_Transition_Write(
                     wp_data->object_instance, value.type.Enumerated,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
+            }
+            break;
+        case PROP_MIN_ACTUAL_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Lighting_Output_Min_Actual_Value_Write(
+                    wp_data->object_instance, value.type.Real,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
+            }
+            break;
+        case PROP_MAX_ACTUAL_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Lighting_Output_Max_Actual_Value_Write(
+                    wp_data->object_instance, value.type.Real,
                     wp_data->priority, &wp_data->error_class,
                     &wp_data->error_code);
             }

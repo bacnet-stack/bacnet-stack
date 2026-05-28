@@ -297,10 +297,12 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ac_descr[object_index].credential_status);
             break;
         case PROP_REASON_FOR_DISABLE:
+            /* BACnetList */
             for (i = 0; i < ac_descr[object_index].reasons_count; i++) {
-                len = encode_application_enumerated(
-                    &apdu[0], ac_descr[object_index].reason_for_disable[i]);
-                if (apdu_len + len < MAX_APDU) {
+                len = bacnet_enumerated_application_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len,
+                    ac_descr[object_index].reason_for_disable[i]);
+                if (len > 0) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =
@@ -367,6 +369,10 @@ bool Access_Credential_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     unsigned object_index = 0;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);

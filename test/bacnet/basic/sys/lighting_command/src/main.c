@@ -714,7 +714,27 @@ static void test_lighting_command_unit(void)
     lighting_command_timer(&data, milliseconds);
     zassert_equal(data.Lighting_Operation, BACNET_LIGHTS_PROPRIETARY_MAX, NULL);
 
+    /* min-actual-value get/set */
+    lighting_command_min_actual_value_set(&data, 5.0f);
+    target_level = lighting_command_min_actual_value_get(&data);
+    zassert_true(is_float_equal(target_level, 5.0f), NULL);
+    lighting_command_min_actual_value_set(&data, 1.0f);
+    target_level = lighting_command_min_actual_value_get(&data);
+    zassert_true(is_float_equal(target_level, 1.0f), NULL);
+    /* max-actual-value get/set */
+    lighting_command_max_actual_value_set(&data, 95.0f);
+    target_level = lighting_command_max_actual_value_get(&data);
+    zassert_true(is_float_equal(target_level, 95.0f), NULL);
+    lighting_command_max_actual_value_set(&data, 100.0f);
+    target_level = lighting_command_max_actual_value_get(&data);
+    zassert_true(is_float_equal(target_level, 100.0f), NULL);
     /* null check code coverage */
+    lighting_command_min_actual_value_set(NULL, 1.0f);
+    target_level = lighting_command_min_actual_value_get(NULL);
+    zassert_true(is_float_equal(target_level, 0.0f), NULL);
+    lighting_command_max_actual_value_set(NULL, 100.0f);
+    target_level = lighting_command_max_actual_value_get(NULL);
+    zassert_true(is_float_equal(target_level, 0.0f), NULL);
     lighting_command_override_set(NULL, override_level);
     lighting_command_override_clear(NULL, override_level);
     lighting_command_override_momentary(NULL, override_level);

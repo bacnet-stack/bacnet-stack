@@ -598,6 +598,10 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool pv_old;
     bool pv;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);

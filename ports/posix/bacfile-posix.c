@@ -90,6 +90,8 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
  * @brief Reads stream data from a file
  * @param pathname - name of the file to read from
  * @param fileStartPosition - starting position in the file
+ *  If the 'File Start Position' parameter is either less than 0
+ *  or exceeds the actual file size, then an error is returned.
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
  * @return number of bytes read, or 0 if not successful
@@ -103,9 +105,18 @@ size_t bacfile_posix_read_stream_data(
     FILE *pFile = NULL;
     size_t len = 0;
 
+    if (fileStartPosition < 0) {
+        /* invalid file start position */
+        return 0;
+    }
     if (filename_path_valid(pathname)) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
+            if (fileStartPosition > fsize(pFile)) {
+                /* invalid file start position */
+                fclose(pFile);
+                return 0;
+            }
             (void)fseek(pFile, fileStartPosition, SEEK_SET);
             len = fread(fileData, 1, fileDataLen, pFile);
             fclose(pFile);
@@ -121,6 +132,13 @@ size_t bacfile_posix_read_stream_data(
  * @brief Writes stream data to a file
  * @param pathname - name of the file to write to
  * @param fileStartPosition - starting position in the file
+ *  If the 'File Start Position' parameter exceeds the actual file size,
+ *  then the file shall be extended to the size indicated,
+ *  but the contents of any intervening octets or records
+ *  shall be a local matter.
+ *  If this parameter has the special value -1,
+ *  then the write operation shall be treated
+ *  as an append to the current end of file.
  * @param fileData - data buffer to write from
  * @param fileDataLen - size of the data buffer
  * @return number of bytes written, or 0 if not successful
@@ -143,7 +161,7 @@ size_t bacfile_posix_write_stream_data(
                value -1, then the write operation shall be treated
                as an append to the current end of file. */
             pFile = fopen(pathname, "ab+");
-        } else {
+        } else if (fileStartPosition > 0) {
             /* open for update */
             pFile = fopen(pathname, "rb+");
         }
@@ -165,6 +183,10 @@ size_t bacfile_posix_write_stream_data(
  * @brief Writes record data to a file
  * @param pathname - name of the file to write to
  * @param fileStartRecord - starting record in the file
+ *  If 'File Start Record' parameter has the special
+ *  value -1, then the write operation shall be treated
+ *  as an append to the current end of file,
+ *  and fileIndexRecord can be ignored.
  * @param fileIndexRecord - index of the record to read
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
@@ -195,7 +217,7 @@ bool bacfile_posix_write_record_data(
                as an append to the current end of file. */
             pFile = fopen(pathname, "ab+");
             fileSeekRecord = fileIndexRecord;
-        } else {
+        } else if (fileStartRecord > 0) {
             /* open for update */
             pFile = fopen(pathname, "rb+");
             fileSeekRecord = fileStartRecord + fileIndexRecord;
@@ -226,6 +248,8 @@ bool bacfile_posix_write_record_data(
  * @brief Reads record data from a file
  * @param pathname - name of the file to read from
  * @param fileStartRecord - starting record in the file
+ *  If the 'File Start Record' parameter is either less than 0
+ *  or exceeds the actual file size, then an error is returned.
  * @param fileIndexRecord - index of the record to read
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
@@ -245,6 +269,10 @@ bool bacfile_posix_read_record_data(
     const char *pData = NULL;
     size_t fileSeekRecord = 0;
 
+    if (fileStartRecord < 0) {
+        /* invalid file start record */
+        return false;
+    }
     if (filename_path_valid(pathname)) {
         pFile = fopen(pathname, "rb");
         if (pFile) {
@@ -257,7 +285,7 @@ bool bacfile_posix_read_record_data(
                 }
             }
             if ((i == fileSeekRecord) && (fileDataLen <= sizeof(dummy_data))) {
-                /* copy the record data */
+                /* We found the record, so copy it */
                 memmove(fileData, &dummy_data[0], fileDataLen);
                 status = true;
             }

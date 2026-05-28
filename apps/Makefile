@@ -268,7 +268,8 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
 	who-am-i you-are apdu writegroup dmbrcap \
-	delete-object server-discover server-basic server-mini
+	delete-object server-discover server-basic server-mini \
+	modbus-gateway
 
 ifneq (,$(filter $(BACDL),bip all))
 SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -533,6 +534,24 @@ router-mstp: $(BACNET_LIB_TARGET)
 .PHONY: router-mstp-clean
 router-mstp-clean:
 	$(MAKE) -C router-mstp clean
+
+.PHONY: modbus-gateway
+modbus-gateway: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C modbus-gateway
+
+.PHONY: modbus-gateway-clean
+modbus-gateway-clean:
+	$(MAKE) -C modbus-gateway clean
+	rm -f ../bin/modbusgw
+
+.PHONY: modbus-gateway-mstp
+modbus-gateway-mstp: $(BACNET_LIB_TARGET)
+	$(MAKE) BACDL=mstp -B -C modbus-gateway TARGET=modbusgw-mstp
+
+.PHONY: modbus-gateway-mstp-clean
+modbus-gateway-mstp-clean:
+	$(MAKE) -C modbus-gateway clean
+	rm -f ../bin/modbusgw-mstp
 
 .PHONY: fuzz-libfuzzer
 fuzz-libfuzzer: $(BACNET_LIB_TARGET)

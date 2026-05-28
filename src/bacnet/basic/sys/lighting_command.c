@@ -1591,6 +1591,78 @@ float lighting_command_default_on_value_get(
 }
 
 /**
+ * @brief Get the lighting command Min_Actual_Value property value
+ * @param data [in] dimmer data
+ * @return float - lighting command Min_Actual_Value
+ */
+float lighting_command_min_actual_value_get(
+    struct bacnet_lighting_command_data *data)
+{
+    float value = 0.0f;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Min_Actual_Value;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+/**
+ * @brief Set the lighting command Min_Actual_Value property value
+ * @param data [in] dimmer data
+ * @param value [in] BACnet lighting Min_Actual_Value
+ */
+void lighting_command_min_actual_value_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Min_Actual_Value = value;
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Get the lighting command Max_Actual_Value property value
+ * @param data [in] dimmer data
+ * @return float - lighting command Max_Actual_Value
+ */
+float lighting_command_max_actual_value_get(
+    struct bacnet_lighting_command_data *data)
+{
+    float value = 0.0f;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Max_Actual_Value;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+/**
+ * @brief Set the lighting command Max_Actual_Value property value
+ * @param data [in] dimmer data
+ * @param value [in] BACnet lighting Max_Actual_Value
+ */
+void lighting_command_max_actual_value_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Max_Actual_Value = value;
+    lighting_command_unlock(data);
+}
+
+/**
  * @brief Set the lighting command default on value
  * @param data [in] dimmer data
  * @param value [in] BACnet lighting default on value

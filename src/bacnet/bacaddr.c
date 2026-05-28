@@ -773,6 +773,32 @@ bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
 }
 
 /**
+ * @brief Encode the BACnetAddressBinding entry
+ * @param apdu  Pointer to the APDU, or NULL for length calculation.
+ * @param device_id  Device ID to encode.
+ * @param address  Pointer to the BACnet address to encode.
+ * @return Count of encoded bytes.
+ */
+int bacnet_address_binding_entry_encode(
+    uint8_t *apdu, uint32_t device_id, const BACNET_ADDRESS *address)
+{
+    int len = 0, apdu_len = 0;
+
+    if (!address) {
+        return 0;
+    }
+    len = encode_application_object_id(apdu, OBJECT_DEVICE, device_id);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_bacnet_address(apdu, address);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
  * @brief Encode a given BACnetAddressBinding
  * @details
  *  BACnetAddressBinding ::= SEQUENCE {
@@ -785,21 +811,11 @@ bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
 int bacnet_address_binding_type_encode(
     uint8_t *apdu, const BACNET_ADDRESS_BINDING *value)
 {
-    int apdu_len = 0, len = 0;
-
     if (!value) {
         return 0;
     }
-    len = encode_application_object_id(
-        apdu, OBJECT_DEVICE, value->device_identifier);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_bacnet_address(apdu, &value->device_address);
-    apdu_len += len;
-
-    return apdu_len;
+    return bacnet_address_binding_entry_encode(
+        apdu, value->device_identifier, &value->device_address);
 }
 
 /**

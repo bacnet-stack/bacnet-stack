@@ -24,11 +24,13 @@ add_compile_definitions(
 
 include_directories(
     ${SRC_DIR}
+    ./support
     )
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/bzll/bzllvmac.c
+    ${SRC_DIR}/bacnet/basic/bzll/h_bzll.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -42,7 +44,11 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/ringbuf.c
     ${SRC_DIR}/bacnet/hostnport.c
+    ./support/support.c
     # Test and test library files
     ./src/main.c
+    ./src/test_bzllvmac.c
+    ./src/test_h_bzll.c
     )

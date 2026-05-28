@@ -34,11 +34,13 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/bacerror.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
+    ${SRC_DIR}/bacnet/reject.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

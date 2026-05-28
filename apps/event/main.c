@@ -27,6 +27,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
@@ -153,7 +154,7 @@ static void print_usage(const char *filename)
         "    [change-of-bitstring reference-bit-string status-flags]\n"
         "    [change-of-state new-state-tag new-state-value status-flags]\n",
         filename);
-    printf("       [--dnet][--dadr][--mac]\n");
+    printf("       [--dnet][--dadr][--mac][--debug]\n");
     printf("       [--version][--help]\n");
 }
 
@@ -226,6 +227,10 @@ static void print_help(const char *filename)
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
+    printf("\n");
     printf("Example:\n");
     printf("%s 123 1 2 binary-value 4 5 6 7 message event\n", filename);
 }
@@ -245,6 +250,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
+    long severity = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -290,6 +296,12 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
                     specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--debug") == 0) {
+            if (++argi < argc) {
+                if (bacnet_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
                 }
             }
         } else {

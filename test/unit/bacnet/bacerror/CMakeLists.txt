@@ -33,7 +33,9 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
+        ${SRC_DIR}/bacnet/abort.c
         ${SRC_DIR}/bacnet/bacerror.c
+        ${SRC_DIR}/bacnet/reject.c
     # Support files and stubs (pathname alphabetical)
     # Test and test library files
     ./src/main.c

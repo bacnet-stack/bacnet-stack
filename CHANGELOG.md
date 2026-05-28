@@ -13,11 +13,53 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-04-30
+## [Unreleased] - 2026-05-18
 
 ### Security
+
+* Secured Loop object internal Read_Property function buffer overflow. (#1355)
+* Secured Life Safety Point and Zone Read_Property of accepted-modes property
+  buffer overflow. (#1354)
+* Secured Notification Class AddListElement and RemoveListElement stack
+  based buffer overflow. (#1353)
+* Secured Device ENDRESTORE so that it does not delete existing objects
+  until after the first record is decoded (#1352)
+* Secured Timer object State_Change_Values property self-reference that
+  caused uncontrolled recursion. (#1347)
+* Secured Channel object member self-reference that caused uncontrolled
+  recursion. Changed Channel property handling to use device object
+  property reference and unsigned value specific decoders. Fixed handling
+  of Write_Status in Channel_Write_Members to properly reflect success
+  or failure of property writes. (#1345)
+* Secured AtomicReadFile-ACK Record-Access Encoder by initializing
+  BACNET_CHARACTER_STRING and OCTET_STRING to prevent uninitialized
+  usage and conditional information disclosure. (#1344)
+* Secured AtomicReadFile and AtomicWriteFile callbacks into bacfile.c
+  by adding null checks and fixing out-of-bounds read/write.(#1344)
+* Secured WriteProperty to Structured View subordinate-list that caused a NULL
+  pointer dereference in bacnet_device_object_reference_decode(). (#1321)
+* Secured AtomicReadFile handler by implementing bounds checks for
+  RecordCount stack based out-of-bounds write. (#1340)
+
 ### Added
 
+* Added a mixed static-reference and dynamic-allocation characterstring
+  buffer API for object strings. The new character string buffer API functions
+  include init/strdup/length/value/free/conversion and use a flag to track
+  dynamic memory and mix static-reference and dynamic-allocation.
+  Changed buffer_length type from uint32_t to size_t so that smaller
+  bit-size devices are not penalized. (#1351)
+* Added multistate text to value and sys state text to basic multistate objects.
+  Added state name utility functions and corresponding unit tests.
+  Added multistate object API to set present-value using state-name. (#1348)
+* Added proprietary object functions to device object list (#1343)
+* Added a BACnet Zigbee link layer general handler. (#1336)
+* Added generic Modbus RTU to BACnet gateway application that bridges
+  Modbus RTU devices to a BACnet network via a JSON-based runtime
+  configuration. (#1316)
+* Added pseudo abstract-syntax data write in bac-rw module with WriteProperty
+  write success callback. Added bacapp encode data for a possible array of
+  values used in EPICS WriteProperty service option. (#1331)
 * Added routed virtual device backup/restore reinitialization which enables
   routed virtual devices to accept ReinitializeDevice so Backup and Restore
   states can be handled per device. Gateway behavior remains unchanged, and
@@ -41,6 +83,18 @@ for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed off-by-one error in Life_Safety_Point_Read_Property for
+  accepted modes property. (#1349)
+* Fixed WriteProperty handling across the stack by rejecting zero-length
+  application payloads for non-list properties (returning
+  ERROR_CODE_INVALID_TAG) and by adding defensive wp_data == NULL checks
+  in many object *_Write_Property() handlers. (#1337)
+* Fixed access-doors array to be in array list and use common array
+  encoding function.(#1331)
+* Fixed Network Port object local IPv4 gateway address configuration for
+  Linux/BSD/Windows. (#1335)
+* Fixed Device_Reinitialize_Data initialization at runtime and clean up
+  unused variables in Device_Configuration_Files_Value. (#1325)
 * Fixed null pointer check for value when resetting device identifier
   in bacdevobjpropref. (#1321)
 * Fixed lighting command update notifications to use scaled physical

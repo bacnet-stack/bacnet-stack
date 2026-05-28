@@ -745,7 +745,13 @@ int Life_Safety_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_ACCEPTED_MODES:
             for (mode = 0; mode < LIFE_SAFETY_MODE_RESERVED_MIN; mode++) {
-                len = encode_application_enumerated(&apdu[apdu_len], mode);
+                len = bacnet_enumerated_application_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len, mode);
+                if (len <= 0) {
+                    rpdata->error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    return BACNET_STATUS_ABORT;
+                }
                 apdu_len += len;
             }
             break;
@@ -783,6 +789,10 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);

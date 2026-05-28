@@ -1190,8 +1190,8 @@ static void testBACDCodeCharacterString(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t encoded_apdu[MAX_APDU] = { 0 };
-    BACNET_CHARACTER_STRING value;
-    BACNET_CHARACTER_STRING test_value;
+    BACNET_CHARACTER_STRING value = { 0 };
+    BACNET_CHARACTER_STRING test_value = { 0 };
     char test_name[MAX_APDU] = { "" };
     int i; /* for loop counter */
     int apdu_len = 0, len = 0, null_len = 0, tag_len, test_len;
