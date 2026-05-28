@@ -405,22 +405,28 @@ static void bsc_node_parse_urls(
                  .utf8_websocket_uri_string_len;
          i++) {
         if (url[i] == 0x20) {
-            if (i > BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK ||
+            if ((i - start) >
+                    BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK ||
                 (i - start) == 0) {
                 start = i + 1;
                 continue;
-            } else {
+            } else if (j <
+                BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK) {
                 memcpy(&r->utf8_urls[j][0], &url[start], i - start);
-                r->utf8_urls[j][i] = 0;
+                r->utf8_urls[j][i - start] = 0;
                 j++;
                 start = i + 1;
+            } else {
+                break;
             }
         }
     }
     if (i - start > 0 &&
-        i <= BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK) {
+        (i - start) <=
+            BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK &&
+        j < BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK) {
         memcpy(&r->utf8_urls[j][0], &url[start], i - start);
-        r->utf8_urls[j][i] = 0;
+        r->utf8_urls[j][i - start] = 0;
         j++;
     }
     r->urls_num = j;
