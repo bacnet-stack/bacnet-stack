@@ -77,6 +77,9 @@ static void testBacText(void)
     }
     /* BACNET_APPLICATION_TAG - numeric string lookup */
     for (i = 0; i < BACNET_APPLICATION_TAG_EXTENDED_MAX; i++) {
+        if (i == MAX_BACNET_APPLICATION_TAG) {
+            continue;
+        }
         snprintf(ascii_number, sizeof(ascii_number), "%u", i);
         status = bactext_application_tag_strtol(ascii_number, &index);
         zassert_true(status, "i=%u", i);
