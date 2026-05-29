@@ -32,7 +32,7 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/datalink/dlmstp.h"
-#if defined(BACFILE)
+#if defined(BACDL_BSC)
 #include "bacfile-posix.h"
 #endif
 
@@ -1042,12 +1042,13 @@ void dlenv_init_no_device_registration(uint8_t port_type)
 {
     char *pEnv = NULL;
 
-#if defined(BACFILE)
+#if defined(BACDL_BSC)
     /* initialize the POSIX file objects */
     bacfile_posix_init();
     debug_log_fprintf(
         DEBUG_LOG_DEBUG, stderr, "POSIX file services initialized.\n");
 #endif
+
     /* === Initialize the Network Port Object Here === */
     Network_Port_Type_Set(Network_Port_Instance, port_type);
     switch (port_type) {

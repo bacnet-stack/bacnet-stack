@@ -135,7 +135,7 @@ static object_functions_t Object_Table[] = {
       NULL /* Timer */,
       Network_Port_Writable_Property_List },
 #endif
-#if defined(BACFILE)
+#if defined(BACDL_BSC)
     { OBJECT_FILE,
       bacfile_init,
       bacfile_count,

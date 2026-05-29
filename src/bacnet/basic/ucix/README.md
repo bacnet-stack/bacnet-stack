@@ -21,7 +21,7 @@ https://github.com/stargieg/packages-automation
 
 ### Linux
 
-    make clean;make BUILD=debug BACNET_PORT=linux BACDL_DEFINE=-DBACDL_BIP=1 BACNET_DEFINES=" -DPRINT_ENABLED=1 -DINTRINSIC_REPORTING -DBACFILE -DBACAPP_ALL"
+    make clean;make BUILD=debug BACNET_PORT=linux BACDL_DEFINE=-DBACDL_BIP=1 BACNET_DEFINES=" -DPRINT_ENABLED=1 -DINTRINSIC_REPORTING -DBACAPP_ALL"
 
 ### MAC OS X with ports:
 
@@ -41,7 +41,6 @@ https://github.com/stargieg/packages-automation
     -DBAC_ROUTING
     -DPRINT_ENABLED=1
     -DBACAPP_ALL
-    -DBACFILE
     -DINTRINSIC_REPORTING
 
 #### BACDL_DEFINE:
