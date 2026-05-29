@@ -50,6 +50,9 @@ const char *bactext_application_tag_name_default(
 BACNET_STACK_EXPORT
 bool bactext_application_tag_index(
     const char *search_name, uint32_t *found_index);
+BACNET_STACK_EXPORT
+bool bactext_application_tag_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_reinitialized_state_name_default(

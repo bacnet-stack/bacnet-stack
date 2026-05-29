@@ -132,22 +132,22 @@ bool bactext_unconfirmed_service_strtol(
 INDTEXT_DATA bacnet_application_tag_names[] = {
     { BACNET_APPLICATION_TAG_NULL, "Null" },
     { BACNET_APPLICATION_TAG_BOOLEAN, "Boolean" },
-    { BACNET_APPLICATION_TAG_UNSIGNED_INT, "Unsigned Int" },
-    { BACNET_APPLICATION_TAG_SIGNED_INT, "Signed Int" },
+    { BACNET_APPLICATION_TAG_UNSIGNED_INT, "Unsigned-Int" },
+    { BACNET_APPLICATION_TAG_SIGNED_INT, "Signed-Int" },
     { BACNET_APPLICATION_TAG_REAL, "Real" },
     { BACNET_APPLICATION_TAG_DOUBLE, "Double" },
-    { BACNET_APPLICATION_TAG_OCTET_STRING, "Octet String" },
-    { BACNET_APPLICATION_TAG_CHARACTER_STRING, "Character String" },
-    { BACNET_APPLICATION_TAG_BIT_STRING, "Bit String" },
+    { BACNET_APPLICATION_TAG_OCTET_STRING, "Octet-String" },
+    { BACNET_APPLICATION_TAG_CHARACTER_STRING, "Character-String" },
+    { BACNET_APPLICATION_TAG_BIT_STRING, "Bit-String" },
     { BACNET_APPLICATION_TAG_ENUMERATED, "Enumerated" },
     { BACNET_APPLICATION_TAG_DATE, "Date" },
     { BACNET_APPLICATION_TAG_TIME, "Time" },
-    { BACNET_APPLICATION_TAG_OBJECT_ID, "Object ID" },
-    { BACNET_APPLICATION_TAG_RESERVE1, "Reserved 1" },
-    { BACNET_APPLICATION_TAG_RESERVE2, "Reserved 2" },
-    { BACNET_APPLICATION_TAG_RESERVE3, "Reserved 3" },
+    { BACNET_APPLICATION_TAG_OBJECT_ID, "Object-ID" },
+    { BACNET_APPLICATION_TAG_RESERVE1, "Reserved-1" },
+    { BACNET_APPLICATION_TAG_RESERVE2, "Reserved-2" },
+    { BACNET_APPLICATION_TAG_RESERVE3, "Reserved-3" },
     /* complex data types */
-    { BACNET_APPLICATION_TAG_EMPTYLIST, "Empty List" },
+    { BACNET_APPLICATION_TAG_EMPTYLIST, "Empty-List" },
     { BACNET_APPLICATION_TAG_WEEKNDAY, "BACnetWeeknday" },
     { BACNET_APPLICATION_TAG_DATERANGE, "BACnetDateRange" },
     { BACNET_APPLICATION_TAG_DATETIME, "BACnetDateTime" },
@@ -215,6 +215,13 @@ bool bactext_application_tag_index(
     const char *search_name, uint32_t *found_index)
 {
     return indtext_by_istring(
+        bacnet_application_tag_names, search_name, found_index);
+}
+
+bool bactext_application_tag_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
         bacnet_application_tag_names, search_name, found_index);
 }
 
