@@ -281,8 +281,9 @@ int main(int argc, char *argv[])
     BACNET_PROPERTY_VALUE *wpm_property;
     char *value_string = NULL;
     bool status = false;
-    long property_tag;
-    long priority;
+    long property_tag = 0;
+    long priority = 0;
+    uint32_t index = 0;
     uint8_t context_tag = 0;
     unsigned object_type = 0;
     unsigned property_id = 0;
@@ -430,7 +431,12 @@ int main(int argc, char *argv[])
                 } else {
                     wpm_property->value.context_specific = false;
                 }
-                property_tag = strtol(argv[tag_value_arg], NULL, 0);
+                if (bactext_application_tag_strtol(
+                        argv[tag_value_arg], &index)) {
+                    property_tag = index;
+                } else {
+                    property_tag = strtol(argv[tag_value_arg], NULL, 0);
+                }
                 tag_value_arg++;
                 args_remaining--;
                 if (args_remaining <= 0) {
