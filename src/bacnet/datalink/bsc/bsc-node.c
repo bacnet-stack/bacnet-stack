@@ -410,8 +410,8 @@ static void bsc_node_parse_urls(
                 (i - start) == 0) {
                 start = i + 1;
                 continue;
-            } else if (j <
-                BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK) {
+            } else if (
+                j < BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK) {
                 memcpy(&r->utf8_urls[j][0], &url[start], i - start);
                 r->utf8_urls[j][i - start] = 0;
                 j++;
@@ -422,8 +422,7 @@ static void bsc_node_parse_urls(
         }
     }
     if (i - start > 0 &&
-        (i - start) <=
-            BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK &&
+        (i - start) <= BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK &&
         j < BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK) {
         memcpy(&r->utf8_urls[j][0], &url[start], i - start);
         r->utf8_urls[j][i - start] = 0;
