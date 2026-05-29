@@ -72,9 +72,15 @@
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
-/* for testing */
+/* for debug */
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/bactext.h"
+
+#if DEBUG_ENABLED
+#define LOG_FPRINTF debug_log_fprintf
+#else
+#define LOG_FPRINTF debug_log_fprintf_disabled
+#endif
 
 /* external prototypes */
 extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -1802,6 +1808,10 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     } else {
         password_success = true;
     }
+    LOG_FPRINTF(
+        DEBUG_LOG_DEBUG, stderr,
+        "Device_Reinitialize: password %s for state=%u\n",
+        password_success ? "accepted" : "rejected", rd_data->state);
     if (password_success) {
 #if defined(BAC_ROUTING)
         if (Device_Routed_Virtual_Device() &&
@@ -4164,10 +4174,14 @@ void Device_Start_Backup(void)
     BACNET_CREATE_OBJECT_DATA create_data = { 0 };
     bool status = false;
     int32_t len = 0, offset = 0;
+    uint32_t bytes_written = 0;
     BACNET_BACKUP_STATE *backup_state = Device_Backup_State_Value();
     uint32_t *configuration_files = Device_Configuration_Files_Value();
 
     object_count = Device_Object_List_Count();
+    LOG_FPRINTF(
+        DEBUG_LOG_DEBUG, stderr,
+        "Device_Start_Backup: found %u objects to backup\n", object_count);
     for (i = 0; i < object_count; i++) {
         /* get the object type and instance from the device object list */
         status = Device_Object_List_Identifier(
@@ -4186,9 +4200,15 @@ void Device_Start_Backup(void)
                 property_list.Proprietary.pList, writable_properties,
                 Device_Read_Property);
             if (len > 0) {
-                (void)bacfile_write_offset(
+                bytes_written = bacfile_write_offset(
                     configuration_files[0], offset, &object_apdu[0],
                     (uint32_t)len);
+                LOG_FPRINTF(
+                    DEBUG_LOG_DEBUG, stderr,
+                    "Device_Start_Backup: wrote %u bytes to "
+                    "backup file %u at offset %u for object %u:%u\n",
+                    bytes_written, configuration_files[0], offset, object_type,
+                    object_instance);
                 offset += len;
             }
         }

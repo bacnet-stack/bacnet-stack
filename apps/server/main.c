@@ -50,6 +50,7 @@
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
 #include "bacnet/basic/object/bacfile.h"
+#include "bacfile-posix.h"
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
@@ -163,7 +164,10 @@ static void Init_Service_Handlers(void)
     BACNET_CREATE_OBJECT_DATA object_data = { 0 };
     unsigned int i = 0;
 
+    /* Initialize the device object and its children */
     Device_Init(NULL);
+    /* initialize the POSIX file object backend */
+    bacfile_posix_init();
     /* create some dynamically created objects as examples */
     object_data.object_instance = BACNET_MAX_INSTANCE;
     for (i = 0; i < BACNET_OBJECT_TYPE_RESERVED_MIN; i++) {
@@ -179,7 +183,7 @@ static void Init_Service_Handlers(void)
     }
 #if defined BACNET_BACKUP_RESTORE
     /* file for backup and restore example */
-    object_data.object_instance = bacfile_create(BACNET_MAX_INSTANCE);
+    object_data.object_instance = bacfile_index_to_instance(0);
     if (object_data.object_instance != BACNET_MAX_INSTANCE) {
         bacfile_pathname_set(object_data.object_instance, "backup_1.bin");
         Device_Configuration_File_Set(0, object_data.object_instance);
