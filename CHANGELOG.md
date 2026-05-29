@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
+  resolving destination slot for property values. (#1366)
 * Secured Loop object internal Read_Property function buffer overflow. (#1355)
 * Secured Life Safety Point and Zone Read_Property of accepted-modes property
   buffer overflow. (#1354)
