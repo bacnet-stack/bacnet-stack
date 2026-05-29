@@ -4207,8 +4207,8 @@ void Device_Start_Backup(void)
                     DEBUG_LOG_DEBUG, stderr,
                     "Device_Start_Backup: wrote %u bytes to "
                     "backup file %u at offset %u for object %u:%u\n",
-                    bytes_written, configuration_files[0], (unsigned)offset, object_type,
-                    object_instance);
+                    bytes_written, configuration_files[0], (unsigned)offset,
+                    object_type, object_instance);
                 offset += bytes_written;
             }
         }
