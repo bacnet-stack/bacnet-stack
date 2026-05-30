@@ -1526,3 +1526,18 @@ bsc_node_find_hub_status_for_vmac(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 
     return &node->hub_status[index];
 }
+
+#if defined(CONFIG_ZTEST)
+/**
+ * @brief Test-only shim exposing the static bsc_node_parse_urls() for
+ *        unit tests compiled with CONFIG_ZTEST.
+ * @param r - pointer to the address resolution output struct
+ * @param decoded_pdu - pointer to a decoded BVLC-SC message whose
+ *        payload.address_resolution_ack fields have been populated
+ */
+void bsc_node_test_parse_urls(
+    BSC_ADDRESS_RESOLUTION *r, BVLC_SC_DECODED_MESSAGE *decoded_pdu)
+{
+    bsc_node_parse_urls(r, decoded_pdu);
+}
+#endif /* CONFIG_ZTEST */

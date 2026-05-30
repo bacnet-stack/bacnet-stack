@@ -23,6 +23,10 @@
 #include <bacnet/datalink/bsc/websocket.h>
 #include <bacnet/datalink/bsc/bsc-node.h>
 
+/* Test-only shim defined at the bottom of bsc-node.c under CONFIG_ZTEST */
+extern void bsc_node_test_parse_urls(
+    BSC_ADDRESS_RESOLUTION *r, BVLC_SC_DECODED_MESSAGE *decoded_pdu);
+
 unsigned char ca_key[] = {
     0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47, 0x49, 0x4e, 0x20, 0x52,
     0x53, 0x41, 0x20, 0x50, 0x52, 0x49, 0x56, 0x41, 0x54, 0x45, 0x20, 0x4b,
@@ -3389,6 +3393,136 @@ static void test_node_bad_cases(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(node_test_8, test_node_parse_urls)
+#else
+static void test_node_parse_urls(void)
+#endif
+{
+    BSC_ADDRESS_RESOLUTION r;
+    BVLC_SC_DECODED_MESSAGE dm;
+    /*
+     * url_buf must hold the largest single-test payload:
+     * case 6 needs MAX_URI_SIZE+2 bytes; add headroom for case 7
+     * which needs 2*MAX_URIS_NUM+1 bytes (at most a few dozen bytes).
+     * 2*MAX_URI_SIZE+4 covers every case below.
+     */
+    uint8_t
+        url_buf[2 * BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK + 4];
+    const size_t max_size =
+        BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK;
+    const size_t max_num = BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK;
+    size_t i;
+    size_t buf_len;
+    const char *two_urls = "wss://host-a wss://host-b";
+
+    /* case 1: empty payload -> no URLs stored */
+    memset(&r, 0, sizeof(r));
+    memset(&dm, 0, sizeof(dm));
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string = url_buf;
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len = 0;
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, 0, NULL);
+
+    /* case 2: single space only -> zero-length segment skipped -> 0 URLs */
+    memset(&r, 0, sizeof(r));
+    url_buf[0] = 0x20;
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len = 1;
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, 0, NULL);
+
+    /*
+     * case 3: URL of exactly max_size bytes, no trailing space.
+     * Exercises the post-loop <= guard:
+     *   (i - start) <= max_size  =>  TRUE  =>  stored.
+     * The NUL terminator must land at index max_size, which is the
+     * last valid slot of utf8_urls[0][max_size+1].
+     * Bug B (missing/wrong post-loop count guard) would write NUL one
+     * slot past the end of the array if j were not checked.
+     */
+    memset(&r, 0, sizeof(r));
+    memset(url_buf, 'A', max_size);
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len = max_size;
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, 1, NULL);
+    zassert_equal(strlen((char *)r.utf8_urls[0]), max_size, NULL);
+    zassert_equal(r.utf8_urls[0][max_size], 0, NULL);
+
+    /*
+     * case 4: URL of max_size+1 bytes, no trailing space -> rejected.
+     * (i - start) = max_size+1 > max_size  =>  post-loop check fails
+     * =>  0 URLs.  Without the <= guard a max_size+1 byte URL would be
+     * copied + NUL'd one byte past the end of the buffer.
+     */
+    memset(&r, 0, sizeof(r));
+    memset(url_buf, 'B', max_size + 1);
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len =
+        max_size + 1;
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, 0, NULL);
+
+    /*
+     * case 5: URL of exactly max_size bytes followed by a space (in-loop
+     * path).  Exercises the '>' check (not '>=') so that a max_size URL
+     * IS accepted:
+     *   (i - start) = max_size  NOT > max_size  =>  stored.
+     * Bug A (using >= instead of >) would reject this valid URL.
+     */
+    memset(&r, 0, sizeof(r));
+    memset(url_buf, 'C', max_size);
+    url_buf[max_size] = 0x20;
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len =
+        max_size + 1;
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, 1, NULL);
+    zassert_equal(strlen((char *)r.utf8_urls[0]), max_size, NULL);
+    zassert_equal(r.utf8_urls[0][max_size], 0, NULL);
+
+    /*
+     * case 6: URL of max_size+1 bytes followed by a space (in-loop path).
+     *   (i - start) = max_size+1  >  max_size  =>  segment skipped.
+     * Without the length check the memcpy would overflow utf8_urls[j].
+     */
+    memset(&r, 0, sizeof(r));
+    memset(url_buf, 'D', max_size + 1);
+    url_buf[max_size + 1] = 0x20;
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len =
+        max_size + 2;
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, 0, NULL);
+
+    /*
+     * case 7: URL-count truncation.
+     * Build max_num+1 single-byte URLs separated by spaces.
+     * The (max_num+1)th URL must be silently dropped so that
+     * urls_num == max_num and utf8_urls[max_num] is never written.
+     * Bug B (missing j < MAX_URIS_NUM post-loop guard) would write
+     * one entry past the end of utf8_urls[].
+     */
+    memset(&r, 0, sizeof(r));
+    buf_len = 0;
+    for (i = 0; i <= max_num; i++) {
+        url_buf[buf_len++] = 'u';
+        if (i < max_num) {
+            url_buf[buf_len++] = 0x20;
+        }
+    }
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len = buf_len;
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, max_num, NULL);
+
+    /* case 8: two well-formed URLs, correct content and NUL placement */
+    memset(&r, 0, sizeof(r));
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string =
+        (uint8_t *)two_urls;
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len =
+        strlen(two_urls);
+    bsc_node_test_parse_urls(&r, &dm);
+    zassert_equal(r.urls_num, 2, NULL);
+    zassert_equal(strcmp((char *)r.utf8_urls[0], "wss://host-a"), 0, NULL);
+    zassert_equal(strcmp((char *)r.utf8_urls[1], "wss://host-b"), 0, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 static void *suite_setup(void)
 {
     setbuf(stdout, NULL);
@@ -3402,6 +3536,7 @@ ZTEST_SUITE(node_test_4, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(node_test_5, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(node_test_6, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(node_test_7, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(node_test_8, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -3417,6 +3552,7 @@ void test_main(void)
     ztest_test_suite(
         node_test_6, ztest_unit_test(test_node_direct_connection_unsupported));
     ztest_test_suite(node_test_7, ztest_unit_test(test_node_bad_cases));
+    ztest_test_suite(node_test_8, ztest_unit_test(test_node_parse_urls));
     ztest_run_test_suite(node_test_1);
     ztest_run_test_suite(node_test_2);
     ztest_run_test_suite(node_test_3);
@@ -3424,5 +3560,6 @@ void test_main(void)
     ztest_run_test_suite(node_test_5);
     ztest_run_test_suite(node_test_6);
     ztest_run_test_suite(node_test_7);
+    ztest_run_test_suite(node_test_8);
 }
 #endif
