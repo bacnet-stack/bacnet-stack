@@ -60,7 +60,7 @@ endif()
 add_custom_target(lcov
     COMMAND mkdir -p lcoverage
     )
-add_custom_command(TARGET lcov
+add_custom_command(TARGET lcov POST_BUILD
     COMMAND echo "=================== LCOV ===================="
     COMMAND echo "-- Passing lcov tool under code coverage"
     COMMAND lcov --capture --directory ../ --output-file lcoverage/main_coverage.info
