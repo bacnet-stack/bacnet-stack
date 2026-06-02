@@ -3511,11 +3511,12 @@ static void test_node_parse_urls(void)
     zassert_equal(r.urls_num, max_num, NULL);
 
     /* case 8: two well-formed URLs, correct content and NUL placement */
+    /* case 8: two well-formed URLs, correct content and NUL placement */
     memset(&r, 0, sizeof(r));
-    dm.payload.address_resolution_ack.utf8_websocket_uri_string =
-        (uint8_t *)two_urls;
-    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len =
-        strlen(two_urls);
+    buf_len = strlen(two_urls);
+    memcpy(url_buf, two_urls, buf_len);
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string = url_buf;
+    dm.payload.address_resolution_ack.utf8_websocket_uri_string_len = buf_len;
     bsc_node_test_parse_urls(&r, &dm);
     zassert_equal(r.urls_num, 2, NULL);
     zassert_equal(strcmp((char *)r.utf8_urls[0], "wss://host-a"), 0, NULL);
