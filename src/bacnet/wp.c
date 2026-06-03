@@ -399,40 +399,6 @@ char *write_property_characterstring_utf8_strdup(
 }
 
 /**
- * @brief simple validation of UTF8 character string value for Write Property
- * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
- *  requested data and space for the reply, or error response.
- * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
- * @return true if the character string value is valid
- */
-bool write_property_string_utf8_valid(
-    BACNET_WRITE_PROPERTY_DATA *wp_data,
-    const BACNET_APPLICATION_DATA_VALUE *value)
-{
-    bool valid = false;
-
-    if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
-        if (characterstring_encoding(&value->type.Character_String) ==
-            CHARACTER_ANSI_X34) {
-            /* It's all good! */
-            valid = true;
-        } else {
-            if (wp_data) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
-            }
-        }
-    } else {
-        if (wp_data) {
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-    }
-
-    return valid;
-}
-
-/**
  * @brief simple validation of character string value for Write Property
  * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
  *  requested data and space for the reply, or error response.
