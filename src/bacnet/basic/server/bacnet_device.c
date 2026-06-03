@@ -3141,7 +3141,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = write_property_string_valid(wp_data, &value, SIZE_MAX);
+            status = write_property_string_valid(
+                wp_data, &value,
+                characterstring_capacity(&value.type.Character_String));
             if (status) {
                 /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(
@@ -3168,8 +3170,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LOCATION:
-            status =
-                write_property_empty_string_valid(wp_data, &value, SIZE_MAX);
+            status = write_property_empty_string_valid(
+                wp_data, &value,
+                characterstring_capacity(&value.type.Character_String));
             if (status) {
                 status = characterstring_buffer_strdup(
                     &Location_String, &value.type.Character_String);
@@ -3181,8 +3184,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_DESCRIPTION:
-            status =
-                write_property_empty_string_valid(wp_data, &value, SIZE_MAX);
+            status = write_property_empty_string_valid(
+                wp_data, &value,
+                characterstring_capacity(&value.type.Character_String));
             if (status) {
                 status = characterstring_buffer_strdup(
                     &Description_String, &value.type.Character_String);
@@ -3193,8 +3197,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MODEL_NAME:
-            status =
-                write_property_empty_string_valid(wp_data, &value, SIZE_MAX);
+            status = write_property_empty_string_valid(
+                wp_data, &value,
+                characterstring_capacity(&value.type.Character_String));
             if (status) {
                 status = characterstring_buffer_strdup(
                     &Model_Name_String, &value.type.Character_String);

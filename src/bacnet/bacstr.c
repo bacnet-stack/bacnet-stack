@@ -1144,7 +1144,8 @@ bool characterstring_buffer_ansi_strndup(
 bool characterstring_buffer_ansi_strdup(
     BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value)
 {
-    return characterstring_buffer_ansi_strndup(char_string, value, SIZE_MAX);
+    return characterstring_buffer_ansi_strndup(
+        char_string, value, MAX_CHARACTER_STRING_BYTES);
 }
 
 /**
