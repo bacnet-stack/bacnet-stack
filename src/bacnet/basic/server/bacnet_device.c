@@ -1934,7 +1934,7 @@ const char *Device_Model_Name(void)
 
 bool Device_Set_Model_Name(const char *name, size_t length)
 {
-    characterstring_buffer_ansi_strndup(&Model_Name_String, name, length);
+    characterstring_buffer_ansi_length_init(&Model_Name_String, name, length);
 
     return true;
 }
@@ -1946,7 +1946,7 @@ const char *Device_Firmware_Revision(void)
 
 bool Device_Set_Firmware_Revision(const char *name, size_t length)
 {
-    characterstring_buffer_ansi_strndup(
+    characterstring_buffer_ansi_length_init(
         &Firmware_Revision_String, name, length);
 
     return true;
@@ -1959,7 +1959,7 @@ const char *Device_Application_Software_Version(void)
 
 bool Device_Set_Application_Software_Version(const char *name, size_t length)
 {
-    characterstring_buffer_ansi_strndup(
+    characterstring_buffer_ansi_length_init(
         &Application_Software_Version_String, name, length);
 
     return true;
@@ -2008,7 +2008,7 @@ const char *Device_Serial_Number(void)
  */
 bool Device_Serial_Number_Set(const char *str, size_t length)
 {
-    return characterstring_buffer_ansi_strndup(
+    return characterstring_buffer_ansi_length_init(
         &Serial_Number_String, str, length);
 }
 
@@ -2724,14 +2724,14 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            apdu_len = encode_bacnet_character_string_buffer(
+            apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Object_Name_String);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
             break;
         case PROP_DESCRIPTION:
-            apdu_len = encode_bacnet_character_string_buffer(
+            apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Description_String);
             break;
         case PROP_SYSTEM_STATUS:
@@ -2739,26 +2739,26 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], Device_System_Status());
             break;
         case PROP_VENDOR_NAME:
-            apdu_len = encode_bacnet_character_string_buffer(
+            apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Vendor_Name_String);
             break;
         case PROP_VENDOR_IDENTIFIER:
             apdu_len = encode_application_unsigned(&apdu[0], Vendor_Identifier);
             break;
         case PROP_MODEL_NAME:
-            apdu_len = encode_bacnet_character_string_buffer(
+            apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Model_Name_String);
             break;
         case PROP_FIRMWARE_REVISION:
-            apdu_len = encode_bacnet_character_string_buffer(
+            apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Firmware_Revision_String);
             break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
-            apdu_len = encode_bacnet_character_string_buffer(
+            apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Application_Software_Version_String);
             break;
         case PROP_LOCATION:
-            apdu_len = encode_bacnet_character_string_buffer(
+            apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Location_String);
             break;
         case PROP_LOCAL_TIME:
@@ -4047,6 +4047,10 @@ void Device_Init(object_functions_t *object_table)
         &Location_String, BACNET_DEVICE_LOCATION_NAME);
     characterstring_buffer_ansi_init(
         &Description_String, BACNET_DEVICE_DESCRIPTION);
+    characterstring_buffer_ansi_init(
+        &Model_Name_String, BACNET_DEVICE_MODEL_NAME);
+    characterstring_buffer_ansi_init(
+        &Serial_Number_String, BACNET_DEVICE_SERIAL_NUMBER);
     characterstring_buffer_ansi_init(&Vendor_Name_String, BACNET_VENDOR_NAME);
 #if (BACNET_PROTOCOL_REVISION >= 14)
 #ifdef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
