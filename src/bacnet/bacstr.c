@@ -1080,11 +1080,12 @@ bool characterstring_buffer_ansi_init(
  * @param char_string Pointer to destination buffer structure.
  * @param value Pointer to source ANSI C string, or NULL to free and set empty
  *  the CharacterString buffer size and length to 0.
+ * @param tmax Maximum number of characters to duplicate from the source string.
  * @return true on success, false on allocation/argument failure.
  * @note The CharacterString buffer is unchanged if memory allocation fails
  */
-bool characterstring_buffer_ansi_strdup(
-    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value)
+bool characterstring_buffer_ansi_strndup(
+    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value, size_t tmax)
 {
     size_t length = 0;
     char *buffer = NULL;
@@ -1093,8 +1094,8 @@ bool characterstring_buffer_ansi_strdup(
         return false;
     }
     if (value) {
-        length = strlen(value);
-        buffer = bacnet_strdup(value);
+        length = strnlen(value, tmax);
+        buffer = bacnet_strndup(value, length);
         if (buffer) {
             characterstring_buffer_free(char_string);
             char_string->buffer = buffer;
@@ -1113,6 +1114,21 @@ bool characterstring_buffer_ansi_strdup(
     char_string->encoding = CHARACTER_UTF8;
 
     return true;
+}
+
+/**
+ * @brief Initialize a BACnet character string buffer by duplicating an
+ *  ANSI C string. UTF-8 is used as the default encoding for this initializer.
+ * @param char_string Pointer to destination buffer structure.
+ * @param value Pointer to source ANSI C string, or NULL to free and set empty
+ *  the CharacterString buffer size and length to 0.
+ * @return true on success, false on allocation/argument failure.
+ * @note The CharacterString buffer is unchanged if memory allocation fails
+ */
+bool characterstring_buffer_ansi_strdup(
+    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value)
+{
+    return characterstring_buffer_ansi_strndup(char_string, value, SIZE_MAX);
 }
 
 /**
@@ -1210,6 +1226,37 @@ bool characterstring_buffer_to_characterstring(
     return characterstring_init(
         dest, characterstring_buffer_encoding(src),
         characterstring_buffer_value(src), characterstring_buffer_length(src));
+}
+
+/**
+ * @brief Returns true if the character encoding and string contents are the
+ * same between a character string buffer and a fixed-size character string.
+ * @param s1 Pointer to the character string buffer.
+ * @param s2 Pointer to the fixed-size character string.
+ * @return true if the character encoding and string contents are the same,
+ * false otherwise.
+ */
+bool characterstring_buffer_same_characterstring(
+    const BACNET_CHARACTER_STRING_BUFFER *s1, const BACNET_CHARACTER_STRING *s2)
+{
+    size_t i; /* counter */
+
+    if (!s1 || !s2) {
+        return false;
+    }
+    if (s1->encoding != s2->encoding) {
+        return false;
+    }
+    if (s1->buffer_length != s2->length) {
+        return false;
+    }
+    for (i = 0; i < s2->length; i++) {
+        if (s1->buffer[i] != s2->value[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**

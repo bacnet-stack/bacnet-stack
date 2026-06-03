@@ -159,6 +159,11 @@ BACNET_STACK_EXPORT
 bool characterstring_buffer_ansi_init(
     BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
 BACNET_STACK_EXPORT
+bool characterstring_buffer_ansi_strndup(
+    BACNET_CHARACTER_STRING_BUFFER *char_string,
+    const char *value,
+    size_t tmax);
+BACNET_STACK_EXPORT
 bool characterstring_buffer_ansi_strdup(
     BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
 BACNET_STACK_EXPORT
@@ -175,6 +180,10 @@ bool characterstring_buffer_from_characterstring(
 BACNET_STACK_EXPORT
 bool characterstring_buffer_to_characterstring(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING_BUFFER *src);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_same_characterstring(
+    const BACNET_CHARACTER_STRING_BUFFER *s1,
+    const BACNET_CHARACTER_STRING *s2);
 BACNET_STACK_EXPORT
 const char *
 characterstring_buffer_value(const BACNET_CHARACTER_STRING_BUFFER *char_string);
