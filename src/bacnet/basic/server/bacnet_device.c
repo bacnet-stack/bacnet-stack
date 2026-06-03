@@ -1525,9 +1525,7 @@ static BACNET_BACKUP_STATE Backup_State = BACKUP_STATE_IDLE;
  */
 bool Device_Reinitialize_Password_Set(const char *password)
 {
-    characterstring_buffer_ansi_strdup(&Reinit_Password_String, password);
-
-    return true;
+    return characterstring_buffer_ansi_init(&Reinit_Password_String, password);
 }
 
 /**
@@ -1567,7 +1565,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         if (length > 20) {
             rd_data->error_class = ERROR_CLASS_SERVICES;
             rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-        } else if (characterstring_buffer_same_characterstring(
+        } else if (characterstring_buffer_same(
                        &Reinit_Password_String, &rd_data->password)) {
             password_success = true;
         } else {
@@ -1747,10 +1745,10 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
 
-    if (!characterstring_same(&Object_Name_String, object_name)) {
+    if (!characterstring_buffer_same(&Object_Name_String, object_name)) {
         /* Make the change and update the database revision */
-        status = characterstring_buffer_to_characterstring(
-            &Object_Name_String, object_name);
+        status =
+            characterstring_buffer_strdup(&Object_Name_String, object_name);
         Device_Inc_Database_Revision();
     }
 
@@ -1764,7 +1762,7 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
  */
 bool Device_Object_Name_ANSI_Init(const char *value)
 {
-    return characterstring_buffer_ansi_strdup(&Object_Name_String, value);
+    return characterstring_buffer_ansi_init(&Object_Name_String, value);
 }
 
 /**
@@ -1909,7 +1907,7 @@ const char *Device_Vendor_Name(void)
 
 bool Device_Set_Vendor_Name(const char *name, size_t length)
 {
-    characterstring_buffer_ansi_strndup(&Vendor_Name_String, name, length);
+    characterstring_buffer_ansi_length_init(&Vendor_Name_String, name, length);
 
     return true;
 }
@@ -1931,8 +1929,7 @@ void Device_Set_Vendor_Identifier(uint16_t vendor_id)
 
 const char *Device_Model_Name(void)
 {
-    return Model_Name_String.buffer ? Model_Name_String.buffer
-                                    : BACNET_DEVICE_MODEL_NAME;
+    return Model_Name_String.buffer;
 }
 
 bool Device_Set_Model_Name(const char *name, size_t length)
@@ -1976,7 +1973,7 @@ const char *Device_Description(void)
 bool Device_Set_Description(const char *name, size_t length)
 {
     (void)length;
-    characterstring_buffer_ansi_strdup(&Description_String, name);
+    characterstring_buffer_ansi_length_init(&Description_String, name, length);
 
     return true;
 }
@@ -1988,8 +1985,7 @@ const char *Device_Location(void)
 
 bool Device_Set_Location(const char *name, size_t length)
 {
-    (void)length;
-    characterstring_buffer_ansi_strdup(&Location_String, name);
+    characterstring_buffer_ansi_length_init(&Location_String, name, length);
 
     return true;
 }
@@ -2710,7 +2706,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string = { 0 };
-    BACNET_CHARACTER_STRING char_string = { 0 };
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -2729,25 +2724,23 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            apdu_len = encode_application_character_string(
+            apdu_len = encode_bacnet_character_string_buffer(
                 &apdu[0], &Object_Name_String);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string, Device_Description_Default);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_bacnet_character_string_buffer(
+                &apdu[0], &Description_String);
             break;
         case PROP_SYSTEM_STATUS:
             apdu_len =
                 encode_application_enumerated(&apdu[0], Device_System_Status());
             break;
         case PROP_VENDOR_NAME:
-            characterstring_init_ansi(&char_string, Device_Vendor_Name_Default);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_bacnet_character_string_buffer(
+                &apdu[0], &Vendor_Name_String);
             break;
         case PROP_VENDOR_IDENTIFIER:
             apdu_len = encode_application_unsigned(&apdu[0], Vendor_Identifier);
@@ -2757,20 +2750,16 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], &Model_Name_String);
             break;
         case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, Firmware_Revision);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_bacnet_character_string_buffer(
+                &apdu[0], &Firmware_Revision_String);
             break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
-            characterstring_init_ansi(
-                &char_string, Application_Software_Version_String);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_bacnet_character_string_buffer(
+                &apdu[0], &Application_Software_Version_String);
             break;
         case PROP_LOCATION:
-            characterstring_init_ansi(&char_string, Device_Location_Default);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_bacnet_character_string_buffer(
+                &apdu[0], &Location_String);
             break;
         case PROP_LOCAL_TIME:
             Update_Current_Time();
@@ -2954,9 +2943,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_SERIAL_NUMBER:
-            characterstring_init_ansi(&char_string, Serial_Number_String);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_application_character_string_buffer(
+                &apdu[0], &Serial_Number_String);
             break;
         case PROP_TIME_OF_DEVICE_RESTART:
             apdu_len =
@@ -3153,8 +3141,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = write_property_string_valid(
-                wp_data, &value, characterstring_capacity(&Object_Name_String));
+            status = write_property_string_valid(wp_data, &value, SIZE_MAX);
             if (status) {
                 /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(
@@ -3170,14 +3157,21 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                     }
                 } else {
-                    Device_Set_Object_Name(&value.type.Character_String);
+                    status = characterstring_buffer_strdup(
+                        &Object_Name_String, &value.type.Character_String);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
                 }
             }
             break;
         case PROP_LOCATION:
-            status = write_property_string_utf8_valid(wp_data, &value);
+            status =
+                write_property_empty_string_valid(wp_data, &value, SIZE_MAX);
             if (status) {
-                status = characterstring_buffer_ansi_strdup(
+                status = characterstring_buffer_strdup(
                     &Location_String, &value.type.Character_String);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -3187,9 +3181,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_DESCRIPTION:
-            status = write_property_string_utf8_valid(wp_data, &value);
+            status =
+                write_property_empty_string_valid(wp_data, &value, SIZE_MAX);
             if (status) {
-                status = characterstring_buffer_ansi_strdup(
+                status = characterstring_buffer_strdup(
                     &Description_String, &value.type.Character_String);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -3198,9 +3193,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MODEL_NAME:
-            status = write_property_string_utf8_valid(wp_data, &value);
+            status =
+                write_property_empty_string_valid(wp_data, &value, SIZE_MAX);
             if (status) {
-                status = characterstring_buffer_ansi_strdup(
+                status = characterstring_buffer_strdup(
                     &Model_Name_String, &value.type.Character_String);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -4036,7 +4032,8 @@ void Device_Init(object_functions_t *object_table)
     if (Object_Instance_Number > BACNET_MAX_INSTANCE) {
         Object_Instance_Number = BACNET_MAX_INSTANCE;
     }
-    characterstring_init_ansi(&Object_Name_String, BACNET_DEVICE_OBJECT_NAME);
+    characterstring_buffer_ansi_init(
+        &Object_Name_String, BACNET_DEVICE_OBJECT_NAME);
     characterstring_buffer_ansi_init(
         &Application_Software_Version_String, BACNET_DEVICE_VERSION);
     characterstring_buffer_ansi_init(
