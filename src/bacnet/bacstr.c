@@ -1052,18 +1052,16 @@ char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string)
  * UTF-8 is used as the default encoding for this initializer.
  * @param char_string Pointer to destination buffer structure.
  * @param value Pointer to source ANSI C string, or NULL for empty.
+ * @param length The length of the source ANSI C string.
  * @return true on success, false on allocation/argument failure.
  */
-bool characterstring_buffer_ansi_init(
-    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value)
+bool characterstring_buffer_ansi_length_init(
+    BACNET_CHARACTER_STRING_BUFFER *char_string,
+    const char *value,
+    size_t length)
 {
-    size_t length = 0;
-
     if (!char_string) {
         return false;
-    }
-    if (value) {
-        length = strlen(value);
     }
     characterstring_buffer_free(char_string);
     char_string->encoding = CHARACTER_UTF8;
@@ -1072,6 +1070,24 @@ bool characterstring_buffer_ansi_init(
     char_string->buffer_length = length;
 
     return true;
+}
+
+/**
+ * @brief Initialize a BACnet character string buffer from an ANSI C string.
+ * UTF-8 is used as the default encoding for this initializer.
+ * @param char_string Pointer to destination buffer structure.
+ * @param value Pointer to source ANSI C string, or NULL for empty.
+ * @return true on success, false on allocation/argument failure.
+ */
+bool characterstring_buffer_ansi_init(
+    BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value)
+{
+    size_t length = 0;
+
+    if (value) {
+        length = strlen(value);
+    }
+    return characterstring_buffer_ansi_length_init(char_string, value, length);
 }
 
 /**
@@ -1236,7 +1252,7 @@ bool characterstring_buffer_to_characterstring(
  * @return true if the character encoding and string contents are the same,
  * false otherwise.
  */
-bool characterstring_buffer_same_characterstring(
+bool characterstring_buffer_same(
     const BACNET_CHARACTER_STRING_BUFFER *s1, const BACNET_CHARACTER_STRING *s2)
 {
     size_t i; /* counter */
