@@ -296,6 +296,10 @@ void lighting_command_notification_add(
     struct bacnet_lighting_command_data *data,
     struct lighting_command_notification *notification);
 BACNET_STACK_EXPORT
+void lighting_command_event_notification_add(
+    struct bacnet_lighting_command_data *data,
+    struct lighting_command_event_notification *notification);
+BACNET_STACK_EXPORT
 void lighting_command_timer_notfication_add(
     struct bacnet_lighting_command_data *data,
     struct lighting_command_timer_notification *notification);

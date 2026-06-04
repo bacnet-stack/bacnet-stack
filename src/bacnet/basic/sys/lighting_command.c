@@ -199,8 +199,11 @@ void lighting_command_notification_add(
 /**
  * @brief call the lighting command notification callbacks
  * @param data - dimmer data structure
- * @param old_value - physical value prior to write
- * @param value - physical value of the write
+ * @param operation - BACnet lighting operation
+ * @param target_value - target value of the write (future value for fade/ramp,
+ * step increment for step, on value for step on, etc.)
+ * @param modifier_value - modifier value of the write (ramp rate for ramp,
+ * fade time for fade, etc.)
  */
 static void lighting_command_event_notify(
     struct bacnet_lighting_command_data *data,
@@ -1894,6 +1897,8 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Blink.State = false;
     data->Notification_Head.next = NULL;
     data->Notification_Head.callback = NULL;
+    data->Event_Notification_Head.next = NULL;
+    data->Event_Notification_Head.callback = NULL;
     data->Timer_Notification_Head.next = NULL;
     data->Timer_Notification_Head.callback = NULL;
     lighting_command_unlock(data);
