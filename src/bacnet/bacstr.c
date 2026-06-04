@@ -1110,7 +1110,7 @@ bool characterstring_buffer_ansi_strndup(
         return false;
     }
     if (value) {
-        length = strnlen(value, tmax);
+        length = bacnet_strnlen(value, tmax);
         buffer = bacnet_strndup(value, length);
         if (buffer) {
             characterstring_buffer_free(char_string);
