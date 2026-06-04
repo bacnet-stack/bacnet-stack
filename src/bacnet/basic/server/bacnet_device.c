@@ -1288,6 +1288,7 @@ static const int32_t Device_Properties_Optional[] = {
     PROP_LOCAL_DATE,
     PROP_DAYLIGHT_SAVINGS_STATUS,
     PROP_LOCATION,
+    PROP_DEVICE_UUID,
 #if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
     PROP_ACTIVE_COV_SUBSCRIPTIONS,
 #endif
@@ -2945,6 +2946,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_SERIAL_NUMBER:
             apdu_len = encode_application_character_string_buffer(
                 &apdu[0], &Serial_Number_String);
+            break;
+        case PROP_DEVICE_UUID:
+            apdu_len = encode_application_octet_string_buffer(
+                &apdu[0], &Device_UUID, sizeof(Device_UUID));
             break;
         case PROP_TIME_OF_DEVICE_RESTART:
             apdu_len =
