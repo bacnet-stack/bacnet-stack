@@ -30,10 +30,10 @@ struct lighting_command_notification {
  * @brief Callback for lighting command event notifications
  * @param  key - key used to link to specific light
  * @param  operation - BACnet lighting operation
- * @param  target_value - target value of the write (future value for fade/ramp,
- * step increment for step, on value for step on, etc.)
- * @param  modifier_value - modifier value of the write (ramp rate for ramp,
- * fade time for fade, etc.)
+ * @param  target_value - operation target value (e.g., value for fade/ramp,
+ * step increment for step operations, interval for WARN operations)
+ * @param  modifier_value - operation modifier value (e.g., ramp rate for ramp,
+ * fade time for fade, duration for WARN operations)
  */
 typedef void (*lighting_command_event_callback)(
     uint32_t key,
