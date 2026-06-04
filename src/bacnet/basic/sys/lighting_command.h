@@ -13,7 +13,7 @@
 #include "bacnet/bacdef.h"
 
 /**
- * @brief Callback for lighting command notifications
+ * @brief Callback for lighting command tracking value notifications
  * @param  key - key used to link to specific light
  * @param  old_value - physical value prior to write
  * @param  value - physical value of the write
@@ -24,6 +24,26 @@ struct lighting_command_notification;
 struct lighting_command_notification {
     struct lighting_command_notification *next;
     lighting_command_tracking_value_callback callback;
+};
+
+/**
+ * @brief Callback for lighting command event notifications
+ * @param  key - key used to link to specific light
+ * @param  operation - BACnet lighting operation
+ * @param  target_value - operation target value (e.g., value for fade/ramp,
+ * step increment for step operations, interval for WARN operations)
+ * @param  modifier_value - operation modifier value (e.g., ramp rate for ramp,
+ * fade time for fade, duration for WARN operations)
+ */
+typedef void (*lighting_command_event_callback)(
+    uint32_t key,
+    BACNET_LIGHTING_OPERATION operation,
+    float target_value,
+    float modifier_value);
+struct lighting_command_event_notification;
+struct lighting_command_event_notification {
+    struct lighting_command_event_notification *next;
+    lighting_command_event_callback callback;
 };
 
 /* forward prototype of the structure defined later */
@@ -97,6 +117,7 @@ typedef struct bacnet_lighting_command_data {
     /* key used with callback */
     uint32_t Key;
     struct lighting_command_notification Notification_Head;
+    struct lighting_command_event_notification Event_Notification_Head;
     struct lighting_command_timer_notification Timer_Notification_Head;
     /* lock for accessing shared state */
     lighting_command_lock_callback Lock;
@@ -197,6 +218,11 @@ void lighting_command_tracking_value_callback_set(
     struct bacnet_lighting_command_data *data,
     lighting_command_tracking_value_callback cb);
 BACNET_STACK_EXPORT
+void lighting_command_event_callback_set(
+    struct bacnet_lighting_command_data *data,
+    lighting_command_event_callback cb);
+
+BACNET_STACK_EXPORT
 BACNET_LIGHTING_IN_PROGRESS
 lighting_command_in_progress_get(struct bacnet_lighting_command_data *data);
 BACNET_STACK_EXPORT
@@ -270,7 +296,11 @@ void lighting_command_notification_add(
     struct bacnet_lighting_command_data *data,
     struct lighting_command_notification *notification);
 BACNET_STACK_EXPORT
-void lighting_command_timer_notfication_add(
+void lighting_command_event_notification_add(
+    struct bacnet_lighting_command_data *data,
+    struct lighting_command_event_notification *notification);
+BACNET_STACK_EXPORT
+void lighting_command_timer_notification_add(
     struct bacnet_lighting_command_data *data,
     struct lighting_command_timer_notification *notification);
 
