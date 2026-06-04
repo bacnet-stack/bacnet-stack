@@ -2949,7 +2949,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_DEVICE_UUID:
             apdu_len = encode_application_octet_string_buffer(
-                &apdu[0], &Device_UUID, sizeof(Device_UUID));
+                &apdu[0], Device_UUID, sizeof(Device_UUID));
             break;
         case PROP_TIME_OF_DEVICE_RESTART:
             apdu_len =
