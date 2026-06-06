@@ -581,15 +581,28 @@ static bool clear_expired_write_statuses(void)
     return changed;
 }
 
-static void
-property_name_text(uint32_t property_id, char *name, size_t name_size)
+static void property_name_text(
+    uint32_t property_id, uint32_t array_index, char *name, size_t name_size)
 {
+    const char *base_name = NULL;
+
     if (bactext_property_name_proprietary(property_id)) {
         bacapp_snprintf(
             name, name_size, "proprietary-%lu", (unsigned long)property_id);
+        if (array_index != BACNET_ARRAY_ALL) {
+            bacapp_snprintf(
+                name, name_size, "proprietary-%lu[%lu]",
+                (unsigned long)property_id, (unsigned long)array_index);
+        }
     } else {
-        bacapp_snprintf(
-            name, name_size, "%s", bactext_property_name(property_id));
+        base_name = bactext_property_name(property_id);
+        if (array_index != BACNET_ARRAY_ALL) {
+            bacapp_snprintf(
+                name, name_size, "%s[%lu]", base_name,
+                (unsigned long)array_index);
+        } else {
+            bacapp_snprintf(name, name_size, "%s", base_name);
+        }
     }
 }
 
@@ -793,7 +806,8 @@ static void refresh_property_tree_view(
     for (i = 0; i < object->properties->len; i++) {
         property = g_ptr_array_index(object->properties, i);
         property_name_text(
-            property->property_id, property_name, sizeof(property_name));
+            property->property_id, property->array_index, property_name,
+            sizeof(property_name));
         gtk_list_store_append(property_store, &iter);
         gtk_list_store_set(
             property_store, &iter, PROPERTY_COL_DEVICE_ID, device_id,
