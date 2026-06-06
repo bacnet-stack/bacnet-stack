@@ -932,7 +932,7 @@ queue_next_object_property_request(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
             continue;
         }
         if ((property == PROP_OBJECT_IDENTIFIER) ||
-            (property == PROP_OBJECT_TYPE)) {
+            (property == PROP_OBJECT_TYPE) || (property == PROP_OBJECT_LIST)) {
             /* object identity is already known from object-list */
             continue;
         }
