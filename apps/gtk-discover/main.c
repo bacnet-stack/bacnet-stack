@@ -89,7 +89,6 @@ enum {
     PROPERTY_COL_VALUE_TAG,
     PROPERTY_COL_NAME,
     PROPERTY_COL_VALUE,
-    PROPERTY_COL_WRITE_STATUS,
     PROPERTY_NUM_COLS
 };
 
@@ -98,8 +97,6 @@ typedef struct {
     uint32_t array_index;
     uint8_t value_tag;
     char *value_string;
-    char *write_status;
-    gint64 write_status_expires_us;
 } PROPERTY_ENTRY;
 
 typedef struct {
@@ -138,7 +135,6 @@ static gint64 Object_List_Complete_Expires_Us;
 static uint32_t Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
 
 #define ABSTRACT_WRITE_POOL_COUNT 8
-#define WRITE_STATUS_DURATION_MS 3000
 #define PROGRESS_INTERRUPT_NOTE_MS 1200
 #define OBJECT_LIST_COMPLETE_NOTE_MS 1000
 typedef struct {
@@ -253,7 +249,6 @@ static void property_entry_free(gpointer data)
         return;
     }
     g_free(entry->value_string);
-    g_free(entry->write_status);
     g_free(entry);
 }
 
@@ -408,43 +403,6 @@ static void object_property_upsert(
     property->value_string = value_string;
 }
 
-static void object_property_status_set(
-    OBJECT_ENTRY *object,
-    uint32_t property_id,
-    uint32_t array_index,
-    const char *status,
-    guint duration_ms)
-{
-    PROPERTY_ENTRY *property = NULL;
-
-    if (!object) {
-        return;
-    }
-    property = object_property_find(object, property_id, array_index);
-    if (!property) {
-        return;
-    }
-    g_free(property->write_status);
-    property->write_status = g_strdup(status);
-    property->write_status_expires_us =
-        g_get_monotonic_time() + ((gint64)duration_ms * 1000);
-}
-
-static const char *property_write_status_text(PROPERTY_ENTRY *property)
-{
-    if (!property || !property->write_status) {
-        return "";
-    }
-    if (g_get_monotonic_time() >= property->write_status_expires_us) {
-        g_free(property->write_status);
-        property->write_status = NULL;
-        property->write_status_expires_us = 0;
-        return "";
-    }
-
-    return property->write_status;
-}
-
 static void pending_write_add(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -522,63 +480,6 @@ static bool pending_write_has_match(
     }
 
     return false;
-}
-
-static void property_status_set_for_target(
-    uint32_t device_id,
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID object_property,
-    uint32_t array_index,
-    const char *status,
-    guint duration_ms)
-{
-    DEVICE_ENTRY *device = NULL;
-    OBJECT_ENTRY *object = NULL;
-
-    device = device_cache_find(device_id);
-    if (!device) {
-        return;
-    }
-    object = device_object_find(device, object_type, object_instance);
-    object_property_status_set(
-        object, object_property, array_index, status, duration_ms);
-    if (Selected_Object_Valid && (Selected_Device_ID == device_id) &&
-        (Selected_Object_Type == object_type) &&
-        (Selected_Object_Instance == object_instance)) {
-        refresh_property_tree_view(device_id, object_type, object_instance);
-    }
-}
-
-static bool clear_expired_write_statuses(void)
-{
-    DEVICE_ENTRY *device = NULL;
-    OBJECT_ENTRY *object = NULL;
-    PROPERTY_ENTRY *property = NULL;
-    guint d = 0;
-    guint o = 0;
-    guint p = 0;
-    bool changed = false;
-
-    for (d = 0; d < Device_Cache->len; d++) {
-        device = g_ptr_array_index(Device_Cache, d);
-        for (o = 0; o < device->objects->len; o++) {
-            object = g_ptr_array_index(device->objects, o);
-            for (p = 0; p < object->properties->len; p++) {
-                property = g_ptr_array_index(object->properties, p);
-                if (property && property->write_status &&
-                    (g_get_monotonic_time() >=
-                     property->write_status_expires_us)) {
-                    g_free(property->write_status);
-                    property->write_status = NULL;
-                    property->write_status_expires_us = 0;
-                    changed = true;
-                }
-            }
-        }
-    }
-
-    return changed;
 }
 
 static void property_name_text(
@@ -816,9 +717,7 @@ static void refresh_property_tree_view(
             PROPERTY_COL_ARRAY_INDEX, property->array_index,
             PROPERTY_COL_VALUE_TAG, property->value_tag, PROPERTY_COL_NAME,
             property_name, PROPERTY_COL_VALUE,
-            property->value_string ? property->value_string : "-",
-            PROPERTY_COL_WRITE_STATUS, property_write_status_text(property),
-            -1);
+            property->value_string ? property->value_string : "-", -1);
     }
 }
 
@@ -1108,10 +1007,15 @@ static void bacnet_read_write_success_callback(uint32_t device_instance)
     if (!pending) {
         return;
     }
-    property_status_set_for_target(
-        pending->device_id, pending->object_type, pending->object_instance,
-        pending->object_property, pending->array_index, "sent",
-        WRITE_STATUS_DURATION_MS);
+    /* queue a re-read so the displayed value refreshes after write */
+    if (bacnet_read_property_queue(
+            pending->device_id, pending->object_type, pending->object_instance,
+            pending->object_property, pending->array_index)) {
+        /* re-add as stale-filter marker so the read response is accepted */
+        pending_write_add(
+            pending->device_id, pending->object_type, pending->object_instance,
+            pending->object_property, pending->array_index);
+    }
     pending_write_free(pending);
 }
 
@@ -1167,16 +1071,12 @@ static void bacnet_read_write_value_callback(
             continue_object_property_enumeration(
                 device, rp_data->object_type, rp_data->object_instance);
         }
-        if (rp_data->error_code != ERROR_CODE_SUCCESS) {
-            PENDING_WRITE *pending = pending_write_pop_match(
+        {
+            PENDING_WRITE *pw = pending_write_pop_match(
                 device_instance, rp_data->object_type, rp_data->object_instance,
                 rp_data->object_property, rp_data->array_index, true);
-            if (pending) {
-                property_status_set_for_target(
-                    pending->device_id, pending->object_type,
-                    pending->object_instance, pending->object_property,
-                    pending->array_index, "failed", WRITE_STATUS_DURATION_MS);
-                pending_write_free(pending);
+            if (pw) {
+                pending_write_free(pw);
             }
         }
         return;
@@ -1219,6 +1119,15 @@ static void bacnet_read_write_value_callback(
     object_property_upsert(
         object, rp_data->object_property, rp_data->array_index, value->tag,
         value_string);
+    /* pop any pending re-read-after-write marker */
+    {
+        PENDING_WRITE *pw = pending_write_pop_match(
+            device_instance, rp_data->object_type, rp_data->object_instance,
+            rp_data->object_property, rp_data->array_index, true);
+        if (pw) {
+            pending_write_free(pw);
+        }
+    }
     continue_object_property_enumeration(
         device, rp_data->object_type, rp_data->object_instance);
     if (Selected_Device_ID == device_instance) {
@@ -1412,29 +1321,15 @@ static void on_property_edited(
                 pending_write_add(
                     device_id, (BACNET_OBJECT_TYPE)object_type, object_id,
                     (BACNET_PROPERTY_ID)property_id, array_index);
-                property_status_set_for_target(
-                    device_id, (BACNET_OBJECT_TYPE)object_type, object_id,
-                    (BACNET_PROPERTY_ID)property_id, array_index, "queued",
-                    WRITE_STATUS_DURATION_MS);
                 printf(
                     "WriteProperty to Device %u %s-%u %s = %s\n", device_id,
                     bactext_object_type_name(object_type), object_id,
                     bactext_property_name(property_id), new_text);
-                gtk_list_store_set(
-                    property_store, &iter, PROPERTY_COL_VALUE, new_text,
-                    PROPERTY_COL_WRITE_STATUS, "queued", -1);
             } else {
                 printf(
                     "WriteProperty queue failed for Device %u %s-%u %s\n",
                     device_id, bactext_object_type_name(object_type), object_id,
                     bactext_property_name(property_id));
-                property_status_set_for_target(
-                    device_id, (BACNET_OBJECT_TYPE)object_type, object_id,
-                    (BACNET_PROPERTY_ID)property_id, array_index, "failed",
-                    WRITE_STATUS_DURATION_MS);
-                gtk_list_store_set(
-                    property_store, &iter, PROPERTY_COL_WRITE_STATUS, "failed",
-                    -1);
             }
         }
     }
@@ -1587,8 +1482,7 @@ static void setup_property_tree_view(void)
         G_TYPE_UINT, /* PROPERTY_COL_ARRAY_INDEX */
         G_TYPE_INT, /* PROPERTY_COL_VALUE_TAG */
         G_TYPE_STRING, /* PROPERTY_COL_NAME */
-        G_TYPE_STRING, /* PROPERTY_COL_VALUE */
-        G_TYPE_STRING); /* PROPERTY_COL_WRITE_STATUS */
+        G_TYPE_STRING); /* PROPERTY_COL_VALUE */
 
     /* Create tree view */
     property_tree_view =
@@ -1609,12 +1503,6 @@ static void setup_property_tree_view(void)
     g_signal_connect(
         renderer, "edited", G_CALLBACK(on_property_edited),
         GTK_TREE_MODEL(property_store));
-    gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
-
-    /* Property Write Status column */
-    renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes(
-        "Write Status", renderer, "text", PROPERTY_COL_WRITE_STATUS, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
 }
 
@@ -1797,11 +1685,6 @@ static gboolean bacnet_task_timeout(gpointer data)
                 (void)queue_next_object_property_request(device, object);
             }
             update_property_progress_indicator();
-        }
-        if (clear_expired_write_statuses() && Selected_Object_Valid) {
-            refresh_property_tree_view(
-                Selected_Device_ID, Selected_Object_Type,
-                Selected_Object_Instance);
         }
         if (bacnet_read_write_idle()) {
             abstract_write_pool_release_all();
