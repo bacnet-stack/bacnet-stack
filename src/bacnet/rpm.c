@@ -341,39 +341,43 @@ int rpm_decode_object_property(
     BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding */
 
     /* check for valid pointer and minimum size */
-    if (apdu && apdu_size) {
-        /* propertyIdentifier [0] BACnetPropertyIdentifier */
-        len = bacnet_enumerated_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 0, &property);
-        if (len <= 0) {
-            if (rpmdata) {
-                rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            }
-            return BACNET_STATUS_REJECT;
-        }
+    if (!apdu || !apdu_size) {
         if (rpmdata) {
-            rpmdata->object_property = (BACNET_PROPERTY_ID)property;
+            rpmdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
         }
+        return BACNET_STATUS_REJECT;
+    }
+    /* propertyIdentifier [0] BACnetPropertyIdentifier */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &property);
+    if (len <= 0) {
+        if (rpmdata) {
+            rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    if (rpmdata) {
+        rpmdata->object_property = (BACNET_PROPERTY_ID)property;
+    }
+    apdu_len += len;
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+    if (len > 0) {
+        /* propertyArrayIndex [1] Unsigned OPTIONAL */
         apdu_len += len;
-        len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
-        if (len > 0) {
-            /* propertyArrayIndex [1] Unsigned OPTIONAL */
-            apdu_len += len;
-            if (rpmdata) {
-                rpmdata->array_index = unsigned_value;
-            }
-        } else if (len == 0) {
-            /* optional - assume ALL array elements */
-            if (rpmdata) {
-                rpmdata->array_index = BACNET_ARRAY_ALL;
-            }
-        } else {
-            if (rpmdata) {
-                rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
-            }
-            return BACNET_STATUS_REJECT;
+        if (rpmdata) {
+            rpmdata->array_index = unsigned_value;
         }
+    } else if (len == 0) {
+        /* optional - assume ALL array elements */
+        if (rpmdata) {
+            rpmdata->array_index = BACNET_ARRAY_ALL;
+        }
+    } else {
+        if (rpmdata) {
+            rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
     }
 
     return apdu_len;

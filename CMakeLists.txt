@@ -796,7 +796,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
   add_compile_definitions(BACNET_PORT=linux)
-  add_compile_definitions(BACFILE=1)
   include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
@@ -822,7 +821,6 @@ elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
-  add_compile_definitions(BACFILE=1)
 
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
@@ -883,7 +881,6 @@ elseif(APPLE)
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
   add_compile_definitions(USE_MACH_TIME)
-  add_compile_definitions(BACFILE=1)
   include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
@@ -928,7 +925,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   include_directories(ports/posix)
-  add_compile_definitions(BACFILE=1)
   link_directories(/usr/lib)
   link_libraries(c)
   link_libraries(m)

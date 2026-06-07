@@ -252,10 +252,11 @@ int main(int argc, char *argv[])
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
     bool specific_address = false;
-    char *value_string;
+    char *value_string = NULL;
     bool status = false;
-    long property_tag;
-    long priority;
+    long property_tag = 0;
+    long priority = 0;
+    uint32_t index = 0;
     uint8_t context_tag = 0;
     int argi = 0;
     unsigned int target_args = 0;
@@ -387,7 +388,11 @@ int main(int argc, char *argv[])
                         fprintf(stderr, "Error: not enough tag-value pairs\n");
                         return 1;
                     }
-                    property_tag = strtol(argv[argi], NULL, 0);
+                    if (bactext_application_tag_strtol(argv[argi], &index)) {
+                        property_tag = index;
+                    } else {
+                        property_tag = strtol(argv[argi], NULL, 0);
+                    }
                     argi++;
                     if (argi >= argc) {
                         fprintf(stderr, "Error: not enough tag-value pairs\n");

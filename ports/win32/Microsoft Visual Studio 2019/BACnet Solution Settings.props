@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;PRINT_ENABLED=1;BIP_DEBUG;INTRINSIC_REPORTING=1;BBMD_ENABLED=1;DEBUG_ENABLED=1;BACFILE;WIN32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;PRINT_ENABLED=1;BIP_DEBUG;INTRINSIC_REPORTING=1;BBMD_ENABLED=1;DEBUG_ENABLED=1;WIN32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WarningLevel>Level4</WarningLevel>

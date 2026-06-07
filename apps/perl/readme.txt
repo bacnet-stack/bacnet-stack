@@ -3,7 +3,7 @@ The BACnet Scriptable (using Perl) Tool.
 * Running this tool assumes that the library has been already built. The
   library should be built with a command similar to
 
-  CC=/mingw/bin/gcc BACNET_DEFINES="-DPRINT_ENABLED -DBACAPP_ALL -DBACFILE
+  CC=/mingw/bin/gcc BACNET_DEFINES="-DPRINT_ENABLED -DBACAPP_ALL
   -DINTRINSIC_REPORTING" BBMD_DEFINE=-DBBMD_ENABLED\=1 BACNET_PORT=win32 make
   clean library
 

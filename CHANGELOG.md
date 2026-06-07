@@ -13,10 +13,22 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-05-18
+## [Unreleased] - 2026-05-29
 
 ### Security
 
+* Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
+  resolving destination slot for property values. (#1366)
+* Secured address_list_encode() function buffer overrun by using
+  existing BACnetAddressBinding encoding function for length check
+  and refactoring. Added unit test for validation.(#1363)
+* Secured AtomicReadFile and AtomicWriteFile handling by addig bounds
+  checking on start position. (#1362)
+* Secured BACnetList and BACnetARRAY encoding function buffer overflow
+  in Access Credential, Access User, Access Zone, and Credential Data Input
+  by honoring buffer size limits. Added encoding functions for
+  BACnetAuthenticationFactorFormat and BACnetDeviceObjectReferencewith buffer
+  size check. (#1356)
 * Secured Loop object internal Read_Property function buffer overflow. (#1355)
 * Secured Life Safety Point and Zone Read_Property of accepted-modes property
   buffer overflow. (#1354)
@@ -43,6 +55,17 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added multistate text resizable array. (#1361)
+* Added bacnet_strndup() function for string duplication with a length
+  limit. (#1361)
+* Added Keylist_Data_Set() function to update data for existing keys. (#1361)
+* Added bacnet_array_write_resizable() function for writing array-index beyond
+  bounds without error.  (#1361)
+* Added debug logging with severity (0-7) control in debug.c module. (#1360)
+* Added debug severity level option to various applications using `--debug`
+  command-line option or environment BACNET_DATALINK_DEBUG. (#1360)
+* Added Copilot cloud agent onboarding instructions. (#1359)
+* Added Min and Max Actual Value properties to Lighting Output object. (#1357)
 * Added a mixed static-reference and dynamic-allocation characterstring
   buffer API for object strings. The new character string buffer API functions
   include init/strdup/length/value/free/conversion and use a flag to track
@@ -70,19 +93,28 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed bacnet_character_string_buffer_decode to support zero copy
+  for buffer. (#1361)
+* Changed the basic multistate input, multistate output, and multistate value
+  objects to use keylist for state texts and add related functions for
+  resizeable state text arrays so they can be restored after a backup. (#1361)
 * Changed BACnet/IP broadcast destination port to be decoupled from bind
   port. (#1311)
 * Changed lighting output object and lighting command structure to enable
-loose coupling.  Added locking callbacks in lighting command that are
-engaged when accessing any of the lighting command structure data. (#1306)
+  loose coupling.  Added locking callbacks in lighting command that are
+  engaged when accessing any of the lighting command structure data. (#1306)
 * Changed COV subscription encoding and decoding functions to reduce code
-size and reuse existing unit tested functions. Added BACnetRecipientProcess
-type encoding and decoding functions with associated tests. (#1296)
+  size and reuse existing unit tested functions. Added BACnetRecipientProcess
+  type encoding and decoding functions with associated tests. (#1296)
 * Changed COV Subscriptions handling to use use keylist instead of array
-for performance optimization. (#1295) (#1309)
+  for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed logging output to use stderr instead of stdout in NPDU routing
+  encoding function. (#1360)
+* Fixed mingw32 compiler warning in modbus-gateway app.
+* Fixed _WIN32_WINNT definition for IPv6 compatibility on Windows.
 * Fixed off-by-one error in Life_Safety_Point_Read_Property for
   accepted modes property. (#1349)
 * Fixed WriteProperty handling across the stack by rejecting zero-length
@@ -104,9 +136,9 @@ for performance optimization. (#1295) (#1309)
 * Fixed EPICS values for recipient list, empty lists, and authentication
   factors. Changed EPICS app to allow target MAC or IP address format. (#1310)
 * Fixed BBMD_Result handling to avoid false positive error message when no
-registration is requested. (#1305)
+  registration is requested. (#1305)
 * Fixed keylist CheckArraySize return value, and added memory exhaustion
-check to Keylist_Data_Add. (#1295)
+  check to Keylist_Data_Add. (#1295)
 
 ### Removed
 
