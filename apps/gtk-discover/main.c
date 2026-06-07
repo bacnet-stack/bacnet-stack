@@ -99,6 +99,14 @@ typedef struct {
     char *value_string;
 } PROPERTY_ENTRY;
 
+typedef enum {
+    PROP_ACQ_PHASE_RPM = 0, /* try ReadPropertyMultiple PROP_ALL first */
+    PROP_ACQ_PHASE_PROP_LIST_SIZE, /* read PROP_PROPERTY_LIST[0] for count */
+    PROP_ACQ_PHASE_PROP_LIST_ITEMS, /* read PROP_PROPERTY_LIST[1..N] */
+    PROP_ACQ_PHASE_VALUES, /* read values from collected prop_list_ids */
+    PROP_ACQ_PHASE_FALLBACK /* use property_list_special_count fallback */
+} PROP_ACQ_PHASE;
+
 typedef struct {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
@@ -107,6 +115,9 @@ typedef struct {
     uint32_t property_index_count;
     uint32_t property_index_next;
     GPtrArray *properties;
+    PROP_ACQ_PHASE prop_acq_phase;
+    uint32_t prop_list_count;
+    GArray *prop_list_ids;
 } OBJECT_ENTRY;
 
 typedef struct {
@@ -265,6 +276,9 @@ static void object_entry_free(gpointer data)
         return;
     }
     g_ptr_array_free(entry->properties, true);
+    if (entry->prop_list_ids) {
+        g_array_free(entry->prop_list_ids, true);
+    }
     g_free(entry);
 }
 
@@ -819,17 +833,30 @@ queue_object_all_properties(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
     if (!device || !object || object->properties_requested) {
         return;
     }
-    object->property_index_count =
-        property_list_special_count(object->object_type, PROP_ALL);
+    /* Reset acquisition state and try RPM PROP_ALL first */
+    object->prop_acq_phase = PROP_ACQ_PHASE_RPM;
+    object->property_index_count = 0;
     object->property_index_next = 0;
+    object->prop_list_count = 0;
+    if (object->prop_list_ids) {
+        g_array_free(object->prop_list_ids, true);
+        object->prop_list_ids = NULL;
+    }
     object->properties_requested = true;
-    (void)queue_next_object_property_request(device, object);
+    /* bac-rw sends RPM when object_property == PROP_ALL */
+    if (bacnet_read_property_queue(
+            device->device_id, object->object_type, object->object_instance,
+            PROP_ALL, BACNET_ARRAY_ALL)) {
+        object->properties_busy = true;
+    }
 }
 
 static bool
 queue_next_object_property_request(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
 {
     BACNET_PROPERTY_ID property = UINT32_MAX;
+    uint32_t item_index = 0;
+    bool retry = false;
 
     if (!device || !object || !object->properties_requested) {
         if (object) {
@@ -837,32 +864,103 @@ queue_next_object_property_request(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
         }
         return false;
     }
-    while (object->property_index_next < object->property_index_count) {
-        property = property_list_special_property(
-            object->object_type, PROP_ALL, object->property_index_next);
-        object->property_index_next++;
-        if (property == UINT32_MAX) {
-            continue;
-        }
-        if ((property == PROP_OBJECT_IDENTIFIER) ||
-            (property == PROP_OBJECT_TYPE) || (property == PROP_OBJECT_LIST)) {
-            /* object identity is already known from object-list */
-            continue;
-        }
-        if (bacnet_read_property_queue(
-                device->device_id, object->object_type, object->object_instance,
-                property, BACNET_ARRAY_ALL)) {
-            object->properties_busy = true;
-            return true;
-        }
-        /* queue full/busy - retry next cycle or callback */
-        object->property_index_next--;
-        object->properties_busy = false;
-        return false;
-    }
+    do {
+        retry = false;
+        switch (object->prop_acq_phase) {
+            case PROP_ACQ_PHASE_RPM:
+                /* RPM was already queued; nothing more to issue individually */
+                object->properties_requested = false;
+                object->properties_busy = false;
+                return false;
 
-    object->properties_requested = false;
-    object->properties_busy = false;
+            case PROP_ACQ_PHASE_PROP_LIST_SIZE:
+                /* PROP_PROPERTY_LIST[0] was already queued; wait */
+                object->properties_busy = false;
+                return false;
+
+            case PROP_ACQ_PHASE_PROP_LIST_ITEMS:
+                if (object->property_index_next > object->prop_list_count) {
+                    /* all IDs collected; advance to VALUES phase */
+                    object->prop_acq_phase = PROP_ACQ_PHASE_VALUES;
+                    object->property_index_next = 0;
+                    object->property_index_count =
+                        object->prop_list_ids ? object->prop_list_ids->len : 0;
+                    retry = true;
+                    break;
+                }
+                item_index = object->property_index_next;
+                object->property_index_next++;
+                if (bacnet_read_property_queue(
+                        device->device_id, object->object_type,
+                        object->object_instance, PROP_PROPERTY_LIST,
+                        item_index)) {
+                    object->properties_busy = true;
+                    return true;
+                }
+                /* queue full/busy - restore and retry next cycle */
+                object->property_index_next = item_index;
+                object->properties_busy = false;
+                return false;
+
+            case PROP_ACQ_PHASE_VALUES:
+                while (object->property_index_next <
+                       object->property_index_count) {
+                    property = g_array_index(
+                        object->prop_list_ids, guint32,
+                        object->property_index_next);
+                    object->property_index_next++;
+                    if ((property == PROP_OBJECT_IDENTIFIER) ||
+                        (property == PROP_OBJECT_TYPE) ||
+                        (property == PROP_OBJECT_LIST)) {
+                        continue;
+                    }
+                    if (bacnet_read_property_queue(
+                            device->device_id, object->object_type,
+                            object->object_instance, property,
+                            BACNET_ARRAY_ALL)) {
+                        object->properties_busy = true;
+                        return true;
+                    }
+                    object->property_index_next--;
+                    object->properties_busy = false;
+                    return false;
+                }
+                object->properties_requested = false;
+                object->properties_busy = false;
+                return false;
+
+            case PROP_ACQ_PHASE_FALLBACK:
+            default:
+                while (object->property_index_next <
+                       object->property_index_count) {
+                    property = property_list_special_property(
+                        object->object_type, PROP_ALL,
+                        object->property_index_next);
+                    object->property_index_next++;
+                    if (property == UINT32_MAX) {
+                        continue;
+                    }
+                    if ((property == PROP_OBJECT_IDENTIFIER) ||
+                        (property == PROP_OBJECT_TYPE) ||
+                        (property == PROP_OBJECT_LIST)) {
+                        continue;
+                    }
+                    if (bacnet_read_property_queue(
+                            device->device_id, object->object_type,
+                            object->object_instance, property,
+                            BACNET_ARRAY_ALL)) {
+                        object->properties_busy = true;
+                        return true;
+                    }
+                    object->property_index_next--;
+                    object->properties_busy = false;
+                    return false;
+                }
+                object->properties_requested = false;
+                object->properties_busy = false;
+                return false;
+        }
+    } while (retry);
 
     return false;
 }
@@ -924,8 +1022,17 @@ static void update_property_progress_indicator(void)
     device = device_cache_find(Selected_Device_ID);
     object = device_object_find(
         device, Selected_Object_Type, Selected_Object_Instance);
-    if (!object || !object->properties_requested ||
-        (object->property_index_count == 0)) {
+    if (!object || !object->properties_requested) {
+        gtk_widget_hide(property_progress_label);
+        return;
+    }
+    if (object->prop_acq_phase == PROP_ACQ_PHASE_RPM) {
+        gtk_label_set_text(
+            GTK_LABEL(property_progress_label), "Reading all properties...");
+        gtk_widget_show(property_progress_label);
+        return;
+    }
+    if (object->property_index_count == 0) {
         gtk_widget_hide(property_progress_label);
         return;
     }
@@ -941,6 +1048,46 @@ static void update_property_progress_indicator(void)
         (unsigned long)completed, (unsigned long)object->property_index_count);
     gtk_label_set_text(GTK_LABEL(property_progress_label), progress_text);
     gtk_widget_show(property_progress_label);
+}
+
+/**
+ * @brief Advance property acquisition to the PROP_PROPERTY_LIST size phase.
+ *  Queues ReadProperty for PROP_PROPERTY_LIST[0] to learn the property count.
+ * @param device - device entry
+ * @param object - object entry
+ */
+static void
+advance_to_prop_list_size(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
+{
+    object->prop_acq_phase = PROP_ACQ_PHASE_PROP_LIST_SIZE;
+    object->property_index_count = 0;
+    object->property_index_next = 0;
+    object->prop_list_count = 0;
+    if (bacnet_read_property_queue(
+            device->device_id, object->object_type, object->object_instance,
+            PROP_PROPERTY_LIST, 0)) {
+        object->properties_busy = true;
+    } else {
+        object->properties_busy = false;
+    }
+    update_property_progress_indicator();
+}
+
+/**
+ * @brief Advance property acquisition to the static fallback phase.
+ *  Uses property_list_special_count to enumerate expected properties.
+ * @param device - device entry
+ * @param object - object entry
+ */
+static void advance_to_fallback(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
+{
+    object->prop_acq_phase = PROP_ACQ_PHASE_FALLBACK;
+    object->property_index_count =
+        property_list_special_count(object->object_type, PROP_ALL);
+    object->property_index_next = 0;
+    object->properties_busy = false;
+    (void)queue_next_object_property_request(device, object);
+    update_property_progress_indicator();
 }
 
 static void interrupt_discovery_requests(void)
@@ -1067,6 +1214,17 @@ static void bacnet_read_write_value_callback(
             (rp_data->array_index > 0)) {
             (void)queue_next_object_list_index(device);
             update_object_progress_indicator();
+        } else if (rp_data->object_property == PROP_ALL) {
+            /* RPM PROP_ALL failed; try PROP_PROPERTY_LIST array */
+            if (object) {
+                advance_to_prop_list_size(device, object);
+            }
+        } else if (
+            (rp_data->object_property == PROP_PROPERTY_LIST) &&
+            (rp_data->array_index == 0) && object &&
+            (object->prop_acq_phase == PROP_ACQ_PHASE_PROP_LIST_SIZE)) {
+            /* PROP_PROPERTY_LIST size read failed; fall back to static list */
+            advance_to_fallback(device, object);
         } else {
             continue_object_property_enumeration(
                 device, rp_data->object_type, rp_data->object_instance);
@@ -1115,6 +1273,45 @@ static void bacnet_read_write_value_callback(
 
     object = device_object_get_or_add(
         device, rp_data->object_type, rp_data->object_instance);
+
+    /* Handle PROP_PROPERTY_LIST responses during list-building phases */
+    if ((rp_data->object_property == PROP_PROPERTY_LIST) &&
+        (rp_data->array_index != BACNET_ARRAY_ALL) &&
+        ((object->prop_acq_phase == PROP_ACQ_PHASE_PROP_LIST_SIZE) ||
+         (object->prop_acq_phase == PROP_ACQ_PHASE_PROP_LIST_ITEMS))) {
+        if (rp_data->array_index == 0) {
+            /* element 0 is the array size */
+            object->prop_list_count =
+                (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+                ? value->type.Unsigned_Int
+                : 0;
+            if (object->prop_list_count > 0) {
+                if (object->prop_list_ids) {
+                    g_array_free(object->prop_list_ids, true);
+                }
+                object->prop_list_ids =
+                    g_array_new(false, false, sizeof(guint32));
+                object->prop_acq_phase = PROP_ACQ_PHASE_PROP_LIST_ITEMS;
+                object->property_index_count = object->prop_list_count;
+                object->property_index_next = 1;
+                object->properties_busy = false;
+                (void)queue_next_object_property_request(device, object);
+            } else {
+                advance_to_fallback(device, object);
+            }
+        } else {
+            /* elements 1..N are BACnetPropertyIdentifier values */
+            guint32 prop_id = (guint32)value->type.Enumerated;
+            if (object->prop_list_ids) {
+                g_array_append_val(object->prop_list_ids, prop_id);
+            }
+            continue_object_property_enumeration(
+                device, rp_data->object_type, rp_data->object_instance);
+        }
+        update_property_progress_indicator();
+        return;
+    }
+
     value_string = property_value_to_string(rp_data, value);
     object_property_upsert(
         object, rp_data->object_property, rp_data->array_index, value->tag,
@@ -1128,8 +1325,15 @@ static void bacnet_read_write_value_callback(
             pending_write_free(pw);
         }
     }
-    continue_object_property_enumeration(
-        device, rp_data->object_type, rp_data->object_instance);
+    if (object->prop_acq_phase == PROP_ACQ_PHASE_RPM) {
+        /* RPM delivers all values at once; let task_timeout advance the state
+         */
+        object->properties_busy = false;
+        update_property_progress_indicator();
+    } else {
+        continue_object_property_enumeration(
+            device, rp_data->object_type, rp_data->object_instance);
+    }
     if (Selected_Device_ID == device_instance) {
         if (rp_data->object_property == PROP_OBJECT_NAME) {
             refresh_object_tree_view(device_instance);
