@@ -1374,6 +1374,10 @@ on_device_selection_changed(GtkTreeSelection *selection, gpointer data)
         device = device_cache_find(device_id);
         queue_device_object_list(device);
         update_object_progress_indicator();
+    } else {
+        Selected_Device_ID = BACNET_MAX_INSTANCE;
+        gtk_list_store_clear(object_store);
+        update_object_progress_indicator();
     }
 }
 
@@ -1413,6 +1417,10 @@ on_object_selection_changed(GtkTreeSelection *selection, gpointer data)
         object = device_object_find(
             device, (BACNET_OBJECT_TYPE)object_type, object_instance);
         queue_object_all_properties(device, object);
+        update_property_progress_indicator();
+    } else {
+        Selected_Object_Valid = false;
+        gtk_list_store_clear(property_store);
         update_property_progress_indicator();
     }
 }
