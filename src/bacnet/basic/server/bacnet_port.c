@@ -44,7 +44,7 @@ void bacnet_port_task_callback_set(void (*callback)(uint16_t elapsed_seconds))
 void bacnet_port_task(void)
 {
     uint32_t elapsed_milliseconds = 0;
-    uint32_t elapsed_seconds = 0;
+    uint16_t elapsed_seconds = 0;
 
     if (mstimer_expired(&BACnet_Task_Timer)) {
         /* 1 second tasks */
