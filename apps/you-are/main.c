@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(datalink_cleanup);
+    atexit(dlenv_cleanup);
     /* send the request */
     if (send_whois) {
         mstimer_set(&apdu_timer, apdu_timeout() * apdu_retries());

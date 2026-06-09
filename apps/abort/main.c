@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(datalink_cleanup);
+    atexit(dlenv_cleanup);
     /* send the request */
     Send_Abort_To_Network(
         &Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,

@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
             Gw_Config.datalink_type, Gw_Config.bacnet_iface);
         return 1;
     }
-    atexit(datalink_cleanup);
+    atexit(dlenv_cleanup);
 
     /* ── Create BACnet objects from point table ── */
     point_table_init_bacnet_objects(&Point_Table);

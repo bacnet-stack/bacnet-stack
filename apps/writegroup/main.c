@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(datalink_cleanup);
+    atexit(dlenv_cleanup);
     len = Send_Write_Group(&dest, data);
     if (len <= 0) {
         fprintf(

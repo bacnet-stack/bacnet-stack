@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     fflush(stdout);
     dlenv_init();
-    atexit(datalink_cleanup);
+    atexit(dlenv_cleanup);
     bacnet_task_init();
     bacnet_data_poll_seconds_set(print_seconds);
     if (!bacnet_data_object_add(

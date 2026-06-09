@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
     address_init();
     Init_Service_Handlers();
     dlenv_init();
-    atexit(datalink_cleanup);
+    atexit(dlenv_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     if (Target_Broadcast) {

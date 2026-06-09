@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
     /* Initialize BACnet stack */
     dlenv_init();
     Init_Service_Handlers();
-    atexit(datalink_cleanup);
+    atexit(dlenv_cleanup);
 
     if (argc > 2) {
         device_name = argv[2];
