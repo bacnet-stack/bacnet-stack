@@ -59,9 +59,6 @@ bool bacnet_port_bzll_init(void)
     uint32_t instance = 1;
     BACNET_ADDRESS addr = { 0 };
 
-    if (!bzll_init(NULL)) {
-        return false;
-    }
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/Zigbee Port");
     Network_Port_Type_Set(instance, PORT_TYPE_ZIGBEE);

@@ -31,6 +31,13 @@
 /* timer used to renew Foreign Device Registration */
 static struct mstimer BACnet_Task_Timer;
 
+static void (*BACnet_Task_Callback)(uint16_t elapsed_seconds) = NULL;
+
+void bacnet_port_task_callback_set(void (*callback)(uint16_t elapsed_seconds))
+{
+    BACnet_Task_Callback = callback;
+}
+
 /**
  * @brief Periodic tasks for the BACnet datalink layer
  */
@@ -45,18 +52,9 @@ void bacnet_port_task(void)
         /* presume that the elapsed time is the interval time */
         elapsed_milliseconds = mstimer_interval(&BACnet_Task_Timer);
         elapsed_seconds = elapsed_milliseconds / 1000;
-#if defined(BACDL_BIP)
-        bacnet_port_ipv4_task(elapsed_seconds);
-#elif defined(BACDL_BIP6)
-        bacnet_port_ipv6_task(elapsed_seconds);
-#elif defined(BACDL_MSTP)
-        bacnet_port_mstp_task(elapsed_seconds);
-#elif defined(BACDL_ZIGBEE)
-        bacnet_port_bzll_task(elapsed_seconds);
-#else
-        /* nothing to do */
-        (void)elapsed_seconds;
-#endif
+        if (BACnet_Task_Callback) {
+            BACnet_Task_Callback(elapsed_seconds);
+        }
     }
 }
 
@@ -68,14 +66,24 @@ bool bacnet_port_init(void)
     bool status = false;
     /* start the 1 second timer for non-critical cyclic tasks */
     mstimer_set(&BACnet_Task_Timer, 1000L);
+    if (BACnet_Task_Callback) {
+        /* custom callback - ignore any default initialization */
+        status = true;
+    } else {
 #if defined(BACDL_BIP)
-    status = bacnet_port_ipv4_init();
+        status = bacnet_port_ipv4_init();
+        bacnet_port_task_callback_set(bacnet_port_ipv4_task);
 #elif defined(BACDL_BIP6)
-    status = bacnet_port_ipv6_init();
+        status = bacnet_port_ipv6_init();
+        bacnet_port_task_callback_set(bacnet_port_ipv6_task);
 #elif defined(BACDL_MSTP)
-    status = bacnet_port_mstp_init();
+        status = bacnet_port_mstp_init();
+        bacnet_port_task_callback_set(bacnet_port_mstp_task);
 #elif defined(BACDL_ZIGBEE)
-    status = bacnet_port_bzll_init();
+        status = bacnet_port_bzll_init();
+        bacnet_port_task_callback_set(bacnet_port_bzll_task);
 #endif
+    }
+
     return status;
 }

@@ -74,9 +74,6 @@ bool bacnet_port_ipv6_init(void)
     BACNET_ADDRESS addr = { 0 };
     BACNET_IP6_ADDRESS addr6 = { 0 };
 
-    if (!bip6_init(NULL)) {
-        return false;
-    }
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IPv6 Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP6);
