@@ -45,18 +45,25 @@ typedef struct BACnetHostNPort {
 /* RFC 1035 255-octet total limit and 63-octet label limit
    including dots and null terminator */
 #define BACNET_HOST_NAME_MAX 255
+
+/** Structure to hold the host IP address */
+typedef struct BACnetHostOctetString {
+    uint8_t address[IP6_ADDRESS_MAX];
+    uint8_t length;
+} BACNET_HOST_OCTET_STRING;
+
+/** Structure to hold the host name */
+typedef struct BACnetHostCharacterString {
+    char fqdn[BACNET_HOST_NAME_MAX];
+    uint8_t length;
+} BACNET_HOST_CHARACTER_STRING;
+
 /* BACnetHostNPort with smaller RAM footprint using C datatypes */
 typedef struct BACnetHostNPort_Minimal {
     uint8_t tag;
     union BACnetHostAddress_Minimal {
-        struct BACnetHostOctetString {
-            uint8_t address[IP6_ADDRESS_MAX];
-            uint8_t length;
-        } ip_address;
-        struct BACnetHostCharacterString {
-            char fqdn[BACNET_HOST_NAME_MAX];
-            uint8_t length;
-        } name;
+        struct BACnetHostOctetString ip_address;
+        struct BACnetHostCharacterString name;
     } host;
     uint16_t port;
 } BACNET_HOST_N_PORT_MINIMAL;
