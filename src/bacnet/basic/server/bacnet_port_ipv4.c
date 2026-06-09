@@ -72,6 +72,9 @@ bool bacnet_port_ipv4_init(void)
     BACNET_IP_ADDRESS addr = { 0 };
     uint8_t prefix = 0;
 
+    if (!bip_init(NULL)) {
+        return false;
+    }
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP);

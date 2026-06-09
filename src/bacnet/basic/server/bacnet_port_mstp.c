@@ -44,6 +44,9 @@ bool bacnet_port_mstp_init(void)
     uint32_t instance = 1;
     BACNET_ADDRESS addr = { 0 };
 
+    if (!dlmstp_init(NULL)) {
+        return false;
+    }
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet MS/TP Port");
     Network_Port_Type_Set(instance, PORT_TYPE_MSTP);
