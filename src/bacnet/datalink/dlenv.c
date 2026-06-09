@@ -1139,11 +1139,6 @@ bool dlenv_register_device(uint8_t port_type, bool wait_until_connected)
     return true;
 }
 
-void dlenv_cleanup(void)
-{
-    datalink_cleanup();
-}
-
 /** Initialize the DataLink configuration from Environment variables,
  * or else to defaults.
  * @ingroup DataLink

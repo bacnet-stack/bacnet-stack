@@ -24,8 +24,8 @@
 #include "bacnet/basic/client/bac-task.h"
 #include "bacnet/basic/client/bac-data.h"
 #include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/dlenv.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/dlenv.h"
 
 #if BACNET_SVC_SERVER
 #error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"

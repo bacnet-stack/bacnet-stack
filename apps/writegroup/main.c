@@ -28,8 +28,8 @@
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/dlenv.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/dlenv.h"
 
 static BACNET_WRITE_GROUP_DATA Write_Group_Data;
 
