@@ -26,6 +26,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 
 /* global variables used in this file */
 #define MAX_ROUTER_DNETS 64
@@ -147,7 +148,7 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
     address_init();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     /* send the request */
     Send_I_Am_Router_To_Network(Target_Router_Networks);
 

@@ -410,7 +410,7 @@ int main(int argc, char *argv[])
     init_service_handlers();
     /* setup the datalink */
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     /* setup the timers */
     if (timeout_milliseconds == 0) {
         timeout_milliseconds = apdu_timeout() * apdu_retries();

@@ -29,6 +29,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 
 static BACNET_WRITE_GROUP_DATA Write_Group_Data;
 
@@ -192,7 +193,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     len = Send_Write_Group(&dest, data);
     if (len <= 0) {
         fprintf(

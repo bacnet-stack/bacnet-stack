@@ -30,6 +30,7 @@
 #include "bacnet/basic/services.h"
 /* BACnet basic datalink API */
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 /* BACnet basic object */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bacfile.h"
@@ -554,7 +555,7 @@ int main(int argc, char *argv[])
     bacnet_basic_init();
     /* OS based apps use DLENV for network port */
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     bacnet_port_task_callback_set(dlenv_maintenance_timer);
     bacnet_port_init();
     debug_printf_stdout("BACnet initialized\n");

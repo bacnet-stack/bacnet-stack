@@ -1391,7 +1391,7 @@ int main(int argc, char *argv[])
      */
     setlocale(LC_ALL, "");
 #endif
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
 
     /* configure the timeout values */
     current_seconds = time(NULL);

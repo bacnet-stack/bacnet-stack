@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
 #if BACNET_PROTOCOL_REVISION >= 22
     if (Device_Object_Instance_Number() == BACNET_MAX_INSTANCE) {
         apdu_set_unconfirmed_handler(

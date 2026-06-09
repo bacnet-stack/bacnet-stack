@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
         BACnet_Version, Device_Object_Instance_Number(), dest.net,
         discover_seconds, print_seconds, MAX_APDU);
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     bacnet_server_init();
     /* configure the discovery module */
     bacnet_discover_dest_set(&dest);

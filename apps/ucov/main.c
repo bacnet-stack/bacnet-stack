@@ -27,6 +27,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacport.h"
 
 static void Init_Service_Handlers(void)
@@ -213,7 +214,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     Send_UCOV_Notify(
         &Handler_Transmit_Buffer[0], sizeof(Handler_Transmit_Buffer),
         &cov_data);

@@ -27,6 +27,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 
 /* parsed command line parameters */
 static uint8_t Target_Invoke_ID = 1;
@@ -225,7 +226,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     /* send the request */
     Send_Abort_To_Network(
         &Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,

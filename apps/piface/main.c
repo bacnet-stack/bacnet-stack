@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
     address_init();
     Init_Service_Handlers();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     piface_init();
     atexit(piface_cleanup);
     /* broadcast an I-Am on startup */

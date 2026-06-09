@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
         VIRTUAL_DEVICE_COUNT);
     Init_Service_Handlers(first_object_instance);
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     Devices_Init(first_object_instance);
     Initialize_Device_Addresses();
 

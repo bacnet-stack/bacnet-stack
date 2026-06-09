@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     mstimer_set(&datalink_timer, 1000);
     /* loop forever */
     for (;;) {

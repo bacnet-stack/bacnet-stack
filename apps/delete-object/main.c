@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     mstimer_init();
     mstimer_set(&apdu_timer, apdu_timeout());
     mstimer_set(&maintenance_timer, 1000);

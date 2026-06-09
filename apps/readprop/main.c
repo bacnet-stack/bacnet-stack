@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
      */
     setlocale(LC_ALL, "");
 #endif
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();

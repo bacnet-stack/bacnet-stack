@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
     address_init();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     /* send the request */
     do {
         Send_I_Am_To_Network(

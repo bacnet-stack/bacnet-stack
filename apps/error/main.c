@@ -27,6 +27,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 
 /* parsed command line parameters */
 static uint16_t Target_Error_Class;
@@ -218,7 +219,7 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
     address_init();
     dlenv_init();
-    atexit(dlenv_cleanup);
+    atexit(datalink_cleanup);
     /* send the request */
     Send_Error_To_Network(
         &Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID, Target_Service,
