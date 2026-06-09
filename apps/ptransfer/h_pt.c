@@ -186,7 +186,7 @@ void handler_conf_private_trans(
     error_class = ERROR_CLASS_OBJECT;
     error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
-    debug_print("Received Confirmed Private Transfer Request!\n");
+    debug_log_fprintf(DEBUG_LOG_DEBUG, stderr,("Received Confirmed Private Transfer Request!\n");
     /* encode the NPDU portion of the response packet as it will be needed */
     /* no matter what the outcome. */
     datalink_get_my_address(&my_address);
@@ -197,13 +197,13 @@ void handler_conf_private_trans(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_print("CPT: Missing Required Parameter. Sending Reject!\n");
+        debug_log_fprintf(DEBUG_LOG_ERROR, stderr,("CPT: Missing Required Parameter. Sending Reject!\n");
         goto CPT_ABORT;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_print("CPT: Segmented Message. Sending Abort!\n");
+        debug_log_fprintf(DEBUG_LOG_ERROR, stderr,("CPT: Segmented Message. Sending Abort!\n");
         goto CPT_ABORT;
     }
 
@@ -213,7 +213,7 @@ void handler_conf_private_trans(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_print("CPT: Bad Encoding. Sending Abort!\n");
+        debug_log_fprintf(DEBUG_LOG_ERROR, stderr,("CPT: Bad Encoding. Sending Abort!\n");
         goto CPT_ABORT;
     }
 
@@ -233,16 +233,15 @@ void handler_conf_private_trans(
             error = true;
             error_class = ERROR_CLASS_SERVICES;
             error_code = ERROR_CODE_OTHER;
-            debug_print("CPT: Error servicing request!\n");
+            debug_log_fprintf(DEBUG_LOG_ERROR, stderr,("CPT: Error servicing request!\n");
         }
         len = ptransfer_ack_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
     } else { /* Not our vendor ID or bad service parameter */
-
         error = true;
         error_class = ERROR_CLASS_SERVICES;
         error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
-        debug_print("CPT: Not our Vendor ID or invalid service code!\n");
+        debug_log_fprintf(DEBUG_LOG_ERROR, stderr,("CPT: Not our Vendor ID or invalid service code!\n");
     }
 
     if (error) {
@@ -254,7 +253,9 @@ CPT_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-    debug_perror("CPT: Failed to send PDU");
+    if (bytes_sent <= 0) {
+        debug_log_fprintf(DEBUG_LOG_ERROR, stderr, "CPT: Failed to send PDU\n");
+    }
 
     return;
 }

@@ -1043,9 +1043,9 @@ bool Lighting_Output_Present_Value_Set(
             if (is_float_equal(value, BACNET_LIGHTING_SPECIAL_VALUE_WARN)) {
                 /* Provides the same functionality as the
                    WARN lighting command. */
-                debug_printf(
-                    "LO[%u]: Present-Value@%u Warn\n", object_instance,
-                    priority);
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr, "LO[%u]: Present-Value@%u Warn\n",
+                    object_instance, priority);
                 Lighting_Command_Warn(pObject, priority);
                 status = true;
             } else if (is_float_equal(
@@ -1053,7 +1053,8 @@ bool Lighting_Output_Present_Value_Set(
                            BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH)) {
                 /* Provides the same functionality as the
                    WARN_RELINQUISH lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Present-Value@%u Warn-Relinquish\n",
                     object_instance, priority);
                 Lighting_Command_Warn_Relinquish(pObject, priority);
@@ -1062,7 +1063,8 @@ bool Lighting_Output_Present_Value_Set(
                            value, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF)) {
                 /* Provides the same functionality as the
                    WARN_OFF lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Present-Value@%u Warn-Off\n", object_instance,
                     priority);
                 Lighting_Command_Warn_Off(pObject, priority);
@@ -1072,7 +1074,8 @@ bool Lighting_Output_Present_Value_Set(
                            value, BACNET_LIGHTING_SPECIAL_VALUE_RESTORE_ON)) {
                 /* Provides the same functionality as the
                    RESTORE_ON lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Present-Value@%u Restore-On\n", object_instance,
                     priority);
                 Lighting_Command_Restore_On(pObject, priority);
@@ -1081,7 +1084,8 @@ bool Lighting_Output_Present_Value_Set(
                            value, BACNET_LIGHTING_SPECIAL_VALUE_DEFAULT_ON)) {
                 /* Provides the same functionality as the
                    DEFAULT_ON lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Present-Value@%u Default-On\n", object_instance,
                     priority);
                 Lighting_Command_Default_On(pObject, priority);
@@ -1091,7 +1095,8 @@ bool Lighting_Output_Present_Value_Set(
                            BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_RESTORE)) {
                 /* Provides the same functionality as the
                    TOGGLE_RESTORE lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Present-Value@%u Toggle-Restore\n",
                     object_instance, priority);
                 Lighting_Command_Toggle_Restore(pObject, priority);
@@ -1101,7 +1106,8 @@ bool Lighting_Output_Present_Value_Set(
                            BACNET_LIGHTING_SPECIAL_VALUE_TOGGLE_DEFAULT)) {
                 /* Provides the same functionality as the
                    TOGGLE_DEFAULT lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Present-Value@%u Toggle-Default\n",
                     object_instance, priority);
                 Lighting_Command_Toggle_Default(pObject, priority);
@@ -1109,14 +1115,15 @@ bool Lighting_Output_Present_Value_Set(
 #endif
             } else if (
                 isgreaterequal(value, 0.0) && islessequal(value, 100.0)) {
-                debug_printf(
-                    "LO[%u]: Present-Value@%u %0.2f\n", object_instance,
-                    priority, (double)value);
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr, "LO[%u]: Present-Value@%u %0.2f\n",
+                    object_instance, priority, (double)value);
                 Present_Value_Set(pObject, value, priority);
                 Lighting_Command_Transition_Default(pObject, priority, value);
                 status = true;
             } else {
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Present-Value@%u %0.2f out-of-range\n",
                     object_instance, priority, (double)value);
             }
@@ -1552,8 +1559,9 @@ bool Lighting_Output_Lighting_Command_Set(
         } else {
             priority = pObject->Lighting_Command_Default_Priority;
         }
-        debug_printf(
-            "LO[%u]: Lighting-Command@%u: %s\n", object_instance, priority,
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "LO[%u]: Lighting-Command@%u: %s\n",
+            object_instance, priority,
             bactext_lighting_operation_name(value->operation));
         switch (value->operation) {
             case BACNET_LIGHTS_NONE:
@@ -1569,7 +1577,8 @@ bool Lighting_Output_Lighting_Command_Set(
                 } else {
                     fade_time = pObject->Default_Fade_Time;
                 }
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Fade-To "
                     "Target=%f Fade=%u\n",
                     object_instance, priority, (double)value->target_level,
@@ -1588,7 +1597,8 @@ bool Lighting_Output_Lighting_Command_Set(
                 } else {
                     ramp_rate = pObject->Default_Ramp_Rate;
                 }
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Ramp-To "
                     "Target=%f Ramp-Rate=%f\n",
                     object_instance, priority, (double)value->target_level,
@@ -1604,7 +1614,8 @@ bool Lighting_Output_Lighting_Command_Set(
                 } else {
                     step_increment = pObject->Default_Step_Increment;
                 }
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
                     object_instance, priority, (double)step_increment);
@@ -1619,7 +1630,8 @@ bool Lighting_Output_Lighting_Command_Set(
                 } else {
                     step_increment = pObject->Default_Step_Increment;
                 }
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
                     object_instance, priority, (double)step_increment);
@@ -1630,7 +1642,8 @@ bool Lighting_Output_Lighting_Command_Set(
             case BACNET_LIGHTS_WARN:
                 /* Provides the same functionality as the
                    WARN lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Warn\n", object_instance,
                     priority);
                 Lighting_Command_Warn(pObject, priority);
@@ -1639,7 +1652,8 @@ bool Lighting_Output_Lighting_Command_Set(
             case BACNET_LIGHTS_WARN_OFF:
                 /* Provides the same functionality as the
                    WARN_OFF lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Warn-Off\n", object_instance,
                     priority);
                 Lighting_Command_Warn_Off(pObject, priority);
@@ -1648,14 +1662,16 @@ bool Lighting_Output_Lighting_Command_Set(
             case BACNET_LIGHTS_WARN_RELINQUISH:
                 /* Provides the same functionality as the
                    WARN_RELINQUISH lighting command. */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Warn-Relinquish\n",
                     object_instance, priority);
                 Lighting_Command_Warn_Relinquish(pObject, priority);
                 status = true;
                 break;
             case BACNET_LIGHTS_STOP:
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Stop\n", object_instance,
                     priority);
                 Lighting_Command_Stop(pObject, priority);
@@ -1663,28 +1679,32 @@ bool Lighting_Output_Lighting_Command_Set(
                 break;
 #if (BACNET_PROTOCOL_REVISION >= 28)
             case BACNET_LIGHTS_RESTORE_ON:
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Restore-On\n", object_instance,
                     priority);
                 Lighting_Command_Restore_On(pObject, priority);
                 status = true;
                 break;
             case BACNET_LIGHTS_DEFAULT_ON:
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Default-On\n", object_instance,
                     priority);
                 Lighting_Command_Default_On(pObject, priority);
                 status = true;
                 break;
             case BACNET_LIGHTS_TOGGLE_RESTORE:
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Toggle-Restore\n",
                     object_instance, priority);
                 Lighting_Command_Toggle_Restore(pObject, priority);
                 status = true;
                 break;
             case BACNET_LIGHTS_TOGGLE_DEFAULT:
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u Toggle-Default\n",
                     object_instance, priority);
                 Lighting_Command_Toggle_Default(pObject, priority);
@@ -1692,7 +1712,8 @@ bool Lighting_Output_Lighting_Command_Set(
                 break;
 #endif
             default:
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "LO[%u]: Lighting-Command@%u %u out-of-range\n",
                     object_instance, priority, value->operation);
                 break;

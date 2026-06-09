@@ -1406,7 +1406,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         CurrentAI->Ack_notify_data.bSendAckNotify = false;
         /* copy toState */
         ToState = CurrentAI->Ack_notify_data.EventState;
-        debug_printf(
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
             "Analog-Input[%d]: Send AckNotification.\n", object_instance);
         msgText = "AckNotification";
         /* Notify Type */
@@ -1590,7 +1591,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                     ExceededLimit = 0;
                     break;
             } /* switch (ToState) */
-            debug_printf(
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr,
                 "Analog-Input[%d]: Event_State goes from %s to %s.\n",
                 object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
@@ -1742,7 +1744,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
             }
         }
         /* add data from notification class */
-        debug_printf(
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
             "Analog-Input[%d]: Notification Class[%d]-%s "
             "%u/%u/%u-%u:%u:%u.%u!\n",
             object_instance, event_data.notificationClass,
@@ -1758,7 +1761,9 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         /* Ack required */
         if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
             (event_data.ackRequired == true)) {
-            debug_printf("Analog-Input[%d]: Ack Required!\n", object_instance);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Analog-Input[%d]: Ack Required!\n",
+                object_instance);
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                 case EVENT_STATE_HIGH_LIMIT:

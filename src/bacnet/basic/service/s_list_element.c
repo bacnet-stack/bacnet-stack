@@ -113,7 +113,8 @@ uint8_t Send_List_Element_Request_Data(
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_printf_stderr(
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
                 "%s service: Failed to Send "
                 "(exceeds destination maximum APDU)!\n",
                 bactext_confirmed_service_name(service));
@@ -251,7 +252,8 @@ uint8_t Send_Remove_List_Element_Request(
     int apdu_len = 0, len = 0;
 
     while (object_value) {
-        debug_printf_stderr(
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
             "RemoveListElement service: "
             "%s tag=%d\n",
             (object_value->context_specific ? "context" : "application"),

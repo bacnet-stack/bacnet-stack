@@ -61,25 +61,31 @@ bool filename_path_valid(const char *pathname)
 #if BACNET_FILE_PATH_RESTRICTED
     /* check for relative directory patterns */
     if (strstr(pathname, "..") != NULL) {
-        debug_printf_stderr("Relative paths are prohibited: %s\n", pathname);
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "Relative paths are prohibited: %s\n",
+            pathname);
         return false;
     }
     /* check for absolute paths */
     if (pathname[0] == '/') {
-        debug_printf_stderr("Absolute paths are prohibited: %s\n", pathname);
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "Absolute paths are prohibited: %s\n",
+            pathname);
         return false;
     }
     /* check for Windows drive letters (should be relative paths only) */
     path_len = strlen(pathname);
     if (path_len >= 2 && pathname[1] == ':') {
-        debug_printf_stderr(
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "Windows drive letters are prohibited: %s\n", pathname);
         return false;
     }
 
     /* check for consecutive path separators */
     if (strstr(pathname, "//") != NULL || strstr(pathname, "\\\\") != NULL) {
-        debug_printf_stderr(
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "Consecutive path separators are prohibited: %s\n", pathname);
         return false;
     }
@@ -87,7 +93,8 @@ bool filename_path_valid(const char *pathname)
     /* check for path components that are just dots */
     if (strstr(pathname, "/./") != NULL || strstr(pathname, "\\./") != NULL ||
         strstr(pathname, "/.\\") != NULL || strstr(pathname, "\\.\\") != NULL) {
-        debug_printf_stderr(
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
             "Current directory references are prohibited: %s\n", pathname);
         return false;
     }

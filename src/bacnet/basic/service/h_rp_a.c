@@ -24,9 +24,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
-#define PRINTF debug_printf_stdout
-#define PRINTF_ERR debug_printf_stderr
-
 /** For debugging...
  * @param [in] data portion of the ACK
  */
@@ -54,7 +51,8 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
                 application_data, (unsigned)application_data_len, &value,
                 data->object_type, data->object_property, data->array_index);
             if (len < 0) {
-                PRINTF_ERR(
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr,
                     "RP Ack: unable to decode! %s:%s\n",
                     bactext_object_type_name(data->object_type),
                     bactext_property_name(data->object_property));
