@@ -59,7 +59,7 @@ void bacnet_port_task(void)
 }
 
 /**
- * @brief Initialize the datalink network port
+ * @brief Initialize the datalink & network port
  */
 bool bacnet_port_init(void)
 {
@@ -70,19 +70,23 @@ bool bacnet_port_init(void)
         /* custom callback - ignore any default initialization */
         status = true;
     } else {
+        status = datalink_init(NULL);
+        if (status) {
+            /* set the default callback for the datalink */
 #if defined(BACDL_BIP)
-        status = bacnet_port_ipv4_init();
-        bacnet_port_task_callback_set(bacnet_port_ipv4_task);
+            status = bacnet_port_ipv4_init();
+            bacnet_port_task_callback_set(bacnet_port_ipv4_task);
 #elif defined(BACDL_BIP6)
-        status = bacnet_port_ipv6_init();
-        bacnet_port_task_callback_set(bacnet_port_ipv6_task);
+            status = bacnet_port_ipv6_init();
+            bacnet_port_task_callback_set(bacnet_port_ipv6_task);
 #elif defined(BACDL_MSTP)
-        status = bacnet_port_mstp_init();
-        bacnet_port_task_callback_set(bacnet_port_mstp_task);
+            status = bacnet_port_mstp_init();
+            bacnet_port_task_callback_set(bacnet_port_mstp_task);
 #elif defined(BACDL_ZIGBEE)
-        status = bacnet_port_bzll_init();
-        bacnet_port_task_callback_set(bacnet_port_bzll_task);
+            status = bacnet_port_bzll_init();
+            bacnet_port_task_callback_set(bacnet_port_bzll_task);
 #endif
+        }
     }
 
     return status;
