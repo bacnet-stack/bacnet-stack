@@ -33,6 +33,9 @@ BACNET_STACK_EXPORT
 void dlenv_init(void);
 
 BACNET_STACK_EXPORT
+void dlenv_cleanup(void);
+
+BACNET_STACK_EXPORT
 void dlenv_debug_disable(void);
 
 BACNET_STACK_EXPORT
