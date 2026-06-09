@@ -30,7 +30,6 @@
 #include "bacnet/basic/services.h"
 /* BACnet basic datalink API */
 #include "bacnet/datalink/dlenv.h"
-#include "bacnet/datalink/datalink.h"
 /* BACnet basic object */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bacfile.h"

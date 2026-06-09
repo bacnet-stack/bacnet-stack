@@ -25,7 +25,6 @@
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* global variables used in this file */

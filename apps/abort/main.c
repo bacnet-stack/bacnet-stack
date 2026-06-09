@@ -26,7 +26,6 @@
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* parsed command line parameters */
