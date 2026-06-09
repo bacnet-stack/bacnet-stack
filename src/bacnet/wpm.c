@@ -123,7 +123,7 @@ int wpm_decode_object_property(
         return BACNET_STATUS_REJECT;
     }
     if (wp_data) {
-        wp_data->error_code = ERROR_CODE_OTHER;
+        wp_data->error_code = ERROR_CODE_SUCCESS;
         wp_data->array_index = BACNET_ARRAY_ALL;
         wp_data->priority = BACNET_MAX_PRIORITY;
         wp_data->application_data_len = 0;
