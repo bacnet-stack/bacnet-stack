@@ -54,6 +54,16 @@ void bacnet_port_task(void)
         elapsed_seconds = elapsed_milliseconds / 1000;
         if (BACnet_Task_Callback) {
             BACnet_Task_Callback(elapsed_seconds);
+        } else {
+#if defined(BACDL_BIP)
+            bacnet_port_ipv4_task(elapsed_seconds);
+#elif defined(BACDL_BIP6)
+            bacnet_port_ipv6_task(elapsed_seconds);
+#elif defined(BACDL_MSTP)
+            bacnet_port_mstp_task(elapsed_seconds);
+#elif defined(BACDL_ZIGBEE)
+            bacnet_port_bzll_task(elapsed_seconds);
+#endif
         }
     }
 }
@@ -73,16 +83,12 @@ bool bacnet_port_init(void)
         /* set the default callback for the datalink */
 #if defined(BACDL_BIP)
         status = bacnet_port_ipv4_init();
-        bacnet_port_task_callback_set(bacnet_port_ipv4_task);
 #elif defined(BACDL_BIP6)
         status = bacnet_port_ipv6_init();
-        bacnet_port_task_callback_set(bacnet_port_ipv6_task);
 #elif defined(BACDL_MSTP)
         status = bacnet_port_mstp_init();
-        bacnet_port_task_callback_set(bacnet_port_mstp_task);
 #elif defined(BACDL_ZIGBEE)
         status = bacnet_port_bzll_init();
-        bacnet_port_task_callback_set(bacnet_port_bzll_task);
 #endif
     }
 
