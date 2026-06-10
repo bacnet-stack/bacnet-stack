@@ -140,6 +140,8 @@ static void Init_Service_Handlers(void)
 int main(int argc, char *argv[])
 {
     const char *config_file = "gateway_config.json";
+    const char *effective_datalink = NULL;
+    const char *compiled_datalink = GW_DATALINK_TYPE;
     uint32_t override_inst = 0;
     BACNET_ADDRESS src = { 0 };
     uint16_t pdu_len = 0;
@@ -192,6 +194,31 @@ int main(int argc, char *argv[])
         Gw_Config.device_instance = override_inst;
     }
 
+    effective_datalink = Gw_Config.datalink_type;
+#if !defined(BACDL_BSC)
+#if defined(BACDL_BIP)
+    compiled_datalink = "bip";
+#elif defined(BACDL_BIP6)
+    compiled_datalink = "bip6";
+#elif defined(BACDL_MSTP)
+    compiled_datalink = "mstp";
+#elif defined(BACDL_ETHERNET)
+    compiled_datalink = "ethernet";
+#elif defined(BACDL_ARCNET)
+    compiled_datalink = "arcnet";
+#elif defined(BACDL_ZIGBEE)
+    compiled_datalink = "zigbee";
+#endif
+    if (strcmp(effective_datalink, "bsc") == 0) {
+        fprintf(
+            stderr,
+            "[GW] datalink_type='bsc' requested, but this binary was built "
+            "without BACnet/SC support. Falling back to '%s'.\n",
+            compiled_datalink);
+        effective_datalink = compiled_datalink;
+    }
+#endif
+
     printf("===========================================\n");
     printf(" Generic Modbus RTU <-> BACnet Gateway\n");
     printf(" BACnet Stack v%s\n", BACNET_VERSION_TEXT);
@@ -199,7 +226,10 @@ int main(int argc, char *argv[])
     printf(
         " Device          : %s [%u]\n", Gw_Config.device_name,
         Gw_Config.device_instance);
-    printf(" Datalink        : %s\n", Gw_Config.datalink_type);
+    printf(" Datalink        : %s\n", effective_datalink);
+    if (strcmp(effective_datalink, Gw_Config.datalink_type) != 0) {
+        printf(" Datalink Req    : %s\n", Gw_Config.datalink_type);
+    }
     printf(" BACnet Iface    : %s\n", Gw_Config.bacnet_iface);
     printf(
         " Modbus Port     : %s @ %u bps\n", Gw_Config.modbus_port,
@@ -224,15 +254,15 @@ int main(int argc, char *argv[])
     /* ── Configure BACnet datalink via environment variables ──
      *
      * The datalink type is read from JSON ("datalink_type" field).
-     * Supported values: "mstp", "bip", "bip6", "ethernet"
+     * Supported values: "mstp", "bip", "bip6", "ethernet", "bsc"
      * All standard BACNET_* env vars can also be pre-set externally to
      * override any of these settings before the process starts.
      */
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-    setenv("BACNET_DATALINK", Gw_Config.datalink_type, 0);
+    setenv("BACNET_DATALINK", effective_datalink, 1);
     setenv("BACNET_IFACE", Gw_Config.bacnet_iface, 0);
 
-    if (strcmp(Gw_Config.datalink_type, "mstp") == 0) {
+    if (strcmp(effective_datalink, "mstp") == 0) {
         snprintf(baud_str, sizeof(baud_str), "%u", Gw_Config.mstp_baud);
         snprintf(mac_str, sizeof(mac_str), "%u", Gw_Config.mstp_mac);
         snprintf(
@@ -244,22 +274,67 @@ int main(int argc, char *argv[])
         setenv("BACNET_MAX_MASTER", max_master_str, 1);
         setenv("BACNET_MSTP_NET", net_str, 1);
     } else if (
-        strcmp(Gw_Config.datalink_type, "bip") == 0 ||
-        strcmp(Gw_Config.datalink_type, "bip6") == 0) {
+        strcmp(effective_datalink, "bip") == 0 ||
+        strcmp(effective_datalink, "bip6") == 0) {
         if (Gw_Config.bip_port != 0) {
             snprintf(port_str, sizeof(port_str), "%u", Gw_Config.bip_port);
             setenv("BACNET_IP_PORT", port_str, 1);
         }
+#if defined(BACDL_BSC)
+    } else if (strcmp(effective_datalink, "bsc") == 0) {
+        if (Gw_Config.sc.primary_hub_uri[0] != '\0') {
+            setenv(
+                "BACNET_SC_PRIMARY_HUB_URI", Gw_Config.sc.primary_hub_uri, 1);
+        }
+        if (Gw_Config.sc.failover_hub_uri[0] != '\0') {
+            setenv(
+                "BACNET_SC_FAILOVER_HUB_URI", Gw_Config.sc.failover_hub_uri, 1);
+        }
+        if (Gw_Config.sc.issuer_1_certificate_file[0] != '\0') {
+            setenv(
+                "BACNET_SC_ISSUER_1_CERTIFICATE_FILE",
+                Gw_Config.sc.issuer_1_certificate_file, 1);
+        }
+        if (Gw_Config.sc.issuer_2_certificate_file[0] != '\0') {
+            setenv(
+                "BACNET_SC_ISSUER_2_CERTIFICATE_FILE",
+                Gw_Config.sc.issuer_2_certificate_file, 1);
+        }
+        if (Gw_Config.sc.operational_certificate_file[0] != '\0') {
+            setenv(
+                "BACNET_SC_OPERATIONAL_CERTIFICATE_FILE",
+                Gw_Config.sc.operational_certificate_file, 1);
+        }
+        if (Gw_Config.sc.operational_certificate_private_key_file[0] != '\0') {
+            setenv(
+                "BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE",
+                Gw_Config.sc.operational_certificate_private_key_file, 1);
+        }
+        if (Gw_Config.sc.direct_connect_binding[0] != '\0') {
+            setenv(
+                "BACNET_SC_DIRECT_CONNECT_BINDING",
+                Gw_Config.sc.direct_connect_binding, 1);
+        }
+        if (Gw_Config.sc.hub_function_binding[0] != '\0') {
+            setenv(
+                "BACNET_SC_HUB_FUNCTION_BINDING",
+                Gw_Config.sc.hub_function_binding, 1);
+        }
+        if (Gw_Config.sc.direct_connect_accept_urls[0] != '\0') {
+            setenv(
+                "BACNET_SC_DIRECT_CONNECT_ACCEPT_URLS",
+                Gw_Config.sc.direct_connect_accept_urls, 1);
+        }
+        if (Gw_Config.sc.direct_connect_initiate_present) {
+            setenv(
+                "BACNET_SC_DIRECT_CONNECT_INITIATE",
+                Gw_Config.sc.direct_connect_initiate ? "y" : "0", 1);
+        }
+#endif
     }
 #endif /* __linux__ || __unix__ || __APPLE__ */
     dlenv_init();
 
-    if (!datalink_init(NULL)) {
-        fprintf(
-            stderr, "[GW] datalink_init() failed (datalink=%s, iface=%s)\n",
-            Gw_Config.datalink_type, Gw_Config.bacnet_iface);
-        return 1;
-    }
     atexit(datalink_cleanup);
 
     /* ── Create BACnet objects from point table ── */
