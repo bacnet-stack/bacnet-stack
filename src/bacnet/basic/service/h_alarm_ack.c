@@ -82,31 +82,38 @@ void handler_alarm_ack(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_print("Alarm Ack: Missing Required Parameter. Sending Reject!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "Alarm Ack: Missing Required Parameter. Sending Reject!\n");
         goto AA_ABORT;
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_print("Alarm Ack: Segmented message.  Sending Abort!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "Alarm Ack: Segmented message.  Sending Abort!\n");
         goto AA_ABORT;
     }
 
     len = alarm_ack_decode_service_request(service_request, service_len, &data);
     if (len <= 0) {
-        debug_print("Alarm Ack: Unable to decode Request!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "Alarm Ack: Unable to decode Request!\n");
     }
     if (len < 0) {
         /* bad decoding - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_print("Alarm Ack: Bad Encoding.  Sending Abort!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "Alarm Ack: Bad Encoding.  Sending Abort!\n");
         goto AA_ABORT;
     }
-    debug_fprintf(
-        stderr,
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr,
         "Alarm Ack Operation: Received acknowledge for object id (%d, %lu) "
         "from %s for process id %lu \n",
         data.eventObjectIdentifier.type,
@@ -127,7 +134,9 @@ void handler_alarm_ack(
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM);
-                debug_print("Alarm Acknowledge: Sending Simple Ack!\n");
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
+                    "Alarm Acknowledge: Sending Simple Ack!\n");
                 break;
 
             case -1:
@@ -136,8 +145,8 @@ void handler_alarm_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, error_class,
                     error_code);
-                debug_fprintf(
-                    stderr, "Alarm Acknowledge: error %s!\n",
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr, "Alarm Acknowledge: error %s!\n",
                     bactext_error_code_name(error_code));
                 break;
 
@@ -145,7 +154,9 @@ void handler_alarm_ack(
                 len = abort_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     ABORT_REASON_OTHER, true);
-                debug_print("Alarm Acknowledge: abort other!\n");
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr,
+                    "Alarm Acknowledge: abort other!\n");
                 break;
         }
     } else {
@@ -153,7 +164,9 @@ void handler_alarm_ack(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT,
             ERROR_CODE_NO_ALARM_CONFIGURED);
-        debug_print("Alarm Acknowledge: No Alarm Configured!\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "Alarm Acknowledge: No Alarm Configured!\n");
     }
 
 AA_ABORT:
@@ -161,7 +174,8 @@ AA_ABORT:
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        debug_perror("Alarm Acknowledge: Failed to send PDU");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "Alarm Acknowledge: Failed to send PDU\n");
     }
 
     return;

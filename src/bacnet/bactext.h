@@ -50,6 +50,9 @@ const char *bactext_application_tag_name_default(
 BACNET_STACK_EXPORT
 bool bactext_application_tag_index(
     const char *search_name, uint32_t *found_index);
+BACNET_STACK_EXPORT
+bool bactext_application_tag_strtol(
+    const char *search_name, uint32_t *found_index);
 
 BACNET_STACK_EXPORT
 const char *bactext_reinitialized_state_name_default(
@@ -385,6 +388,10 @@ bactext_access_event_name_default(uint32_t index, const char *default_string);
 
 BACNET_STACK_EXPORT
 const char *bactext_authentication_status_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_authentication_disable_reason_name(uint32_t index);
+BACNET_STACK_EXPORT
+const char *bactext_authentication_factor_type_name(uint32_t index);
 
 BACNET_STACK_EXPORT
 const char *bactext_authorization_mode_name(uint32_t index);

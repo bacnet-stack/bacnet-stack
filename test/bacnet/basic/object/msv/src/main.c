@@ -47,6 +47,44 @@ static void testMultistateValue(void)
     status = Multistate_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+/**
+ * @brief Test state name lookup and set-by-name APIs
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(msv_tests, testMultistateValueByName)
+#else
+static void testMultistateValueByName(void)
+#endif
+{
+    bool status = false;
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
+    static const char state_text_list[] = "Off\0On\0Auto\0";
+
+    Multistate_Value_Init();
+    object_instance = Multistate_Value_Create(object_instance);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    status =
+        Multistate_Value_State_Text_List_Set(object_instance, state_text_list);
+    zassert_true(status, NULL);
+
+    zassert_equal(
+        Multistate_Value_State_From_Text(object_instance, "On"), 2, NULL);
+    zassert_equal(
+        Multistate_Value_State_From_Text(object_instance, "Missing"), 0, NULL);
+
+    status = Multistate_Value_Present_Value_By_Name_Set(object_instance, "On");
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Value_Present_Value(object_instance), 2, NULL);
+
+    status =
+        Multistate_Value_Present_Value_By_Name_Set(object_instance, "Missing");
+    zassert_false(status, NULL);
+
+    status = Multistate_Value_Delete(object_instance);
+    zassert_true(status, NULL);
+}
 /**
  * @}
  */
@@ -56,7 +94,9 @@ ZTEST_SUITE(msv_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(msv_tests, ztest_unit_test(testMultistateValue));
+    ztest_test_suite(
+        msv_tests, ztest_unit_test(testMultistateValue),
+        ztest_unit_test(testMultistateValueByName));
 
     ztest_run_test_suite(msv_tests);
 }

@@ -135,7 +135,7 @@ static object_functions_t Object_Table[] = {
       NULL /* Timer */,
       Network_Port_Writable_Property_List },
 #endif
-#if defined(BACFILE)
+#if defined(BACDL_BSC)
     { OBJECT_FILE,
       bacfile_init,
       bacfile_count,
@@ -1210,9 +1210,12 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
-            /* FIXME: the real max apdu remaining should be passed into function
-             */
-            apdu_len = address_list_encode(&apdu[0], MAX_APDU);
+            apdu_len = address_list_encode(&apdu[0], apdu_size);
+            if (apdu_len < 0) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                apdu_len = BACNET_STATUS_ABORT;
+            }
             break;
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(&apdu[0], Database_Revision);
@@ -1318,7 +1321,7 @@ static bool Device_Write_Property_Object_Name(
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_CHARACTER_STRING value;
+    BACNET_CHARACTER_STRING value = { 0 };
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     int apdu_size = 0;
@@ -1387,6 +1390,10 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -1405,6 +1412,15 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if (wp_data->object_property == PROP_OBJECT_NAME) {
                     status = Device_Write_Property_Object_Name(
                         wp_data, pObject->Object_Write_Property);
+                } else if (
+                    (wp_data->application_data_len == 0) &&
+                    !property_list_bacnet_list_member(
+                        wp_data->object_type, wp_data->object_property)) {
+                    /* only list properties can be written with
+                        an empty application payload */
+                    wp_data->error_class = ERROR_CLASS_SERVICES;
+                    wp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    status = false;
                 } else {
                     status = pObject->Object_Write_Property(wp_data);
                 }

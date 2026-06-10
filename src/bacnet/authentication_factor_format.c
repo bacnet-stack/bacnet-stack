@@ -42,6 +42,31 @@ int bacapp_encode_authentication_factor_format(
 }
 
 /**
+ * @brief Encode BACnetAuthenticationFactorFormat data if it fits in the buffer
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - bit string value to encode
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_authentication_factor_format_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = bacapp_encode_authentication_factor_format(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = bacapp_encode_authentication_factor_format(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Context encode BACnetAuthenticationFactorFormat data
  * @param apdu - buffer to store the encoding, or NULL for length
  * @param tag - tag number used to encapsulate the data within open/close tags
@@ -223,3 +248,34 @@ int bacapp_decode_context_authentication_factor_format(
         apdu, MAX_APDU, tag, data);
 }
 #endif
+
+/**
+ * @brief Compare two BACNET_AUTHENTICATION_FACTOR_FORMAT structures
+ * @param data1  Pointer to the first structure to compare
+ * @param data2  Pointer to the second structure to compare
+ * @return true if the structures are the same, false otherwise
+ * @details The structures are considered the same if they have the same format
+ * type, and if the format type is CUSTOM, they must also have the same vendor
+ * ID and vendor format.
+ */
+bool bacnet_authentication_factor_format_same(
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *data1,
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *data2)
+{
+    if (!data1 || !data2) {
+        return false;
+    }
+    if (data1->format_type != data2->format_type) {
+        return false;
+    }
+    if (data1->format_type == AUTHENTICATION_FACTOR_CUSTOM) {
+        if (data1->vendor_id != data2->vendor_id) {
+            return false;
+        }
+        if (data1->vendor_format != data2->vendor_format) {
+            return false;
+        }
+    }
+
+    return true;
+}

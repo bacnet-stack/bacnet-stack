@@ -60,7 +60,7 @@ endif()
 add_custom_target(lcov
     COMMAND mkdir -p lcoverage
     )
-add_custom_command(TARGET lcov
+add_custom_command(TARGET lcov POST_BUILD
     COMMAND echo "=================== LCOV ===================="
     COMMAND echo "-- Passing lcov tool under code coverage"
     COMMAND lcov --capture --directory ../ --output-file lcoverage/main_coverage.info
@@ -193,6 +193,10 @@ list(APPEND testdirs
   bacnet/basic/object/trendlog
   # basic/program
   bacnet/basic/program/ubasic
+  # basic/service
+  bacnet/basic/service/h_arf
+  bacnet/basic/service/h_awf
+  bacnet/basic/service/h_cov
   # basic/server
   bacnet/basic/server/bacnet_device
   # basic/sys
@@ -207,6 +211,7 @@ list(APPEND testdirs
   bacnet/basic/sys/keylist
   bacnet/basic/sys/linear
   bacnet/basic/sys/ringbuf
+  bacnet/basic/sys/state_name
   bacnet/basic/sys/sbuf
   )
 
@@ -241,6 +246,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   list(APPEND testdirs
   ports/linux/bsc_event
   ports/linux/bip_subnet
+  ports/bip_broadcast_port
   )
 
 elseif(WIN32)
@@ -248,12 +254,14 @@ elseif(WIN32)
 
   list(APPEND testdirs
   ports/win32/bsc_event
+  ports/bip_broadcast_port
   )
 
 elseif(APPLE)
   message(STATUS "Added ports specific tests for APPLE")
   list(APPEND testdirs
   ports/bsd/bsc_event
+  ports/bip_broadcast_port
   )
 endif()
 

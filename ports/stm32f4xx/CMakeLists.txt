@@ -195,6 +195,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/sys/fifo.c
     ${LIBRARY_BACNET_BASIC}/sys/keylist.c
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
+    ${LIBRARY_BACNET_BASIC}/sys/state_name.c
 
     ${LIBRARY_BACNET_CORE}/abort.c
     ${LIBRARY_BACNET_CORE}/arf.c
@@ -258,7 +259,6 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DMAX_APDU=480
     -DBIG_ENDIAN=0
     -DMAX_TSM_TRANSACTIONS=1
-    -DBACFILE
     -DBACAPP_MINIMAL
 )
 

@@ -256,6 +256,22 @@ mstpcap:
 mstpcrc:
 	$(MAKE) -s -C apps $@
 
+.PHONY: modbus-gateway
+modbus-gateway:
+	$(MAKE) -C apps modbus-gateway
+
+.PHONY: modbus-gateway-clean
+modbus-gateway-clean:
+	$(MAKE) -C apps modbus-gateway-clean
+
+.PHONY: modbus-gateway-mstp
+modbus-gateway-mstp:
+	$(MAKE) BACDL=mstp -C apps modbus-gateway-mstp
+
+.PHONY: modbus-gateway-mstp-clean
+modbus-gateway-mstp-clean:
+	$(MAKE) -C apps modbus-gateway-mstp-clean
+
 .PHONY: uevent
 uevent:
 	$(MAKE) -s -C apps $@
@@ -569,6 +585,14 @@ test:
 .PHONY: retest
 retest:
 	$(MAKE) -s -j -C test retest
+
+.PHONY: unit
+unit:
+	$(MAKE) -s -j -C test unit
+
+.PHONY: lcov
+lcov:
+	$(MAKE) -s -j -C test lcov
 
 .PHONY: test-bsc
 test-bsc:

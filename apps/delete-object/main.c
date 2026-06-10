@@ -31,6 +31,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
@@ -138,13 +139,17 @@ static void Init_Service_Handlers(void)
 static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance object-type object-instance\n", filename);
-    printf("       [--dnet][--dadr][--mac]\n");
+    printf("       [--dnet][--dadr][--mac][--debug]\n");
     printf("       [--version][--help][--verbose]\n");
 }
 
 static void print_help(const char *filename)
 {
     printf("Create an object in a BACnet device.\n");
+    printf("\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
     printf("\n");
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
@@ -186,6 +191,7 @@ int main(int argc, char *argv[])
     unsigned long object_type = 0;
     unsigned long object_instance = 0;
     long dnet = -1;
+    long severity = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -234,6 +240,12 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--verbose") == 0) {
             Verbose = true;
+        } else if (strcmp(argv[argi], "--debug") == 0) {
+            if (++argi < argc) {
+                if (bacnet_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
+                }
+            }
         } else {
             if (target_args == 0) {
                 if (!bacnet_strtoul(argv[argi], &object_instance)) {

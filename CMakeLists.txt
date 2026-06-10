@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.5.0
+  VERSION 1.6.0
   LANGUAGES C)
 
 #
@@ -274,9 +274,9 @@ add_library(${PROJECT_NAME}
   src/bacnet/assigned_access_rights.c
   src/bacnet/assigned_access_rights.h
   src/bacnet/authentication_factor.c
+  src/bacnet/authentication_factor.h
   src/bacnet/authentication_factor_format.c
   src/bacnet/authentication_factor_format.h
-  src/bacnet/authentication_factor.h
   src/bacnet/awf.c
   src/bacnet/awf.h
   src/bacnet/bacaddr.c
@@ -331,6 +331,8 @@ add_library(${PROJECT_NAME}
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
   $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.c>
   $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/bzllvmac.h>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/h_bzll.c>
+  $<$<BOOL:${BACDL_ZIGBEE}>:src/bacnet/basic/bzll/h_bzll.h>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.c>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.h>
   $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-socket.c>
@@ -355,6 +357,14 @@ add_library(${PROJECT_NAME}
   $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
   src/bacnet/basic/npdu/s_router.c
   src/bacnet/basic/npdu/s_router.h
+  src/bacnet/basic/client/bac-data.c
+  src/bacnet/basic/client/bac-data.h
+  src/bacnet/basic/client/bac-discover.c
+  src/bacnet/basic/client/bac-discover.h
+  src/bacnet/basic/client/bac-rw.c
+  src/bacnet/basic/client/bac-rw.h
+  src/bacnet/basic/client/bac-task.c
+  src/bacnet/basic/client/bac-task.h
   src/bacnet/basic/object/access_credential.c
   src/bacnet/basic/object/access_credential.h
   src/bacnet/basic/object/access_door.c
@@ -615,6 +625,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/sys/ringbuf.h
   src/bacnet/basic/sys/sbuf.c
   src/bacnet/basic/sys/sbuf.h
+  src/bacnet/basic/sys/state_name.c
+  src/bacnet/basic/sys/state_name.h
   src/bacnet/basic/tsm/tsm.c
   src/bacnet/basic/tsm/tsm.h
   src/bacnet/basic/sys/bits.h
@@ -784,7 +796,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
   add_compile_definitions(BACNET_PORT=linux)
-  add_compile_definitions(BACFILE=1)
   include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
@@ -794,7 +805,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/linux/bzll-init.c>
     $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
@@ -811,7 +821,6 @@ elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
-  add_compile_definitions(BACFILE=1)
 
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
@@ -828,7 +837,6 @@ elseif(WIN32)
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/win32/bzll-init.c>
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -873,7 +881,6 @@ elseif(APPLE)
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
   add_compile_definitions(USE_MACH_TIME)
-  add_compile_definitions(BACFILE=1)
   include_directories(ports/posix)
 
   target_sources(${PROJECT_NAME} PRIVATE
@@ -881,7 +888,6 @@ elseif(APPLE)
     ports/posix/bacfile-posix.c
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
@@ -919,7 +925,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   include_directories(ports/posix)
-  add_compile_definitions(BACFILE=1)
   link_directories(/usr/lib)
   link_libraries(c)
   link_libraries(m)
@@ -938,7 +943,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     ports/posix/bacfile-posix.c
     ports/posix/bacfile-posix.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
-    $<$<BOOL:${BACDL_ZIGBEE}>:ports/bsd/bzll-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
@@ -1083,6 +1087,7 @@ if(BACNET_STACK_BUILD_APPS)
       src/bacnet/basic/server/bacnet_basic.c
       src/bacnet/basic/server/bacnet_device.c
       src/bacnet/basic/server/bacnet_port.c
+      src/bacnet/basic/server/bacnet_port_bzll.c
       src/bacnet/basic/server/bacnet_port_ipv4.c
       src/bacnet/basic/server/bacnet_port_ipv6.c
       src/bacnet/basic/server/bacnet_port_mstp.c
@@ -1197,6 +1202,21 @@ if(BACNET_STACK_BUILD_APPS)
       # Unreachable code because we have endless loop.
       $<$<C_COMPILER_ID:MSVC>:/wd4702>
     )
+  endif()
+
+  # Modbus Gateway - POSIX only (uses serial port / Modbus RTU)
+  if(NOT WIN32)
+    add_executable(modbusgw
+      apps/modbus-gateway/main.c
+      apps/modbus-gateway/point_table.c
+      apps/modbus-gateway/modbus_rtu.c
+      src/bacnet/basic/sys/cJSON.c)
+    target_include_directories(modbusgw PRIVATE
+      apps/modbus-gateway
+      src/bacnet/basic/sys)
+    target_link_libraries(modbusgw PRIVATE ${PROJECT_NAME} m)
+  else()
+    message(STATUS "BACNET: modbusgw skipped (Windows/MinGW not supported)")
   endif()
 
   if(BACDL_BIP AND BACDL_BIP6)

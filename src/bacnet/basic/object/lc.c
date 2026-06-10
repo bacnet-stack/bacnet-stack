@@ -566,7 +566,8 @@ void Load_Control_State_Machine(
                         break;
                 }
                 if (pObject->Present_Value == BACNET_SHED_INACTIVE) {
-                    debug_printf(
+                    debug_log_fprintf(
+                        DEBUG_LOG_DEBUG, stderr,
                         "Load Control[%d]:Requested Shed Level=Default\n",
                         object_index);
                     break;
@@ -578,7 +579,8 @@ void Load_Control_State_Machine(
                 /* request to cancel using wildcards in start time? */
                 if (datetime_wildcard(&pObject->Start_Time)) {
                     pObject->Present_Value = BACNET_SHED_INACTIVE;
-                    debug_printf(
+                    debug_log_fprintf(
+                        DEBUG_LOG_DEBUG, stderr,
                         "Load Control[%d]:Start Time=Wildcard\n", object_index);
                     break;
                 }
@@ -590,7 +592,8 @@ void Load_Control_State_Machine(
             if (diff < 0) {
                 /* CancelShed */
                 /* FIXME: stop shedding! i.e. relinquish */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Current Time"
                     " is after Start Time + Duration\n",
                     object_index);
@@ -609,7 +612,8 @@ void Load_Control_State_Machine(
                     pObject->Requested_Shed_Level.type);
             } else if (diff > 0) {
                 /* current time after to start time */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Current Time"
                     " is after Start Time\n",
                     object_index);
@@ -654,7 +658,8 @@ void Load_Control_State_Machine(
             diff = datetime_compare(&pObject->End_Time, bdatetime);
             if (diff < 0) {
                 /* FinishedUnsuccessfulShed */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Current Time is after Start Time + "
                     "Duration\n",
                     object_index);
@@ -664,7 +669,8 @@ void Load_Control_State_Machine(
             if (pObject->Load_Control_Request_Written ||
                 pObject->Start_Time_Property_Written) {
                 /* UnsuccessfulShedReconfigured */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Control Property written\n",
                     object_index);
                 /* The Written flags will cleared in the next state */
@@ -673,7 +679,8 @@ void Load_Control_State_Machine(
             }
             if (Can_Now_Comply_With_Shed(pObject)) {
                 /* CanNowComplyWithShed */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Able to meet Shed Request\n",
                     object_index);
                 Shed_Level_Copy(
@@ -691,7 +698,8 @@ void Load_Control_State_Machine(
             diff = datetime_compare(&pObject->End_Time, bdatetime);
             if (diff < 0) {
                 /* FinishedSuccessfulShed */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Current Time is after Start Time + "
                     "Duration\n",
                     object_index);
@@ -709,7 +717,8 @@ void Load_Control_State_Machine(
             if (pObject->Load_Control_Request_Written ||
                 pObject->Start_Time_Property_Written) {
                 /* UnsuccessfulShedReconfigured */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Control Property written\n",
                     object_index);
                 /* The Written flags will cleared in the next state */
@@ -718,7 +727,8 @@ void Load_Control_State_Machine(
             }
             if (!Able_To_Meet_Shed_Request(pObject)) {
                 /* CanNoLongerComplyWithShed */
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Not able to meet Shed Request\n",
                     object_index);
                 Shed_Level_Default_Set(
@@ -733,7 +743,8 @@ void Load_Control_State_Machine(
         case BACNET_SHED_INACTIVE:
         default:
             if (pObject->Start_Time_Property_Written) {
-                debug_printf(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Start Time written\n", object_index);
                 /* The Written flag will cleared in the next state */
                 Shed_Level_Copy(
@@ -810,8 +821,8 @@ void Load_Control_Timer(uint32_t object_instance, uint16_t milliseconds)
             index = Keylist_Index(Object_List, object_instance);
             Load_Control_State_Machine(index, &bdatetime);
             if (pObject->Present_Value != pObject->Previous_Value) {
-                debug_printf(
-                    "Load Control[%d]=%s\n", index,
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr, "Load Control[%d]=%s\n", index,
                     bactext_shed_state_name(pObject->Present_Value));
                 pObject->Previous_Value = pObject->Present_Value;
             }
@@ -1534,12 +1545,17 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0, count = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
+    /* Valid data? */
     if (wp_data == NULL) {
-        debug_printf("Load_Control_Write_Property(): invalid data\n");
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Load_Control_Write_Property(): invalid data\n");
         return false;
     }
     if (wp_data->application_data_len < 0) {
-        debug_printf("Load_Control_Write_Property(): invalid data length\n");
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Load_Control_Write_Property(): invalid data length\n");
         /* error while decoding - a smaller larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1550,7 +1566,9 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->application_data, wp_data->application_data_len, &value,
         wp_data->object_type, wp_data->object_property);
     if (len < 0) {
-        debug_printf("Load_Control_Write_Property(): decoding error\n");
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Load_Control_Write_Property(): decoding error\n");
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1637,7 +1655,9 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
     }
 
-    debug_printf("Load_Control_Write_Property() returning status=%d\n", status);
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr,
+        "Load_Control_Write_Property() returning status=%d\n", status);
     return status;
 }
 

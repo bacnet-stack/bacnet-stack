@@ -173,10 +173,22 @@ uint16_t bip_receive(
 void bip_set_port(uint16_t port);
 
 /**
+ * @brief Store the UDP broadcast destination port used by BACnet/IP
+ * @param port UDP port number
+ */
+void bip_set_broadcast_port(uint16_t port);
+
+/**
  * @brief Get the UDP port used by BACnet/IP
  * @return UDP port number
  */
 uint16_t bip_get_port(void);
+
+/**
+ * @brief Get the UDP broadcast destination port used by BACnet/IP
+ * @return UDP port number
+ */
+uint16_t bip_get_broadcast_port(void);
 
 /**
  * @brief Store the local IPv4 address

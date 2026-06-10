@@ -24,6 +24,8 @@ static bool BIP_Port_Changed;
 static BACNET_IP_ADDRESS BIP_Address;
 /* Broadcast Address */
 static BACNET_IP_ADDRESS BIP_Broadcast_Address;
+/* broadcast destination port to use */
+static uint16_t BIP_Broadcast_Port;
 /* lwIP socket, of sorts */
 static struct udp_pcb *Server_upcb;
 /* track packets for diagnostics */
@@ -89,7 +91,14 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
-    return bvlc_address_copy(&BIP_Broadcast_Address, addr);
+    bool status = false;
+
+    status = bvlc_address_copy(&BIP_Broadcast_Address, addr);
+    if (status) {
+        BIP_Broadcast_Port = htons(addr->port);
+    }
+
+    return status;
 }
 
 /**
@@ -99,7 +108,14 @@ bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
  */
 bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
-    return bvlc_address_copy(addr, &BIP_Broadcast_Address);
+    bool status = false;
+
+    status = bvlc_address_copy(addr, &BIP_Broadcast_Address);
+    if (status && addr) {
+        addr->port = ntohs(BIP_Broadcast_Port);
+    }
+
+    return status;
 }
 
 /**
@@ -112,6 +128,16 @@ void bip_set_port(uint16_t port)
         BIP_Port_Changed = true;
         BIP_Address.port = htons(port);
     }
+}
+
+/**
+ * @brief Set the BACnet IPv4 UDP broadcast destination port number
+ * @param port - IPv4 UDP port number - in host byte order
+ */
+void bip_set_broadcast_port(uint16_t port)
+{
+    BIP_Broadcast_Port = htons(port);
+    BIP_Broadcast_Address.port = BIP_Broadcast_Port;
 }
 
 /**
@@ -129,6 +155,19 @@ bool bip_port_changed(void)
  */
 uint16_t bip_get_port(void)
 {
+    return ntohs(BIP_Address.port);
+}
+
+/**
+ * @brief Get the BACnet IPv4 UDP broadcast destination port number
+ * @return IPv4 UDP port number - in host byte order
+ */
+uint16_t bip_get_broadcast_port(void)
+{
+    if (BIP_Broadcast_Port) {
+        return ntohs(BIP_Broadcast_Port);
+    }
+
     return ntohs(BIP_Address.port);
 }
 
@@ -321,11 +360,12 @@ void bip_get_my_address(BACNET_ADDRESS *my_address)
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 {
     int i = 0; /* counter */
+    uint16_t port = htons(bip_get_broadcast_port());
 
     if (dest) {
         dest->mac_len = 6;
         memcpy(&dest->mac[0], &BIP_Broadcast_Address.address, 4);
-        memcpy(&dest->mac[4], &BIP_Address.port, 2);
+        memcpy(&dest->mac[4], &port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {

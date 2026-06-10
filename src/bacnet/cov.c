@@ -19,7 +19,176 @@ COV Subscribe
 COV Subscribe Property
 COV Notification
 Unconfirmed COV Notification
+COV Subscription
 */
+
+/**
+ * @brief Encode APDU for COV Subscription.
+ *
+ * BACnetCOVSubscription ::= SEQUENCE {
+ *     recipient[0] BACnetRecipientProcess,
+ *     monitored-property-reference[1] BACnetObjectPropertyReference,
+ *     issue-confirmed-notifications[2] Boolean,
+ *     time-remaining[3] Unsigned,
+ *     cov-increment[4] Real OPTIONAL-- used only with monitored
+ *     -- properties with a numeric datatype
+ * }
+ *
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param data  Pointer to the data to encode.
+ * @return number of bytes encoded, or zero on error.
+ */
+size_t
+cov_subscription_encode(uint8_t *apdu, const BACNET_COV_SUBSCRIPTION *data)
+{
+    int len;
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    if (!data) {
+        return 0;
+    }
+    /* Recipient [0] BACnetRecipientProcess */
+    len = bacnet_recipient_process_context_encode(apdu, 0, &data->recipient);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /*  MonitoredPropertyReference [1] BACnetObjectPropertyReference, */
+    len = bacapp_encode_context_obj_property_ref(
+        apdu, 1, &data->monitored_property_reference);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* IssueConfirmedNotifications [2] BOOLEAN, */
+    len = encode_context_boolean(apdu, 2, data->issue_confirmed_notifications);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* TimeRemaining [3] Unsigned, */
+    len = encode_context_unsigned(apdu, 3, data->time_remaining);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* cov-increment [4] Real OPTIONAL */
+    if (data->cov_increment_present) {
+        len = encode_context_real(apdu, 4, data->cov_increment);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode APDU for COV Subscription.
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the data to encode.
+ * @return number of bytes encoded, or zero on error.
+ */
+size_t bacnet_cov_subscription_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_COV_SUBSCRIPTION *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = cov_subscription_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = cov_subscription_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode APDU for COV Subscription.
+ *
+ * BACnetCOVSubscription ::= SEQUENCE {
+ *     recipient[0] BACnetRecipientProcess,
+ *     monitored-property-reference[1] BACnetObjectPropertyReference,
+ *     issue-confirmed-notifications[2] Boolean,
+ *     time-remaining[3] Unsigned,
+ *     cov-increment[4] Real OPTIONAL-- used only with monitored
+ *     -- properties with a numeric datatype
+ * }
+ *
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the data to decode into, or NULL for length only.
+ * @return Bytes decoded or BACNET_STATUS_ERROR on error.
+ */
+int bacnet_cov_subscription_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_COV_SUBSCRIPTION *data)
+{
+    int len = 0, apdu_len = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_RECIPIENT_PROCESS recipient = { 0 };
+    BACNET_OBJECT_PROPERTY_REFERENCE monitored_property_reference = { 0 };
+    bool issue_confirmed_notifications = false;
+    float float_value = 1.0f;
+    bool cov_increment_present = false;
+
+    if (!apdu || (apdu_size == 0)) {
+        return 0;
+    }
+    /* Recipient [0] BACnetRecipientProcess */
+    len = bacnet_recipient_process_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &recipient);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /*  MonitoredPropertyReference [1] BACnetObjectPropertyReference */
+    len = bacapp_decode_context_obj_property_ref(
+        &apdu[apdu_len], apdu_size - apdu_len, 1,
+        &monitored_property_reference);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /* IssueConfirmedNotifications [2] BOOLEAN */
+    len = bacnet_boolean_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2,
+        &issue_confirmed_notifications);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /* TimeRemaining [3] Unsigned */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /* CovIncrement [4] Real OPTIONAL */
+    len = bacnet_real_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 4, &float_value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    } else if (len == 0) {
+        /* not present - skip */
+        cov_increment_present = false;
+    } else {
+        cov_increment_present = true;
+        apdu_len += len;
+    }
+    /* copy into the data structure */
+    if (data) {
+        bacnet_recipient_process_copy(&data->recipient, &recipient);
+        bacnet_object_property_reference_copy(
+            &data->monitored_property_reference, &monitored_property_reference);
+        data->issue_confirmed_notifications = issue_confirmed_notifications;
+        data->time_remaining = unsigned_value;
+        data->cov_increment = float_value;
+        data->cov_increment_present = cov_increment_present;
+    }
+
+    return apdu_len;
+}
 
 /**
  * @brief Encode APDU for COV Notification.

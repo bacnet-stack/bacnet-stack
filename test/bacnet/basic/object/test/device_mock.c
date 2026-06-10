@@ -46,3 +46,57 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     (void)rpdata;
     return 0;
 }
+
+bool Device_Valid_Object_Id(
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+{
+    (void)object_type;
+    (void)object_instance;
+    return true;
+}
+
+bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
+{
+    (void)object_type;
+    return true;
+}
+
+bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+{
+    (void)object_type;
+    (void)object_instance;
+    return false;
+}
+
+void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+{
+    (void)object_type;
+    (void)object_instance;
+}
+
+bool Device_Encode_Value_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE *value_list)
+{
+    (void)object_type;
+    (void)object_instance;
+    (void)value_list;
+    return true;
+}
+
+uint16_t Routed_Device_Object_Index(void)
+{
+    return 0;
+}
+
+bool Set_Routed_Device_Object_Index(uint16_t index)
+{
+    (void)index;
+    return true;
+}
+
+uint16_t Get_Num_Managed_Devices(void)
+{
+    return 1;
+}

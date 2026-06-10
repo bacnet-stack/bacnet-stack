@@ -104,7 +104,8 @@ uint8_t Send_Delete_Object_Request(
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_printf_stderr(
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
                 "%s service: Failed to Send "
                 "(exceeds destination maximum APDU)!\n",
                 bactext_confirmed_service_name(service));

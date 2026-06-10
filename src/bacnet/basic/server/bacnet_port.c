@@ -22,6 +22,8 @@
 #include "bacnet/basic/server/bacnet_port_ipv6.h"
 #elif defined(BACDL_MSTP)
 #include "bacnet/basic/server/bacnet_port_mstp.h"
+#elif defined(BACDL_ZIGBEE)
+#include "bacnet/basic/server/bacnet_port_bzll.h"
 #endif
 /* me! */
 #include "bacnet/basic/server/bacnet_port.h"
@@ -29,13 +31,20 @@
 /* timer used to renew Foreign Device Registration */
 static struct mstimer BACnet_Task_Timer;
 
+static void (*BACnet_Task_Callback)(uint16_t elapsed_seconds) = NULL;
+
+void bacnet_port_task_callback_set(void (*callback)(uint16_t elapsed_seconds))
+{
+    BACnet_Task_Callback = callback;
+}
+
 /**
  * @brief Periodic tasks for the BACnet datalink layer
  */
 void bacnet_port_task(void)
 {
     uint32_t elapsed_milliseconds = 0;
-    uint32_t elapsed_seconds = 0;
+    uint16_t elapsed_seconds = 0;
 
     if (mstimer_expired(&BACnet_Task_Timer)) {
         /* 1 second tasks */
@@ -43,33 +52,45 @@ void bacnet_port_task(void)
         /* presume that the elapsed time is the interval time */
         elapsed_milliseconds = mstimer_interval(&BACnet_Task_Timer);
         elapsed_seconds = elapsed_milliseconds / 1000;
+        if (BACnet_Task_Callback) {
+            BACnet_Task_Callback(elapsed_seconds);
+        } else {
 #if defined(BACDL_BIP)
-        bacnet_port_ipv4_task(elapsed_seconds);
+            bacnet_port_ipv4_task(elapsed_seconds);
 #elif defined(BACDL_BIP6)
-        bacnet_port_ipv6_task(elapsed_seconds);
+            bacnet_port_ipv6_task(elapsed_seconds);
 #elif defined(BACDL_MSTP)
-        bacnet_port_mstp_task(elapsed_seconds);
-#else
-        /* nothing to do */
-        (void)elapsed_seconds;
+            bacnet_port_mstp_task(elapsed_seconds);
+#elif defined(BACDL_ZIGBEE)
+            bacnet_port_bzll_task(elapsed_seconds);
 #endif
+        }
     }
 }
 
 /**
- * @brief Initialize the datalink network port
+ * @brief Initialize the datalink & network port
  */
 bool bacnet_port_init(void)
 {
     bool status = false;
     /* start the 1 second timer for non-critical cyclic tasks */
     mstimer_set(&BACnet_Task_Timer, 1000L);
+    if (BACnet_Task_Callback) {
+        /* custom callback - ignore any default initialization */
+        status = true;
+    } else {
+        /* set the default callback for the datalink */
 #if defined(BACDL_BIP)
-    status = bacnet_port_ipv4_init();
+        status = bacnet_port_ipv4_init();
 #elif defined(BACDL_BIP6)
-    status = bacnet_port_ipv6_init();
+        status = bacnet_port_ipv6_init();
 #elif defined(BACDL_MSTP)
-    status = bacnet_port_mstp_init();
+        status = bacnet_port_mstp_init();
+#elif defined(BACDL_ZIGBEE)
+        status = bacnet_port_bzll_init();
 #endif
+    }
+
     return status;
 }

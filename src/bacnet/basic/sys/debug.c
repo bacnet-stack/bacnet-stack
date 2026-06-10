@@ -22,6 +22,81 @@
 #include "bacnet/datetime.h"
 #endif
 
+/* global logging severity level */
+static int Debug_Log_Severity = DEBUG_LOG_ERROR;
+
+/**
+ * @brief Print with a printf string
+ * @param severity - the severity level of the message
+ * @param stream - file stream to print to
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note This function is only available if
+ * PRINT_ENABLED or DEBUG_ENABLED is non-zero
+ * @return number of characters printed
+ */
+int debug_log_fprintf(int severity, FILE *stream, const char *format, ...)
+{
+    int length = 0;
+#if PRINT_ENABLED || DEBUG_ENABLED
+    va_list ap;
+
+    if (DEBUG_LOG_PRIORITY(severity) <= Debug_Log_Severity) {
+        va_start(ap, format);
+        length = vfprintf(stream, format, ap);
+        va_end(ap);
+        fflush(stream);
+    }
+#else
+    (void)severity;
+    (void)stream;
+    (void)format;
+#endif
+    return length;
+}
+
+/**
+ * @brief Print with a printf string
+ * @param severity - the severity level of the message
+ * @param stream - file stream to print to
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note This function is only available if
+ * PRINT_ENABLED is non-zero
+ * @return number of characters printed
+ */
+int debug_log_fprintf_disabled(
+    int severity, FILE *stream, const char *format, ...)
+{
+    (void)severity;
+    (void)stream;
+    (void)format;
+
+    return 0;
+}
+
+/**
+ * @brief Set the debug log severity level
+ * @param severity - the severity level to set
+ */
+void debug_log_severity_set(int severity)
+{
+    if (severity < 0) {
+        Debug_Log_Severity = DEBUG_LOG_DISABLED;
+    } else {
+        Debug_Log_Severity = DEBUG_LOG_PRIORITY(severity);
+    }
+}
+
+/**
+ * @brief Get the current debug log severity level
+ * @return the current debug log severity level
+ */
+int debug_log_severity_get(void)
+{
+    return Debug_Log_Severity;
+}
+
 #if DEBUG_PRINTF_WITH_TIMESTAMP
 /**
  * @brief Print timestamp with a printf string

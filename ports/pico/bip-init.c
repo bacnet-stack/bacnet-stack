@@ -112,5 +112,7 @@ void bip_cleanup(void)
         bip_socket_cleanup();
     }
 
+    bip_set_broadcast_port(0);
+
     return;
 }

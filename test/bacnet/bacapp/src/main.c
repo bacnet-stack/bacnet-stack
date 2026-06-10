@@ -1524,6 +1524,55 @@ static void test_bacapp_sprintf_epics(void)
 }
 
 /**
+ * @brief Test bacapp_encode_data_list() produces the same bytes as calling
+ *   bacapp_encode_data() sequentially on each element.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_encode_data_list)
+#else
+static void test_bacapp_encode_data_list(void)
+#endif
+{
+    uint8_t apdu_list[64] = { 0 };
+    uint8_t apdu_seq[64] = { 0 };
+    BACNET_APPLICATION_DATA_VALUE v0 = { 0 };
+    BACNET_APPLICATION_DATA_VALUE v1 = { 0 };
+    BACNET_APPLICATION_DATA_VALUE v2 = { 0 };
+    int list_len = 0, seq_len = 0, len = 0;
+
+    /* build a 3-element linked list: NULL, BOOLEAN true, REAL 3.14 */
+    v0.tag = BACNET_APPLICATION_TAG_NULL;
+    v0.next = &v1;
+
+    v1.tag = BACNET_APPLICATION_TAG_BOOLEAN;
+    v1.type.Boolean = true;
+    v1.next = &v2;
+
+    v2.tag = BACNET_APPLICATION_TAG_REAL;
+    v2.type.Real = 3.14f;
+    v2.next = NULL;
+
+    /* encode via bacapp_encode_data_list() */
+    list_len = bacapp_encode_data_list(apdu_list, &v0);
+
+    /* encode by calling bacapp_encode_data() for each element individually */
+    len = bacapp_encode_data(&apdu_seq[seq_len], &v0);
+    seq_len += len;
+    len = bacapp_encode_data(&apdu_seq[seq_len], &v1);
+    seq_len += len;
+    len = bacapp_encode_data(&apdu_seq[seq_len], &v2);
+    seq_len += len;
+
+    zassert_equal(list_len, seq_len, NULL);
+    zassert_mem_equal(apdu_list, apdu_seq, seq_len, NULL);
+
+    /* NULL list should encode 0 bytes */
+    zassert_equal(bacapp_encode_data_list(apdu_list, NULL), 0, NULL);
+    /* NULL APDU (length-only mode) should return same length */
+    zassert_equal(bacapp_encode_data_list(NULL, &v0), list_len, NULL);
+}
+
+/**
  * @}
  */
 
@@ -1543,6 +1592,7 @@ void test_main(void)
         ztest_unit_test(testBACnetApplicationDataLength),
         ztest_unit_test(testBACnetApplicationData_Safe),
         ztest_unit_test(test_bacapp_data),
+        ztest_unit_test(test_bacapp_encode_data_list),
         ztest_unit_test(test_bacapp_sprintf_epics));
 
     ztest_run_test_suite(bacapp_tests);

@@ -29,6 +29,12 @@
 #include "bacnet/basic/server/bacnet_basic.h"
 #include "bacnet/basic/server/bacnet_port.h"
 
+#ifdef CONFIG_BACNET_BASIC_COV_SUBSCRIPTIONS_SIZE
+#define BACNET_COV_SUBSCRIPTIONS_SIZE CONFIG_BACNET_BASIC_COV_SUBSCRIPTIONS_SIZE
+#else
+#define BACNET_COV_SUBSCRIPTIONS_SIZE 0
+#endif
+
 /* 1s timer for basic non-critical timed tasks */
 static struct mstimer BACnet_Task_Timer;
 /* task timer for object functionality */
@@ -277,11 +283,15 @@ void bacnet_basic_task(void)
         BACnet_Uptime_Seconds += elapsed_seconds;
         dcc_timer_seconds(elapsed_seconds);
         datalink_maintenance_timer(elapsed_seconds);
+#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
         handler_cov_timer_seconds(elapsed_seconds);
+#endif
     }
+#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
     while (!handler_cov_fsm()) {
         /* waiting for COV processing to be IDLE */
     }
+#endif
     /* object specific cyclic tasks */
     if (mstimer_expired(&BACnet_Object_Timer)) {
         elapsed_milliseconds = mstimer_elapsed(&BACnet_Object_Timer);

@@ -41,12 +41,16 @@ static int BIP_Broadcast_Socket = -1;
 /* port to use - stored here in network byte order */
 /* Initialize to 0 - this will force initialization in demo apps */
 static uint16_t BIP_Port;
+/* broadcast destination port to use */
+static uint16_t BIP_Broadcast_Port;
 /* IP address - stored here in network byte order */
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
 static struct in_addr BIP_Broadcast_Addr;
 /* IP netmask - stored here in network byte order */
 static struct in_addr BIP_Netmask;
+/* IP gateway - stored here in network byte order */
+static struct in_addr BIP_Gateway_Addr;
 /* broadcast binding mechanism */
 static bool BIP_Broadcast_Binding_Address_Override;
 static struct in_addr BIP_Broadcast_Binding_Address;
@@ -120,11 +124,33 @@ void bip_set_port(uint16_t port)
 }
 
 /**
+ * @brief Set the BACnet IPv4 UDP broadcast destination port number
+ * @param port - IPv4 UDP port number - in host byte order
+ */
+void bip_set_broadcast_port(uint16_t port)
+{
+    BIP_Broadcast_Port = htons(port);
+}
+
+/**
  * @brief Get the BACnet IPv4 UDP port number
  * @return IPv4 UDP port number - in host byte order
  */
 uint16_t bip_get_port(void)
 {
+    return ntohs(BIP_Port);
+}
+
+/**
+ * @brief Get the BACnet IPv4 UDP broadcast destination port number
+ * @return IPv4 UDP port number - in host byte order
+ */
+uint16_t bip_get_broadcast_port(void)
+{
+    if (BIP_Broadcast_Port) {
+        return ntohs(BIP_Broadcast_Port);
+    }
+
     return ntohs(BIP_Port);
 }
 
@@ -159,11 +185,12 @@ void bip_get_my_address(BACNET_ADDRESS *addr)
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 {
     int i = 0; /* counter */
+    uint16_t port = htons(bip_get_broadcast_port());
 
     if (dest) {
         dest->mac_len = 6;
         memcpy(&dest->mac[0], &BIP_Broadcast_Addr.s_addr, 4);
-        memcpy(&dest->mac[4], &BIP_Port, 2);
+        memcpy(&dest->mac[4], &port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {
@@ -223,10 +250,29 @@ bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&addr->address[0], &BIP_Broadcast_Addr.s_addr, 4);
-        addr->port = ntohs(BIP_Port);
+        addr->port = bip_get_broadcast_port();
     }
 
     return true;
+}
+
+/**
+ * @brief Get the BACnet/IP default gateway address
+ * @param addr - network IPv4 address of the gateway
+ * @return true if a gateway address was found
+ *
+ * @note The gateway address is captured during ifname_default(),
+ * which is called from bip_init(). If bip_init() has not been
+ * called yet, the address will be zero.
+ */
+bool bip_get_gateway_addr(BACNET_IP_ADDRESS *addr)
+{
+    if (addr) {
+        memcpy(&addr->address[0], &BIP_Gateway_Addr.s_addr, 4);
+        addr->port = 0;
+    }
+
+    return (BIP_Gateway_Addr.s_addr != 0);
 }
 
 /**
@@ -725,9 +771,9 @@ static char *ifname_default(void)
         memset(rtInfo, 0, sizeof(struct route_info));
         parseRoutes(nlMsg, rtInfo);
         printRoute(rtInfo);
-        if (BIP_Interface_Name[0] == 0) {
-            if ((rtInfo->dstAddr == 0) && (rtInfo->ifName[0] != 0)) {
-                /* default route */
+        if ((rtInfo->dstAddr == 0) && (rtInfo->ifName[0] != 0)) {
+            /* default route */
+            if (BIP_Interface_Name[0] == 0) {
                 memcpy(
                     BIP_Interface_Name, rtInfo->ifName,
                     sizeof(BIP_Interface_Name));
@@ -769,6 +815,58 @@ int bip_set_broadcast_binding(const char *ip4_broadcast)
     BIP_Broadcast_Binding_Address_Override = true;
 
     return 0;
+}
+
+/**
+ * @brief Find and set the default gateway for the interface via netlink
+ * @param ifname [in] The named interface
+ */
+static void bip_set_gateway(const char *ifname)
+{
+    struct nlmsghdr *nlMsg = NULL;
+    struct route_info *rtInfo = NULL;
+    char msgBuf[8192] = { 0 };
+    int sock, len, msgSeq = 0;
+
+    if (BIP_Gateway_Addr.s_addr != 0) {
+        return;
+    }
+    if ((sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE)) < 0) {
+        perror("Socket Creation: ");
+        return;
+    }
+    nlMsg = (struct nlmsghdr *)msgBuf;
+    nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg));
+    nlMsg->nlmsg_type = RTM_GETROUTE;
+    nlMsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
+    nlMsg->nlmsg_seq = msgSeq++;
+    nlMsg->nlmsg_pid = getpid();
+
+    if (send(sock, nlMsg, nlMsg->nlmsg_len, 0) < 0) {
+        debug_fprintf(stderr, "BIP: Write To Socket Failed...\n");
+        close(sock);
+        return;
+    }
+    if ((len = readNlSock(sock, msgBuf, sizeof(msgBuf), msgSeq, getpid())) <
+        0) {
+        debug_fprintf(stderr, "BIP: Read From Socket Failed...\n");
+        close(sock);
+        return;
+    }
+
+    rtInfo = (struct route_info *)malloc(sizeof(struct route_info));
+    for (; NLMSG_OK(nlMsg, len); nlMsg = NLMSG_NEXT(nlMsg, len)) {
+        memset(rtInfo, 0, sizeof(struct route_info));
+        parseRoutes(nlMsg, rtInfo);
+        if ((rtInfo->dstAddr == 0) && (rtInfo->gateWay != 0)) {
+            if (ifname == NULL || strcmp(ifname, rtInfo->ifName) == 0) {
+                BIP_Gateway_Addr.s_addr = rtInfo->gateWay;
+                break;
+            }
+        }
+    }
+    free(rtInfo);
+    close(sock);
 }
 
 /** Gets the local IP address and local broadcast address from the system,
@@ -841,6 +939,7 @@ void bip_set_interface(const char *ifname)
             ntohs(BIP_Port));
         fflush(stderr);
     }
+    bip_set_gateway(ifname);
 }
 
 const char *bip_get_interface(void)
@@ -1007,6 +1106,8 @@ void bip_cleanup(void)
     BIP_Address.s_addr = 0;
     BIP_Broadcast_Addr.s_addr = 0;
     BIP_Netmask.s_addr = 0;
+    BIP_Gateway_Addr.s_addr = 0;
+    BIP_Broadcast_Port = 0;
 
     return;
 }

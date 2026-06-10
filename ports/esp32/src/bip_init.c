@@ -93,4 +93,6 @@ void bip_cleanup(void)
     if (bip_valid()) {
         bip_socket_cleanup();
     }
+
+    bip_set_broadcast_port(0);
 }

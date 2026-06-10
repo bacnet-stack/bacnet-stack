@@ -79,8 +79,10 @@ uint8_t Send_Alarm_Acknowledgement_Address(
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_printf_stderr("Failed to Send Alarm Ack Request "
-                                "(exceeds destination maximum APDU)!\n");
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "Failed to Send Alarm Ack Request "
+                "(exceeds destination maximum APDU)!\n");
         }
     }
 

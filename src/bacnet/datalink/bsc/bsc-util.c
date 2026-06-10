@@ -12,9 +12,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
 
-#define PRINTF debug_printf_stdout
-#define PRINTF_ERR debug_printf_stderr
-
 /**
  * @brief Map websocket return code to BACnet/SC return code
  * @param ret - websocket return code
@@ -129,7 +126,9 @@ static bool bsc_node_load_cert_bacfile(
     buf[*psize - 1] = 0;
 #endif
     if (file_length == 0) {
-        PRINTF_ERR("Can't read %s file\n", bacfile_pathname(file_instance));
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "BSC: Can't read %s file\n",
+            bacfile_pathname(file_instance));
         free(buf);
         return false;
     }
@@ -283,25 +282,30 @@ bool bsc_cert_files_check(uint32_t netport_instance)
 
     file_instance = Network_Port_Issuer_Certificate_File(netport_instance, 0);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR(
-            "Issuer Certificate file %u size=0. Path=%s\n", file_instance,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Issuer Certificate file %u size=0. Path=%s\n", file_instance,
             bacfile_pathname(file_instance));
         return false;
     }
 
     file_instance = Network_Port_Operational_Certificate_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR(
-            "Operational Certificate file %u size=0. Path=%s\n", file_instance,
-            bacfile_pathname(file_instance));
-        PRINTF_ERR("Operational Certificate file not exist\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Operational Certificate file %u size=0. Path=%s\n",
+            file_instance, bacfile_pathname(file_instance));
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Operational Certificate file not exist\n");
         return false;
     }
 
     file_instance = Network_Port_Certificate_Key_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR(
-            "Certificate Key file %u size=0. Path=%s\n", file_instance,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Certificate Key file %u size=0. Path=%s\n", file_instance,
             bacfile_pathname(file_instance));
         return false;
     }

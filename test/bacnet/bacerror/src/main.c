@@ -5,9 +5,12 @@
  * @date 2007
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacdef.h>
 #include <bacnet/bacerror.h>
+#include <bacnet/abort.h>
+#include <bacnet/reject.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -139,6 +142,84 @@ static void testBACError(void)
     zassert_equal(test_error_code, error_code, NULL);
 }
 /**
+ * @brief Test bacnet_error_encode_apdu dispatch - abort, reject, and error
+ * paths
+ *
+ * The new function bacnet_error_encode_apdu() dispatches to
+ * abort_encode_apdu(), reject_encode_apdu(), or bacerror_encode_apdu() based on
+ * the error code. Verify all three paths produce the correct PDU type byte.
+ * Note: abort_encode_apdu() and reject_encode_apdu() return 0 for NULL apdu
+ * (no length-only mode); only bacerror_encode_apdu() supports NULL apdu.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacerror_tests, testBACNetErrorEncodeAPDU)
+#else
+static void testBACNetErrorEncodeAPDU(void)
+#endif
+{
+    uint8_t apdu[480] = { 0 };
+    int len = 0;
+    int null_len = 0;
+    uint8_t invoke_id = 5;
+    BACNET_CONFIRMED_SERVICE service = SERVICE_CONFIRMED_ATOMIC_READ_FILE;
+
+    /* --- abort path --- */
+    /* ERROR_CODE_ABORT_APDU_TOO_LONG is an abort-valid error code.
+     * abort_encode_apdu() returns 0 for NULL apdu (no length-only mode). */
+    null_len = bacnet_error_encode_apdu(
+        NULL, invoke_id, service, ERROR_CODE_ABORT_APDU_TOO_LONG);
+    zassert_equal(null_len, 0, "abort null_len=%d", null_len);
+    len = bacnet_error_encode_apdu(
+        &apdu[0], invoke_id, service, ERROR_CODE_ABORT_APDU_TOO_LONG);
+    zassert_true(len > 0, "abort len=%d", len);
+    zassert_equal(apdu[0] & 0xFEU, PDU_TYPE_ABORT, "apdu[0]=0x%02x", apdu[0]);
+    zassert_equal(apdu[1], invoke_id, NULL);
+
+    /* --- reject path --- */
+    /* ERROR_CODE_REJECT_BUFFER_OVERFLOW is a reject-valid error code.
+     * reject_encode_apdu() returns 0 for NULL apdu (no length-only mode). */
+    memset(apdu, 0, sizeof(apdu));
+    null_len = bacnet_error_encode_apdu(
+        NULL, invoke_id, service, ERROR_CODE_REJECT_BUFFER_OVERFLOW);
+    zassert_equal(null_len, 0, "reject null_len=%d", null_len);
+    len = bacnet_error_encode_apdu(
+        &apdu[0], invoke_id, service, ERROR_CODE_REJECT_BUFFER_OVERFLOW);
+    zassert_true(len > 0, "reject len=%d", len);
+    zassert_equal(apdu[0], PDU_TYPE_REJECT, "apdu[0]=0x%02x", apdu[0]);
+    zassert_equal(apdu[1], invoke_id, NULL);
+
+    /* --- regular error path --- */
+    /* ERROR_CODE_UNKNOWN_OBJECT maps to a normal BACnet error.
+     * bacerror_encode_apdu() supports NULL apdu (length-only mode). */
+    memset(apdu, 0, sizeof(apdu));
+    null_len = bacnet_error_encode_apdu(
+        NULL, invoke_id, service, ERROR_CODE_UNKNOWN_OBJECT);
+    zassert_true(null_len > 0, "error null_len=%d", null_len);
+    len = bacnet_error_encode_apdu(
+        &apdu[0], invoke_id, service, ERROR_CODE_UNKNOWN_OBJECT);
+    zassert_equal(len, null_len, NULL);
+    zassert_true(len > 0, "error len=%d", len);
+    zassert_equal(apdu[0], PDU_TYPE_ERROR, "apdu[0]=0x%02x", apdu[0]);
+    zassert_equal(apdu[1], invoke_id, NULL);
+    zassert_equal(apdu[2], (uint8_t)service, NULL);
+
+    /* --- reject path from h_arf.c bounds checks --- */
+    /* ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE triggers reject */
+    memset(apdu, 0, sizeof(apdu));
+    len = bacnet_error_encode_apdu(
+        &apdu[0], invoke_id, service, ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE);
+    zassert_true(len > 0, "len=%d", len);
+    zassert_equal(apdu[0], PDU_TYPE_REJECT, "apdu[0]=0x%02x", apdu[0]);
+
+    /* --- reject path for missing required parameter --- */
+    memset(apdu, 0, sizeof(apdu));
+    len = bacnet_error_encode_apdu(
+        &apdu[0], invoke_id, service,
+        ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER);
+    zassert_true(len > 0, "len=%d", len);
+    zassert_equal(apdu[0], PDU_TYPE_REJECT, "apdu[0]=0x%02x", apdu[0]);
+}
+/**
  * @}
  */
 
@@ -147,7 +228,9 @@ ZTEST_SUITE(bacerror_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacerror_tests, ztest_unit_test(testBACError));
+    ztest_test_suite(
+        bacerror_tests, ztest_unit_test(testBACError),
+        ztest_unit_test(testBACNetErrorEncodeAPDU));
 
     ztest_run_test_suite(bacerror_tests);
 }

@@ -37,6 +37,8 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/authentication_factor.c
+    ${SRC_DIR}/bacnet/authentication_factor_format.c
     ${SRC_DIR}/bacnet/arf.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
@@ -94,6 +96,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/lighting_command.c
     ${SRC_DIR}/bacnet/basic/sys/linear.c
+    ${SRC_DIR}/bacnet/basic/sys/state_name.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bvlc6.c
     ${SRC_DIR}/bacnet/cov.c

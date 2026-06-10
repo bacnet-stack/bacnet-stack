@@ -15,10 +15,20 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/apdu.h"
+#include "bacnet/npdu.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
+int handler_atomic_read_file_encode(
+    uint8_t *apdu,
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 BACNET_STACK_EXPORT
 void handler_atomic_read_file(

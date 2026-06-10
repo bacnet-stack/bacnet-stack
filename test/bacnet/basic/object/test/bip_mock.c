@@ -10,14 +10,16 @@
 
 void bip_get_my_address(BACNET_ADDRESS *my_address)
 {
-    (void)my_address;
+    if (my_address) {
+        my_address->mac_len = 0;
+    }
 }
 
 int bip_send_pdu(
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
-    unsigned pdu_len)
+    uint16_t pdu_len)
 {
     (void)dest;
     (void)npdu_data;

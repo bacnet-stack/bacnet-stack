@@ -69,7 +69,7 @@ static bool CheckArraySize(OS_Keylist list)
 
         /* See if we got the memory we wanted */
         if (!new_array) {
-            return true;
+            return false;
         }
 
         /* copy the nodes from the old array to the new array */
@@ -159,10 +159,12 @@ static bool FindIndex(OS_Keylist list, KEY key, int *pIndex)
  * @param list  Pointer to the list
  * @param key  Key to be inserted
  * @param data  Pointer to the data hold by the key.
- *              This pointer needs to be pointing to static memory
- *              as it will be stored in the list and later used
- *              by retrieving the key again.
- * @return Index of the key, or -1 if not found.
+ *  This pointer needs to be pointing to static memory
+ *  as it will be stored in the list and later used
+ *  by retrieving the key again.
+ * @return Index of the key, or -1 if not added due to an error.
+ *  If the key already exists, a duplicate key will be added,
+ *  and the index of the new key will be returned.
  */
 int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
 {
@@ -171,9 +173,15 @@ int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
     int i; /* counts through the array */
 
     if (list && CheckArraySize(list)) {
+        node = NodeCreate();
+        if (!node) {
+            return -1;
+        }
         /* figure out where to put the new node */
         if (list->count) {
-            (void)FindIndex(list, key, &index);
+            if (FindIndex(list, key, &index)) {
+                /* found, but add a duplicate key */
+            }
             if (index < 0) {
                 /* Add to the beginning of the list */
                 index = 0;
@@ -189,16 +197,37 @@ int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
         } else {
             index = 0;
         }
-
-        /* create and add the node */
-        node = NodeCreate();
-        if (node) {
-            list->count++;
-            node->key = key;
-            node->data = data;
-            list->array[index] = node;
-        }
+        /* add the node */
+        list->count++;
+        node->key = key;
+        node->data = data;
+        list->array[index] = node;
     }
+    return index;
+}
+
+/**
+ * @brief Sets the data for an existing key.
+ * @param list  Pointer to the list
+ * @param key  Key to be set
+ * @param data  Pointer to the data hold by the key.
+ *  This pointer needs to be pointing to static memory
+ *  as it will be stored in the list and later used
+ *  by retrieving the key again.
+ * @return index into the list where the key is located,
+ *  or -1 if the key is not found in the list.
+ */
+int Keylist_Data_Set(OS_Keylist list, KEY key, void *data)
+{
+    int index = -1;
+    struct Keylist_Node *node;
+
+    if (FindIndex(list, key, &index)) {
+        /* key exists, replace data */
+        node = list->array[index];
+        node->data = data;
+    }
+
     return index;
 }
 

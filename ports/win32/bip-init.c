@@ -29,6 +29,9 @@ static bool BIP_Initialized;
 /* port to use - stored here in network byte order */
 /* Initialize to 0 - this will force initialization in demo apps */
 static uint16_t BIP_Port;
+/* broadcast destination port to use */
+/* Initialize to 0 - this will force initialization in demo apps */
+static uint16_t BIP_Broadcast_Port;
 /* IP address - stored here in network byte order */
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
@@ -36,6 +39,8 @@ static struct in_addr BIP_Broadcast_Addr;
 /* broadcast binding mechanism */
 static bool BIP_Broadcast_Binding_Address_Override;
 static struct in_addr BIP_Broadcast_Binding_Address;
+/* IP gateway - stored here in network byte order */
+static struct in_addr BIP_Gateway_Addr;
 /* enable debugging */
 static bool BIP_Debug;
 
@@ -260,11 +265,33 @@ void bip_set_port(uint16_t port)
 }
 
 /**
+ * @brief Set the BACnet IPv4 UDP broadcast destination port number
+ * @param port - IPv4 UDP port number - in host byte order
+ */
+void bip_set_broadcast_port(uint16_t port)
+{
+    BIP_Broadcast_Port = htons(port);
+}
+
+/**
  * @brief Get the BACnet IPv4 UDP port number
  * @return IPv4 UDP port number - in host byte order
  */
 uint16_t bip_get_port(void)
 {
+    return ntohs(BIP_Port);
+}
+
+/**
+ * @brief Get the BACnet IPv4 UDP broadcast destination port number
+ * @return IPv4 UDP port number - in host byte order
+ */
+uint16_t bip_get_broadcast_port(void)
+{
+    if (BIP_Broadcast_Port) {
+        return ntohs(BIP_Broadcast_Port);
+    }
+
     return ntohs(BIP_Port);
 }
 
@@ -299,11 +326,12 @@ void bip_get_my_address(BACNET_ADDRESS *addr)
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 {
     int i = 0; /* counter */
+    uint16_t port = htons(bip_get_broadcast_port());
 
     if (dest) {
         dest->mac_len = 6;
         memcpy(&dest->mac[0], &BIP_Broadcast_Addr.s_addr, 4);
-        memcpy(&dest->mac[4], &BIP_Port, 2);
+        memcpy(&dest->mac[4], &port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {
@@ -363,10 +391,25 @@ bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&addr->address[0], &BIP_Broadcast_Addr.s_addr, 4);
-        addr->port = ntohs(BIP_Port);
+        addr->port = bip_get_broadcast_port();
     }
 
     return true;
+}
+
+/**
+ * @brief Get the BACnet/IP default gateway address
+ * @param addr - network IPv4 address of the gateway
+ * @return true if a gateway address was found
+ */
+bool bip_get_gateway_addr(BACNET_IP_ADDRESS *addr)
+{
+    if (addr) {
+        memcpy(&addr->address[0], &BIP_Gateway_Addr.s_addr, 4);
+        addr->port = 0;
+    }
+
+    return (BIP_Gateway_Addr.s_addr != 0);
 }
 
 /**
@@ -673,6 +716,48 @@ static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
     return ipMask;
 }
 
+/* returns the gateway in network byte order */
+static uint32_t getIpGatewayForIpAddress(uint32_t ipAddress)
+{
+    /* Allocate information for up to 16 NICs */
+    IP_ADAPTER_INFO AdapterInfo[16];
+    /* Save memory size of buffer */
+    DWORD dwBufLen = sizeof(AdapterInfo);
+    uint32_t ipGateway = 0;
+    bool found = false;
+
+    PIP_ADAPTER_INFO pAdapterInfo;
+
+    /* GetAdapterInfo:
+       [out] buffer to receive data
+       [in] size of receive data buffer */
+    DWORD dwStatus = GetAdaptersInfo(AdapterInfo, &dwBufLen);
+    if (dwStatus == ERROR_SUCCESS) {
+        /* Verify return value is valid, no buffer overflow
+           Contains pointer to current adapter info */
+        pAdapterInfo = AdapterInfo;
+
+        do {
+            IP_ADDR_STRING *pIpAddressInfo = &pAdapterInfo->IpAddressList;
+            do {
+                unsigned long adapterAddress =
+                    inet_addr(pIpAddressInfo->IpAddress.String);
+                if (adapterAddress == ipAddress) {
+                    ipGateway =
+                        inet_addr(pAdapterInfo->GatewayList.IpAddress.String);
+                    found = true;
+                }
+                pIpAddressInfo = pIpAddressInfo->Next;
+            } while (pIpAddressInfo && !found);
+            /* Progress through linked list */
+            pAdapterInfo = pAdapterInfo->Next;
+            /* Terminate on last adapter */
+        } while (pAdapterInfo && !found);
+    }
+
+    return ipGateway;
+}
+
 /**
  * @brief Get the netmask of the BACnet/IP's interface via an ioctl() call.
  * @param netmask [out] The netmask, in host order.
@@ -759,6 +844,10 @@ void bip_set_interface(const char *ifname)
     /* setup local broadcast address */
     if (BIP_Broadcast_Addr.s_addr == 0) {
         set_broadcast_address(BIP_Address.s_addr);
+    }
+    /* setup local gateway address */
+    if (BIP_Gateway_Addr.s_addr == 0) {
+        BIP_Gateway_Addr.s_addr = getIpGatewayForIpAddress(BIP_Address.s_addr);
     }
 }
 
@@ -940,6 +1029,8 @@ void bip_cleanup(void)
     /* these were set non-zero during interface configuration */
     BIP_Address.s_addr = 0;
     BIP_Broadcast_Addr.s_addr = 0;
+    BIP_Gateway_Addr.s_addr = 0;
+    BIP_Broadcast_Port = 0;
 
     return;
 }

@@ -16,6 +16,8 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/access_rule.h"
+#include "bacnet/authentication_factor.h"
+#include "bacnet/authentication_factor_format.h"
 #include "bacnet/bacaction.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacdest.h"
@@ -186,6 +188,10 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Status;
         BACNET_SC_HUB_CONNECTION_STATUS SC_Hub_Status;
 #endif
+#if defined(BACAPP_AUTHENTICATION)
+        BACNET_AUTHENTICATION_FACTOR_FORMAT Authentication_Format;
+        BACNET_AUTHENTICATION_FACTOR Authentication_Factor;
+#endif
     } type;
     /* simple linked list if needed */
     struct BACnet_Application_Data_Value *next;
@@ -292,6 +298,10 @@ void bacapp_device_object_property_value_copy(
 BACNET_STACK_EXPORT
 int bacapp_encode_data(
     uint8_t *apdu, const BACNET_APPLICATION_DATA_VALUE *value);
+BACNET_STACK_EXPORT
+int bacapp_encode_data_list(
+    uint8_t *apdu, const BACNET_APPLICATION_DATA_VALUE *object_value);
+
 BACNET_STACK_EXPORT
 int bacapp_encode_known_property(
     uint8_t *apdu,

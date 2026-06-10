@@ -21,6 +21,8 @@ extern "C" {
 BACNET_STACK_EXPORT
 bool bacnet_port_init(void);
 BACNET_STACK_EXPORT
+void bacnet_port_task_callback_set(void (*callback)(uint16_t elapsed_seconds));
+BACNET_STACK_EXPORT
 void bacnet_port_task(void);
 
 #ifdef __cplusplus

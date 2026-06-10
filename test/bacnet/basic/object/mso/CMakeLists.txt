@@ -36,6 +36,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/mso.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/authentication_factor.c
+    ${SRC_DIR}/bacnet/authentication_factor_format.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
@@ -69,6 +71,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/state_name.c
     # Test and test library files
     ./src/main.c
     ${TST_DIR}/bacnet/basic/object/test/property_test.c

@@ -990,9 +990,6 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    if (wp_data->application_data_len == 0) {
-        return false;
-    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
@@ -1219,8 +1216,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         CurrentAV->Ack_notify_data.bSendAckNotify = false;
         /* copy toState */
         ToState = CurrentAV->Ack_notify_data.EventState;
-        debug_printf(
-            "Send Acknotification for (%s,%u).\n",
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Send Acknotification for (%s,%u).\n",
             bactext_object_type_name(Object_Type), (unsigned)object_instance);
         characterstring_init_ansi(&msgText, "AckNotification");
 
@@ -1380,7 +1377,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                     ExceededLimit = 0;
                     break;
             } /* switch (ToState) */
-            debug_printf(
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr,
                 "Event_State for (%s,%u) goes from %s to %s.\n",
                 bactext_object_type_name(Object_Type),
                 (unsigned)object_instance, bactext_event_state_name(FromState),
@@ -1495,7 +1493,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         }
 
         /* add data from notification class */
-        debug_printf(
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
             "Analog-Value[%d]: Notification Class[%d]-%s "
             "%u/%u/%u-%u:%u:%u.%u!\n",
             object_instance, event_data.notificationClass,
@@ -1512,7 +1511,9 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* Ack required */
         if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
             (event_data.ackRequired == true)) {
-            debug_printf("Analog-Value[%d]: Ack Required!\n", object_instance);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Analog-Value[%d]: Ack Required!\n",
+                object_instance);
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                 case EVENT_STATE_HIGH_LIMIT:

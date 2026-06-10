@@ -940,6 +940,10 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* decode the some of the request */
     len = bacapp_decode_known_array_property(
         wp_data->application_data, wp_data->application_data_len, &value,
@@ -1016,8 +1020,8 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Schedule_Properties_Required, Schedule_Properties_Optional,
                     Schedule_Properties_Proprietary,
                     wp_data->object_property)) {
-                debug_printf(
-                    "Schedule_Write_Property: %s\n",
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr, "Schedule_Write_Property: %s\n",
                     bactext_property_name(wp_data->object_property));
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

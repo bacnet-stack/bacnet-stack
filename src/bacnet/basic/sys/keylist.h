@@ -46,6 +46,9 @@ void Keylist_Delete(OS_Keylist list);
 /* returns the index where it was added */
 BACNET_STACK_EXPORT
 int Keylist_Data_Add(OS_Keylist list, KEY key, void *data);
+/* sets the data for an existing key */
+BACNET_STACK_EXPORT
+int Keylist_Data_Set(OS_Keylist list, KEY key, void *data);
 
 /* deletes a node specified by its key */
 BACNET_STACK_EXPORT

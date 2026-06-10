@@ -539,6 +539,10 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool bEffectiveEnable;
     int log_index;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* Pin down which log to look at */
     log_index = Trend_Log_Instance_To_Index(wp_data->object_instance);
     if (log_index >= MAX_TREND_LOGS) {
@@ -547,7 +551,6 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     CurrentLog = &LogInfo[log_index];
-
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);

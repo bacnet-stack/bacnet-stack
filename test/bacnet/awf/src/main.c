@@ -7,6 +7,7 @@
  */
 #include <zephyr/ztest.h>
 #include <bacnet/awf.h>
+#include <string.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -143,6 +144,19 @@ testAtomicWriteFileAckAccess(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
     }
 }
 
+static int
+encode_application_octet_string_with_raw_length(uint8_t *apdu, uint32_t length)
+{
+    int apdu_len = 0;
+
+    apdu_len =
+        encode_tag(apdu, BACNET_APPLICATION_TAG_OCTET_STRING, false, length);
+    memset(&apdu[apdu_len], 0xA5, length);
+    apdu_len += (int)length;
+
+    return apdu_len;
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(awf_tests, testAtomicWriteFileAck)
 #else
@@ -160,6 +174,63 @@ static void testAtomicWriteFileAck(void)
     testAtomicWriteFileAckAccess(&data);
 
     return;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(awf_tests, testAtomicWriteFileOversizedOctetString)
+#else
+static void testAtomicWriteFileOversizedOctetString(void)
+#endif
+{
+    BACNET_ATOMIC_WRITE_FILE_DATA data;
+    uint8_t apdu[2048] = { 0 };
+    uint32_t oversized_length = MAX_OCTET_STRING_BYTES + 1;
+    int apdu_len = 0;
+    int len = 0;
+
+    zassert_true((oversized_length + 24U) < sizeof(apdu), NULL);
+
+    memset(&data, 0xA5, sizeof(data));
+    apdu_len = 0;
+    len = encode_application_object_id(&apdu[apdu_len], OBJECT_FILE, 77);
+    apdu_len += len;
+    len = encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    len = encode_application_signed(&apdu[apdu_len], 321);
+    apdu_len += len;
+    len = encode_application_octet_string_with_raw_length(
+        &apdu[apdu_len], oversized_length);
+    apdu_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+
+    len = awf_decode_service_request(apdu, apdu_len, &data);
+    zassert_equal(len, apdu_len, NULL);
+    zassert_equal(data.object_type, OBJECT_FILE, NULL);
+    zassert_equal(data.object_instance, 77, NULL);
+    zassert_equal(data.access, FILE_STREAM_ACCESS, NULL);
+    zassert_equal(data.type.stream.fileStartPosition, 321, NULL);
+    zassert_equal(octetstring_length(&data.fileData[0]), 0, NULL);
+
+    apdu_len = 0;
+    len = encode_application_object_id(&apdu[apdu_len], OBJECT_FILE, 99);
+    apdu_len += len;
+    len = encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    len = encode_application_signed(&apdu[apdu_len], -42);
+    apdu_len += len;
+    len = encode_application_octet_string_with_raw_length(&apdu[apdu_len], 3);
+    apdu_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+
+    len = awf_decode_service_request(apdu, apdu_len, &data);
+    zassert_equal(len, apdu_len, NULL);
+    zassert_equal(data.object_type, OBJECT_FILE, NULL);
+    zassert_equal(data.object_instance, 99, NULL);
+    zassert_equal(data.access, FILE_STREAM_ACCESS, NULL);
+    zassert_equal(data.type.stream.fileStartPosition, -42, NULL);
+    zassert_equal(octetstring_length(&data.fileData[0]), 3, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -212,6 +283,7 @@ void test_main(void)
     ztest_test_suite(
         awf_tests, ztest_unit_test(testAtomicWriteFile),
         ztest_unit_test(testAtomicWriteFileAck),
+        ztest_unit_test(testAtomicWriteFileOversizedOctetString),
         ztest_unit_test(testAtomicWriteFileMalformed));
 
     ztest_run_test_suite(awf_tests);

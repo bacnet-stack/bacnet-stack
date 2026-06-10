@@ -9,6 +9,7 @@ SRC = main.c \
 	$(BACNET_SERVER_DIR)/bacnet_basic.c \
 	$(BACNET_SERVER_DIR)/bacnet_device.c \
 	$(BACNET_SERVER_DIR)/bacnet_port.c \
+	$(BACNET_SERVER_DIR)/bacnet_port_bzll.c \
 	$(BACNET_SERVER_DIR)/bacnet_port_ipv4.c \
 	$(BACNET_SERVER_DIR)/bacnet_port_ipv6.c \
 	$(BACNET_SERVER_DIR)/bacnet_port_mstp.c \

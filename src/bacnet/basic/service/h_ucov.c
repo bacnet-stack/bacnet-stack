@@ -76,29 +76,38 @@ void handler_ucov_data_print(BACNET_COV_DATA *cov_data)
 {
     BACNET_PROPERTY_VALUE *pProperty_value = NULL;
 
-    debug_printf_stderr("UCOV: PID=%u ", cov_data->subscriberProcessIdentifier);
-    debug_printf_stderr("instance=%u ", cov_data->initiatingDeviceIdentifier);
-    debug_printf_stderr(
-        "%s %u ",
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "UCOV: PID=%u ",
+        cov_data->subscriberProcessIdentifier);
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "instance=%u ",
+        cov_data->initiatingDeviceIdentifier);
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "%s %u ",
         bactext_object_type_name(cov_data->monitoredObjectIdentifier.type),
         cov_data->monitoredObjectIdentifier.instance);
-    debug_printf_stderr("time remaining=%u seconds ", cov_data->timeRemaining);
-    debug_printf_stderr("\n");
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "time remaining=%u seconds ",
+        cov_data->timeRemaining);
+    debug_log_fprintf(DEBUG_LOG_DEBUG, stderr, "\n");
     pProperty_value = cov_data->listOfValues;
     while (pProperty_value) {
-        debug_printf_stderr("UCOV: ");
+        debug_log_fprintf(DEBUG_LOG_DEBUG, stderr, "UCOV: ");
         if (pProperty_value->propertyIdentifier < 512) {
-            debug_printf_stderr(
-                "%s ",
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "%s ",
                 bactext_property_name(pProperty_value->propertyIdentifier));
         } else {
-            debug_printf_stderr(
-                "proprietary %u ", pProperty_value->propertyIdentifier);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "proprietary %u ",
+                pProperty_value->propertyIdentifier);
         }
         if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
-            debug_printf_stderr("%u ", pProperty_value->propertyArrayIndex);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "%u ",
+                pProperty_value->propertyArrayIndex);
         }
-        debug_printf_stderr("\n");
+        debug_log_fprintf(DEBUG_LOG_DEBUG, stderr, "\n");
         pProperty_value = pProperty_value->next;
     }
 }

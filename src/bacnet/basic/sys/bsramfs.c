@@ -104,6 +104,8 @@ size_t bacfile_sramfs_file_size(const char *pathname)
  * @brief Reads stream data from a file
  * @param pathname - name of the file to read from
  * @param fileStartPosition - starting position in the file
+ *  If the 'File Start Position' parameter less than 0
+ *  or exceeds the actual file size, then an error is returned.
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
  * @return number of bytes read, or 0 if not successful
@@ -117,8 +119,16 @@ size_t bacfile_sramfs_read_stream_data(
     struct bacnet_file_sramfs_data *pFile;
     size_t len = 0;
 
+    if (fileStartPosition < 0) {
+        /* invalid file start position */
+        return 0;
+    }
     pFile = bacfile_sramfs_open(pathname);
     if (pFile) {
+        if (fileStartPosition > pFile->size) {
+            /* invalid file start position */
+            return 0;
+        }
         if (fileStartPosition + fileDataLen > pFile->size) {
             /* read only up to the end of the file */
             len = pFile->size - fileStartPosition;
@@ -162,6 +172,8 @@ static char *record_by_index(char *records, size_t index)
  * @brief Reads record data from a file
  * @param pathname - name of the file to read from
  * @param fileStartRecord - starting record in the file
+ *  If the 'File Start Record' parameter is either less than 0
+ *  or exceeds the actual file size, then an error is returned.
  * @param fileIndexRecord - index of the record to read
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
@@ -180,6 +192,9 @@ bool bacfile_sramfs_read_record_data(
     char *record;
     size_t record_len;
 
+    if (fileStartRecord < 0) {
+        return false; /* invalid file start record */
+    }
     pFile = bacfile_sramfs_open(pathname);
     if (pFile) {
         fileSeekRecord = fileStartRecord + fileIndexRecord;

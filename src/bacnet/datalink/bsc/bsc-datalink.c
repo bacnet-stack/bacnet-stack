@@ -22,12 +22,11 @@
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/basic/object/bacfile.h"
 
-#define PRINTF debug_printf_stderr
 #undef DEBUG_PRINTF
 #if DEBUG_BSC_DATALINK
-#define DEBUG_PRINTF debug_printf
+#define BACNET_LOG debug_log_fprintf
 #else
-#define DEBUG_PRINTF debug_printf_disabled
+#define BACNET_LOG debug_log_fprintf_disabled
 #endif
 
 #define BSC_NEXT_POWER_OF_TWO1(v) \
@@ -75,7 +74,7 @@ static void bsc_node_event(
     size_t pdu_len)
 {
     uint16_t pdu16_len;
-    DEBUG_PRINTF("bsc_node_event() >>> ev = %d\n", ev);
+    BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_node_event() >>> ev = %d\n", ev);
     bws_dispatch_lock();
     (void)node;
     (void)dest;
@@ -92,16 +91,15 @@ static void bsc_node_event(
                 FIFO_Add(&bsc_fifo, (uint8_t *)&pdu16_len, sizeof(pdu16_len));
                 FIFO_Add(&bsc_fifo, pdu, pdu16_len);
                 bsc_event_signal(bsc_data_event);
+            } else {
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr, "pdu of size %d\n is dropped\n",
+                    pdu_len);
             }
-#if DEBUG_ENABLED
-            else {
-                PRINTF("pdu of size %d\n is dropped\n", pdu_len);
-            }
-#endif
         }
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_node_event() <<<\n");
+    BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_node_event() <<<\n");
 }
 
 /**
@@ -129,7 +127,7 @@ bool bsc_init(char *ifname)
 {
     BSC_SC_RET r;
     bool ret = false;
-    DEBUG_PRINTF("bsc_init() >>>\n");
+    BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_init() >>>\n");
 
     (void)ifname;
 
@@ -137,7 +135,8 @@ bool bsc_init(char *ifname)
 
     if (bsc_datalink_state != BSC_DATALINK_STATE_IDLE) {
         bws_dispatch_unlock();
-        PRINTF("bsc_init() <<< ret = %d\n", ret);
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "bsc_init() <<< ret = %d\n", ret);
         return ret;
     }
 
@@ -147,11 +146,13 @@ bool bsc_init(char *ifname)
     if (!bsc_event || !bsc_data_event) {
         bsc_deinit_resources();
         bws_dispatch_unlock();
-        PRINTF("bsc_init() <<< ret = %d\n", false);
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "bsc_init() <<< ret = %d\n", false);
         return false;
     }
 
-    DEBUG_PRINTF(
+    BACNET_LOG(
+        DEBUG_LOG_DEBUG, stderr,
         "bsc_init() BACNET/SC datalink configured to use input fifo "
         "of size %d\n",
         sizeof(bsc_fifo_buf));
@@ -162,8 +163,10 @@ bool bsc_init(char *ifname)
     if (!ret) {
         bsc_deinit_resources();
         bws_dispatch_unlock();
-        PRINTF("bsc_init() <<< configuration of BACNET/SC datalink "
-               "failed, ret = false\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "bsc_init() <<< configuration of BACNET/SC datalink "
+            "failed, ret = false\n");
         return ret;
     }
 
@@ -177,7 +180,8 @@ bool bsc_init(char *ifname)
             bws_dispatch_lock();
             bsc_datalink_state = BSC_DATALINK_STATE_STARTED;
             bws_dispatch_unlock();
-            DEBUG_PRINTF("bsc_init() <<< ret = %d\n", true);
+            BACNET_LOG(
+                DEBUG_LOG_DEBUG, stderr, "bsc_init() <<< ret = %d\n", true);
             return true;
         }
     }
@@ -185,7 +189,8 @@ bool bsc_init(char *ifname)
     bsc_node_conf_cleanup(&bsc_conf);
     bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
     bws_dispatch_unlock();
-    PRINTF("bsc_init() <<< ret = %d\n", false);
+    debug_log_fprintf(
+        DEBUG_LOG_ERROR, stderr, "bsc_init() <<< ret = %d\n", false);
     return false;
 }
 
@@ -195,7 +200,7 @@ bool bsc_init(char *ifname)
  */
 void bsc_cleanup(void)
 {
-    DEBUG_PRINTF("bsc_cleanup() >>>\n");
+    BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_cleanup() >>>\n");
     bws_dispatch_lock();
     if (bsc_datalink_state != BSC_DATALINK_STATE_IDLE &&
         bsc_datalink_state != BSC_DATALINK_STATE_STOPPING) {
@@ -220,7 +225,7 @@ void bsc_cleanup(void)
         }
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_cleanup() <<<\n");
+    BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_cleanup() <<<\n");
 }
 
 /**
@@ -256,7 +261,9 @@ int bsc_send_pdu(
             memcpy(&dest_vmac.address[0], &dest->mac[0], BVLC_SC_VMAC_SIZE);
         } else {
             bws_dispatch_unlock();
-            PRINTF("bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
             return len;
         }
         len = (int)bvlc_sc_encode_encapsulated_npdu(
@@ -268,14 +275,15 @@ int bsc_send_pdu(
 
         if (ret != BSC_SC_SUCCESS) {
             len = -1;
-            PRINTF(
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
                 "bsc_send_pdu(): bsc_node_send() returned %s\n",
                 bsc_return_code_to_string(ret));
         }
     }
 
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_send_pdu() <<< ret = %d\n", len);
+    BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_send_pdu() <<< ret = %d\n", len);
     return len;
 }
 
@@ -325,18 +333,22 @@ uint16_t bsc_receive(
 
         if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED &&
             FIFO_Count(&bsc_fifo) > sizeof(npdu16_len)) {
-            DEBUG_PRINTF("bsc_receive() processing data...\n");
+            BACNET_LOG(
+                DEBUG_LOG_DEBUG, stderr, "bsc_receive() processing data...\n");
             FIFO_Pull(&bsc_fifo, (uint8_t *)&npdu16_len, sizeof(npdu16_len));
 
             if (sizeof(buf) < npdu16_len) {
-                PRINTF("bsc_receive() pdu of size %d is dropped\n", npdu16_len);
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr,
+                    "bsc_receive() pdu of size %d is dropped\n", npdu16_len);
                 bsc_remove_packet(npdu16_len);
             } else {
                 FIFO_Pull(&bsc_fifo, buf, npdu16_len);
                 if (!bvlc_sc_decode_message(
                         buf, npdu16_len, &dm, &error_code, &error_class,
                         &err_desc)) {
-                    PRINTF(
+                    debug_log_fprintf(
+                        DEBUG_LOG_ERROR, stderr,
                         "bsc_receive() pdu of size %d is dropped because "
                         "of err = %d, class %d, desc = %s\n",
                         npdu16_len, error_code, error_class, err_desc);
@@ -356,7 +368,8 @@ uint16_t bsc_receive(
                     }
 #if DEBUG_ENABLED
                     else {
-                        PRINTF(
+                        debug_log_fprintf(
+                            DEBUG_LOG_ERROR, stderr,
                             "bsc_receive() pdu of size %d is dropped "
                             "because origin addr is absent or output "
                             "buf of size %d is to small\n",
@@ -365,7 +378,9 @@ uint16_t bsc_receive(
 #endif
                 }
             }
-            DEBUG_PRINTF("bsc_receive() pdu_len = %d\n", pdu_len);
+            BACNET_LOG(
+                DEBUG_LOG_DEBUG, stderr, "bsc_receive() pdu_len = %d\n",
+                pdu_len);
         }
     }
     bws_dispatch_unlock();
@@ -454,7 +469,8 @@ BSC_SC_RET
 bsc_connect_direct(BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
-    DEBUG_PRINTF(
+    BACNET_LOG(
+        DEBUG_LOG_DEBUG, stderr,
         "bsc_connect_direct() >>> dest = %p, urls = %p, urls_cnt = %d\n", dest,
         urls, urls_cnt);
     bws_dispatch_lock();
@@ -462,7 +478,7 @@ bsc_connect_direct(BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
         ret = bsc_node_connect_direct(bsc_node, dest, urls, urls_cnt);
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_connect_direct() ret = %d\n", ret);
+    BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_connect_direct() ret = %d\n", ret);
     return ret;
 }
 
@@ -607,7 +623,8 @@ static void bsc_update_failed_requests(void)
         for (i = 0; i < cnt; i++) {
             if (r[i].Peer_Address.host[0] != 0) {
 #if DEBUG_ENABLED
-                DEBUG_PRINTF(
+                BACNET_LOG(
+                    DEBUG_LOG_DEBUG, stderr,
                     "failed request record %d, host %s, vmac %s, uuid "
                     "%s, error %d, details = %s\n",
                     i, r[i].Peer_Address.host,

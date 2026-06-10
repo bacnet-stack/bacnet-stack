@@ -204,7 +204,7 @@ int wp_decode_service_request(
         return BACNET_STATUS_ERROR;
     }
     if (wpdata) {
-        wpdata->error_code = ERROR_CODE_OTHER;
+        wpdata->error_code = ERROR_CODE_SUCCESS;
         wpdata->array_index = BACNET_ARRAY_ALL;
         wpdata->priority = BACNET_MAX_PRIORITY;
         wpdata->application_data_len = 0;

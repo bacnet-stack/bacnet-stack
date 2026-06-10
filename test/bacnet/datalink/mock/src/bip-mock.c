@@ -80,12 +80,22 @@ void bip_set_port(uint16_t port)
     ztest_check_expected_value(port);
 }
 
+void bip_set_broadcast_port(uint16_t port)
+{
+    ztest_check_expected_value(port);
+}
+
 bool bip_port_changed(void)
 {
     return ztest_get_return_value();
 }
 
 uint16_t bip_get_port(void)
+{
+    return ztest_get_return_value();
+}
+
+uint16_t bip_get_broadcast_port(void)
 {
     return ztest_get_return_value();
 }

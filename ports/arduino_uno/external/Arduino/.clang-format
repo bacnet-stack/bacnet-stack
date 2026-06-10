@@ -1,5 +1,0 @@
----
-DisableFormat: true
-
-# DisableFormat will not disable include sorting with some versions.
-SortIncludes: Never

@@ -30,6 +30,11 @@ int bacapp_encode_context_authentication_factor_format(
     uint8_t *apdu,
     uint8_t tag_number,
     const BACNET_AUTHENTICATION_FACTOR_FORMAT *aff);
+BACNET_STACK_EXPORT
+int bacnet_authentication_factor_format_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *value);
 
 BACNET_STACK_EXPORT
 int bacnet_authentication_factor_format_decode(
@@ -54,6 +59,11 @@ int bacapp_decode_context_authentication_factor_format(
     const uint8_t *apdu,
     uint8_t tag_number,
     BACNET_AUTHENTICATION_FACTOR_FORMAT *aff);
+
+BACNET_STACK_EXPORT
+bool bacnet_authentication_factor_format_same(
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *data1,
+    const BACNET_AUTHENTICATION_FACTOR_FORMAT *data2);
 
 #ifdef __cplusplus
 }

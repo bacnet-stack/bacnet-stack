@@ -9,6 +9,8 @@
 # b) commit changes into master branch
 # After running this script, be sure to:
 # c) create long term branch as bacnet-stack-x.y if needed
+# d) push tags and branch to github
+# e) mirror github to sourceforge using mirror.sh script
 
 USERNAME='skarg'
 
