@@ -179,7 +179,8 @@ static void hub_connector_connect_primary_from_failover(BSC_HUB_CONNECTOR *hc)
     ret = bsc_connect(
         &hc->ctx, &hc->sock[BSC_HUB_CONN_PRIMARY], (char *)hc->primary_url);
     if (ret == BSC_SC_SUCCESS) {
-        hc->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY_FROM_FAILOVER;
+        /* Keep overall state as CONNECTED_FAILOVER while primary connects */
+        mstimer_set(&hc->t, (hc->cfg.connect_timeout_s + 1U) * 1000U);
     } else {
         hub_connector_schedule_primary_retry(hc);
     }
@@ -321,8 +322,7 @@ static void hub_connector_socket_event(
                 NULL);
         } else if (
             sock_type == BSC_HUB_CONN_PRIMARY &&
-            hc->state ==
-                BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY_FROM_FAILOVER) {
+            hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
             DEBUG_PRINTF(
                 "hub_connector_socket_event() hub_connector = %p "
                 "restored primary while failover active\n",
@@ -416,6 +416,10 @@ static void hub_connector_socket_event(
                         &hc->failover_status,
                         BACNET_SC_CONNECTION_STATE_NOT_CONNECTED,
                         ERROR_CODE_DEFAULT, NULL);
+                }
+                if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER &&
+                    sock_type == BSC_HUB_CONN_PRIMARY) {
+                    hub_connector_schedule_primary_retry(hc);
                 }
                 bws_dispatch_unlock();
                 DEBUG_PRINTF("hub_connector_socket_event() <<<\n");
