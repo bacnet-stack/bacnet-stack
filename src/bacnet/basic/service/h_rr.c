@@ -149,6 +149,7 @@ void handler_read_range(
                 ABORT_REASON_OTHER, true);
             debug_print("RR: Bad Encoding.  Sending Abort!\n");
         } else if (readrange_request_valid(&data)) {
+            /* assume that there is an error */
             error = true;
             data.application_data = &Temp_Buf[0];
             data.application_data_len = sizeof(Temp_Buf);
