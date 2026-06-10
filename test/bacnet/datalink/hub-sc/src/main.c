@@ -1980,12 +1980,6 @@ static void test_hub_connector_reconnect(void)
         wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_FAILOVER, hubc_h), true,
         0);
 
-    bsc_hub_function_stop(hubf_h2);
-    zassert_equal(
-        wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h2), true, 0);
-
-    wait_sec(BACNET_TIMEOUT);
-
     ret = bsc_hub_function_start(
         ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
         sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
@@ -1997,8 +1991,13 @@ static void test_hub_connector_reconnect(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
 
+    /* primary restore should be retried while failover remains connected */
     zassert_equal(
         wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true, 0);
+
+    bsc_hub_function_stop(hubf_h2);
+    zassert_equal(
+        wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h2), true, 0);
 
     bsc_hub_connector_stop(hubc_h);
     zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
