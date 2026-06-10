@@ -962,19 +962,21 @@ int readrange_ack_by_sequence_encode(
  * reject.
  *
  * @param pRequest Pointer to the BACNET_READ_RANGE_DATA request to validate.
- * @return int Returns -3 if a required parameter is missing, otherwise returns
- * 0.
+ * @return true if the request is valid
  */
-int validate_rr_request(BACNET_READ_RANGE_DATA *pRequest)
+bool readrange_request_valid(BACNET_READ_RANGE_DATA *pRequest)
 {
     if ((pRequest->Count == INT32_MAX) &&
         (pRequest->RequestType != RR_READ_ALL)) {
-        return (-3); /* Reject - missing required parameter - Count */
+        /* Reject - missing required parameter - Count */
+        return false;
     } else if (
         (pRequest->Range.RefIndex == UINT32_MAX) &&
         ((pRequest->RequestType == RR_BY_POSITION) ||
          (pRequest->RequestType == RR_BY_SEQUENCE))) {
-        return (-3); /* Reject - missing required parameter- Reference index */
+        /* Reject - missing required parameter- Reference index */
+        return false;
     }
-    return 0;
+
+    return true;
 }
