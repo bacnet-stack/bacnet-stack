@@ -7,10 +7,19 @@
  * {
  *   "bacnet": {
  *     "device_instance":..., "device_name":..., "vendor_id":...,
- *     "datalink_type": "mstp"|"bip"|"bip6"|"ethernet",
+ *     "datalink_type": "mstp"|"bip"|"bip6"|"ethernet"|"bsc",
  *     "iface": "/dev/ttyUSB0" or "eth0",
  *     "mstp_baud":..., "mstp_mac":..., "mstp_max_master":..., "mstp_net":...,
- *     "bip_port":...
+ *     "bip_port":...,
+ *     "sc": {
+ *       "primary_hub_uri":..., "failover_hub_uri":...,
+ *       "issuer_1_certificate_file":..., "issuer_2_certificate_file":...,
+ *       "operational_certificate_file":...,
+ *       "operational_certificate_private_key_file":...,
+ *       "direct_connect_binding":..., "hub_function_binding":...,
+ *       "direct_connect_initiate": true|false,
+ *       "direct_connect_accept_urls":...
+ *     }
  *   },
  *   "modbus": { "port":..., "baud":..., "poll_interval_sec":... },
  *   "points": [
@@ -226,6 +235,7 @@ bool point_table_load_json(
     cJSON *root = NULL;
     cJSON *sec = NULL;
     cJSON *points_arr = NULL;
+    cJSON *sc = NULL;
     cJSON *item = NULL;
     cJSON *j = NULL;
     int idx = 0;
@@ -331,6 +341,87 @@ bool point_table_load_json(
         if (cJSON_IsNumber(j)) {
             cfg->vendor_id = (uint16_t)j->valuedouble;
         }
+
+        sc = cJSON_GetObjectItem(sec, "sc");
+        if (cJSON_IsObject(sc)) {
+            j = cJSON_GetObjectItem(sc, "primary_hub_uri");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.primary_hub_uri, j->valuestring,
+                    sizeof(cfg->sc.primary_hub_uri) - 1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "failover_hub_uri");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.failover_hub_uri, j->valuestring,
+                    sizeof(cfg->sc.failover_hub_uri) - 1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "issuer_1_certificate_file");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.issuer_1_certificate_file, j->valuestring,
+                    sizeof(cfg->sc.issuer_1_certificate_file) - 1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "issuer_2_certificate_file");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.issuer_2_certificate_file, j->valuestring,
+                    sizeof(cfg->sc.issuer_2_certificate_file) - 1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "operational_certificate_file");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.operational_certificate_file, j->valuestring,
+                    sizeof(cfg->sc.operational_certificate_file) - 1);
+            }
+
+            j = cJSON_GetObjectItem(
+                sc, "operational_certificate_private_key_file");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.operational_certificate_private_key_file,
+                    j->valuestring,
+                    sizeof(cfg->sc.operational_certificate_private_key_file) -
+                        1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "direct_connect_binding");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.direct_connect_binding, j->valuestring,
+                    sizeof(cfg->sc.direct_connect_binding) - 1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "hub_function_binding");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.hub_function_binding, j->valuestring,
+                    sizeof(cfg->sc.hub_function_binding) - 1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "direct_connect_accept_urls");
+            if (cJSON_IsString(j)) {
+                strncpy(
+                    cfg->sc.direct_connect_accept_urls, j->valuestring,
+                    sizeof(cfg->sc.direct_connect_accept_urls) - 1);
+            }
+
+            j = cJSON_GetObjectItem(sc, "direct_connect_initiate");
+            if (cJSON_IsBool(j)) {
+                cfg->sc.direct_connect_initiate = cJSON_IsTrue(j);
+                cfg->sc.direct_connect_initiate_present = true;
+            } else if (cJSON_IsString(j)) {
+                cfg->sc.direct_connect_initiate =
+                    (j->valuestring[0] == '1' || j->valuestring[0] == 'y' ||
+                     j->valuestring[0] == 'Y' || j->valuestring[0] == 't' ||
+                     j->valuestring[0] == 'T');
+                cfg->sc.direct_connect_initiate_present = true;
+            }
+        }
     }
 
     /* ── modbus section ── */
@@ -362,8 +453,6 @@ bool point_table_load_json(
 
     cJSON_ArrayForEach(item, points_arr)
     {
-        GW_POINT *p;
-
         if (idx >= GW_MAX_POINTS) {
             fprintf(
                 stderr, "[PT] Max points (%d) reached, remaining ignored\n",
@@ -381,7 +470,8 @@ bool point_table_load_json(
             continue;
         }
 
-        p = &table->points[idx];
+        GW_POINT *p = &table->points[idx];
+
         j = cJSON_GetObjectItem(item, "name");
         if (cJSON_IsString(j)) {
             strncpy(p->name, j->valuestring, sizeof(p->name) - 1);

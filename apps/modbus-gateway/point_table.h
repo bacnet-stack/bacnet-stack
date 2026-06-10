@@ -32,7 +32,7 @@ typedef enum {
     GW_BACNET_TYPE_AI = 0, /**< Analog Input  */
     GW_BACNET_TYPE_AO, /**< Analog Output */
     GW_BACNET_TYPE_BI, /**< Binary Input  */
-    GW_BACNET_TYPE_BO /**< Binary Output */
+    GW_BACNET_TYPE_BO, /**< Binary Output */
 } GW_BACNET_TYPE;
 
 /** Modbus function codes */
@@ -40,7 +40,7 @@ typedef enum {
     GW_MODBUS_FUNC_COIL = 0x01, /**< FC01 Read Coils */
     GW_MODBUS_FUNC_DISCRETE_INPUT = 0x02, /**< FC02 Read Discrete Inputs */
     GW_MODBUS_FUNC_HOLDING_REG = 0x03, /**< FC03 Read Holding Registers */
-    GW_MODBUS_FUNC_INPUT_REG = 0x04 /**< FC04 Read Input Registers */
+    GW_MODBUS_FUNC_INPUT_REG = 0x04, /**< FC04 Read Input Registers */
 } GW_MODBUS_FUNC;
 
 /* -----------------------------------------------------------------------
@@ -91,8 +91,23 @@ typedef struct {
     char device_name[64];
     uint16_t vendor_id;
 
+    struct {
+        char primary_hub_uri[256];
+        char failover_hub_uri[256];
+        char issuer_1_certificate_file[256];
+        char issuer_2_certificate_file[256];
+        char operational_certificate_file[256];
+        char operational_certificate_private_key_file[256];
+        char direct_connect_binding[128];
+        char hub_function_binding[128];
+        char direct_connect_accept_urls[512];
+        bool direct_connect_initiate;
+        bool direct_connect_initiate_present;
+    } sc;
+
     /* ── BACnet datalink ── */
-    char datalink_type[32]; /**< "mstp", "bip", "bip6", "ethernet", etc. */
+    char datalink_type[32]; /**< "mstp", "bip", "bip6", "ethernet", "bsc", etc.
+                             */
     char bacnet_iface[64]; /**< network interface or serial port */
 
     /* MS/TP specific (used when datalink_type == "mstp") */
