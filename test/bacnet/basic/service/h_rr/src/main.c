@@ -32,8 +32,6 @@ extern bool Device_RR_Info_Should_Return_Handler;
 extern int Stub_RR_Handler(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest);
 extern bool
 Stub_RR_Info_Function(BACNET_READ_RANGE_DATA *pRequest, RR_PROP_INFO *pInfo);
-/* Handler_Transmit_Buffer is defined in tsm.h */
-extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 /**
  * @brief Build a minimal BACNET_CONFIRMED_SERVICE_DATA for use as the
@@ -99,7 +97,6 @@ static void testHandlerRR_EmptyRequest(void)
 {
     BACNET_ADDRESS src = { 0 };
     BACNET_CONFIRMED_SERVICE_DATA service_data;
-    BACNET_NPDU_DATA npdu_data = { 0 };
     uint8_t pdu_type;
 
     make_service_data(&service_data, 1, false);
