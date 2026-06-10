@@ -208,6 +208,99 @@ static void test_BRAMFS_records(void)
 }
 
 /**
+ * @brief Unit Test for invalid file start positions in stream access
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_invalid_stream_positions)
+#else
+static void test_BRAMFS_invalid_stream_positions(void)
+#endif
+{
+    const char *pathname = "testfile_invalid.txt";
+    uint8_t file_data[] = { "ABCDEFGHIJ" };
+    uint8_t read_buf[32] = { 0 };
+    size_t len = 0;
+
+    bacfile_ramfs_init();
+
+    /* write initial data starting at position 0 */
+    len = bacfile_ramfs_write_stream_data(
+        pathname, 0, file_data, sizeof(file_data));
+    zassert_equal(
+        len, sizeof(file_data), "Initial write should succeed, len=%zu", len);
+
+    /* read with negative file start position must return 0 */
+    len = bacfile_ramfs_read_stream_data(
+        pathname, -1, read_buf, sizeof(read_buf));
+    zassert_equal(
+        len, 0, "Read with fileStartPosition=-1 must return 0, got %zu", len);
+
+    len = bacfile_ramfs_read_stream_data(
+        pathname, -100, read_buf, sizeof(read_buf));
+    zassert_equal(
+        len, 0, "Read with fileStartPosition=-100 must return 0, got %zu", len);
+
+    /* read with start position exceeding file size must return 0 */
+    len = bacfile_ramfs_read_stream_data(
+        pathname, (int32_t)sizeof(file_data) + 1, read_buf, sizeof(read_buf));
+    zassert_equal(
+        len, 0,
+        "Read with fileStartPosition beyond file size must return 0, got %zu",
+        len);
+
+    /* write with an invalid position (not -1, 0, or >0) must return 0 */
+    len = bacfile_ramfs_write_stream_data(
+        pathname, -2, file_data, sizeof(file_data));
+    zassert_equal(
+        len, 0, "Write with fileStartPosition=-2 must return 0, got %zu", len);
+
+    bacfile_ramfs_deinit();
+}
+
+/**
+ * @brief Unit Test for invalid file start records in record access
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_invalid_record_positions)
+#else
+static void test_BRAMFS_invalid_record_positions(void)
+#endif
+{
+    const char *pathname = "testfile_rec_invalid.txt";
+    char record_1[] = { "First record." };
+    uint8_t read_buf[MAX_OCTET_STRING_BYTES] = { 0 };
+    size_t record_len = 0;
+    bool status = false;
+
+    bacfile_ramfs_init();
+
+    /* write first record so file is non-empty */
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_write_record_data(
+        pathname, 0, 0, (const uint8_t *)record_1, record_len);
+    zassert_true(status, "Initial write_record should succeed");
+
+    /* write_record with fileStartRecord < -1 must return false */
+    status = bacfile_ramfs_write_record_data(
+        pathname, -2, 0, (const uint8_t *)record_1, record_len);
+    zassert_false(
+        status, "write_record_data with fileStartRecord=-2 must return false");
+
+    /* read_record with negative fileStartRecord must return false */
+    status = bacfile_ramfs_read_record_data(
+        pathname, -1, 0, read_buf, sizeof(read_buf));
+    zassert_false(
+        status, "read_record_data with fileStartRecord=-1 must return false");
+
+    status = bacfile_ramfs_read_record_data(
+        pathname, -2, 0, read_buf, sizeof(read_buf));
+    zassert_false(
+        status, "read_record_data with fileStartRecord=-2 must return false");
+
+    bacfile_ramfs_deinit();
+}
+
+/**
  * @}
  */
 
@@ -218,7 +311,9 @@ void test_main(void)
 {
     ztest_test_suite(
         bramfs_tests, ztest_unit_test(test_BRAMFS_stream),
-        ztest_unit_test(test_BRAMFS_records));
+        ztest_unit_test(test_BRAMFS_records),
+        ztest_unit_test(test_BRAMFS_invalid_stream_positions),
+        ztest_unit_test(test_BRAMFS_invalid_record_positions));
 
     ztest_run_test_suite(bramfs_tests);
 }

@@ -405,22 +405,27 @@ static void bsc_node_parse_urls(
                  .utf8_websocket_uri_string_len;
          i++) {
         if (url[i] == 0x20) {
-            if (i > BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK ||
+            if ((i - start) >
+                    BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK ||
                 (i - start) == 0) {
                 start = i + 1;
                 continue;
-            } else {
+            } else if (
+                j < BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK) {
                 memcpy(&r->utf8_urls[j][0], &url[start], i - start);
-                r->utf8_urls[j][i] = 0;
+                r->utf8_urls[j][i - start] = 0;
                 j++;
                 start = i + 1;
+            } else {
+                break;
             }
         }
     }
     if (i - start > 0 &&
-        i <= BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK) {
+        (i - start) <= BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK &&
+        j < BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK) {
         memcpy(&r->utf8_urls[j][0], &url[start], i - start);
-        r->utf8_urls[j][i] = 0;
+        r->utf8_urls[j][i - start] = 0;
         j++;
     }
     r->urls_num = j;
@@ -1521,3 +1526,18 @@ bsc_node_find_hub_status_for_vmac(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 
     return &node->hub_status[index];
 }
+
+#if defined(CONFIG_ZTEST)
+/**
+ * @brief Test-only shim exposing the static bsc_node_parse_urls() for
+ *        unit tests compiled with CONFIG_ZTEST.
+ * @param r - pointer to the address resolution output struct
+ * @param decoded_pdu - pointer to a decoded BVLC-SC message whose
+ *        payload.address_resolution_ack fields have been populated
+ */
+void bsc_node_test_parse_urls(
+    BSC_ADDRESS_RESOLUTION *r, BVLC_SC_DECODED_MESSAGE *decoded_pdu)
+{
+    bsc_node_parse_urls(r, decoded_pdu);
+}
+#endif /* CONFIG_ZTEST */

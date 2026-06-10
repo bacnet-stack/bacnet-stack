@@ -15,7 +15,6 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bactext.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
@@ -27,7 +26,7 @@
 #include "bacnet/version.h"
 #include "bacnet/whois.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacnet/basic/client/bac-discover.h"
+#include "bacnet/basic/client/bac-rw.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
@@ -36,6 +35,7 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/property.h"
 /* Used ImageMagick: convert BACnet-Icon.svg bacnet-icon.xpm */
 #include "bacnet-icon.xpm"
 
@@ -44,6 +44,8 @@ static GtkWidget *main_window;
 static GtkWidget *device_tree_view;
 static GtkWidget *object_tree_view;
 static GtkWidget *property_tree_view;
+static GtkWidget *object_progress_label;
+static GtkWidget *property_progress_label;
 static GtkListStore *device_store;
 static GtkListStore *object_store;
 static GtkListStore *property_store;
@@ -62,8 +64,9 @@ static guint bacnet_timeout_id = 0;
 /* Tree store columns */
 enum {
     DEVICE_COL_ID,
-    DEVICE_COL_NAME,
-    DEVICE_COL_MODEL,
+    DEVICE_COL_VENDOR_ID,
+    DEVICE_COL_MAX_APDU,
+    DEVICE_COL_SEGMENTATION,
     DEVICE_COL_ADDRESS,
     DEVICE_NUM_COLS
 };
@@ -89,6 +92,92 @@ enum {
     PROPERTY_NUM_COLS
 };
 
+typedef struct {
+    uint32_t property_id;
+    uint32_t array_index;
+    uint8_t value_tag;
+    char *value_string;
+} PROPERTY_ENTRY;
+
+typedef enum {
+    PROP_ACQ_PHASE_RPM = 0, /* try ReadPropertyMultiple PROP_ALL first */
+    PROP_ACQ_PHASE_PROP_LIST_SIZE, /* read PROP_PROPERTY_LIST[0] for count */
+    PROP_ACQ_PHASE_PROP_LIST_ITEMS, /* read PROP_PROPERTY_LIST[1..N] */
+    PROP_ACQ_PHASE_VALUES, /* read values from collected prop_list_ids */
+    PROP_ACQ_PHASE_FALLBACK /* use property_list_special_count fallback */
+} PROP_ACQ_PHASE;
+
+typedef struct {
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    bool properties_requested;
+    bool properties_busy;
+    uint32_t property_index_count;
+    uint32_t property_index_next;
+    GPtrArray *properties;
+    PROP_ACQ_PHASE prop_acq_phase;
+    uint32_t prop_list_count;
+    GArray *prop_list_ids;
+} OBJECT_ENTRY;
+
+typedef struct {
+    uint32_t device_id;
+    unsigned max_apdu;
+    int segmentation;
+    uint16_t vendor_id;
+    bool address_valid;
+    BACNET_ADDRESS address;
+    bool object_list_requested;
+    bool object_list_busy;
+    uint32_t object_list_count;
+    uint32_t object_list_next_index;
+    GPtrArray *objects;
+} DEVICE_ENTRY;
+
+static GPtrArray *Device_Cache;
+static uint32_t Selected_Device_ID = BACNET_MAX_INSTANCE;
+static bool Selected_Object_Valid = false;
+static BACNET_OBJECT_TYPE Selected_Object_Type;
+static uint32_t Selected_Object_Instance;
+static bool Object_Selection_Suspend;
+static GQueue *Pending_Writes;
+static gint64 Progress_Interrupt_Expires_Us;
+static gint64 Object_List_Complete_Expires_Us;
+static uint32_t Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
+
+#define ABSTRACT_WRITE_POOL_COUNT 8
+#define PROGRESS_INTERRUPT_NOTE_MS 1200
+#define OBJECT_LIST_COMPLETE_NOTE_MS 1000
+typedef struct {
+    bool in_use;
+    uint16_t length;
+    uint8_t data[MAX_APDU];
+} ABSTRACT_WRITE_BUFFER;
+static ABSTRACT_WRITE_BUFFER Abstract_Write_Pool[ABSTRACT_WRITE_POOL_COUNT];
+
+typedef struct {
+    uint32_t device_id;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_PROPERTY_ID object_property;
+    uint32_t array_index;
+} PENDING_WRITE;
+
+static void refresh_property_tree_view(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance);
+static bool queue_next_object_list_index(DEVICE_ENTRY *device);
+static bool
+queue_next_object_property_request(DEVICE_ENTRY *device, OBJECT_ENTRY *object);
+static void continue_object_property_enumeration(
+    DEVICE_ENTRY *device,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance);
+static void update_object_progress_indicator(void);
+static void update_property_progress_indicator(void);
+static void interrupt_discovery_requests(void);
+
 /**
  * @brief function to use c-stack RAM to create a string within function scope
  * @param PTR - a pointer to a local character pointer
@@ -104,7 +193,7 @@ enum {
 /**
  * @brief Make a string from the MAC address
  * @param str - Buffer to hold the string representation
- * @param str_len -
+ * @param str_len - length of the string buffer
  * @param addr - MAC address to convert to a string
  * @param len - length of the MAC address
  * @return number of bytes in the string
@@ -132,7 +221,7 @@ bacapp_snprintf_macaddr(char *str, size_t str_len, const uint8_t *addr, int len)
 /**
  * @brief Make a string from the BACnet address
  * @param str - Buffer to hold the string representation
- * @param str_len -
+ * @param str_len - length of the string buffer
  * @param address - BACnet address to convert to a string
  * @return number of bytes in the string
  */
@@ -163,61 +252,1098 @@ bacapp_snprintf_address(char *str, size_t str_len, BACNET_ADDRESS *address)
     return ret_val;
 }
 
-/**
- * @brief Add a discovered device to the GUI
- * @param device_id - BACnet Device Instance number
- * @param address - BACnet Address of the Device
- * @param device_model - BACnet Device Model
- * @param device_name - BACnet Device Name
- */
-static void add_discovered_device_to_gui(
+static void property_entry_free(gpointer data)
+{
+    PROPERTY_ENTRY *entry = data;
+
+    if (!entry) {
+        return;
+    }
+    g_free(entry->value_string);
+    g_free(entry);
+}
+
+static void pending_write_free(gpointer data)
+{
+    g_free(data);
+}
+
+static void object_entry_free(gpointer data)
+{
+    OBJECT_ENTRY *entry = data;
+
+    if (!entry) {
+        return;
+    }
+    g_ptr_array_free(entry->properties, true);
+    if (entry->prop_list_ids) {
+        g_array_free(entry->prop_list_ids, true);
+    }
+    g_free(entry);
+}
+
+static void device_entry_free(gpointer data)
+{
+    DEVICE_ENTRY *entry = data;
+
+    if (!entry) {
+        return;
+    }
+    g_ptr_array_free(entry->objects, true);
+    g_free(entry);
+}
+
+static DEVICE_ENTRY *device_cache_find(uint32_t device_id)
+{
+    DEVICE_ENTRY *device = NULL;
+    guint i = 0;
+
+    if (!Device_Cache) {
+        return NULL;
+    }
+    for (i = 0; i < Device_Cache->len; i++) {
+        device = g_ptr_array_index(Device_Cache, i);
+        if (device->device_id == device_id) {
+            return device;
+        }
+    }
+
+    return NULL;
+}
+
+static OBJECT_ENTRY *device_object_find(
+    DEVICE_ENTRY *device,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    OBJECT_ENTRY *object = NULL;
+    guint i = 0;
+
+    if (!device) {
+        return NULL;
+    }
+    for (i = 0; i < device->objects->len; i++) {
+        object = g_ptr_array_index(device->objects, i);
+        if ((object->object_type == object_type) &&
+            (object->object_instance == object_instance)) {
+            return object;
+        }
+    }
+
+    return NULL;
+}
+
+static PROPERTY_ENTRY *object_property_find(
+    OBJECT_ENTRY *object, uint32_t property_id, uint32_t array_index)
+{
+    PROPERTY_ENTRY *property = NULL;
+    guint i = 0;
+
+    if (!object) {
+        return NULL;
+    }
+    for (i = 0; i < object->properties->len; i++) {
+        property = g_ptr_array_index(object->properties, i);
+        if ((property->property_id == property_id) &&
+            (property->array_index == array_index)) {
+            return property;
+        }
+    }
+
+    return NULL;
+}
+
+static DEVICE_ENTRY *device_cache_get_or_add(uint32_t device_id)
+{
+    DEVICE_ENTRY *device = NULL;
+
+    device = device_cache_find(device_id);
+    if (device) {
+        return device;
+    }
+    device = g_new0(DEVICE_ENTRY, 1);
+    device->device_id = device_id;
+    device->objects = g_ptr_array_new_with_free_func(object_entry_free);
+    g_ptr_array_add(Device_Cache, device);
+
+    return device;
+}
+
+static OBJECT_ENTRY *device_object_get_or_add(
+    DEVICE_ENTRY *device,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    OBJECT_ENTRY *object = NULL;
+
+    if (!device) {
+        return NULL;
+    }
+    object = device_object_find(device, object_type, object_instance);
+    if (object) {
+        return object;
+    }
+    object = g_new0(OBJECT_ENTRY, 1);
+    object->object_type = object_type;
+    object->object_instance = object_instance;
+    object->properties = g_ptr_array_new_with_free_func(property_entry_free);
+    g_ptr_array_add(device->objects, object);
+
+    return object;
+}
+
+static void object_property_upsert(
+    OBJECT_ENTRY *object,
+    uint32_t property_id,
+    uint32_t array_index,
+    uint8_t value_tag,
+    char *value_string)
+{
+    PROPERTY_ENTRY *property = NULL;
+
+    if (!object) {
+        g_free(value_string);
+        return;
+    }
+    property = object_property_find(object, property_id, array_index);
+    if (!property) {
+        property = g_new0(PROPERTY_ENTRY, 1);
+        property->property_id = property_id;
+        property->array_index = array_index;
+        g_ptr_array_add(object->properties, property);
+    }
+    property->value_tag = value_tag;
+    g_free(property->value_string);
+    property->value_string = value_string;
+}
+
+static void pending_write_add(
     uint32_t device_id,
-    BACNET_ADDRESS *address,
-    const char *device_model,
-    const char *device_name)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint32_t array_index)
+{
+    PENDING_WRITE *pending = g_new0(PENDING_WRITE, 1);
+
+    pending->device_id = device_id;
+    pending->object_type = object_type;
+    pending->object_instance = object_instance;
+    pending->object_property = object_property;
+    pending->array_index = array_index;
+    g_queue_push_tail(Pending_Writes, pending);
+}
+
+static PENDING_WRITE *pending_write_pop_match(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint32_t array_index,
+    bool strict_match)
+{
+    GList *item = NULL;
+    PENDING_WRITE *pending = NULL;
+
+    if (!Pending_Writes) {
+        return NULL;
+    }
+    for (item = g_queue_peek_head_link(Pending_Writes); item;
+         item = item->next) {
+        pending = item->data;
+        if (pending->device_id != device_id) {
+            continue;
+        }
+        if (strict_match &&
+            ((pending->object_type != object_type) ||
+             (pending->object_instance != object_instance) ||
+             (pending->object_property != object_property) ||
+             (pending->array_index != array_index))) {
+            continue;
+        }
+        g_queue_delete_link(Pending_Writes, item);
+        return pending;
+    }
+
+    return NULL;
+}
+
+static bool pending_write_has_match(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint32_t array_index)
+{
+    GList *item = NULL;
+    PENDING_WRITE *pending = NULL;
+
+    if (!Pending_Writes) {
+        return false;
+    }
+    for (item = g_queue_peek_head_link(Pending_Writes); item;
+         item = item->next) {
+        pending = item->data;
+        if ((pending->device_id == device_id) &&
+            (pending->object_type == object_type) &&
+            (pending->object_instance == object_instance) &&
+            (pending->object_property == object_property) &&
+            (pending->array_index == array_index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static void property_name_text(
+    uint32_t property_id, uint32_t array_index, char *name, size_t name_size)
+{
+    const char *base_name = NULL;
+
+    if (bactext_property_name_proprietary(property_id)) {
+        bacapp_snprintf(
+            name, name_size, "proprietary-%lu", (unsigned long)property_id);
+        if (array_index != BACNET_ARRAY_ALL) {
+            bacapp_snprintf(
+                name, name_size, "proprietary-%lu[%lu]",
+                (unsigned long)property_id, (unsigned long)array_index);
+        }
+    } else {
+        base_name = bactext_property_name(property_id);
+        if (array_index != BACNET_ARRAY_ALL) {
+            bacapp_snprintf(
+                name, name_size, "%s[%lu]", base_name,
+                (unsigned long)array_index);
+        } else {
+            bacapp_snprintf(name, name_size, "%s", base_name);
+        }
+    }
+}
+
+static void abstract_write_pool_release_all(void)
+{
+    unsigned i = 0;
+
+    for (i = 0; i < ABSTRACT_WRITE_POOL_COUNT; i++) {
+        Abstract_Write_Pool[i].in_use = false;
+        Abstract_Write_Pool[i].length = 0;
+    }
+}
+
+static ABSTRACT_WRITE_BUFFER *abstract_write_pool_acquire(void)
+{
+    unsigned i = 0;
+
+    for (i = 0; i < ABSTRACT_WRITE_POOL_COUNT; i++) {
+        if (!Abstract_Write_Pool[i].in_use) {
+            Abstract_Write_Pool[i].in_use = true;
+            Abstract_Write_Pool[i].length = 0;
+            return &Abstract_Write_Pool[i];
+        }
+    }
+
+    return NULL;
+}
+
+static bool queue_write_property_value(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    uint8_t priority,
+    uint32_t array_index)
+{
+    ABSTRACT_WRITE_BUFFER *buffer = NULL;
+    int apdu_len = 0;
+
+    if (!value) {
+        return false;
+    }
+    switch (value->tag) {
+        case BACNET_APPLICATION_TAG_NULL:
+            return bacnet_write_property_null_queue(
+                device_id, object_type, object_instance, object_property,
+                priority, array_index);
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            return bacnet_write_property_boolean_queue(
+                device_id, object_type, object_instance, object_property,
+                value->type.Boolean, priority, array_index);
+        case BACNET_APPLICATION_TAG_REAL:
+            return bacnet_write_property_real_queue(
+                device_id, object_type, object_instance, object_property,
+                value->type.Real, priority, array_index);
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            return bacnet_write_property_unsigned_queue(
+                device_id, object_type, object_instance, object_property,
+                value->type.Unsigned_Int, priority, array_index);
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            return bacnet_write_property_signed_queue(
+                device_id, object_type, object_instance, object_property,
+                value->type.Signed_Int, priority, array_index);
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            return bacnet_write_property_enumerated_queue(
+                device_id, object_type, object_instance, object_property,
+                value->type.Enumerated, priority, array_index);
+        default:
+            buffer = abstract_write_pool_acquire();
+            if (!buffer) {
+                return false;
+            }
+            apdu_len = bacapp_encode_application_data(buffer->data, value);
+            if ((apdu_len <= 0) || (apdu_len > (int)sizeof(buffer->data))) {
+                buffer->in_use = false;
+                return false;
+            }
+            buffer->length = (uint16_t)apdu_len;
+            if (!bacnet_write_property_abstract_syntax_queue(
+                    device_id, object_type, object_instance, object_property,
+                    buffer->data, buffer->length, priority, array_index)) {
+                buffer->in_use = false;
+                return false;
+            }
+            return true;
+    }
+}
+
+static const char *object_name_text(OBJECT_ENTRY *object)
+{
+    PROPERTY_ENTRY *property = NULL;
+
+    property = object_property_find(object, PROP_OBJECT_NAME, BACNET_ARRAY_ALL);
+    if (!property) {
+        property = object_property_find(object, PROP_OBJECT_NAME, 0);
+    }
+
+    return (property && property->value_string) ? property->value_string : "-";
+}
+
+static char *property_value_to_string(
+    BACNET_READ_PROPERTY_DATA *rp_data, BACNET_APPLICATION_DATA_VALUE *value)
+{
+    BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
+    int str_len = 0;
+    char *str = NULL;
+
+    if (!rp_data || !value) {
+        return g_strdup("-");
+    }
+    object_value.object_type = rp_data->object_type;
+    object_value.object_instance = rp_data->object_instance;
+    object_value.object_property = rp_data->object_property;
+    object_value.array_index = rp_data->array_index;
+    object_value.value = value;
+    str_len = bacapp_snprintf_value(NULL, 0, &object_value);
+    if (str_len <= 0) {
+        return g_strdup("-");
+    }
+    str = g_malloc((size_t)str_len + 1);
+    bacapp_snprintf_value(str, (size_t)str_len + 1, &object_value);
+
+    return str;
+}
+
+static void refresh_device_tree_view(void)
 {
     GtkTreeIter iter;
-    char address_str[64] = "MAC-Address";
+    DEVICE_ENTRY *device = NULL;
+    guint i = 0;
+    char address_str[64] = "-";
 
-    /* Fill device structure */
-    /* Create address string */
-    if (address) {
-        bacapp_snprintf_address(address_str, sizeof(address_str), address);
+    gtk_list_store_clear(device_store);
+    for (i = 0; i < Device_Cache->len; i++) {
+        device = g_ptr_array_index(Device_Cache, i);
+        if (device->address_valid) {
+            bacapp_snprintf_address(
+                address_str, sizeof(address_str), &device->address);
+        } else {
+            bacapp_snprintf(address_str, sizeof(address_str), "-");
+        }
+        gtk_list_store_append(device_store, &iter);
+        gtk_list_store_set(
+            device_store, &iter, DEVICE_COL_ID, device->device_id,
+            DEVICE_COL_VENDOR_ID, device->vendor_id, DEVICE_COL_MAX_APDU,
+            device->max_apdu, DEVICE_COL_SEGMENTATION,
+            bactext_segmentation_name((uint32_t)device->segmentation),
+            DEVICE_COL_ADDRESS, address_str, -1);
     }
-    printf("%lu|%s|%s\n", (unsigned long)device_id, device_name, address_str);
-    /* Add to GUI */
-    gtk_list_store_append(device_store, &iter);
-    gtk_list_store_set(
-        device_store, &iter, DEVICE_COL_ID, device_id, DEVICE_COL_NAME,
-        device_name, DEVICE_COL_MODEL, device_model, DEVICE_COL_ADDRESS,
-        address_str, -1);
+}
+
+static void refresh_object_tree_view(uint32_t device_id)
+{
+    GtkTreeIter iter;
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+    guint i = 0;
+
+    Object_Selection_Suspend = true;
+    gtk_list_store_clear(object_store);
+    device = device_cache_find(device_id);
+    if (!device) {
+        Object_Selection_Suspend = false;
+        return;
+    }
+    for (i = 0; i < device->objects->len; i++) {
+        object = g_ptr_array_index(device->objects, i);
+        gtk_list_store_append(object_store, &iter);
+        gtk_list_store_set(
+            object_store, &iter, OBJECT_COL_TYPE, object->object_type,
+            OBJECT_COL_TYPE_NAME, bactext_object_type_name(object->object_type),
+            OBJECT_COL_DEVICE_ID, device_id, OBJECT_COL_OBJECT_ID,
+            object->object_instance, OBJECT_COL_NAME, object_name_text(object),
+            -1);
+    }
+    Object_Selection_Suspend = false;
+}
+
+static void refresh_property_tree_view(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    GtkTreeIter iter;
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+    PROPERTY_ENTRY *property = NULL;
+    guint i = 0;
+    char property_name[64] = { 0 };
+
+    gtk_list_store_clear(property_store);
+    device = device_cache_find(device_id);
+    if (!device) {
+        return;
+    }
+    object = device_object_find(device, object_type, object_instance);
+    if (!object) {
+        return;
+    }
+    for (i = 0; i < object->properties->len; i++) {
+        property = g_ptr_array_index(object->properties, i);
+        property_name_text(
+            property->property_id, property->array_index, property_name,
+            sizeof(property_name));
+        gtk_list_store_append(property_store, &iter);
+        gtk_list_store_set(
+            property_store, &iter, PROPERTY_COL_DEVICE_ID, device_id,
+            PROPERTY_COL_OBJECT_TYPE, object_type, PROPERTY_COL_OBJECT_ID,
+            object_instance, PROPERTY_COL_ID, property->property_id,
+            PROPERTY_COL_ARRAY_INDEX, property->array_index,
+            PROPERTY_COL_VALUE_TAG, property->value_tag, PROPERTY_COL_NAME,
+            property_name, PROPERTY_COL_VALUE,
+            property->value_string ? property->value_string : "-", -1);
+    }
+}
+
+static void queue_device_object_list(DEVICE_ENTRY *device)
+{
+    if (!device || device->object_list_requested) {
+        return;
+    }
+    if (bacnet_read_property_queue(
+            device->device_id, OBJECT_DEVICE, device->device_id,
+            PROP_OBJECT_LIST, 0)) {
+        device->object_list_requested = true;
+        device->object_list_busy = true;
+        device->object_list_count = 0;
+        device->object_list_next_index = 0;
+    }
+}
+
+static bool queue_next_object_list_index(DEVICE_ENTRY *device)
+{
+    if (!device || !device->object_list_requested) {
+        if (device) {
+            device->object_list_busy = false;
+        }
+        return false;
+    }
+    if ((device->object_list_next_index == 0) ||
+        (device->object_list_next_index > device->object_list_count)) {
+        Object_List_Complete_Device_ID = device->device_id;
+        Object_List_Complete_Expires_Us = g_get_monotonic_time() +
+            ((gint64)OBJECT_LIST_COMPLETE_NOTE_MS * 1000);
+        device->object_list_requested = false;
+        device->object_list_busy = false;
+        device->object_list_next_index = 0;
+        return false;
+    }
+    if (bacnet_read_property_queue(
+            device->device_id, OBJECT_DEVICE, device->device_id,
+            PROP_OBJECT_LIST, device->object_list_next_index)) {
+        device->object_list_next_index++;
+        device->object_list_busy = true;
+        return true;
+    }
+
+    device->object_list_busy = false;
+
+    return false;
+}
+
+static void update_object_progress_indicator(void)
+{
+    DEVICE_ENTRY *device = NULL;
+    uint32_t completed = 0;
+    char progress_text[64] = { 0 };
+    gint64 now_us = g_get_monotonic_time();
+
+    if (!object_progress_label) {
+        return;
+    }
+    if ((Selected_Device_ID == Object_List_Complete_Device_ID) &&
+        (now_us < Object_List_Complete_Expires_Us)) {
+        gtk_label_set_text(
+            GTK_LABEL(object_progress_label), "Object list complete");
+        gtk_widget_show(object_progress_label);
+        return;
+    }
+    if (Selected_Device_ID >= BACNET_MAX_INSTANCE) {
+        gtk_widget_hide(object_progress_label);
+        return;
+    }
+    device = device_cache_find(Selected_Device_ID);
+    if (!device || !device->object_list_requested) {
+        gtk_widget_hide(object_progress_label);
+        return;
+    }
+    if (device->object_list_count == 0) {
+        gtk_label_set_text(
+            GTK_LABEL(object_progress_label), "Reading objects...");
+        gtk_widget_show(object_progress_label);
+        return;
+    }
+    completed = device->object_list_next_index;
+    if (device->object_list_busy && (completed > 0)) {
+        completed--;
+    }
+    if (completed > device->object_list_count) {
+        completed = device->object_list_count;
+    }
+    bacapp_snprintf(
+        progress_text, sizeof(progress_text), "Reading objects... %lu/%lu",
+        (unsigned long)completed, (unsigned long)device->object_list_count);
+    gtk_label_set_text(GTK_LABEL(object_progress_label), progress_text);
+    gtk_widget_show(object_progress_label);
+}
+
+static void
+queue_object_all_properties(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
+{
+    if (!device || !object || object->properties_requested) {
+        return;
+    }
+    /* Reset acquisition state and try RPM PROP_ALL first */
+    object->prop_acq_phase = PROP_ACQ_PHASE_RPM;
+    object->property_index_count = 0;
+    object->property_index_next = 0;
+    object->prop_list_count = 0;
+    if (object->prop_list_ids) {
+        g_array_free(object->prop_list_ids, true);
+        object->prop_list_ids = NULL;
+    }
+    object->properties_requested = true;
+    /* bac-rw sends RPM when object_property == PROP_ALL */
+    if (bacnet_read_property_queue(
+            device->device_id, object->object_type, object->object_instance,
+            PROP_ALL, BACNET_ARRAY_ALL)) {
+        object->properties_busy = true;
+    }
+}
+
+static bool
+queue_next_object_property_request(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
+{
+    BACNET_PROPERTY_ID property = UINT32_MAX;
+    uint32_t item_index = 0;
+    bool retry = false;
+
+    if (!device || !object || !object->properties_requested) {
+        if (object) {
+            object->properties_busy = false;
+        }
+        return false;
+    }
+    do {
+        retry = false;
+        switch (object->prop_acq_phase) {
+            case PROP_ACQ_PHASE_RPM:
+                /* RPM was already queued; nothing more to issue individually */
+                object->properties_requested = false;
+                object->properties_busy = false;
+                return false;
+
+            case PROP_ACQ_PHASE_PROP_LIST_SIZE:
+                /* PROP_PROPERTY_LIST[0] was already queued; wait */
+                object->properties_busy = false;
+                return false;
+
+            case PROP_ACQ_PHASE_PROP_LIST_ITEMS:
+                if (object->property_index_next > object->prop_list_count) {
+                    /* all IDs collected; advance to VALUES phase */
+                    object->prop_acq_phase = PROP_ACQ_PHASE_VALUES;
+                    object->property_index_next = 0;
+                    object->property_index_count =
+                        object->prop_list_ids ? object->prop_list_ids->len : 0;
+                    retry = true;
+                    break;
+                }
+                item_index = object->property_index_next;
+                object->property_index_next++;
+                if (bacnet_read_property_queue(
+                        device->device_id, object->object_type,
+                        object->object_instance, PROP_PROPERTY_LIST,
+                        item_index)) {
+                    object->properties_busy = true;
+                    return true;
+                }
+                /* queue full/busy - restore and retry next cycle */
+                object->property_index_next = item_index;
+                object->properties_busy = false;
+                return false;
+
+            case PROP_ACQ_PHASE_VALUES:
+                while (object->property_index_next <
+                       object->property_index_count) {
+                    property = g_array_index(
+                        object->prop_list_ids, guint32,
+                        object->property_index_next);
+                    object->property_index_next++;
+                    if ((property == PROP_OBJECT_IDENTIFIER) ||
+                        (property == PROP_OBJECT_TYPE) ||
+                        (property == PROP_OBJECT_LIST)) {
+                        continue;
+                    }
+                    if (bacnet_read_property_queue(
+                            device->device_id, object->object_type,
+                            object->object_instance, property,
+                            BACNET_ARRAY_ALL)) {
+                        object->properties_busy = true;
+                        return true;
+                    }
+                    object->property_index_next--;
+                    object->properties_busy = false;
+                    return false;
+                }
+                object->properties_requested = false;
+                object->properties_busy = false;
+                return false;
+
+            case PROP_ACQ_PHASE_FALLBACK:
+            default:
+                while (object->property_index_next <
+                       object->property_index_count) {
+                    property = property_list_special_property(
+                        object->object_type, PROP_ALL,
+                        object->property_index_next);
+                    object->property_index_next++;
+                    if (property == UINT32_MAX) {
+                        continue;
+                    }
+                    if ((property == PROP_OBJECT_IDENTIFIER) ||
+                        (property == PROP_OBJECT_TYPE) ||
+                        (property == PROP_OBJECT_LIST)) {
+                        continue;
+                    }
+                    if (bacnet_read_property_queue(
+                            device->device_id, object->object_type,
+                            object->object_instance, property,
+                            BACNET_ARRAY_ALL)) {
+                        object->properties_busy = true;
+                        return true;
+                    }
+                    object->property_index_next--;
+                    object->properties_busy = false;
+                    return false;
+                }
+                object->properties_requested = false;
+                object->properties_busy = false;
+                return false;
+        }
+    } while (retry);
+
+    return false;
+}
+
+static void continue_object_property_enumeration(
+    DEVICE_ENTRY *device,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    OBJECT_ENTRY *object = NULL;
+
+    if (!device) {
+        return;
+    }
+    object = device_object_find(device, object_type, object_instance);
+    if (!object) {
+        return;
+    }
+    if (!object->properties_requested) {
+        if (object->property_index_next < object->property_index_count) {
+            /* recover if state was interrupted but there is still work queued
+             */
+            object->properties_requested = true;
+        } else {
+            object->properties_busy = false;
+            update_property_progress_indicator();
+            return;
+        }
+    }
+    if (!object->properties_requested) {
+        return;
+    }
+    object->properties_busy = false;
+    (void)queue_next_object_property_request(device, object);
+    update_property_progress_indicator();
+}
+
+static void update_property_progress_indicator(void)
+{
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+    uint32_t completed = 0;
+    char progress_text[64] = { 0 };
+    gint64 now_us = g_get_monotonic_time();
+
+    if (!property_progress_label) {
+        return;
+    }
+    if (now_us < Progress_Interrupt_Expires_Us) {
+        gtk_label_set_text(
+            GTK_LABEL(property_progress_label), "Canceled previous read");
+        gtk_widget_show(property_progress_label);
+        return;
+    }
+    if (!Selected_Object_Valid) {
+        gtk_widget_hide(property_progress_label);
+        return;
+    }
+    device = device_cache_find(Selected_Device_ID);
+    object = device_object_find(
+        device, Selected_Object_Type, Selected_Object_Instance);
+    if (!object || !object->properties_requested) {
+        gtk_widget_hide(property_progress_label);
+        return;
+    }
+    if (object->prop_acq_phase == PROP_ACQ_PHASE_RPM) {
+        gtk_label_set_text(
+            GTK_LABEL(property_progress_label), "Reading all properties...");
+        gtk_widget_show(property_progress_label);
+        return;
+    }
+    if (object->property_index_count == 0) {
+        gtk_widget_hide(property_progress_label);
+        return;
+    }
+    completed = object->property_index_next;
+    if (object->properties_busy && (completed > 0)) {
+        completed--;
+    }
+    if (completed > object->property_index_count) {
+        completed = object->property_index_count;
+    }
+    bacapp_snprintf(
+        progress_text, sizeof(progress_text), "Reading properties... %lu/%lu",
+        (unsigned long)completed, (unsigned long)object->property_index_count);
+    gtk_label_set_text(GTK_LABEL(property_progress_label), progress_text);
+    gtk_widget_show(property_progress_label);
 }
 
 /**
- * @brief Add discovered objects for a device to the GUI
- * @param device_id - Device which contains objects
+ * @brief Advance property acquisition to the PROP_PROPERTY_LIST size phase.
+ *  Queues ReadProperty for PROP_PROPERTY_LIST[0] to learn the property count.
+ * @param device - device entry
+ * @param object - object entry
  */
-static void add_discovered_objects_to_gui(uint32_t device_id)
+static void
+advance_to_prop_list_size(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
 {
-    GtkTreeIter iter;
-    unsigned int object_index = 0;
-    unsigned int object_count = 0;
-    BACNET_OBJECT_ID object_id = { 0 };
-    char object_name[MAX_CHARACTER_STRING_BYTES] = { 0 };
+    object->prop_acq_phase = PROP_ACQ_PHASE_PROP_LIST_SIZE;
+    object->property_index_count = 0;
+    object->property_index_next = 0;
+    object->prop_list_count = 0;
+    if (bacnet_read_property_queue(
+            device->device_id, object->object_type, object->object_instance,
+            PROP_PROPERTY_LIST, 0)) {
+        object->properties_busy = true;
+    } else {
+        object->properties_busy = false;
+    }
+    update_property_progress_indicator();
+}
 
-    object_count = bacnet_discover_device_object_count(device_id);
-    for (object_index = 0; object_index < object_count; object_index++) {
-        if (bacnet_discover_device_object_identifier(
-                device_id, object_index, &object_id)) {
-            gtk_list_store_append(object_store, &iter);
-            bacnet_discover_property_name(
-                device_id, object_id.type, object_id.instance, PROP_OBJECT_NAME,
-                object_name, sizeof(object_name), "");
-            gtk_list_store_set(
-                object_store, &iter, OBJECT_COL_TYPE, object_id.type,
-                OBJECT_COL_TYPE_NAME, bactext_object_type_name(object_id.type),
-                OBJECT_COL_DEVICE_ID, device_id, OBJECT_COL_OBJECT_ID,
-                object_id.instance, OBJECT_COL_NAME, object_name, -1);
+/**
+ * @brief Advance property acquisition to the static fallback phase.
+ *  Uses property_list_special_count to enumerate expected properties.
+ * @param device - device entry
+ * @param object - object entry
+ */
+static void advance_to_fallback(DEVICE_ENTRY *device, OBJECT_ENTRY *object)
+{
+    object->prop_acq_phase = PROP_ACQ_PHASE_FALLBACK;
+    object->property_index_count =
+        property_list_special_count(object->object_type, PROP_ALL);
+    object->property_index_next = 0;
+    object->properties_busy = false;
+    (void)queue_next_object_property_request(device, object);
+    update_property_progress_indicator();
+}
+
+static void interrupt_discovery_requests(void)
+{
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+    guint d = 0;
+    guint o = 0;
+    bool interrupted = false;
+
+    for (d = 0; d < Device_Cache->len; d++) {
+        device = g_ptr_array_index(Device_Cache, d);
+        if (device->object_list_requested) {
+            interrupted = true;
+        }
+        device->object_list_requested = false;
+        device->object_list_busy = false;
+        device->object_list_count = 0;
+        device->object_list_next_index = 0;
+        for (o = 0; o < device->objects->len; o++) {
+            object = g_ptr_array_index(device->objects, o);
+            if (object->properties_requested || object->properties_busy) {
+                interrupted = true;
+            }
+            object->properties_requested = false;
+            object->properties_busy = false;
+            object->property_index_count = 0;
+            object->property_index_next = 0;
+        }
+    }
+    if (interrupted) {
+        Progress_Interrupt_Expires_Us = g_get_monotonic_time() +
+            ((gint64)PROGRESS_INTERRUPT_NOTE_MS * 1000);
+    }
+    Object_List_Complete_Expires_Us = 0;
+    Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
+}
+
+static void bacnet_read_write_device_callback(
+    uint32_t device_instance,
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id)
+{
+    DEVICE_ENTRY *device = NULL;
+    unsigned int bound_max_apdu = 0;
+
+    device = device_cache_get_or_add(device_instance);
+    device->max_apdu = max_apdu;
+    device->segmentation = segmentation;
+    device->vendor_id = vendor_id;
+    device->address_valid = address_get_by_device(
+        device_instance, &bound_max_apdu, &device->address);
+    refresh_device_tree_view();
+}
+
+static void bacnet_read_write_success_callback(uint32_t device_instance)
+{
+    PENDING_WRITE *pending = NULL;
+
+    printf(
+        "WriteProperty success: device=%lu\n", (unsigned long)device_instance);
+    pending = pending_write_pop_match(device_instance, 0, 0, 0, 0, false);
+    if (!pending) {
+        return;
+    }
+    /* queue a re-read so the displayed value refreshes after write */
+    if (bacnet_read_property_queue(
+            pending->device_id, pending->object_type, pending->object_instance,
+            pending->object_property, pending->array_index)) {
+        /* re-add as stale-filter marker so the read response is accepted */
+        pending_write_add(
+            pending->device_id, pending->object_type, pending->object_instance,
+            pending->object_property, pending->array_index);
+    }
+    pending_write_free(pending);
+}
+
+static void bacnet_read_write_value_callback(
+    uint32_t device_instance,
+    BACNET_READ_PROPERTY_DATA *rp_data,
+    BACNET_APPLICATION_DATA_VALUE *value)
+{
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+    char *value_string = NULL;
+
+    if (!rp_data) {
+        return;
+    }
+    device = device_cache_get_or_add(device_instance);
+
+    if ((rp_data->object_type == OBJECT_DEVICE) &&
+        (rp_data->object_instance == device_instance) &&
+        (rp_data->object_property == PROP_OBJECT_LIST) &&
+        (rp_data->array_index != BACNET_ARRAY_ALL) &&
+        !device->object_list_requested) {
+        return;
+    }
+
+    if (!((rp_data->object_type == OBJECT_DEVICE) &&
+          (rp_data->object_instance == device_instance) &&
+          (rp_data->object_property == PROP_OBJECT_LIST))) {
+        bool read_active = false;
+
+        object = device_object_find(
+            device, rp_data->object_type, rp_data->object_instance);
+        read_active =
+            object && (object->properties_requested || object->properties_busy);
+        if ((!read_active) &&
+            !pending_write_has_match(
+                device_instance, rp_data->object_type, rp_data->object_instance,
+                rp_data->object_property, rp_data->array_index)) {
+            /* ignore stale read responses after selection changes */
+            return;
+        }
+    }
+
+    if ((rp_data->error_code != ERROR_CODE_SUCCESS) || !value) {
+        if ((rp_data->object_type == OBJECT_DEVICE) &&
+            (rp_data->object_instance == device_instance) &&
+            (rp_data->object_property == PROP_OBJECT_LIST) &&
+            (rp_data->array_index != BACNET_ARRAY_ALL) &&
+            (rp_data->array_index > 0)) {
+            (void)queue_next_object_list_index(device);
+            update_object_progress_indicator();
+        } else if (rp_data->object_property == PROP_ALL) {
+            /* RPM PROP_ALL failed; try PROP_PROPERTY_LIST array */
+            if (object) {
+                advance_to_prop_list_size(device, object);
+            }
+        } else if (
+            (rp_data->object_property == PROP_PROPERTY_LIST) &&
+            (rp_data->array_index == 0) && object &&
+            (object->prop_acq_phase == PROP_ACQ_PHASE_PROP_LIST_SIZE)) {
+            /* PROP_PROPERTY_LIST size read failed; fall back to static list */
+            advance_to_fallback(device, object);
+        } else {
+            continue_object_property_enumeration(
+                device, rp_data->object_type, rp_data->object_instance);
+        }
+        {
+            PENDING_WRITE *pw = pending_write_pop_match(
+                device_instance, rp_data->object_type, rp_data->object_instance,
+                rp_data->object_property, rp_data->array_index, true);
+            if (pw) {
+                pending_write_free(pw);
+            }
+        }
+        return;
+    }
+
+    if ((rp_data->object_type == OBJECT_DEVICE) &&
+        (rp_data->object_instance == device_instance) &&
+        (rp_data->object_property == PROP_OBJECT_LIST) &&
+        (rp_data->array_index != BACNET_ARRAY_ALL)) {
+        device->object_list_busy = false;
+        if ((rp_data->array_index == 0) &&
+            (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+            device->object_list_count = value->type.Unsigned_Int;
+            if (device->object_list_count > 0) {
+                device->object_list_next_index = 1;
+                (void)queue_next_object_list_index(device);
+            } else {
+                Object_List_Complete_Device_ID = device->device_id;
+                Object_List_Complete_Expires_Us = g_get_monotonic_time() +
+                    ((gint64)OBJECT_LIST_COMPLETE_NOTE_MS * 1000);
+                device->object_list_requested = false;
+            }
+            update_object_progress_indicator();
+        } else if (value->tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
+            (void)device_object_get_or_add(
+                device, value->type.Object_Id.type,
+                value->type.Object_Id.instance);
+            (void)queue_next_object_list_index(device);
+            update_object_progress_indicator();
+            if (Selected_Device_ID == device_instance) {
+                refresh_object_tree_view(device_instance);
+            }
+        }
+        return;
+    }
+
+    object = device_object_get_or_add(
+        device, rp_data->object_type, rp_data->object_instance);
+
+    /* Handle PROP_PROPERTY_LIST responses during list-building phases */
+    if ((rp_data->object_property == PROP_PROPERTY_LIST) &&
+        (rp_data->array_index != BACNET_ARRAY_ALL) &&
+        ((object->prop_acq_phase == PROP_ACQ_PHASE_PROP_LIST_SIZE) ||
+         (object->prop_acq_phase == PROP_ACQ_PHASE_PROP_LIST_ITEMS))) {
+        if (rp_data->array_index == 0) {
+            /* element 0 is the array size */
+            object->prop_list_count =
+                (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+                ? value->type.Unsigned_Int
+                : 0;
+            if (object->prop_list_count > 0) {
+                if (object->prop_list_ids) {
+                    g_array_free(object->prop_list_ids, true);
+                }
+                object->prop_list_ids =
+                    g_array_new(false, false, sizeof(guint32));
+                object->prop_acq_phase = PROP_ACQ_PHASE_PROP_LIST_ITEMS;
+                object->property_index_count = object->prop_list_count;
+                object->property_index_next = 1;
+                object->properties_busy = false;
+                (void)queue_next_object_property_request(device, object);
+            } else {
+                advance_to_fallback(device, object);
+            }
+        } else {
+            /* elements 1..N are BACnetPropertyIdentifier values */
+            guint32 prop_id = (guint32)value->type.Enumerated;
+            if (object->prop_list_ids) {
+                g_array_append_val(object->prop_list_ids, prop_id);
+            }
+            continue_object_property_enumeration(
+                device, rp_data->object_type, rp_data->object_instance);
+        }
+        update_property_progress_indicator();
+        return;
+    }
+
+    value_string = property_value_to_string(rp_data, value);
+    object_property_upsert(
+        object, rp_data->object_property, rp_data->array_index, value->tag,
+        value_string);
+    /* pop any pending re-read-after-write marker */
+    {
+        PENDING_WRITE *pw = pending_write_pop_match(
+            device_instance, rp_data->object_type, rp_data->object_instance,
+            rp_data->object_property, rp_data->array_index, true);
+        if (pw) {
+            pending_write_free(pw);
+        }
+    }
+    if (object->prop_acq_phase == PROP_ACQ_PHASE_RPM) {
+        /* RPM delivers all values at once; let task_timeout advance the state
+         */
+        object->properties_busy = false;
+        update_property_progress_indicator();
+    } else {
+        continue_object_property_enumeration(
+            device, rp_data->object_type, rp_data->object_instance);
+    }
+    if (Selected_Device_ID == device_instance) {
+        if (rp_data->object_property == PROP_OBJECT_NAME) {
+            refresh_object_tree_view(device_instance);
+        }
+        if (Selected_Object_Valid &&
+            (Selected_Object_Type == rp_data->object_type) &&
+            (Selected_Object_Instance == rp_data->object_instance)) {
+            refresh_property_tree_view(
+                device_instance, rp_data->object_type,
+                rp_data->object_instance);
         }
     }
 }
@@ -232,87 +1358,26 @@ on_device_selection_changed(GtkTreeSelection *selection, gpointer data)
 {
     GtkTreeIter iter;
     GtkTreeModel *model;
-    guint device_id;
+    guint device_id = 0;
+    DEVICE_ENTRY *device = NULL;
 
     (void)data;
+    interrupt_discovery_requests();
+    Selected_Object_Valid = false;
+    update_object_progress_indicator();
+    update_property_progress_indicator();
+    gtk_list_store_clear(property_store);
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
         gtk_tree_model_get(model, &iter, DEVICE_COL_ID, &device_id, -1);
-        printf("Device selected: %u\n", device_id);
-        /* Clear object store and reload objects for selected device */
+        Selected_Device_ID = device_id;
+        refresh_object_tree_view(device_id);
+        device = device_cache_find(device_id);
+        queue_device_object_list(device);
+        update_object_progress_indicator();
+    } else {
+        Selected_Device_ID = BACNET_MAX_INSTANCE;
         gtk_list_store_clear(object_store);
-        gtk_list_store_clear(property_store);
-        add_discovered_objects_to_gui(device_id);
-    }
-}
-
-/**
- * @brief Add discovered properties for an object to the GUI
- * @param device_id Device instance of the object properties
- * @param object_type Object type for the properties
- * @param object_instance Object instance for the properties
- */
-static void add_discovered_properties_to_gui(
-    uint32_t device_id,
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance)
-{
-    GtkTreeIter iter;
-    unsigned int property_count = 0;
-    unsigned int index = 0;
-    uint32_t array_index = BACNET_ARRAY_ALL;
-    uint32_t property_id = 0;
-    BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    bool status = false;
-    int str_len = 0;
-    char *property_string;
-
-    property_count = bacnet_discover_object_property_count(
-        device_id, object_type, object_instance);
-    for (index = 0; index < property_count; index++) {
-        gtk_list_store_append(property_store, &iter);
-        bacnet_discover_object_property_identifier(
-            device_id, object_type, object_instance, index, &property_id);
-        if (bactext_property_name_proprietary(property_id)) {
-            asprintfa(
-                &property_string, "proprietary-%lu",
-                (unsigned long)property_id);
-        } else {
-            asprintfa(
-                &property_string, "%s", bactext_property_name(property_id));
-        }
-        status = bacnet_discover_property_value(
-            device_id, object_type, object_instance, property_id, &value);
-        if (status) {
-            object_value.object_type = object_type;
-            object_value.object_instance = object_instance;
-            object_value.object_property = property_id;
-            object_value.array_index = array_index;
-            object_value.value = &value;
-            str_len = bacapp_snprintf_value(NULL, 0, &object_value);
-            if (str_len > 0) {
-                char str[str_len + 1];
-                bacapp_snprintf_value(str, str_len + 1, &object_value);
-                gtk_list_store_set(
-                    property_store, &iter, PROPERTY_COL_DEVICE_ID, device_id,
-                    PROPERTY_COL_OBJECT_TYPE, object_type,
-                    PROPERTY_COL_OBJECT_ID, object_instance, PROPERTY_COL_ID,
-                    property_id, PROPERTY_COL_ARRAY_INDEX, array_index,
-                    PROPERTY_COL_VALUE_TAG, value.tag, PROPERTY_COL_NAME,
-                    property_string, PROPERTY_COL_VALUE, str, -1);
-            } else {
-                status = false;
-            }
-        }
-        if (!status) {
-            gtk_list_store_set(
-                property_store, &iter, PROPERTY_COL_DEVICE_ID, device_id,
-                PROPERTY_COL_OBJECT_TYPE, object_type, PROPERTY_COL_OBJECT_ID,
-                object_instance, PROPERTY_COL_ID, property_id,
-                PROPERTY_COL_ARRAY_INDEX, array_index, PROPERTY_COL_VALUE_TAG,
-                value.tag, PROPERTY_COL_NAME, property_string,
-                PROPERTY_COL_VALUE, "-", -1);
-        }
+        update_object_progress_indicator();
     }
 }
 
@@ -326,20 +1391,37 @@ on_object_selection_changed(GtkTreeSelection *selection, gpointer data)
 {
     GtkTreeIter iter;
     GtkTreeModel *model;
-    guint object_instance, object_type, device_id;
+    guint object_instance = 0;
+    guint object_type = 0;
+    guint device_id = 0;
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
 
     (void)data;
+    if (Object_Selection_Suspend) {
+        return;
+    }
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        interrupt_discovery_requests();
+        update_object_progress_indicator();
         gtk_tree_model_get(
             model, &iter, OBJECT_COL_DEVICE_ID, &device_id,
             OBJECT_COL_OBJECT_ID, &object_instance, OBJECT_COL_TYPE,
             &object_type, -1);
-
-        /* Clear property store and reload properties for selected object */
-        gtk_list_store_clear(property_store);
-
-        add_discovered_properties_to_gui(
+        Selected_Object_Valid = true;
+        Selected_Object_Type = (BACNET_OBJECT_TYPE)object_type;
+        Selected_Object_Instance = object_instance;
+        refresh_property_tree_view(
             device_id, (BACNET_OBJECT_TYPE)object_type, object_instance);
+        device = device_cache_find(device_id);
+        object = device_object_find(
+            device, (BACNET_OBJECT_TYPE)object_type, object_instance);
+        queue_object_all_properties(device, object);
+        update_property_progress_indicator();
+    } else {
+        Selected_Object_Valid = false;
+        gtk_list_store_clear(property_store);
+        update_property_progress_indicator();
     }
 }
 
@@ -364,8 +1446,7 @@ static void on_discover_devices_clicked(GtkButton *button, gpointer data)
         gtk_widget_destroy(dialog);
         return;
     }
-    /* discover */
-    Send_WhoIs_Global(0, 4194303);
+    Send_WhoIs_Global(0, BACNET_MAX_INSTANCE);
 }
 
 static void on_property_edited(
@@ -385,7 +1466,6 @@ static void on_property_edited(
     guint value_tag = 0;
     unsigned enumerated_value = 0;
     bool status = false;
-    uint8_t invoke_id;
     bool null_value = false;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
@@ -445,46 +1525,25 @@ static void on_property_edited(
             bactext_property_name(property_id), new_text, value_tag,
             status ? "successfully" : "unsuccessfully");
         if (status) {
-            invoke_id = Send_Write_Property_Request(
-                device_id, object_type, object_id, property_id, &value,
-                priority, array_index);
-            if (invoke_id) {
+            status = queue_write_property_value(
+                device_id, (BACNET_OBJECT_TYPE)object_type, object_id,
+                (BACNET_PROPERTY_ID)property_id, &value, (uint8_t)priority,
+                array_index);
+            if (status) {
+                pending_write_add(
+                    device_id, (BACNET_OBJECT_TYPE)object_type, object_id,
+                    (BACNET_PROPERTY_ID)property_id, array_index);
                 printf(
                     "WriteProperty to Device %u %s-%u %s = %s\n", device_id,
                     bactext_object_type_name(object_type), object_id,
                     bactext_property_name(property_id), new_text);
-                gtk_list_store_set(
-                    property_store, &iter, PROPERTY_COL_VALUE, new_text, -1);
+            } else {
+                printf(
+                    "WriteProperty queue failed for Device %u %s-%u %s\n",
+                    device_id, bactext_object_type_name(object_type), object_id,
+                    bactext_property_name(property_id));
             }
         }
-    }
-}
-
-/**
- * @brief Process discovered devices and add them to the GUI
- */
-static void process_discovered_devices(void)
-{
-    unsigned int device_index = 0;
-    unsigned int device_count = 0;
-    unsigned int max_apdu = 0;
-    BACNET_ADDRESS device_address = { 0 };
-    uint32_t device_id = 0;
-    char model_name[MAX_CHARACTER_STRING_BYTES] = { "-" };
-    char object_name[MAX_CHARACTER_STRING_BYTES] = { "-" };
-
-    device_count = bacnet_discover_device_count();
-    for (device_index = 0; device_index < device_count; device_index++) {
-        device_id = bacnet_discover_device_instance(device_index);
-        bacnet_discover_property_name(
-            device_id, OBJECT_DEVICE, device_id, PROP_MODEL_NAME, model_name,
-            sizeof(model_name), "model-name");
-        bacnet_discover_property_name(
-            device_id, OBJECT_DEVICE, device_id, PROP_OBJECT_NAME, object_name,
-            sizeof(object_name), "object-name");
-        address_get_by_device(device_id, &max_apdu, &device_address);
-        add_discovered_device_to_gui(
-            device_id, &device_address, model_name, object_name);
     }
 }
 
@@ -498,10 +1557,18 @@ static void on_refresh_clicked(GtkButton *button, gpointer data)
     (void)button; /* unused parameter */
     (void)data; /* unused parameter */
 
+    Selected_Device_ID = BACNET_MAX_INSTANCE;
+    Selected_Object_Valid = false;
+    Object_List_Complete_Expires_Us = 0;
+    Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
+    update_object_progress_indicator();
+    update_property_progress_indicator();
+    g_queue_clear_full(Pending_Writes, pending_write_free);
+    g_ptr_array_set_size(Device_Cache, 0);
     gtk_list_store_clear(device_store);
     gtk_list_store_clear(object_store);
     gtk_list_store_clear(property_store);
-    process_discovered_devices();
+    Send_WhoIs_Global(0, BACNET_MAX_INSTANCE);
 }
 
 /**
@@ -516,8 +1583,9 @@ static void setup_device_tree_view(void)
     /* Create list store */
     device_store = gtk_list_store_new(
         DEVICE_NUM_COLS, G_TYPE_UINT, /* Device ID */
-        G_TYPE_STRING, /* Device Name */
-        G_TYPE_STRING, /* Device Model */
+        G_TYPE_UINT, /* Vendor ID */
+        G_TYPE_UINT, /* Max APDU */
+        G_TYPE_STRING, /* Segmentation */
         G_TYPE_STRING); /* Address */
 
     /* Create tree view */
@@ -531,16 +1599,22 @@ static void setup_device_tree_view(void)
         "Device ID", renderer, "text", DEVICE_COL_ID, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
-    /* Device Name column */
+    /* Vendor ID column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
-        "Name", renderer, "text", DEVICE_COL_NAME, NULL);
+        "Vendor ID", renderer, "text", DEVICE_COL_VENDOR_ID, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
-    /* Device Model column */
+    /* Max APDU column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
-        "Model", renderer, "text", DEVICE_COL_MODEL, NULL);
+        "Max APDU", renderer, "text", DEVICE_COL_MAX_APDU, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
+
+    /* Segmentation column */
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes(
+        "Segmentation", renderer, "text", DEVICE_COL_SEGMENTATION, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Address column */
@@ -631,12 +1705,16 @@ static void setup_property_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Property", renderer, "text", PROPERTY_COL_NAME, NULL);
+    gtk_tree_view_column_set_min_width(column, 160);
+    gtk_tree_view_column_set_resizable(column, TRUE);
     gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
 
     /* Property Value column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Value", renderer, "text", PROPERTY_COL_VALUE, NULL);
+    gtk_tree_view_column_set_expand(column, TRUE);
+    gtk_tree_view_column_set_resizable(column, TRUE);
     g_object_set(renderer, "editable", TRUE, NULL);
     g_signal_connect(
         renderer, "edited", G_CALLBACK(on_property_edited),
@@ -698,6 +1776,26 @@ static void create_main_window(void)
     gtk_container_add(GTK_CONTAINER(tool_item), refresh_button);
     gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
 
+    /* Add object read progress status */
+    object_progress_label = gtk_label_new("");
+    gtk_widget_set_halign(object_progress_label, GTK_ALIGN_START);
+    gtk_widget_set_valign(object_progress_label, GTK_ALIGN_CENTER);
+    gtk_widget_set_margin_start(object_progress_label, 12);
+    gtk_widget_hide(object_progress_label);
+    tool_item = gtk_tool_item_new();
+    gtk_container_add(GTK_CONTAINER(tool_item), object_progress_label);
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
+
+    /* Add property read progress status */
+    property_progress_label = gtk_label_new("");
+    gtk_widget_set_halign(property_progress_label, GTK_ALIGN_START);
+    gtk_widget_set_valign(property_progress_label, GTK_ALIGN_CENTER);
+    gtk_widget_set_margin_start(property_progress_label, 12);
+    gtk_widget_hide(property_progress_label);
+    tool_item = gtk_tool_item_new();
+    gtk_container_add(GTK_CONTAINER(tool_item), property_progress_label);
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
+
     /* Create horizontal paned widget */
     hpaned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
@@ -711,7 +1809,7 @@ static void create_main_window(void)
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(scrolled_window, 400, -1);
+    gtk_widget_set_size_request(scrolled_window, 500, -1);
     setup_device_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), device_tree_view);
     gtk_paned_pack1(GTK_PANED(hpaned), scrolled_window, FALSE, FALSE);
@@ -736,7 +1834,7 @@ static void create_main_window(void)
     gtk_paned_pack2(GTK_PANED(vpaned), scrolled_window, TRUE, FALSE);
 
     /* Set paned positions */
-    gtk_paned_set_position(GTK_PANED(hpaned), 400);
+    gtk_paned_set_position(GTK_PANED(hpaned), 500);
     gtk_paned_set_position(GTK_PANED(vpaned), 200);
 }
 
@@ -778,11 +1876,35 @@ static void bacnet_server_task(void)
 /* GTK timeout callback for BACnet processing */
 static gboolean bacnet_task_timeout(gpointer data)
 {
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+
     (void)data; /* unused parameter */
 
     if (bacnet_initialized) {
         bacnet_server_task();
-        bacnet_discover_task();
+        bacnet_read_write_task();
+        if (Selected_Device_ID < BACNET_MAX_INSTANCE) {
+            device = device_cache_find(Selected_Device_ID);
+            if (device && device->object_list_requested &&
+                !device->object_list_busy && (device->object_list_count > 0)) {
+                (void)queue_next_object_list_index(device);
+            }
+            update_object_progress_indicator();
+        }
+        if (Selected_Object_Valid) {
+            device = device_cache_find(Selected_Device_ID);
+            object = device_object_find(
+                device, Selected_Object_Type, Selected_Object_Instance);
+            if (object && object->properties_requested &&
+                !object->properties_busy) {
+                (void)queue_next_object_property_request(device, object);
+            }
+            update_property_progress_indicator();
+        }
+        if (bacnet_read_write_idle()) {
+            abstract_write_pool_release_all();
+        }
     }
 
     return TRUE; /* Continue calling this function */
@@ -794,6 +1916,10 @@ static gboolean bacnet_task_timeout(gpointer data)
 static void bacnet_server_init(void)
 {
     Device_Init(NULL);
+    bacnet_read_write_init();
+    bacnet_read_write_device_callback_set(bacnet_read_write_device_callback);
+    bacnet_read_write_success_callback_set(bacnet_read_write_success_callback);
+    bacnet_read_write_value_callback_set(bacnet_read_write_value_callback);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* we need to handle who-has to support dynamic object binding */
@@ -834,25 +1960,21 @@ static void bacnet_cleanup(void)
         bacnet_initialized = false;
         printf("BACnet Stack cleanup completed\n");
     }
-    bacnet_discover_cleanup();
 }
 
 /* Main function */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS dest = { 0 };
-    unsigned long discover_seconds = 60;
+    (void)argv;
 
     /* Initialize GTK */
     gtk_init(&argc, &argv);
+    Device_Cache = g_ptr_array_new_with_free_func(device_entry_free);
+    Pending_Writes = g_queue_new();
 
     /* Initialize BACnet */
     dlenv_init();
     bacnet_server_init();
-    /* configure the discovery module */
-    bacnet_discover_dest_set(&dest);
-    bacnet_discover_seconds_set(discover_seconds);
-    bacnet_discover_init();
 
     /* Create the main window */
     create_main_window();
@@ -865,6 +1987,8 @@ int main(int argc, char *argv[])
 
     /* Cleanup */
     bacnet_cleanup();
+    g_queue_free_full(Pending_Writes, pending_write_free);
+    g_ptr_array_free(Device_Cache, true);
 
     return 0;
 }

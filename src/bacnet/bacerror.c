@@ -11,6 +11,8 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
+#include "bacnet/abort.h"
+#include "bacnet/reject.h"
 
 /** @file bacerror.c  Encode/Decode BACnet Errors */
 
@@ -406,4 +408,36 @@ BACNET_ERROR_CLASS bacerror_code_class(BACNET_ERROR_CODE error_code)
     }
 
     return error_class;
+}
+
+/**
+ * @brief Encode an APDU for a BACnet error, abort, or reject message
+ * @param apdu - buffer for the data to be encoded, or NULL for length
+ * @param invoke_id - invokeID to be encoded
+ * @param service - BACnet service to be encoded (ignored for abort or reject)
+ * @param error_code - Error, Abort, or Reject value to be encoded
+ * @return number of bytes encoded
+ */
+int bacnet_error_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    BACNET_CONFIRMED_SERVICE service,
+    BACNET_ERROR_CODE error_code)
+{
+    int apdu_len = 0;
+    BACNET_ERROR_CLASS error_class = ERROR_CLASS_DEVICE;
+
+    if (abort_valid_error_code(error_code)) {
+        apdu_len = abort_encode_apdu(
+            apdu, invoke_id, abort_convert_error_code(error_code), true);
+    } else if (reject_valid_error_code(error_code)) {
+        apdu_len = reject_encode_apdu(
+            apdu, invoke_id, reject_convert_error_code(error_code));
+    } else {
+        error_class = bacerror_code_class(error_code);
+        apdu_len = bacerror_encode_apdu(
+            apdu, invoke_id, service, error_class, error_code);
+    }
+
+    return apdu_len;
 }

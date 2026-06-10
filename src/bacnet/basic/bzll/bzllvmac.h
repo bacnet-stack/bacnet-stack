@@ -26,6 +26,17 @@ struct bzll_vmac_data {
 };
 /** @} */
 
+/**
+ * Node Status data structure
+ *
+ * @{
+ */
+struct bzll_node_status_table_entry {
+    bool valid;
+    uint16_t ttl_seconds_remaining;
+};
+/** @} */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -43,12 +54,29 @@ BACNET_STACK_EXPORT
 bool BZLL_VMAC_Entry_Set(
     struct bzll_vmac_data *vmac, const uint8_t *mac, uint8_t endpoint);
 BACNET_STACK_EXPORT
-bool BZLL_VMAC_Add(uint32_t device_id, const struct bzll_vmac_data *vmac);
+bool BZLL_VMAC_Add(uint32_t *device_id, const struct bzll_vmac_data *vmac);
 BACNET_STACK_EXPORT
 bool BZLL_VMAC_Delete(uint32_t device_id);
 BACNET_STACK_EXPORT
 bool BZLL_VMAC_Same(
     const struct bzll_vmac_data *vmac1, const struct bzll_vmac_data *vmac2);
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Copy(
+    struct bzll_vmac_data *vmac_dest, const struct bzll_vmac_data *vmac_src);
+
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Node_Status_Entry(
+    const struct bzll_vmac_data *vmac_data,
+    struct bzll_node_status_table_entry **status_entry);
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Node_Status_By_Index_Entry(
+    const int index, struct bzll_node_status_table_entry **status_entry);
+
+BACNET_STACK_EXPORT bool
+BZLL_VMAC_Device_ID_To_Address(BACNET_ADDRESS *addr, uint32_t device_id);
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Device_ID_From_Address(
+    const BACNET_ADDRESS *addr, uint32_t *device_id);
 
 BACNET_STACK_EXPORT
 unsigned int BZLL_VMAC_Count(void);
@@ -59,6 +87,8 @@ void BZLL_VMAC_Init(void);
 
 BACNET_STACK_EXPORT
 void BZLL_VMAC_Debug_Enable(void);
+BACNET_STACK_EXPORT
+bool BZLL_VMAC_Debug_Enabled(void);
 
 #ifdef __cplusplus
 }

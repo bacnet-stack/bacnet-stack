@@ -525,6 +525,364 @@ static void testCharacterStringUtf8Strdup(void)
 }
 
 /**
+ * @brief Test dynamic/const BACNET_CHARACTER_STRING_BUFFER APIs
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringBufferApi_strdups)
+#else
+static void testCharacterStringBufferApi_strdups(void)
+#endif
+{
+    BACNET_CHARACTER_STRING src = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER dyn_buffer = { 0 };
+    const char *value = "Francine";
+    const char *buf_value = NULL;
+    bool status = false;
+
+    // Null argument checks for strdup/dynamic APIs
+    zassert_false(characterstring_buffer_strdup(NULL, &src), NULL);
+    zassert_false(characterstring_buffer_strdup(&dyn_buffer, NULL), NULL);
+    zassert_false(characterstring_buffer_ansi_strdup(NULL, value), NULL);
+    zassert_true(characterstring_buffer_ansi_strdup(&dyn_buffer, NULL), NULL);
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&dyn_buffer), ""), 0, NULL);
+
+    // characterstring_buffer_ansi_strdup: dynamic allocation
+    status = characterstring_buffer_ansi_strdup(&dyn_buffer, value);
+    zassert_true(status, NULL);
+    zassert_equal(dyn_buffer.encoding, CHARACTER_UTF8, NULL);
+    zassert_equal(
+        characterstring_buffer_length(&dyn_buffer), strlen(value), NULL);
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&dyn_buffer), value), 0,
+        NULL);
+    zassert_not_equal(
+        (uintptr_t)dyn_buffer.buffer, (uintptr_t)value,
+        "Should allocate new buffer");
+    characterstring_buffer_free(&dyn_buffer);
+
+    // characterstring_buffer_strdup: dynamic allocation from
+    // BACNET_CHARACTER_STRING
+    status = characterstring_init_ansi(&src, value);
+    zassert_true(status, NULL);
+    status = characterstring_buffer_strdup(&dyn_buffer, &src);
+    zassert_true(status, NULL);
+    zassert_equal(dyn_buffer.encoding, characterstring_encoding(&src), NULL);
+    zassert_equal(
+        characterstring_buffer_length(&dyn_buffer),
+        characterstring_length(&src), NULL);
+    buf_value = characterstring_buffer_value(&dyn_buffer);
+    zassert_equal(
+        bacnet_strcmp(buf_value, characterstring_value(&src)), 0, NULL);
+    zassert_not_equal(
+        (uintptr_t)buf_value, (uintptr_t)characterstring_value(&src),
+        "Should allocate new buffer");
+    characterstring_buffer_free(&dyn_buffer);
+
+    // Only call free on buffers known to be dynamically allocated
+    status = characterstring_buffer_ansi_strdup(&dyn_buffer, value);
+    zassert_true(status, NULL);
+    characterstring_buffer_free(&dyn_buffer);
+    zassert_equal(dyn_buffer.buffer_size, 0, NULL);
+    zassert_equal(dyn_buffer.buffer_length, 0, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringBufferApi_static)
+#else
+static void testCharacterStringBufferApi_static(void)
+#endif
+{
+    BACNET_CHARACTER_STRING src = { 0 };
+    BACNET_CHARACTER_STRING out = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER buffer = { 0 };
+    char long_value[MAX_CHARACTER_STRING_BYTES + 16] = { 0 };
+    const char *value = "Francine";
+    bool status = false;
+    size_t i = 0;
+
+    // Null argument checks for static/reference APIs
+    status = characterstring_buffer_ansi_init(NULL, value);
+    zassert_false(status, NULL);
+    zassert_equal(characterstring_buffer_length(NULL), 0, NULL);
+    zassert_false(
+        characterstring_buffer_to_characterstring(NULL, &buffer), NULL);
+    zassert_false(characterstring_buffer_to_characterstring(&out, NULL), NULL);
+
+    // characterstring_buffer_ansi_init: static buffer, no allocation
+    status = characterstring_buffer_ansi_init(&buffer, value);
+    zassert_true(status, NULL);
+    zassert_equal(buffer.encoding, CHARACTER_UTF8, NULL);
+    zassert_equal(characterstring_buffer_length(&buffer), strlen(value), NULL);
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&buffer), value), 0, NULL);
+    zassert_equal(
+        (uintptr_t)buffer.buffer, (uintptr_t)value,
+        "Should reference input string");
+
+    // characterstring_buffer_from_characterstring: static reference to
+    // BACNET_CHARACTER_STRING
+    status = characterstring_init_ansi(&src, value);
+    zassert_true(status, NULL);
+    status = characterstring_buffer_from_characterstring(&buffer, &src);
+    zassert_true(status, NULL);
+    zassert_equal(buffer.encoding, characterstring_encoding(&src), NULL);
+    zassert_equal(
+        characterstring_buffer_length(&buffer), characterstring_length(&src),
+        NULL);
+    zassert_equal(
+        (uintptr_t)buffer.buffer, (uintptr_t)characterstring_value(&src),
+        "Should reference BACNET_CHARACTER_STRING buffer");
+
+    // characterstring_buffer_to_characterstring: round-trip
+    status = characterstring_buffer_to_characterstring(&out, &buffer);
+    zassert_true(status, NULL);
+    zassert_true(characterstring_same(&src, &out), NULL);
+
+    // NULL input for ansi_init
+    status = characterstring_buffer_ansi_init(&buffer, NULL);
+    zassert_true(status, NULL);
+    zassert_equal(characterstring_buffer_length(&buffer), 0, NULL);
+
+    // Overlong input for ansi_init (should still reference input, but length is
+    // too large for BACnet string)
+    memset(long_value, 'A', sizeof(long_value) - 1);
+    status = characterstring_buffer_ansi_init(&buffer, long_value);
+    zassert_true(status, NULL);
+    zassert_equal(
+        characterstring_buffer_length(&buffer), strlen(long_value), NULL);
+    status = characterstring_buffer_to_characterstring(&out, &buffer);
+    zassert_false(status, NULL);
+
+    // Freeing static buffer should not crash or change pointer
+    // Only test static buffer init, do not call free on static buffers
+    for (i = 0; i < 8; i++) {
+        status = characterstring_buffer_ansi_init(
+            &buffer, (i % 2) ? "Cycle-1" : "Cycle-2");
+        zassert_true(status, NULL);
+        zassert_equal(
+            buffer.buffer_size, strlen((i % 2) ? "Cycle-1" : "Cycle-2"), NULL);
+        zassert_equal(
+            buffer.buffer_length, strlen((i % 2) ? "Cycle-1" : "Cycle-2"),
+            NULL);
+        // Do not call characterstring_buffer_free here
+    }
+}
+
+/**
+ * @brief Test mixed static and dynamic BACNET_CHARACTER_STRING_BUFFER APIs
+ * Ensures robust functionality when combining static references and dynamic
+ * allocations, round-trip conversions, and buffer transitions.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringBufferApi_mixed)
+#else
+static void testCharacterStringBufferApi_mixed(void)
+#endif
+{
+    BACNET_CHARACTER_STRING src = { 0 };
+    BACNET_CHARACTER_STRING dst = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER static_buffer = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER dynamic_buffer = { 0 };
+    const char *static_value = "StaticString";
+    const char *dynamic_value = "DynamicString";
+    bool status = false;
+
+    // Test 1: Static buffer -> Dynamic buffer conversion
+    // Initialize static buffer with ansi_init (references input)
+    status = characterstring_buffer_ansi_init(&static_buffer, static_value);
+    zassert_true(status, NULL);
+    zassert_equal(
+        (uintptr_t)static_buffer.buffer, (uintptr_t)static_value,
+        "Static buffer should reference input");
+
+    // Convert static buffer to characterstring
+    status = characterstring_buffer_to_characterstring(&src, &static_buffer);
+    zassert_true(status, NULL);
+
+    // Create dynamic buffer from the characterstring derived from static buffer
+    status = characterstring_buffer_strdup(&dynamic_buffer, &src);
+    zassert_true(status, NULL);
+    zassert_not_equal(
+        (uintptr_t)dynamic_buffer.buffer, (uintptr_t)static_value,
+        "Dynamic buffer should allocate new memory");
+    zassert_equal(
+        bacnet_strcmp(
+            characterstring_buffer_value(&dynamic_buffer), static_value),
+        0, NULL);
+
+    // Clean up dynamic buffer
+    characterstring_buffer_free(&dynamic_buffer);
+
+    // Test 2: Dynamic buffer -> Static buffer transition
+    // Create new dynamic buffer with ansi_strdup
+    status = characterstring_buffer_ansi_strdup(&dynamic_buffer, dynamic_value);
+    zassert_true(status, NULL);
+    zassert_not_equal(
+        (uintptr_t)dynamic_buffer.buffer, (uintptr_t)dynamic_value,
+        "Dynamic buffer should allocate new memory");
+
+    // Convert dynamic buffer to characterstring
+    status = characterstring_buffer_to_characterstring(&dst, &dynamic_buffer);
+    zassert_true(status, NULL);
+
+    // Create static buffer from the characterstring
+    // Static buffer will reference the dynamic buffer's data
+    status = characterstring_buffer_from_characterstring(&static_buffer, &dst);
+    zassert_true(status, NULL);
+    zassert_equal(
+        (uintptr_t)static_buffer.buffer, (uintptr_t)characterstring_value(&dst),
+        "Static buffer should reference characterstring data");
+
+    // Verify the values match
+    zassert_equal(
+        bacnet_strcmp(
+            characterstring_buffer_value(&static_buffer), dynamic_value),
+        0, NULL);
+
+    // Clean up
+    characterstring_buffer_free(&dynamic_buffer);
+
+    // Test 3: Round-trip with multiple conversions
+    // Start with a static init
+    const char *test_value = "RoundTripTest";
+    status = characterstring_buffer_ansi_init(&static_buffer, test_value);
+    zassert_true(status, NULL);
+
+    // Round-trip 1: static -> characterstring -> dynamic
+    status = characterstring_buffer_to_characterstring(&src, &static_buffer);
+    zassert_true(status, NULL);
+    status = characterstring_buffer_strdup(&dynamic_buffer, &src);
+    zassert_true(status, NULL);
+
+    // Round-trip 2: dynamic -> characterstring -> static
+    status = characterstring_buffer_to_characterstring(&dst, &dynamic_buffer);
+    zassert_true(status, NULL);
+    status = characterstring_buffer_from_characterstring(&static_buffer, &dst);
+    zassert_true(status, NULL);
+
+    // Verify final values match original
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&static_buffer), test_value),
+        0, "Round-trip conversion should preserve value");
+
+    // Clean up
+    characterstring_buffer_free(&dynamic_buffer);
+
+    // Test 4: Mixed operations with same source data
+    BACNET_CHARACTER_STRING mixed_src = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER mixed_static1 = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER mixed_static2 = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER mixed_dynamic = { 0 };
+    const char *shared_value = "SharedData";
+
+    // Initialize mixed_src from shared value
+    status = characterstring_init_ansi(&mixed_src, shared_value);
+    zassert_true(status, NULL);
+
+    // Create two static buffers referencing the same characterstring
+    status =
+        characterstring_buffer_from_characterstring(&mixed_static1, &mixed_src);
+    zassert_true(status, NULL);
+    status =
+        characterstring_buffer_from_characterstring(&mixed_static2, &mixed_src);
+    zassert_true(status, NULL);
+
+    // Verify both static buffers reference the same data
+    zassert_equal(
+        (uintptr_t)mixed_static1.buffer, (uintptr_t)mixed_static2.buffer,
+        "Both static buffers should reference same data");
+
+    // Create dynamic buffer from the characterstring
+    status = characterstring_buffer_strdup(&mixed_dynamic, &mixed_src);
+    zassert_true(status, NULL);
+
+    // Verify dynamic buffer has different allocation than static buffers
+    zassert_not_equal(
+        (uintptr_t)mixed_dynamic.buffer, (uintptr_t)mixed_static1.buffer,
+        "Dynamic buffer should have different allocation");
+
+    // All three should have the same value
+    zassert_equal(
+        bacnet_strcmp(
+            characterstring_buffer_value(&mixed_static1),
+            characterstring_buffer_value(&mixed_dynamic)),
+        0, "Values should match");
+    zassert_equal(
+        bacnet_strcmp(
+            characterstring_buffer_value(&mixed_static2),
+            characterstring_buffer_value(&mixed_dynamic)),
+        0, "Values should match");
+
+    // Clean up
+    characterstring_buffer_free(&mixed_dynamic);
+
+    // Test 5: Empty and NULL value transitions
+    // Static buffer with NULL
+    status = characterstring_buffer_ansi_init(&static_buffer, NULL);
+    zassert_true(status, NULL);
+    zassert_equal(characterstring_buffer_length(&static_buffer), 0, NULL);
+
+    // Convert to characterstring and then to dynamic
+    status = characterstring_buffer_to_characterstring(&src, &static_buffer);
+    zassert_true(status, NULL);
+    status = characterstring_buffer_strdup(&dynamic_buffer, &src);
+    zassert_true(status, NULL);
+
+    // Dynamic buffer with empty string should be valid
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&dynamic_buffer), ""), 0,
+        "Empty string should be handled");
+
+    // Clean up
+    characterstring_buffer_free(&dynamic_buffer);
+
+    // Test 6: Multiple dynamic allocations from different sources
+    BACNET_CHARACTER_STRING_BUFFER dyn1 = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER dyn2 = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER dyn3 = { 0 };
+
+    // Direct ansi_strdup
+    status = characterstring_buffer_ansi_strdup(&dyn1, "FirstDynamic");
+    zassert_true(status, NULL);
+
+    // strdup from characterstring
+    status = characterstring_init_ansi(&src, "SecondDynamic");
+    zassert_true(status, NULL);
+    status = characterstring_buffer_strdup(&dyn2, &src);
+    zassert_true(status, NULL);
+
+    // strdup from static buffer's characterstring
+    status = characterstring_buffer_ansi_init(&static_buffer, "ThirdDynamic");
+    zassert_true(status, NULL);
+    status = characterstring_buffer_to_characterstring(&dst, &static_buffer);
+    zassert_true(status, NULL);
+    status = characterstring_buffer_strdup(&dyn3, &dst);
+    zassert_true(status, NULL);
+
+    // All dynamic buffers should have independent allocations
+    zassert_not_equal((uintptr_t)dyn1.buffer, (uintptr_t)dyn2.buffer, NULL);
+    zassert_not_equal((uintptr_t)dyn2.buffer, (uintptr_t)dyn3.buffer, NULL);
+    zassert_not_equal((uintptr_t)dyn1.buffer, (uintptr_t)dyn3.buffer, NULL);
+
+    // Values should match their respective source strings
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&dyn1), "FirstDynamic"), 0,
+        NULL);
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&dyn2), "SecondDynamic"), 0,
+        NULL);
+    zassert_equal(
+        bacnet_strcmp(characterstring_buffer_value(&dyn3), "ThirdDynamic"), 0,
+        NULL);
+
+    // Clean up all dynamic buffers
+    characterstring_buffer_free(&dyn1);
+    characterstring_buffer_free(&dyn2);
+    characterstring_buffer_free(&dyn3);
+}
+
+/**
  * @brief Test encode/decode API for octet strings
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1407,6 +1765,9 @@ void test_main(void)
         ztest_unit_test(testCharacterString), ztest_unit_test(testUtf8IsValid),
         ztest_unit_test(testCharacterStringUtf8Valid),
         ztest_unit_test(testCharacterStringUtf8Strdup),
+        ztest_unit_test(testCharacterStringBufferApi_strdups),
+        ztest_unit_test(testCharacterStringBufferApi_static),
+        ztest_unit_test(testCharacterStringBufferApi_mixed),
         ztest_unit_test(testOctetString),
         ztest_unit_test(test_octetstring_init_ascii_epics),
         ztest_unit_test(test_bacnet_stricmp),

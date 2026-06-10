@@ -207,6 +207,7 @@ void Access_Zone_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
+    int apdu_size = 0;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
@@ -220,6 +221,7 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     object_index = Access_Zone_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -265,10 +267,12 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_ENTRY_POINTS:
+            /* BACnetList */
             for (i = 0; i < az_descr[object_index].entry_points_count; i++) {
-                len = bacapp_encode_device_obj_ref(
-                    &apdu[0], &az_descr[object_index].entry_points[i]);
-                if (apdu_len + len < MAX_APDU) {
+                len = bacnet_device_object_reference_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len,
+                    &az_descr[object_index].entry_points[i]);
+                if (len > 0) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =
@@ -279,10 +283,12 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_EXIT_POINTS:
+            /* BACnetList */
             for (i = 0; i < az_descr[object_index].exit_points_count; i++) {
-                len = bacapp_encode_device_obj_ref(
-                    &apdu[0], &az_descr[object_index].exit_points[i]);
-                if (apdu_len + len < MAX_APDU) {
+                len = bacnet_device_object_reference_encode(
+                    &apdu[apdu_len], apdu_size - apdu_len,
+                    &az_descr[object_index].exit_points[i]);
+                if (len > 0) {
                     apdu_len += len;
                 } else {
                     rpdata->error_code =
@@ -310,6 +316,10 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     unsigned object_index = 0;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);

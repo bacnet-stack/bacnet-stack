@@ -60,7 +60,7 @@ endif()
 add_custom_target(lcov
     COMMAND mkdir -p lcoverage
     )
-add_custom_command(TARGET lcov
+add_custom_command(TARGET lcov POST_BUILD
     COMMAND echo "=================== LCOV ===================="
     COMMAND echo "-- Passing lcov tool under code coverage"
     COMMAND lcov --capture --directory ../ --output-file lcoverage/main_coverage.info
@@ -194,6 +194,8 @@ list(APPEND testdirs
   # basic/program
   bacnet/basic/program/ubasic
   # basic/service
+  bacnet/basic/service/h_arf
+  bacnet/basic/service/h_awf
   bacnet/basic/service/h_cov
   # basic/server
   bacnet/basic/server/bacnet_device
@@ -209,6 +211,7 @@ list(APPEND testdirs
   bacnet/basic/sys/keylist
   bacnet/basic/sys/linear
   bacnet/basic/sys/ringbuf
+  bacnet/basic/sys/state_name
   bacnet/basic/sys/sbuf
   )
 

@@ -1352,6 +1352,7 @@ int bacapp_decode_application_tag_value(
 #endif
 #if defined(BACAPP_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
+            octetstring_init(&value->type.Octet_String, NULL, 0);
             apdu_len = bacnet_octet_string_application_decode(
                 apdu, apdu_size, &value->type.Octet_String);
             if (apdu_len == 0) {
@@ -1363,6 +1364,7 @@ int bacapp_decode_application_tag_value(
 #endif
 #if defined(BACAPP_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            characterstring_init_ansi(&value->type.Character_String, "");
             apdu_len = bacnet_character_string_application_decode(
                 apdu, apdu_size, &value->type.Character_String);
             if (apdu_len == 0) {
@@ -1374,6 +1376,7 @@ int bacapp_decode_application_tag_value(
 #endif
 #if defined(BACAPP_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
+            bitstring_init(&value->type.Bit_String);
             apdu_len = bacnet_bitstring_application_decode(
                 apdu, apdu_size, &value->type.Bit_String);
             if (apdu_len == 0) {
@@ -1760,6 +1763,28 @@ int bacapp_encode_data(
         }
     }
 
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the data and store it into apdu.
+ * @param apdu  Buffer to store the encoded data, or NULL for length only
+ * @param value  Pointer to a list of application value structures
+ * @return Length of the encoded data in bytes
+ */
+int bacapp_encode_data_list(
+    uint8_t *apdu, const BACNET_APPLICATION_DATA_VALUE *object_value)
+{
+    int apdu_len = 0, len = 0;
+
+    while (object_value) {
+        len = bacapp_encode_data(apdu, object_value);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        object_value = object_value->next;
+    }
     return apdu_len;
 }
 

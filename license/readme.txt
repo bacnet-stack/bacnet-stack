@@ -8,26 +8,26 @@ in accordance with section (3) of the GNU General Public License.
 However, the BACnet library can be linked to proprietary code
 without the proprietary code becoming GPL.
 
-Each file that is subject to the GPL uses the following text comment
-at the top of the file:
+Each file that is subject to the GCC-exception-2.0 uses a
+javadoc/doxygen style text comment at the top of the file.
 
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief BACnet feature brief description
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date April 2026
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 
-The example and demo files are licensed using an MIT style
-license, officially called an Expat License by GNU, and is
-compatible with the GPL.  The files subject to this license
-include the following text comment at the top of the file:
+The example and application example files are licensed using an MIT style
+license, officially called an Expat License by GNU, and is compatible with
+the GPL.  The files subject to this license also include a javadoc/doxygen
+style text comment at the top of the file.
 
-/**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* SPDX-License-Identifier: MIT
-*
-*********************************************************************/
+/**
+ * @file
+ * @brief BACnet application example brief description
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date April 2026
+ * @copyright SPDX-License-Identifier: MIT
+ */

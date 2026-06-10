@@ -295,14 +295,14 @@ static void MyReadPropertyMultipleAckHandler(
 
 static void Init_Service_Handlers(void)
 {
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
     uint32_t Object_Instance;
     BACNET_CHARACTER_STRING name_string;
 #endif
 
     Device_Init(NULL);
 
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
     Device_Object_Name(Object_Instance, &name_string);
@@ -826,7 +826,7 @@ ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
      * wait and put these object lists at the end */
     bool bHasObjectList = false;
     bool bHasStructuredViewList = false;
-    int i = 0;
+    int slot = 0;
 
     while (rpm_data) {
         rpm_property = rpm_data->listOfProperties;
@@ -856,10 +856,29 @@ ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
                     free(old_value);
                 }
             } else if (state == GET_HEADING_RESPONSE) {
-                Property_Value_List[i++].value = rpm_property->value;
-                /* copy this pointer.
-                 * On error, the pointer will be null
-                 * We won't free these values; they will free at exit */
+                /* Resolve destination slot by property identifier to avoid
+                 * overflow from unexpected, duplicate, or excess properties */
+                for (slot = 0; Property_Value_List[slot].property_id != -1;
+                     slot++) {
+                    if (Property_Value_List[slot].property_id ==
+                        (int32_t)rpm_property->propertyIdentifier) {
+                        break;
+                    }
+                }
+                if ((Property_Value_List[slot].property_id != -1) &&
+                    (Property_Value_List[slot].value == NULL)) {
+                    /* Store only in the matching, empty slot.
+                     * We won't free these values; they will free at exit */
+                    Property_Value_List[slot].value = rpm_property->value;
+                } else {
+                    /* free unknown, duplicate, or excess property values */
+                    value = rpm_property->value;
+                    while (value) {
+                        old_value = value;
+                        value = value->next;
+                        free(old_value);
+                    }
+                }
             } else {
                 fprintf(stdout, "    ");
                 Print_Property_Identifier(rpm_property->propertyIdentifier);

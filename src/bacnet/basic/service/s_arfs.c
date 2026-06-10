@@ -30,16 +30,16 @@ uint8_t Send_Atomic_Read_File_Stream(
     int fileStartPosition,
     unsigned requestedOctetCount)
 {
-    BACNET_ADDRESS dest;
-    BACNET_ADDRESS my_address;
-    BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS my_address = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
-    BACNET_ATOMIC_READ_FILE_DATA data;
+    BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
 
     /* if we are forbidden to send, don't send! */
     if (!dcc_communication_enabled()) {

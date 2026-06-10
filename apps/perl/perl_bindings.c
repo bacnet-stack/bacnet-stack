@@ -245,7 +245,7 @@ static void AtomicReadFileAckHandler(
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_ATOMIC_READ_FILE_DATA data;
+    BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
@@ -295,7 +295,7 @@ static void My_Read_Property_Ack_Handler(
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_READ_PROPERTY_DATA data;
+    BACNET_READ_PROPERTY_DATA data = { 0 };
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {

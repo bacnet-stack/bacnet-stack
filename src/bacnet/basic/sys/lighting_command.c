@@ -168,7 +168,7 @@ static void lighting_command_notify(
 /**
  * @brief Add a Lighting Command notification callback
  * @param data - dimmer data structure
- * @param cb - notification callback to be added
+ * @param notification - notification callback to be added
  */
 void lighting_command_notification_add(
     struct bacnet_lighting_command_data *data,
@@ -182,6 +182,63 @@ void lighting_command_notification_add(
     lighting_command_lock(data);
 
     head = &data->Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available free node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief call the lighting command notification callbacks
+ * @param data - dimmer data structure
+ * @param operation - BACnet lighting operation
+ * @param target_value - target value of the write (future value for fade/ramp,
+ * step increment for step, on value for step on, etc.)
+ * @param modifier_value - modifier value of the write (ramp rate for ramp,
+ * fade time for fade, etc.)
+ */
+static void lighting_command_event_notify(
+    struct bacnet_lighting_command_data *data,
+    BACNET_LIGHTING_OPERATION operation,
+    float target_value,
+    float modifier_value)
+{
+    struct lighting_command_event_notification *head;
+
+    head = &data->Event_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(data->Key, operation, target_value, modifier_value);
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Add a Lighting Command Event notification callback
+ * @param data - dimmer data structure
+ * @param notification - notification callback to be added
+ */
+void lighting_command_event_notification_add(
+    struct bacnet_lighting_command_data *data,
+    struct lighting_command_event_notification *notification)
+{
+    struct lighting_command_event_notification *head;
+
+    if (!data || !notification) {
+        return;
+    }
+    lighting_command_lock(data);
+
+    head = &data->Event_Notification_Head;
     do {
         if (head->next == notification) {
             /* already here! */
@@ -216,11 +273,11 @@ static void lighting_command_timer_notify(
 }
 
 /**
- * @brief Add a Lighting Command notification callback
+ * @brief Add a Lighting Command timer notification callback
  * @param data - dimmer data structure
- * @param cb - notification callback to be added
+ * @param notification - notification callback to be added
  */
-void lighting_command_timer_notfication_add(
+void lighting_command_timer_notification_add(
     struct bacnet_lighting_command_data *data,
     struct lighting_command_timer_notification *notification)
 {
@@ -1036,6 +1093,8 @@ void lighting_command_fade_to(
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = value;
     }
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_FADE_TO, value, fade_time);
     lighting_command_unlock(data);
 }
 
@@ -1062,6 +1121,8 @@ void lighting_command_ramp_to(
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = value;
     }
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_RAMP_TO, value, data->Ramp_Rate);
     lighting_command_unlock(data);
 }
 
@@ -1119,7 +1180,8 @@ void lighting_command_step(
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = target_value;
     }
-
+    lighting_command_event_notify(
+        data, operation, data->Step_Increment, data->Fade_Time);
 done:
     lighting_command_unlock(data);
 }
@@ -1156,6 +1218,8 @@ void lighting_command_blink_warn(
     /* configure next interval */
     data->Blink.State = false;
     data->Blink.Interval = blink->Interval;
+    lighting_command_event_notify(
+        data, operation, blink->Interval, blink->Duration);
     lighting_command_unlock(data);
 }
 
@@ -1204,6 +1268,7 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = data->Tracking_Value;
     }
+    lighting_command_event_notify(data, BACNET_LIGHTS_STOP, 0.0f, 0.0f);
     lighting_command_unlock(data);
 }
 
@@ -1222,6 +1287,7 @@ void lighting_command_none(struct bacnet_lighting_command_data *data)
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
     data->Lighting_Operation = BACNET_LIGHTS_NONE;
+    lighting_command_event_notify(data, BACNET_LIGHTS_NONE, 0.0f, 0.0f);
     lighting_command_unlock(data);
 }
 
@@ -1243,6 +1309,8 @@ void lighting_command_restore_on(
     data->Fade_Time = fade_time;
     data->Lighting_Operation = BACNET_LIGHTS_RESTORE_ON;
     data->Target_Level = data->Last_On_Value;
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_RESTORE_ON, data->Last_On_Value, data->Fade_Time);
     lighting_command_unlock(data);
 }
 
@@ -1264,6 +1332,9 @@ void lighting_command_default_on(
     data->Fade_Time = fade_time;
     data->Lighting_Operation = BACNET_LIGHTS_DEFAULT_ON;
     data->Target_Level = data->Default_On_Value;
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_DEFAULT_ON, data->Default_On_Value,
+        data->Fade_Time);
     lighting_command_unlock(data);
 }
 
@@ -1291,6 +1362,9 @@ void lighting_command_toggle_restore(
         /* not OFF, write 0.0% */
         data->Target_Level = 0.0f;
     }
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_TOGGLE_RESTORE, data->Target_Level,
+        data->Fade_Time);
     lighting_command_unlock(data);
 }
 
@@ -1318,6 +1392,9 @@ void lighting_command_toggle_default(
         /* not OFF, write 0.0% */
         data->Target_Level = 0.0f;
     }
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_TOGGLE_DEFAULT, data->Target_Level,
+        data->Fade_Time);
     lighting_command_unlock(data);
 }
 
@@ -1386,6 +1463,23 @@ void lighting_command_tracking_value_callback_set(
     }
     lighting_command_lock(data);
     data->Notification_Head.callback = cb;
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Set the lighting command event callback
+ * @param data [in] dimmer data
+ * @param cb [in] BACnet lighting event callback
+ */
+void lighting_command_event_callback_set(
+    struct bacnet_lighting_command_data *data,
+    lighting_command_event_callback cb)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Event_Notification_Head.callback = cb;
     lighting_command_unlock(data);
 }
 
@@ -1591,6 +1685,78 @@ float lighting_command_default_on_value_get(
 }
 
 /**
+ * @brief Get the lighting command Min_Actual_Value property value
+ * @param data [in] dimmer data
+ * @return float - lighting command Min_Actual_Value
+ */
+float lighting_command_min_actual_value_get(
+    struct bacnet_lighting_command_data *data)
+{
+    float value = 0.0f;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Min_Actual_Value;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+/**
+ * @brief Set the lighting command Min_Actual_Value property value
+ * @param data [in] dimmer data
+ * @param value [in] BACnet lighting Min_Actual_Value
+ */
+void lighting_command_min_actual_value_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Min_Actual_Value = value;
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Get the lighting command Max_Actual_Value property value
+ * @param data [in] dimmer data
+ * @return float - lighting command Max_Actual_Value
+ */
+float lighting_command_max_actual_value_get(
+    struct bacnet_lighting_command_data *data)
+{
+    float value = 0.0f;
+
+    if (!data) {
+        return value;
+    }
+    lighting_command_lock(data);
+    value = data->Max_Actual_Value;
+    lighting_command_unlock(data);
+
+    return value;
+}
+
+/**
+ * @brief Set the lighting command Max_Actual_Value property value
+ * @param data [in] dimmer data
+ * @param value [in] BACnet lighting Max_Actual_Value
+ */
+void lighting_command_max_actual_value_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Max_Actual_Value = value;
+    lighting_command_unlock(data);
+}
+
+/**
  * @brief Set the lighting command default on value
  * @param data [in] dimmer data
  * @param value [in] BACnet lighting default on value
@@ -1731,6 +1897,8 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Blink.State = false;
     data->Notification_Head.next = NULL;
     data->Notification_Head.callback = NULL;
+    data->Event_Notification_Head.next = NULL;
+    data->Event_Notification_Head.callback = NULL;
     data->Timer_Notification_Head.next = NULL;
     data->Timer_Notification_Head.callback = NULL;
     lighting_command_unlock(data);

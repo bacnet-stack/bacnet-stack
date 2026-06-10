@@ -370,6 +370,10 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     uint8_t idx;
     int len = 0;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(
         wp_data->object_instance)];
 
@@ -739,8 +743,8 @@ void Notification_Class_common_reporting_function(
     }
 
     /* send notifications for active recipients */
-    debug_printf_stderr(
-        "Notification Class[%u]: send notifications\n",
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr, "Notification Class[%u]: send notifications\n",
         event_data->notificationClass);
     /* pointer to first recipient */
     pBacDest = &CurrentNotify->Recipient_List[0];
@@ -761,7 +765,8 @@ void Notification_Class_common_reporting_function(
             if (pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
                 /* send notification to the specified device */
                 device_id = pBacDest->Recipient.type.device.instance;
-                debug_printf_stderr(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Notification Class[%u]: send notification to %u\n",
                     event_data->notificationClass, (unsigned)device_id);
                 if (pBacDest->ConfirmedNotify == true) {
@@ -771,7 +776,8 @@ void Notification_Class_common_reporting_function(
                 }
             } else if (
                 pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_ADDRESS) {
-                debug_printf_stderr(
+                debug_log_fprintf(
+                    DEBUG_LOG_DEBUG, stderr,
                     "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */
@@ -922,6 +928,13 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
         if (len > 0) {
             new_element_count++;
             application_data_len -= len;
+            if (new_element_count >= NC_MAX_RECIPIENTS) {
+                list_element->first_failed_element_number = new_element_count;
+                list_element->error_class = ERROR_CLASS_RESOURCES;
+                list_element->error_code =
+                    ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+                return BACNET_STATUS_ERROR;
+            }
         } else {
             list_element->first_failed_element_number = new_element_count;
             list_element->error_class = ERROR_CLASS_PROPERTY;
@@ -1085,10 +1098,17 @@ int Notification_Class_Remove_List_Element(
         if (len > 0) {
             remove_element_count++;
             application_data_len -= len;
+            if (remove_element_count >= NC_MAX_RECIPIENTS) {
+                list_element->first_failed_element_number =
+                    remove_element_count;
+                list_element->error_class = ERROR_CLASS_SERVICES;
+                list_element->error_code = ERROR_CODE_LIST_ELEMENT_NOT_FOUND;
+                return BACNET_STATUS_ERROR;
+            }
         } else {
             list_element->first_failed_element_number = remove_element_count;
             list_element->error_class = ERROR_CLASS_PROPERTY;
-            list_element->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+            list_element->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             return BACNET_STATUS_ERROR;
         }
     }

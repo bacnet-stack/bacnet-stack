@@ -26,6 +26,18 @@ static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return true;
 }
 
+static unsigned Reentrant_Write_Count;
+static bool
+Reentrant_Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    Reentrant_Write_Count++;
+
+    /* Exercise re-entrant self-write path through Timer_Write_Property(). */
+    (void)Timer_Write_Property(wp_data);
+
+    return true;
+}
+
 static struct timer_write_property_notification Write_Property_Notification;
 static BACNET_WRITE_PROPERTY_DATA Write_Property_Notification_Data;
 static uint32_t Write_Property_Notification_Instance;
@@ -759,6 +771,60 @@ static void test_Timer_Operation(void)
     /* cleanup all */
     Timer_Cleanup();
 }
+
+/**
+ * @brief Regression test for self-reference writeback recursion guard
+ */
+static void test_Timer_Self_Reference_Reentrant_Write(void)
+{
+    const uint32_t instance = 124;
+    bool status = false;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_TIMER_STATE_CHANGE_VALUE *value = NULL;
+
+    Timer_Init();
+    Timer_Create(instance);
+    status = Timer_Valid_Instance(instance);
+    zassert_true(status, NULL);
+
+    Timer_Write_Property_Internal_Callback_Set(
+        Reentrant_Write_Property_Internal);
+
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_TIMER;
+    member.objectIdentifier.instance = instance;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    status = Timer_Reference_List_Member_Element_Set(instance, 0, &member);
+    zassert_true(status, NULL);
+
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_IDLE_TO_RUNNING);
+    zassert_not_null(value, NULL);
+    value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value->type.Unsigned_Int = 10;
+    value =
+        Timer_State_Change_Value(instance, TIMER_TRANSITION_RUNNING_TO_RUNNING);
+    zassert_not_null(value, NULL);
+    value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value->type.Unsigned_Int = 10;
+
+    Reentrant_Write_Count = 0;
+    status = Timer_Running_Set(instance, true);
+    zassert_true(status, NULL);
+    zassert_equal(Reentrant_Write_Count, 1, NULL);
+
+    /* A second outer write proves the recursion guard was cleared. */
+    status = Timer_Running_Set(instance, true);
+    zassert_true(status, NULL);
+    zassert_equal(Reentrant_Write_Count, 2, NULL);
+
+    status = Timer_Delete(instance);
+    zassert_true(status, NULL);
+    Timer_Cleanup();
+    Timer_Write_Property_Internal_Callback_Set(NULL);
+}
 /**
  * @}
  */
@@ -767,7 +833,8 @@ void test_main(void)
 {
     ztest_test_suite(
         timer_tests, ztest_unit_test(test_Timer_Read_Write),
-        ztest_unit_test(test_Timer_Operation));
+        ztest_unit_test(test_Timer_Operation),
+        ztest_unit_test(test_Timer_Self_Reference_Reentrant_Write));
 
     ztest_run_test_suite(timer_tests);
 }

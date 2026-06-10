@@ -659,10 +659,8 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
+    /* Valid data? */
     if (wp_data == NULL) {
-        return false;
-    }
-    if (wp_data->application_data_len == 0) {
         return false;
     }
     /* decode the some of the request */

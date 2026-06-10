@@ -1184,7 +1184,8 @@ typedef enum BACnetRestartReason {
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
     RESTART_REASON_PROPRIETARY_MIN = 64,
-    RESTART_REASON_PROPRIETARY_MAX = 255
+    RESTART_REASON_PROPRIETARY_MAX = 255,
+    BACNET_RESTART_REASON_MAX = 256
 } BACNET_RESTART_REASON;
 
 typedef enum BACnetPropertyStates {

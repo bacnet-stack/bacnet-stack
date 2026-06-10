@@ -115,6 +115,7 @@ int ihave_decode_service_request(
     if (data) {
         decoded_string = &data->object_name;
     }
+    characterstring_init_ansi(decoded_string, "");
     len = bacnet_character_string_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, decoded_string);
     if (len <= 0) {

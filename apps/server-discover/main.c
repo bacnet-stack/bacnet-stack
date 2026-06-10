@@ -174,7 +174,7 @@ static void bacnet_server_init(void)
  */
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [--dnet][--dadr][--mac]\n", filename);
+    printf("Usage: %s [--dnet][--dadr][--mac][--debug]\n", filename);
     printf("       [--discover-seconds][--print-seconds][--print-summary]\n");
     printf("       [--version][--help]\n");
 }
@@ -209,6 +209,10 @@ static void print_help(const char *filename)
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
     (void)filename;
 }
 
@@ -225,6 +229,7 @@ int main(int argc, char *argv[])
     const char *filename = NULL;
     uint32_t device_id = BACNET_MAX_INSTANCE;
     long long_value = -1;
+    long severity = -1;
     /* data from the command line */
     unsigned long print_seconds = 60;
     unsigned long discover_seconds = 60;
@@ -279,6 +284,12 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
                     specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--debug") == 0) {
+            if (++argi < argc) {
+                if (bacnet_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
                 }
             }
         } else {

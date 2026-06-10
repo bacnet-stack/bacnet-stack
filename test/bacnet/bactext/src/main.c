@@ -70,7 +70,20 @@ static void testBacText(void)
             status = bactext_application_tag_index(pString, &index);
             zassert_true(status, "i=%u", i);
             zassert_equal(index, i, "index=%u i=%u", index, i);
+            status = bactext_application_tag_strtol(pString, &index);
+            zassert_true(status, "i=%u", i);
+            zassert_equal(index, i, "index=%u i=%u", index, i);
         }
+    }
+    /* BACNET_APPLICATION_TAG - numeric string lookup */
+    for (i = 0; i < BACNET_APPLICATION_TAG_EXTENDED_MAX; i++) {
+        if (i == MAX_BACNET_APPLICATION_TAG) {
+            continue;
+        }
+        snprintf(ascii_number, sizeof(ascii_number), "%u", i);
+        status = bactext_application_tag_strtol(ascii_number, &index);
+        zassert_true(status, "i=%u", i);
+        zassert_equal(index, i, "index=%u i=%u", index, i);
     }
     /* BACNET_CHARACTER_STRING_ENCODING */
     for (i = 0; i < MAX_CHARACTER_STRING_ENCODING; i++) {

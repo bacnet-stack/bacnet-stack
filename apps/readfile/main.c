@@ -97,7 +97,7 @@ static void AtomicReadFileAckHandler(
 {
     int len = 0;
     int result = 0;
-    BACNET_ATOMIC_READ_FILE_DATA data;
+    BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     FILE *pFile = NULL; /* stream pointer */
     size_t octets_written = 0;
     size_t octet_count = 0;

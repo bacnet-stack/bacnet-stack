@@ -586,6 +586,14 @@ test:
 retest:
 	$(MAKE) -s -j -C test retest
 
+.PHONY: unit
+unit:
+	$(MAKE) -s -j -C test unit
+
+.PHONY: lcov
+lcov:
+	$(MAKE) -s -j -C test lcov
+
 .PHONY: test-bsc
 test-bsc:
 	$(MAKE) -s -C test clean

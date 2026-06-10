@@ -13,31 +13,137 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-04-21
+## [Unreleased] - 2026-05-29
 
 ### Security
+
+* Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
+  resolving destination slot for property values. (#1366)
+* Secured address_list_encode() function buffer overrun by using
+  existing BACnetAddressBinding encoding function for length check
+  and refactoring. Added unit test for validation.(#1363)
+* Secured AtomicReadFile and AtomicWriteFile handling by addig bounds
+  checking on start position. (#1362)
+* Secured BACnetList and BACnetARRAY encoding function buffer overflow
+  in Access Credential, Access User, Access Zone, and Credential Data Input
+  by honoring buffer size limits. Added encoding functions for
+  BACnetAuthenticationFactorFormat and BACnetDeviceObjectReferencewith buffer
+  size check. (#1356)
+* Secured Loop object internal Read_Property function buffer overflow. (#1355)
+* Secured Life Safety Point and Zone Read_Property of accepted-modes property
+  buffer overflow. (#1354)
+* Secured Notification Class AddListElement and RemoveListElement stack
+  based buffer overflow. (#1353)
+* Secured Device ENDRESTORE so that it does not delete existing objects
+  until after the first record is decoded (#1352)
+* Secured Timer object State_Change_Values property self-reference that
+  caused uncontrolled recursion. (#1347)
+* Secured Channel object member self-reference that caused uncontrolled
+  recursion. Changed Channel property handling to use device object
+  property reference and unsigned value specific decoders. Fixed handling
+  of Write_Status in Channel_Write_Members to properly reflect success
+  or failure of property writes. (#1345)
+* Secured AtomicReadFile-ACK Record-Access Encoder by initializing
+  BACNET_CHARACTER_STRING and OCTET_STRING to prevent uninitialized
+  usage and conditional information disclosure. (#1344)
+* Secured AtomicReadFile and AtomicWriteFile callbacks into bacfile.c
+  by adding null checks and fixing out-of-bounds read/write.(#1344)
+* Secured WriteProperty to Structured View subordinate-list that caused a NULL
+  pointer dereference in bacnet_device_object_reference_decode(). (#1321)
+* Secured AtomicReadFile handler by implementing bounds checks for
+  RecordCount stack based out-of-bounds write. (#1340)
+
 ### Added
+
+* Added multistate text resizable array. (#1361)
+* Added bacnet_strndup() function for string duplication with a length
+  limit. (#1361)
+* Added Keylist_Data_Set() function to update data for existing keys. (#1361)
+* Added bacnet_array_write_resizable() function for writing array-index beyond
+  bounds without error.  (#1361)
+* Added debug logging with severity (0-7) control in debug.c module. (#1360)
+* Added debug severity level option to various applications using `--debug`
+  command-line option or environment BACNET_DATALINK_DEBUG. (#1360)
+* Added Copilot cloud agent onboarding instructions. (#1359)
+* Added Min and Max Actual Value properties to Lighting Output object. (#1357)
+* Added a mixed static-reference and dynamic-allocation characterstring
+  buffer API for object strings. The new character string buffer API functions
+  include init/strdup/length/value/free/conversion and use a flag to track
+  dynamic memory and mix static-reference and dynamic-allocation.
+  Changed buffer_length type from uint32_t to size_t so that smaller
+  bit-size devices are not penalized. (#1351)
+* Added multistate text to value and sys state text to basic multistate objects.
+  Added state name utility functions and corresponding unit tests.
+  Added multistate object API to set present-value using state-name. (#1348)
+* Added proprietary object functions to device object list (#1343)
+* Added a BACnet Zigbee link layer general handler. (#1336)
+* Added generic Modbus RTU to BACnet gateway application that bridges
+  Modbus RTU devices to a BACnet network via a JSON-based runtime
+  configuration. (#1316)
+* Added pseudo abstract-syntax data write in bac-rw module with WriteProperty
+  write success callback. Added bacapp encode data for a possible array of
+  values used in EPICS WriteProperty service option. (#1331)
+* Added routed virtual device backup/restore reinitialization which enables
+  routed virtual devices to accept ReinitializeDevice so Backup and Restore
+  states can be handled per device. Gateway behavior remains unchanged, and
+  DeviceCommunicationControl remains disabled for virtual devices.
+  Virtual-device COLDSTART, WARMSTART, and ACTIVATE_CHANGES requests now return
+  OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED instead of being acknowledged. (#1320)
+* Added Last_Restart_Reason property support to Device object (#1323)
+
 ### Changed
 
+* Changed bacnet_character_string_buffer_decode to support zero copy
+  for buffer. (#1361)
+* Changed the basic multistate input, multistate output, and multistate value
+  objects to use keylist for state texts and add related functions for
+  resizeable state text arrays so they can be restored after a backup. (#1361)
+* Changed BACnet/IP broadcast destination port to be decoupled from bind
+  port. (#1311)
 * Changed lighting output object and lighting command structure to enable
-loose coupling.  Added locking callbacks in lighting command that are
-engaged when accessing any of the lighting command structure data. (#1306)
+  loose coupling.  Added locking callbacks in lighting command that are
+  engaged when accessing any of the lighting command structure data. (#1306)
 * Changed COV subscription encoding and decoding functions to reduce code
-size and reuse existing unit tested functions. Added BACnetRecipientProcess
-type encoding and decoding functions with associated tests. (#1296)
+  size and reuse existing unit tested functions. Added BACnetRecipientProcess
+  type encoding and decoding functions with associated tests. (#1296)
 * Changed COV Subscriptions handling to use use keylist instead of array
-for performance optimization. (#1295) (#1309)
+  for performance optimization. (#1295) (#1309)
 
 ### Fixed
 
+* Fixed logging output to use stderr instead of stdout in NPDU routing
+  encoding function. (#1360)
+* Fixed mingw32 compiler warning in modbus-gateway app.
+* Fixed _WIN32_WINNT definition for IPv6 compatibility on Windows.
+* Fixed off-by-one error in Life_Safety_Point_Read_Property for
+  accepted modes property. (#1349)
+* Fixed WriteProperty handling across the stack by rejecting zero-length
+  application payloads for non-list properties (returning
+  ERROR_CODE_INVALID_TAG) and by adding defensive wp_data == NULL checks
+  in many object *_Write_Property() handlers. (#1337)
+* Fixed access-doors array to be in array list and use common array
+  encoding function.(#1331)
+* Fixed Network Port object local IPv4 gateway address configuration for
+  Linux/BSD/Windows. (#1335)
+* Fixed Device_Reinitialize_Data initialization at runtime and clean up
+  unused variables in Device_Configuration_Files_Value. (#1325)
+* Fixed null pointer check for value when resetting device identifier
+  in bacdevobjpropref. (#1321)
+* Fixed lighting command update notifications to use scaled physical
+  values using min/max actual value. (#1315)
+* Fixed lighting command off to off behavior. (#1314)
+* Fixed lighting command refresh logic in trim set functions. (#1313)
 * Fixed EPICS values for recipient list, empty lists, and authentication
   factors. Changed EPICS app to allow target MAC or IP address format. (#1310)
 * Fixed BBMD_Result handling to avoid false positive error message when no
-registration is requested. (#1305)
+  registration is requested. (#1305)
 * Fixed keylist CheckArraySize return value, and added memory exhaustion
-check to Keylist_Data_Add. (#1295)
+  check to Keylist_Data_Add. (#1295)
 
 ### Removed
+
+* Removed unmaintained ports/uip, ports/arduino_uno, ports/pic18*,
+  and ports/rx62n folders and references. (#1324)
 
 ## [1.5.0] - 2026-04-16
 
