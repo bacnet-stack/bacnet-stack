@@ -238,6 +238,7 @@ bool point_table_load_json(
     cJSON *sc = NULL;
     cJSON *item = NULL;
     cJSON *j = NULL;
+    GW_POINT *p = NULL;
     int idx = 0;
 
     if (!cfg || !table || !filename) {
@@ -470,8 +471,7 @@ bool point_table_load_json(
             continue;
         }
 
-        GW_POINT *p = &table->points[idx];
-
+        p = &table->points[idx];
         j = cJSON_GetObjectItem(item, "name");
         if (cJSON_IsString(j)) {
             strncpy(p->name, j->valuestring, sizeof(p->name) - 1);
