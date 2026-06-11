@@ -268,11 +268,6 @@ int rr_decode_service_request(
         return BACNET_STATUS_ERROR;
     }
 
-    /* Added to identify the missing mandatory parameter */
-    if (data) {
-        data->Range.RefIndex = UINT32_MAX;
-        data->Count = INT32_MAX;
-    }
     if (bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
         /*
@@ -292,6 +287,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Range.RefIndex = (uint32_t)unsigned_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: referenceIndex */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -302,6 +300,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Count = signed_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: count */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -331,6 +332,9 @@ int rr_decode_service_request(
                 data->Range.RefSeqNum = (uint32_t)unsigned_value;
                 data->Overhead += RR_1ST_SEQ_OVERHEAD;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: referenceIndex */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -341,6 +345,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Count = signed_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: count */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -368,6 +375,9 @@ int rr_decode_service_request(
             &apdu[apdu_len], apdu_size - apdu_len, bdate);
         if (len > 0) {
             apdu_len += len;
+        } else if (len == 0) {
+            /* Missing required parameter: referenceTime date */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -375,6 +385,9 @@ int rr_decode_service_request(
             &apdu[apdu_len], apdu_size - apdu_len, btime);
         if (len > 0) {
             apdu_len += len;
+        } else if (len == 0) {
+            /* Missing required parameter: referenceTime time */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -385,6 +398,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Count = signed_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: count */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -952,31 +968,4 @@ int readrange_ack_by_sequence_encode(
     data->FirstSequence = uiBegin;
 
     return apdu_len;
-}
-
-/**
- * @brief Validates the parameters of a Read Range request.
- *
- * This function checks for missing required parameters in the Read Range
- * request. If a required parameter is missing, it returns -3 to indicate a
- * reject.
- *
- * @param pRequest Pointer to the BACNET_READ_RANGE_DATA request to validate.
- * @return true if the request is valid
- */
-bool readrange_request_valid(BACNET_READ_RANGE_DATA *pRequest)
-{
-    if ((pRequest->Count == INT32_MAX) &&
-        (pRequest->RequestType != RR_READ_ALL)) {
-        /* Reject - missing required parameter - Count */
-        return false;
-    } else if (
-        (pRequest->Range.RefIndex == UINT32_MAX) &&
-        ((pRequest->RequestType == RR_BY_POSITION) ||
-         (pRequest->RequestType == RR_BY_SEQUENCE))) {
-        /* Reject - missing required parameter- Reference index */
-        return false;
-    }
-
-    return true;
 }

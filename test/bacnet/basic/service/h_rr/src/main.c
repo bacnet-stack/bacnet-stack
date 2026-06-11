@@ -9,9 +9,8 @@
  * 1. Empty request (service_len == 0) -> PDU_TYPE_REJECT
  * 2. Segmented message -> PDU_TYPE_ABORT
  * 3. Bad encoding (rr_decode_service_request fails) -> PDU_TYPE_ABORT
- * 4. Invalid request (readrange_request_valid fails) -> PDU_TYPE_REJECT
- * 5. Valid request with valid handler -> PDU_TYPE_COMPLEX_ACK
- * 6. Valid request without handler -> PDU_TYPE_ERROR
+ * 4. Valid request with valid handler -> PDU_TYPE_COMPLEX_ACK
+ * 5. Valid request without handler -> PDU_TYPE_ERROR
  */
 #include <string.h>
 #include <stdbool.h>
@@ -82,6 +81,82 @@ static int build_rr_request(
     rr_data.RequestType = RR_READ_ALL;
 
     service_len = read_range_encode(service_request, &rr_data);
+    return service_len;
+}
+
+/**
+ * Helper to build a by-position request with a missing referenceIndex.
+ *
+ * Starts with a valid encoded request, then removes the first application
+ * element inside the byPosition [3] sequence (referenceIndex). The next field
+ * (count) remains, so unsigned decode sees a tag mismatch (len == 0).
+ */
+static int build_rr_request_missing_refindex(uint8_t *service_request)
+{
+    BACNET_READ_RANGE_DATA rr_data;
+    BACNET_OBJECT_TYPE object_type = OBJECT_ANALOG_INPUT;
+    uint32_t object_instance = 0;
+    BACNET_PROPERTY_ID property_id = PROP_ACKED_TRANSITIONS;
+    BACNET_UNSIGNED_INTEGER unsigned_context_value = BACNET_ARRAY_ALL;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    uint32_t enum_value = 0;
+    int service_len;
+    int apdu_len = 0;
+    int len;
+
+    memset(&rr_data, 0, sizeof(rr_data));
+    rr_data.object_type = object_type;
+    rr_data.object_instance = object_instance;
+    rr_data.object_property = property_id;
+    rr_data.array_index = BACNET_ARRAY_ALL;
+    rr_data.RequestType = RR_BY_POSITION;
+    rr_data.Range.RefIndex = 1;
+    rr_data.Count = 10;
+
+    service_len = read_range_encode(service_request, &rr_data);
+    if (service_len <= 0) {
+        return service_len;
+    }
+
+    len = bacnet_object_id_context_decode(
+        &service_request[apdu_len], service_len - apdu_len, 0, &object_type,
+        &object_instance);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    len = bacnet_enumerated_context_decode(
+        &service_request[apdu_len], service_len - apdu_len, 1, &enum_value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    len = bacnet_unsigned_context_decode(
+        &service_request[apdu_len], service_len - apdu_len, 2,
+        &unsigned_context_value);
+    if (len > 0) {
+        apdu_len += len;
+    }
+
+    if (!bacnet_is_opening_tag_number(
+            &service_request[apdu_len], service_len - apdu_len, 3, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    len = bacnet_unsigned_application_decode(
+        &service_request[apdu_len], service_len - apdu_len, &unsigned_value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+
+    memmove(
+        &service_request[apdu_len], &service_request[apdu_len + len],
+        (size_t)(service_len - (apdu_len + len)));
+    service_len -= len;
+
     return service_len;
 }
 
@@ -306,6 +381,45 @@ static void testHandlerRR_RangeByPosition(void)
         (unsigned)PDU_TYPE_COMPLEX_ACK, (unsigned)pdu_type);
 }
 
+/* -------------------------------------------------------------------------
+ * Test 7: Missing required range parameter -> REJECT
+ *
+ * Request decodes with byPosition [3] opening tag but missing referenceIndex.
+ * When decoder tries to read the first required element (RefIndex), it gets
+ * len=0 (tag mismatch) and returns BACNET_STATUS_REJECT.
+ * Handler responds with REJECT for missing required parameter.
+ * --------- -------------------------------------------------------*/
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_rr_tests, testHandlerRR_MissingRangeParameter)
+#else
+static void testHandlerRR_MissingRangeParameter(void)
+#endif
+{
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data;
+    uint8_t service_request[64] = { 0 };
+    int service_len;
+    uint8_t pdu_type;
+
+    make_service_data(&service_data, 7, false);
+    service_len = build_rr_request_missing_refindex(service_request);
+    zassert_true(
+        service_len > 0,
+        "Failed to build RR by-position request with missing referenceIndex");
+
+    Device_RR_Info_Should_Return_Handler = true;
+    handler_read_range(
+        service_request, (uint16_t)service_len, &src, &service_data);
+
+    /* Verify REJECT response for missing range parameter */
+    pdu_type = extract_pdu_type(Handler_Transmit_Buffer);
+    zassert_equal(
+        pdu_type, (uint8_t)PDU_TYPE_REJECT,
+        "Expected PDU_TYPE_REJECT (0x%02x) for missing range parameter, got "
+        "0x%02x",
+        (unsigned)PDU_TYPE_REJECT, (unsigned)pdu_type);
+}
+
 /* --------- -------------------------------------------------------
  * Test Suite Definition
  * --------- -------------------------------------------------------*/
@@ -320,7 +434,8 @@ void test_main(void)
         ztest_unit_test(testHandlerRR_BadEncoding),
         ztest_unit_test(testHandlerRR_NoHandlerForObjectType),
         ztest_unit_test(testHandlerRR_ValidRequestWithHandler),
-        ztest_unit_test(testHandlerRR_RangeByPosition));
+        ztest_unit_test(testHandlerRR_RangeByPosition),
+        ztest_unit_test(testHandlerRR_MissingRangeParameter));
 
     ztest_run_test_suite(h_rr_tests);
 }

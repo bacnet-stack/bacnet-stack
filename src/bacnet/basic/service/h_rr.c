@@ -143,11 +143,15 @@ void handler_read_range(
     } else {
         memset(&data, 0, sizeof(data)); /* start with blank canvas */
         len = rr_decode_service_request(service_request, service_len, &data);
-        if (len <= 0) {
+        if (len == BACNET_STATUS_REJECT) {
+            /* Missing required parameter in range sequence */
+            len = reject_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                REJECT_REASON_MISSING_REQUIRED_PARAMETER);
             debug_log_fprintf(
-                DEBUG_LOG_NOTICE, stderr, "RR: Unable to decode Request!\n");
-        }
-        if (len < 0) {
+                DEBUG_LOG_NOTICE, stderr,
+                "RR: Missing required range parameter. Sending Reject!\n");
+        } else if (len < 0) {
             /* bad decoding - send an abort */
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
@@ -155,7 +159,7 @@ void handler_read_range(
             debug_log_fprintf(
                 DEBUG_LOG_NOTICE, stderr,
                 "RR: Bad Encoding.  Sending Abort!\n");
-        } else if (readrange_request_valid(&data)) {
+        } else {
             /* assume that there is an error */
             error = true;
             data.application_data = &Temp_Buf[0];
@@ -204,12 +208,6 @@ void handler_read_range(
                         DEBUG_LOG_NOTICE, stderr, "RR: Sending Error!\n");
                 }
             }
-        } else {
-            len = reject_encode_apdu(
-                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-            debug_log_fprintf(
-                DEBUG_LOG_NOTICE, stderr, "RR: Sending Reject!\n");
         }
     }
     pdu_len += len;
