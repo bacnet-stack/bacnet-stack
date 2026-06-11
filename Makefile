@@ -11,28 +11,28 @@ all: apps
 
 .PHONY: bsd
 bsd:
-	$(MAKE) LEGACY=true BACNET_PORT=bsd -s -C apps all
+	$(MAKE) BACNET_PORT=bsd -s -C apps all
 
 .PHONY: linux
 linux:
-	$(MAKE) LEGACY=true BACNET_PORT=linux -s -C apps all
+	$(MAKE) BACNET_PORT=linux -s -C apps all
 
 .PHONY: win32
 win32:
-	$(MAKE) LEGACY=true BACNET_PORT=win32 -s -C apps all
+	$(MAKE) BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mingw32
 mingw32:
 	i686-w64-mingw32-gcc --version
-	$(MAKE) PREFIX=i686-w64-mingw32- BACNET_PORT=win32 LEGACY=true BACDL=bip6 -s -C apps all
+	$(MAKE) PREFIX=i686-w64-mingw32- BACNET_PORT=win32 BACDL=bip6 -s -C apps all
 
 .PHONY: mstpwin32-clean
 mstpwin32-clean:
-	$(MAKE) LEGACY=true BACDL=mstp BACNET_PORT=win32 -s -C apps clean
+	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps clean
 
 .PHONY: mstpwin32
 mstpwin32:
-	$(MAKE) LEGACY=true BACDL=mstp BACNET_PORT=win32 -s -C apps all
+	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mstp
 mstp:
@@ -40,29 +40,29 @@ mstp:
 
 .PHONY: mingw32-bip6
 mingw32-bip6:
-	$(MAKE) PREFIX=i686-w64-mingw32- BACNET_PORT=win32 LEGACY=true BACDL=bip6 -s -C apps all
+	$(MAKE) PREFIX=i686-w64-mingw32- BACNET_PORT=win32 BACDL=bip6 -s -C apps all
 
 .PHONY: bip6
 bip6:
-	$(MAKE) LEGACY=true BACDL=bip6 -s -C apps all
+	$(MAKE) BACDL=bip6 -s -C apps all
 
 .PHONY: bip
 bip:
-	$(MAKE) LEGACY=true BACDL=bip -s -C apps all
+	$(MAKE) BACDL=bip -s -C apps all
 
 .PHONY: bip-client
 bip-client:
-	$(MAKE) LEGACY=true BACDL=bip BBMD=client -s -C apps all
+	$(MAKE) BACDL=bip BBMD=client -s -C apps all
 
 .PHONY: ethernet
 ethernet:
-	$(MAKE) LEGACY=true BACDL=ethernet -s -C apps all
+	$(MAKE) BACDL=ethernet -s -C apps all
 
 # note: requires additional libraries to be installed
 # see .github/workflows/gcc.yml
 .PHONY: bsc
 bsc:
-	$(MAKE) LEGACY=true BACDL=bsc -s -C apps all
+	$(MAKE) BACDL=bsc -s -C apps all
 
 .PHONY: apps
 apps:
@@ -106,19 +106,19 @@ apdu:
 
 .PHONY: blinkt
 blinkt:
-	$(MAKE) LEGACY=true -C apps $@
+	$(MAKE) -C apps $@
 
 .PHONY: blinkt-pipeline
 blinkt-pipeline:
-	$(MAKE) LEGACY=true BUILD=pipeline -C apps blinkt
+	$(MAKE) BUILD=pipeline -C apps blinkt
 
 .PHONY: blinkt6
 blinkt6:
-	$(MAKE) LEGACY=true BACDL=bip6 -C apps blinkt
+	$(MAKE) BACDL=bip6 -C apps blinkt
 
 .PHONY: blinkt6-pipeline
 blinkt6-pipeline:
-	$(MAKE) LEGACY=true BACDL=bip6 BUILD=pipeline -C apps blinkt
+	$(MAKE) BACDL=bip6 BUILD=pipeline -C apps blinkt
 
 .PHONY: create-object
 create-object:
@@ -170,11 +170,11 @@ gateway2-win32:
 
 .PHONY: piface
 piface:
-	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
+	$(MAKE) CSTANDARD="-std=gnu11" -s -C apps $@
 
 .PHONY: piface6
 piface6:
-	$(MAKE) CSTANDARD="-std=gnu11" BACDL=bip6 LEGACY=true -s -C apps piface
+	$(MAKE) CSTANDARD="-std=gnu11" BACDL=bip6 -s -C apps piface
 
 .PHONY: readbdt
 readbdt:
@@ -214,35 +214,35 @@ server:
 
 .PHONY: server-basic
 server-basic:
-	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
+	$(MAKE) NOTIFY=false -s -C apps $@
 
 .PHONY: server-basic-mstp
 server-basic-mstp:
-	$(MAKE) LEGACY=true NOTIFY=false BACDL=mstp -s -C apps server-basic
+	$(MAKE) NOTIFY=false BACDL=mstp -s -C apps server-basic
 
 .PHONY: server-client
 server-client:
-	$(MAKE) LEGACY=true -s -C apps $@
+	$(MAKE) -s -C apps $@
 
 .PHONY: server-discover
 server-discover:
-	$(MAKE) LEGACY=true -s -C apps $@
+	$(MAKE) -s -C apps $@
 
 .PHONY: server-mini
 server-mini:
-	$(MAKE) LEGACY=true NOTIFY=false -s -C apps $@
+	$(MAKE) NOTIFY=false -s -C apps $@
 
 .PHONY: server-segmentation
 server-segmentation:
-	$(MAKE) LEGACY=true SEGMENT=true -s -C apps server
+	$(MAKE) SEGMENT=true -s -C apps server
 
 .PHONY: sc-hub
 sc-hub:
-	$(MAKE) LEGACY=true BACDL=bsc -s -C apps $@
+	$(MAKE) BACDL=bsc -s -C apps $@
 
 .PHONY: sc-hub-debug
 sc-hub-debug:
-	$(MAKE) LEGACY=true BACDL=bsc BUILD=debug -s -C apps sc-hub
+	$(MAKE) BACDL=bsc BUILD=debug -s -C apps sc-hub
 
 .PHONY: dmbrcap
 dmbrcap:
@@ -409,7 +409,7 @@ mstpsnap: ports/linux/mstpsnap.mak
 
 .PHONY: gtk-discover
 gtk-discover:
-	$(MAKE) LEGACY=true -s -C apps $@
+	$(MAKE) -s -C apps $@
 
 .PHONY: dlmstp-linux
 dlmstp-linux: ports/linux/dlmstp.mak
@@ -456,7 +456,7 @@ tidy:
 
 .PHONY: scan-build
 scan-build:
-	scan-build --status-bugs -analyze-headers make -j2 LEGACY=true server
+	scan-build --status-bugs -analyze-headers make -j2 server
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
