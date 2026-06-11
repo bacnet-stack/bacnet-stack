@@ -17,6 +17,17 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the basic device object which had a string use after free.
+  Added character string buffer stndup and same/diff functions.
+  Changed all the device object character string handling to use
+  character string buffers, where the API set calls use static memory
+  and WriteProperty uses dynamic memory. This improves memory usage
+  and prevents use after free since the character string buffer tracks
+  allocated vs non-allocated strings. (#1375)
+* Secured rpm_decode_object_property by fixing a DoS vulnerability
+  for malformed RPM requests. (#1374)
+* Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
+  lengths and adding array bounds checks before every write. (#1365)
 * Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
   resolving destination slot for property values. (#1366)
 * Secured address_list_encode() function buffer overrun by using
@@ -55,6 +66,17 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACnet/SC (BSC) datalink support to the modbus-gateway application.
+  Extended GW_CONFIG with sc sub-struct holding all BACNET_SC_* fields, and
+  added compile-time fallback: non-BSC binary + "bsc" JSON → warns and falls
+  back to compiled datalink; BSC binary + non-"bsc" JSON → overrides to "bsc"
+  Removed duplicate datalink_init() call (dlenv_init() already calls it
+  internally). (#1382)
+* Added lighting command event notification callbacks and update related
+  functions. (#1376)
+* Added support for DEVICE_UUID property in Device_Read_Property_Local. (#1375)
+* Added test-only shim for bsc_node_parse_urls() to support unit testing (#1369)
+* Added lcov target for code coverage in Makefile and CMakeLists. (#1370)
 * Added multistate text resizable array. (#1361)
 * Added bacnet_strndup() function for string duplication with a length
   limit. (#1361)
@@ -93,6 +115,23 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed debug_print to debug_log_fprintf in ReadRange handler. (#1303)
+* Changed logging in many modules to use debug_log_fprintf for consistent
+  error and debug output that can be adjusted during runtime. (#1364)
+* Changed the apps/gtk-discover demo app to replace the previous
+  discovery-specific flow with the bac-rw read/write queue, adding
+  an in-memory cache for devices/objects/properties and improving
+  the UI around asynchronous reads and writes including progress indicators.
+  Changed the property name text to include array index handling for
+  BACnetARRAY property names. Changed the property view tree WriteProperty
+  handling by reading after writing to show current value after writing.
+  Changed the property acquisition handling to introduce new phases
+  for reading properties, starting with RPM ALL, falling back to reading
+  the property-list property, and failing those, reading each required
+  and optional property expected for this object. (#1377)
+* Changed application tag name text to use a dash instead of a space,
+  and added strtol support for parsing an application tag name for handling
+  application tags in WriteProperty and WritePropertyMultiple demo apps. (#1367)
 * Changed bacnet_character_string_buffer_decode to support zero copy
   for buffer. (#1361)
 * Changed the basic multistate input, multistate output, and multistate value
@@ -111,6 +150,29 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed ReadRange service request to reject for missing mandatory parameters
+  in Read Range request. (#1303)
+* Fixed BACnet/SC primary hub reconnection logic when connected to failover
+  hub by adding primary-retry scheduling/handling while in CONNECTED_FAILOVER.
+  Extended hub-connector socket event handling to support restoring primary
+  while failover is active. (#1381)
+* Fixed apps/blinkt and apps/server-basic to use the BACnet Basic Port
+  callback for dlenv_init(). Added callback mechanism for BACnet Basic
+  Port task execution which skips default datalink init and task when
+  callback is set, and calls the callback during the task instead. (#1380)
+* Fixed C++ incompatibility in host-n-port structure by moving the two
+  nested struct definitions to top-level since those are used later
+  outside the nest. Declaring a struct inside a struct make it globally
+  available in C, but only locally available with a C++ compiler. (#1378)
+* Fixed write property error code to indicate success in decode functions.
+  In wp_decode_service_request(), wpdata->error_code was set to OTHER at
+  decode start. On success the function does not update it, so error_code
+  stays OTHER even when decode returns a positive length. (#1379)
+* Fixed apps/server demo backup and restore POSIX file backend initialization.
+  Removed BACFILE references and now rely on BACDL_BSC when a POSIX file
+  backend is needed to be included by the BACnet/SC datalink layer.
+  Fixed POSIX file backend initialization and correct offset handling in
+  the backup process. (#1368)
 * Fixed logging output to use stderr instead of stdout in NPDU routing
   encoding function. (#1360)
 * Fixed mingw32 compiler warning in modbus-gateway app.
