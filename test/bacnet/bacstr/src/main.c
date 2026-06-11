@@ -1618,7 +1618,7 @@ ZTEST(bacstr_tests, test_bacnet_stptok)
 static void test_bacnet_stptok(void)
 #endif
 {
-    char *pCmd = "I Love You\r\n";
+    const char *pCmd = "I Love You\r\n";
     char token[80] = "";
 
     pCmd = bacnet_stptok(pCmd, token, sizeof(token), " \r\n");

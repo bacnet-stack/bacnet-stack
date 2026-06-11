@@ -1219,7 +1219,7 @@ bool characterstring_buffer_from_characterstring(
     }
     characterstring_buffer_free(dest);
     dest->encoding = characterstring_encoding(src);
-    dest->buffer = (char *)characterstring_value(src);
+    dest->buffer = characterstring_buffer_borrow(characterstring_value(src));
     dest->buffer_size = characterstring_capacity(src);
     dest->buffer_length = characterstring_length(src);
 
@@ -1456,8 +1456,7 @@ bool octetstring_init_ascii_epics(
 bool octetstring_copy(BACNET_OCTET_STRING *dest, const BACNET_OCTET_STRING *src)
 {
     return octetstring_init(
-        dest, octetstring_value((BACNET_OCTET_STRING *)src),
-        octetstring_length(src));
+        dest, octetstring_value_const(src), octetstring_length(src));
 }
 
 /**
@@ -1552,6 +1551,25 @@ bool octetstring_truncate(BACNET_OCTET_STRING *octet_string, size_t length)
 uint8_t *octetstring_value(BACNET_OCTET_STRING *octet_string)
 {
     uint8_t *value = NULL;
+
+    if (octet_string) {
+        value = octet_string->value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Returns the value (as const pointer) of
+ * the given octet string.
+ *
+ * @param octet_string  Pointer to the octet string.
+ *
+ * @return Value as a pointer to a byte array or NULL on error.
+ */
+const uint8_t *octetstring_value_const(const BACNET_OCTET_STRING *octet_string)
+{
+    const uint8_t *value = NULL;
 
     if (octet_string) {
         value = octet_string->value;
@@ -2500,7 +2518,8 @@ char *bacnet_trim(char *str, const char *trimmedchars)
  *  stopped the scan or NULL on error or end of string.
  * @note public domain by Ray Gardner, modified by Bob Stout and Steve Karg
  */
-char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
+const char *
+bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
 {
     char *lim; /* limit of token */
     const char *b; /* current break character */
@@ -2529,7 +2548,7 @@ char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
                 if (!*s) {
                     return NULL;
                 }
-                return (char *)s;
+                return s;
             }
         }
         *tok++ = *s++;
@@ -2540,7 +2559,7 @@ char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk)
         return NULL;
     }
 
-    return (char *)s;
+    return s;
 }
 
 /**

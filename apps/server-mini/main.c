@@ -63,7 +63,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 #define INTERVAL 5
 
 typedef struct {
-    char *binary_state;
+    const char *binary_state;
     float analog_value;
 } TestValue;
 
@@ -233,7 +233,7 @@ static void process_task(void)
     if (!Analog_Value_Out_Of_Service(av_instance)) {
         Analog_Value_Present_Value_Set(
             av_instance, next_value.analog_value, BACNET_NO_PRIORITY);
-        printf("AV-0 updated to: %.1f\n", next_value.analog_value);
+        printf("AV-0 updated to: %.1f\n", (double)next_value.analog_value);
     }
 
     if (!Binary_Value_Out_Of_Service(bv_instance)) {

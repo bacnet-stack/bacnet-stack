@@ -2112,7 +2112,7 @@ int bacapp_snprintf_octet_string(
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     len = octetstring_length(value);
     if (len > 0) {
-        octet_str = octetstring_value((BACNET_OCTET_STRING *)value);
+        octet_str = octetstring_value_const(value);
         for (i = 0; i < len; i++) {
             slen = bacapp_snprintf(str, str_len, "%02X", *octet_str);
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -3460,8 +3460,7 @@ static int bacapp_snprintf_host_n_port(
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (value->host_ip_address) {
         const uint8_t *octet_str;
-        octet_str =
-            octetstring_value((BACNET_OCTET_STRING *)&value->host.ip_address);
+        octet_str = octetstring_value_const(&value->host.ip_address);
         slen = bacapp_snprintf(
             str, str_len, "%u.%u.%u.%u:%u", (unsigned)octet_str[0],
             (unsigned)octet_str[1], (unsigned)octet_str[2],
@@ -3811,7 +3810,7 @@ static int bacapp_snprintf_action_command(
 #endif
 
 #if defined(BACAPP_AUTHENTICATION)
-int bacapp_snprintf_authentication_factor(
+static int bacapp_snprintf_authentication_factor(
     char *str, size_t str_len, const BACNET_AUTHENTICATION_FACTOR *value)
 {
     int slen;

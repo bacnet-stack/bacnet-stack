@@ -542,8 +542,8 @@ bool point_table_load_json(
             "  scale=%.4g offset=%.4g  [%.2g, %.2g]  %s\n",
             idx, p->name, bacnet_type_str(p->bacnet_type), p->bacnet_instance,
             p->modbus_slave, (unsigned)p->modbus_func, p->modbus_address,
-            p->scale, p->offset, p->range_min, p->range_max,
-            p->enabled ? "ENABLED" : "DISABLED");
+            (double)p->scale, (double)p->offset, (double)p->range_min,
+            (double)p->range_max, p->enabled ? "ENABLED" : "DISABLED");
 
         idx++;
     }
@@ -680,14 +680,15 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                     Analog_Input_Present_Value_Set(p->bacnet_instance, eng_val);
                     Analog_Input_Out_Of_Service_Set(p->bacnet_instance, false);
                     printf(
-                        "[PT] %-20s = %.4g  (AI:%u)\n", p->name, eng_val,
-                        p->bacnet_instance);
+                        "[PT] %-20s = %.4g  (AI:%u)\n", p->name,
+                        (double)eng_val, p->bacnet_instance);
                 } else {
                     Analog_Input_Out_Of_Service_Set(p->bacnet_instance, true);
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
 
@@ -707,7 +708,8 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
 
@@ -717,14 +719,15 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                         p->bacnet_instance, eng_val, BACNET_NO_PRIORITY);
                     Analog_Output_Out_Of_Service_Set(p->bacnet_instance, false);
                     printf(
-                        "[PT] %-20s = %.4g  (AO:%u)\n", p->name, eng_val,
-                        p->bacnet_instance);
+                        "[PT] %-20s = %.4g  (AO:%u)\n", p->name,
+                        (double)eng_val, p->bacnet_instance);
                 } else {
                     Analog_Output_Out_Of_Service_Set(p->bacnet_instance, true);
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
             case GW_BACNET_TYPE_BO:
@@ -744,7 +747,8 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
             default:

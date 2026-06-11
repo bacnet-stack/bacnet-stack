@@ -2992,7 +2992,8 @@ static bool Lighting_Output_Trim_Fade_Time_Write(
     bool status;
 
     (void)priority;
-    status = Lighting_Output_Trim_Fade_Time_Set(object_instance, value);
+    status =
+        Lighting_Output_Trim_Fade_Time_Set(object_instance, (uint32_t)value);
     if (!status) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

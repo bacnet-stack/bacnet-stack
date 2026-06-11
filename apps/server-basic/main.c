@@ -111,7 +111,7 @@ static void BACnet_Object_Task(void *context)
             return;
         }
         temperature = Analog_Input_Present_Value(SENSOR_ID);
-        change = -1.0f + 2.0f * ((float)rand()) / RAND_MAX;
+        change = -1.0f + 2.0f * ((float)rand()) / (float)RAND_MAX;
         temperature += change;
         Analog_Input_Present_Value_Set(SENSOR_ID, temperature);
     }

@@ -227,6 +227,8 @@ bool octetstring_truncate(BACNET_OCTET_STRING *octet_string, size_t length);
 /* Returns the value */
 BACNET_STACK_EXPORT
 uint8_t *octetstring_value(BACNET_OCTET_STRING *octet_string);
+BACNET_STACK_EXPORT
+const uint8_t *octetstring_value_const(const BACNET_OCTET_STRING *octet_string);
 /* Returns the length.*/
 BACNET_STACK_EXPORT
 size_t octetstring_length(const BACNET_OCTET_STRING *octet_string);
@@ -317,7 +319,8 @@ BACNET_STACK_EXPORT
 char *bacnet_trim(char *str, const char *trimmedchars);
 
 BACNET_STACK_EXPORT
-char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk);
+const char *
+bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk);
 BACNET_STACK_EXPORT
 char *bacnet_strndup(const char *s, size_t n);
 BACNET_STACK_EXPORT

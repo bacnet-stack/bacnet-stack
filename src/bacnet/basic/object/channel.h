@@ -122,6 +122,9 @@ bool Channel_Write_Member_Value(
     BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_CHANNEL_VALUE *value);
 
 BACNET_STACK_EXPORT
+struct object_data *Object_Data(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
 void Channel_Write_Property_Internal_Callback_Set(write_property_function cb);
 BACNET_STACK_EXPORT
 void Channel_Write_Property_Notification_Add(

@@ -413,7 +413,7 @@ bool Device_Object_Name_Copy(
 BACNET_STACK_EXPORT
 bool Device_Object_Name_ANSI_Init(const char *object_name);
 BACNET_STACK_EXPORT
-char *Device_Object_Name_ANSI(void);
+const char *Device_Object_Name_ANSI(void);
 
 BACNET_STACK_EXPORT
 BACNET_DEVICE_STATUS Device_System_Status(void);

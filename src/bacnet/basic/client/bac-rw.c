@@ -580,12 +580,12 @@ void bacnet_read_write_device_callback_set(
  */
 void bacnet_read_write_task(void)
 {
-    TARGET_DATA *target;
+    volatile TARGET_DATA *target;
     bool status = false;
     BACNET_READ_PROPERTY_DATA rp_data;
 
     if (!Ringbuf_Empty(&Target_Data_Queue)) {
-        target = (TARGET_DATA *)Ringbuf_Peek(&Target_Data_Queue);
+        target = (volatile TARGET_DATA *)Ringbuf_Peek(&Target_Data_Queue);
         status = bacnet_read_write_process(target);
         if (status) {
             if (Error_Detected) {
