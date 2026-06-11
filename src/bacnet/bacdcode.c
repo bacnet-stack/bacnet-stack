@@ -2935,7 +2935,7 @@ int encode_bacnet_character_string(
     length = characterstring_length(char_string);
     if (apdu) {
         apdu[0] = characterstring_encoding(char_string);
-        value = characterstring_value(char_string);
+        value = characterstring_value_const(char_string);
         for (i = 0; i < length; i++) {
             apdu[1 + i] = (uint8_t)value[i];
         }

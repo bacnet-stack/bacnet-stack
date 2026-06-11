@@ -35,7 +35,7 @@ extern "C" {
    init, send, receive, cleanup, unicast/broadcast address.
    Note: the addresses used here are VMAC addresses. */
 BACNET_STACK_EXPORT
-bool bip6_init(char *ifname);
+bool bip6_init(const char *ifname);
 BACNET_STACK_EXPORT
 void bip6_cleanup(void);
 BACNET_STACK_EXPORT
@@ -58,7 +58,7 @@ uint16_t bip6_receive(
 
 /* functions that are custom per port */
 BACNET_STACK_EXPORT
-void bip6_set_interface(char *ifname);
+void bip6_set_interface(const char *ifname);
 
 BACNET_STACK_EXPORT
 bool bip6_address_match_self(const BACNET_IP6_ADDRESS *addr);

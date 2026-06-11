@@ -467,8 +467,8 @@ bool characterstring_copy(
 {
     if (dest && src) {
         return characterstring_init(
-            dest, characterstring_encoding(src), characterstring_value(src),
-            characterstring_length(src));
+            dest, characterstring_encoding(src),
+            characterstring_value_const(src), characterstring_length(src));
     }
 
     return false;
@@ -699,7 +699,26 @@ bool characterstring_truncate(
  *
  * @return Pointer to a zero-terminated C-string.
  */
-const char *characterstring_value(const BACNET_CHARACTER_STRING *char_string)
+char *characterstring_value(BACNET_CHARACTER_STRING *char_string)
+{
+    char *value = NULL;
+
+    if (char_string) {
+        value = char_string->value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Returns the pointer to the C-string for the given BACnet string.
+ * This is a const version of characterstring_value() and should be used when
+ * the caller does not intend to modify the returned string.
+ * @param char_string  Pointer to the character string.
+ * @return Pointer to a zero-terminated C-string.
+ */
+const char *
+characterstring_value_const(const BACNET_CHARACTER_STRING *char_string)
 {
     const char *value = NULL;
 
@@ -1188,7 +1207,7 @@ bool characterstring_buffer_strdup(
     buffer = calloc(length + 1, 1);
     if (buffer != NULL) {
         if (length > 0) {
-            value = characterstring_value(src);
+            value = characterstring_value_const(src);
             memcpy(buffer, value, length);
         }
         characterstring_buffer_free(dest);
@@ -1212,14 +1231,14 @@ bool characterstring_buffer_strdup(
  * @return true on success, false otherwise.
  */
 bool characterstring_buffer_from_characterstring(
-    BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src)
+    BACNET_CHARACTER_STRING_BUFFER *dest, BACNET_CHARACTER_STRING *src)
 {
     if (!dest || !src) {
         return false;
     }
     characterstring_buffer_free(dest);
     dest->encoding = characterstring_encoding(src);
-    dest->buffer = characterstring_buffer_borrow(characterstring_value(src));
+    dest->buffer = characterstring_value(src);
     dest->buffer_size = characterstring_capacity(src);
     dest->buffer_length = characterstring_length(src);
 
@@ -1242,7 +1261,8 @@ bool characterstring_buffer_to_characterstring(
 
     return characterstring_init(
         dest, characterstring_buffer_encoding(src),
-        characterstring_buffer_value(src), characterstring_buffer_length(src));
+        characterstring_buffer_value_const(src),
+        characterstring_buffer_length(src));
 }
 
 /**
@@ -1281,14 +1301,32 @@ bool characterstring_buffer_same(
  * @param char_string Pointer to buffer structure.
  * @return Pointer to C-string data, or an empty string if no buffer is set.
  */
-const char *
-characterstring_buffer_value(const BACNET_CHARACTER_STRING_BUFFER *char_string)
+char *characterstring_buffer_value(BACNET_CHARACTER_STRING_BUFFER *char_string)
 {
     if (char_string && char_string->buffer) {
         return char_string->buffer;
     }
 
     return "";
+}
+
+/**
+ * @brief Returns the pointer to C-string data for the given buffer.
+ * This is a const version of characterstring_buffer_value() and should be
+ * used when the caller does not intend to modify the returned string.
+ * @param char_string Pointer to buffer structure.
+ * @return Pointer to C-string data, or an empty string if no buffer is set.
+ */
+const char *characterstring_buffer_value_const(
+    const BACNET_CHARACTER_STRING_BUFFER *char_string)
+{
+    const char *value = "";
+
+    if (char_string && char_string->buffer) {
+        value = char_string->buffer;
+    }
+
+    return value;
 }
 
 /**

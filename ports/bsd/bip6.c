@@ -102,7 +102,7 @@ static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
  *
  * @param ifname - C string for name or text address
  */
-void bip6_set_interface(char *ifname)
+void bip6_set_interface(const char *ifname)
 {
     struct ifaddrs *ifa, *ifa_tmp;
     struct sockaddr_in6 *sin;
@@ -476,7 +476,7 @@ void bip6_leave_group(void)
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
-bool bip6_init(char *ifname)
+bool bip6_init(const char *ifname)
 {
     int status = 0; /* return from socket lib calls */
     struct sockaddr_in6 server = { 0 };

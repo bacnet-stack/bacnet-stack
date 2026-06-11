@@ -2148,7 +2148,7 @@ int bacapp_snprintf_character_string(
 #endif
 
     len = characterstring_length(value);
-    char_str = characterstring_value(value);
+    char_str = characterstring_value_const(value);
     slen = bacapp_snprintf(str, str_len, "\"");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
@@ -3470,7 +3470,7 @@ static int bacapp_snprintf_host_n_port(
         const BACNET_CHARACTER_STRING *name;
         name = &value->host.name;
         len = characterstring_length(name);
-        char_str = characterstring_value(name);
+        char_str = characterstring_value_const(name);
         slen = bacapp_snprintf(str, str_len, "\"");
         ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
         for (i = 0; i < len; i++) {

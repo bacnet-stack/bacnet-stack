@@ -36,8 +36,8 @@ ZTEST(datalink_tests, test_datalink_arcnet)
 static void test_datalink_arcnet(void)
 #endif
 {
-    char *iface = "bla-bla-bla";
-    char *iface2 = "bla-bla-bla2";
+    const char *iface = "bla-bla-bla";
+    const char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
     BACNET_ADDRESS addr = { .mac_len = 6,
@@ -117,8 +117,8 @@ ZTEST(datalink_tests, test_datalink_bip)
 static void test_datalink_bip(void)
 #endif
 {
-    char *iface = "bla-bla-bla";
-    char *iface2 = "bla-bla-bla2";
+    const char *iface = "bla-bla-bla";
+    const char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
     BACNET_ADDRESS addr = { .mac_len = 6,
@@ -201,8 +201,8 @@ ZTEST(datalink_tests, test_datalink_bip6)
 static void test_datalink_bip6(void)
 #endif
 {
-    char *iface = "bla-bla-bla";
-    char *iface2 = "bla-bla-bla2";
+    const char *iface = "bla-bla-bla";
+    const char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
     BACNET_ADDRESS addr = { .mac_len = 6,
@@ -365,8 +365,8 @@ ZTEST(datalink_tests, )
 static void test_datalink_ethernet(void)
 #endif
 {
-    char *iface = "bla-bla-bla";
-    char *iface2 = "bla-bla-bla2";
+    const char *iface = "bla-bla-bla";
+    const char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
     BACNET_ADDRESS addr = { .mac_len = 6,

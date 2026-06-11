@@ -503,7 +503,7 @@ void bzll_cleanup(void)
  *
  * @return true if initialized
  */
-bool bzll_init(char *interface_name)
+bool bzll_init(const char *interface_name)
 {
     (void)interface_name;
     Ringbuf_Initialize(

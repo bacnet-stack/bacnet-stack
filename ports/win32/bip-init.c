@@ -907,7 +907,7 @@ static SOCKET createSocket(const struct sockaddr_in *sin)
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
-bool bip_init(char *ifname)
+bool bip_init(const char *ifname)
 {
     struct sockaddr_in sin;
     SOCKET sock_fd = INVALID_SOCKET;

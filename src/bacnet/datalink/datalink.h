@@ -140,7 +140,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-bool datalink_init(char *ifname);
+bool datalink_init(const char *ifname);
 
 BACNET_STACK_EXPORT
 int datalink_send_pdu(
@@ -163,10 +163,10 @@ BACNET_STACK_EXPORT
 void datalink_get_my_address(BACNET_ADDRESS *my_address);
 
 BACNET_STACK_EXPORT
-void datalink_set_interface(char *ifname);
+void datalink_set_interface(const char *ifname);
 
 BACNET_STACK_EXPORT
-void datalink_set(char *datalink_string);
+void datalink_set(const char *datalink_string);
 
 BACNET_STACK_EXPORT
 void datalink_maintenance_timer(uint16_t seconds);
