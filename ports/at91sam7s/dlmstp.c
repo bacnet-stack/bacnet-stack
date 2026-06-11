@@ -156,7 +156,7 @@ struct mstp_pdu_packet {
 static struct mstp_pdu_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];
 static RING_BUFFER PDU_Queue;
 
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     (void)ifname;
     /* initialize hardware */

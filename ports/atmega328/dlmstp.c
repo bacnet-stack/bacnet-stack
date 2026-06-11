@@ -150,9 +150,9 @@ static uint8_t TransmitPacketDest;
             x++;                     \
     }
 
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
-    ifname = ifname;
+    (void)ifname;
     /* initialize hardware */
     RS485_Initialize();
 

@@ -892,7 +892,7 @@ void dlmstp_set_interface(const char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
     if (ifname) {
-        RS485_Set_Interface((char *)ifname);
+        RS485_Set_Interface(ifname);
     }
 }
 
@@ -910,7 +910,7 @@ const char *dlmstp_get_interface(void)
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
  */
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     pthread_attr_t thread_attr;
     struct sched_param sch_param;
@@ -1074,7 +1074,7 @@ void apdu_handler(
     (void)pdu_len;
 }
 
-static char *Network_Interface = NULL;
+static const char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {

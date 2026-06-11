@@ -75,7 +75,7 @@ bool pico_dlenv_init(uint8_t mac_address)
     MSTP_Port.UserData = &MSTP_User_Data;
 
     /* Start the MS/TP state machine using our port */
-    if (!dlmstp_init((char *)&MSTP_Port)) {
+    if (!dlmstp_init((const char *)&MSTP_Port)) {
         return false;
     }
 

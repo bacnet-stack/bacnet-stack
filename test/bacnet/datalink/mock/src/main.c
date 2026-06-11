@@ -284,8 +284,8 @@ ZTEST(datalink_tests, test_datalink_dlmstp)
 static void test_datalink_dlmstp(void)
 #endif
 {
-    char *iface = "bla-bla-bla";
-    char *iface2 = "bla-bla-bla2";
+    const char *iface = "bla-bla-bla";
+    const char *iface2 = "bla-bla-bla2";
     uint8_t expected_data[] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t data[] = { 0xFF, 0xFF, 0xFF, 0xFF };
     BACNET_ADDRESS addr = { .mac_len = 6,

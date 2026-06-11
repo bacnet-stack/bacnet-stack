@@ -461,7 +461,7 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
@@ -576,7 +576,7 @@ uint32_t timestamp_ms(void)
     return delta_ticks;
 }
 
-static char *Network_Interface = "COM3";
+static const char *Network_Interface = "COM3";
 
 int main(int argc, char *argv[])
 {

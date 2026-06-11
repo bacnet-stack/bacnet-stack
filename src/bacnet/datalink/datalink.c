@@ -90,7 +90,7 @@ void datalink_set(char *datalink_string)
 #endif
 }
 
-bool datalink_init(char *ifname)
+bool datalink_init(const char *ifname)
 {
     bool status = false;
 

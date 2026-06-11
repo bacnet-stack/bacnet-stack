@@ -1018,7 +1018,7 @@ const char *dlmstp_get_interface(void)
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
  */
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     bool status = false;
     struct dlmstp_user_data_t *user;

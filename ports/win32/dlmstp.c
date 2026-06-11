@@ -801,7 +801,7 @@ void dlmstp_silence_reset(void *arg)
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
  */
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
@@ -898,7 +898,7 @@ void apdu_handler(
     (void)pdu_len;
 }
 
-static char *Network_Interface = NULL;
+static const char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {

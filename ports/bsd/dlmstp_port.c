@@ -692,7 +692,7 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-bool dlmstp_init(void *poPort, char *ifname)
+bool dlmstp_init(void *poPort, const char *ifname)
 {
     pthread_t hThread = 0;
     int rv = 0;
