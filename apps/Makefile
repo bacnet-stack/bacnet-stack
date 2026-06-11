@@ -188,14 +188,19 @@ DEBUGGING ?=
 # enable all relevant warnings that find bugs
 WARNING_ALL := -Wall -Wextra -pedantic
 WARNING_ALL += -Wfloat-equal -Wconversion
-WARNING_ALL += -Wredundant-decls -Wswitch-default
+WARNING_ALL += -Wfloat-conversion -Wdouble-promotion
+WARNING_ALL += -Wredundant-decls -Wmissing-declarations
+WARNING_ALL += -Wswitch-default
 WARNING_ALL += -Wunused-variable
+WARNING_ALL += -Wcast-qual
+WARNING_ALL += -Wwrite-strings
 # don't warn about conversion, sign, compares, long long and attributes
 # since they are common in embedded
-WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-WARNING_ALL += -Wno-long-long -Wno-attributes
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion
+WARNING_ALL += -Wno-sign-compare
 # don't warn about implicit fallthrough since it's common in network protocols
 WARNING_ALL += -Wno-implicit-fallthrough
+WARNING_ALL += -Wno-long-long -Wno-attributes
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
 # dead code removal

@@ -38,13 +38,8 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     endif()
 
     # Should be fixed in the future
-    add_compile_options(-Wno-cast-qual)
-    add_compile_options(-Wno-double-promotion)
-    add_compile_options(-Wno-float-conversion)
-    add_compile_options(-Wno-missing-declarations)
-    add_compile_options(-Wno-unused-but-set-variable)
-    add_compile_options(-Wno-write-strings)
-    add_compile_options(-Wno-implicit-fallthrough)
+    #add_compile_options(-Wno-cast-qual)
+    #add_compile_options(-Wno-unused-but-set-variable)
 
     # some consistent defines used for all builds - avoids inconsistent error
     add_compile_definitions(
