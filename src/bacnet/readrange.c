@@ -208,7 +208,9 @@ int rr_encode_apdu(
  *  @param apdu Pointer to the APDU buffer.
  *  @param apdu_size number of bytes in the APDU buffer.
  *  @param data Pointer to the data filled while decoding.
- *  @return Bytes decoded, or #BACNET_STATUS_ERROR
+ *  @return Bytes decoded, or #BACNET_STATUS_ERROR for error, or
+ *   #BACNET_STATUS_REJECT for missing required parameter
+ *   in range sequence.
  */
 int rr_decode_service_request(
     const uint8_t *apdu, unsigned apdu_size, BACNET_READ_RANGE_DATA *data)
