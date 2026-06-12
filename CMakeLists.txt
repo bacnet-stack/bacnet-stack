@@ -160,13 +160,16 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare)
   add_compile_options(-Wno-implicit-fallthrough)
-
+  # common practice to intialize all local variables to zero or NULL
+  # even if they are not used before being set to something else.
+  add_compile_options(-Wno-unused-but-set-variable)
   if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
     # Just noise from clang
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 
     # don't warn about ignored qualifiers often used for initializing C strings.
     add_compile_options(-Wno-ignored-qualifiers)
+    add_compile_options(-Wno-incompatible-pointer-types-discards-qualifiers)
 
     # Clang does not like _Bool which is not C90. We could fix this at some
     # point.
