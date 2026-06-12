@@ -142,7 +142,7 @@ static void Initialize_Device_Addresses(void)
     pDev = Get_Routed_Device_Object(i);
 
     /* we can't use datalink_get_my_address() since it is
-       mapped to routed_get_my_address() in this app
+       mapped to Routed_Device_Get_My_Address() in this app
        to get the parent device address */
 #if defined(BACDL_BIP)
     bip_get_my_address(&virtual_address);

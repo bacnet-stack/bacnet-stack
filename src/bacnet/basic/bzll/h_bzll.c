@@ -433,10 +433,10 @@ uint16_t bzll_receive(
 static void
 bzll_receive_handler(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t npdu_len)
 {
-    struct bzll_packet *pkt = NULL;
+    volatile struct bzll_packet *pkt = NULL;
 
     if (npdu && src) {
-        pkt = (struct bzll_packet *)Ringbuf_Data_Peek(&Receive_Queue);
+        pkt = (volatile struct bzll_packet *)Ringbuf_Data_Peek(&Receive_Queue);
         if (pkt && (npdu_len <= sizeof(pkt->buffer))) {
             memcpy(pkt->buffer, npdu, npdu_len);
             bacnet_address_copy(&pkt->src, src);

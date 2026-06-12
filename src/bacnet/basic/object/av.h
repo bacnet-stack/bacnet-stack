@@ -116,6 +116,12 @@ BACNET_STACK_EXPORT
 bool Analog_Value_Event_State_Set(uint32_t object_instance, unsigned state);
 
 BACNET_STACK_EXPORT
+bool Analog_Value_Event_Detection_Enable(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Value_Event_Detection_Enable_Set(
+    uint32_t object_instance, bool value);
+
+BACNET_STACK_EXPORT
 bool Analog_Value_Change_Of_Value(uint32_t instance);
 BACNET_STACK_EXPORT
 void Analog_Value_Change_Of_Value_Clear(uint32_t instance);
