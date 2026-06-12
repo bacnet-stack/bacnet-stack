@@ -25,13 +25,16 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wunused-variable)
     add_compile_options(-Wcast-qual)
     add_compile_options(-Wwrite-strings)
-
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
     add_compile_options(-Wno-sign-compare)
     add_compile_options(-Wno-implicit-fallthrough)
-
+    # don't warn about discarded qualifiers often used for initializing C strings.
+    add_compile_options(-Wno-discarded-qualifiers)
+    # unit test stubs often missing prototypes and declarations
+    add_compile_options(-Wno-missing-prototypes)
+    add_compile_options(-Wno-missing-declarations)
     # Just noise from clang
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
       add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
