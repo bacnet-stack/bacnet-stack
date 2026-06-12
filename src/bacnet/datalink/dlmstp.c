@@ -1001,7 +1001,7 @@ void dlmstp_silence_reset(void *arg)
  */
 void dlmstp_set_interface(const char *ifname)
 {
-    MSTP_Port = (struct mstp_port_struct_t *)ifname;
+    MSTP_Port = (struct mstp_port_struct_t *)(uintptr_t)ifname;
 }
 
 /**
@@ -1024,7 +1024,7 @@ bool dlmstp_init(const char *ifname)
     struct dlmstp_user_data_t *user;
 
     if (ifname) {
-        MSTP_Port = (struct mstp_port_struct_t *)ifname;
+        MSTP_Port = (struct mstp_port_struct_t *)(uintptr_t)ifname;
     }
     if (MSTP_Port) {
         MSTP_Port->SilenceTimer = dlmstp_silence_milliseconds;
