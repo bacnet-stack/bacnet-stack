@@ -386,57 +386,6 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, gets the event-detection-enable property
- * value
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return  event-detection-enable property value
- */
-bool Analog_Value_Event_Detection_Enable(uint32_t object_instance)
-{
-    bool retval = false;
-#if !defined(INTRINSIC_REPORTING)
-    (void)object_instance;
-#else
-    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
-
-    if (pObject) {
-        retval = pObject->Event_Detection_Enable;
-    }
-#endif
-
-    return retval;
-}
-
-/**
- * For a given object instance-number, sets the event-detection-enable property
- * value
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return  event-detection-enable property value
- */
-bool Analog_Value_Event_Detection_Enable_Set(
-    uint32_t object_instance, bool value)
-{
-    bool retval = false;
-#if !defined(INTRINSIC_REPORTING)
-    (void)object_instance;
-    (void)value;
-#else
-    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
-
-    if (pObject) {
-        pObject->Event_Detection_Enable = value;
-        retval = true;
-    }
-#endif
-
-    return retval;
-}
-
-/**
  * @brief For a given object instance-number, returns the description
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
@@ -1546,6 +1495,48 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 }
 
 #if defined(INTRINSIC_REPORTING)
+/**
+ * For a given object instance-number, gets the event-detection-enable property
+ * value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-detection-enable property value
+ */
+bool Analog_Value_Event_Detection_Enable(uint32_t object_instance)
+{
+    bool retval = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        retval = pObject->Event_Detection_Enable;
+    }
+
+    return retval;
+}
+
+/**
+ * For a given object instance-number, sets the event-detection-enable property
+ * value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-detection-enable property value
+ */
+bool Analog_Value_Event_Detection_Enable_Set(
+    uint32_t object_instance, bool value)
+{
+    bool retval = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Event_Detection_Enable = value;
+        retval = true;
+    }
+
+    return retval;
+}
+
 /**
  * @brief Handles getting the Event Information for this object.
  * @param  index - index number of the object 0..count
