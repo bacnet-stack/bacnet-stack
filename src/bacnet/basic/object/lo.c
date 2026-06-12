@@ -154,7 +154,10 @@ static const int32_t Writable_Properties[] = {
  */
 static bool is_float_equal(float x1, float x2)
 {
-    return fabsf(x1 - x2) < 0.001f;
+    double d1, d2;
+    d1 = (double)x1;
+    d2 = (double)x2;
+    return fabs(d1 - d2) < 0.001;
 }
 
 /**

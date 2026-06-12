@@ -587,17 +587,17 @@ void color_rgb_from_temperature(
         red = 255.0;
     } else {
         red = (float)(temperature_kelvin - 60);
-        red = (float)(329.698727446 * pow(red, -0.1332047592));
+        red = (float)(329.698727446 * pow((double)red, -0.1332047592));
         red = color_rgb_clamp(red, 0.0f, 255.0f);
     }
     /* Calculate Green */
     if (temperature_kelvin <= 66) {
         /* Green values below 6600 K */
         green = (float)temperature_kelvin;
-        green = (float)(99.4708025861 * log(green) - 161.1195681661);
+        green = (float)(99.4708025861 * log((double)green) - 161.1195681661);
     } else {
         green = (float)(temperature_kelvin - 60);
-        green = (float)(288.1221695283 * pow(green, -0.0755148492));
+        green = (float)(288.1221695283 * pow((double)green, -0.0755148492));
     }
     green = color_rgb_clamp(green, 0.0f, 255.0f);
     /* Calculate Blue */
@@ -609,7 +609,7 @@ void color_rgb_from_temperature(
         blue = 0.0;
     } else {
         blue = (float)(temperature_kelvin - 10);
-        blue = (float)(138.5177312231 * log(blue) - 305.0447927307);
+        blue = (float)(138.5177312231 * log((double)blue) - 305.0447927307);
         blue = color_rgb_clamp(blue, 0.0f, 255.0f);
     }
     if (r) {
