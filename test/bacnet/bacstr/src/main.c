@@ -555,8 +555,7 @@ static void testCharacterStringBufferApi_strdups(void)
     zassert_false(characterstring_buffer_strdup(&dyn_buffer, NULL), NULL);
     zassert_false(characterstring_buffer_ansi_strdup(NULL, value), NULL);
     zassert_true(characterstring_buffer_ansi_strdup(&dyn_buffer, NULL), NULL);
-    zassert_equal(
-        bacnet_strcmp(characterstring_buffer_value(&dyn_buffer), ""), 0, NULL);
+    zassert_equal(characterstring_buffer_value(&dyn_buffer), NULL, NULL);
 
     // characterstring_buffer_ansi_strdup: dynamic allocation
     status = characterstring_buffer_ansi_strdup(&dyn_buffer, value);
