@@ -16,8 +16,9 @@ set(CMAKE_C_STANDARD 99)
 # Set the compiler options
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)
-    # enable all relevant warnings that find bugs
+    # treat warnings as errors to enforce clean code
     add_compile_options(-Werror)
+    # enable all relevant warnings that find bugs
     add_compile_options(-Wall -Wextra -pedantic)
     add_compile_options(-Wfloat-equal -Wconversion)
     add_compile_options(-Wfloat-conversion -Wdouble-promotion)
@@ -34,6 +35,9 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
     # unit test stubs often missing prototypes and declarations
     add_compile_options(-Wno-missing-prototypes)
     add_compile_options(-Wno-missing-declarations)
+    # common practice to intialize all local variables to zero or NULL
+    # even if they are not used before being set to something else.
+    add_compile_options(-Wno-unused-but-set-variable)
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
       # Just noise from clang
       add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
