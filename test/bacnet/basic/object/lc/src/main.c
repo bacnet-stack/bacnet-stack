@@ -59,7 +59,7 @@ static void Load_Control_WriteProperty_Request_Shed_Level(
         wp_data.object_property);
     zassert_true(wp_data.application_data_len > 0, NULL);
     status = Load_Control_Write_Property(&wp_data);
-    zassert_true(status, "LC=%lu level=%u", instance, level);
+    zassert_true(status, "LC=%lu level=%f", instance, (double)level);
 }
 
 static void Load_Control_WriteProperty_Enable(int instance, bool enable)

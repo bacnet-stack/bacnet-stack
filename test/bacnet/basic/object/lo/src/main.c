@@ -488,14 +488,14 @@ static void testLightingOutput(void)
     test_real = Lighting_Output_Tracking_Value(instance);
     zassert_true(
         is_float_equal(test_real, real_value), "value=%f test_value=%f",
-        real_value, test_real);
+        (double)real_value, (double)test_real);
     status = Lighting_Output_Present_Value_Set(instance, 99.0f, priority);
     zassert_true(status, NULL);
     Lighting_Output_Timer(instance, 10);
     test_real = Lighting_Output_Tracking_Value(instance);
     zassert_true(
         is_float_equal(test_real, real_value), "value=%f test_value=%f",
-        real_value, test_real);
+        (double)real_value, (double)test_real);
     real_value = Lighting_Output_Present_Value(instance);
     status = Lighting_Output_Overridden_Clear(instance);
     zassert_true(status, NULL);
@@ -511,14 +511,14 @@ static void testLightingOutput(void)
     test_real = Lighting_Output_Tracking_Value(instance);
     zassert_true(
         is_float_equal(test_real, real_value), "value=%f test_value=%f",
-        real_value, test_real);
+        (double)real_value, (double)test_real);
     status = Lighting_Output_Present_Value_Set(instance, 98.0f, priority);
     Lighting_Output_Timer(instance, 10);
     real_value = Lighting_Output_Present_Value(instance);
     test_real = Lighting_Output_Tracking_Value(instance);
     zassert_true(
         is_float_equal(test_real, real_value), "value=%f test_value=%f",
-        real_value, test_real);
+        (double)real_value, (double)test_real);
     /* refresh */
     Lighting_Output_Lighting_Command_Refresh(instance);
     /* color-override */
@@ -597,7 +597,8 @@ static void testLightingOutput(void)
         in_progress, BACNET_LIGHTING_TRIM_ACTIVE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
     test_real = Lighting_Output_Tracking_Value(instance);
-    zassert_true(is_float_equal(test_real, 10.0f), "tracking=%f", test_real);
+    zassert_true(
+        is_float_equal(test_real, 10.0f), "tracking=%f", (double)test_real);
     Lighting_Output_Timer(instance, 10);
     in_progress = Lighting_Output_In_Progress(instance);
     zassert_equal(
@@ -612,7 +613,8 @@ static void testLightingOutput(void)
         in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
         bactext_lighting_in_progress(in_progress));
     test_real = Lighting_Output_Tracking_Value(instance);
-    zassert_true(is_float_equal(test_real, 100.0f), "tracking=%f", test_real);
+    zassert_true(
+        is_float_equal(test_real, 100.0f), "tracking=%f", (double)test_real);
     Lighting_Output_Present_Value_Relinquish_All(instance);
     status = Lighting_Output_Present_Value_Set(instance, 80.0f, priority);
     zassert_true(status, NULL);
@@ -689,8 +691,8 @@ static void testLightingOutput(void)
     zassert_true(status, NULL);
     test_real = Lighting_Output_Min_Actual_Value(instance);
     zassert_true(
-        is_float_equal(test_real, real_value), "value=%f test=%f", real_value,
-        test_real);
+        is_float_equal(test_real, real_value), "value=%f test=%f",
+        (double)real_value, (double)test_real);
     real_value = 1.0f;
     status = Lighting_Output_Min_Actual_Value_Set(instance, real_value);
     zassert_true(status, NULL);
@@ -702,8 +704,8 @@ static void testLightingOutput(void)
     zassert_true(status, NULL);
     test_real = Lighting_Output_Max_Actual_Value(instance);
     zassert_true(
-        is_float_equal(test_real, real_value), "value=%f test=%f", real_value,
-        test_real);
+        is_float_equal(test_real, real_value), "value=%f test=%f",
+        (double)real_value, (double)test_real);
     real_value = 100.0f;
     status = Lighting_Output_Max_Actual_Value_Set(instance, real_value);
     zassert_true(status, NULL);
@@ -783,11 +785,11 @@ static void testLightingOutputMinMaxActualValue(void)
     test_real = Lighting_Output_Min_Actual_Value(instance);
     zassert_true(
         is_float_equal(test_real, 50.0f),
-        "Min should be clamped to Max(50.0), got %f", test_real);
+        "Min should be clamped to Max(50.0), got %f", (double)test_real);
     test_real = Lighting_Output_Max_Actual_Value(instance);
     zassert_true(
         is_float_equal(test_real, 50.0f), "Max should remain 50.0, got %f",
-        test_real);
+        (double)test_real);
 
     /* --- relationship invariant: Max < Min forces Min down to new Max ---
      * Per the implementation: when the requested Max is below the current Min,
@@ -802,11 +804,11 @@ static void testLightingOutputMinMaxActualValue(void)
     test_real = Lighting_Output_Max_Actual_Value(instance);
     zassert_true(
         is_float_equal(test_real, 30.0f), "Max should be 30.0, got %f",
-        test_real);
+        (double)test_real);
     test_real = Lighting_Output_Min_Actual_Value(instance);
     zassert_true(
         is_float_equal(test_real, 30.0f),
-        "Min should be forced to new Max(30.0), got %f", test_real);
+        "Min should be forced to new Max(30.0), got %f", (double)test_real);
 
     /* --- non-existent instance fails gracefully --- */
     status = Lighting_Output_Min_Actual_Value_Set(instance + 1, 50.0f);

@@ -1439,11 +1439,14 @@ static void test_bacnet_strto(void)
     /* single precision */
     status = bacnet_strtof(test_float_positive_string, &float_value);
     zassert_true(status, NULL);
-    zassert_true(is_double_equal(float_value, test_float_value), NULL);
+    zassert_true(
+        is_double_equal((double)float_value, (double)test_float_value), NULL);
     status = bacnet_strtof(test_float_negative_string, &float_negative_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_double_equal(float_negative_value, test_float_negative_value), NULL);
+        is_double_equal(
+            (double)float_negative_value, (double)test_float_negative_value),
+        NULL);
     status = bacnet_strtof(empty_string, &float_value);
     zassert_false(status, NULL);
     status = bacnet_strtof(extra_text_string, &float_value);
