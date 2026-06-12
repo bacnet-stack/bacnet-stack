@@ -115,6 +115,17 @@ option(
   "enable intrinsic reporting"
   OFF)
 
+set(
+  BACNET_DEFINES
+  ""
+  CACHE STRING
+  "Extra compile definitions (e.g. MAX_NUM_DEVICES=30;MAX_TREND_LOGS=30)"
+)
+
+if(BACNET_DEFINES)
+  add_compile_definitions(${BACNET_DEFINES})
+endif()
+
 set(BACNET_PROTOCOL_REVISION 28)
 
 if(NOT CMAKE_BUILD_TYPE)
