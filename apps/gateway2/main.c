@@ -112,7 +112,7 @@ static void Devices_Init(uint32_t first_object_instance)
         instance_number = dev_idx * 10000 + 1000;
         Analog_Input_Create(instance_number);
         Analog_Input_Name_Set(instance_number, "Gateway Analog Input");
-        Analog_Input_Present_Value_Set(instance_number, 0.1 + (float)dev_idx);
+        Analog_Input_Present_Value_Set(instance_number, 0.1f + (float)dev_idx);
 
         /* Gateway - analog_onput */
         instance_number = dev_idx * 10000 + 1001;
@@ -120,7 +120,7 @@ static void Devices_Init(uint32_t first_object_instance)
         Analog_Output_Name_Set(instance_number, "Gateway Analog Output");
         Analog_Output_Relinquish_Default_Set(instance_number, 100);
         Analog_Output_Present_Value_Set(
-            instance_number, 0.9 + (float)i, BACNET_MAX_PRIORITY);
+            instance_number, 0.9f + (float)i, BACNET_MAX_PRIORITY);
     }
 }
 
