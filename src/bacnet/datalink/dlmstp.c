@@ -72,7 +72,7 @@ int dlmstp_send_pdu(
             pkt->address.mac[0] = MSTP_BROADCAST_ADDRESS;
             pkt->address.len = 0;
         }
-        if (Ringbuf_Data_Put(&user->PDU_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&user->PDU_Queue, pkt)) {
             bytes_sent = pdu_len;
         }
     }
@@ -1036,9 +1036,8 @@ bool dlmstp_init(const char *ifname)
         user = (struct dlmstp_user_data_t *)MSTP_Port->UserData;
         if (user && !user->Initialized) {
             Ringbuf_Initialize(
-                &user->PDU_Queue, (volatile uint8_t *)user->PDU_Buffer,
-                sizeof(user->PDU_Buffer), sizeof(struct dlmstp_packet),
-                DLMSTP_MAX_INFO_FRAMES);
+                &user->PDU_Queue, user->PDU_Buffer, sizeof(user->PDU_Buffer),
+                sizeof(struct dlmstp_packet), DLMSTP_MAX_INFO_FRAMES);
             MSTP_Init(MSTP_Port);
             user->Initialized = true;
         }

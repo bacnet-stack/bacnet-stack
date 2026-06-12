@@ -112,7 +112,7 @@ int dlmstp_send_pdu(
             /* mac_len = 0 is a broadcast address */
             pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
         }
-        if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&PDU_Queue, pkt)) {
             bytes_sent = pdu_len;
         }
     }
@@ -815,7 +815,7 @@ bool dlmstp_init(const char *ifname)
     }
     /* initialize PDU queue */
     Ringbuf_Init(
-        &PDU_Queue, (uint8_t *)&PDU_Buffer, sizeof(struct mstp_pdu_packet),
+        &PDU_Queue, PDU_Buffer, sizeof(struct mstp_pdu_packet),
         MSTP_PDU_PACKET_COUNT);
     /* initialize packet queue */
     Receive_Packet.ready = false;
