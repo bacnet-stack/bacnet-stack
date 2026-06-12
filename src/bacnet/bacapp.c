@@ -5333,7 +5333,7 @@ bool bacapp_parse_application_data(
 #else
 bool bacapp_parse_application_data(
     BACNET_APPLICATION_TAG tag_number,
-    char *argv,
+    const char *argv,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
     (void)tag_number;
