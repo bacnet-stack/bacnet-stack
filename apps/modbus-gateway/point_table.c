@@ -256,11 +256,12 @@ bool point_table_load_json(
     cfg->modbus_baud = GW_MODBUS_BAUD;
     cfg->poll_interval_sec = GW_POLL_INTERVAL_SEC;
     cfg->bip_port = GW_BIP_PORT;
-    strncpy(cfg->device_name, GW_DEVICE_NAME, sizeof(cfg->device_name) - 1);
-    strncpy(
-        cfg->datalink_type, GW_DATALINK_TYPE, sizeof(cfg->datalink_type) - 1);
-    strncpy(cfg->bacnet_iface, GW_BACNET_IFACE, sizeof(cfg->bacnet_iface) - 1);
-    strncpy(cfg->modbus_port, GW_MODBUS_PORT, sizeof(cfg->modbus_port) - 1);
+    bacnet_strncpy(cfg->device_name, GW_DEVICE_NAME, sizeof(cfg->device_name));
+    bacnet_strncpy(
+        cfg->datalink_type, GW_DATALINK_TYPE, sizeof(cfg->datalink_type));
+    bacnet_strncpy(
+        cfg->bacnet_iface, GW_BACNET_IFACE, sizeof(cfg->bacnet_iface));
+    bacnet_strncpy(cfg->modbus_port, GW_MODBUS_PORT, sizeof(cfg->modbus_port));
 
     root = load_json_file(filename);
     if (!root) {
@@ -285,22 +286,20 @@ bool point_table_load_json(
 
         j = cJSON_GetObjectItem(sec, "device_name");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->device_name, j->valuestring, sizeof(cfg->device_name) - 1);
+            bacnet_strncpy(
+                cfg->device_name, j->valuestring, sizeof(cfg->device_name));
         }
 
         j = cJSON_GetObjectItem(sec, "datalink_type");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->datalink_type, j->valuestring,
-                sizeof(cfg->datalink_type) - 1);
+            bacnet_strncpy(
+                cfg->datalink_type, j->valuestring, sizeof(cfg->datalink_type));
         }
 
         j = cJSON_GetObjectItem(sec, "iface");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->bacnet_iface, j->valuestring,
-                sizeof(cfg->bacnet_iface) - 1);
+            bacnet_strncpy(
+                cfg->bacnet_iface, j->valuestring, sizeof(cfg->bacnet_iface));
         }
 
         j = cJSON_GetObjectItem(sec, "mstp_baud");
@@ -347,68 +346,67 @@ bool point_table_load_json(
         if (cJSON_IsObject(sc)) {
             j = cJSON_GetObjectItem(sc, "primary_hub_uri");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.primary_hub_uri, j->valuestring,
-                    sizeof(cfg->sc.primary_hub_uri) - 1);
+                    sizeof(cfg->sc.primary_hub_uri));
             }
 
             j = cJSON_GetObjectItem(sc, "failover_hub_uri");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.failover_hub_uri, j->valuestring,
-                    sizeof(cfg->sc.failover_hub_uri) - 1);
+                    sizeof(cfg->sc.failover_hub_uri));
             }
 
             j = cJSON_GetObjectItem(sc, "issuer_1_certificate_file");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.issuer_1_certificate_file, j->valuestring,
-                    sizeof(cfg->sc.issuer_1_certificate_file) - 1);
+                    sizeof(cfg->sc.issuer_1_certificate_file));
             }
 
             j = cJSON_GetObjectItem(sc, "issuer_2_certificate_file");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.issuer_2_certificate_file, j->valuestring,
-                    sizeof(cfg->sc.issuer_2_certificate_file) - 1);
+                    sizeof(cfg->sc.issuer_2_certificate_file));
             }
 
             j = cJSON_GetObjectItem(sc, "operational_certificate_file");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.operational_certificate_file, j->valuestring,
-                    sizeof(cfg->sc.operational_certificate_file) - 1);
+                    sizeof(cfg->sc.operational_certificate_file));
             }
 
             j = cJSON_GetObjectItem(
                 sc, "operational_certificate_private_key_file");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.operational_certificate_private_key_file,
                     j->valuestring,
-                    sizeof(cfg->sc.operational_certificate_private_key_file) -
-                        1);
+                    sizeof(cfg->sc.operational_certificate_private_key_file));
             }
 
             j = cJSON_GetObjectItem(sc, "direct_connect_binding");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.direct_connect_binding, j->valuestring,
-                    sizeof(cfg->sc.direct_connect_binding) - 1);
+                    sizeof(cfg->sc.direct_connect_binding));
             }
 
             j = cJSON_GetObjectItem(sc, "hub_function_binding");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.hub_function_binding, j->valuestring,
-                    sizeof(cfg->sc.hub_function_binding) - 1);
+                    sizeof(cfg->sc.hub_function_binding));
             }
 
             j = cJSON_GetObjectItem(sc, "direct_connect_accept_urls");
             if (cJSON_IsString(j)) {
-                strncpy(
+                bacnet_strncpy(
                     cfg->sc.direct_connect_accept_urls, j->valuestring,
-                    sizeof(cfg->sc.direct_connect_accept_urls) - 1);
+                    sizeof(cfg->sc.direct_connect_accept_urls));
             }
 
             j = cJSON_GetObjectItem(sc, "direct_connect_initiate");
@@ -430,8 +428,8 @@ bool point_table_load_json(
     if (sec) {
         j = cJSON_GetObjectItem(sec, "port");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->modbus_port, j->valuestring, sizeof(cfg->modbus_port) - 1);
+            bacnet_strncpy(
+                cfg->modbus_port, j->valuestring, sizeof(cfg->modbus_port));
         }
         j = cJSON_GetObjectItem(sec, "baud");
         if (cJSON_IsNumber(j)) {
@@ -474,14 +472,15 @@ bool point_table_load_json(
         p = &table->points[idx];
         j = cJSON_GetObjectItem(item, "name");
         if (cJSON_IsString(j)) {
-            strncpy(p->name, j->valuestring, sizeof(p->name) - 1);
+            bacnet_strncpy(p->name, j->valuestring, sizeof(p->name));
         } else {
             snprintf(p->name, sizeof(p->name), "Point_%d", idx);
         }
 
         j = cJSON_GetObjectItem(item, "description");
         if (cJSON_IsString(j)) {
-            strncpy(p->description, j->valuestring, sizeof(p->description) - 1);
+            bacnet_strncpy(
+                p->description, j->valuestring, sizeof(p->description));
         }
 
         j = cJSON_GetObjectItem(item, "bacnet_type");

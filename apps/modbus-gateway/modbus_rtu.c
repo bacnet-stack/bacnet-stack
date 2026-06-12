@@ -28,6 +28,7 @@
 #endif /* __linux__ || __unix__ || __APPLE__ */
 
 #include "modbus_rtu.h"
+#include "bacnet/bacstr.h"
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 
@@ -104,9 +105,8 @@ bool Modbus_RTU_Init(const char *port, uint32_t baud, uint8_t slave)
         Modbus_RTU_Cleanup();
     }
 
-    strncpy(
-        g_port.port, port ? port : MODBUS_DEFAULT_PORT,
-        sizeof(g_port.port) - 1);
+    bacnet_strncpy(
+        g_port.port, port ? port : MODBUS_DEFAULT_PORT, sizeof(g_port.port));
     g_port.baud = baud ? baud : MODBUS_DEFAULT_BAUD;
     g_port.slave_id = slave ? slave : MODBUS_SENSOR_SLAVE_ID;
 
