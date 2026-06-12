@@ -201,6 +201,9 @@ WARNING_ALL += -Wno-sign-compare
 # don't warn about implicit fallthrough since it's common in network protocols
 WARNING_ALL += -Wno-implicit-fallthrough
 WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about discarded qualifiers often used for initializing C strings.
+WARNING_ALL += -Wno-discarded-qualifiers
+# don't treat warnings as errors by default
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
 # dead code removal
