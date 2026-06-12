@@ -160,16 +160,22 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare)
   add_compile_options(-Wno-implicit-fallthrough)
-  # don't warn about discarded qualifiers often used for initializing C strings.
-  add_compile_options(-Wno-discarded-qualifiers)
 
   if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
     # Just noise from clang
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 
+    # don't warn about ignored qualifiers often used for initializing C strings.
+    add_compile_options(-Wno-ignored-qualifiers)
+
     # Clang does not like _Bool which is not C90. We could fix this at some
     # point.
     add_compile_options(-Wno-c99-extensions)
+  endif()
+
+  if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+    # don't warn about discarded qualifiers often used for initializing C strings.
+    add_compile_options(-Wno-discarded-qualifiers)
   endif()
 
   if (APPLE)
@@ -188,13 +194,6 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
     add_compile_options(-Wno-nullability-extension)
   endif()
 
-  # Should be fixed in a future.
-  add_compile_options(-Wno-cast-qual)
-  add_compile_options(-Wno-double-promotion)
-  add_compile_options(-Wno-float-conversion)
-  add_compile_options(-Wno-missing-declarations)
-  add_compile_options(-Wno-unused-but-set-variable)
-  add_compile_options(-Wno-write-strings)
 elseif(MSVC)
   add_compile_options(/Wall)
 

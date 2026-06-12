@@ -14,7 +14,7 @@ endif()
 set(CMAKE_C_STANDARD 99)
 
 # Set the compiler options
-if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)
     # enable all relevant warnings that find bugs
     add_compile_options(-Wall -Wextra -pedantic)
@@ -30,14 +30,18 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
     add_compile_options(-Wno-sign-compare)
     add_compile_options(-Wno-implicit-fallthrough)
-    # don't warn about discarded qualifiers often used for initializing C strings.
-    add_compile_options(-Wno-discarded-qualifiers)
     # unit test stubs often missing prototypes and declarations
     add_compile_options(-Wno-missing-prototypes)
     add_compile_options(-Wno-missing-declarations)
-    # Just noise from clang
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+      # Just noise from clang
       add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+      # don't warn about ignored qualifiers often used for initializing C strings.
+      add_compile_options(-Wno-ignored-qualifiers)
+    endif()
+    if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+      # don't warn about discarded qualifiers often used for initializing C strings.
+      add_compile_options(-Wno-discarded-qualifiers)
     endif()
 
     # Should be fixed in the future
