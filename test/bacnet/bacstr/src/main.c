@@ -19,9 +19,20 @@
  * @param x2 - second comparison value
  * @return true if the value is the same to 3 decimal points
  */
-static bool is_float_equal(double x1, double x2)
+static bool is_double_equal(double x1, double x2)
 {
     return fabs(x1 - x2) < 0.001;
+}
+
+/**
+ * @brief compare two long double precision floating points to 3 decimal places
+ * @param x1 - first comparison value
+ * @param x2 - second comparison value
+ * @return true if the value is the same to 3 decimal points
+ */
+static bool is_long_double_equal(long double x1, long double x2)
+{
+    return fabsl(x1 - x2) < 0.001;
 }
 
 /**
@@ -1429,11 +1440,11 @@ static void test_bacnet_strto(void)
     /* single precision */
     status = bacnet_strtof(test_float_positive_string, &float_value);
     zassert_true(status, NULL);
-    zassert_true(is_float_equal(float_value, test_float_value), NULL);
+    zassert_true(is_double_equal(float_value, test_float_value), NULL);
     status = bacnet_strtof(test_float_negative_string, &float_negative_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(float_negative_value, test_float_negative_value), NULL);
+        is_double_equal(float_negative_value, test_float_negative_value), NULL);
     status = bacnet_strtof(empty_string, &float_value);
     zassert_false(status, NULL);
     status = bacnet_strtof(extra_text_string, &float_value);
@@ -1441,11 +1452,11 @@ static void test_bacnet_strto(void)
     /* double precision */
     status = bacnet_strtod(test_float_positive_string, &double_value);
     zassert_true(status, NULL);
-    zassert_true(is_float_equal(double_value, test_double_value), NULL);
+    zassert_true(is_double_equal(double_value, test_double_value), NULL);
     status = bacnet_strtod(test_float_negative_string, &double_negative_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(double_negative_value, test_double_negative_value),
+        is_double_equal(double_negative_value, test_double_negative_value),
         NULL);
     status = bacnet_strtod(empty_string, &double_value);
     zassert_false(status, NULL);
@@ -1459,12 +1470,12 @@ static void test_bacnet_strto(void)
     status = bacnet_strtold(test_float_positive_string, &long_double_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(long_double_value, test_long_double_value), NULL);
+        is_long_double_equal(long_double_value, test_long_double_value), NULL);
     status =
         bacnet_strtold(test_float_negative_string, &long_double_negative_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(
+        is_long_double_equal(
             long_double_negative_value, test_long_double_negative_value),
         NULL);
     status = bacnet_strtold(empty_string, &long_double_value);
@@ -1592,8 +1603,8 @@ static void test_bacnet_string_trim(void)
     char trim_left[80] = "    abcdefg", *trim_left_result = NULL;
     char trim_right[80] = "abcdefg    ", *trim_right_result = NULL;
     char trim_both[80] = "   abcdefg   ", *trim_both_result = NULL;
-    char *trim_test_value = "abcdefg";
-    char *empty_string = "";
+    char trim_empty[80] = "";
+    const char *trim_test_value = "abcdefg";
 
     trim_left_result = bacnet_ltrim(trim_left, " ");
     trim_right_result = bacnet_rtrim(trim_right, " ");
@@ -1601,12 +1612,12 @@ static void test_bacnet_string_trim(void)
     zassert_equal(bacnet_strcmp(trim_left_result, trim_test_value), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_right_result, trim_test_value), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_both_result, trim_test_value), 0, NULL);
-    trim_left_result = bacnet_ltrim(empty_string, " ");
-    trim_right_result = bacnet_rtrim(empty_string, " ");
-    trim_both_result = bacnet_trim(empty_string, " ");
-    zassert_equal(bacnet_strcmp(trim_left_result, empty_string), 0, NULL);
-    zassert_equal(bacnet_strcmp(trim_right_result, empty_string), 0, NULL);
-    zassert_equal(bacnet_strcmp(trim_both_result, empty_string), 0, NULL);
+    trim_left_result = bacnet_ltrim(trim_empty, " ");
+    trim_right_result = bacnet_rtrim(trim_empty, " ");
+    trim_both_result = bacnet_trim(trim_empty, " ");
+    zassert_equal(bacnet_strcmp(trim_left_result, trim_empty), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_right_result, trim_empty), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_both_result, trim_empty), 0, NULL);
 }
 
 /**
