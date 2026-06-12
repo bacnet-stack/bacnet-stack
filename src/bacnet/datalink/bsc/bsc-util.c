@@ -47,7 +47,7 @@ void bsc_copy_vmac(BACNET_SC_VMAC_ADDRESS *dst, BACNET_SC_VMAC_ADDRESS *src)
  * @param dst - destination UUID
  * @param src - source UUID
  */
-void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
+void bsc_copy_uuid(BACNET_SC_UUID *dst, const BACNET_SC_UUID *src)
 {
     memcpy(dst->uuid, src->uuid, sizeof(src->uuid));
 }
@@ -72,7 +72,7 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
  * @param uuid - UUID
  * @return string representation of UUID
  */
-char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
+char *bsc_uuid_to_string(const BACNET_SC_UUID *uuid)
 {
     static char buf[128];
     snprintf(
@@ -176,7 +176,7 @@ bool bsc_node_conf_fill_from_netport(
         return false;
     }
     bsc_conf->local_uuid =
-        (BACNET_SC_UUID *)Network_Port_SC_Local_UUID(instance);
+        (const BACNET_SC_UUID *)Network_Port_SC_Local_UUID(instance);
     Network_Port_MAC_Address_Value(
         instance, bsc_conf->local_vmac.address,
         sizeof(bsc_conf->local_vmac.address));
@@ -195,10 +195,8 @@ bool bsc_node_conf_fill_from_netport(
     bsc_conf->address_resolution_timeout_s = bsc_conf->connect_timeout_s;
     bsc_conf->address_resolution_freshness_timeout_s =
         bsc_conf->connect_timeout_s;
-    bsc_conf->primaryURL =
-        (char *)Network_Port_SC_Primary_Hub_URI_char(instance);
-    bsc_conf->failoverURL =
-        (char *)Network_Port_SC_Failover_Hub_URI_char(instance);
+    bsc_conf->primaryURL = Network_Port_SC_Primary_Hub_URI_char(instance);
+    bsc_conf->failoverURL = Network_Port_SC_Failover_Hub_URI_char(instance);
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
     bsc_conf->direct_connect_initiate_enable =
         Network_Port_SC_Direct_Connect_Initiate_Enable(instance);

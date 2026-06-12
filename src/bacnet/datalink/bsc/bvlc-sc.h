@@ -341,7 +341,7 @@ size_t bvlc_sc_encode_connect_request(
     size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
-    BACNET_SC_UUID *local_uuid,
+    const BACNET_SC_UUID *local_uuid,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_size);
 
@@ -351,7 +351,7 @@ size_t bvlc_sc_encode_connect_accept(
     size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
-    BACNET_SC_UUID *local_uuid,
+    const BACNET_SC_UUID *local_uuid,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_len);
 
