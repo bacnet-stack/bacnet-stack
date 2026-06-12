@@ -1515,7 +1515,7 @@ static void test_bacapp_data(void)
  * @param expected [in] The expected string output from bacapp_snprintf_value()
  */
 void test_bacapp_snprintf(
-    BACNET_APPLICATION_TAG tag_number, char *argv, const char *expected)
+    BACNET_APPLICATION_TAG tag_number, const char *argv, const char *expected)
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
