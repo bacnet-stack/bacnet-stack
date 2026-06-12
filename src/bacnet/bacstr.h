@@ -317,7 +317,7 @@ int bacnet_snprintf(
     char *buffer, size_t count, int offset, const char *format, ...);
 
 BACNET_STACK_EXPORT
-char *bacnet_ltrim(char *str, const char *trimmedchars);
+char *bacnet_ltrim(const char *str, const char *trimmedchars);
 BACNET_STACK_EXPORT
 char *bacnet_rtrim(char *str, const char *trimmedchars);
 BACNET_STACK_EXPORT
@@ -326,6 +326,8 @@ char *bacnet_trim(char *str, const char *trimmedchars);
 BACNET_STACK_EXPORT
 const char *
 bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk);
+BACNET_STACK_EXPORT
+char *bacnet_strncpy(char *s1, const char *s2, size_t n);
 BACNET_STACK_EXPORT
 char *bacnet_strndup(const char *s, size_t n);
 BACNET_STACK_EXPORT

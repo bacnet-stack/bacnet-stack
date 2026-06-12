@@ -697,7 +697,8 @@ bool characterstring_truncate(
  *
  * @param char_string  Pointer to the character string.
  *
- * @return Pointer to a zero-terminated C-string.
+ * @return Pointer to a zero-terminated C-string, or
+ *  NULL if char_string is NULL.
  */
 char *characterstring_value(BACNET_CHARACTER_STRING *char_string)
 {
@@ -1084,7 +1085,7 @@ bool characterstring_buffer_ansi_length_init(
     }
     characterstring_buffer_free(char_string);
     char_string->encoding = CHARACTER_UTF8;
-    char_string->buffer = (char *)value;
+    char_string->buffer = (char *)(uintptr_t)value;
     char_string->buffer_size = length;
     char_string->buffer_length = length;
 
@@ -1299,15 +1300,18 @@ bool characterstring_buffer_same(
 /**
  * @brief Returns the pointer to C-string data for the given buffer.
  * @param char_string Pointer to buffer structure.
- * @return Pointer to C-string data, or an empty string if no buffer is set.
+ * @return Pointer to C-string data, or NULL if no buffer is set or if
+ * char_string is NULL.
  */
 char *characterstring_buffer_value(BACNET_CHARACTER_STRING_BUFFER *char_string)
 {
+    char *value = NULL;
+
     if (char_string && char_string->buffer) {
-        return char_string->buffer;
+        value = char_string->buffer;
     }
 
-    return "";
+    return value;
 }
 
 /**
@@ -2494,15 +2498,15 @@ char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
  * @param trimmedchars - characters to trim from the string
  * @return the trimmed string
  */
-char *bacnet_ltrim(char *str, const char *trimmedchars)
+char *bacnet_ltrim(const char *str, const char *trimmedchars)
 {
     if (str[0] == 0) {
-        return str;
+        return (char *)(uintptr_t)str;
     }
     while (strchr(trimmedchars, *str)) {
         str++;
     }
-    return str;
+    return (char *)(uintptr_t)str;
 }
 
 /**
@@ -2645,6 +2649,21 @@ int bacnet_snprintf(
 }
 
 /**
+ * @brief Copy a string with a maximum length and ensure null-termination
+ * @param s1 - destination string
+ * @param s2 - source string
+ * @param n - maximum number of characters to copy
+ * @return pointer to the destination string
+ */
+char *bacnet_strncpy(char *s1, const char *s2, size_t n)
+{
+    strncpy(s1, s2, n);
+    s1[n] = '\0';
+
+    return s1;
+}
+
+/**
  * @brief duplicate a specific number of characters into a newly allocated
  *  memory block (replacement for POSIX strndup).
  *  strndup() copies at most size plus one bytes into the newly allocated
@@ -2662,8 +2681,7 @@ char *bacnet_strndup(const char *s, size_t n)
         size = n + 1;
         p = malloc(size);
         if (p != NULL) {
-            strncpy(p, s, n);
-            p[n] = '\0';
+            bacnet_strncpy(p, s, n);
         }
     }
 
