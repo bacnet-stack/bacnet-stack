@@ -2457,6 +2457,7 @@ bool Device_Is_Configuration_File(uint32_t instance)
     return status;
 }
 
+#if defined(BACNET_BACKUP_RESTORE)
 /**
  * @brief Encode a BACnetARRAY property element
  * @param object_instance [in] BACnet network port object instance number
@@ -2473,20 +2474,14 @@ static int Device_Configuration_File_Encode(
     int apdu_len = BACNET_STATUS_ERROR;
 
     (void)object_instance;
-#if BACNET_BACKUP_FILE_COUNT
     if (array_index < BACNET_BACKUP_FILE_COUNT) {
         apdu_len = encode_application_object_id(
             apdu, OBJECT_FILE, Configuration_Files[array_index]);
     }
-#else
-    (void)array_index;
-    (void)apdu;
-#endif
 
     return apdu_len;
 }
 
-#if defined(BACNET_BACKUP_RESTORE)
 /**
  * @brief Decode a BACnetLIST property element to determine the element length
  * @param object_instance [in] BACnet object instance number
