@@ -700,8 +700,6 @@ const char *Device_Location(void)
 
 bool Device_Set_Location(const char *name, size_t length)
 {
-    bool status = false; /*return value */
-
     (void)length;
     Location = name;
     return true;
