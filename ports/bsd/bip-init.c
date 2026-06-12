@@ -602,7 +602,7 @@ int bip_get_local_address_ioctl(
 int bip_get_local_netmask(struct in_addr *netmask)
 {
     int rv;
-    char *ifname = getenv("BACNET_IFACE");
+    const char *ifname = getenv("BACNET_IFACE");
 
     if (ifname == NULL) {
         ifname = "en0";

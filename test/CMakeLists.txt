@@ -37,8 +37,9 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
       # Just noise from clang
       add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
-      # don't warn about ignored qualifiers often used for initializing C strings.
+      # don't warn about discard qualifiers often used for initializing C strings.
       add_compile_options(-Wno-ignored-qualifiers)
+      add_compile_options(-Wno-incompatible-pointer-types-discards-qualifiers)
     endif()
     if (CMAKE_C_COMPILER_ID MATCHES "GNU")
       # don't warn about discarded qualifiers often used for initializing C strings.
