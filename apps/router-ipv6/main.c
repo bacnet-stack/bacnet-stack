@@ -718,18 +718,20 @@ static void network_control_handler(
                 } else {
                     /* they sent us a list */
                     int net_count = npdu[0];
+                    int i = 1; /* offset past the count byte */
                     while (net_count--) {
-                        int i = 1;
+                        /* need DNET(2) + PortID(1) + PortInfoLen(1) = 4 bytes
+                         */
+                        if ((i + 4) > npdu_len) {
+                            break;
+                        }
                         /* DNET */
                         decode_unsigned16(&npdu[i], &dnet);
                         /* update routing table */
                         dnet_add(snet, dnet, src);
-                        if (npdu[i + 3] > 0) {
-                            /* find next NET value */
-                            i = npdu[i + 3] + 4;
-                        } else {
-                            i += 4;
-                        }
+                        /* advance past DNET(2) + PortID(1) + PortInfoLen(1) +
+                         * PortInfo(npdu[i+3]) */
+                        i += 4 + npdu[i + 3];
                     }
                     send_initialize_routing_table_ack(snet, NULL);
                 }
