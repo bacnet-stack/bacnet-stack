@@ -4873,13 +4873,13 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, const char *str)
     if (*sep1 == '\0') {
         return false;
     }
-    bacnet_strncpy(period_buf, str, sep1 - str);
+    bacnet_strncpy(period_buf, str, sep1 - str + 1);
     period_str = bacnet_trim(period_buf, " ");
     sep2 = bacapp_find_depth0(sep1 + 1, ',');
     if (*sep2 == '\0') {
         return false;
     }
-    bacnet_strncpy(schedule_buf, sep1 + 1, sep2 - (sep1 + 1));
+    bacnet_strncpy(schedule_buf, sep1 + 1, sep2 - (sep1 + 1) + 1);
     sched_str = bacnet_trim(schedule_buf, " ");
     bacnet_strncpy(priority_buf, sep2 + 1, sizeof(priority_buf) - 1);
     prio_str = bacnet_trim(priority_buf, " ");
