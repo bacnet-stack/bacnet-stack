@@ -35,7 +35,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
     # unit test stubs often missing prototypes and declarations
     add_compile_options(-Wno-missing-prototypes)
     add_compile_options(-Wno-missing-declarations)
-    # common practice to intialize all local variables to zero or NULL
+    # common practice to initialize all local variables to zero or NULL
     # even if they are not used before being set to something else.
     add_compile_options(-Wno-unused-but-set-variable)
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
