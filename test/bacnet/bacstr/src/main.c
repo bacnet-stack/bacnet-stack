@@ -1803,7 +1803,8 @@ static void test_bacnet_strncpy(void)
     memset(dst, 'X', sizeof(dst));
     result = bacnet_strncpy(dst, src_short, sizeof(dst));
     zassert_equal_ptr(result, dst, "Short copy should return dst");
-    zassert_equal(bacnet_strcmp(dst, src_short), 0, "Short copy should match src");
+    zassert_equal(
+        bacnet_strcmp(dst, src_short), 0, "Short copy should match src");
 
     /* Source exactly fills buffer (truncated, null-terminated) */
     memset(dst, 'X', sizeof(dst));
@@ -1815,7 +1816,8 @@ static void test_bacnet_strncpy(void)
     memset(dst, 'X', sizeof(dst));
     result = bacnet_strncpy(dst, src_long, sizeof(dst));
     zassert_equal_ptr(result, dst, "Long copy should return dst");
-    zassert_equal(dst[sizeof(dst) - 1], '\0', "Last byte must be NUL after truncation");
+    zassert_equal(
+        dst[sizeof(dst) - 1], '\0', "Last byte must be NUL after truncation");
     zassert_equal(
         bacnet_strncmp(dst, src_long, sizeof(dst) - 1), 0,
         "Truncated copy should match first n-1 bytes of src");
