@@ -360,7 +360,7 @@ static void test_datalink_dlmstp(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(datalink_tests, )
+ZTEST(datalink_tests, test_datalink_ethernet)
 #else
 static void test_datalink_ethernet(void)
 #endif
