@@ -1765,6 +1765,69 @@ static void test_bacnet_strdup(void)
 }
 
 /**
+ * @brief Test bacnet_strncpy string copy with guaranteed null-termination
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_strncpy)
+#else
+static void test_bacnet_strncpy(void)
+#endif
+{
+    char dst[16];
+    char *result;
+    const char *src_short = "Hi";
+    const char *src_exact = "Hello, World!";
+    const char *src_long = "This string is too long to fit";
+
+    /* NULL s1, n=0: return NULL */
+    result = bacnet_strncpy(NULL, src_short, 0);
+    zassert_is_null(result, "NULL s1 with n=0 should return NULL");
+
+    /* NULL s1, n>0: return NULL */
+    result = bacnet_strncpy(NULL, src_short, sizeof(dst));
+    zassert_is_null(result, "NULL s1 with n>0 should return NULL");
+
+    /* n=0: return s1 unchanged */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_short, 0);
+    zassert_equal_ptr(result, dst, "n=0 should return dst");
+    zassert_equal(dst[0], 'X', "n=0 should not modify dst");
+
+    /* NULL s2, n>0: set s1[0] to NUL */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, NULL, sizeof(dst));
+    zassert_equal_ptr(result, dst, "NULL s2 should return dst");
+    zassert_equal(dst[0], '\0', "NULL s2 should NUL-terminate dst");
+
+    /* Short source fits within buffer */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_short, sizeof(dst));
+    zassert_equal_ptr(result, dst, "Short copy should return dst");
+    zassert_equal(bacnet_strcmp(dst, src_short), 0, "Short copy should match src");
+
+    /* Source exactly fills buffer (truncated, null-terminated) */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_exact, sizeof(dst));
+    zassert_equal_ptr(result, dst, "Exact copy should return dst");
+    zassert_equal(dst[sizeof(dst) - 1], '\0', "Last byte must be NUL");
+
+    /* Long source truncated to buffer size */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_long, sizeof(dst));
+    zassert_equal_ptr(result, dst, "Long copy should return dst");
+    zassert_equal(dst[sizeof(dst) - 1], '\0', "Last byte must be NUL after truncation");
+    zassert_equal(
+        bacnet_strncmp(dst, src_long, sizeof(dst) - 1), 0,
+        "Truncated copy should match first n-1 bytes of src");
+
+    /* Empty source string */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, "", sizeof(dst));
+    zassert_equal_ptr(result, dst, "Empty src copy should return dst");
+    zassert_equal(dst[0], '\0', "Empty src should produce empty dst");
+}
+
+/**
  * @}
  */
 
@@ -1791,7 +1854,8 @@ void test_main(void)
         ztest_unit_test(test_bacnet_string_trim),
         ztest_unit_test(test_bacnet_stptok),
         ztest_unit_test(test_bacnet_snprintf),
-        ztest_unit_test(test_bacnet_strdup));
+        ztest_unit_test(test_bacnet_strdup),
+        ztest_unit_test(test_bacnet_strncpy));
     ztest_run_test_suite(bacstr_tests);
 }
 #endif
