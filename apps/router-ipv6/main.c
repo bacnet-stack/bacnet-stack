@@ -641,6 +641,9 @@ static void network_control_handler(
     uint16_t npdu_offset = 0;
     uint16_t dnet = 0;
     uint16_t len = 0;
+    uint8_t port_id = 0;
+    uint8_t port_info_len = 0;
+    uint8_t net_count = 0;
     const char *msg_name = NULL;
 
     msg_name = bactext_network_layer_msg_name(npdu_data->network_message_type);
@@ -713,23 +716,35 @@ static void network_control_handler(
              */
             if (npdu_len > 0) {
                 /* If Number of Ports is 0, broadcast our "full" table */
-                if (npdu[0] == 0) {
+                net_count = npdu[0];
+                if (net_count == 0) {
                     send_initialize_routing_table_ack(snet, NULL);
                 } else {
                     /* they sent us a list */
-                    int net_count = npdu[0];
-                    while (net_count--) {
-                        int i = 1;
+                    npdu_offset = 1;
+                    /* DNET(2) + PortID(1) + PortInfoLen(1) = 4 bytes */
+                    while ((npdu_len >= 4) && (net_count--)) {
                         /* DNET */
-                        decode_unsigned16(&npdu[i], &dnet);
+                        len = decode_unsigned16(&npdu[npdu_offset], &dnet);
+                        npdu_offset += len;
+                        npdu_len -= len;
                         /* update routing table */
                         dnet_add(snet, dnet, src);
-                        if (npdu[i + 3] > 0) {
-                            /* find next NET value */
-                            i = npdu[i + 3] + 4;
+                        /* skip port_id & port_info */
+                        port_id = npdu[npdu_offset];
+                        npdu_offset += 1;
+                        npdu_len -= 1;
+                        port_info_len = npdu[npdu_offset];
+                        npdu_offset += 1;
+                        npdu_len -= 1;
+                        if (npdu_len >= port_info_len) {
+                            npdu_offset += port_info_len;
+                            npdu_len -= port_info_len;
                         } else {
-                            i += 4;
+                            /* malformed message */
+                            break;
                         }
+                        (void)port_id;
                     }
                     send_initialize_routing_table_ack(snet, NULL);
                 }
