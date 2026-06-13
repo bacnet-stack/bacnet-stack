@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 
-bool bsc_init(char *ifname)
+bool bsc_init(const char *ifname)
 {
     ztest_check_expected_value(ifname);
     return ztest_get_return_value();
@@ -43,10 +43,10 @@ int bsc_send_pdu(
 }
 
 uint16_t bsc_receive(
-    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout_ms)
 {
     ztest_check_expected_value(src);
-    ztest_check_expected_value(timeout);
+    ztest_check_expected_value(timeout_ms);
     ztest_copy_return_data(pdu, max_pdu);
     return ztest_get_return_value();
 }

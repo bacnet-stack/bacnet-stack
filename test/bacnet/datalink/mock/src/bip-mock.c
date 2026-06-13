@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include "bacnet/datalink/bip.h"
 
-bool bip_init(char *ifname)
+bool bip_init(const char *ifname)
 {
     ztest_check_expected_value(ifname);
     return ztest_get_return_value();

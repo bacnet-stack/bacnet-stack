@@ -41,7 +41,7 @@ struct mstp_rx_packet {
 #ifndef MSTP_RECEIVE_PACKET_COUNT
 #define MSTP_RECEIVE_PACKET_COUNT 2
 #endif
-static volatile struct mstp_rx_packet Receive_Buffer[MSTP_RECEIVE_PACKET_COUNT];
+static struct mstp_rx_packet Receive_Buffer[MSTP_RECEIVE_PACKET_COUNT];
 static RING_BUFFER Receive_Queue;
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
@@ -100,7 +100,7 @@ void bacnet_task_timed(void)
             memcpy(pkt->buffer, PDUBuffer, MAX_MPDU);
             bacnet_address_copy(&pkt->src, &src);
             pkt->length = pdu_len;
-            Ringbuf_Data_Put(&Receive_Queue, (volatile uint8_t *)pkt);
+            Ringbuf_Data_Put(&Receive_Queue, pkt);
         }
     }
 }
@@ -177,7 +177,7 @@ void bacnet_init(void)
 {
     unsigned i;
 
-    Ringbuf_Init(&Receive_Queue, (uint8_t *)&Receive_Buffer,
+    Ringbuf_Init(&Receive_Queue, Receive_Buffer,
         sizeof(struct mstp_rx_packet), MSTP_RECEIVE_PACKET_COUNT);
     dlmstp_init(NULL);
     /* initialize objects */

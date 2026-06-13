@@ -55,7 +55,7 @@ static int RS485_Handle = -1;
 static unsigned int RS485_Baud = 38400;
 /* serial port name, /dev/ttyS0,
   /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
-static char *RS485_Port_Name = "/dev/ttyUSB0";
+static const char *RS485_Port_Name = "/dev/ttyUSB0";
 /* some terminal I/O have RS-485 specific functionality */
 #ifndef RS485MOD
 #define RS485MOD 0
@@ -74,7 +74,7 @@ static uint8_t Rx_Buffer[4096];
  * ALGORITHM:   none
  * NOTES:       none
  *********************************************************************/
-void RS485_Set_Interface(char *ifname)
+void RS485_Set_Interface(const char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
     if (ifname) {

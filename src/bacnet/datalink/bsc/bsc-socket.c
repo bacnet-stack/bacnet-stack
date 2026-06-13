@@ -132,7 +132,7 @@ void bsc_init_ctx_cfg(
     size_t cert_chain_size,
     uint8_t *key,
     size_t key_size,
-    BACNET_SC_UUID *local_uuid,
+    const BACNET_SC_UUID *local_uuid,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     uint16_t max_local_bvlc_len,
     uint16_t max_local_ndpu_len,

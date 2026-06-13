@@ -195,7 +195,7 @@ int dlmstp_send_pdu(
         }
         pkt->length = pdu_len;
         pkt->destination_mac = dest->mac[0];
-        if (Ringbuf_Data_Put(&poSharedData->PDU_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&poSharedData->PDU_Queue, pkt)) {
             bytes_sent = pdu_len;
         }
     }
@@ -474,8 +474,8 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     if (!matched) {
         /* Walk the rest of the ring buffer to see if we can find a match */
         while (!matched &&
-               (pkt = (struct mstp_pdu_packet *)Ringbuf_Peek_Next(
-                    &poSharedData->PDU_Queue, (uint8_t *)pkt)) != NULL) {
+               (pkt = Ringbuf_Peek_Next(&poSharedData->PDU_Queue, pkt)) !=
+                   NULL) {
             matched = npdu_is_data_expecting_reply(
                 &mstp_port->InputBuffer[0], mstp_port->DataLength,
                 mstp_port->SourceAddress, (uint8_t *)&pkt->buffer[0],
@@ -692,7 +692,7 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-bool dlmstp_init(void *poPort, char *ifname)
+bool dlmstp_init(void *poPort, const char *ifname)
 {
     pthread_t hThread = 0;
     int rv = 0;
@@ -715,7 +715,7 @@ bool dlmstp_init(void *poPort, char *ifname)
     poSharedData->RS485_Port_Name = ifname;
     /* initialize PDU queue */
     Ringbuf_Init(
-        &poSharedData->PDU_Queue, (uint8_t *)&poSharedData->PDU_Buffer,
+        &poSharedData->PDU_Queue, poSharedData->PDU_Buffer,
         sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
     /* initialize packet queue */
     poSharedData->Receive_Packet.ready = false;

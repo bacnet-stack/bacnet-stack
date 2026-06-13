@@ -31,7 +31,7 @@ bool arcnet_valid(void);
 BACNET_STACK_EXPORT
 void arcnet_cleanup(void);
 BACNET_STACK_EXPORT
-bool arcnet_init(char *interface_name);
+bool arcnet_init(const char *interface_name);
 
 /* function to send a packet out the 802.2 socket */
 /* returns zero on success, non-zero on failure */

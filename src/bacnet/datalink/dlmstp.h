@@ -120,7 +120,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-bool dlmstp_init(char *ifname);
+bool dlmstp_init(const char *ifname);
 BACNET_STACK_EXPORT
 void dlmstp_set_interface(const char *ifname);
 BACNET_STACK_EXPORT

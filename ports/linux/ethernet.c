@@ -169,7 +169,7 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
     return rv;
 }
 
-bool ethernet_init(char *interface_name)
+bool ethernet_init(const char *interface_name)
 {
     if (interface_name) {
         get_local_hwaddr(interface_name, Ethernet_MAC_Address);

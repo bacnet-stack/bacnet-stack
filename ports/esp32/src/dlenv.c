@@ -52,7 +52,7 @@ bool m5_dlenv_init(uint8_t mac_address)
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
 
-    if (!dlmstp_init((char *)&MSTP_Port)) {
+    if (!dlmstp_init((const char *)&MSTP_Port)) {
         return false;
     }
 

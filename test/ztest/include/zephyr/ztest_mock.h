@@ -81,7 +81,7 @@
  */
 #define ztest_check_expected_data(param, length)                               \
 	z_ztest_check_expected_data(__func__, STRINGIFY(param),                \
-				    (void *)(param), (length))
+				    (void *)(uintptr_t)(param), (length))
 
 /**
  * @brief Tell function @a func to return the data @a data for @a param

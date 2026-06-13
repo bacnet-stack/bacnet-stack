@@ -177,7 +177,7 @@ static void test_Channel_Property_Read_Write(void)
     wp_data.object_property = PROP_PRESENT_VALUE;
     value.tag = BACNET_APPLICATION_TAG_CHANNEL_VALUE;
     value.type.Channel_Value.tag = BACNET_APPLICATION_TAG_REAL;
-    value.type.Channel_Value.type.Real = 3.14159;
+    value.type.Channel_Value.type.Real = 3.14159f;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);

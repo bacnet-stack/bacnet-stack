@@ -77,7 +77,7 @@ static unsigned int RS485_Baud = B115200;
 
 /* On macOS/Darwin the serial ports will be named something like */
 /* /dev/cu.usbserial-xxxx */
-static char *RS485_Port_Name = "/dev/cu.usbserial-7";
+static const char *RS485_Port_Name = "/dev/cu.usbserial-7";
 
 /* some terminal I/O have RS-485 specific functionality */
 #ifndef RS485MOD
@@ -116,7 +116,7 @@ static void closeSerialPort(int fileDescriptor);
  * ALGORITHM:   none
  * NOTES:       none
  *********************************************************************/
-void RS485_Set_Interface(char *ifname)
+void RS485_Set_Interface(const char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
     if (ifname && ifname != NULL) {

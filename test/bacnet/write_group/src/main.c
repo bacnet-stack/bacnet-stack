@@ -139,6 +139,7 @@ static void test_WriteGroup_Iterate(void)
     zassert_true(len > 0, NULL);
     test_len = bacnet_write_group_service_request_decode_iterate(
         &apdu[0], len, &data, test_WriteGroup_Iterate_Value);
+    zassert_true(test_len > 0, NULL);
     count = bacnet_write_group_change_list_count(&data);
     zassert_equal(count, WRITE_GROUP_CHANNEL_LIST_MAX + 1, NULL);
     /* validate append API */

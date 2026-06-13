@@ -37,7 +37,7 @@
  */
 struct ring_buffer_t {
     /** block of memory or array of data */
-    volatile uint8_t *buffer;
+    uint8_t *buffer;
     /** how many bytes for each chunk */
     unsigned element_size;
     /** number of chunks of data */
@@ -70,7 +70,7 @@ BACNET_STACK_EXPORT
 bool Ringbuf_Empty(RING_BUFFER const *b);
 /* tail */
 BACNET_STACK_EXPORT
-volatile void *Ringbuf_Peek(RING_BUFFER const *b);
+void *Ringbuf_Peek(RING_BUFFER const *b);
 BACNET_STACK_EXPORT
 bool Ringbuf_Pop(RING_BUFFER *b, uint8_t *data_element);
 BACNET_STACK_EXPORT
@@ -83,25 +83,24 @@ BACNET_STACK_EXPORT
 bool Ringbuf_Put(RING_BUFFER *b, const uint8_t *data_element);
 /* pair of functions to use head memory directly */
 BACNET_STACK_EXPORT
-volatile void *Ringbuf_Data_Peek(RING_BUFFER *b);
+void *Ringbuf_Data_Peek(RING_BUFFER *b);
 BACNET_STACK_EXPORT
-volatile void *
-Ringbuf_Peek_Next(RING_BUFFER const *b, const uint8_t *data_element);
+void *Ringbuf_Peek_Next(RING_BUFFER const *b, const void *data_element);
 BACNET_STACK_EXPORT
-bool Ringbuf_Data_Put(RING_BUFFER *b, const volatile uint8_t *data_element);
+bool Ringbuf_Data_Put(RING_BUFFER *b, const void *data_element);
 BACNET_STACK_EXPORT
 unsigned Ringbuf_Data_Size(RING_BUFFER const *b);
 /* Note: element_count must be a power of two */
 BACNET_STACK_EXPORT
 bool Ringbuf_Init(
     RING_BUFFER *b,
-    volatile uint8_t *buffer,
+    void *buffer,
     unsigned element_size,
     unsigned element_count);
 BACNET_STACK_EXPORT
 bool Ringbuf_Initialize(
     RING_BUFFER *b,
-    volatile uint8_t *buffer,
+    void *buffer,
     unsigned buffer_size,
     unsigned element_size,
     unsigned element_count);

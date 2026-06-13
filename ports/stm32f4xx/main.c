@@ -156,7 +156,7 @@ int main(void)
     /* user data */
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
-    dlmstp_init((char *)&MSTP_Port);
+    dlmstp_init((const char *)&MSTP_Port);
     if (MSTP_Port.ZeroConfigEnabled) {
         /* set node to monitor address */
         dlmstp_set_mac_address(255);
