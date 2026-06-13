@@ -441,6 +441,10 @@ bool bacapp_channel_value_copy(
     BACNET_CHANNEL_VALUE *cvalue, const BACNET_APPLICATION_DATA_VALUE *value);
 
 BACNET_STACK_EXPORT
+bool bacapp_parse_primitive_value(
+    const char *argv, BACNET_PRIMITIVE_DATA_VALUE *prim);
+
+BACNET_STACK_EXPORT
 bool bacapp_parse_application_data(
     BACNET_APPLICATION_TAG tag_number,
     const char *argv,

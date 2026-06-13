@@ -4238,13 +4238,19 @@ bool bacapp_print_value(
 static bool
 parse_weeklyschedule(const char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
-    char *chunk, *comma, *space, *t, *v, *colonpos, *sqpos;
     const char *str_next;
+    const char *day_ptr;
+    const char *sq_open, *sq_close, *content_start;
+    const char *tv_next;
+    char *t, *sp, *v;
     int daynum = 0, tvnum = 0;
     uint32_t inner_tag;
-    BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
+    BACNET_UNSIGNED_INTEGER uval;
     BACNET_DAILY_SCHEDULE *dsch;
-    char token[80] = "";
+    /* Small token: sized for the inner-tag token and for one TV-pair token.
+     * A single TV pair is at most "HH:MM:SS.ss <value>" which fits well
+     * within 48 bytes, so no large per-day buffer is needed. */
+    char token[48] = "";
 
     /*
      Format:
@@ -4261,103 +4267,125 @@ parse_weeklyschedule(const char *str, BACNET_APPLICATION_DATA_VALUE *value)
      - null value overrides the tag for that particular BACNET_TIME_VALUE
     */
     value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
-    /* Parse the first number */
+    /* Parse the inner tag (first ';'-delimited token; always small) */
     str_next = bacnet_stptok(str, token, sizeof(token), ";");
-    chunk = bacnet_ltrim(token, "(");
-    if (false ==
-        bacapp_parse_application_data(
-            BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
-        /* Try searching it by name */
-        if (false == bactext_application_tag_index(chunk, &inner_tag)) {
+    {
+        char *p = bacnet_ltrim(token, "( ");
+        if (bacnet_string_to_unsigned(p, &uval)) {
+            inner_tag = (uint32_t)uval;
+        } else if (!bactext_application_tag_index(p, &inner_tag)) {
             return false;
         }
-    } else {
-        inner_tag = (uint32_t)dummy_value.type.Unsigned_Int;
     }
-    str_next = bacnet_stptok(str_next, token, sizeof(token), ";");
-    while (token[0] != 0) {
+
+    /* Outer loop: iterate over days directly in the original string.
+     * Rather than copying each entire day entry into a fixed-size buffer
+     * (which would overflow for schedules with many time-value pairs), we
+     * locate the '[' and ']' bracket boundaries in-place and use
+     * bacnet_stptok() with ",]" break characters inside the brackets so
+     * that each individual TV-pair token stays small. */
+    day_ptr = str_next;
+    while (day_ptr != NULL) {
         if (daynum >= 7) {
             /* safety: more tokens than days in a week */
             break;
         }
-        chunk = token;
-        dsch = &value->type.Weekly_Schedule.weeklySchedule[daynum];
 
-        /* Strip day name prefix, if present */
-        colonpos = strchr(token, ':');
-        sqpos = strchr(token, '[');
-        if (colonpos && colonpos < sqpos) {
-            chunk = colonpos + 1;
+        /* Skip leading whitespace, check for end-of-schedule */
+        while (*day_ptr == ' ' || *day_ptr == '\t') {
+            day_ptr++;
         }
-        /* Extract the inner list of time-values */
-        chunk = bacnet_rtrim(bacnet_ltrim(chunk, "([ "), " ])");
-        /* reset count for each day; empty list yields TV_Count = 0 */
+        if (*day_ptr == ')' || *day_ptr == '\0') {
+            break;
+        }
+
+        dsch = &value->type.Weekly_Schedule.weeklySchedule[daynum];
         tvnum = 0;
-        /* The list can be empty */
-        if (chunk[0] != 0) {
-            /* loop through the time value pairs */
-            do {
-                /* Find the comma delimiter, replace with NUL (like strtok) */
-                comma = strchr(chunk, ',');
-                if (comma) {
-                    *comma = 0;
-                }
-                /* trim the time-value pair and find the delimiter space */
-                chunk = bacnet_trim(chunk, " ");
-                space = strchr(chunk, ' ');
-                if (!space) {
+
+        /* Locate '[' (start of TV list) and ']' (end of TV list) */
+        sq_open = strchr(day_ptr, '[');
+        if (sq_open != NULL) {
+            sq_close = strchr(sq_open + 1, ']');
+            content_start = sq_open + 1;
+        } else {
+            /* No brackets: skip optional day-name prefix "Day: " */
+            const char *colon = strchr(day_ptr, ':');
+            const char *semi = strchr(day_ptr, ';');
+            sq_close = semi;
+            content_start =
+                (colon && (!semi || colon < semi)) ? colon + 1 : day_ptr;
+        }
+
+        /* Skip leading whitespace inside the bracket */
+        while (*content_start == ' ') {
+            content_start++;
+        }
+
+        /* Inner loop: use bacnet_stptok() with ",]" break chars so each
+         * token is exactly one time-value pair and never exceeds the
+         * small token buffer.  The ']' break char naturally terminates
+         * the loop at the end of this day's TV list. */
+        if (*content_start != ']' && *content_start != ')' &&
+            *content_start != '\0') {
+            tv_next = bacnet_stptok(content_start, token, sizeof(token), ",]");
+            while (token[0] != '\0') {
+                /* Strip any trailing whitespace left in the token */
+                bacnet_rtrim(token, " ");
+                t = bacnet_ltrim(token, " ");
+
+                /* Split on the first space to separate time from value */
+                sp = strchr(t, ' ');
+                if (!sp) {
                     /* malformed time-value pair */
                     return false;
                 }
-                *space = 0;
+                *sp = '\0';
+                v = bacnet_ltrim(sp + 1, " ");
 
-                /* Extract time and value */
-                t = chunk;
-                /* value starts one byte after the space, and there can be */
-                /* multiple spaces */
-                chunk = bacnet_ltrim(space + 1, " ");
-                v = chunk;
-
-                /* Parse time */
-                if (false ==
-                    bacapp_parse_application_data(
-                        BACNET_APPLICATION_TAG_TIME, t, &dummy_value)) {
-                    return false;
-                }
-                dsch->Time_Values[tvnum].Time = dummy_value.type.Time;
-
-                /* Parse value */
-                if (false ==
-                    bacapp_parse_application_data(inner_tag, v, &dummy_value)) {
-                    /* Schedules can be set to active, inactive, or null to
-                     * revert to default value */
-                    if (bacnet_stricmp(v, "null") == 0) {
-                        dummy_value.tag = BACNET_APPLICATION_TAG_NULL;
-                    } else {
-                        return false;
-                    }
-                }
-                if (BACNET_STATUS_OK !=
-                    bacnet_application_to_primitive_data_value(
-                        &dsch->Time_Values[tvnum].Value, &dummy_value)) {
+                /* Parse time directly into the Time_Value slot */
+                if (!datetime_time_init_ascii(
+                        &dsch->Time_Values[tvnum].Time, t)) {
                     return false;
                 }
 
-                /* Advance past the comma to the next chunk */
-                if (comma) {
-                    chunk = comma + 1;
+                /* Use tag-inferred bacapp_parse_primitive_value().
+                 * Signed/enumerated integer types share the same 32-bit
+                 * layout as UNSIGNED_INT, so fix up the tag when needed. */
+                if (!bacapp_parse_primitive_value(
+                        v, &dsch->Time_Values[tvnum].Value)) {
+                    return false;
                 }
+                if (dsch->Time_Values[tvnum].Value.tag ==
+                        BACNET_APPLICATION_TAG_UNSIGNED_INT &&
+                    (inner_tag == BACNET_APPLICATION_TAG_SIGNED_INT ||
+                     inner_tag == BACNET_APPLICATION_TAG_ENUMERATED)) {
+                    dsch->Time_Values[tvnum].Value.tag = (uint8_t)inner_tag;
+                }
+
                 tvnum++;
-            } while (comma != NULL);
+
+                /* Stop when past the closing ']' or at end of string */
+                if (tv_next == NULL) {
+                    break;
+                }
+                if (sq_close && tv_next > sq_close) {
+                    break;
+                }
+                tv_next = bacnet_stptok(tv_next, token, sizeof(token), ",]");
+            }
         }
+
         dsch->TV_Count = tvnum;
         daynum++;
-        if (str_next == NULL) {
-            /* this was the last token */
-            break;
+
+        /* Advance day_ptr to the start of the next day (past the next ';') */
+        if (sq_close && *sq_close == ']') {
+            const char *semi = strchr(sq_close, ';');
+            day_ptr = semi ? semi + 1 : NULL;
+        } else {
+            /* sq_close points to ';' or is NULL */
+            day_ptr = (sq_close && *sq_close == ';') ? sq_close + 1 : NULL;
         }
-        /* Find the start of the next day */
-        str_next = bacnet_stptok(str_next, token, sizeof(token), ";");
     }
 
     if (daynum == 1) {
@@ -4684,10 +4712,12 @@ calendar_entry_from_ascii(BACNET_CALENDAR_ENTRY *entry, const char *str)
  * @param str - null-terminated value token (not modified)
  * @return true on parse success
  */
-static bool
-primitive_from_ascii(BACNET_PRIMITIVE_DATA_VALUE *prim, const char *str)
+bool bacapp_parse_primitive_value(
+    const char *str, BACNET_PRIMITIVE_DATA_VALUE *prim)
 {
-    BACNET_APPLICATION_DATA_VALUE app_val = { 0 };
+    BACNET_UNSIGNED_INTEGER uval;
+    long sval;
+    double dval;
 
     if (bacnet_stricmp(str, "null") == 0) {
         prim->tag = BACNET_APPLICATION_TAG_NULL;
@@ -4707,31 +4737,26 @@ primitive_from_ascii(BACNET_PRIMITIVE_DATA_VALUE *prim, const char *str)
     }
     /* real: must contain a decimal point */
     if (strchr(str, '.')) {
-        if (bacapp_parse_application_data(
-                BACNET_APPLICATION_TAG_REAL, str, &app_val)) {
-            if (BACNET_STATUS_OK ==
-                bacnet_application_to_primitive_data_value(prim, &app_val)) {
-                return true;
-            }
+        if (bacnet_strtod(str, &dval)) {
+            prim->tag = BACNET_APPLICATION_TAG_REAL;
+            prim->type.Real = (float)dval;
+            return true;
         }
     }
     /* signed integer: starts with '-' */
     if (str[0] == '-') {
-        if (bacapp_parse_application_data(
-                BACNET_APPLICATION_TAG_SIGNED_INT, str, &app_val)) {
-            if (BACNET_STATUS_OK ==
-                bacnet_application_to_primitive_data_value(prim, &app_val)) {
-                return true;
-            }
+        if (bacnet_strtol(str, &sval) && sval >= INT32_MIN &&
+            sval <= INT32_MAX) {
+            prim->tag = BACNET_APPLICATION_TAG_SIGNED_INT;
+            prim->type.Signed_Int = (int32_t)sval;
+            return true;
         }
     }
     /* unsigned integer */
-    if (bacapp_parse_application_data(
-            BACNET_APPLICATION_TAG_UNSIGNED_INT, str, &app_val)) {
-        if (BACNET_STATUS_OK ==
-            bacnet_application_to_primitive_data_value(prim, &app_val)) {
-            return true;
-        }
+    if (bacnet_string_to_unsigned(str, &uval)) {
+        prim->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+        prim->type.Unsigned_Int = uval;
+        return true;
     }
     return false;
 }
@@ -4757,7 +4782,6 @@ daily_schedule_from_ascii(BACNET_DAILY_SCHEDULE *sched, const char *str)
     const char *next;
     int tvnum = 0;
     bool is_time = true;
-    BACNET_APPLICATION_DATA_VALUE tval = { 0 };
 
     sched->TV_Count = 0;
     /* skip optional leading brace/spaces */
@@ -4776,13 +4800,13 @@ daily_schedule_from_ascii(BACNET_DAILY_SCHEDULE *sched, const char *str)
             if (tvnum >= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
                 return false;
             }
-            if (!bacapp_parse_application_data(
-                    BACNET_APPLICATION_TAG_TIME, tok, &tval)) {
+            if (!datetime_time_init_ascii(
+                    &sched->Time_Values[tvnum].Time, tok)) {
                 return false;
             }
-            sched->Time_Values[tvnum].Time = tval.type.Time;
         } else {
-            if (!primitive_from_ascii(&sched->Time_Values[tvnum].Value, tok)) {
+            if (!bacapp_parse_primitive_value(
+                    tok, &sched->Time_Values[tvnum].Value)) {
                 return false;
             }
             tvnum++;
@@ -5002,9 +5026,6 @@ bool bacapp_parse_application_data(
     const char *argv,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
-#if defined(BACAPP_TIME)
-    int hour, min, sec, hundredths;
-#endif
 #if defined(BACAPP_DATE)
     int year, month, day, wday;
 #endif
@@ -5131,26 +5152,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_TIME)
             case BACNET_APPLICATION_TAG_TIME:
-                count = sscanf(
-                    argv, "%3d:%3d:%3d.%3d", &hour, &min, &sec, &hundredths);
-                if (count == 4) {
-                    value->type.Time.hour = (uint8_t)hour;
-                    value->type.Time.min = (uint8_t)min;
-                    value->type.Time.sec = (uint8_t)sec;
-                    value->type.Time.hundredths = (uint8_t)hundredths;
-                } else if (count == 3) {
-                    value->type.Time.hour = (uint8_t)hour;
-                    value->type.Time.min = (uint8_t)min;
-                    value->type.Time.sec = (uint8_t)sec;
-                    value->type.Time.hundredths = 0;
-                } else if (count == 2) {
-                    value->type.Time.hour = (uint8_t)hour;
-                    value->type.Time.min = (uint8_t)min;
-                    value->type.Time.sec = 0;
-                    value->type.Time.hundredths = 0;
-                } else {
-                    status = false;
-                }
+                status = datetime_time_init_ascii(&value->type.Time, argv);
                 break;
 #endif
 #if defined(BACAPP_OBJECT_ID)
