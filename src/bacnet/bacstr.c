@@ -2667,7 +2667,7 @@ char *bacnet_strncpy(char *s1, const char *s2, size_t n)
         return s1;
     }
     strncpy(s1, s2, n);
-    s1[n-1] = '\0';
+    s1[n - 1] = '\0';
 
     return s1;
 }
@@ -2690,7 +2690,7 @@ char *bacnet_strndup(const char *s, size_t n)
         size = n + 1;
         p = malloc(size);
         if (p != NULL) {
-            bacnet_strncpy(p, s, n);
+            bacnet_strncpy(p, s, size);
         }
     }
 
