@@ -16,6 +16,7 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/datalink/cobs.h"
+#include "bacnet/basic/sys/bramfs.h"
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist File_List;

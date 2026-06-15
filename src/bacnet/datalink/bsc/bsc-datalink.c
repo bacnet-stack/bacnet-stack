@@ -123,7 +123,7 @@ static void bsc_deinit_resources(void)
  * @param ifname - name of the network interface
  * @return true if the initialization was successful, otherwise false
  */
-bool bsc_init(char *ifname)
+bool bsc_init(const char *ifname)
 {
     BSC_SC_RET r;
     bool ret = false;

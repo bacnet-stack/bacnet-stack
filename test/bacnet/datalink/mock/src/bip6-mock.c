@@ -13,7 +13,7 @@
 #include <stdbool.h> /* for the standard bool type. */
 #include "bacnet/datalink/bip6.h"
 
-bool bip6_init(char *ifname)
+bool bip6_init(const char *ifname)
 {
     ztest_check_expected_value(ifname);
     return ztest_get_return_value();
@@ -63,7 +63,7 @@ uint16_t bip6_receive(
     return ztest_get_return_value();
 }
 
-void bip6_set_interface(char *ifname)
+void bip6_set_interface(const char *ifname)
 {
     ztest_check_expected_value(ifname);
 }

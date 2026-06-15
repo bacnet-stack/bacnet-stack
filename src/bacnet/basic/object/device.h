@@ -413,7 +413,7 @@ bool Device_Object_Name_Copy(
 BACNET_STACK_EXPORT
 bool Device_Object_Name_ANSI_Init(const char *object_name);
 BACNET_STACK_EXPORT
-char *Device_Object_Name_ANSI(void);
+const char *Device_Object_Name_ANSI(void);
 
 BACNET_STACK_EXPORT
 BACNET_DEVICE_STATUS Device_System_Status(void);
@@ -550,7 +550,8 @@ BACNET_STACK_EXPORT
 DEVICE_OBJECT_DATA *Get_Routed_Device_Object(int idx);
 BACNET_STACK_EXPORT
 BACNET_ADDRESS *Get_Routed_Device_Address(int idx);
-
+BACNET_STACK_EXPORT
+void Routed_Device_Get_My_Address(BACNET_ADDRESS *my_address);
 BACNET_STACK_EXPORT
 bool Routed_Device_Address_Lookup(
     int idx, uint8_t address_len, const uint8_t *mac_adress);

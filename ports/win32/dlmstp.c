@@ -112,7 +112,7 @@ int dlmstp_send_pdu(
             /* mac_len = 0 is a broadcast address */
             pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
         }
-        if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&PDU_Queue, pkt)) {
             bytes_sent = pdu_len;
         }
     }
@@ -801,7 +801,7 @@ void dlmstp_silence_reset(void *arg)
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
  */
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
@@ -815,7 +815,7 @@ bool dlmstp_init(char *ifname)
     }
     /* initialize PDU queue */
     Ringbuf_Init(
-        &PDU_Queue, (uint8_t *)&PDU_Buffer, sizeof(struct mstp_pdu_packet),
+        &PDU_Queue, PDU_Buffer, sizeof(struct mstp_pdu_packet),
         MSTP_PDU_PACKET_COUNT);
     /* initialize packet queue */
     Receive_Packet.ready = false;
@@ -898,7 +898,7 @@ void apdu_handler(
     (void)pdu_len;
 }
 
-static char *Network_Interface = NULL;
+static const char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {

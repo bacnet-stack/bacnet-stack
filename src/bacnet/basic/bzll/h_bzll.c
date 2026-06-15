@@ -436,12 +436,12 @@ bzll_receive_handler(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t npdu_len)
     struct bzll_packet *pkt = NULL;
 
     if (npdu && src) {
-        pkt = (struct bzll_packet *)Ringbuf_Data_Peek(&Receive_Queue);
+        pkt = Ringbuf_Data_Peek(&Receive_Queue);
         if (pkt && (npdu_len <= sizeof(pkt->buffer))) {
             memcpy(pkt->buffer, npdu, npdu_len);
             bacnet_address_copy(&pkt->src, src);
             pkt->length = npdu_len;
-            Ringbuf_Data_Put(&Receive_Queue, (volatile uint8_t *)pkt);
+            Ringbuf_Data_Put(&Receive_Queue, pkt);
         }
     }
 }
@@ -503,11 +503,11 @@ void bzll_cleanup(void)
  *
  * @return true if initialized
  */
-bool bzll_init(char *interface_name)
+bool bzll_init(const char *interface_name)
 {
     (void)interface_name;
     Ringbuf_Initialize(
-        &Receive_Queue, (uint8_t *)&Receive_Buffer, sizeof(Receive_Buffer),
+        &Receive_Queue, Receive_Buffer, sizeof(Receive_Buffer),
         sizeof(struct bzll_packet), BZLL_RECEIVE_PACKET_COUNT);
     BZLL_VMAC_Init();
     bzll_time_scan_nodes_remaining = BZLL_SCAN_NODES_INTERVAL_S;

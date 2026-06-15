@@ -19,9 +19,20 @@
  * @param x2 - second comparison value
  * @return true if the value is the same to 3 decimal points
  */
-static bool is_float_equal(double x1, double x2)
+static bool is_double_equal(double x1, double x2)
 {
     return fabs(x1 - x2) < 0.001;
+}
+
+/**
+ * @brief compare two long double precision floating points to 3 decimal places
+ * @param x1 - first comparison value
+ * @param x2 - second comparison value
+ * @return true if the value is the same to 3 decimal points
+ */
+static bool is_long_double_equal(long double x1, long double x2)
+{
+    return fabsl(x1 - x2) < 0.001;
 }
 
 /**
@@ -544,8 +555,7 @@ static void testCharacterStringBufferApi_strdups(void)
     zassert_false(characterstring_buffer_strdup(&dyn_buffer, NULL), NULL);
     zassert_false(characterstring_buffer_ansi_strdup(NULL, value), NULL);
     zassert_true(characterstring_buffer_ansi_strdup(&dyn_buffer, NULL), NULL);
-    zassert_equal(
-        bacnet_strcmp(characterstring_buffer_value(&dyn_buffer), ""), 0, NULL);
+    zassert_equal(characterstring_buffer_value(&dyn_buffer), NULL, NULL);
 
     // characterstring_buffer_ansi_strdup: dynamic allocation
     status = characterstring_buffer_ansi_strdup(&dyn_buffer, value);
@@ -1429,11 +1439,14 @@ static void test_bacnet_strto(void)
     /* single precision */
     status = bacnet_strtof(test_float_positive_string, &float_value);
     zassert_true(status, NULL);
-    zassert_true(is_float_equal(float_value, test_float_value), NULL);
+    zassert_true(
+        is_double_equal((double)float_value, (double)test_float_value), NULL);
     status = bacnet_strtof(test_float_negative_string, &float_negative_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(float_negative_value, test_float_negative_value), NULL);
+        is_double_equal(
+            (double)float_negative_value, (double)test_float_negative_value),
+        NULL);
     status = bacnet_strtof(empty_string, &float_value);
     zassert_false(status, NULL);
     status = bacnet_strtof(extra_text_string, &float_value);
@@ -1441,11 +1454,11 @@ static void test_bacnet_strto(void)
     /* double precision */
     status = bacnet_strtod(test_float_positive_string, &double_value);
     zassert_true(status, NULL);
-    zassert_true(is_float_equal(double_value, test_double_value), NULL);
+    zassert_true(is_double_equal(double_value, test_double_value), NULL);
     status = bacnet_strtod(test_float_negative_string, &double_negative_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(double_negative_value, test_double_negative_value),
+        is_double_equal(double_negative_value, test_double_negative_value),
         NULL);
     status = bacnet_strtod(empty_string, &double_value);
     zassert_false(status, NULL);
@@ -1459,12 +1472,12 @@ static void test_bacnet_strto(void)
     status = bacnet_strtold(test_float_positive_string, &long_double_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(long_double_value, test_long_double_value), NULL);
+        is_long_double_equal(long_double_value, test_long_double_value), NULL);
     status =
         bacnet_strtold(test_float_negative_string, &long_double_negative_value);
     zassert_true(status, NULL);
     zassert_true(
-        is_float_equal(
+        is_long_double_equal(
             long_double_negative_value, test_long_double_negative_value),
         NULL);
     status = bacnet_strtold(empty_string, &long_double_value);
@@ -1592,8 +1605,8 @@ static void test_bacnet_string_trim(void)
     char trim_left[80] = "    abcdefg", *trim_left_result = NULL;
     char trim_right[80] = "abcdefg    ", *trim_right_result = NULL;
     char trim_both[80] = "   abcdefg   ", *trim_both_result = NULL;
-    char *trim_test_value = "abcdefg";
-    char *empty_string = "";
+    char trim_empty[80] = "";
+    const char *trim_test_value = "abcdefg";
 
     trim_left_result = bacnet_ltrim(trim_left, " ");
     trim_right_result = bacnet_rtrim(trim_right, " ");
@@ -1601,12 +1614,12 @@ static void test_bacnet_string_trim(void)
     zassert_equal(bacnet_strcmp(trim_left_result, trim_test_value), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_right_result, trim_test_value), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_both_result, trim_test_value), 0, NULL);
-    trim_left_result = bacnet_ltrim(empty_string, " ");
-    trim_right_result = bacnet_rtrim(empty_string, " ");
-    trim_both_result = bacnet_trim(empty_string, " ");
-    zassert_equal(bacnet_strcmp(trim_left_result, empty_string), 0, NULL);
-    zassert_equal(bacnet_strcmp(trim_right_result, empty_string), 0, NULL);
-    zassert_equal(bacnet_strcmp(trim_both_result, empty_string), 0, NULL);
+    trim_left_result = bacnet_ltrim(trim_empty, " ");
+    trim_right_result = bacnet_rtrim(trim_empty, " ");
+    trim_both_result = bacnet_trim(trim_empty, " ");
+    zassert_equal(bacnet_strcmp(trim_left_result, trim_empty), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_right_result, trim_empty), 0, NULL);
+    zassert_equal(bacnet_strcmp(trim_both_result, trim_empty), 0, NULL);
 }
 
 /**
@@ -1618,7 +1631,7 @@ ZTEST(bacstr_tests, test_bacnet_stptok)
 static void test_bacnet_stptok(void)
 #endif
 {
-    char *pCmd = "I Love You\r\n";
+    const char *pCmd = "I Love You\r\n";
     char token[80] = "";
 
     pCmd = bacnet_stptok(pCmd, token, sizeof(token), " \r\n");
@@ -1752,6 +1765,71 @@ static void test_bacnet_strdup(void)
 }
 
 /**
+ * @brief Test bacnet_strncpy string copy with guaranteed null-termination
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_strncpy)
+#else
+static void test_bacnet_strncpy(void)
+#endif
+{
+    char dst[16];
+    char *result;
+    const char *src_short = "Hi";
+    const char *src_exact = "Hello, World!";
+    const char *src_long = "This string is too long to fit";
+
+    /* NULL s1, n=0: return NULL */
+    result = bacnet_strncpy(NULL, src_short, 0);
+    zassert_is_null(result, "NULL s1 with n=0 should return NULL");
+
+    /* NULL s1, n>0: return NULL */
+    result = bacnet_strncpy(NULL, src_short, sizeof(dst));
+    zassert_is_null(result, "NULL s1 with n>0 should return NULL");
+
+    /* n=0: return s1 unchanged */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_short, 0);
+    zassert_equal_ptr(result, dst, "n=0 should return dst");
+    zassert_equal(dst[0], 'X', "n=0 should not modify dst");
+
+    /* NULL s2, n>0: set s1[0] to NUL */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, NULL, sizeof(dst));
+    zassert_equal_ptr(result, dst, "NULL s2 should return dst");
+    zassert_equal(dst[0], '\0', "NULL s2 should NUL-terminate dst");
+
+    /* Short source fits within buffer */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_short, sizeof(dst));
+    zassert_equal_ptr(result, dst, "Short copy should return dst");
+    zassert_equal(
+        bacnet_strcmp(dst, src_short), 0, "Short copy should match src");
+
+    /* Source exactly fills buffer (truncated, null-terminated) */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_exact, sizeof(dst));
+    zassert_equal_ptr(result, dst, "Exact copy should return dst");
+    zassert_equal(dst[sizeof(dst) - 1], '\0', "Last byte must be NUL");
+
+    /* Long source truncated to buffer size */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, src_long, sizeof(dst));
+    zassert_equal_ptr(result, dst, "Long copy should return dst");
+    zassert_equal(
+        dst[sizeof(dst) - 1], '\0', "Last byte must be NUL after truncation");
+    zassert_equal(
+        bacnet_strncmp(dst, src_long, sizeof(dst) - 1), 0,
+        "Truncated copy should match first n-1 bytes of src");
+
+    /* Empty source string */
+    memset(dst, 'X', sizeof(dst));
+    result = bacnet_strncpy(dst, "", sizeof(dst));
+    zassert_equal_ptr(result, dst, "Empty src copy should return dst");
+    zassert_equal(dst[0], '\0', "Empty src should produce empty dst");
+}
+
+/**
  * @}
  */
 
@@ -1778,7 +1856,8 @@ void test_main(void)
         ztest_unit_test(test_bacnet_string_trim),
         ztest_unit_test(test_bacnet_stptok),
         ztest_unit_test(test_bacnet_snprintf),
-        ztest_unit_test(test_bacnet_strdup));
+        ztest_unit_test(test_bacnet_strdup),
+        ztest_unit_test(test_bacnet_strncpy));
     ztest_run_test_suite(bacstr_tests);
 }
 #endif

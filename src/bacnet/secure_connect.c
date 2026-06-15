@@ -56,7 +56,8 @@ static void host_n_port_from_data(
     peer->host_name = peer_data->type & BACNET_HOST_N_PORT_HOST;
 
     if (peer->host_ip_address) {
-        octetstring_init(&peer->host.ip_address, (uint8_t *)peer_data->host, 6);
+        octetstring_init(
+            &peer->host.ip_address, (const uint8_t *)peer_data->host, 6);
     } else if (peer->host_name) {
         characterstring_init_ansi(&peer->host.name, peer_data->host);
     }
@@ -1012,7 +1013,7 @@ static int bacapp_snprintf_vmac(char *str, size_t str_len, const uint8_t *vmac)
 static int
 bacapp_snprintf_uuid(char *str, size_t str_len, const BACNET_UUID *uuid)
 {
-    char *uuid_format[2] = {
+    const char *uuid_format[2] = {
         "%8.8x-%4.4x-%4.4x-%2.2x%2.2x-%2.2x%2.2x%"
         "2.2x%2.2x%2.2x%2.2x, ",
         "%8.8lx-%4.4x-%4.4x-%2.2x%2.2x-%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x,"

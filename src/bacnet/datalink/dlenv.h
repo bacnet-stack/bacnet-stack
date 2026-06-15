@@ -45,6 +45,15 @@ BACNET_STACK_EXPORT
 void dlenv_network_port_init(void);
 
 BACNET_STACK_EXPORT
+void dlenv_network_port_mstp_init(uint32_t instance);
+BACNET_STACK_EXPORT
+void dlenv_network_port_bip6_init(uint32_t instance);
+BACNET_STACK_EXPORT
+void dlenv_network_port_zigbee_init(uint32_t instance);
+BACNET_STACK_EXPORT
+void dlenv_network_port_bsc_init(uint32_t instance);
+
+BACNET_STACK_EXPORT
 void dlenv_maintenance_timer(uint16_t elapsed_seconds);
 
 BACNET_STACK_EXPORT

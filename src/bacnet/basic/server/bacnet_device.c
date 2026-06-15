@@ -1026,7 +1026,7 @@ void Device_Write_Property_Proprietary_Callback_Set(write_property_function cb)
  * @return true if the property is a member of the proprietary property list,
  *  false otherwise.
  */
-bool Device_Property_Proprietary_Member(
+static bool Device_Property_Proprietary_Member(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property)
@@ -1770,7 +1770,7 @@ bool Device_Object_Name_ANSI_Init(const char *value)
  * @brief Get the Device Object Name as a C string
  * @return The object name as a null-terminated string
  */
-char *Device_Object_Name_ANSI(void)
+const char *Device_Object_Name_ANSI(void)
 {
     return Object_Name_String.buffer;
 }
@@ -2457,6 +2457,7 @@ bool Device_Is_Configuration_File(uint32_t instance)
     return status;
 }
 
+#if defined(BACNET_BACKUP_RESTORE)
 /**
  * @brief Encode a BACnetARRAY property element
  * @param object_instance [in] BACnet network port object instance number
@@ -2467,26 +2468,20 @@ bool Device_Is_Configuration_File(uint32_t instance)
  * @return The length of the apdu encoded or
  *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
  */
-int Device_Configuration_File_Encode(
+static int Device_Configuration_File_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
 {
     int apdu_len = BACNET_STATUS_ERROR;
 
     (void)object_instance;
-#if BACNET_BACKUP_FILE_COUNT
     if (array_index < BACNET_BACKUP_FILE_COUNT) {
         apdu_len = encode_application_object_id(
             apdu, OBJECT_FILE, Configuration_Files[array_index]);
     }
-#else
-    (void)array_index;
-    (void)apdu;
-#endif
 
     return apdu_len;
 }
 
-#if defined(BACNET_BACKUP_RESTORE)
 /**
  * @brief Decode a BACnetLIST property element to determine the element length
  * @param object_instance [in] BACnet object instance number

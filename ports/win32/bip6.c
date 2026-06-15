@@ -81,7 +81,7 @@ static LPSTR PrintError(int ErrorCode)
 }
 
 /* on Windows, ifname is the IPv6 address of the interface */
-void bip6_set_interface(char *ifname)
+void bip6_set_interface(const char *ifname)
 {
     int i, RetVal;
     struct addrinfo Hints, *AddrInfo, *AI;
@@ -569,7 +569,7 @@ void bip6_leave_group(void)
  * @return True if the socket is successfully opened for BACnet/IPv6,
  *         else False if the socket functions fail.
  */
-bool bip6_init(char *ifname)
+bool bip6_init(const char *ifname)
 {
     WSADATA wd;
     int RetVal;

@@ -162,7 +162,8 @@ void bacnet_basic_task_object_timer_set(unsigned long milliseconds)
  * an object property
  * @param wp_data - pointer to the write property data
  */
-bool bacnet_basic_write_property_store(BACNET_WRITE_PROPERTY_DATA *wp_data)
+static bool
+bacnet_basic_write_property_store(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
 

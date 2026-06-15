@@ -235,7 +235,7 @@ static int write_group_service_change_list_decode(
  * list
  * @param change_list [in] The current value in the change list
  */
-void bacnet_write_group_service_change_list_value_set(
+static void bacnet_write_group_service_change_list_value_set(
     BACNET_WRITE_GROUP_DATA *data,
     uint32_t change_list_index,
     BACNET_GROUP_CHANNEL_VALUE *change_list)

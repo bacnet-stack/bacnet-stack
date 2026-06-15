@@ -189,7 +189,7 @@ int setNonblocking(int fd)
 }
 */
 
-bool ethernet_init(char *if_name)
+bool ethernet_init(const char *if_name)
 {
     PPACKET_OID_DATA pOidData;
     LPADAPTER lpAdapter;

@@ -154,7 +154,10 @@ static const int32_t Writable_Properties[] = {
  */
 static bool is_float_equal(float x1, float x2)
 {
-    return fabs(x1 - x2) < 0.001;
+    double d1, d2;
+    d1 = (double)x1;
+    d2 = (double)x2;
+    return fabs(d1 - d2) < 0.001;
 }
 
 /**
@@ -2992,7 +2995,8 @@ static bool Lighting_Output_Trim_Fade_Time_Write(
     bool status;
 
     (void)priority;
-    status = Lighting_Output_Trim_Fade_Time_Set(object_instance, value);
+    status =
+        Lighting_Output_Trim_Fade_Time_Set(object_instance, (uint32_t)value);
     if (!status) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

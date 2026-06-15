@@ -91,7 +91,7 @@ static void test_MSTP_Datalink(void)
     MSTP_Port.OutputBuffer = RS485_Tx_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(RS485_Tx_Buffer);
     ztest_expect_value(MSTP_Init, mstp_port, &MSTP_Port);
-    status = dlmstp_init((char *)&MSTP_Port);
+    status = dlmstp_init((const char *)&MSTP_Port);
     zassert_true(status, NULL);
     zassert_true(MSTP_User.Initialized, NULL);
     zassert_equal(
