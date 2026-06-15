@@ -469,22 +469,65 @@ static void test_lighting_command_unit(void)
     lighting_command_timer(&data, milliseconds);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
-    /* momentary override - self clearing flags */
+    /* momentary override - Overridden and Overridden_Momentary are both set;
+       the next lighting command self-clears Overridden because
+       Overridden_Momentary is still set (tracking_value_event no longer
+       clears it) */
     override_level = 42.0f;
     target_level = 100.0f;
     milliseconds = 10;
     lighting_command_override_momentary(&data, override_level);
+    zassert_true(data.Overridden, NULL);
+    zassert_true(data.Overridden_Momentary, NULL);
     lighting_command_timer(&data, milliseconds);
     zassert_true(is_float_equal(Tracking_Value, override_level), NULL);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
-    zassert_false(data.Overridden, NULL);
+    zassert_true(data.Overridden, NULL);
     zassert_true(data.Overridden_Momentary, NULL);
+    /* fade_to sees Overridden_Momentary, self-clears Overridden, then runs */
     lighting_command_fade_to(&data, target_level, 0);
+    zassert_false(data.Overridden, NULL);
     lighting_command_timer(&data, milliseconds);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_false(data.Overridden, NULL);
+    zassert_true(data.Overridden_Momentary, NULL);
+
+    /* override_ramp - overrides and ramps to target; the timer is not
+       blocked by Overridden, so the ramp operates normally */
+    target_level = 0.0f;
+    override_level = data.Max_Actual_Value;
+    ramp_rate = 100.0f;
+    milliseconds = 1000;
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    lighting_event_clear();
+    lighting_command_override_ramp(&data, override_level, ramp_rate);
+    zassert_true(data.Overridden, NULL);
     zassert_false(data.Overridden_Momentary, NULL);
+    zassert_equal(data.Lighting_Operation, BACNET_LIGHTS_RAMP_TO, NULL);
+    lighting_event_assert(
+        &data, BACNET_LIGHTS_RAMP_TO, override_level,
+        lighting_command_ramp_rate_clamp(ramp_rate));
+    /* timer advances the ramp even though Overridden is set */
+    do {
+        lighting_command_timer(&data, milliseconds);
+    } while (data.Lighting_Operation == BACNET_LIGHTS_RAMP_TO);
+    zassert_true(is_float_equal(Tracking_Value, override_level), NULL);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    zassert_true(data.Overridden, NULL);
+    /* regular ramp commands are blocked while Overridden */
+    lighting_command_ramp_to(&data, data.Max_Actual_Value, ramp_rate);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, override_level), NULL);
+    /* clear the override */
+    lighting_command_override_clear(&data, 0.0f);
+    zassert_false(data.Overridden, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
 
     /* step clamping */
     target_step = lighting_command_step_increment_clamp(0.0f);
@@ -894,6 +937,7 @@ static void test_lighting_command_unit(void)
     lighting_command_override_set(NULL, override_level);
     lighting_command_override_clear(NULL, override_level);
     lighting_command_override_momentary(NULL, override_level);
+    lighting_command_override_ramp(NULL, override_level, ramp_rate);
     lighting_command_fade_to(NULL, 0.0f, 0);
     lighting_command_ramp_to(NULL, 0.0f, 0.0f);
     lighting_command_step(NULL, BACNET_LIGHTS_STEP_OFF, 0.0f);
