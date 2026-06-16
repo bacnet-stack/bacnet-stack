@@ -5,6 +5,7 @@
  * @date 2012
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/abort.h>
 #include <bacnet/bacerror.h>
@@ -538,6 +539,151 @@ static void test_NPDU_Data_Expecting_Reply(void)
         reply_pdu, reply_pdu_len, &test_address, npdu_len + 3);
 }
 
+/**
+ * @brief Test npdu_i_am_router_to_network_process
+ */
+struct test_dnet_add_data {
+    uint16_t snet;
+    uint16_t net[16];
+    unsigned count;
+};
+
+static void
+test_dnet_add_callback(uint16_t snet, uint16_t net, const BACNET_ADDRESS *addr)
+{
+    struct test_dnet_add_data *data = (struct test_dnet_add_data *)addr;
+    data->snet = snet;
+    if (data->count < 16) {
+        data->net[data->count++] = net;
+    }
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_tests, test_NPDU_I_Am_Router_To_Network_Process)
+#else
+static void test_NPDU_I_Am_Router_To_Network_Process(void)
+#endif
+{
+    struct test_dnet_add_data cb_data = { 0 };
+    uint8_t npdu[16] = { 0 };
+    uint16_t npdu_size = 0;
+    uint16_t snet = 42;
+
+    /* encode two network numbers: 100 and 200 */
+    npdu[0] = 0x00;
+    npdu[1] = 100;
+    npdu[2] = 0x00;
+    npdu[3] = 200;
+    npdu_size = 4;
+
+    npdu_i_am_router_to_network_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, npdu_size,
+        test_dnet_add_callback);
+
+    zassert_equal(cb_data.count, 2, NULL);
+    zassert_equal(cb_data.snet, snet, NULL);
+    zassert_equal(cb_data.net[0], 100, NULL);
+    zassert_equal(cb_data.net[1], 200, NULL);
+
+    /* empty buffer - nothing should be added */
+    memset(&cb_data, 0, sizeof(cb_data));
+    npdu_i_am_router_to_network_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, 1, test_dnet_add_callback);
+    zassert_equal(cb_data.count, 0, NULL);
+
+    /* NULL callback - no crash */
+    npdu_i_am_router_to_network_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, npdu_size, NULL);
+
+    /* single network number */
+    memset(&cb_data, 0, sizeof(cb_data));
+    npdu[0] = 0x00;
+    npdu[1] = 0xFF;
+    npdu_size = 2;
+    npdu_i_am_router_to_network_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, npdu_size,
+        test_dnet_add_callback);
+    zassert_equal(cb_data.count, 1, NULL);
+    zassert_equal(cb_data.net[0], 255, NULL);
+}
+
+/**
+ * @brief Test npdu_init_routing_table_process
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_tests, test_NPDU_Init_Routing_Table_Process)
+#else
+static void test_NPDU_Init_Routing_Table_Process(void)
+#endif
+{
+    struct test_dnet_add_data cb_data = { 0 };
+    uint8_t npdu[64] = { 0 };
+    uint16_t npdu_size = 0;
+    uint16_t snet = 10;
+    uint8_t *p = npdu;
+
+    /* encode 2 entries:
+     * net_count = 2
+     * Entry 1: DNET=300, PortID=1, PortInfoLen=0
+     * Entry 2: DNET=400, PortID=2, PortInfoLen=3, PortInfo={0xAA,0xBB,0xCC} */
+    *p++ = 2; /* net_count */
+    /* entry 1 */
+    *p++ = 0x01; /* DNET high */
+    *p++ = 0x2C; /* DNET low: 300 */
+    *p++ = 1; /* PortID */
+    *p++ = 0; /* PortInfoLen */
+    /* entry 2 */
+    *p++ = 0x01; /* DNET high */
+    *p++ = 0x90; /* DNET low: 400 */
+    *p++ = 2; /* PortID */
+    *p++ = 3; /* PortInfoLen */
+    *p++ = 0xAA;
+    *p++ = 0xBB;
+    *p++ = 0xCC;
+    npdu_size = (uint16_t)(p - npdu);
+
+    npdu_init_routing_table_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, npdu_size,
+        test_dnet_add_callback);
+
+    zassert_equal(cb_data.count, 2, NULL);
+    zassert_equal(cb_data.snet, snet, NULL);
+    zassert_equal(cb_data.net[0], 300, NULL);
+    zassert_equal(cb_data.net[1], 400, NULL);
+
+    /* malformed: too short (<=1 byte) */
+    memset(&cb_data, 0, sizeof(cb_data));
+    npdu_init_routing_table_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, 1, test_dnet_add_callback);
+    zassert_equal(cb_data.count, 0, NULL);
+
+    /* net_count == 0 */
+    memset(&cb_data, 0, sizeof(cb_data));
+    npdu[0] = 0;
+    npdu_init_routing_table_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, npdu_size,
+        test_dnet_add_callback);
+    zassert_equal(cb_data.count, 0, NULL);
+
+    /* NULL callback - no crash */
+    npdu[0] = 2;
+    npdu_init_routing_table_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, npdu_size, NULL);
+
+    /* truncated buffer - only enough bytes for first entry's
+     * DNET+PortID+PortInfoLen but not enough for second entry's 4-byte minimum;
+     * first entry should be added */
+    memset(&cb_data, 0, sizeof(cb_data));
+    npdu[0] = 2;
+    /* npdu_size=7: net_count(1)+DNET(2)+PortID(1)+PortInfoLen(1)+2bytes of
+     * entry2 After processing entry 1: npdu_len=3, which is < 4 so loop exits
+     */
+    npdu_init_routing_table_process(
+        snet, (BACNET_ADDRESS *)&cb_data, npdu, 7, test_dnet_add_callback);
+    zassert_equal(cb_data.count, 1, NULL);
+    zassert_equal(cb_data.net[0], 300, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(npdu_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -548,7 +694,9 @@ void test_main(void)
         ztest_unit_test(test_NPDU_Network), ztest_unit_test(test_NPDU_Copy),
         ztest_unit_test(test_NPDU_Confirmed_Service),
         ztest_unit_test(test_NPDU_Segmented_Complex_Ack_Reply),
-        ztest_unit_test(test_NPDU_Data_Expecting_Reply));
+        ztest_unit_test(test_NPDU_Data_Expecting_Reply),
+        ztest_unit_test(test_NPDU_I_Am_Router_To_Network_Process),
+        ztest_unit_test(test_NPDU_Init_Routing_Table_Process));
 
     ztest_run_test_suite(npdu_tests);
 }

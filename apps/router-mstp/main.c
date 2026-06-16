@@ -678,19 +678,8 @@ static void network_control_handler(
             break;
         case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
             /* add its DNETs to our routing table */
-            fprintf(stderr, "for Networks: ");
-            len = 2;
-            while (npdu_len >= len) {
-                len = decode_unsigned16(&npdu[npdu_offset], &dnet);
-                fprintf(stderr, "%hu", dnet);
-                dnet_add(snet, dnet, src);
-                npdu_len -= len;
-                npdu_offset += len;
-                if (npdu_len) {
-                    fprintf(stderr, ", ");
-                }
-            }
-            fprintf(stderr, ".\n");
+            npdu_i_am_router_to_network_process(
+                snet, src, npdu, npdu_len, dnet_add);
             break;
         case NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK:
             /* Do nothing, same as previous case. */
@@ -737,42 +726,8 @@ static void network_control_handler(
              * NETWORK_MESSAGE_INIT_RT_TABLE_ACK and a list of all our
              * reachable networks.
              */
-            if (npdu_len > 0) {
-                /* If Number of Ports is 0, broadcast our "full" table */
-                net_count = npdu[0];
-                if (net_count == 0) {
-                    send_initialize_routing_table_ack(snet, NULL);
-                } else {
-                    /* they sent us a list */
-                    npdu_offset = 1;
-                    /* DNET(2) + PortID(1) + PortInfoLen(1) = 4 bytes */
-                    while ((npdu_len >= 4) && (net_count--)) {
-                        /* DNET */
-                        len = decode_unsigned16(&npdu[npdu_offset], &dnet);
-                        npdu_offset += len;
-                        npdu_len -= len;
-                        /* update routing table */
-                        dnet_add(snet, dnet, src);
-                        /* skip port_id & port_info */
-                        port_id = npdu[npdu_offset];
-                        npdu_offset += 1;
-                        npdu_len -= 1;
-                        port_info_len = npdu[npdu_offset];
-                        npdu_offset += 1;
-                        npdu_len -= 1;
-                        if (npdu_len >= port_info_len) {
-                            npdu_offset += port_info_len;
-                            npdu_len -= port_info_len;
-                        } else {
-                            /* malformed message */
-                            break;
-                        }
-                        (void)port_id;
-                    }
-                    send_initialize_routing_table_ack(snet, NULL);
-                }
-                break;
-            }
+            npdu_init_routing_table_process(snet, src, npdu, npdu_len);
+            send_initialize_routing_table_ack(snet, NULL);
             break;
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
             /* Do nothing with the routing table info, since don't support
