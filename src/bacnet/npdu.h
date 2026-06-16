@@ -137,15 +137,15 @@ bool npdu_is_data_expecting_reply(
 BACNET_STACK_EXPORT
 void npdu_i_am_router_to_network_process(
     uint16_t snet,
-    BACNET_ADDRESS *src,
-    uint8_t *npdu,
+    const BACNET_ADDRESS *src,
+    const uint8_t *npdu,
     uint16_t npdu_size,
     npdu_dnet_add_callback_t dnet_add);
 BACNET_STACK_EXPORT
 void npdu_init_routing_table_process(
     uint16_t snet,
-    BACNET_ADDRESS *src,
-    uint8_t *npdu,
+    const BACNET_ADDRESS *src,
+    const uint8_t *npdu,
     uint16_t npdu_size,
     npdu_dnet_add_callback_t dnet_add);
 
