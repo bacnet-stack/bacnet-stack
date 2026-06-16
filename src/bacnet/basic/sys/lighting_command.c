@@ -1012,6 +1012,7 @@ void lighting_command_fade_to(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1073,6 +1074,7 @@ void lighting_command_ramp_to(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1101,6 +1103,7 @@ void lighting_command_step(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1170,6 +1173,7 @@ void lighting_command_blink_warn(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1236,6 +1240,7 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1266,6 +1271,7 @@ void lighting_command_none(struct bacnet_lighting_command_data *data)
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1293,6 +1299,7 @@ void lighting_command_restore_on(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1324,6 +1331,7 @@ void lighting_command_default_on(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1355,6 +1363,7 @@ void lighting_command_toggle_restore(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
@@ -1392,6 +1401,7 @@ void lighting_command_toggle_default(
     lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
             data->Overridden = false;
         }
     }
