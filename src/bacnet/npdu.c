@@ -929,9 +929,9 @@ void npdu_i_am_router_to_network_process(
 }
 
 /**
- * @brief Process the NPDU portion of an I-Have-Router-To-Network message, which
- * contains a list of BACnet network numbers that the router is connected to.
- * @param snet [in] The source network number of the I-Have-Router-To-Network
+ * @brief Process the NPDU portion of an Initialize-Routing-Table message, which
+ * contains a list of BACnet network numbers (DNETs) and per-port information.
+ * @param snet [in] The source network number of the Initialize-Routing-Table
  * message, which is the network number of the router sending the message.
  * @param src [in] The source address of the I-Have-Router-To-Network message,
  * which is the address of the router sending the message.
