@@ -1746,7 +1746,7 @@ static void setup_property_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Value", renderer, "text", PROPERTY_COL_VALUE, NULL);
-    gtk_tree_view_column_set_expand(column, TRUE);
+    gtk_tree_view_column_set_expand(column, FALSE);
     gtk_tree_view_column_set_resizable(column, TRUE);
     g_object_set(renderer, "editable", TRUE, NULL);
     g_signal_connect(
