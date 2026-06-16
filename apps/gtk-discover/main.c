@@ -644,6 +644,61 @@ static char *property_value_to_string(
     return str;
 }
 
+/**
+ * @brief Update a single object's name in the object tree view
+ * @param device_id the device ID of the object
+ * @param object_type the type of the object
+ * @param object_instance the instance number of the object
+ */
+static void update_object_name_in_tree_view(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    GtkTreeIter iter;
+    GtkTreeModel *model;
+    guint tree_device_id = 0;
+    guint tree_object_type = 0;
+    guint tree_object_instance = 0;
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+    gboolean valid;
+
+    device = device_cache_find(device_id);
+    if (!device) {
+        return;
+    }
+    object = device_object_find(device, object_type, object_instance);
+    if (!object) {
+        return;
+    }
+
+    model = gtk_tree_view_get_model(GTK_TREE_VIEW(object_tree_view));
+    if (!model) {
+        return;
+    }
+
+    /* Search for the row matching this device/object */
+    valid = gtk_tree_model_get_iter_first(model, &iter);
+    while (valid) {
+        gtk_tree_model_get(
+            model, &iter, OBJECT_COL_DEVICE_ID, &tree_device_id,
+            OBJECT_COL_TYPE, &tree_object_type, OBJECT_COL_OBJECT_ID,
+            &tree_object_instance, -1);
+
+        if ((tree_device_id == device_id) &&
+            (tree_object_type == object_type) &&
+            (tree_object_instance == object_instance)) {
+            /* Found the matching row; update just the name column */
+            gtk_list_store_set(
+                GTK_LIST_STORE(model), &iter, OBJECT_COL_NAME,
+                object_name_text(object), -1);
+            return;
+        }
+        valid = gtk_tree_model_iter_next(model, &iter);
+    }
+}
+
 static void refresh_device_tree_view(void)
 {
     GtkTreeIter iter;
@@ -1336,7 +1391,9 @@ static void bacnet_read_write_value_callback(
     }
     if (Selected_Device_ID == device_instance) {
         if (rp_data->object_property == PROP_OBJECT_NAME) {
-            refresh_object_tree_view(device_instance);
+            update_object_name_in_tree_view(
+                device_instance, rp_data->object_type,
+                rp_data->object_instance);
         }
         if (Selected_Object_Valid &&
             (Selected_Object_Type == rp_data->object_type) &&
@@ -1548,30 +1605,6 @@ static void on_property_edited(
 }
 
 /**
- * @brief Handle refresh button click
- * @param button button that was clicked
- * @param data optional data for the callback
- */
-static void on_refresh_clicked(GtkButton *button, gpointer data)
-{
-    (void)button; /* unused parameter */
-    (void)data; /* unused parameter */
-
-    Selected_Device_ID = BACNET_MAX_INSTANCE;
-    Selected_Object_Valid = false;
-    Object_List_Complete_Expires_Us = 0;
-    Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
-    update_object_progress_indicator();
-    update_property_progress_indicator();
-    g_queue_clear_full(Pending_Writes, pending_write_free);
-    g_ptr_array_set_size(Device_Cache, 0);
-    gtk_list_store_clear(device_store);
-    gtk_list_store_clear(object_store);
-    gtk_list_store_clear(property_store);
-    Send_WhoIs_Global(0, BACNET_MAX_INSTANCE);
-}
-
-/**
  * @brief Setup the device tree view object
  */
 static void setup_device_tree_view(void)
@@ -1731,7 +1764,7 @@ static void create_main_window(void)
     GtkWidget *toolbar;
     GtkWidget *hpaned, *vpaned;
     GtkWidget *scrolled_window;
-    GtkWidget *discover_button, *refresh_button;
+    GtkWidget *discover_button;
     GtkToolItem *tool_item;
     GdkPixbuf *icon_pixbuf;
 
@@ -1766,14 +1799,6 @@ static void create_main_window(void)
         NULL);
     tool_item = gtk_tool_item_new();
     gtk_container_add(GTK_CONTAINER(tool_item), discover_button);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    /* Add refresh button */
-    refresh_button = gtk_button_new_with_label("Refresh");
-    g_signal_connect(
-        refresh_button, "clicked", G_CALLBACK(on_refresh_clicked), NULL);
-    tool_item = gtk_tool_item_new();
-    gtk_container_add(GTK_CONTAINER(tool_item), refresh_button);
     gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
 
     /* Add object read progress status */
