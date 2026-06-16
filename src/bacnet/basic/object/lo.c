@@ -3029,6 +3029,32 @@ bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value)
 }
 
 /**
+ * @brief Set the overridden state of the lighting output and ramp to a value
+ * @note For HOA (hand off-auto) control where the override
+ * is permanent and prevents lighting-command or present-value
+ * control of the output.
+ * @param object_instance [in] BACnet object instance
+ * @param value [in] new value to set
+ * @param ramp_rate [in] ramp rate to apply
+ * @return true if successful, false if not
+ */
+bool Lighting_Output_Overridden_Ramp(
+    uint32_t object_instance, float value, float ramp_rate)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        lighting_command_override_ramp(
+            &pObject->Lighting_Command, value, ramp_rate);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Clear the overridden state of the lighting output
  * @note For HOA (hand off-auto) control where the override
  * is permanent and prevents lighting-command or present-value

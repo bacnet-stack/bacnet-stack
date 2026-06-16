@@ -93,6 +93,9 @@ bool Lighting_Output_Trim_Fade_Time_Set(
 BACNET_STACK_EXPORT
 bool Lighting_Output_Overridden_Set(uint32_t object_instance, float value);
 BACNET_STACK_EXPORT
+bool Lighting_Output_Overridden_Ramp(
+    uint32_t object_instance, float value, float ramp_rate);
+BACNET_STACK_EXPORT
 bool Lighting_Output_Overridden_Clear(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Overridden_Status(uint32_t object_instance);

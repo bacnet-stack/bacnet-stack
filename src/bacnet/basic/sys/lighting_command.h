@@ -176,14 +176,14 @@ BACNET_STACK_EXPORT
 void lighting_command_override_set(
     struct bacnet_lighting_command_data *data, float value);
 BACNET_STACK_EXPORT
+void lighting_command_override_ramp(
+    struct bacnet_lighting_command_data *data, float value, float ramp_rate);
+BACNET_STACK_EXPORT
 void lighting_command_override_clear(
     struct bacnet_lighting_command_data *data, float value);
 BACNET_STACK_EXPORT
 void lighting_command_override_momentary(
     struct bacnet_lighting_command_data *data, float value);
-BACNET_STACK_EXPORT
-void lighting_command_override_ramp(
-    struct bacnet_lighting_command_data *data, float value, float ramp_rate);
 
 BACNET_STACK_EXPORT
 float lighting_command_ramp_rate_clamp(float ramp_rate);
