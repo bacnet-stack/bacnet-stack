@@ -659,12 +659,7 @@ static void network_control_handler(
     uint8_t *npdu,
     uint16_t npdu_len)
 {
-    uint16_t npdu_offset = 0;
     uint16_t dnet = 0;
-    uint16_t len = 0;
-    uint8_t port_id = 0;
-    uint8_t port_info_len = 0;
-    uint8_t net_count = 0;
     const char *msg_name = NULL;
 
     (void)src;
@@ -726,7 +721,8 @@ static void network_control_handler(
              * NETWORK_MESSAGE_INIT_RT_TABLE_ACK and a list of all our
              * reachable networks.
              */
-            npdu_init_routing_table_process(snet, src, npdu, npdu_len);
+            npdu_init_routing_table_process(
+                snet, src, npdu, npdu_len, dnet_add);
             send_initialize_routing_table_ack(snet, NULL);
             break;
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
