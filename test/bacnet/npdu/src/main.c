@@ -551,7 +551,8 @@ struct test_dnet_add_data {
 static void
 test_dnet_add_callback(uint16_t snet, uint16_t net, const BACNET_ADDRESS *addr)
 {
-    struct test_dnet_add_data *data = (struct test_dnet_add_data *)addr;
+    struct test_dnet_add_data *data =
+        (struct test_dnet_add_data *)(uintptr_t)(const void *)addr;
     data->snet = snet;
     if (data->count < 16) {
         data->net[data->count++] = net;
