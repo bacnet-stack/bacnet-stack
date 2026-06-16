@@ -144,6 +144,8 @@ static GQueue *Pending_Writes;
 static gint64 Progress_Interrupt_Expires_Us;
 static gint64 Object_List_Complete_Expires_Us;
 static uint32_t Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
+static gchar *Property_Edit_Original_Value = NULL;
+static bool Property_Edit_Enter_Pressed = false;
 
 #define ABSTRACT_WRITE_POOL_COUNT 8
 #define PROGRESS_INTERRUPT_NOTE_MS 1200
@@ -1506,6 +1508,71 @@ static void on_discover_devices_clicked(GtkButton *button, gpointer data)
     Send_WhoIs_Global(0, BACNET_MAX_INSTANCE);
 }
 
+/**
+ * @brief Handle property value cell key press event
+ *  Controls when the edit is committed - only on Enter key, not on focus loss
+ * @param widget the entry widget
+ * @param event the key press event
+ * @param user_data optional data (unused)
+ * @return TRUE to stop propagation, FALSE to allow default handling
+ */
+static gboolean on_property_edit_key_press(
+    GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    (void)user_data; /* unused parameter */
+
+    /* Only allow Enter to commit the edit */
+    if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter) {
+        /* Mark that Enter was pressed so the edit callback knows to commit */
+        Property_Edit_Enter_Pressed = true;
+        /* Return FALSE to allow the default handling of Enter */
+        return FALSE;
+    }
+
+    /* For Tab and Escape, cancel the edit without committing */
+    if (event->keyval == GDK_KEY_Tab || event->keyval == GDK_KEY_ISO_Left_Tab ||
+        event->keyval == GDK_KEY_Escape) {
+        /* Stop propagation so the cell renderer doesn't commit this edit */
+        gtk_cell_editable_editing_done(GTK_CELL_EDITABLE(widget));
+        gtk_cell_editable_remove_widget(GTK_CELL_EDITABLE(widget));
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
+ * @brief Handle property value cell editing start
+ *  Sets up key press handling to control when edits are committed
+ * @param renderer the cell renderer that started editing
+ * @param editable the GtkEntry widget for editing
+ * @param path the path to the cell being edited
+ * @param user_data optional data (unused)
+ */
+static void on_property_edit_start(
+    GtkCellRenderer *renderer,
+    GtkCellEditable *editable,
+    const gchar *path,
+    gpointer user_data)
+{
+    (void)renderer; /* unused parameter */
+    (void)path; /* unused parameter */
+    (void)user_data; /* unused parameter */
+
+    if (GTK_IS_ENTRY(editable)) {
+        GtkEntry *entry = GTK_ENTRY(editable);
+        /* Reset Enter-pressed flag before editing starts */
+        Property_Edit_Enter_Pressed = false;
+        /* Store the original value before editing */
+        g_free(Property_Edit_Original_Value);
+        Property_Edit_Original_Value = g_strdup(gtk_entry_get_text(entry));
+        /* Connect to key-press-event to control edit commit behavior */
+        g_signal_connect(
+            entry, "key-press-event", G_CALLBACK(on_property_edit_key_press),
+            NULL);
+    }
+}
+
 static void on_property_edited(
     GtkCellRendererText *renderer,
     gchar *path_string,
@@ -1524,9 +1591,26 @@ static void on_property_edited(
     unsigned enumerated_value = 0;
     bool status = false;
     bool null_value = false;
+    bool value_changed = false;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     (void)renderer; /* unused parameter */
+
+    /* Check if value actually changed or if Enter was pressed */
+    value_changed =
+        (Property_Edit_Original_Value == NULL ||
+         strcmp(Property_Edit_Original_Value, new_text) != 0);
+
+    /* Only process if value changed or Enter was explicitly pressed */
+    if (!value_changed && !Property_Edit_Enter_Pressed) {
+        /* Reset the flag for next edit */
+        Property_Edit_Enter_Pressed = false;
+        return;
+    }
+
+    /* Reset the flag for next edit */
+    Property_Edit_Enter_Pressed = false;
+
     if (gtk_tree_model_get_iter_from_string(model, &iter, path_string)) {
         gtk_tree_model_get(
             model, &iter, PROPERTY_COL_DEVICE_ID, &device_id, -1);
@@ -1752,6 +1836,8 @@ static void setup_property_tree_view(void)
     g_signal_connect(
         renderer, "edited", G_CALLBACK(on_property_edited),
         GTK_TREE_MODEL(property_store));
+    g_signal_connect(
+        renderer, "editing-started", G_CALLBACK(on_property_edit_start), NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
 }
 
