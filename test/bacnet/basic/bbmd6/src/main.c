@@ -279,6 +279,7 @@ static void test_Execute_Virtual_Address_Resolution(void)
     count = VMAC_Count();
     for (index = 0; index < count; index++) {
         status = VMAC_Entry_By_Index(index, &test_vmac_src, NULL);
+        assert(status);
         assert(VMAC_Find_By_Key(test_vmac_src) != NULL);
     }
 

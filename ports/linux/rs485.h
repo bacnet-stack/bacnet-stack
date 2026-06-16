@@ -18,7 +18,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-void RS485_Set_Interface(char *ifname);
+void RS485_Set_Interface(const char *ifname);
 BACNET_STACK_EXPORT
 const char *RS485_Interface(void);
 

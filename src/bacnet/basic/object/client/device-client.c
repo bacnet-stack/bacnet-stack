@@ -42,14 +42,14 @@
 static uint32_t Object_Instance_Number = 260001;
 static BACNET_CHARACTER_STRING My_Object_Name;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-static char *Vendor_Name = BACNET_VENDOR_NAME;
+static const char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
-static char *Model_Name = "GNU";
-static char *Application_Software_Version = "1.0";
+static const char *Model_Name = "GNU";
+static const char *Application_Software_Version = "1.0";
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
-static char *Location = "USA";
-static char *Description = "command line client";
-static char *Serial_Number = "BACnetc64b8511f0a5bab73ca11c2d9a";
+static const char *Location = "USA";
+static const char *Description = "command line client";
+static const char *Serial_Number = "BACnetc64b8511f0a5bab73ca11c2d9a";
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -658,15 +658,10 @@ const char *Device_Model_Name(void)
 
 bool Device_Set_Model_Name(const char *name, size_t length)
 {
-    bool status = false; /*return value */
+    (void)length;
+    Model_Name = name;
 
-    if (length < sizeof(Model_Name)) {
-        memmove(Model_Name, name, length);
-        Model_Name[length] = 0;
-        status = true;
-    }
-
-    return status;
+    return true;
 }
 
 const char *Device_Firmware_Revision(void)
@@ -681,15 +676,9 @@ const char *Device_Application_Software_Version(void)
 
 bool Device_Set_Application_Software_Version(const char *name, size_t length)
 {
-    bool status = false; /*return value */
-
-    if (length < sizeof(Application_Software_Version)) {
-        memmove(Application_Software_Version, name, length);
-        Application_Software_Version[length] = 0;
-        status = true;
-    }
-
-    return status;
+    (void)length;
+    Application_Software_Version = name;
+    return true;
 }
 
 const char *Device_Description(void)
@@ -699,15 +688,9 @@ const char *Device_Description(void)
 
 bool Device_Set_Description(const char *name, size_t length)
 {
-    bool status = false; /*return value */
-
-    if (length < sizeof(Description)) {
-        memmove(Description, name, length);
-        Description[length] = 0;
-        status = true;
-    }
-
-    return status;
+    (void)length;
+    Description = name;
+    return true;
 }
 
 const char *Device_Location(void)
@@ -717,15 +700,9 @@ const char *Device_Location(void)
 
 bool Device_Set_Location(const char *name, size_t length)
 {
-    bool status = false; /*return value */
-
-    if (length < sizeof(Location)) {
-        memmove(Location, name, length);
-        Location[length] = 0;
-        status = true;
-    }
-
-    return status;
+    (void)length;
+    Location = name;
+    return true;
 }
 
 /**

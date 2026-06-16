@@ -80,7 +80,7 @@ typedef struct _port {
     PORT_STATE state;
     MSGBOX_ID main_id; /* same for every router port */
     MSGBOX_ID port_id; /* different for every router port */
-    char *iface;
+    const char *iface;
     PORT_FUNC func;
     RT_ENTRY route_info;
     PORT_PARAMS params;

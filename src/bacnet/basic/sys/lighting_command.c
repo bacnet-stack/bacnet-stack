@@ -24,7 +24,10 @@
  */
 static bool is_float_equal(float x1, float x2)
 {
-    return fabs(x1 - x2) < 0.001;
+    double d1, d2;
+    d1 = (double)x1;
+    d2 = (double)x2;
+    return fabs(d1 - d2) < 0.001;
 }
 
 /**
@@ -368,7 +371,7 @@ float lighting_command_step_increment_clamp(float step_increment)
  * @param step_increment [in] step increment value
  * @return target value for step down command
  */
-float lighting_command_step_down_target_value(
+static float lighting_command_step_down_target_value(
     float tracking_value, float step_increment)
 {
     float target_value, step_value;
@@ -389,7 +392,7 @@ float lighting_command_step_down_target_value(
  * @param step_increment [in] step increment value
  * @return target value for step up command
  */
-float lighting_command_step_up_target_value(
+static float lighting_command_step_up_target_value(
     float tracking_value, float step_increment)
 {
     float target_value, step_value;

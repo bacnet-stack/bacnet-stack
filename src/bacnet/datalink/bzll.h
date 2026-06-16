@@ -31,7 +31,7 @@ bool bzll_valid(void);
 BACNET_STACK_EXPORT
 void bzll_cleanup(void);
 BACNET_STACK_EXPORT
-bool bzll_init(char *interface_name);
+bool bzll_init(const char *interface_name);
 
 BACNET_STACK_EXPORT
 int bzll_send_pdu(

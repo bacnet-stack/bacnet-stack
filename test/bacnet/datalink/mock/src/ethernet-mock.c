@@ -20,7 +20,7 @@ void ethernet_cleanup(void)
 {
 }
 
-bool ethernet_init(char *interface_name)
+bool ethernet_init(const char *interface_name)
 {
     ztest_check_expected_value(interface_name);
     return ztest_get_return_value();

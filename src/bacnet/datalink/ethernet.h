@@ -31,7 +31,7 @@ bool ethernet_valid(void);
 BACNET_STACK_EXPORT
 void ethernet_cleanup(void);
 BACNET_STACK_EXPORT
-bool ethernet_init(char *interface_name);
+bool ethernet_init(const char *interface_name);
 
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */

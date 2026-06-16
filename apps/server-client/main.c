@@ -201,7 +201,8 @@ int main(int argc, char *argv[])
                             "Device %u %s-%u=%f\n",
                             (unsigned)target_device_object_instance,
                             bactext_object_type_name(target_object_type),
-                            (unsigned)target_object_instance, float_value);
+                            (unsigned)target_object_instance,
+                            (double)float_value);
                     }
                     break;
                 case OBJECT_BINARY_INPUT:
