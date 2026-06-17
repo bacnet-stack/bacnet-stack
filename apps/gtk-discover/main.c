@@ -45,7 +45,8 @@
 #define DEFAULT_COLUMN_SPACING 5
 #define DEFAULT_COLUMN_WIDTH 160
 
-/* Global variables */
+/* GTK Application variables */
+static const char *Application_Name = "BACnet Device Discovery";
 static GtkWidget *main_window;
 static GtkWidget *device_tree_view;
 static GtkWidget *object_tree_view;
@@ -1874,7 +1875,7 @@ static void create_main_window(void)
 
     /* Create main window */
     main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(main_window), "BACnet Device Discovery");
+    gtk_window_set_title(GTK_WINDOW(main_window), Application_Name);
     gtk_window_set_default_size(
         GTK_WINDOW(main_window), DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
     gtk_container_set_border_width(GTK_CONTAINER(main_window), 5);
