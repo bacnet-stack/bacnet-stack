@@ -1631,6 +1631,8 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
         }
         pObject->Relinquish_Default = BINARY_LIGHTING_PV_OFF;
         pObject->Power = 0.0;
+        datetime_wildcard_set(&pObject->Time_Of_Active_Time_Reset);
+        datetime_wildcard_set(&pObject->Time_Of_Strike_Count_Reset);
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
         if (index < 0) {
