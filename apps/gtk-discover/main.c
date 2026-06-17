@@ -39,6 +39,12 @@
 /* Used ImageMagick: convert BACnet-Icon.svg bacnet-icon.xpm */
 #include "bacnet-icon.xpm"
 
+/* Default Window Size */
+#define DEFAULT_WINDOW_WIDTH 1200
+#define DEFAULT_WINDOW_HEIGHT 800
+#define DEFAULT_COLUMN_SPACING 5
+#define DEFAULT_COLUMN_WIDTH 160
+
 /* Global variables */
 static GtkWidget *main_window;
 static GtkWidget *device_tree_view;
@@ -1714,30 +1720,35 @@ static void setup_device_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Device ID", renderer, "text", DEVICE_COL_ID, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Vendor ID column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Vendor ID", renderer, "text", DEVICE_COL_VENDOR_ID, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Max APDU column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Max APDU", renderer, "text", DEVICE_COL_MAX_APDU, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Segmentation column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Segmentation", renderer, "text", DEVICE_COL_SEGMENTATION, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Address column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
-        "Address", renderer, "text", DEVICE_COL_ADDRESS, NULL);
+        "MAC Address", renderer, "text", DEVICE_COL_ADDRESS, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Setup selection changed callback */
@@ -1773,18 +1784,21 @@ static void setup_object_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Object Type", renderer, "text", OBJECT_COL_TYPE_NAME, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(object_tree_view), column);
 
     /* Object Instance column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Instance", renderer, "text", OBJECT_COL_OBJECT_ID, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(object_tree_view), column);
 
     /* Object Name column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Name", renderer, "text", OBJECT_COL_NAME, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(object_tree_view), column);
 
     /* Setup selection changed callback */
@@ -1822,16 +1836,20 @@ static void setup_property_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Property", renderer, "text", PROPERTY_COL_NAME, NULL);
-    gtk_tree_view_column_set_min_width(column, 160);
+    gtk_tree_view_column_set_min_width(column, DEFAULT_COLUMN_WIDTH);
+    gtk_tree_view_column_set_expand(column, TRUE);
     gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
 
     /* Property Value column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Value", renderer, "text", PROPERTY_COL_VALUE, NULL);
-    gtk_tree_view_column_set_expand(column, FALSE);
+    gtk_tree_view_column_set_min_width(column, DEFAULT_COLUMN_WIDTH);
+    gtk_tree_view_column_set_expand(column, TRUE);
     gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     g_object_set(renderer, "editable", TRUE, NULL);
     g_signal_connect(
         renderer, "edited", G_CALLBACK(on_property_edited),
@@ -1857,7 +1875,8 @@ static void create_main_window(void)
     /* Create main window */
     main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(main_window), "BACnet Device Discovery");
-    gtk_window_set_default_size(GTK_WINDOW(main_window), 1200, 800);
+    gtk_window_set_default_size(
+        GTK_WINDOW(main_window), DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
     gtk_container_set_border_width(GTK_CONTAINER(main_window), 5);
 
     /* set the icon */
@@ -1920,7 +1939,7 @@ static void create_main_window(void)
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(scrolled_window, 500, -1);
+    gtk_widget_set_size_request(scrolled_window, DEFAULT_WINDOW_WIDTH / 2, -1);
     setup_device_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), device_tree_view);
     gtk_paned_pack1(GTK_PANED(hpaned), scrolled_window, FALSE, FALSE);
@@ -1930,7 +1949,7 @@ static void create_main_window(void)
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(scrolled_window, -1, 200);
+    gtk_widget_set_size_request(scrolled_window, -1, DEFAULT_WINDOW_HEIGHT / 4);
     setup_object_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), object_tree_view);
     gtk_paned_pack1(GTK_PANED(vpaned), scrolled_window, TRUE, FALSE);
@@ -1945,8 +1964,8 @@ static void create_main_window(void)
     gtk_paned_pack2(GTK_PANED(vpaned), scrolled_window, TRUE, FALSE);
 
     /* Set paned positions */
-    gtk_paned_set_position(GTK_PANED(hpaned), 500);
-    gtk_paned_set_position(GTK_PANED(vpaned), 200);
+    gtk_paned_set_position(GTK_PANED(hpaned), DEFAULT_WINDOW_WIDTH / 2);
+    gtk_paned_set_position(GTK_PANED(vpaned), DEFAULT_WINDOW_HEIGHT / 4);
 }
 
 /**
