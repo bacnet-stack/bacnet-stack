@@ -1866,7 +1866,7 @@ static void create_main_window(void)
 {
     GtkWidget *vbox;
     GtkWidget *toolbar;
-    GtkWidget *hpaned, *vpaned;
+    GtkWidget *hpaned, *left_vpaned;
     GtkWidget *scrolled_window;
     GtkWidget *discover_button;
     GtkToolItem *tool_item;
@@ -1930,21 +1930,22 @@ static void create_main_window(void)
     hpaned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 
-    /* Create vertical paned widget for right side */
-    vpaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-    gtk_paned_pack2(GTK_PANED(hpaned), vpaned, TRUE, FALSE);
+    /* Create vertical paned widget for the left side */
+    left_vpaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+    gtk_paned_pack1(GTK_PANED(hpaned), left_vpaned, TRUE, FALSE);
 
-    /* Setup device tree view (left side) */
+    /* Setup device tree view (top left) */
     scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(scrolled_window, DEFAULT_WINDOW_WIDTH / 2, -1);
+    gtk_widget_set_size_request(
+        scrolled_window, DEFAULT_WINDOW_WIDTH / 2, DEFAULT_WINDOW_HEIGHT / 4);
     setup_device_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), device_tree_view);
-    gtk_paned_pack1(GTK_PANED(hpaned), scrolled_window, FALSE, FALSE);
+    gtk_paned_pack1(GTK_PANED(left_vpaned), scrolled_window, TRUE, FALSE);
 
-    /* Setup object tree view (top right) */
+    /* Setup object tree view (bottom left) */
     scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
@@ -1952,20 +1953,20 @@ static void create_main_window(void)
     gtk_widget_set_size_request(scrolled_window, -1, DEFAULT_WINDOW_HEIGHT / 4);
     setup_object_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), object_tree_view);
-    gtk_paned_pack1(GTK_PANED(vpaned), scrolled_window, TRUE, FALSE);
+    gtk_paned_pack2(GTK_PANED(left_vpaned), scrolled_window, TRUE, FALSE);
 
-    /* Setup property tree view (bottom right) */
+    /* Setup property tree view (right side) */
     scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
     setup_property_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), property_tree_view);
-    gtk_paned_pack2(GTK_PANED(vpaned), scrolled_window, TRUE, FALSE);
+    gtk_paned_pack2(GTK_PANED(hpaned), scrolled_window, TRUE, FALSE);
 
     /* Set paned positions */
     gtk_paned_set_position(GTK_PANED(hpaned), DEFAULT_WINDOW_WIDTH / 2);
-    gtk_paned_set_position(GTK_PANED(vpaned), DEFAULT_WINDOW_HEIGHT / 4);
+    gtk_paned_set_position(GTK_PANED(left_vpaned), DEFAULT_WINDOW_HEIGHT / 4);
 }
 
 /**
