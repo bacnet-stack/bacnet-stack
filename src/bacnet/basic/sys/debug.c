@@ -18,6 +18,7 @@
 #include <ctype.h>
 #endif
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/bacstr.h"
 #if DEBUG_PRINTF_WITH_TIMESTAMP
 #include "bacnet/datetime.h"
 #endif
@@ -94,7 +95,7 @@ void debug_log_severity_set(int severity)
  */
 void debug_log_severity_ascii_set(const char *argv)
 {
-    int severity = 0;
+    long severity = 0;
 
     if (bacnet_strtol(argv, &severity)) {
         debug_log_severity_set(severity);
