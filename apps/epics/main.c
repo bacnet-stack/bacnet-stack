@@ -325,7 +325,7 @@ static void wait_for_response(void)
  * @param property [in] Property identifier
  * @return true if writable, false otherwise
  */
-bool Writeable_Properties(
+static bool Writeable_Properties(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID property)
 {
     if (object_type >= OBJECT_PROPRIETARY_MIN) {
