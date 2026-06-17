@@ -267,8 +267,8 @@ static void dnet_cleanup(DNET *dnets)
 {
     DNET *dnet = dnets;
     while (dnet != NULL) {
-        DEBUG_LOG_DEBUG(
-            DEBUG_LOG_INFO, stderr, "DNET %u removed\n", (unsigned)dnet->net);
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "DNET %u removed\n", (unsigned)dnet->net);
         dnet = dnet->next;
         free(dnets);
         dnets = dnet;
@@ -786,15 +786,15 @@ static void routed_src_address(
  */
 static int routed_apdu_encode(
     uint8_t *pdu,
-    BACNET_NPDU_DATA *npdu,
     BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
+    const BACNET_NPDU_DATA *npdu,
     uint8_t *apdu,
     uint16_t apdu_len)
 {
     int npdu_len = 0;
 
-    npdu_len = npdu_encode_pdu(pdu, &dest, &src, npdu);
+    npdu_len = npdu_encode_pdu(pdu, dest, src, npdu);
     if (npdu_len <= 0) {
         return 0;
     }
@@ -866,7 +866,7 @@ static void routed_apdu_handler(
         routed_src_address(&router_src, snet, src);
         /* encode both source and destination for broadcast */
         pdu_len = routed_apdu_encode(
-            &Tx_Buffer[0], npdu, &router_src, &local_dest, apdu, apdu_len);
+            &Tx_Buffer[0], &router_src, &local_dest, npdu, apdu, apdu_len);
         if (pdu_len > 0) {
             /* send to my other ports */
             debug_log_fprintf(
@@ -1205,11 +1205,10 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
 
+    (void)argc;
+    (void)argv;
     printf("BACnet Simple MS/TP to IP Router Demo\n");
     printf("BACnet Stack Version %s\n", BACnet_Version);
-    if (argc > 1) {
-        Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
-    }
     datalink_init();
     atexit(cleanup);
     control_c_hooks();
