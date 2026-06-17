@@ -51,6 +51,8 @@ int debug_log_fprintf_disabled(
 BACNET_STACK_EXPORT
 void debug_log_severity_set(int severity);
 BACNET_STACK_EXPORT
+void debug_log_severity_ascii_set(const char *argv);
+BACNET_STACK_EXPORT
 int debug_log_severity_get(void);
 
 BACNET_STACK_EXPORT

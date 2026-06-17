@@ -89,6 +89,19 @@ void debug_log_severity_set(int severity)
 }
 
 /**
+ * @brief Set the debug log severity level from an ASCII string
+ * @param argv - ASCII string representing the severity level
+ */
+void debug_log_severity_ascii_set(const char *argv)
+{
+    int severity = 0;
+
+    if (bacnet_strtol(argv, &severity)) {
+        debug_log_severity_set(severity);
+    }
+}
+
+/**
  * @brief Get the current debug log severity level
  * @return the current debug log severity level
  */
