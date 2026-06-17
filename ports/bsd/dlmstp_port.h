@@ -82,7 +82,7 @@ typedef struct shared_mstp_data {
     unsigned int RS485_Baud;
     /* serial port name, /dev/ttyS0,
        /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
-    char *RS485_Port_Name;
+    const char *RS485_Port_Name;
     /* serial I/O settings */
     struct termios RS485_oldtio;
     /* some terminal I/O have RS-485 specific functionality */
@@ -103,7 +103,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-bool dlmstp_init(void *poShared, char *ifname);
+bool dlmstp_init(void *poShared, const char *ifname);
 BACNET_STACK_EXPORT
 void dlmstp_reset(void *poShared);
 BACNET_STACK_EXPORT

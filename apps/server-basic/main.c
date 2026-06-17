@@ -111,7 +111,7 @@ static void BACnet_Object_Task(void *context)
             return;
         }
         temperature = Analog_Input_Present_Value(SENSOR_ID);
-        change = -1.0f + 2.0f * ((float)rand()) / RAND_MAX;
+        change = -1.0f + 2.0f * ((float)rand()) / (float)RAND_MAX;
         temperature += change;
         Analog_Input_Present_Value_Set(SENSOR_ID, temperature);
     }
@@ -171,11 +171,11 @@ int main(int argc, char *argv[])
     bacnet_basic_task_callback_set(BACnet_Object_Task, NULL);
     bacnet_basic_store_callback_set(BACnet_Basic_Store);
     bacnet_basic_init();
-    if (bacnet_port_init()) {
-        /* OS based apps use DLENV for environment variables */
-        dlenv_init();
-        atexit(datalink_cleanup);
-    }
+    /* OS based apps use DLENV for network port */
+    dlenv_init();
+    atexit(datalink_cleanup);
+    bacnet_port_task_callback_set(dlenv_maintenance_timer);
+    bacnet_port_init();
     debug_printf_stdout("Server: initialized\n");
     for (;;) {
         bacnet_basic_task();

@@ -6,8 +6,12 @@ Analog Input (AI), Analog Output (AO), Binary Input (BI), or Binary Output (BO)
 objects — all configured via a single JSON file at runtime.
 
 The BACnet datalink type is selected at runtime via `gateway_config.json`
-(`"mstp"`, `"bip"`, `"bip6"`, `"ethernet"`), so no recompilation is needed
-when switching between datalinks.
+(`"mstp"`, `"bip"`, `"bip6"`, `"ethernet"`, `"bsc"`).
+
+`"bsc"` requires a BACnet/SC build (`BACDL=bsc`) and BACnet/SC runtime
+credentials/settings. If `"bsc"` is requested in JSON but the binary is built
+without BACnet/SC support, the gateway automatically falls back to the default
+non-secure datalink.
 
 Tested on Raspberry Pi (Raspberry Pi OS), but portable to any Linux/POSIX platform.
 
@@ -44,6 +48,12 @@ sudo apt install -y build-essential
 No external libraries are required. The gateway uses the bundled `cJSON` parser and
 the bacnet-stack data-link layer that is already part of this repository.
 
+For BACnet/SC (`datalink_type: "bsc"`), additional dependencies are required:
+
+```bash
+sudo apt install -y libwebsockets-dev libssl-dev libcap-dev
+```
+
 ### Compile
 
 ```bash
@@ -54,6 +64,10 @@ make modbus-gateway
 # MS/TP specific build
 make modbus-gateway-mstp-clean
 make modbus-gateway-mstp
+
+# BACnet/SC build (required for datalink_type="bsc")
+make clean bsc
+make BACDL=bsc modbus-gateway
 ```
 
 Output binary: `bin/modbusgw, apps/modbus-gateway/modbusgw` (or `bin/modbusgw-mstp, apps/modbus-gateway/modbusgw-mstp` for the MS/TP specific build)
@@ -72,8 +86,10 @@ by default). Pass a different path as the first CLI argument if needed.
     "device_name":     "Modbus-Gateway",
     "vendor_id":       260,
 
+    "_comment": "mstp, ip, or bsc",
     "datalink_type":   "mstp",
 
+    "_comment": "/dev/ttyUSB0 or wlan0",
     "iface":           "/dev/ttyUSB0",
 
     "mstp_baud":       38400,
@@ -81,7 +97,20 @@ by default). Pass a different path as the first CLI argument if needed.
     "mstp_max_master": 5,
     "mstp_net":        2,
 
-    "bip_port":        47808
+    "bip_port":        47808,
+
+    "sc": {
+      "primary_hub_uri":                          "wss://127.0.0.1:50050",
+      "failover_hub_uri":                         "wss://127.0.0.1:5555",
+      "issuer_1_certificate_file":                "certs/ca_cert.pem",
+      "issuer_2_certificate_file":                "",
+      "operational_certificate_file":             "certs/client_cert.pem",
+      "operational_certificate_private_key_file": "certs/client_key.pem",
+      "direct_connect_binding":                   "",
+      "hub_function_binding":                     "",
+      "direct_connect_initiate":                  false,
+      "direct_connect_accept_urls":               ""
+    }
   },
 
   "modbus": {
@@ -132,13 +161,31 @@ by default). Pass a different path as the first CLI argument if needed.
 | `device_instance` | uint32  | BACnet Device Object Instance (1 – 4194302)                      |
 | `device_name`     | string  | BACnet Device Object Name                                        |
 | `vendor_id`       | uint16  | BACnet Vendor Identifier                                         |
-| `datalink_type`   | string  | Datalink type: `"mstp"`, `"bip"`, `"bip6"`, `"ethernet"`        |
+| `datalink_type`   | string  | Datalink type: `"mstp"`, `"bip"`, `"bip6"`, `"ethernet"`, `"bsc"` |
 | `iface`           | string  | Serial port for MS/TP (e.g. `/dev/ttyUSB0`) or network interface for BACnet/IP (e.g. `eth0`) |
 | `mstp_baud`       | uint32  | MS/TP baud rate (e.g. 9600, 19200, 38400, 76800)                 |
 | `mstp_mac`        | uint8   | MS/TP MAC address of this node (0 – 127)                         |
 | `mstp_max_master` | uint8   | Highest MAC address polled in the token ring                     |
 | `mstp_net`        | uint16  | BACnet network number (0 = local)                                |
 | `bip_port`        | uint16  | UDP port for BACnet/IP (default: 47808)                          |
+
+### `bacnet.sc` section (used when `datalink_type` is `"bsc"`)
+
+| Key                                        | Type   | Description |
+|--------------------------------------------|--------|-------------|
+| `primary_hub_uri`                          | string | Primary BACnet/SC hub URI (e.g. `wss://host:50050`) |
+| `failover_hub_uri`                         | string | Optional failover hub URI |
+| `issuer_1_certificate_file`                | string | CA certificate file path |
+| `issuer_2_certificate_file`                | string | Optional second CA certificate file path |
+| `operational_certificate_file`             | string | Device operational certificate file path |
+| `operational_certificate_private_key_file` | string | Device private key file path |
+| `direct_connect_binding`                   | string | Optional direct-connect binding (e.g. `50050` or `eth0:50050`) |
+| `hub_function_binding`                     | string | Optional hub-function binding (if this device acts as a hub) |
+| `direct_connect_initiate`                  | bool   | Enable direct-connect initiation |
+| `direct_connect_accept_urls`               | string | Space-separated list of direct-connect accept URLs |
+
+> BACnet/SC runtime requirements and semantics follow the stack-level
+> `BACNET_SC_*` environment-variable behavior in `src/bacnet/datalink/dlenv.c`.
 
 ### `modbus` section
 
@@ -186,6 +233,26 @@ sudo ./modbusgw 12345
 sudo ./modbusgw /etc/modbus-gateway/my_config.json 12345
 ```
 
+### Running with BACnet/SC (`BACDL=bsc` build)
+
+BACnet/SC certificate paths in `gateway_config.json` must be **relative paths
+without `..`** (enforced by `BACNET_FILE_PATH_RESTRICTED`). The `bin/` directory
+already contains a `certs/` subdirectory, so run from there:
+
+```bash
+# Terminal 1 — start the BACnet/SC Hub first
+cd ~/bacnet-stack/bin
+source ./bsc-server.sh          # sets BACNET_SC_* env vars
+./bacschub 1 MyHub
+
+# Terminal 2 — start the gateway (from bin/ so certs/ resolves correctly)
+cd ~/bacnet-stack/bin
+./modbusgw ../apps/modbus-gateway/gateway_config.json
+```
+
+> The gateway blocks at startup until the Hub connection is established.
+> Make sure `bacschub` is running before launching `modbusgw`.
+
 > To run without `sudo`, add your user to the `dialout` group:
 > ```bash
 > sudo usermod -aG dialout $USER
@@ -201,7 +268,7 @@ sudo ./modbusgw /etc/modbus-gateway/my_config.json 12345
   │
   ├─ Parse CLI arguments (config path, device instance override)
   ├─ Load gateway_config.json  →  BACnet & Modbus settings + point table
-  ├─ Initialize BACnet datalink  (mstp / bip / bip6 / ethernet via dlenv_init)
+  ├─ Initialize BACnet datalink  (mstp / bip / bip6 / ethernet / bsc via dlenv_init)
   ├─ Create BACnet objects from point table  (AI / AO / BI / BO)
   ├─ Initialize Modbus RTU port
   ├─ Broadcast I-Am

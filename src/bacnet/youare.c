@@ -10,7 +10,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/whoami.h"
+#include "bacnet/youare.h"
 
 /**
  * @brief Encode a You-Are-Request APDU

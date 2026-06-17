@@ -49,9 +49,18 @@ bool bacnet_object_property_write_test(
                 "property '%s': WriteProperty Unknown!\n",
                 bactext_property_name(wp_data->object_property));
         }
-        is_array = property_list_bacnet_array_member(
-            wp_data->object_type, wp_data->object_property);
         is_list = property_list_bacnet_list_member(
+            wp_data->object_type, wp_data->object_property);
+        if (is_list) {
+            if (!status) {
+                zassert_not_equal(
+                    wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_A_LIST,
+                    "property=%s array_index=0: error code=%s.\n",
+                    bactext_property_name(wp_data->object_property),
+                    bactext_error_code_name(wp_data->error_code));
+            }
+        }
+        is_array = property_list_bacnet_array_member(
             wp_data->object_type, wp_data->object_property);
         if (is_array) {
             if (!status) {
@@ -241,9 +250,15 @@ int bacnet_object_property_read_test(
             read_len, BACNET_STATUS_ERROR, "property '%s': failed to read!\n",
             bactext_property_name(rpdata->object_property));
     }
-    is_array = property_list_bacnet_array_member(
-        rpdata->object_type, rpdata->object_property);
     is_list = property_list_bacnet_list_member(
+        rpdata->object_type, rpdata->object_property);
+    if (is_list) {
+        if (read_len == BACNET_STATUS_ERROR) {
+            zassert_not_equal(
+                rpdata->error_code, ERROR_CODE_PROPERTY_IS_NOT_A_LIST, NULL);
+        }
+    }
+    is_array = property_list_bacnet_array_member(
         rpdata->object_type, rpdata->object_property);
     if (is_array) {
         /* test an array index that must be implemented */

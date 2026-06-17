@@ -67,7 +67,8 @@ static int write_property_multiple_decode(
                         &apdu[offset], apdu_len - offset, wp_data);
                     if (len > 0) {
                         offset += len;
-                        debug_printf_stderr(
+                        debug_log_fprintf(
+                            DEBUG_LOG_DEBUG, stderr,
                             "WPM: type=%lu instance=%lu property=%lu "
                             "priority=%lu index=%ld\n",
                             (unsigned long)wp_data->object_type,
@@ -84,7 +85,8 @@ static int write_property_multiple_decode(
                             }
                         }
                     } else {
-                        debug_printf_stderr("WPM: Bad Encoding!\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_ERROR, stderr, "WPM: Bad Encoding!\n");
                         return len;
                     }
                     /* Closing tag 1 - List of Properties */
@@ -100,7 +102,7 @@ static int write_property_multiple_decode(
                 } while (tag_number != 1);
             }
         } else {
-            debug_printf_stderr("WPM: Bad Encoding!\n");
+            debug_log_fprintf(DEBUG_LOG_ERROR, stderr, "WPM: Bad Encoding!\n");
             return len;
         }
     } while (offset < apdu_len);

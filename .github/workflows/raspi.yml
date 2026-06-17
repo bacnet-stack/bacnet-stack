@@ -51,7 +51,7 @@ jobs:
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
         make clean
-        make LEGACY=true all
+        make all
 
   piface:
     runs-on: ubuntu-latest

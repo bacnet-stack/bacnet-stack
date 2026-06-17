@@ -14,8 +14,10 @@ endif()
 set(CMAKE_C_STANDARD 99)
 
 # Set the compiler options
-if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)
+    # treat warnings as errors to enforce clean code
+    add_compile_options(-Werror)
     # enable all relevant warnings that find bugs
     add_compile_options(-Wall -Wextra -pedantic)
     add_compile_options(-Wfloat-equal -Wconversion)
@@ -25,26 +27,32 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wunused-variable)
     add_compile_options(-Wcast-qual)
     add_compile_options(-Wwrite-strings)
-
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
     add_compile_options(-Wno-sign-compare)
     add_compile_options(-Wno-implicit-fallthrough)
-
-    # Just noise from clang
+    # unit test stubs often missing prototypes and declarations
+    add_compile_options(-Wno-missing-prototypes)
+    add_compile_options(-Wno-missing-declarations)
+    # common practice to initialize all local variables to zero or NULL
+    # even if they are not used before being set to something else.
+    add_compile_options(-Wno-unused-but-set-variable)
     if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+      # Just noise from clang
       add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+      # don't warn about discard qualifiers often used for initializing C strings.
+      add_compile_options(-Wno-ignored-qualifiers)
+      add_compile_options(-Wno-incompatible-pointer-types-discards-qualifiers)
+    endif()
+    if (CMAKE_C_COMPILER_ID MATCHES "GNU")
+      # don't warn about discarded qualifiers often used for initializing C strings.
+      add_compile_options(-Wno-discarded-qualifiers)
     endif()
 
     # Should be fixed in the future
-    add_compile_options(-Wno-cast-qual)
-    add_compile_options(-Wno-double-promotion)
-    add_compile_options(-Wno-float-conversion)
-    add_compile_options(-Wno-missing-declarations)
-    add_compile_options(-Wno-unused-but-set-variable)
-    add_compile_options(-Wno-write-strings)
-    add_compile_options(-Wno-implicit-fallthrough)
+    #add_compile_options(-Wno-cast-qual)
+    #add_compile_options(-Wno-unused-but-set-variable)
 
     # some consistent defines used for all builds - avoids inconsistent error
     add_compile_definitions(
@@ -197,6 +205,7 @@ list(APPEND testdirs
   bacnet/basic/service/h_arf
   bacnet/basic/service/h_awf
   bacnet/basic/service/h_cov
+  bacnet/basic/service/h_rr
   # basic/server
   bacnet/basic/server/bacnet_device
   # basic/sys
@@ -265,7 +274,7 @@ elseif(APPLE)
   )
 endif()
 
-enable_testing()
+include(CTest)
 foreach(testdir IN ITEMS ${testdirs})
   get_filename_component(basename ${testdir} NAME)
   add_subdirectory(${testdir})

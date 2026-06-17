@@ -126,7 +126,7 @@ int dlmstp_send_pdu(
             /* mac_len = 0 is a broadcast address */
             pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
         }
-        if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&PDU_Queue, pkt)) {
             bytes_sent = pdu_len;
         }
     }
@@ -237,8 +237,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 
     pthread_mutex_lock(&Ring_Buffer_Mutex);
     for (pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue); pkt;
-         pkt = (struct mstp_pdu_packet *)Ringbuf_Peek_Next(
-             &PDU_Queue, (uint8_t *)pkt)) {
+         pkt = Ringbuf_Peek_Next(&PDU_Queue, pkt)) {
         /* is this the reply to the DER? */
         matched = npdu_is_data_expecting_reply(
             &mstp_port->InputBuffer[0], mstp_port->DataLength,
@@ -314,7 +313,7 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
         dlmstp_fill_bacnet_address(&pkt->address, mstp_port->SourceAddress);
         pkt->pdu_len = mstp_port->DataLength;
         pkt->ready = true;
-        if (Ringbuf_Data_Put(&Receive_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&Receive_Queue, pkt)) {
             pthread_cond_signal(&Receive_Packet_Flag);
         }
     }
@@ -892,7 +891,7 @@ void dlmstp_set_interface(const char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
     if (ifname) {
-        RS485_Set_Interface((char *)ifname);
+        RS485_Set_Interface(ifname);
     }
 }
 
@@ -910,7 +909,7 @@ const char *dlmstp_get_interface(void)
  * @param ifname user data structure
  * @return true if the MSTP datalink is initialized
  */
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     pthread_attr_t thread_attr;
     struct sched_param sch_param;
@@ -926,7 +925,7 @@ bool dlmstp_init(char *ifname)
         RS485_Set_Interface(ifname);
         debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
     } else {
-        ifname = (char *)RS485_Interface();
+        ifname = RS485_Interface();
     }
     pthread_condattr_init(&attr);
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
@@ -945,11 +944,11 @@ bool dlmstp_init(char *ifname)
     }
     /* initialize PDU queue */
     Ringbuf_Init(
-        &PDU_Queue, (uint8_t *)&PDU_Buffer, sizeof(struct mstp_pdu_packet),
+        &PDU_Queue, PDU_Buffer, sizeof(struct mstp_pdu_packet),
         MSTP_PDU_PACKET_COUNT);
     /* initialize packet queue */
     Ringbuf_Init(
-        &Receive_Queue, (uint8_t *)&Receive_Buffer, sizeof(DLMSTP_PACKET),
+        &Receive_Queue, Receive_Buffer, sizeof(DLMSTP_PACKET),
         MSTP_RECEIVE_PACKET_COUNT);
     rv = pthread_cond_init(&Receive_Packet_Flag, &attr);
     if (rv != 0) {
@@ -1074,7 +1073,7 @@ void apdu_handler(
     (void)pdu_len;
 }
 
-static char *Network_Interface = NULL;
+static const char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {

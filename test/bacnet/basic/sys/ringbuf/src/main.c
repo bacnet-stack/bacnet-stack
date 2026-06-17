@@ -31,7 +31,7 @@ static void testRingAroundBuffer(
     unsigned element_size,
     unsigned element_count)
 {
-    volatile uint8_t *test_data;
+    uint8_t *test_data;
     unsigned index;
     unsigned data_index;
     unsigned count;
@@ -82,7 +82,7 @@ static void testRingBuf(
     unsigned element_count)
 {
     RING_BUFFER test_buffer;
-    volatile uint8_t *test_data;
+    uint8_t *test_data;
     unsigned index;
     unsigned data_index;
     bool status;
@@ -246,7 +246,7 @@ static bool testRingBufNextElement(
     unsigned element_count)
 {
     RING_BUFFER test_buffer;
-    volatile uint8_t *test_data;
+    uint8_t *test_data;
     unsigned index;
     unsigned data_index;
     bool status;
@@ -292,7 +292,7 @@ static bool testRingBufNextElement(
     test_data = Ringbuf_Peek(&test_buffer);
     zassert_not_null(test_data, NULL);
     for (index = 1; index < element_count; index++) {
-        test_data = Ringbuf_Peek_Next(&test_buffer, (uint8_t *)test_data);
+        test_data = Ringbuf_Peek_Next(&test_buffer, test_data);
         zassert_not_null(test_data, NULL);
         if (test_data) {
             for (data_index = 0; data_index < element_size; data_index++) {
@@ -302,17 +302,17 @@ static bool testRingBufNextElement(
     }
     zassert_equal(Ringbuf_Count(&test_buffer), element_count, NULL);
     /* Try to walk off end of buffer - should return NULL */
-    test_data = Ringbuf_Peek_Next(&test_buffer, (uint8_t *)test_data);
+    test_data = Ringbuf_Peek_Next(&test_buffer, test_data);
     zassert_is_null(test_data, NULL);
 
     /* Walk through ring buffer and pop alternate elements */
     test_data = Ringbuf_Peek(&test_buffer);
     zassert_not_null(test_data, NULL);
     for (index = 1; index < element_count / 2; index++) {
-        test_data = Ringbuf_Peek_Next(&test_buffer, (uint8_t *)test_data);
+        test_data = Ringbuf_Peek_Next(&test_buffer, test_data);
         zassert_not_null(test_data, NULL);
         (void)Ringbuf_Pop_Element(&test_buffer, (uint8_t *)test_data, NULL);
-        test_data = Ringbuf_Peek_Next(&test_buffer, (uint8_t *)test_data);
+        test_data = Ringbuf_Peek_Next(&test_buffer, test_data);
     }
     zassert_equal(Ringbuf_Count(&test_buffer), element_count / 2 + 1, NULL);
 
@@ -325,7 +325,7 @@ static bool testRingBufNextElement(
                 zassert_equal(test_data[data_index], index * 2, NULL);
             }
         }
-        test_data = Ringbuf_Peek_Next(&test_buffer, (uint8_t *)test_data);
+        test_data = Ringbuf_Peek_Next(&test_buffer, test_data);
         zassert_not_null(test_data, NULL);
     }
     zassert_equal(Ringbuf_Count(&test_buffer), element_count / 2 + 1, NULL);

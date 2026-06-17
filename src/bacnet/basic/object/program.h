@@ -106,6 +106,12 @@ BACNET_STACK_EXPORT
 void Program_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
+BACNET_RELIABILITY Program_Reliability(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Program_Reliability_Set(
+    uint32_t object_instance, BACNET_RELIABILITY value);
+
+BACNET_STACK_EXPORT
 void Program_Timer(uint32_t object_instance, uint16_t milliseconds);
 BACNET_STACK_EXPORT
 uint32_t Program_Create(uint32_t object_instance);

@@ -131,9 +131,9 @@ unsigned Ringbuf_Size(RING_BUFFER const *b)
  * @param  b - pointer to RING_BUFFER structure
  * @return pointer to the data, or NULL if nothing in the list
  */
-volatile void *Ringbuf_Peek(RING_BUFFER const *b)
+void *Ringbuf_Peek(RING_BUFFER const *b)
 {
-    volatile uint8_t *data_element = NULL; /* return value */
+    uint8_t *data_element = NULL; /* return value */
 
     if (!Ringbuf_Empty(b)) {
         data_element = b->buffer;
@@ -150,12 +150,11 @@ volatile void *Ringbuf_Peek(RING_BUFFER const *b)
  * @param  data_element - find the next element from this one
  * @return pointer to the data, or NULL if nothing in the list
  */
-volatile void *
-Ringbuf_Peek_Next(RING_BUFFER const *b, const uint8_t *data_element)
+void *Ringbuf_Peek_Next(RING_BUFFER const *b, const void *data_element)
 {
     unsigned index; /* list index */
-    volatile uint8_t *this_element;
-    volatile uint8_t *next_element = NULL; /* return value */
+    uint8_t *this_element;
+    uint8_t *next_element = NULL; /* return value */
     if (!Ringbuf_Empty(b) && data_element != NULL) {
         /* Use (b->head-1) here to avoid walking off end of ring */
         for (index = b->tail; index < b->head - 1; index++) {
@@ -184,7 +183,7 @@ Ringbuf_Peek_Next(RING_BUFFER const *b, const uint8_t *data_element)
 bool Ringbuf_Pop(RING_BUFFER *b, uint8_t *data_element)
 {
     bool status = false; /* return value */
-    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
+    uint8_t *ring_data = NULL; /* used to help point ring data */
     unsigned i; /* loop counter */
 
     if (!Ringbuf_Empty(b)) {
@@ -215,8 +214,8 @@ bool Ringbuf_Pop_Element(
     RING_BUFFER *b, const uint8_t *this_element, uint8_t *data_element)
 {
     bool status = false; /* return value */
-    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
-    volatile uint8_t *prev_data;
+    uint8_t *ring_data = NULL; /* used to help point ring data */
+    uint8_t *prev_data;
     unsigned index; /* list index */
     unsigned this_index = b->head; /* index of element to remove */
     unsigned i; /* loop counter */
@@ -266,7 +265,7 @@ bool Ringbuf_Pop_Element(
 bool Ringbuf_Put(RING_BUFFER *b, const uint8_t *data_element)
 {
     bool status = false; /* return value */
-    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
+    uint8_t *ring_data = NULL; /* used to help point ring data */
     unsigned i; /* loop counter */
 
     if (b && data_element) {
@@ -300,7 +299,7 @@ bool Ringbuf_Put(RING_BUFFER *b, const uint8_t *data_element)
 bool Ringbuf_Put_Front(RING_BUFFER *b, const uint8_t *data_element)
 {
     bool status = false; /* return value */
-    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
+    uint8_t *ring_data = NULL; /* used to help point ring data */
     unsigned i = 0; /* loop counter */
 
     if (b && data_element) {
@@ -328,9 +327,9 @@ bool Ringbuf_Put_Front(RING_BUFFER *b, const uint8_t *data_element)
  * @param  b - pointer to RING_BUFFER structure
  * @return pointer to the next data element, or NULL if the list is full
  */
-volatile void *Ringbuf_Data_Peek(RING_BUFFER *b)
+void *Ringbuf_Data_Peek(RING_BUFFER *b)
 {
-    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
+    uint8_t *ring_data = NULL; /* used to help point ring data */
 
     if (b) {
         /* limit the amount of elements that we accept */
@@ -352,10 +351,10 @@ volatile void *Ringbuf_Data_Peek(RING_BUFFER *b)
  * @return true if the buffer has space and the data element points to the
  *              same memory previously peeked.
  */
-bool Ringbuf_Data_Put(RING_BUFFER *b, const volatile uint8_t *data_element)
+bool Ringbuf_Data_Put(RING_BUFFER *b, const void *data_element)
 {
     bool status = false;
-    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
+    uint8_t *ring_data = NULL; /* used to help point ring data */
 
     if (b) {
         /* limit the amount of elements that we accept */
@@ -416,17 +415,14 @@ static bool isPowerOfTwo(unsigned int x)
  * @deprecated  Use Ringbuf_Initialize() instead
  */
 bool Ringbuf_Init(
-    RING_BUFFER *b,
-    volatile uint8_t *buffer,
-    unsigned element_size,
-    unsigned element_count)
+    RING_BUFFER *b, void *buffer, unsigned element_size, unsigned element_count)
 {
     bool status = false;
 
     if (b && isPowerOfTwo(element_count)) {
         b->head = 0;
         b->tail = 0;
-        b->buffer = buffer;
+        b->buffer = (uint8_t *)buffer;
         b->element_size = element_size;
         b->element_count = element_count;
         /* tuning diagnostics */
@@ -451,7 +447,7 @@ bool Ringbuf_Init(
  */
 bool Ringbuf_Initialize(
     RING_BUFFER *b,
-    volatile uint8_t *buffer,
+    void *buffer,
     unsigned buffer_size,
     unsigned element_size,
     unsigned element_count)

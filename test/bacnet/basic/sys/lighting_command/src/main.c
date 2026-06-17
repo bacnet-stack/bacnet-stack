@@ -58,7 +58,7 @@ static void dimmer_timer_task(
  */
 static bool is_float_equal(float x1, float x2)
 {
-    return fabs(x1 - x2) < 0.001;
+    return fabsf(x1 - x2) < 0.001f;
 }
 
 static uint32_t Test_Blink_End_Key;
@@ -114,10 +114,10 @@ static void lighting_event_assert(
     zassert_equal(Lighting_Event_Operation, operation, NULL);
     zassert_true(
         is_float_equal(Lighting_Event_Target_Value, target_value),
-        "event target=%f", Lighting_Event_Target_Value);
+        "event target=%f", (double)Lighting_Event_Target_Value);
     zassert_true(
         is_float_equal(Lighting_Event_Modifier_Value, modifier_value),
-        "event modifier=%f", Lighting_Event_Modifier_Value);
+        "event modifier=%f", (double)Lighting_Event_Modifier_Value);
 }
 
 /**
@@ -215,11 +215,11 @@ static void test_lighting_command_blink_unit(BACNET_LIGHTING_COMMAND_DATA *data)
                     if (data->Blink.State) {
                         zassert_true(
                             is_float_equal(Tracking_Value, blink->Off_Value),
-                            "Tracking_Value=%f", Tracking_Value);
+                            "Tracking_Value=%f", (double)Tracking_Value);
                     } else {
                         zassert_true(
                             is_float_equal(Tracking_Value, blink->On_Value),
-                            "Tracking_Value=%f", Tracking_Value);
+                            "Tracking_Value=%f", (double)Tracking_Value);
                     }
                 } else {
                     zassert_true(
@@ -227,7 +227,7 @@ static void test_lighting_command_blink_unit(BACNET_LIGHTING_COMMAND_DATA *data)
                         "In_Progress=%d", data->In_Progress);
                     zassert_true(
                         is_float_equal(Tracking_Value, blink->End_Value),
-                        "Tracking_Value=%f", Tracking_Value);
+                        "Tracking_Value=%f", (double)Tracking_Value);
                 }
             } while (blink->Duration);
         }
@@ -306,10 +306,10 @@ static void test_lighting_command_unit(void)
         data.Min_Actual_Value, data.Max_Actual_Value, 50.0f);
     zassert_true(
         islessequal(target_level, data.Max_Actual_Value), "physical-value=%.2f",
-        target_level);
+        (double)target_level);
     zassert_true(
         isgreaterequal(target_level, data.Min_Actual_Value),
-        "physical-value=%.2f", target_level);
+        "physical-value=%.2f", (double)target_level);
     data.Max_Actual_Value = 100.0f;
     data.Min_Actual_Value = 1.0f;
 
@@ -324,7 +324,7 @@ static void test_lighting_command_unit(void)
     zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, 50.5f), "Tracking_Value=%f",
-        Tracking_Value);
+        (double)Tracking_Value);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
@@ -341,13 +341,13 @@ static void test_lighting_command_unit(void)
     zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, 50.5f), "Tracking_Value=%f",
-        Tracking_Value);
+        (double)Tracking_Value);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
     zassert_true(
         is_float_equal(data.Last_On_Value, 100.0f), "last-on-value=%f",
-        data.Last_On_Value);
+        (double)data.Last_On_Value);
     /* off to off should not clamp to the minimum ON level */
     data.Tracking_Value = 0.0f;
     Tracking_Value = data.Tracking_Value;
@@ -375,7 +375,8 @@ static void test_lighting_command_unit(void)
     zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, data.Low_Trim_Value),
-        "Tracking_Value=%f Low_Trim=%f", Tracking_Value, data.Low_Trim_Value);
+        "Tracking_Value=%f Low_Trim=%f", (double)Tracking_Value,
+        (double)data.Low_Trim_Value);
     target_level = 0.0f;
     milliseconds = 10;
     lighting_event_clear();
@@ -437,13 +438,13 @@ static void test_lighting_command_unit(void)
     zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, 93.056f), "Tracking_Value=%f",
-        Tracking_Value);
+        (double)Tracking_Value);
     zassert_equal(data.Trim_Fade_Time, 500, NULL);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, 93.264f), "Tracking_Value=%f",
-        Tracking_Value);
+        (double)Tracking_Value);
     zassert_equal(data.Trim_Fade_Time, 250, NULL);
     lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_TRIM_ACTIVE, NULL);
@@ -468,22 +469,66 @@ static void test_lighting_command_unit(void)
     lighting_command_timer(&data, milliseconds);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
-    /* momentary override - self clearing flags */
+    /* momentary override - Overridden and Overridden_Momentary are both set;
+       the next lighting command self-clears both Overridden and
+       Overridden_Momentary, then runs normally */
     override_level = 42.0f;
     target_level = 100.0f;
     milliseconds = 10;
     lighting_command_override_momentary(&data, override_level);
+    zassert_true(data.Overridden, NULL);
+    zassert_true(data.Overridden_Momentary, NULL);
     lighting_command_timer(&data, milliseconds);
     zassert_true(is_float_equal(Tracking_Value, override_level), NULL);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
-    zassert_false(data.Overridden, NULL);
+    zassert_true(data.Overridden, NULL);
     zassert_true(data.Overridden_Momentary, NULL);
+    /* fade_to sees Overridden_Momentary, clears both Overridden flags, then
+     * runs */
     lighting_command_fade_to(&data, target_level, 0);
+    zassert_false(data.Overridden, NULL);
+    zassert_false(data.Overridden_Momentary, NULL);
     lighting_command_timer(&data, milliseconds);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_false(data.Overridden, NULL);
     zassert_false(data.Overridden_Momentary, NULL);
+
+    /* override_ramp - overrides and ramps to target; the timer is not
+       blocked by Overridden, so the ramp operates normally */
+    target_level = 0.0f;
+    override_level = data.Max_Actual_Value;
+    ramp_rate = 100.0f;
+    milliseconds = 1000;
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    lighting_event_clear();
+    lighting_command_override_ramp(&data, override_level, ramp_rate);
+    zassert_true(data.Overridden, NULL);
+    zassert_false(data.Overridden_Momentary, NULL);
+    zassert_equal(data.Lighting_Operation, BACNET_LIGHTS_RAMP_TO, NULL);
+    lighting_event_assert(
+        &data, BACNET_LIGHTS_RAMP_TO, override_level,
+        lighting_command_ramp_rate_clamp(ramp_rate));
+    /* timer advances the ramp even though Overridden is set */
+    do {
+        lighting_command_timer(&data, milliseconds);
+    } while (data.Lighting_Operation == BACNET_LIGHTS_RAMP_TO);
+    zassert_true(is_float_equal(Tracking_Value, override_level), NULL);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
+    zassert_true(data.Overridden, NULL);
+    /* regular ramp commands are blocked while Overridden */
+    lighting_command_ramp_to(&data, data.Max_Actual_Value, ramp_rate);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, override_level), NULL);
+    /* clear the override */
+    lighting_command_override_clear(&data, 0.0f);
+    zassert_false(data.Overridden, NULL);
+    lighting_command_timer(&data, milliseconds);
+    zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
+    zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
 
     /* step clamping */
     target_step = lighting_command_step_increment_clamp(0.0f);
@@ -698,10 +743,10 @@ static void test_lighting_command_unit(void)
                 "In_Progress=%d", data.In_Progress);
             zassert_true(
                 isgreater(data.Tracking_Value, 1.0f), "Tracking_Value=%f",
-                Tracking_Value);
+                (double)Tracking_Value);
             zassert_true(
                 isless(data.Tracking_Value, data.Max_Actual_Value),
-                "Tracking_Value=%f", Tracking_Value);
+                "Tracking_Value=%f", (double)Tracking_Value);
         }
     } while (data.Lighting_Operation != BACNET_LIGHTS_STOP);
 
@@ -722,10 +767,10 @@ static void test_lighting_command_unit(void)
                 "In_Progress=%d", data.In_Progress);
             zassert_true(
                 isgreater(data.Tracking_Value, 1.0f), "Tracking_Value=%f",
-                Tracking_Value);
+                (double)Tracking_Value);
             zassert_true(
                 isless(data.Tracking_Value, data.Max_Actual_Value),
-                "Tracking_Value=%f", Tracking_Value);
+                "Tracking_Value=%f", (double)Tracking_Value);
         }
     } while (data.Lighting_Operation != BACNET_LIGHTS_STOP);
     zassert_true(is_float_equal(data.Last_On_Value, 1.0f), NULL);
@@ -746,10 +791,10 @@ static void test_lighting_command_unit(void)
                 "In_Progress=%d", data.In_Progress);
             zassert_true(
                 isgreater(data.Tracking_Value, 1.0f), "Tracking_Value=%f",
-                Tracking_Value);
+                (double)Tracking_Value);
             zassert_true(
                 isless(data.Tracking_Value, data.Max_Actual_Value),
-                "Tracking_Value=%f", Tracking_Value);
+                "Tracking_Value=%f", (double)Tracking_Value);
         }
     } while (data.Lighting_Operation != BACNET_LIGHTS_STOP);
     zassert_true(
@@ -893,6 +938,7 @@ static void test_lighting_command_unit(void)
     lighting_command_override_set(NULL, override_level);
     lighting_command_override_clear(NULL, override_level);
     lighting_command_override_momentary(NULL, override_level);
+    lighting_command_override_ramp(NULL, override_level, ramp_rate);
     lighting_command_fade_to(NULL, 0.0f, 0);
     lighting_command_ramp_to(NULL, 0.0f, 0.0f);
     lighting_command_step(NULL, BACNET_LIGHTS_STEP_OFF, 0.0f);
@@ -941,10 +987,10 @@ static void test_lighting_command_refresh_unit(void)
     zassert_equal(Refresh_Event_Key, data.Key, NULL);
     zassert_true(
         is_float_equal(Refresh_Event_Old_Value, target_level),
-        "Refresh_Event_Old_Value=%f", Refresh_Event_Old_Value);
+        "Refresh_Event_Old_Value=%f", (double)Refresh_Event_Old_Value);
     zassert_true(
         is_float_equal(Refresh_Event_New_Value, target_level),
-        "Refresh_Event_New_Value=%f", Refresh_Event_New_Value);
+        "Refresh_Event_New_Value=%f", (double)Refresh_Event_New_Value);
     zassert_true(is_float_equal(data.Tracking_Value, target_level), NULL);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
 

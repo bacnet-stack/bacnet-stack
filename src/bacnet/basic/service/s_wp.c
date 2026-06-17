@@ -24,17 +24,6 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-static bool Debug_Enabled;
-
-/**
- * @brief Enable/Disable debug output for WriteProperty requests
- * @param enable [in] true to enable, false to disable
- */
-void Send_Write_Property_Debug(bool enable)
-{
-    Debug_Enabled = enable;
-}
-
 /**
  * @brief Send a WriteProperty-Request service message
  * @ingroup BIBB-DS-WP-A
@@ -97,13 +86,15 @@ uint8_t Send_Write_Property_Request_Data_Address(
             bytes_sent = datalink_send_pdu(
                 dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                debug_perror("Failed to Send WriteProperty Request");
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr,
+                    "Failed to Send WriteProperty Request\n");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_fprintf(
-                stderr,
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
                 "Failed to Send WriteProperty Request "
                 "(exceeds destination maximum APDU)!\n");
         }
@@ -159,14 +150,13 @@ static int encode_object_value(
 {
     int apdu_len = 0, len = 0;
     while (object_value) {
-        if (Debug_Enabled) {
-            debug_printf(
-                "WriteProperty service: "
-                "%s tag=%d\n",
-                (object_value->context_specific ? "context" : "application"),
-                (int)(object_value->context_specific ? object_value->context_tag
-                                                     : object_value->tag));
-        }
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "WriteProperty service: "
+            "%s tag=%d\n",
+            (object_value->context_specific ? "context" : "application"),
+            (int)(object_value->context_specific ? object_value->context_tag
+                                                 : object_value->tag));
         len = bacapp_encode_data(&application_data[apdu_len], object_value);
         if ((len + apdu_len) < application_data_len) {
             apdu_len += len;

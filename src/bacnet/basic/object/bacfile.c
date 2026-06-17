@@ -1203,7 +1203,7 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
         for (i = 0; i < max_records; i++) {
             bacfile_write_record_data_callback(
                 pathname, data->type.record.fileStartRecord, i,
-                octetstring_value((BACNET_OCTET_STRING *)&data->fileData[i]),
+                octetstring_value_const(&data->fileData[i]),
                 octetstring_length(&data->fileData[i]));
         }
     }
@@ -1232,7 +1232,7 @@ bool bacfile_read_ack_stream_data(
         found = true;
         bacfile_write_stream_data_callback(
             pathname, data->type.stream.fileStartPosition,
-            octetstring_value((BACNET_OCTET_STRING *)&data->fileData[0]),
+            octetstring_value_const(&data->fileData[0]),
             octetstring_length(&data->fileData[0]));
     }
 
@@ -1265,7 +1265,7 @@ bool bacfile_read_ack_record_data(
         for (i = 0; i < data->type.record.RecordCount; i++) {
             bacfile_write_record_data_callback(
                 pathname, data->type.record.fileStartRecord, i,
-                octetstring_value((BACNET_OCTET_STRING *)&data->fileData[i]),
+                octetstring_value_const(&data->fileData[i]),
                 octetstring_length(&data->fileData[i]));
         }
     }

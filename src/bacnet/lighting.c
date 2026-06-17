@@ -760,7 +760,7 @@ int xy_color_decode(
 
     if (apdu) {
         len = bacnet_real_application_decode(
-            &apdu[apdu_len], apdu_size, &real_value);
+            &apdu[apdu_len], apdu_size - apdu_len, &real_value);
         if (len > 0) {
             if (value) {
                 value->x_coordinate = real_value;
@@ -770,7 +770,7 @@ int xy_color_decode(
             return BACNET_STATUS_ERROR;
         }
         len = bacnet_real_application_decode(
-            &apdu[apdu_len], apdu_size, &real_value);
+            &apdu[apdu_len], apdu_size - apdu_len, &real_value);
         if (len > 0) {
             if (value) {
                 value->y_coordinate = real_value;

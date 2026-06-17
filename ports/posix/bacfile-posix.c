@@ -62,7 +62,9 @@ size_t bacfile_posix_file_size(const char *pathname)
             }
             fclose(pFile);
         } else {
-            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Failed to open %s for reading!\n",
+                pathname);
         }
     }
 
@@ -121,7 +123,9 @@ size_t bacfile_posix_read_stream_data(
             len = fread(fileData, 1, fileDataLen, pFile);
             fclose(pFile);
         } else {
-            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Failed to open %s for reading!\n",
+                pathname);
         }
     }
 
@@ -172,7 +176,9 @@ size_t bacfile_posix_write_stream_data(
             bytes_written = fwrite(fileData, 1, fileDataLen, pFile);
             fclose(pFile);
         } else {
-            debug_printf_stderr("Failed to open %s for writing!\n", pathname);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
+                pathname);
         }
     }
 
@@ -237,7 +243,9 @@ bool bacfile_posix_write_record_data(
             }
             fclose(pFile);
         } else {
-            debug_printf_stderr("Failed to open %s for writing!\n", pathname);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
+                pathname);
         }
     }
 
@@ -291,7 +299,9 @@ bool bacfile_posix_read_record_data(
             }
             fclose(pFile);
         } else {
-            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Failed to open %s for reading!\n",
+                pathname);
         }
     }
 

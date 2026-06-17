@@ -7,10 +7,19 @@
  * {
  *   "bacnet": {
  *     "device_instance":..., "device_name":..., "vendor_id":...,
- *     "datalink_type": "mstp"|"bip"|"bip6"|"ethernet",
+ *     "datalink_type": "mstp"|"bip"|"bip6"|"ethernet"|"bsc",
  *     "iface": "/dev/ttyUSB0" or "eth0",
  *     "mstp_baud":..., "mstp_mac":..., "mstp_max_master":..., "mstp_net":...,
- *     "bip_port":...
+ *     "bip_port":...,
+ *     "sc": {
+ *       "primary_hub_uri":..., "failover_hub_uri":...,
+ *       "issuer_1_certificate_file":..., "issuer_2_certificate_file":...,
+ *       "operational_certificate_file":...,
+ *       "operational_certificate_private_key_file":...,
+ *       "direct_connect_binding":..., "hub_function_binding":...,
+ *       "direct_connect_initiate": true|false,
+ *       "direct_connect_accept_urls":...
+ *     }
  *   },
  *   "modbus": { "port":..., "baud":..., "poll_interval_sec":... },
  *   "points": [
@@ -226,8 +235,10 @@ bool point_table_load_json(
     cJSON *root = NULL;
     cJSON *sec = NULL;
     cJSON *points_arr = NULL;
+    cJSON *sc = NULL;
     cJSON *item = NULL;
     cJSON *j = NULL;
+    GW_POINT *p = NULL;
     int idx = 0;
 
     if (!cfg || !table || !filename) {
@@ -245,11 +256,12 @@ bool point_table_load_json(
     cfg->modbus_baud = GW_MODBUS_BAUD;
     cfg->poll_interval_sec = GW_POLL_INTERVAL_SEC;
     cfg->bip_port = GW_BIP_PORT;
-    strncpy(cfg->device_name, GW_DEVICE_NAME, sizeof(cfg->device_name) - 1);
-    strncpy(
-        cfg->datalink_type, GW_DATALINK_TYPE, sizeof(cfg->datalink_type) - 1);
-    strncpy(cfg->bacnet_iface, GW_BACNET_IFACE, sizeof(cfg->bacnet_iface) - 1);
-    strncpy(cfg->modbus_port, GW_MODBUS_PORT, sizeof(cfg->modbus_port) - 1);
+    bacnet_strncpy(cfg->device_name, GW_DEVICE_NAME, sizeof(cfg->device_name));
+    bacnet_strncpy(
+        cfg->datalink_type, GW_DATALINK_TYPE, sizeof(cfg->datalink_type));
+    bacnet_strncpy(
+        cfg->bacnet_iface, GW_BACNET_IFACE, sizeof(cfg->bacnet_iface));
+    bacnet_strncpy(cfg->modbus_port, GW_MODBUS_PORT, sizeof(cfg->modbus_port));
 
     root = load_json_file(filename);
     if (!root) {
@@ -274,22 +286,20 @@ bool point_table_load_json(
 
         j = cJSON_GetObjectItem(sec, "device_name");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->device_name, j->valuestring, sizeof(cfg->device_name) - 1);
+            bacnet_strncpy(
+                cfg->device_name, j->valuestring, sizeof(cfg->device_name));
         }
 
         j = cJSON_GetObjectItem(sec, "datalink_type");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->datalink_type, j->valuestring,
-                sizeof(cfg->datalink_type) - 1);
+            bacnet_strncpy(
+                cfg->datalink_type, j->valuestring, sizeof(cfg->datalink_type));
         }
 
         j = cJSON_GetObjectItem(sec, "iface");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->bacnet_iface, j->valuestring,
-                sizeof(cfg->bacnet_iface) - 1);
+            bacnet_strncpy(
+                cfg->bacnet_iface, j->valuestring, sizeof(cfg->bacnet_iface));
         }
 
         j = cJSON_GetObjectItem(sec, "mstp_baud");
@@ -331,6 +341,86 @@ bool point_table_load_json(
         if (cJSON_IsNumber(j)) {
             cfg->vendor_id = (uint16_t)j->valuedouble;
         }
+
+        sc = cJSON_GetObjectItem(sec, "sc");
+        if (cJSON_IsObject(sc)) {
+            j = cJSON_GetObjectItem(sc, "primary_hub_uri");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.primary_hub_uri, j->valuestring,
+                    sizeof(cfg->sc.primary_hub_uri));
+            }
+
+            j = cJSON_GetObjectItem(sc, "failover_hub_uri");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.failover_hub_uri, j->valuestring,
+                    sizeof(cfg->sc.failover_hub_uri));
+            }
+
+            j = cJSON_GetObjectItem(sc, "issuer_1_certificate_file");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.issuer_1_certificate_file, j->valuestring,
+                    sizeof(cfg->sc.issuer_1_certificate_file));
+            }
+
+            j = cJSON_GetObjectItem(sc, "issuer_2_certificate_file");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.issuer_2_certificate_file, j->valuestring,
+                    sizeof(cfg->sc.issuer_2_certificate_file));
+            }
+
+            j = cJSON_GetObjectItem(sc, "operational_certificate_file");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.operational_certificate_file, j->valuestring,
+                    sizeof(cfg->sc.operational_certificate_file));
+            }
+
+            j = cJSON_GetObjectItem(
+                sc, "operational_certificate_private_key_file");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.operational_certificate_private_key_file,
+                    j->valuestring,
+                    sizeof(cfg->sc.operational_certificate_private_key_file));
+            }
+
+            j = cJSON_GetObjectItem(sc, "direct_connect_binding");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.direct_connect_binding, j->valuestring,
+                    sizeof(cfg->sc.direct_connect_binding));
+            }
+
+            j = cJSON_GetObjectItem(sc, "hub_function_binding");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.hub_function_binding, j->valuestring,
+                    sizeof(cfg->sc.hub_function_binding));
+            }
+
+            j = cJSON_GetObjectItem(sc, "direct_connect_accept_urls");
+            if (cJSON_IsString(j)) {
+                bacnet_strncpy(
+                    cfg->sc.direct_connect_accept_urls, j->valuestring,
+                    sizeof(cfg->sc.direct_connect_accept_urls));
+            }
+
+            j = cJSON_GetObjectItem(sc, "direct_connect_initiate");
+            if (cJSON_IsBool(j)) {
+                cfg->sc.direct_connect_initiate = cJSON_IsTrue(j);
+                cfg->sc.direct_connect_initiate_present = true;
+            } else if (cJSON_IsString(j)) {
+                cfg->sc.direct_connect_initiate =
+                    (j->valuestring[0] == '1' || j->valuestring[0] == 'y' ||
+                     j->valuestring[0] == 'Y' || j->valuestring[0] == 't' ||
+                     j->valuestring[0] == 'T');
+                cfg->sc.direct_connect_initiate_present = true;
+            }
+        }
     }
 
     /* ── modbus section ── */
@@ -338,8 +428,8 @@ bool point_table_load_json(
     if (sec) {
         j = cJSON_GetObjectItem(sec, "port");
         if (cJSON_IsString(j)) {
-            strncpy(
-                cfg->modbus_port, j->valuestring, sizeof(cfg->modbus_port) - 1);
+            bacnet_strncpy(
+                cfg->modbus_port, j->valuestring, sizeof(cfg->modbus_port));
         }
         j = cJSON_GetObjectItem(sec, "baud");
         if (cJSON_IsNumber(j)) {
@@ -362,8 +452,6 @@ bool point_table_load_json(
 
     cJSON_ArrayForEach(item, points_arr)
     {
-        GW_POINT *p;
-
         if (idx >= GW_MAX_POINTS) {
             fprintf(
                 stderr, "[PT] Max points (%d) reached, remaining ignored\n",
@@ -384,14 +472,15 @@ bool point_table_load_json(
         p = &table->points[idx];
         j = cJSON_GetObjectItem(item, "name");
         if (cJSON_IsString(j)) {
-            strncpy(p->name, j->valuestring, sizeof(p->name) - 1);
+            bacnet_strncpy(p->name, j->valuestring, sizeof(p->name));
         } else {
             snprintf(p->name, sizeof(p->name), "Point_%d", idx);
         }
 
         j = cJSON_GetObjectItem(item, "description");
         if (cJSON_IsString(j)) {
-            strncpy(p->description, j->valuestring, sizeof(p->description) - 1);
+            bacnet_strncpy(
+                p->description, j->valuestring, sizeof(p->description));
         }
 
         j = cJSON_GetObjectItem(item, "bacnet_type");
@@ -452,8 +541,8 @@ bool point_table_load_json(
             "  scale=%.4g offset=%.4g  [%.2g, %.2g]  %s\n",
             idx, p->name, bacnet_type_str(p->bacnet_type), p->bacnet_instance,
             p->modbus_slave, (unsigned)p->modbus_func, p->modbus_address,
-            p->scale, p->offset, p->range_min, p->range_max,
-            p->enabled ? "ENABLED" : "DISABLED");
+            (double)p->scale, (double)p->offset, (double)p->range_min,
+            (double)p->range_max, p->enabled ? "ENABLED" : "DISABLED");
 
         idx++;
     }
@@ -590,14 +679,15 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                     Analog_Input_Present_Value_Set(p->bacnet_instance, eng_val);
                     Analog_Input_Out_Of_Service_Set(p->bacnet_instance, false);
                     printf(
-                        "[PT] %-20s = %.4g  (AI:%u)\n", p->name, eng_val,
-                        p->bacnet_instance);
+                        "[PT] %-20s = %.4g  (AI:%u)\n", p->name,
+                        (double)eng_val, p->bacnet_instance);
                 } else {
                     Analog_Input_Out_Of_Service_Set(p->bacnet_instance, true);
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
 
@@ -617,7 +707,8 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
 
@@ -627,14 +718,15 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                         p->bacnet_instance, eng_val, BACNET_NO_PRIORITY);
                     Analog_Output_Out_Of_Service_Set(p->bacnet_instance, false);
                     printf(
-                        "[PT] %-20s = %.4g  (AO:%u)\n", p->name, eng_val,
-                        p->bacnet_instance);
+                        "[PT] %-20s = %.4g  (AO:%u)\n", p->name,
+                        (double)eng_val, p->bacnet_instance);
                 } else {
                     Analog_Output_Out_Of_Service_Set(p->bacnet_instance, true);
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
             case GW_BACNET_TYPE_BO:
@@ -654,7 +746,8 @@ void point_table_poll_modbus(GW_POINT_TABLE *table)
                     fprintf(
                         stderr,
                         "[PT] Range error: '%s' = %.4g (min=%.4g max=%.4g)\n",
-                        p->name, eng_val, p->range_min, p->range_max);
+                        p->name, (double)eng_val, (double)p->range_min,
+                        (double)p->range_max);
                 }
                 break;
             default:
