@@ -1048,7 +1048,6 @@ static void datalink_init(void)
     BACNET_ADDRESS my_address = { 0 };
     uint32_t severity = 0;
 
-    /* BACnet/IP Initialization */
     pEnv = getenv("BACNET_ROUTER_DEBUG");
     if (pEnv) {
         if (bactext_debug_severity_strtol(pEnv, &severity)) {
@@ -1057,9 +1056,11 @@ static void datalink_init(void)
         } else {
             debug_log_severity_set(DEBUG_LOG_DISABLED);
         }
+        fprintf(
+            stderr, "Debug-Severity-Level=%s\n",
+            bactext_debug_severity_name_default(
+                debug_log_severity_get(), "Disabled"));
     }
-    debug_log_fprintf(
-        DEBUG_LOG_INFO, stderr, "Debug=%d\n", debug_log_severity_get());
     /* BACnet/IP Initialization */
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
