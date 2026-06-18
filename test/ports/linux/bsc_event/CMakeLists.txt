@@ -45,7 +45,6 @@ set(BACNET_PORT_DIRECTORY_PATH ${PORTS_DIR})
 
 add_executable(${PROJECT_NAME}
   ${PORTS_DIR}/linux/bsc-event.c
-    ${SRC_DIR}/bacnet/bacstr.c
   ${SRC_DIR}/bacnet/basic/sys/debug.c
   # Test and test library files
   ./src/main.c

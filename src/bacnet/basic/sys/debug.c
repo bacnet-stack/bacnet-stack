@@ -17,20 +17,13 @@
 #include <string.h>
 #include <ctype.h>
 #endif
-#include "bacnet/bacdef.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/bacstr.h"
 #if DEBUG_PRINTF_WITH_TIMESTAMP
 #include "bacnet/datetime.h"
 #endif
 
 /* global logging severity level */
 static int Debug_Log_Severity = DEBUG_LOG_ERROR;
-static const char *Severity_Text[] = {
-    /* severity level text strings in numerical order */
-    "disabled", "emergency", "alert", "critical", "error",
-    "warning",  "notice",    "info",  "debug"
-};
 
 /**
  * @brief Print with a printf string
@@ -93,48 +86,6 @@ void debug_log_severity_set(int severity)
     } else {
         Debug_Log_Severity = DEBUG_LOG_PRIORITY(severity);
     }
-}
-
-/**
- * @brief Set the debug log severity level from an ASCII string
- * @param argv - ASCII string representing the severity level
- */
-void debug_log_severity_ascii_set(const char *argv)
-{
-    long severity = 0;
-
-    if (argv == NULL) {
-        return;
-    }
-    for (severity = 0; severity < ARRAY_SIZE(Severity_Text); severity++) {
-        if (bacnet_stricmp(argv, Severity_Text[severity]) == 0) {
-            /* adjust since the text array is
-               offset by 1 from the severity level */
-            severity--;
-            debug_log_severity_set(severity);
-            return;
-        }
-    }
-    if (bacnet_strtol(argv, &severity)) {
-        debug_log_severity_set(severity);
-    }
-}
-
-/**
- * @brief Get the debug log severity level as an ASCII string
- * @param severity - the severity level
- * @return the ASCII string representing the severity level
- */
-const char *debug_log_severity_ascii_get(int severity)
-{
-    severity++;
-    if (severity < 0) {
-        severity = 0;
-    } else if (severity >= (int)ARRAY_SIZE(Severity_Text)) {
-        severity = (int)ARRAY_SIZE(Severity_Text) - 1;
-    }
-
-    return Severity_Text[severity];
 }
 
 /**

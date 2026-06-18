@@ -49,7 +49,6 @@ endif()
 
 add_executable(${PROJECT_NAME}
   ${PORT_BIP_SOURCE}
-  ${SRC_DIR}/bacnet/bacstr.c
   ${SRC_DIR}/bacnet/basic/sys/debug.c
   ./src/bvlc_stubs.c
   ./src/main.c
