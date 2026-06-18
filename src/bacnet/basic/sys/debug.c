@@ -18,7 +18,6 @@
 #include <ctype.h>
 #endif
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/bacstr.h"
 #if DEBUG_PRINTF_WITH_TIMESTAMP
 #include "bacnet/datetime.h"
 #endif
@@ -86,22 +85,6 @@ void debug_log_severity_set(int severity)
         Debug_Log_Severity = DEBUG_LOG_DISABLED;
     } else {
         Debug_Log_Severity = DEBUG_LOG_PRIORITY(severity);
-    }
-}
-
-/**
- * @brief Set the debug log severity level from an ASCII string
- * @param argv - ASCII string representing the severity level
- */
-void debug_log_severity_ascii_set(const char *argv)
-{
-    long severity = 0;
-
-    if (argv == NULL) {
-        return;
-    }
-    if (bacnet_strtol(argv, &severity)) {
-        debug_log_severity_set(severity);
     }
 }
 
