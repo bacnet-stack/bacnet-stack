@@ -12,7 +12,6 @@
 #include <signal.h>
 #include <time.h>
 #include <assert.h>
-#include <stdarg.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -781,16 +780,16 @@ static void routed_src_address(
  * @brief Encode a routed APDU into the provided PDU buffer.
  * @param pdu [out] The buffer to hold the encoded PDU.
  * @param npdu [in] The NPDU data to encode.
- * @param src [in] The source BACNET_ADDRESS.
  * @param dest [in] The destination BACNET_ADDRESS.
+ * @param src [in] The source BACNET_ADDRESS.
  * @param apdu [in] The APDU data to encode.
  * @param apdu_len [in] The length of the APDU data.
  * @return The total length of the encoded PDU, or 0 on error.
  */
-static int routed_apdu_encode(
+static int routed_ndpu_apdu_encode(
     uint8_t *pdu,
-    BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
     const BACNET_NPDU_DATA *npdu,
     uint8_t *apdu,
     uint16_t apdu_len)
@@ -868,8 +867,8 @@ static void routed_apdu_handler(
         npdu->hop_count--;
         routed_src_address(&router_src, snet, src);
         /* encode both source and destination for broadcast */
-        pdu_len = routed_apdu_encode(
-            &Tx_Buffer[0], &router_src, &local_dest, npdu, apdu, apdu_len);
+        pdu_len = routed_ndpu_apdu_encode(
+            &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
         if (pdu_len > 0) {
             /* send to my other ports */
             debug_log_fprintf(
@@ -905,7 +904,7 @@ static void routed_apdu_handler(
             local_dest.net = 0;
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            pdu_len = routed_apdu_encode(
+            pdu_len = routed_ndpu_apdu_encode(
                 &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
             if (pdu_len > 0) {
                 datalink_send_pdu(
@@ -924,7 +923,7 @@ static void routed_apdu_handler(
                 discarded. */
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            pdu_len = routed_apdu_encode(
+            pdu_len = routed_ndpu_apdu_encode(
                 &Tx_Buffer[0], &remote_dest, &router_src, npdu, apdu, apdu_len);
             if (pdu_len > 0) {
                 datalink_send_pdu(
@@ -940,7 +939,7 @@ static void routed_apdu_handler(
         npdu->hop_count--;
         /* encode both source and destination */
         routed_src_address(&router_src, snet, src);
-        pdu_len = routed_apdu_encode(
+        pdu_len = routed_ndpu_apdu_encode(
             &Tx_Buffer[0], dest, &router_src, npdu, apdu, apdu_len);
         if (pdu_len > 0) {
             /* send to all other ports */
