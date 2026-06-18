@@ -97,6 +97,9 @@ void debug_log_severity_ascii_set(const char *argv)
 {
     long severity = 0;
 
+    if (argv == NULL) {
+        return;
+    }
     if (bacnet_strtol(argv, &severity)) {
         debug_log_severity_set(severity);
     }
