@@ -102,15 +102,16 @@ void debug_log_severity_set(int severity)
 void debug_log_severity_ascii_set(const char *argv)
 {
     long severity = 0;
-    (void)severity;
-    int i = 0;
 
     if (argv == NULL) {
         return;
     }
-    for (i = 0; i < ARRAY_SIZE(Severity_Text); i++) {
-        if (bacnet_stricmp(argv, Severity_Text[i]) == 0) {
-            debug_log_severity_set(i - 1);
+    for (severity = 0; severity < ARRAY_SIZE(Severity_Text); severity++) {
+        if (bacnet_stricmp(argv, Severity_Text[severity]) == 0) {
+            /* adjust since the text array is
+               offset by 1 from the severity level */
+            severity--;
+            debug_log_severity_set(severity);
             return;
         }
     }
