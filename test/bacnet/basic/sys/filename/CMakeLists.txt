@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/sys/filename.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c

@@ -41,6 +41,7 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
   ${PORTS_DIR}/linux/bip-init.c
+    ${SRC_DIR}/bacnet/bacstr.c
   ${SRC_DIR}/bacnet/basic/sys/debug.c
   ./src/bvlc_stubs.c
   ./src/main.c
