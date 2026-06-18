@@ -50,7 +50,7 @@ bactext_debug_severity_name_default(uint32_t index, const char *default_string)
 bool bactext_debug_severity_strtol(
     const char *search_name, uint32_t *found_index)
 {
-    return bactext_string_to_int32_index(
+    return bactext_string_to_uint32_index(
         bacnet_debug_severity_names, search_name, found_index);
 }
 
