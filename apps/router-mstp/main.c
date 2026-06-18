@@ -1046,15 +1046,16 @@ static void datalink_init(void)
 {
     char *pEnv = NULL;
     BACNET_ADDRESS my_address = { 0 };
-    int severity = 0;
+    uint32_t severity = 0;
 
     /* BACnet/IP Initialization */
     pEnv = getenv("BACNET_ROUTER_DEBUG");
     if (pEnv) {
-        debug_log_severity_ascii_set(pEnv);
-        severity = debug_log_severity_get();
-        if (severity >= 0) {
+        if (bactext_debug_severity_strtol(pEnv, &severity)) {
+            debug_log_severity_set(severity);
             bip_debug_enable();
+        } else {
+            debug_log_severity_set(DEBUG_LOG_DISABLED);
         }
     }
     debug_log_fprintf(
