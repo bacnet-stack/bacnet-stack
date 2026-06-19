@@ -776,12 +776,11 @@ static void routed_src_address(
     }
 }
 
-/**
  * @brief Encode a routed APDU into the provided PDU buffer.
  * @param pdu [out] The buffer to hold the encoded PDU.
- * @param npdu [in] The NPDU data to encode.
  * @param dest [in] The destination BACNET_ADDRESS.
  * @param src [in] The source BACNET_ADDRESS.
+ * @param npdu [in] The NPDU data to encode.
  * @param apdu [in] The APDU data to encode.
  * @param apdu_len [in] The length of the APDU data.
  * @return The total length of the encoded PDU, or 0 on error.
