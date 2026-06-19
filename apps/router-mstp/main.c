@@ -784,7 +784,7 @@ static void routed_src_address(
  * @param apdu_len [in] The length of the APDU data.
  * @return The total length of the encoded PDU, or 0 on error.
  */
-static int routed_ndpu_apdu_encode(
+static int routed_npdu_apdu_encode(
     uint8_t *pdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
@@ -865,7 +865,7 @@ static void routed_apdu_handler(
         npdu->hop_count--;
         routed_src_address(&router_src, snet, src);
         /* encode both source and destination for broadcast */
-        pdu_len = routed_ndpu_apdu_encode(
+        pdu_len = routed_npdu_apdu_encode(
             &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
         if (pdu_len > 0) {
             /* send to my other ports */
@@ -902,7 +902,7 @@ static void routed_apdu_handler(
             local_dest.net = 0;
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            pdu_len = routed_ndpu_apdu_encode(
+            pdu_len = routed_npdu_apdu_encode(
                 &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
             if (pdu_len > 0) {
                 datalink_send_pdu(
@@ -921,7 +921,7 @@ static void routed_apdu_handler(
                 discarded. */
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            pdu_len = routed_ndpu_apdu_encode(
+            pdu_len = routed_npdu_apdu_encode(
                 &Tx_Buffer[0], &remote_dest, &router_src, npdu, apdu, apdu_len);
             if (pdu_len > 0) {
                 datalink_send_pdu(
@@ -937,7 +937,7 @@ static void routed_apdu_handler(
         npdu->hop_count--;
         /* encode both source and destination */
         routed_src_address(&router_src, snet, src);
-        pdu_len = routed_ndpu_apdu_encode(
+        pdu_len = routed_npdu_apdu_encode(
             &Tx_Buffer[0], dest, &router_src, npdu, apdu, apdu_len);
         if (pdu_len > 0) {
             /* send to all other ports */
@@ -981,9 +981,13 @@ static void my_routing_npdu_handler(
 
     if (!pdu) {
         /* no packet */
-    } else if (pdu_len > 0) {
-        protocol_version = pdu[0];
+        return;
     }
+    if (pdu_len == 0) {
+        /* empty packet */
+        return;
+    }
+    protocol_version = pdu[0];
     if (protocol_version == BACNET_PROTOCOL_VERSION) {
         apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
