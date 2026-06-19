@@ -123,7 +123,7 @@ int rpm_ack_decode_service_request(
                     apdu += tag_len;
                 } else {
                     /* one or more (array or list) elements to decode */
-                    while (value && (apdu_len > 0) && (data_remaining >= 0)) {
+                    while (value && (apdu_len > 0)) {
                         len = bacapp_decode_known_array_property(
                             apdu, (unsigned)apdu_len, value,
                             rpm_object->object_type,
@@ -133,21 +133,8 @@ int rpm_ack_decode_service_request(
                          * OK. */
                         if (len < 0) {
                             /* problem decoding */
-                            if (data_remaining >= 0) {
-                                /* valid data that we'll skip over */
-                                len = data_remaining;
-                                bacapp_value_list_init(value, 1);
-                            } else {
-                                debug_log_fprintf(
-                                    DEBUG_LOG_ERROR, stderr,
-                                    "RPM Ack: unable to decode! %s:%s\n",
-                                    bactext_object_type_name(
-                                        rpm_object->object_type),
-                                    bactext_property_name(
-                                        rpm_property->propertyIdentifier));
-                                /* note: caller will free the memory */
-                                return BACNET_STATUS_ERROR;
-                            }
+                            len = data_remaining;
+                            bacapp_value_list_init(value, 1);
                         }
                         if (len > data_remaining) {
                             debug_log_fprintf(
