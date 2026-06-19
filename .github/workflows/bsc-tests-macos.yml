@@ -7,7 +7,7 @@ jobs:
   job_bsc_tests_macos:
     runs-on: macos-14-large
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Create Build Environment
       run: |
         brew install openssl
