@@ -23,6 +23,11 @@ The git repositories are hosted at the following sites:
   by adding explicit invalid-start-position guards which reject negative
   and out-of-range positions/records. (#1362)
 
+### Fixed
+
+* Fixed event_notify_decode_service_request() error handling and and unit test
+  for change of reliability.
+
 ## [1.4.4] - 2026-05-26
 
 ### Security

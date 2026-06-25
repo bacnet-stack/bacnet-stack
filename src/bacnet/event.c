@@ -2886,10 +2886,15 @@ int event_notify_decode_service_request(
                             &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
                         apdu_len += len;
                         while (apdu_len < apdu_size) {
+#if BACNET_EVENT_CHANGE_OF_RELIABILITY_ENABLED
+                            if (data && !property_value) {
+                                return BACNET_STATUS_ERROR;
+                            }
+#endif
                             len = bacapp_property_value_decode(
                                 &apdu[apdu_len], apdu_size - apdu_len,
                                 property_value);
-                            if (len >= 0) {
+                            if (len > 0) {
                                 apdu_len += len;
                             } else {
                                 return BACNET_STATUS_ERROR;
@@ -2911,9 +2916,13 @@ int event_notify_decode_service_request(
                             if (property_value) {
                                 /* load the next value store */
                                 property_value = property_value->next;
+                            } else if (data) {
+                                return BACNET_STATUS_ERROR;
                             }
 #endif
                         }
+                    } else {
+                        return BACNET_STATUS_ERROR;
                     }
                     break;
                 case EVENT_NONE:

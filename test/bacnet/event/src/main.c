@@ -752,8 +752,9 @@ static void testEventChangeOfStatusFlags(void)
 
 static void testEventchangeOfReliability(void)
 {
-    uint8_t apdu[MAX_APDU];
+    uint8_t apdu[MAX_APDU] = { 0 };
     int apdu_len, test_len, null_len;
+    BACNET_CHARACTER_STRING messageText2 = { 0 };
     BACNET_PROPERTY_VALUE property_values = {
         .priority = 1,
         .propertyArrayIndex = BACNET_ARRAY_ALL,
@@ -790,6 +791,7 @@ static void testEventchangeOfReliability(void)
     apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    data2.messageText = &messageText2;
     data2.notificationParams.changeOfReliability.propertyValues =
         &test_property_values;
     test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
@@ -814,7 +816,9 @@ static void testEventchangeOfReliability(void)
         property_values.propertyArrayIndex,
         test_property_values.propertyArrayIndex, NULL);
     zassert_equal(
-        property_values.priority, test_property_values.priority, NULL);
+        property_values.priority, test_property_values.priority,
+        "priority=%u test_priority=%u", (unsigned)property_values.priority,
+        (unsigned)test_property_values.priority);
     zassert_true(
         bacapp_same_value(&property_values.value, &test_property_values.value),
         NULL);
@@ -825,12 +829,14 @@ static void testEventNone(void)
 {
     uint8_t apdu[MAX_APDU];
     int apdu_len, test_len, null_len;
+    BACNET_CHARACTER_STRING messageText2 = { 0 };
 
     data.eventType = EVENT_NONE;
     null_len = event_notify_encode_service_request(NULL, &data);
     apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    data2.messageText = &messageText2;
     test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
@@ -866,6 +872,7 @@ static void testEventChangeOfState(void)
     apdu_len = event_notify_encode_service_request(&apdu[0], &data);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    data2.messageText = &messageText2;
     test_len = event_notify_decode_service_request(&apdu[0], apdu_len, &data2);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
