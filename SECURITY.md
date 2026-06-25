@@ -27,9 +27,25 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities. Here are the published vulnerability records:
 
+Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
+[GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+
+Remote global-buffer-overflow in apps/router-ipv6/main.c routed APDU forwarding path
+[GHSA-4p4w-m434-jrhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4p4w-m434-jrhj).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+
+Out-of-bounds read in BACnet/SC proprietary header-option decode (bvlc_sc_decode_proprietary_option)
+[GHSA-j66x-fr38-r7m5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-j66x-fr38-r7m5).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+
+Pre-auth OOB read in xy_color_decode (BACnetXYColor) via WriteGroup/WriteProperty
+[GHSA-mmg6-p4pr-cj6h](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mmg6-p4pr-cj6h).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+
 [CVE-2026-52790](https://www.cve.org/CVERecord?id=CVE-2026-CVE-2026-52790) -
 bacnet_device.c stack-use-after-return in writable Device string properties
-[GHSA-jr7p-rm2x-739x](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jr7p-rm2x-739x ).
+[GHSA-jr7p-rm2x-739x](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jr7p-rm2x-739x).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 
 [CVE-2026-52789](https://www.cve.org/CVERecord?id=CVE-2026-52789) -
