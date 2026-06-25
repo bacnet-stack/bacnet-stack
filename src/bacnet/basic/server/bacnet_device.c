@@ -1032,6 +1032,7 @@ static const int Device_Properties_Optional[] = {
     PROP_LOCAL_DATE,
     PROP_DAYLIGHT_SAVINGS_STATUS,
     PROP_LOCATION,
+    PROP_DEVICE_UUID,
 #if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
     PROP_ACTIVE_COV_SUBSCRIPTIONS,
 #endif
@@ -1114,15 +1115,18 @@ bool Device_Objects_Property_List_Member(
 
 /* local data */
 static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
-static BACNET_CHARACTER_STRING My_Object_Name;
+static BACNET_CHARACTER_STRING Object_Name_String;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static const char *Device_Name_Default = BACNET_DEVICE_OBJECT_NAME;
 static const char *Device_Vendor_Name_Default = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
-static const char *Model_Name = BACNET_DEVICE_MODEL_NAME;
+static BACNET_CHARACTER_STRING Device_Model_Name_String;
+static const char *Device_Model_Name_Default = BACNET_DEVICE_MODEL_NAME;
 static const char *Application_Software_Version = BACNET_DEVICE_VERSION;
 static const char *Firmware_Revision = BACNET_VERSION_TEXT;
+static BACNET_CHARACTER_STRING Device_Location_String;
 static const char *Device_Location_Default = BACNET_DEVICE_LOCATION_NAME;
+static BACNET_CHARACTER_STRING Device_Description_String;
 static const char *Device_Description_Default = BACNET_DEVICE_DESCRIPTION;
 static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
@@ -1308,7 +1312,7 @@ bool Device_Object_Name(
     bool status = false;
 
     if (object_instance == Object_Instance_Number) {
-        status = characterstring_copy(object_name, &My_Object_Name);
+        status = characterstring_copy(object_name, &Object_Name_String);
     }
 
     return status;
@@ -1318,9 +1322,9 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
 
-    if (!characterstring_same(&My_Object_Name, object_name)) {
+    if (!characterstring_same(&Object_Name_String, object_name)) {
         /* Make the change and update the database revision */
-        status = characterstring_copy(&My_Object_Name, object_name);
+        status = characterstring_copy(&Object_Name_String, object_name);
         Device_Inc_Database_Revision();
     }
 
@@ -1334,7 +1338,7 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
  */
 bool Device_Object_Name_ANSI_Init(const char *value)
 {
-    return characterstring_init_ansi(&My_Object_Name, value);
+    return characterstring_init_ansi(&Object_Name_String, value);
 }
 
 /**
@@ -1343,7 +1347,7 @@ bool Device_Object_Name_ANSI_Init(const char *value)
  */
 char *Device_Object_Name_ANSI(void)
 {
-    return (char *)characterstring_value(&My_Object_Name);
+    return (char *)characterstring_value(&Object_Name_String);
 }
 
 /**
@@ -1455,13 +1459,14 @@ void Device_Set_Vendor_Identifier(uint16_t vendor_id)
 
 const char *Device_Model_Name(void)
 {
-    return Model_Name;
+    return (char *)characterstring_value(&Device_Model_Name_String);
 }
 
 bool Device_Set_Model_Name(const char *name, size_t length)
 {
     (void)length;
-    Model_Name = name ? name : BACNET_DEVICE_MODEL_NAME;
+    characterstring_init_ansi(
+        &Device_Model_Name_String, name ? name : Device_Model_Name_Default);
 
     return true;
 }
@@ -1494,26 +1499,28 @@ bool Device_Set_Application_Software_Version(const char *name, size_t length)
 
 const char *Device_Description(void)
 {
-    return Device_Description_Default;
+    return (char *)characterstring_value(&Device_Description_String);
 }
 
 bool Device_Set_Description(const char *name, size_t length)
 {
     (void)length;
-    Device_Description_Default = name ? name : BACNET_DEVICE_DESCRIPTION;
+    characterstring_init_ansi(
+        &Device_Description_String, name ? name : Device_Description_Default);
 
     return true;
 }
 
 const char *Device_Location(void)
 {
-    return Device_Location_Default;
+    return (char *)characterstring_value(&Device_Location_String);
 }
 
 bool Device_Set_Location(const char *name, size_t length)
 {
     (void)length;
-    Device_Location_Default = name ? name : BACNET_DEVICE_LOCATION_NAME;
+    characterstring_init_ansi(
+        &Device_Location_String, name ? name : Device_Location_Default);
     return true;
 }
 
@@ -1903,6 +1910,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_OCTET_STRING octet_string = { 0 };
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -1921,8 +1929,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            apdu_len =
-                encode_application_character_string(&apdu[0], &My_Object_Name);
+            apdu_len = encode_application_character_string(
+                &apdu[0], &Object_Name_String);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
@@ -1945,9 +1953,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], Vendor_Identifier);
             break;
         case PROP_MODEL_NAME:
-            characterstring_init_ansi(&char_string, Model_Name);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_application_character_string(
+                &apdu[0], &Device_Model_Name_String);
             break;
         case PROP_FIRMWARE_REVISION:
             characterstring_init_ansi(&char_string, Firmware_Revision);
@@ -1961,9 +1968,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_LOCATION:
-            characterstring_init_ansi(&char_string, Device_Location_Default);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len = encode_application_character_string(
+                &apdu[0], &Device_Location_String);
             break;
         case PROP_LOCAL_TIME:
             Update_Current_Time();
@@ -2105,6 +2111,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             characterstring_init_ansi(&char_string, Serial_Number);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_DEVICE_UUID:
+            octetstring_init(&octet_string, Device_UUID, sizeof(Device_UUID));
+            apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_TIME_OF_DEVICE_RESTART:
             apdu_len =
@@ -2288,7 +2298,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_OBJECT_NAME:
             status = write_property_string_valid(
-                wp_data, &value, characterstring_capacity(&My_Object_Name));
+                wp_data, &value, characterstring_capacity(&Object_Name_String));
             if (status) {
                 /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(
@@ -2312,9 +2322,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_empty_string_valid(
                 wp_data, &value, MAX_DEV_LOC_LEN);
             if (status) {
-                Device_Set_Location(
-                    characterstring_value(&value.type.Character_String),
-                    characterstring_length(&value.type.Character_String));
+                characterstring_copy(
+                    &Device_Location_String, &value.type.Character_String);
             }
             break;
 
@@ -2322,18 +2331,16 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_empty_string_valid(
                 wp_data, &value, MAX_DEV_DESC_LEN);
             if (status) {
-                Device_Set_Description(
-                    characterstring_value(&value.type.Character_String),
-                    characterstring_length(&value.type.Character_String));
+                characterstring_copy(
+                    &Device_Description_String, &value.type.Character_String);
             }
             break;
         case PROP_MODEL_NAME:
             status = write_property_empty_string_valid(
                 wp_data, &value, MAX_DEV_MOD_LEN);
             if (status) {
-                Device_Set_Model_Name(
-                    characterstring_value(&value.type.Character_String),
-                    characterstring_length(&value.type.Character_String));
+                characterstring_copy(
+                    &Device_Model_Name_String, &value.type.Character_String);
             }
             break;
 #if defined(BACNET_TIME_MASTER)
@@ -2919,7 +2926,12 @@ void Device_Init(object_functions_t *object_table)
     if (Object_Instance_Number > BACNET_MAX_INSTANCE) {
         Object_Instance_Number = BACNET_MAX_INSTANCE;
     }
-    characterstring_init_ansi(&My_Object_Name, Device_Name_Default);
+    characterstring_init_ansi(&Object_Name_String, Device_Name_Default);
+    characterstring_init_ansi(
+        &Device_Model_Name_String, Device_Model_Name_Default);
+    characterstring_init_ansi(
+        &Device_Description_String, Device_Description_Default);
+    characterstring_init_ansi(&Device_Location_String, Device_Location_Default);
 #if (BACNET_PROTOCOL_REVISION >= 14)
 #ifdef CONFIG_BACNET_BASIC_OBJECT_CHANNEL
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);

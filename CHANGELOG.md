@@ -16,6 +16,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the basic device object which had a expired stack frame
+  string use.  Changed all the writable device object character strings
+  to be declared as BACNET_CHARACTER_STRING types. This prevents use of
+  expired stack frame buffers.
 * Secured rpm_decode_object_property by fixing a DoS vulnerability
   for malformed RPM requests. (#1374)
 * Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
