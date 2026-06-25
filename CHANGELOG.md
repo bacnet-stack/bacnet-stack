@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
+  resolving destination slot for property values. (#1366)
 * Secured address_list_encode() function buffer overrun by using
   existing BACnetAddressBinding encoding function for length check
   and refactoring. Added unit test for validation.(#1363)

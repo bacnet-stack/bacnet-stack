@@ -26,6 +26,11 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records for version 1.4.x:
 
+[CVE-2026-52786](https://www.cve.org/CVERecord?id=CVE-2026-52786) -
+apps/epics: malicious ReadPropertyMultiple-ACK with excessive properties causes global-buffer-overflow in ProcessRPMData().
+[GHSA-c4q6-7827-mfg6](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-c4q6-7827-mfg6).
+Patched versions: 1.4.5
+
 [CVE-2026-52787](https://www.cve.org/CVERecord?id=CVE-2026-52787) -
 Global APDU transmit buffer out-of-bounds write in device.address-binding response encoding via address_list_encode()
 [GHSA-4fgg-fghm-jm43](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4fgg-fghm-jm43).
