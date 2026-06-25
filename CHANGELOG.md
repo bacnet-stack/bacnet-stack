@@ -16,6 +16,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
+  lengths and adding array bounds checks before every write. Added test-only
+  shim for bsc_node_parse_urls() to support unit testing. (#1365) (#1369)
 * Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
   resolving destination slot for property values. (#1366)
 * Secured address_list_encode() function buffer overrun by using
