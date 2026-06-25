@@ -83,7 +83,8 @@ void handler_add_list_element(
         len = list_element_decode_service_request(
             service_request, service_len, &list_element);
         if (len > 0) {
-            debug_printf_stderr(
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr,
                 "AddListElement: type=%lu instance=%lu property=%lu "
                 "index=%ld\n",
                 (unsigned long)list_element.object_type,
@@ -191,7 +192,8 @@ void handler_remove_list_element(
         len = list_element_decode_service_request(
             service_request, service_len, &list_element);
         if (len > 0) {
-            debug_printf_stderr(
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr,
                 "RemoveListElement: type=%lu instance=%lu "
                 "property=%lu index=%ld\n",
                 (unsigned long)list_element.object_type,

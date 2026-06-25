@@ -71,6 +71,13 @@ unit:
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake .. && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest && cd ..
 
+.PHONY: lcov
+lcov:
+	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake .. && cd ..
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest && cd ..
+	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
+
 .PHONY: report
 report:
 	[ -d $(BUILD_DIR) ] && cat $(BUILD_DIR)/Testing/Temporary/LastTest*.log

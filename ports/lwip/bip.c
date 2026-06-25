@@ -394,7 +394,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
-bool bip_init(char *ifname)
+bool bip_init(const char *ifname)
 {
     (void)ifname;
     /* Create a new UDP control block  */

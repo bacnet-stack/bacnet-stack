@@ -395,7 +395,7 @@ static uint8_t Send_RPM_All_Request(
  * @param service_request [in] The contents of the service request.
  * @return true if the process is finished
  */
-static bool bacnet_read_write_process(const TARGET_DATA *target)
+static bool bacnet_read_write_process(volatile const TARGET_DATA *target)
 {
     bool found = false;
     unsigned max_apdu = 0;
@@ -580,12 +580,12 @@ void bacnet_read_write_device_callback_set(
  */
 void bacnet_read_write_task(void)
 {
-    TARGET_DATA *target;
+    volatile TARGET_DATA *target;
     bool status = false;
     BACNET_READ_PROPERTY_DATA rp_data;
 
     if (!Ringbuf_Empty(&Target_Data_Queue)) {
-        target = (TARGET_DATA *)Ringbuf_Peek(&Target_Data_Queue);
+        target = (volatile TARGET_DATA *)Ringbuf_Peek(&Target_Data_Queue);
         status = bacnet_read_write_process(target);
         if (status) {
             if (Error_Detected) {
@@ -978,9 +978,8 @@ uint16_t bacnet_read_write_vendor_id_filter(void)
 void bacnet_read_write_init(void)
 {
     Ringbuf_Initialize(
-        &Target_Data_Queue, (uint8_t *)&Target_Data_Buffer,
-        sizeof(Target_Data_Buffer), TARGET_DATA_QUEUE_SIZE,
-        TARGET_DATA_QUEUE_COUNT);
+        &Target_Data_Queue, Target_Data_Buffer, sizeof(Target_Data_Buffer),
+        TARGET_DATA_QUEUE_SIZE, TARGET_DATA_QUEUE_COUNT);
     /* handle i-am to support binding to other devices */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, My_I_Am_Bind);
     /* handle the data coming back from confirmed requests */

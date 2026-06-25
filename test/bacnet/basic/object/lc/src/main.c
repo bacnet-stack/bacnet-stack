@@ -34,7 +34,10 @@
  */
 static bool is_float_equal(float x1, float x2)
 {
-    return fabs(x1 - x2) < 0.001;
+    double d1, d2;
+    d1 = (double)x1;
+    d2 = (double)x2;
+    return fabs(d1 - d2) < 0.001;
 }
 
 /**
@@ -59,7 +62,7 @@ static void Load_Control_WriteProperty_Request_Shed_Level(
         wp_data.object_property);
     zassert_true(wp_data.application_data_len > 0, NULL);
     status = Load_Control_Write_Property(&wp_data);
-    zassert_true(status, "LC=%lu level=%u", instance, level);
+    zassert_true(status, "LC=%lu level=%f", instance, (double)level);
 }
 
 static void Load_Control_WriteProperty_Enable(int instance, bool enable)

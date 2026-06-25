@@ -80,7 +80,7 @@ BACNET_STACK_EXPORT
 bool Time_Value_Out_Of_Service_Set(uint32_t object_instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-const char *Time_Value_Value_Description(uint32_t object_instance);
+const char *Time_Value_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Time_Value_Description_Set(uint32_t object_instance, const char *new_name);
 

@@ -106,6 +106,9 @@ BACNET_STACK_EXPORT
 BACNET_ENGINEERING_UNITS Analog_Input_Units(uint32_t instance);
 
 BACNET_STACK_EXPORT
+unsigned Analog_Input_Event_State(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
 int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);

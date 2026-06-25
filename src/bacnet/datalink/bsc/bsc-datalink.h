@@ -41,7 +41,7 @@
  */
 
 BACNET_STACK_EXPORT
-bool bsc_init(char *ifname);
+bool bsc_init(const char *ifname);
 
 /**
  * @brief Blocking thread-safe bsc_cleanup() function

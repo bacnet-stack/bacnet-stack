@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "bacnet/datalink/dlmstp.h"
 
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(const char *ifname)
 {
     ztest_check_expected_value(ifname);
     return ztest_get_return_value();

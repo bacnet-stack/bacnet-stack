@@ -57,7 +57,7 @@ void arcnet_cleanup(void)
     return;
 }
 
-bool arcnet_init(char *interface_name)
+bool arcnet_init(const char *interface_name)
 {
     (void)interface_name;
     return arcnet_valid();

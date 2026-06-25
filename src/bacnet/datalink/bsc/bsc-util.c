@@ -12,9 +12,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
 
-#define PRINTF debug_printf_stdout
-#define PRINTF_ERR debug_printf_stderr
-
 /**
  * @brief Map websocket return code to BACnet/SC return code
  * @param ret - websocket return code
@@ -50,7 +47,7 @@ void bsc_copy_vmac(BACNET_SC_VMAC_ADDRESS *dst, BACNET_SC_VMAC_ADDRESS *src)
  * @param dst - destination UUID
  * @param src - source UUID
  */
-void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
+void bsc_copy_uuid(BACNET_SC_UUID *dst, const BACNET_SC_UUID *src)
 {
     memcpy(dst->uuid, src->uuid, sizeof(src->uuid));
 }
@@ -75,7 +72,7 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
  * @param uuid - UUID
  * @return string representation of UUID
  */
-char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
+char *bsc_uuid_to_string(const BACNET_SC_UUID *uuid)
 {
     static char buf[128];
     snprintf(
@@ -129,7 +126,9 @@ static bool bsc_node_load_cert_bacfile(
     buf[*psize - 1] = 0;
 #endif
     if (file_length == 0) {
-        PRINTF_ERR("Can't read %s file\n", bacfile_pathname(file_instance));
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "BSC: Can't read %s file\n",
+            bacfile_pathname(file_instance));
         free(buf);
         return false;
     }
@@ -177,7 +176,7 @@ bool bsc_node_conf_fill_from_netport(
         return false;
     }
     bsc_conf->local_uuid =
-        (BACNET_SC_UUID *)Network_Port_SC_Local_UUID(instance);
+        (const BACNET_SC_UUID *)Network_Port_SC_Local_UUID(instance);
     Network_Port_MAC_Address_Value(
         instance, bsc_conf->local_vmac.address,
         sizeof(bsc_conf->local_vmac.address));
@@ -196,10 +195,8 @@ bool bsc_node_conf_fill_from_netport(
     bsc_conf->address_resolution_timeout_s = bsc_conf->connect_timeout_s;
     bsc_conf->address_resolution_freshness_timeout_s =
         bsc_conf->connect_timeout_s;
-    bsc_conf->primaryURL =
-        (char *)Network_Port_SC_Primary_Hub_URI_char(instance);
-    bsc_conf->failoverURL =
-        (char *)Network_Port_SC_Failover_Hub_URI_char(instance);
+    bsc_conf->primaryURL = Network_Port_SC_Primary_Hub_URI_char(instance);
+    bsc_conf->failoverURL = Network_Port_SC_Failover_Hub_URI_char(instance);
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
     bsc_conf->direct_connect_initiate_enable =
         Network_Port_SC_Direct_Connect_Initiate_Enable(instance);
@@ -283,25 +280,30 @@ bool bsc_cert_files_check(uint32_t netport_instance)
 
     file_instance = Network_Port_Issuer_Certificate_File(netport_instance, 0);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR(
-            "Issuer Certificate file %u size=0. Path=%s\n", file_instance,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Issuer Certificate file %u size=0. Path=%s\n", file_instance,
             bacfile_pathname(file_instance));
         return false;
     }
 
     file_instance = Network_Port_Operational_Certificate_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR(
-            "Operational Certificate file %u size=0. Path=%s\n", file_instance,
-            bacfile_pathname(file_instance));
-        PRINTF_ERR("Operational Certificate file not exist\n");
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Operational Certificate file %u size=0. Path=%s\n",
+            file_instance, bacfile_pathname(file_instance));
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Operational Certificate file not exist\n");
         return false;
     }
 
     file_instance = Network_Port_Certificate_Key_File(netport_instance);
     if (bacfile_file_size(file_instance) == 0) {
-        PRINTF_ERR(
-            "Certificate Key file %u size=0. Path=%s\n", file_instance,
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "BSC: Certificate Key file %u size=0. Path=%s\n", file_instance,
             bacfile_pathname(file_instance));
         return false;
     }

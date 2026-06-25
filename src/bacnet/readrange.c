@@ -208,7 +208,9 @@ int rr_encode_apdu(
  *  @param apdu Pointer to the APDU buffer.
  *  @param apdu_size number of bytes in the APDU buffer.
  *  @param data Pointer to the data filled while decoding.
- *  @return Bytes decoded, or #BACNET_STATUS_ERROR
+ *  @return Bytes decoded, or #BACNET_STATUS_ERROR for error, or
+ *   #BACNET_STATUS_REJECT for missing required parameter
+ *   in range sequence.
  */
 int rr_decode_service_request(
     const uint8_t *apdu, unsigned apdu_size, BACNET_READ_RANGE_DATA *data)
@@ -267,6 +269,7 @@ int rr_decode_service_request(
     } else {
         return BACNET_STATUS_ERROR;
     }
+
     if (bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
         /*
@@ -286,6 +289,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Range.RefIndex = (uint32_t)unsigned_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: referenceIndex */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -296,6 +302,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Count = signed_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: count */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -325,6 +334,9 @@ int rr_decode_service_request(
                 data->Range.RefSeqNum = (uint32_t)unsigned_value;
                 data->Overhead += RR_1ST_SEQ_OVERHEAD;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: referenceIndex */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -335,6 +347,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Count = signed_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: count */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -362,6 +377,9 @@ int rr_decode_service_request(
             &apdu[apdu_len], apdu_size - apdu_len, bdate);
         if (len > 0) {
             apdu_len += len;
+        } else if (len == 0) {
+            /* Missing required parameter: referenceTime date */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -369,6 +387,9 @@ int rr_decode_service_request(
             &apdu[apdu_len], apdu_size - apdu_len, btime);
         if (len > 0) {
             apdu_len += len;
+        } else if (len == 0) {
+            /* Missing required parameter: referenceTime time */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -379,6 +400,9 @@ int rr_decode_service_request(
             if (data) {
                 data->Count = signed_value;
             }
+        } else if (len == 0) {
+            /* Missing required parameter: count */
+            return BACNET_STATUS_REJECT;
         } else {
             return BACNET_STATUS_ERROR;
         }

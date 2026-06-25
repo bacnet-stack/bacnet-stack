@@ -133,7 +133,7 @@ static void mstp_configure(void)
     MSTP_Zero_Config_UUID_Init(&MSTP_Port);
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
-    dlmstp_init((char *)&MSTP_Port);
+    dlmstp_init((const char *)&MSTP_Port);
     if (MSTP_Port.ZeroConfigEnabled) {
         dlmstp_set_mac_address(255);
     } else {

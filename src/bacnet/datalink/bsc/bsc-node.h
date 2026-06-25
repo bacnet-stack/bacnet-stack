@@ -57,7 +57,7 @@ typedef struct {
     size_t cert_chain_size;
     uint8_t *key;
     size_t key_size;
-    BACNET_SC_UUID *local_uuid;
+    const BACNET_SC_UUID *local_uuid;
     BACNET_SC_VMAC_ADDRESS local_vmac;
     uint16_t max_local_bvlc_len;
     uint16_t max_local_npdu_len;
@@ -67,8 +67,8 @@ typedef struct {
     uint16_t reconnnect_timeout_s;
     uint16_t address_resolution_timeout_s;
     uint16_t address_resolution_freshness_timeout_s;
-    char *primaryURL;
-    char *failoverURL;
+    const char *primaryURL;
+    const char *failoverURL;
     uint16_t hub_server_port;
     uint16_t direct_server_port;
     char *hub_iface;

@@ -91,8 +91,23 @@ typedef struct {
     char device_name[64];
     uint16_t vendor_id;
 
+    struct {
+        char primary_hub_uri[256];
+        char failover_hub_uri[256];
+        char issuer_1_certificate_file[256];
+        char issuer_2_certificate_file[256];
+        char operational_certificate_file[256];
+        char operational_certificate_private_key_file[256];
+        char direct_connect_binding[128];
+        char hub_function_binding[128];
+        char direct_connect_accept_urls[512];
+        bool direct_connect_initiate;
+        bool direct_connect_initiate_present;
+    } sc;
+
     /* ── BACnet datalink ── */
-    char datalink_type[32]; /**< "mstp", "bip", "bip6", "ethernet", etc. */
+    char datalink_type[32]; /**< "mstp", "bip", "bip6", "ethernet", "bsc", etc.
+                             */
     char bacnet_iface[64]; /**< network interface or serial port */
 
     /* MS/TP specific (used when datalink_type == "mstp") */

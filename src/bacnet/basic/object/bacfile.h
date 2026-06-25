@@ -150,6 +150,13 @@ BACNET_STACK_EXPORT
 void bacfile_file_size_callback_set(size_t (*callback)(const char *));
 BACNET_STACK_EXPORT
 void bacfile_file_size_set_callback_set(bool (*callback)(const char *, size_t));
+BACNET_STACK_EXPORT
+bool bacfile_file_size_set_callback(const char *pathname, size_t file_size);
+
+BACNET_STACK_EXPORT
+void *bacfile_create_context_get(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void bacfile_create_context_set(uint32_t object_instance, void *context);
 
 BACNET_STACK_EXPORT
 void *bacfile_context_get(uint32_t object_instance);

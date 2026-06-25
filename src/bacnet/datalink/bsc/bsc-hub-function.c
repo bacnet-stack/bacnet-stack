@@ -433,7 +433,7 @@ BSC_SC_RET bsc_hub_function_start(
     size_t key_size,
     int port,
     char *iface,
-    BACNET_SC_UUID *local_uuid,
+    const BACNET_SC_UUID *local_uuid,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     uint16_t max_local_bvlc_len,
     uint16_t max_local_npdu_len,

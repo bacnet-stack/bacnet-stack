@@ -165,7 +165,7 @@ static int arcnet_bind(const char *interface_name)
     return sock_fd;
 }
 
-bool arcnet_init(char *interface_name)
+bool arcnet_init(const char *interface_name)
 {
     if (interface_name) {
         ARCNET_Sock_FD = arcnet_bind(interface_name);

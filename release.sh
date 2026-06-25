@@ -44,7 +44,7 @@ function bacnet_build_apps() {
     echo ""
     echo "Build Win32 Apps"
     make -C $work_tree clean
-    make -C $work_tree -s LEGACY=true mingw32
+    make -C $work_tree -s mingw32
 }
 
 function bacnet_zip_apps() {

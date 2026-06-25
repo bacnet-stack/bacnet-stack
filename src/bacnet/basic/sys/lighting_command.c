@@ -24,7 +24,10 @@
  */
 static bool is_float_equal(float x1, float x2)
 {
-    return fabs(x1 - x2) < 0.001;
+    double d1, d2;
+    d1 = (double)x1;
+    d2 = (double)x2;
+    return fabs(d1 - d2) < 0.001;
 }
 
 /**
@@ -168,7 +171,7 @@ static void lighting_command_notify(
 /**
  * @brief Add a Lighting Command notification callback
  * @param data - dimmer data structure
- * @param cb - notification callback to be added
+ * @param notification - notification callback to be added
  */
 void lighting_command_notification_add(
     struct bacnet_lighting_command_data *data,
@@ -182,6 +185,63 @@ void lighting_command_notification_add(
     lighting_command_lock(data);
 
     head = &data->Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available free node */
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief call the lighting command notification callbacks
+ * @param data - dimmer data structure
+ * @param operation - BACnet lighting operation
+ * @param target_value - target value of the write (future value for fade/ramp,
+ * step increment for step, on value for step on, etc.)
+ * @param modifier_value - modifier value of the write (ramp rate for ramp,
+ * fade time for fade, etc.)
+ */
+static void lighting_command_event_notify(
+    struct bacnet_lighting_command_data *data,
+    BACNET_LIGHTING_OPERATION operation,
+    float target_value,
+    float modifier_value)
+{
+    struct lighting_command_event_notification *head;
+
+    head = &data->Event_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(data->Key, operation, target_value, modifier_value);
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Add a Lighting Command Event notification callback
+ * @param data - dimmer data structure
+ * @param notification - notification callback to be added
+ */
+void lighting_command_event_notification_add(
+    struct bacnet_lighting_command_data *data,
+    struct lighting_command_event_notification *notification)
+{
+    struct lighting_command_event_notification *head;
+
+    if (!data || !notification) {
+        return;
+    }
+    lighting_command_lock(data);
+
+    head = &data->Event_Notification_Head;
     do {
         if (head->next == notification) {
             /* already here! */
@@ -216,11 +276,11 @@ static void lighting_command_timer_notify(
 }
 
 /**
- * @brief Add a Lighting Command notification callback
+ * @brief Add a Lighting Command timer notification callback
  * @param data - dimmer data structure
- * @param cb - notification callback to be added
+ * @param notification - notification callback to be added
  */
-void lighting_command_timer_notfication_add(
+void lighting_command_timer_notification_add(
     struct bacnet_lighting_command_data *data,
     struct lighting_command_timer_notification *notification)
 {
@@ -311,7 +371,7 @@ float lighting_command_step_increment_clamp(float step_increment)
  * @param step_increment [in] step increment value
  * @return target value for step down command
  */
-float lighting_command_step_down_target_value(
+static float lighting_command_step_down_target_value(
     float tracking_value, float step_increment)
 {
     float target_value, step_value;
@@ -332,7 +392,7 @@ float lighting_command_step_down_target_value(
  * @param step_increment [in] step increment value
  * @return target value for step up command
  */
-float lighting_command_step_up_target_value(
+static float lighting_command_step_up_target_value(
     float tracking_value, float step_increment)
 {
     float target_value, step_value;
@@ -468,13 +528,7 @@ static void lighting_command_tracking_value_event(
         data->Min_Actual_Value, data->Max_Actual_Value, tracking_value);
     old_physical_value = lighting_command_normalized_to_physical_value(
         data->Min_Actual_Value, data->Max_Actual_Value, old_value);
-    if (data->Overridden) {
-        lighting_command_notify(data, old_physical_value, physical_value);
-        if (data->Overridden_Momentary) {
-            data->Overridden = false;
-        }
-    } else if (!data->Out_Of_Service) {
-        data->Overridden_Momentary = false;
+    if (!data->Out_Of_Service) {
         lighting_command_notify(data, old_physical_value, physical_value);
     } else {
         debug_printf(
@@ -859,82 +913,15 @@ static void lighting_command_override_nolock(
 {
     float old_value;
 
+    data->Lighting_Operation = BACNET_LIGHTS_STOP;
+    if (isgreaterequal(value, 1.0)) {
+        /* the last value that was greater than or equal to 1.0%.*/
+        data->Last_On_Value = value;
+    }
     old_value = data->Tracking_Value;
     data->Tracking_Value = lighting_command_normalized_range_clamp(value);
     lighting_command_tracking_value_event(
         data, old_value, data->Tracking_Value);
-}
-
-/**
- * @brief Overrides the current lighting command with the provided value
- * @param data [in] dimmer data
- */
-void lighting_command_override(
-    struct bacnet_lighting_command_data *data, float value)
-{
-    if (!data) {
-        return;
-    }
-    lighting_command_lock(data);
-    lighting_command_override_nolock(data, value);
-    lighting_command_unlock(data);
-}
-
-/**
- * @brief Overrides the current lighting command with the provided value
- * @param data [in] dimmer data
- */
-void lighting_command_override_set(
-    struct bacnet_lighting_command_data *data, float value)
-{
-    if (!data) {
-        return;
-    }
-    lighting_command_lock(data);
-    data->Overridden = true;
-    data->Overridden_Momentary = false;
-    lighting_command_override_nolock(data, value);
-    lighting_command_unlock(data);
-}
-
-/**
- * @brief Clears the override of the current lighting command
- * @param data [in] dimmer data
- */
-void lighting_command_override_clear(
-    struct bacnet_lighting_command_data *data, float value)
-{
-    float old_value;
-
-    if (!data) {
-        return;
-    }
-    lighting_command_lock(data);
-    data->Overridden = false;
-    data->Overridden_Momentary = false;
-    old_value = data->Tracking_Value;
-    /* clamp Tracking value within the Normalized Range */
-    data->Tracking_Value = lighting_command_normalized_range_clamp(value);
-    lighting_command_tracking_value_event(
-        data, old_value, data->Tracking_Value);
-    lighting_command_unlock(data);
-}
-
-/**
- * @brief Overrides the current lighting command with the provided value
- * @param data [in] dimmer data
- */
-void lighting_command_override_momentary(
-    struct bacnet_lighting_command_data *data, float value)
-{
-    if (!data) {
-        return;
-    }
-    lighting_command_lock(data);
-    data->Overridden = true;
-    data->Overridden_Momentary = true;
-    lighting_command_override_nolock(data, value);
-    lighting_command_unlock(data);
 }
 
 /**
@@ -967,9 +954,6 @@ void lighting_command_timer(
         return;
     }
     lighting_command_lock(data);
-    if (data->Overridden) {
-        data->Lighting_Operation = BACNET_LIGHTS_NONE;
-    }
     switch (data->Lighting_Operation) {
         case BACNET_LIGHTS_NONE:
             data->In_Progress = BACNET_LIGHTING_IDLE;
@@ -1026,17 +1010,53 @@ void lighting_command_fade_to(
         return;
     }
     lighting_command_lock(data);
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        data->Fade_Time = fade_time;
+        data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
+        data->Target_Level = value;
+        if (isgreaterequal(value, 1.0)) {
+            /* the last value that was greater than or equal to 1.0%.*/
+            data->Last_On_Value = value;
+        }
+        lighting_command_event_notify(
+            data, BACNET_LIGHTS_FADE_TO, value, fade_time);
+    }
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Execute a ramp to command without locking the data structure
+ * @param data - dimmer data structure
+ * @param value - target value for the ramp to command
+ * @param ramp_rate - ramp rate for the ramp to command
+ */
+static void lighting_command_ramp_to_nolock(
+    struct bacnet_lighting_command_data *data, float value, float ramp_rate)
+{
+    if (!data) {
+        return;
+    }
     /* possibly interrupting a blink warn, so notify */
     lighting_command_blink_stop_notify_nolock(data);
     /* configure the lighting operation */
-    data->Fade_Time = fade_time;
-    data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
+    data->Ramp_Rate = lighting_command_ramp_rate_clamp(ramp_rate);
+    data->Lighting_Operation = BACNET_LIGHTS_RAMP_TO;
     data->Target_Level = value;
     if (isgreaterequal(value, 1.0)) {
         /* the last value that was greater than or equal to 1.0%.*/
         data->Last_On_Value = value;
     }
-    lighting_command_unlock(data);
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_RAMP_TO, value, data->Ramp_Rate);
 }
 
 /**
@@ -1052,15 +1072,14 @@ void lighting_command_ramp_to(
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    data->Ramp_Rate = lighting_command_ramp_rate_clamp(ramp_rate);
-    data->Lighting_Operation = BACNET_LIGHTS_RAMP_TO;
-    data->Target_Level = value;
-    if (isgreaterequal(value, 1.0)) {
-        /* the last value that was greater than or equal to 1.0%.*/
-        data->Last_On_Value = value;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        lighting_command_ramp_to_nolock(data, value, ramp_rate);
     }
     lighting_command_unlock(data);
 }
@@ -1082,44 +1101,57 @@ void lighting_command_step(
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    if (((operation == BACNET_LIGHTS_STEP_UP) ||
-         (operation == BACNET_LIGHTS_STEP_DOWN)) &&
-        (is_float_equal(data->Tracking_Value, 0.0))) {
-        /* If the starting level of Tracking_Value is 0.0%,
-        then this operation is ignored. */
-        goto done;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
     }
-    data->Lighting_Operation = operation;
-    data->Fade_Time = 0;
-    data->Step_Increment = step_increment;
-    /* determine the last-on-value for the given step operation */
-    if (operation == BACNET_LIGHTS_STEP_UP) {
-        target_value = lighting_command_step_up_target_value(
-            data->Tracking_Value, data->Step_Increment);
-        target_value = lighting_command_normalized_on_range_clamp(target_value);
-    } else if (operation == BACNET_LIGHTS_STEP_DOWN) {
-        target_value = lighting_command_step_down_target_value(
-            data->Tracking_Value, data->Step_Increment);
-        target_value = lighting_command_normalized_on_range_clamp(target_value);
-    } else if (operation == BACNET_LIGHTS_STEP_ON) {
-        target_value = lighting_command_step_up_target_value(
-            data->Tracking_Value, data->Step_Increment);
-        target_value = lighting_command_normalized_range_clamp(target_value);
-    } else if (operation == BACNET_LIGHTS_STEP_OFF) {
-        target_value = lighting_command_step_down_target_value(
-            data->Tracking_Value, data->Step_Increment);
-        target_value = lighting_command_normalized_range_clamp(target_value);
-    } else {
-        goto done;
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        if (((operation == BACNET_LIGHTS_STEP_UP) ||
+             (operation == BACNET_LIGHTS_STEP_DOWN)) &&
+            (is_float_equal(data->Tracking_Value, 0.0))) {
+            /* If the starting level of Tracking_Value is 0.0%,
+            then this operation is ignored. */
+            goto done;
+        }
+        data->Lighting_Operation = operation;
+        data->Fade_Time = 0;
+        data->Step_Increment = step_increment;
+        /* determine the last-on-value for the given step operation */
+        if (operation == BACNET_LIGHTS_STEP_UP) {
+            target_value = lighting_command_step_up_target_value(
+                data->Tracking_Value, data->Step_Increment);
+            target_value =
+                lighting_command_normalized_on_range_clamp(target_value);
+        } else if (operation == BACNET_LIGHTS_STEP_DOWN) {
+            target_value = lighting_command_step_down_target_value(
+                data->Tracking_Value, data->Step_Increment);
+            target_value =
+                lighting_command_normalized_on_range_clamp(target_value);
+        } else if (operation == BACNET_LIGHTS_STEP_ON) {
+            target_value = lighting_command_step_up_target_value(
+                data->Tracking_Value, data->Step_Increment);
+            target_value =
+                lighting_command_normalized_range_clamp(target_value);
+        } else if (operation == BACNET_LIGHTS_STEP_OFF) {
+            target_value = lighting_command_step_down_target_value(
+                data->Tracking_Value, data->Step_Increment);
+            target_value =
+                lighting_command_normalized_range_clamp(target_value);
+        } else {
+            goto done;
+        }
+        if (isgreaterequal(target_value, 1.0)) {
+            /* the last value that was greater than or equal to 1.0%.*/
+            data->Last_On_Value = target_value;
+        }
+        lighting_command_event_notify(
+            data, operation, data->Step_Increment, data->Fade_Time);
     }
-    if (isgreaterequal(target_value, 1.0)) {
-        /* the last value that was greater than or equal to 1.0%.*/
-        data->Last_On_Value = target_value;
-    }
-
 done:
     lighting_command_unlock(data);
 }
@@ -1139,23 +1171,33 @@ void lighting_command_blink_warn(
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the new warning */
-    data->Lighting_Operation = operation;
-    data->Blink.Target_Interval = blink->Interval;
-    data->Blink.Duration = blink->Duration;
-    data->Blink.Priority = blink->Priority;
-    data->Blink.Callback = blink->Callback;
-    data->Blink.Count = blink->Count;
-    data->Blink.On_Value = blink->On_Value;
-    data->Blink.Off_Value = blink->Off_Value;
-    data->Blink.End_Value = blink->End_Value;
-    /* start blinking */
-    data->In_Progress = BACNET_LIGHTING_OTHER;
-    /* configure next interval */
-    data->Blink.State = false;
-    data->Blink.Interval = blink->Interval;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the new warning */
+        data->Lighting_Operation = operation;
+        data->Blink.Target_Interval = blink->Interval;
+        data->Blink.Duration = blink->Duration;
+        data->Blink.Priority = blink->Priority;
+        data->Blink.Callback = blink->Callback;
+        data->Blink.Count = blink->Count;
+        data->Blink.On_Value = blink->On_Value;
+        data->Blink.Off_Value = blink->Off_Value;
+        data->Blink.End_Value = blink->End_Value;
+        /* start blinking */
+        data->In_Progress = BACNET_LIGHTING_OTHER;
+        /* configure next interval */
+        data->Blink.State = false;
+        data->Blink.Interval = blink->Interval;
+        lighting_command_event_notify(
+            data, operation, blink->Interval, blink->Duration);
+    }
     lighting_command_unlock(data);
 }
 
@@ -1196,13 +1238,22 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    data->Lighting_Operation = BACNET_LIGHTS_STOP;
-    if (isgreaterequal(data->Tracking_Value, 1.0)) {
-        /* the last value that was greater than or equal to 1.0%.*/
-        data->Last_On_Value = data->Tracking_Value;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        data->Lighting_Operation = BACNET_LIGHTS_STOP;
+        if (isgreaterequal(data->Tracking_Value, 1.0)) {
+            /* the last value that was greater than or equal to 1.0%.*/
+            data->Last_On_Value = data->Tracking_Value;
+        }
+        lighting_command_event_notify(data, BACNET_LIGHTS_STOP, 0.0f, 0.0f);
     }
     lighting_command_unlock(data);
 }
@@ -1218,10 +1269,19 @@ void lighting_command_none(struct bacnet_lighting_command_data *data)
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    data->Lighting_Operation = BACNET_LIGHTS_NONE;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        data->Lighting_Operation = BACNET_LIGHTS_NONE;
+        lighting_command_event_notify(data, BACNET_LIGHTS_NONE, 0.0f, 0.0f);
+    }
     lighting_command_unlock(data);
 }
 
@@ -1237,12 +1297,23 @@ void lighting_command_restore_on(
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    data->Fade_Time = fade_time;
-    data->Lighting_Operation = BACNET_LIGHTS_RESTORE_ON;
-    data->Target_Level = data->Last_On_Value;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        data->Fade_Time = fade_time;
+        data->Lighting_Operation = BACNET_LIGHTS_RESTORE_ON;
+        data->Target_Level = data->Last_On_Value;
+        lighting_command_event_notify(
+            data, BACNET_LIGHTS_RESTORE_ON, data->Last_On_Value,
+            data->Fade_Time);
+    }
     lighting_command_unlock(data);
 }
 
@@ -1258,12 +1329,23 @@ void lighting_command_default_on(
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    data->Fade_Time = fade_time;
-    data->Lighting_Operation = BACNET_LIGHTS_DEFAULT_ON;
-    data->Target_Level = data->Default_On_Value;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        data->Fade_Time = fade_time;
+        data->Lighting_Operation = BACNET_LIGHTS_DEFAULT_ON;
+        data->Target_Level = data->Default_On_Value;
+        lighting_command_event_notify(
+            data, BACNET_LIGHTS_DEFAULT_ON, data->Default_On_Value,
+            data->Fade_Time);
+    }
     lighting_command_unlock(data);
 }
 
@@ -1279,17 +1361,28 @@ void lighting_command_toggle_restore(
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    data->Fade_Time = fade_time;
-    data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_RESTORE;
-    if (isless(data->Tracking_Value, 1.0f)) {
-        /* OFF: write the Last_On_Value */
-        data->Target_Level = data->Last_On_Value;
-    } else {
-        /* not OFF, write 0.0% */
-        data->Target_Level = 0.0f;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
+    }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        data->Fade_Time = fade_time;
+        data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_RESTORE;
+        if (isless(data->Tracking_Value, 1.0f)) {
+            /* OFF: write the Last_On_Value */
+            data->Target_Level = data->Last_On_Value;
+        } else {
+            /* not OFF, write 0.0% */
+            data->Target_Level = 0.0f;
+        }
+        lighting_command_event_notify(
+            data, BACNET_LIGHTS_TOGGLE_RESTORE, data->Target_Level,
+            data->Fade_Time);
     }
     lighting_command_unlock(data);
 }
@@ -1306,18 +1399,125 @@ void lighting_command_toggle_default(
         return;
     }
     lighting_command_lock(data);
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
-    /* configure the lighting operation */
-    data->Fade_Time = fade_time;
-    data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_DEFAULT;
-    if (isless(data->Tracking_Value, 1.0f)) {
-        /* OFF: write the Default_On_Value */
-        data->Target_Level = data->Default_On_Value;
-    } else {
-        /* not OFF, write 0.0% */
-        data->Target_Level = 0.0f;
+    if (data->Overridden) {
+        if (data->Overridden_Momentary) {
+            data->Overridden_Momentary = false;
+            data->Overridden = false;
+        }
     }
+    if (!data->Overridden) {
+        /* possibly interrupting a blink warn, so notify */
+        lighting_command_blink_stop_notify_nolock(data);
+        /* configure the lighting operation */
+        data->Fade_Time = fade_time;
+        data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_DEFAULT;
+        if (isless(data->Tracking_Value, 1.0f)) {
+            /* OFF: write the Default_On_Value */
+            data->Target_Level = data->Default_On_Value;
+        } else {
+            /* not OFF, write 0.0% */
+            data->Target_Level = 0.0f;
+        }
+        lighting_command_event_notify(
+            data, BACNET_LIGHTS_TOGGLE_DEFAULT, data->Target_Level,
+            data->Fade_Time);
+    }
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Overrides the current lighting command with the provided value
+ * @param data [in] dimmer data
+ */
+void lighting_command_override(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    lighting_command_override_nolock(data, value);
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Overrides the current lighting command with the provided value
+ * @param data [in] dimmer data
+ */
+void lighting_command_override_set(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Overridden = true;
+    data->Overridden_Momentary = false;
+    lighting_command_override_nolock(data, value);
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Overrides the current lighting command with the provided value and
+ * ramp rate
+ * @param data [in] dimmer data
+ * @param value [in] target value for the ramp to command
+ * @param ramp_rate [in] ramp rate value
+ */
+void lighting_command_override_ramp(
+    struct bacnet_lighting_command_data *data, float value, float ramp_rate)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Overridden = true;
+    data->Overridden_Momentary = false;
+    lighting_command_ramp_to_nolock(data, value, ramp_rate);
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Clears the override of the current lighting command
+ * @param data [in] dimmer data
+ * @param value [in] value to set the tracking value to when clearing the
+ * override
+ */
+void lighting_command_override_clear(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    float old_value;
+
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Overridden = false;
+    data->Overridden_Momentary = false;
+    data->Lighting_Operation = BACNET_LIGHTS_STOP;
+    /* notify */
+    old_value = data->Tracking_Value;
+    /* clamp Tracking value within the Normalized Range */
+    data->Tracking_Value = lighting_command_normalized_range_clamp(value);
+    lighting_command_tracking_value_event(
+        data, old_value, data->Tracking_Value);
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Overrides the current lighting command with the provided value
+ * @param data [in] dimmer data
+ */
+void lighting_command_override_momentary(
+    struct bacnet_lighting_command_data *data, float value)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Overridden = true;
+    data->Overridden_Momentary = true;
+    lighting_command_override_nolock(data, value);
     lighting_command_unlock(data);
 }
 
@@ -1386,6 +1586,23 @@ void lighting_command_tracking_value_callback_set(
     }
     lighting_command_lock(data);
     data->Notification_Head.callback = cb;
+    lighting_command_unlock(data);
+}
+
+/**
+ * @brief Set the lighting command event callback
+ * @param data [in] dimmer data
+ * @param cb [in] BACnet lighting event callback
+ */
+void lighting_command_event_callback_set(
+    struct bacnet_lighting_command_data *data,
+    lighting_command_event_callback cb)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    data->Event_Notification_Head.callback = cb;
     lighting_command_unlock(data);
 }
 
@@ -1803,6 +2020,8 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Blink.State = false;
     data->Notification_Head.next = NULL;
     data->Notification_Head.callback = NULL;
+    data->Event_Notification_Head.next = NULL;
+    data->Event_Notification_Head.callback = NULL;
     data->Timer_Notification_Head.next = NULL;
     data->Timer_Notification_Head.callback = NULL;
     lighting_command_unlock(data);

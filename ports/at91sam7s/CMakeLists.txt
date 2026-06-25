@@ -213,6 +213,8 @@ target_compile_options(${EXECUTABLE} PRIVATE
     -Wno-attributes
     # don't warn about implicit fallthrough since it is common in network protocols
     -Wno-implicit-fallthrough
+    # don't warn about discarded qualifiers often used for initializing C strings.
+    -Wno-discarded-qualifiers
     # the older Atmel SDK does not meet coding guidelines
     -Wno-comment
     -Wno-missing-braces

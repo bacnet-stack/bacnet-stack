@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Create Build Environment
       run: |
@@ -51,22 +51,22 @@ jobs:
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
         make clean
-        make LEGACY=true all
+        make all
 
   piface:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Checkout libmcp23s17 repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: piface/libmcp23s17
         path: ./apps/piface/libmcp23s17
 
     - name: Checkout libpifacedigital repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: piface/libpifacedigital
         path: ./apps/piface/libpifacedigital
@@ -106,10 +106,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Checkout pigpio repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: joan2937/pigpio
         path: ./apps/blinkt/pigpio

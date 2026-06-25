@@ -23,6 +23,8 @@ static const char *s_invalid_header_2 =
     "'Secure Path' header option must not have header data";
 static const char *s_invalid_header_3 =
     "'Proprietary Header' option must have header data";
+static const char *s_invalid_header_4 =
+    "'Proprietary Header' option header data length must be at least 3";
 static const char *s_result_incomplete =
     "BVLC-Result message has incomplete payload";
 static const char *s_result_incorrect_bvlc_function =
@@ -187,6 +189,12 @@ static bool bvlc_sc_validate_options_headers(
                 return false;
             }
             memcpy(&hdr_len, &option_headers[options_len], 2);
+            if (hdr_len < 3) {
+                *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                *error_class = ERROR_CLASS_COMMUNICATION;
+                *error_desc_string = s_invalid_header_4;
+                return false;
+            }
             options_len +=
                 2 /* header length */ + hdr_len /* length of data header */;
         }
@@ -592,9 +600,14 @@ static void bvlc_sc_decode_proprietary_option(
 
     *out_proprietary_data = NULL;
     *out_proprietary_data_len = 0;
+    *out_vendor_id = 0;
+    *out_proprietary_option_type = 0;
     memcpy(&hdr_len, &in_options_list[1], sizeof(hdr_len));
-    memcpy(out_vendor_id, &in_options_list[3], sizeof(uint16_t));
-    *out_proprietary_option_type = in_options_list[5];
+
+    if (hdr_len >= 3) {
+        memcpy(out_vendor_id, &in_options_list[3], sizeof(uint16_t));
+        *out_proprietary_option_type = in_options_list[5];
+    }
 
     if (hdr_len > 3) {
         *out_proprietary_data = &in_options_list[6];
@@ -1268,7 +1281,7 @@ size_t bvlc_sc_encode_connect_request(
     size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
-    BACNET_SC_UUID *local_uuid,
+    const BACNET_SC_UUID *local_uuid,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_size)
 {
@@ -1387,7 +1400,7 @@ size_t bvlc_sc_encode_connect_accept(
     size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
-    BACNET_SC_UUID *local_uuid,
+    const BACNET_SC_UUID *local_uuid,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_len)
 {

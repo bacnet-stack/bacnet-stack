@@ -413,10 +413,8 @@ int host_n_port_minimal_encode(
                 host->host.ip_address.length);
         } else if (host->tag == BACNET_HOST_ADDRESS_TAG_NAME) {
             /* CHOICE - name [2] CharacterString */
-            name.buffer = (char *)host->host.name.fqdn;
-            name.buffer_size = sizeof(host->host.name.fqdn);
-            name.buffer_length = host->host.name.length;
-            name.encoding = CHARACTER_ANSI_X34;
+            characterstring_buffer_ansi_length_init(
+                &name, host->host.name.fqdn, host->host.name.length);
             len = encode_context_character_string_buffer(apdu, 2, &name);
         } else {
             /* CHOICE - none [0] NULL */
@@ -1419,7 +1417,7 @@ int bacnet_bdt_entry_to_ascii(
         len = snprintf(
             str, str_size, "%*s:%u",
             (int)characterstring_length(&value->bbmd_address.host.name),
-            characterstring_value(&value->bbmd_address.host.name),
+            characterstring_value_const(&value->bbmd_address.host.name),
             (unsigned)value->bbmd_address.port);
     }
 
@@ -1846,8 +1844,8 @@ bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     int dot_count = 0;
     int i = 0;
     char c;
-    char fqdn_copy[255 + 1] = { 0 };
-    char *label = NULL;
+    char fqdn_copy[255] = { 0 };
+    const char *next = NULL;
 
     len = characterstring_length(hostname);
     /* Check length */
@@ -1856,7 +1854,7 @@ bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
         return false;
     }
     /* Check if it looks like an IP address (basic check) */
-    val = characterstring_value(hostname);
+    val = characterstring_value_const(hostname);
     for (i = 0; i < len; i++) {
         if (val[i] == '.') {
             dot_count++;
@@ -1891,19 +1889,18 @@ bool bacnet_is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
             return false;
         }
     }
-    /* Make a copy to manipulate when checking each label */
-    strncpy(fqdn_copy, val, sizeof(fqdn_copy) - 1);
-    /* Split FQDN by '.' */
-    label = strtok(fqdn_copy, ".");
-    while (label != NULL) {
-        /* check for each label length not exceeding 63 characters */
-        if (strlen(label) > 63) {
-            /* Invalid label found */
-            return false;
+    /* Split by '.' and check each label length */
+    next = val;
+    do {
+        next = bacnet_stptok(next, fqdn_copy, sizeof(fqdn_copy), ".");
+        if (fqdn_copy[0] != '\0') {
+            /* check for each label length not exceeding 63 characters */
+            if (strlen(fqdn_copy) > 63) {
+                /* Invalid label found */
+                return false;
+            }
         }
-        /* Move to the next label */
-        label = strtok(NULL, ".");
-    }
+    } while (next);
 
     /* Valid hostname */
     return true;

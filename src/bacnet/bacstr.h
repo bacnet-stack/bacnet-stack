@@ -134,7 +134,10 @@ bool characterstring_set_encoding(
     BACNET_CHARACTER_STRING *char_string, uint8_t encoding);
 /* Returns the value */
 BACNET_STACK_EXPORT
-const char *characterstring_value(const BACNET_CHARACTER_STRING *char_string);
+char *characterstring_value(BACNET_CHARACTER_STRING *char_string);
+BACNET_STACK_EXPORT
+const char *
+characterstring_value_const(const BACNET_CHARACTER_STRING *char_string);
 /* returns the length */
 BACNET_STACK_EXPORT
 size_t characterstring_length(const BACNET_CHARACTER_STRING *char_string);
@@ -156,8 +159,18 @@ BACNET_STACK_EXPORT
 char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string);
 
 BACNET_STACK_EXPORT
+bool characterstring_buffer_ansi_length_init(
+    BACNET_CHARACTER_STRING_BUFFER *char_string,
+    const char *value,
+    size_t length);
+BACNET_STACK_EXPORT
 bool characterstring_buffer_ansi_init(
     BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
+BACNET_STACK_EXPORT
+bool characterstring_buffer_ansi_strndup(
+    BACNET_CHARACTER_STRING_BUFFER *char_string,
+    const char *value,
+    size_t tmax);
 BACNET_STACK_EXPORT
 bool characterstring_buffer_ansi_strdup(
     BACNET_CHARACTER_STRING_BUFFER *char_string, const char *value);
@@ -171,13 +184,19 @@ BACNET_STACK_EXPORT
 void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string);
 BACNET_STACK_EXPORT
 bool characterstring_buffer_from_characterstring(
-    BACNET_CHARACTER_STRING_BUFFER *dest, const BACNET_CHARACTER_STRING *src);
+    BACNET_CHARACTER_STRING_BUFFER *dest, BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
 bool characterstring_buffer_to_characterstring(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING_BUFFER *src);
 BACNET_STACK_EXPORT
-const char *
-characterstring_buffer_value(const BACNET_CHARACTER_STRING_BUFFER *char_string);
+bool characterstring_buffer_same(
+    const BACNET_CHARACTER_STRING_BUFFER *s1,
+    const BACNET_CHARACTER_STRING *s2);
+BACNET_STACK_EXPORT
+char *characterstring_buffer_value(BACNET_CHARACTER_STRING_BUFFER *char_string);
+BACNET_STACK_EXPORT
+const char *characterstring_buffer_value_const(
+    const BACNET_CHARACTER_STRING_BUFFER *char_string);
 BACNET_STACK_EXPORT
 uint8_t characterstring_buffer_encoding(
     const BACNET_CHARACTER_STRING_BUFFER *char_string);
@@ -213,6 +232,8 @@ bool octetstring_truncate(BACNET_OCTET_STRING *octet_string, size_t length);
 /* Returns the value */
 BACNET_STACK_EXPORT
 uint8_t *octetstring_value(BACNET_OCTET_STRING *octet_string);
+BACNET_STACK_EXPORT
+const uint8_t *octetstring_value_const(const BACNET_OCTET_STRING *octet_string);
 /* Returns the length.*/
 BACNET_STACK_EXPORT
 size_t octetstring_length(const BACNET_OCTET_STRING *octet_string);
@@ -296,14 +317,17 @@ int bacnet_snprintf(
     char *buffer, size_t count, int offset, const char *format, ...);
 
 BACNET_STACK_EXPORT
-char *bacnet_ltrim(char *str, const char *trimmedchars);
+char *bacnet_ltrim(const char *str, const char *trimmedchars);
 BACNET_STACK_EXPORT
 char *bacnet_rtrim(char *str, const char *trimmedchars);
 BACNET_STACK_EXPORT
 char *bacnet_trim(char *str, const char *trimmedchars);
 
 BACNET_STACK_EXPORT
-char *bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk);
+const char *
+bacnet_stptok(const char *s, char *tok, size_t toklen, const char *brk);
+BACNET_STACK_EXPORT
+char *bacnet_strncpy(char *s1, const char *s2, size_t n);
 BACNET_STACK_EXPORT
 char *bacnet_strndup(const char *s, size_t n);
 BACNET_STACK_EXPORT

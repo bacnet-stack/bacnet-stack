@@ -101,7 +101,7 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
     }
 }
 
-bool ethernet_init(char *if_name)
+bool ethernet_init(const char *if_name)
 {
     pcap_if_t *pcap_all_if;
     pcap_if_t *dev;

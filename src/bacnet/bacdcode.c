@@ -14,6 +14,18 @@
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
 
+static char *bacnet_character_string_buffer_borrow(const char *value)
+{
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
+    return (char *)value;
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+}
+
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
    B'001'      2 segments accepted.
@@ -2583,7 +2595,7 @@ int encode_octet_string(uint8_t *apdu, const BACNET_OCTET_STRING *octet_string)
 
     if (octet_string) {
         len = (int)octetstring_length(octet_string);
-        value = octetstring_value((BACNET_OCTET_STRING *)octet_string);
+        value = octetstring_value_const(octet_string);
         if (value && apdu) {
             for (i = 0; i < len; i++) {
                 apdu[i] = value[i];
@@ -2923,7 +2935,7 @@ int encode_bacnet_character_string(
     length = characterstring_length(char_string);
     if (apdu) {
         apdu[0] = characterstring_encoding(char_string);
-        value = characterstring_value(char_string);
+        value = characterstring_value_const(char_string);
         for (i = 0; i < length; i++) {
             apdu[1 + i] = (uint8_t)value[i];
         }
@@ -3409,7 +3421,8 @@ int bacnet_character_string_buffer_decode(
             }
         } else {
             /* no buffer provided; use zero copy */
-            value->buffer = (char *)&apdu[1];
+            value->buffer =
+                bacnet_character_string_buffer_borrow((const char *)&apdu[1]);
             value->buffer_size = string_length;
         }
     }
