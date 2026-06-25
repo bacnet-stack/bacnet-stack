@@ -629,6 +629,77 @@ static void testReadPropertyMultipleAckProcess(void)
 }
 
 /**
+ * @brief Regression test for DoS vulnerability: handler_read_property_multiple
+ * infinite loop on malformed RPM request with missing closing tag.
+ *
+ * When rpm_decode_object_property is called with zero remaining bytes
+ * (exhausted buffer) it must return a negative error code so that the
+ * handler breaks out of its inner for(;;) loop.  Before the fix the
+ * function returned 0, decode_len never advanced, and the server thread
+ * spun at 100% CPU indefinitely.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rpm_tests, testReadPropertyMultipleMissingClosingTag)
+#else
+static void testReadPropertyMultipleMissingClosingTag(void)
+#endif
+{
+    uint8_t apdu[480] = { 0 };
+    int len = 0;
+    int test_len = 0;
+    int apdu_len = 0;
+    uint8_t invoke_id = 12;
+    uint8_t test_invoke_id = 0;
+    uint8_t *service_request = NULL;
+    unsigned service_request_len = 0;
+    BACNET_RPM_DATA rpmdata;
+
+    /* Build a valid RPM request that intentionally omits the closing tag
+       (rpm_encode_apdu_object_end is not called).  This reproduces the
+       malformed/truncated packet described in the DoS report. */
+    apdu_len = rpm_encode_apdu_init(&apdu[0], invoke_id);
+    apdu_len +=
+        rpm_encode_apdu_object_begin(&apdu[apdu_len], OBJECT_DEVICE, 123);
+    apdu_len += rpm_encode_apdu_object_property(
+        &apdu[apdu_len], PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL);
+    /* Closing tag deliberately omitted:
+         apdu_len += rpm_encode_apdu_object_end(&apdu[apdu_len]); */
+
+    /* Decode the APDU wrapper to obtain the service-request slice */
+    test_len = rpm_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id, &service_request,
+        &service_request_len);
+    zassert_true(test_len >= 0, NULL);
+    zassert_equal(test_invoke_id, invoke_id, NULL);
+
+    /* Decode the object identifier */
+    test_len =
+        rpm_decode_object_id(service_request, service_request_len, &rpmdata);
+    zassert_true(test_len > 0, NULL);
+    len += test_len;
+
+    /* Decode the one encoded property - this must succeed */
+    test_len = rpm_decode_object_property(
+        &service_request[len], service_request_len - len, &rpmdata);
+    zassert_true(test_len > 0, NULL);
+    zassert_equal(rpmdata.object_property, PROP_OBJECT_IDENTIFIER, NULL);
+    len += test_len;
+
+    /* The buffer is now exhausted: service_request_len - len == 0.
+       rpm_decode_object_property must return a negative error code here.
+       Returning 0 would cause handler_read_property_multiple to spin in
+       an infinite loop (DoS). */
+    zassert_equal((unsigned)len, service_request_len, NULL);
+    test_len = rpm_decode_object_property(
+        &service_request[len], service_request_len - len, &rpmdata);
+    zassert_true(
+        test_len < 0,
+        "rpm_decode_object_property returned %d on empty buffer; "
+        "expected negative error (fix DoS infinite-loop)",
+        test_len);
+}
+
+/**
  * @}
  */
 
@@ -641,7 +712,8 @@ void test_main(void)
         rpm_tests, ztest_unit_test(testReadPropertyMultiple),
         ztest_unit_test(testReadPropertyMultipleRequest),
         ztest_unit_test(testReadPropertyMultipleAck),
-        ztest_unit_test(testReadPropertyMultipleAckProcess));
+        ztest_unit_test(testReadPropertyMultipleAckProcess),
+        ztest_unit_test(testReadPropertyMultipleMissingClosingTag));
 
     ztest_run_test_suite(rpm_tests);
 }

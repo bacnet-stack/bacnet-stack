@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured rpm_decode_object_property by fixing a DoS vulnerability
+  for malformed RPM requests. (#1374)
 * Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
   lengths and adding array bounds checks before every write. Added test-only
   shim for bsc_node_parse_urls() to support unit testing. (#1365) (#1369)

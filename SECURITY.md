@@ -26,6 +26,11 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records for version 1.4.x:
 
+[CVE-2026-52789](https://www.cve.org/CVERecord?id=CVE-2026-52789) -
+Denial of Service (Infinite Loop) in handler_read_property_multiple via malformed RPM requests.
+[GHSA-4rf9-4vgq-5gcw](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4rf9-4vgq-5gcw).
+Patched versions: 1.4.5
+
 [CVE-2026-52788](https://www.cve.org/CVERecord?id=CVE-2026-52788) -
 Buffer overflows in bsc_node_parse_urls() (BACnet/SC Address Resolution ACK URL parser).
 [GHSA-rf83-3rr5-v4mj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rf83-3rr5-v4mj).
