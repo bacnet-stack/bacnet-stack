@@ -570,3 +570,184 @@ bool bacnet_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
 
     return status;
 }
+
+/**
+ * @brief Encode the BACnetAddressBinding entry
+ * @param apdu  Pointer to the APDU, or NULL for length calculation.
+ * @param device_id  Device ID to encode.
+ * @param address  Pointer to the BACnet address to encode.
+ * @return Count of encoded bytes.
+ */
+int bacnet_address_binding_entry_encode(
+    uint8_t *apdu, uint32_t device_id, const BACNET_ADDRESS *address)
+{
+    int len = 0, apdu_len = 0;
+
+    if (!address) {
+        return 0;
+    }
+    len = encode_application_object_id(apdu, OBJECT_DEVICE, device_id);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_bacnet_address(apdu, address);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a given BACnetAddressBinding
+ * @details
+ *  BACnetAddressBinding ::= SEQUENCE {
+ *      device-identifier   BACnetObjectIdentifier,
+ *      device-address      BACnetAddress
+ * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
+ * @param  value - BACnetAddressBinding value
+ * @return  number of bytes in the APDU
+ */
+int bacnet_address_binding_type_encode(
+    uint8_t *apdu, const BACNET_ADDRESS_BINDING *value)
+{
+    if (!value) {
+        return 0;
+    }
+    return bacnet_address_binding_entry_encode(
+        apdu, value->device_identifier, &value->device_address);
+}
+
+/**
+ * @brief Encode a given BACnetAddressBinding
+ * @details
+ *  BACnetAddressBinding ::= SEQUENCE {
+ *      device-identifier   BACnetObjectIdentifier,
+ *      device-address      BACnetAddress
+ * @param  apdu - APDU buffer for storing the encoded data, or NULL for length
+ * @param apdu_size - size of the APDU buffer
+ * @param  value - BACnetAddressBinding value
+ * @return  number of bytes in the APDU, or 0 if unable to fit.
+ */
+int bacnet_address_binding_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_ADDRESS_BINDING *value)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = bacnet_address_binding_type_encode(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = bacnet_address_binding_type_encode(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a given BACnetAddressBinding
+ * @details
+ *  BACnetAddressBinding ::= SEQUENCE {
+ *      device-identifier   BACnetObjectIdentifier,
+ *      device-address      BACnetAddress
+ * @param  apdu - APDU buffer for decoding
+ * @param  apdu_size - Count of valid bytes in the buffer
+ * @param  value - BACnetAddressBinding value to store the decoded data
+ * @return  number of bytes decoded or BACNET_STATUS_ERROR on error
+ */
+int bacnet_address_binding_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_ADDRESS_BINDING *value)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_ADDRESS *address = NULL;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_object_id_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &object_type, &object_instance);
+    if (len > 0) {
+        apdu_len += len;
+        if (object_type != OBJECT_DEVICE) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (value) {
+            value->device_identifier = object_instance;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        address = &value->device_address;
+    }
+    len = bacnet_address_decode(&apdu[apdu_len], apdu_size - apdu_len, address);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare two BACnetAddressBinding values
+ * @param value1 [in] The first BACnetAddressBinding value
+ * @param value2 [in] The second BACnetAddressBinding value
+ * @return True if the values are the same, else False
+ */
+bool bacnet_address_binding_same(
+    const BACNET_ADDRESS_BINDING *value1, const BACNET_ADDRESS_BINDING *value2)
+{
+    if (!value1) {
+        return false;
+    }
+    if (!value2) {
+        return false;
+    }
+    if (value1->device_identifier != value2->device_identifier) {
+        return false;
+    }
+    return bacnet_address_same(
+        &value1->device_address, &value2->device_address);
+}
+
+/**
+ * @brief Copy a BACnetAddressBinding to another
+ * @param value1 [in] The first BACnetAddressBinding value
+ * @param value2 [in] The second BACnetAddressBinding value
+ * @return true if the value was copied, else false
+ */
+bool bacnet_address_binding_copy(
+    BACNET_ADDRESS_BINDING *dest, const BACNET_ADDRESS_BINDING *src)
+{
+    if (!(dest && src)) {
+        return false;
+    }
+    dest->device_identifier = src->device_identifier;
+    bacnet_address_copy(&dest->device_address, &src->device_address);
+
+    return true;
+}
+
+/**
+ * @brief Initialize a BACnetAddressBinding from device-id and address
+ * @param dest [out] The BACnetAddressBinding value
+ * @param device_identifier [in] The device-identifier value
+ * @param address [in] #BACNET_ADDRESS value
+ * @return true if the values were copied, else false
+ */
+bool bacnet_address_binding_init(
+    BACNET_ADDRESS_BINDING *dest,
+    uint32_t device_id,
+    const BACNET_ADDRESS *address)
+{
+    if (!dest) {
+        return false;
+    }
+    dest->device_identifier = device_id;
+    bacnet_address_copy(&dest->device_address, address);
+
+    return true;
+}

@@ -26,8 +26,14 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records for version 1.4.x:
 
+[CVE-2026-52787](https://www.cve.org/CVERecord?id=CVE-2026-52787) -
+Global APDU transmit buffer out-of-bounds write in device.address-binding response encoding via address_list_encode()
+[GHSA-4fgg-fghm-jm43](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4fgg-fghm-jm43).
+Patched version: 1.4.5
+
 AtomicReadFile/AtomicWriteFile stream fileStartPosition validation flaw causes out-of-bounds read/write in RAM file backends
 [GHSA-8759-hx7g-94qx](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8759-hx7g-94qx)
+Patched version: 1.4.5
 
 [CVE-2026-47710](https://www.cve.org/CVERecord?id=CVE-2026-47710) -
 Loop reference to long Structured View description causes stack-buffer-overflow
