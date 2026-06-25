@@ -14,18 +14,6 @@
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
 
-static char *bacnet_character_string_buffer_borrow(const char *value)
-{
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
-#endif
-    return (char *)value;
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-}
-
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
    B'001'      2 segments accepted.
@@ -3421,8 +3409,7 @@ int bacnet_character_string_buffer_decode(
             }
         } else {
             /* no buffer provided; use zero copy */
-            value->buffer =
-                bacnet_character_string_buffer_borrow((const char *)&apdu[1]);
+            value->buffer = (char *)(uintptr_t)&apdu[1];
             value->buffer_size = string_length;
         }
     }
