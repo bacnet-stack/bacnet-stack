@@ -771,7 +771,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
-    BACNET_OCTET_STRING octet_string = { 0 };
     BACNET_DATE bdate;
     BACNET_TIME btime;
     int16_t utc_offset_minutes;
@@ -905,8 +904,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
         case PROP_DEVICE_UUID:
-            octetstring_init(&octet_string, Device_UUID, sizeof(Device_UUID));
-            apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
+            apdu_len = encode_application_octet_string_buffer(
+                &apdu[0], Device_UUID, sizeof(Device_UUID));
             break;
         case PROP_LOCAL_TIME:
             datetime_local(&bdate, &btime, &utc_offset_minutes, &dst_active);

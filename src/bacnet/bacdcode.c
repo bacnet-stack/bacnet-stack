@@ -2252,6 +2252,293 @@ int encode_application_object_id(
     return apdu_len;
 }
 
+/**
+ * @brief Encode the BACnet Octet String value as application tagged
+ *  from clause 20.2.8 Encoding of an Octet String Value
+ *  and 20.2.1 General Rules for Encoding BACnet Tags
+ * @param apdu - buffer to hold the bytes
+ * @param buffer - the octet string to be encoded
+ * @param buffer_size - the size of the octet string to be encoded
+ * @return returns the number of apdu bytes encoded
+ */
+int encode_application_octet_string_buffer(
+    uint8_t *apdu, const uint8_t *buffer, size_t buffer_size)
+{
+    int apdu_len = 0, len = 0, i = 0;
+
+    len = encode_tag(
+        apdu, BACNET_APPLICATION_TAG_OCTET_STRING, false, buffer_size);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    for (i = 0; i < buffer_size; i++) {
+        if (apdu && buffer) {
+            apdu[i] = buffer[i];
+        }
+    }
+    apdu_len += buffer_size;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the BACnet Octet String Value as context tagged
+ *  from clause 20.2.8 Encoding of an Octet String Value
+ *  and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes, or NULL for length
+ * @param tag_number - context tag number to be encoded
+ * @param buffer - the octet string to be encoded
+ * @param buffer_size - the size of the octet string to be encoded
+ * @return returns the number of apdu bytes encoded
+ */
+int encode_context_octet_string_buffer(
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const uint8_t *buffer,
+    size_t buffer_size)
+{
+    int apdu_len = 0, len = 0, i = 0;
+
+    len = encode_tag(apdu, tag_number, true, buffer_size);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    for (i = 0; i < buffer_size; i++) {
+        if (apdu && buffer) {
+            apdu[i] = buffer[i];
+        }
+    }
+    apdu_len += buffer_size;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode an application tagged BACnet Octet String Value
+ * From clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes encoded
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_octet_string_buffer_application_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    const uint8_t *buffer,
+    size_t buffer_size)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len =
+        encode_application_octet_string_buffer(NULL, buffer, buffer_size);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len =
+            encode_application_octet_string_buffer(apdu, buffer, buffer_size);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode an context tagged BACnet Octet String Value
+ * From clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number - context tag number to be encoded
+ * @param buffer - the octet string to be encoded
+ * @param buffer_size - the size of the octet string to be encoded
+ *
+ * @return returns the number of apdu bytes encoded
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_octet_string_buffer_context_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    const uint8_t *buffer,
+    size_t buffer_size)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_context_octet_string_buffer(
+        NULL, tag_number, buffer, buffer_size);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_context_octet_string_buffer(
+            apdu, tag_number, buffer, buffer_size);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the BACnet Octet String Value
+ * from clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param len_value - number of bytes in the octet string value encoding,
+ *  may be zero
+ * @param buffer - the buffer where the decoded value is stored,
+ *  or NULL for length only.
+ * @param buffer_size - number of bytes in the buffer where the
+ *  decoded value is stored
+ *
+ * @return number of bytes in the octet string value encoding (0..N)
+ *  or BACNET_STATUS_ERROR if malformed
+ */
+int bacnet_octet_string_buffer_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    uint8_t *buffer,
+    size_t buffer_size)
+{
+    size_t i;
+    size_t copy_len;
+
+    if (len_value > apdu_size) {
+        /* malformed */
+        return BACNET_STATUS_ERROR;
+    }
+
+    if (apdu && buffer && buffer_size > 0) {
+        /* copy only the available octets, up to the buffer size */
+        copy_len = (len_value < buffer_size) ? (size_t)len_value : buffer_size;
+        for (i = 0; i < copy_len; i++) {
+            buffer[i] = apdu[i];
+        }
+        /* pad any remaining buffer space with zeros */
+        for (i = copy_len; i < buffer_size; i++) {
+            buffer[i] = 0;
+        }
+    }
+
+    return (int)len_value;
+}
+
+/**
+ * @brief Decodes from bytes into a BACnet Octet String application encoding
+ * from clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param buffer - the buffer where the decoded value is stored,
+ *  or NULL for length only.
+ * @param buffer_size - number of bytes in the buffer where the
+ *  decoded value is stored
+ * @param buffer_length - number of bytes decoded into the buffer
+ *
+ * @return number of bytes decoded, zero if tag mismatch,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
+ */
+int bacnet_octet_string_buffer_application_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t *buffer,
+    size_t buffer_size,
+    uint32_t *buffer_length)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    int len = 0;
+    BACNET_TAG tag = { 0 };
+
+    if (apdu_size == 0) {
+        return 0;
+    }
+    len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if (len > 0) {
+        if (tag.application &&
+            (tag.number == BACNET_APPLICATION_TAG_OCTET_STRING)) {
+            apdu_len = len;
+            len = bacnet_octet_string_buffer_decode(
+                &apdu[len], apdu_size - apdu_len, tag.len_value_type, buffer,
+                buffer_size);
+            if (len >= 0) {
+                if (buffer_length) {
+                    *buffer_length = tag.len_value_type;
+                }
+                apdu_len += len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = 0;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes from bytes into a BACnet Octet String application encoding
+ * from clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param tag_value - context tag number expected
+ * @param buffer - the buffer where the decoded value is stored,
+ *  or NULL for length only.
+ * @param buffer_size - number of bytes in the buffer where the
+ *  decoded value is stored
+ * @param buffer_length - number of bytes decoded into the buffer
+ *
+ * @return  number of bytes decoded, or zero if tag mismatch, or
+ * #BACNET_STATUS_ERROR (-1) if malformed
+ */
+int bacnet_octet_string_buffer_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_value,
+    uint8_t *buffer,
+    size_t buffer_size,
+    uint32_t *buffer_length)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    int len = 0;
+    BACNET_TAG tag = { 0 };
+
+    if (apdu_size == 0) {
+        return 0;
+    }
+    len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if (len > 0) {
+        if (tag.context && (tag.number == tag_value)) {
+            apdu_len = len;
+            len = bacnet_octet_string_buffer_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+                buffer, buffer_size);
+            if (len >= 0) {
+                if (buffer_length) {
+                    *buffer_length = tag.len_value_type;
+                }
+                apdu_len += len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = 0;
+        }
+    }
+
+    return apdu_len;
+}
+
 #if BACNET_USE_OCTETSTRING
 /**
  * @brief Encode the BACnet Octet String value

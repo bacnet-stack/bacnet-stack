@@ -1910,7 +1910,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
-    BACNET_OCTET_STRING octet_string = { 0 };
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -2113,8 +2112,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DEVICE_UUID:
-            octetstring_init(&octet_string, Device_UUID, sizeof(Device_UUID));
-            apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
+            apdu_len = encode_application_octet_string_buffer(
+                &apdu[0], Device_UUID, sizeof(Device_UUID));
             break;
         case PROP_TIME_OF_DEVICE_RESTART:
             apdu_len =
