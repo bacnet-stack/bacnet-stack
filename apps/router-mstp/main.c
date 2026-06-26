@@ -659,9 +659,7 @@ static void network_control_handler(
     uint8_t *npdu,
     uint16_t npdu_len)
 {
-    uint16_t npdu_offset = 0;
     uint16_t dnet = 0;
-    uint16_t len = 0;
     const char *msg_name = NULL;
 
     (void)src;
@@ -675,19 +673,8 @@ static void network_control_handler(
             break;
         case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
             /* add its DNETs to our routing table */
-            fprintf(stderr, "for Networks: ");
-            len = 2;
-            while (npdu_len >= len) {
-                len = decode_unsigned16(&npdu[npdu_offset], &dnet);
-                fprintf(stderr, "%hu", dnet);
-                dnet_add(snet, dnet, src);
-                npdu_len -= len;
-                npdu_offset += len;
-                if (npdu_len) {
-                    fprintf(stderr, ", ");
-                }
-            }
-            fprintf(stderr, ".\n");
+            npdu_i_am_router_to_network_process(
+                snet, src, npdu, npdu_len, dnet_add);
             break;
         case NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK:
             /* Do nothing, same as previous case. */
@@ -734,30 +721,9 @@ static void network_control_handler(
              * NETWORK_MESSAGE_INIT_RT_TABLE_ACK and a list of all our
              * reachable networks.
              */
-            if (npdu_len > 0) {
-                /* If Number of Ports is 0, broadcast our "full" table */
-                if (npdu[0] == 0) {
-                    send_initialize_routing_table_ack(snet, NULL);
-                } else {
-                    /* they sent us a list */
-                    int net_count = npdu[0];
-                    while (net_count--) {
-                        int i = 1;
-                        /* DNET */
-                        decode_unsigned16(&npdu[i], &dnet);
-                        /* update routing table */
-                        dnet_add(snet, dnet, src);
-                        if (npdu[i + 3] > 0) {
-                            /* find next NET value */
-                            i = npdu[i + 3] + 4;
-                        } else {
-                            i += 4;
-                        }
-                    }
-                    send_initialize_routing_table_ack(snet, NULL);
-                }
-                break;
-            }
+            npdu_init_routing_table_process(
+                snet, src, npdu, npdu_len, dnet_add);
+            send_initialize_routing_table_ack(snet, NULL);
             break;
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
             /* Do nothing with the routing table info, since don't support

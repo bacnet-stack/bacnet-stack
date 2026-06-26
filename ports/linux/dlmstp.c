@@ -1060,7 +1060,7 @@ bool dlmstp_init(char *ifname)
         RS485_Set_Interface(ifname);
         debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
     } else {
-        ifname = (char *)RS485_Interface();
+        ifname = RS485_Interface();
     }
     pthread_condattr_init(&attr);
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {

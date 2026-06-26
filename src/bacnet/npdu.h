@@ -54,6 +54,9 @@ typedef struct router_port_t {
     struct router_port_t *next; /**< Point to next in linked list */
 } BACNET_ROUTER_PORT;
 
+typedef void (*npdu_dnet_add_callback_t)(
+    uint16_t snet, uint16_t net, const BACNET_ADDRESS *addr);
+
 #define NETWORK_NUMBER_LEARNED 0
 #define NETWORK_NUMBER_CONFIGURED 1
 
@@ -113,6 +116,38 @@ int bacnet_npdu_decode(
 
 BACNET_STACK_EXPORT
 bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len);
+BACNET_STACK_EXPORT
+bool npdu_is_segmented_complex_ack_reply(const uint8_t *pdu, uint16_t pdu_len);
+BACNET_STACK_EXPORT
+bool npdu_is_expected_reply(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    BACNET_ADDRESS *request_address,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    BACNET_ADDRESS *reply_address);
+BACNET_STACK_EXPORT
+bool npdu_is_data_expecting_reply(
+    const uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    uint8_t request_mac,
+    const uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    uint8_t reply_mac);
+BACNET_STACK_EXPORT
+void npdu_i_am_router_to_network_process(
+    uint16_t snet,
+    const BACNET_ADDRESS *src,
+    const uint8_t *npdu,
+    uint16_t npdu_size,
+    npdu_dnet_add_callback_t dnet_add);
+BACNET_STACK_EXPORT
+void npdu_init_routing_table_process(
+    uint16_t snet,
+    const BACNET_ADDRESS *src,
+    const uint8_t *npdu,
+    uint16_t npdu_size,
+    npdu_dnet_add_callback_t dnet_add);
 
 #ifdef __cplusplus
 }

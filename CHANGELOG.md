@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the network control handler in the router-ipv6 and router-mstp apps
+  to ensure proper offset calculation and prevent buffer overrun. (#1387)
 * Secured the basic device object which had a expired stack frame
   string use.  Changed all the writable device object character strings
   to be declared as BACNET_CHARACTER_STRING types. This prevents use of
