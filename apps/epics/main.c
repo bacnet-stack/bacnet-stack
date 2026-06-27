@@ -112,6 +112,23 @@ static uint32_t Property_List_Length = 0;
 static uint32_t Property_List_Index = 0;
 static int32_t Property_List[MAX_PROPS + 2];
 
+static bool property_list_append(int32_t property_id)
+{
+    uint32_t capacity =
+        (uint32_t)(sizeof(Property_List) / sizeof(Property_List[0]));
+
+    /* Keep one slot free for the list terminator. */
+    if (Property_List_Index >= (capacity - 1)) {
+        return false;
+    }
+
+    Property_List[Property_List_Index] = property_id;
+    Property_List_Index++;
+    Property_List_Length++;
+
+    return true;
+}
+
 struct property_value_list_t {
     int32_t property_id;
     BACNET_APPLICATION_DATA_VALUE *value;
@@ -842,10 +859,11 @@ ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
                         bHasStructuredViewList = true;
                         break;
                     default:
-                        Property_List[Property_List_Index] =
-                            rpm_property->propertyIdentifier;
-                        Property_List_Index++;
-                        Property_List_Length++;
+                        if (!property_list_append(
+                                (int32_t)rpm_property->propertyIdentifier)) {
+                            /* Ignore excess properties once local list is full.
+                             */
+                        }
                         break;
                 }
                 /* Free up the value(s) */
@@ -905,17 +923,23 @@ ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
     } else if (bSuccess) { /* and GET_LIST_OF_ALL_RESPONSE */
         /* Now append the properties we waited on. */
         if (bHasStructuredViewList) {
-            Property_List[Property_List_Index] = PROP_STRUCTURED_OBJECT_LIST;
-            Property_List_Index++;
-            Property_List_Length++;
+            if (!property_list_append(PROP_STRUCTURED_OBJECT_LIST)) {
+                /* Ignore when local list is full. */
+            }
         }
         if (bHasObjectList) {
-            Property_List[Property_List_Index] = PROP_OBJECT_LIST;
-            Property_List_Index++;
-            Property_List_Length++;
+            if (!property_list_append(PROP_OBJECT_LIST)) {
+                /* Ignore when local list is full. */
+            }
         }
         /* Now insert the -1 list terminator, but don't count it. */
-        Property_List[Property_List_Index] = -1;
+        if (Property_List_Index <
+            (uint32_t)(sizeof(Property_List) / sizeof(Property_List[0]))) {
+            Property_List[Property_List_Index] = -1;
+        } else {
+            Property_List
+                [(sizeof(Property_List) / sizeof(Property_List[0])) - 1] = -1;
+        }
         assert(Property_List_Length < MAX_PROPS);
         Property_List_Index = 0; /* Will start at top of the list */
         nextState = GET_PROPERTY_REQUEST;
