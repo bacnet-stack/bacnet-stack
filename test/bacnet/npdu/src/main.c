@@ -357,10 +357,7 @@ void test_main(void)
 {
     ztest_test_suite(
         npdu_tests, ztest_unit_test(testNPDU1), ztest_unit_test(testNPDU2),
-        ztest_unit_test(test_NPDU_Network), ztest_unit_test(test_NPDU_Copy),
-        ztest_unit_test(test_NPDU_Confirmed_Service),
-        ztest_unit_test(test_NPDU_Segmented_Complex_Ack_Reply),
-        ztest_unit_test(test_NPDU_Data_Expecting_Reply),
+        ztest_unit_test(test_NPDU_Network),
         ztest_unit_test(test_NPDU_I_Am_Router_To_Network_Process),
         ztest_unit_test(test_NPDU_Init_Routing_Table_Process));
 

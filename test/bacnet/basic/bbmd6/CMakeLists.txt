@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/bbmd6/h_bbmd6.c
     ${SRC_DIR}/bacnet/basic/bbmd6/vmac.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacstr.c

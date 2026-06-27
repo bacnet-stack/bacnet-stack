@@ -42,6 +42,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/indtext.c
     # core files needed
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacstr.c
