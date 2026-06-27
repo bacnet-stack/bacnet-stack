@@ -219,7 +219,8 @@ GET_EVENT_ERROR:
         } else {
             len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
+                SERVICE_CONFIRMED_GET_EVENT_INFORMATION, error_class,
+                error_code);
             debug_print("GetEventInformation: Sending Error!\n");
         }
     }
