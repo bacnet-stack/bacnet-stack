@@ -1446,11 +1446,14 @@ bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance, uint8_t value)
 {
     bool status = false;
     unsigned index = 0;
+    uint8_t mac_address = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
-            if (value <= 127) {
+            mac_address = Object_List[index].Network.MSTP.MAC_Address;
+            if ((value <= 127) &&
+                ((mac_address > 127) || (mac_address <= value))) {
                 if (Object_List[index].Network.MSTP.Max_Master != value) {
                     Object_List[index].Changes_Pending = true;
                 }

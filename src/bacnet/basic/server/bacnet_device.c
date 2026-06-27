@@ -3336,7 +3336,14 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 if ((value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= 127)) {
-                    dlmstp_set_max_master((uint8_t)value.type.Unsigned_Int);
+                    if ((dlmstp_mac_address() <= 127) &&
+                        (value.type.Unsigned_Int < dlmstp_mac_address())) {
+                        status = false;
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    } else {
+                        dlmstp_set_max_master((uint8_t)value.type.Unsigned_Int);
+                    }
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

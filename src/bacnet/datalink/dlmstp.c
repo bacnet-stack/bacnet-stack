@@ -484,7 +484,9 @@ uint8_t dlmstp_max_info_frames(void)
  */
 void dlmstp_set_max_master(uint8_t max_master)
 {
-    if (max_master <= 127) {
+    if (MSTP_Port && (max_master <= 127) &&
+        ((MSTP_Port->This_Station > 127) ||
+            (MSTP_Port->This_Station <= max_master))) {
         MSTP_Port->Nmax_master = max_master;
     }
 
