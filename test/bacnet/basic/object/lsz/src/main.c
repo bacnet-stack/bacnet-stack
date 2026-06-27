@@ -5,6 +5,7 @@
  * @date 2024
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/bacdevobjpropref.h>
@@ -52,7 +53,7 @@ static int lsz_zone_members_count(
 static bool lsz_zone_members_write(
     uint32_t object_instance,
     const uint8_t *payload,
-    size_t payload_len,
+    int payload_len,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
@@ -65,8 +66,11 @@ static bool lsz_zone_members_write(
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_NO_PRIORITY;
     wp_data.application_data_len = payload_len;
-    if (payload && payload_len) {
+    if (payload && (payload_len > 0) &&
+        (payload_len <= sizeof(wp_data.application_data))) {
         memcpy(wp_data.application_data, payload, payload_len);
+    } else {
+        return false;
     }
     status = Life_Safety_Zone_Write_Property(&wp_data);
     if (error_class) {
