@@ -28,7 +28,7 @@ The git repositories are hosted at the following sites:
   lengths and adding array bounds checks before every write. Added test-only
   shim for bsc_node_parse_urls() to support unit testing. (#1365) (#1369)
 * Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
-  resolving destination slot for property values. (#1366)
+  resolving destination slot for property values. (#1366) (#1409)
 * Secured address_list_encode() function buffer overrun by using
   existing BACnetAddressBinding encoding function for length check
   and refactoring. Added unit test for validation.(#1363)
