@@ -117,8 +117,9 @@ static bool property_list_append(int32_t property_id)
     uint32_t capacity =
         (uint32_t)(sizeof(Property_List) / sizeof(Property_List[0]));
 
-    /* Keep one slot free for the list terminator. */
-    if (Property_List_Index >= (capacity - 1)) {
+    /* Keep one slot free for the list terminator and cap to MAX_PROPS. */
+    if ((Property_List_Index >= (capacity - 1)) ||
+        (Property_List_Index >= MAX_PROPS)) {
         return false;
     }
 
