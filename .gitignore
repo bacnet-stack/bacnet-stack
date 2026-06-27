@@ -114,3 +114,4 @@ apps/piface/libpifacedigital/
 *.vcxproj.user
 .venv/
 .github/prompts
+.agents/
