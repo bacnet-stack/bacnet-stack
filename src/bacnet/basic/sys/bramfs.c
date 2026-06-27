@@ -347,6 +347,9 @@ bool bacfile_ramfs_write_record_data(
     char *record;
     size_t record_len;
     size_t tail_record_len;
+    char *tail_data = NULL;
+    size_t tail_data_len = 0;
+    size_t new_size = 0;
     char fileDataStr[MAX_OCTET_STRING_BYTES + 1] = {
         0
     }; /* +1 for null terminator */
@@ -383,20 +386,35 @@ bool bacfile_ramfs_write_record_data(
             record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
             record_len = bacnet_strnlen(record, MAX_OCTET_STRING_BYTES);
             tail_record_len = pFile->size - (record - pFile->data) - record_len;
+            /* save tail data (excluding old record's null terminator) before
+               realloc (may be lost if buffer shrinks) */
+            tail_data = NULL;
+            tail_data_len = 0;
+            if (tail_record_len > 1) {
+                tail_data_len = tail_record_len - 1;
+                tail_data = malloc(tail_data_len);
+                if (tail_data) {
+                    memcpy(tail_data, record + record_len + 1, tail_data_len);
+                } else {
+                    return false; /* out of memory */
+                }
+            }
             /* reallocate file to make room for new record */
-            record = realloc(
-                pFile->data, pFile->size - record_len + fileDataStrLen + 1);
+            new_size = pFile->size - record_len + fileDataStrLen + 1;
+            record = realloc(pFile->data, new_size);
             if (!record) {
+                free(tail_data);
                 return false; /* out of memory */
             }
             pFile->data = record;
+            pFile->size = new_size;
             /* find the old record position after a realloc */
             record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
-            /* move all existing records after the inserted record */
-            if (tail_record_len > 0) {
-                memmove(
-                    record + fileDataStrLen, record + record_len,
-                    tail_record_len);
+            /* restore tail data to new position (after new record + null
+               terminator) */
+            if (tail_data && tail_data_len > 0) {
+                memmove(record + fileDataStrLen + 1, tail_data, tail_data_len);
+                free(tail_data);
             }
         } else {
             /* extend the file by this one record */

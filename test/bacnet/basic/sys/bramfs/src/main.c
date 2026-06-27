@@ -353,6 +353,76 @@ static void test_BRAMFS_consecutive_appends(void)
 }
 
 /**
+ * @brief Unit Test for record replacement with shorter data (regression test
+ * for stale memmove length causing heap OOB read)
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_record_replace_shorter)
+#else
+static void test_BRAMFS_record_replace_shorter(void)
+#endif
+{
+    const char *pathname = "testfile_replace.txt";
+    bool status = false;
+    char record_1[] = { "Original long record that is quite lengthy." };
+    char record_2[] = { "Keep." };
+    char record_3[] = { "Third record after replacement." };
+    char read_buf[MAX_OCTET_STRING_BYTES] = { 0 };
+    size_t record_len = 0;
+
+    bacfile_ramfs_init();
+
+    /* Write three records */
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_write_record_data(
+        pathname, 0, 0, (const uint8_t *)record_1, record_len);
+    zassert_true(status, "Write record 1 should succeed");
+
+    record_len = bacnet_strnlen(record_2, sizeof(record_2));
+    status = bacfile_ramfs_write_record_data(
+        pathname, -1, 0, (const uint8_t *)record_2, record_len);
+    zassert_true(status, "Write record 2 should succeed");
+
+    record_len = bacnet_strnlen(record_3, sizeof(record_3));
+    status = bacfile_ramfs_write_record_data(
+        pathname, -1, 0, (const uint8_t *)record_3, record_len);
+    zassert_true(status, "Write record 3 should succeed");
+
+    /* Replace first record with much shorter data; tests stale length in
+     * memmove */
+    char short_record[] = { "X" };
+    record_len = bacnet_strnlen(short_record, sizeof(short_record));
+    status = bacfile_ramfs_write_record_data(
+        pathname, 0, 0, (const uint8_t *)short_record, record_len);
+    zassert_true(status, "Replace record 1 with shorter data should succeed");
+
+    /* Verify all records still readable and correct */
+    record_len = bacnet_strnlen(short_record, sizeof(short_record));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 0, (uint8_t *)read_buf, record_len);
+    zassert_true(status, "Read replaced record should succeed");
+    zassert_true(
+        memcmp(read_buf, short_record, record_len) == 0,
+        "Replaced record data match");
+
+    record_len = bacnet_strnlen(record_2, sizeof(record_2));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 1, (uint8_t *)read_buf, record_len);
+    zassert_true(status, "Read record 2 should succeed after replace");
+    zassert_true(
+        memcmp(read_buf, record_2, record_len) == 0, "Record 2 data match");
+
+    record_len = bacnet_strnlen(record_3, sizeof(record_3));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 2, (uint8_t *)read_buf, record_len);
+    zassert_true(status, "Read record 3 should succeed after replace");
+    zassert_true(
+        memcmp(read_buf, record_3, record_len) == 0, "Record 3 data match");
+
+    bacfile_ramfs_deinit();
+}
+
+/**
  * @}
  */
 
@@ -366,7 +436,8 @@ void test_main(void)
         ztest_unit_test(test_BRAMFS_records),
         ztest_unit_test(test_BRAMFS_invalid_stream_positions),
         ztest_unit_test(test_BRAMFS_invalid_record_positions),
-        ztest_unit_test(test_BRAMFS_consecutive_appends));
+        ztest_unit_test(test_BRAMFS_consecutive_appends),
+        ztest_unit_test(test_BRAMFS_record_replace_shorter));
 
     ztest_run_test_suite(bramfs_tests);
 }
