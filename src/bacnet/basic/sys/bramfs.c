@@ -270,20 +270,23 @@ static size_t record_count(const char *records, size_t size)
 {
     size_t count = 0;
     int len = 0;
-    const char *end = records + size;
+    const char *end;
 
-    if (records) {
-        do {
-            if (records >= end) {
-                break;
-            }
-            len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
-            if (len > 0) {
-                count++;
-                records = records + len + 1;
-            }
-        } while (len > 0);
+    if (!records) {
+        return 0;
     }
+    end = records + size;
+
+    do {
+        if (records >= end) {
+            break;
+        }
+        len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
+        if (len > 0) {
+            count++;
+            records = records + len + 1;
+        }
+    } while (len > 0);
 
     return count;
 }
@@ -299,23 +302,26 @@ static char *record_by_index(char *records, size_t index, size_t size)
 {
     size_t count = 0;
     int len = 0;
-    const char *end = records + size;
+    const char *end;
 
-    if (records) {
-        do {
-            if (records >= end) {
-                break;
-            }
-            len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
-            if (len > 0) {
-                if (index == count) {
-                    return records;
-                }
-                count++;
-                records = records + len + 1;
-            }
-        } while (len > 0);
+    if (!records) {
+        return NULL;
     }
+    end = records + size;
+
+    do {
+        if (records >= end) {
+            break;
+        }
+        len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
+        if (len > 0) {
+            if (index == count) {
+                return records;
+            }
+            count++;
+            records = records + len + 1;
+        }
+    } while (len > 0);
 
     return NULL;
 }
