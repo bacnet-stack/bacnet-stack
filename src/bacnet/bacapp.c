@@ -6162,6 +6162,9 @@ int bacapp_device_object_property_value_encode(
     if (value->property_array_index != BACNET_ARRAY_ALL) {
         len = encode_context_unsigned(apdu, 3, value->property_array_index);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
     }
     len = encode_opening_tag(apdu, 4);
     apdu_len += len;
@@ -6263,7 +6266,8 @@ int bacapp_device_object_property_value_decode(
             value->property_array_index = BACNET_ARRAY_ALL;
         }
     }
-    if (bacnet_is_opening_tag_number(apdu, apdu_size, 4, &len)) {
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 4, &len)) {
         /* property-value [4] ABSTRACT-SYNTAX.&Type */
         apdu_len += len;
         if (value) {
@@ -6276,11 +6280,14 @@ int bacapp_device_object_property_value_decode(
         } else {
             return BACNET_STATUS_ERROR;
         }
-        if (bacnet_is_closing_tag_number(apdu, apdu_size, 4, &len)) {
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 4, &len)) {
             apdu_len += len;
         } else {
             return BACNET_STATUS_ERROR;
         }
+    } else {
+        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
