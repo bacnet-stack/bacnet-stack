@@ -941,7 +941,7 @@ ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
             Property_List
                 [(sizeof(Property_List) / sizeof(Property_List[0])) - 1] = -1;
         }
-        assert(Property_List_Length < MAX_PROPS);
+        assert(Property_List_Length <= MAX_PROPS);
         Property_List_Index = 0; /* Will start at top of the list */
         nextState = GET_PROPERTY_REQUEST;
     }
