@@ -301,6 +301,58 @@ static void test_BRAMFS_invalid_record_positions(void)
 }
 
 /**
+ * @brief Unit Test for consecutive record appends (regression test for buffer
+ * overrun)
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_consecutive_appends)
+#else
+static void test_BRAMFS_consecutive_appends(void)
+#endif
+{
+    const char *pathname = "testfile_consecutive.txt";
+    bool status = false;
+    char record_1[] = { "First appended record." };
+    char record_2[] = { "Second appended record." };
+    char read_buf[MAX_OCTET_STRING_BYTES] = { 0 };
+    size_t record_len = 0;
+
+    bacfile_ramfs_init();
+
+    /* Append first record with fileStartRecord = -1 */
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_write_record_data(
+        pathname, -1, 0, (const uint8_t *)record_1, record_len);
+    zassert_true(status, "First append should succeed");
+
+    /* Append second record consecutively with fileStartRecord = -1 */
+    record_len = bacnet_strnlen(record_2, sizeof(record_2));
+    status = bacfile_ramfs_write_record_data(
+        pathname, -1, 0, (const uint8_t *)record_2, record_len);
+    zassert_true(
+        status,
+        "Second consecutive append should succeed (buffer overrun bug)");
+
+    /* Verify both records readable */
+    record_len = bacnet_strnlen(record_1, sizeof(record_1));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 0, (uint8_t *)read_buf, record_len);
+    zassert_true(status, "Read first record should succeed");
+    zassert_true(
+        memcmp(read_buf, record_1, record_len) == 0, "First record data match");
+
+    record_len = bacnet_strnlen(record_2, sizeof(record_2));
+    status = bacfile_ramfs_read_record_data(
+        pathname, 0, 1, (uint8_t *)read_buf, record_len);
+    zassert_true(status, "Read second record should succeed");
+    zassert_true(
+        memcmp(read_buf, record_2, record_len) == 0,
+        "Second record data match");
+
+    bacfile_ramfs_deinit();
+}
+
+/**
  * @}
  */
 
@@ -313,7 +365,8 @@ void test_main(void)
         bramfs_tests, ztest_unit_test(test_BRAMFS_stream),
         ztest_unit_test(test_BRAMFS_records),
         ztest_unit_test(test_BRAMFS_invalid_stream_positions),
-        ztest_unit_test(test_BRAMFS_invalid_record_positions));
+        ztest_unit_test(test_BRAMFS_invalid_record_positions),
+        ztest_unit_test(test_BRAMFS_consecutive_appends));
 
     ztest_run_test_suite(bramfs_tests);
 }
