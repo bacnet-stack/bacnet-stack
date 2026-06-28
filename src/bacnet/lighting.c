@@ -243,6 +243,8 @@ int lighting_command_decode(
                     data->target_level = real_value;
                     data->use_target_level = true;
                 }
+            } else {
+                return BACNET_STATUS_ERROR;
             }
             /* ramp-rate [2] REAL (0.1..100.0) OPTIONAL */
             len = bacnet_real_context_decode(
