@@ -131,6 +131,10 @@ bool bacfile_ramfs_file_size_set(const char *pathname, size_t new_size)
         if (new_size > 0) {
             new_data = realloc(pFile->data, new_size);
             if (new_data) {
+                /* zero the new memory to avoid leaking sensitive data */
+                if (new_size > pFile->size) {
+                    memset(new_data + pFile->size, 0, new_size - pFile->size);
+                }
                 pFile->data = new_data;
                 pFile->size = new_size;
                 status = true;
