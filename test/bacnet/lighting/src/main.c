@@ -312,11 +312,11 @@ static void testBACnetLightingCommandBoundsCheck(void)
         for (trunc_pos = 1; trunc_pos < enc_len; trunc_pos++) {
             decode_result =
                 lighting_command_decode(apdu_trunc, trunc_pos, &decoded);
-            /* Truncated buffer must return error, not read past bound */
+            /* Decoder must not report consuming more bytes than provided */
             zassert_true(
-                decode_result <= 0 || decode_result != enc_len,
-                "Op %u: truncated to %u bytes should not decode as success",
-                test_cases[i].operation, trunc_pos);
+                decode_result <= 0 || decode_result <= (int)trunc_pos,
+                "Op %u: truncated to %u bytes returned decode_result %d",
+                test_cases[i].operation, trunc_pos, decode_result);
         }
 
         /* Valid decode with full buffer */
