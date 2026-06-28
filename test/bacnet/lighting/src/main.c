@@ -292,7 +292,8 @@ static void testBACnetLightingCommandBoundsCheck(void)
         { BACNET_LIGHTS_WARN, false, false, false, false, true, 0.0, 0.0, 0.0,
           0, 1 },
     };
-    unsigned i, enc_len, trunc_pos;
+    unsigned i, trunc_pos;
+    int enc_len;
     uint8_t apdu_full[MAX_APDU] = { 0 };
     uint8_t apdu_trunc[MAX_APDU] = { 0 };
     int decode_result;
@@ -305,7 +306,7 @@ static void testBACnetLightingCommandBoundsCheck(void)
             enc_len > 0, "Failed encode operation %u", test_cases[i].operation);
 
         /* Copy full buffer */
-        memcpy(apdu_trunc, apdu_full, enc_len);
+        memcpy(apdu_trunc, apdu_full, (size_t)enc_len);
 
         /* Test: Progressively truncate buffer, should return error */
         for (trunc_pos = 1; trunc_pos < enc_len; trunc_pos++) {
