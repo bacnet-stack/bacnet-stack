@@ -8,6 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacdef.h>
 #include <bacnet/bactext.h>
@@ -264,6 +265,67 @@ static void testBACnetXYColor(void)
     }
 }
 
+/**
+ * @brief Test bounds checking for lighting_command_decode
+ * Validates fix for CWE-125 out-of-bounds read.
+ * Old code passed apdu_size instead of (apdu_size - apdu_len) to nested
+ * decoders, causing them to read past buffer when operation field advanced the
+ * pointer.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_tests, testBACnetLightingCommandBoundsCheck)
+#else
+static void testBACnetLightingCommandBoundsCheck(void)
+#endif
+{
+    BACNET_LIGHTING_COMMAND test_cases[] = {
+        /* FADE_TO with optional fade_time and priority */
+        { BACNET_LIGHTS_FADE_TO, true, false, false, true, true, 50.0, 0.0, 0.0,
+          5000, 8 },
+        /* RAMP_TO with optional ramp_rate and priority */
+        { BACNET_LIGHTS_RAMP_TO, true, true, false, false, true, 25.0, 10.0,
+          0.0, 0, 5 },
+        /* STEP_UP with optional step_increment and priority */
+        { BACNET_LIGHTS_STEP_UP, false, false, true, false, true, 0.0, 0.0, 5.0,
+          0, 12 },
+        /* WARN with optional priority */
+        { BACNET_LIGHTS_WARN, false, false, false, false, true, 0.0, 0.0, 0.0,
+          0, 1 },
+    };
+    unsigned i, enc_len, trunc_pos;
+    uint8_t apdu_full[MAX_APDU] = { 0 };
+    uint8_t apdu_trunc[MAX_APDU] = { 0 };
+    int decode_result;
+    BACNET_LIGHTING_COMMAND decoded = { 0 };
+
+    for (i = 0; i < ARRAY_SIZE(test_cases); i++) {
+        /* Encode full valid message */
+        enc_len = lighting_command_encode(apdu_full, &test_cases[i]);
+        zassert_true(
+            enc_len > 0, "Failed encode operation %u", test_cases[i].operation);
+
+        /* Copy full buffer */
+        memcpy(apdu_trunc, apdu_full, enc_len);
+
+        /* Test: Progressively truncate buffer, should return error */
+        for (trunc_pos = 1; trunc_pos < enc_len; trunc_pos++) {
+            decode_result =
+                lighting_command_decode(apdu_trunc, trunc_pos, &decoded);
+            /* Truncated buffer must return error, not read past bound */
+            zassert_true(
+                decode_result <= 0 || decode_result != enc_len,
+                "Op %u: truncated to %u bytes should not decode as success",
+                test_cases[i].operation, trunc_pos);
+        }
+
+        /* Valid decode with full buffer */
+        decode_result = lighting_command_decode(apdu_full, enc_len, &decoded);
+        zassert_equal(
+            decode_result, enc_len, "Op %u: full buffer decode failed",
+            test_cases[i].operation);
+    }
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(lighting_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -272,7 +334,8 @@ void test_main(void)
     ztest_test_suite(
         lighting_tests, ztest_unit_test(testBACnetLightingCommandAll),
         ztest_unit_test(testBACnetColorCommandAll),
-        ztest_unit_test(testBACnetXYColor));
+        ztest_unit_test(testBACnetXYColor),
+        ztest_unit_test(testBACnetLightingCommandBoundsCheck));
 
     ztest_run_test_suite(lighting_tests);
 }

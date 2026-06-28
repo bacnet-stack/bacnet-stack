@@ -192,53 +192,51 @@ int lighting_command_decode(
         case BACNET_LIGHTS_NONE:
             break;
         case BACNET_LIGHTS_FADE_TO:
-            if ((apdu_size - apdu_len) == 0) {
-                return BACNET_STATUS_REJECT;
-            }
-            /* target-level [1] REAL (0.0..100.0) OPTIONAL */
+            /* target-level [1] REAL (0.0..100.0) */
             len = bacnet_real_context_decode(
-                &apdu[apdu_len], apdu_size, 1, &real_value);
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &real_value);
             if (len > 0) {
                 apdu_len += len;
                 if (data) {
                     data->target_level = real_value;
                     data->use_target_level = true;
                 }
+            } else {
+                return BACNET_STATUS_ERROR;
             }
-            if ((apdu_size - apdu_len) > 0) {
-                /* Tag 4: fade-time - OPTIONAL */
-                len = bacnet_unsigned_context_decode(
-                    &apdu[apdu_len], apdu_size, 4, &unsigned_value);
-                if (len > 0) {
-                    apdu_len += len;
-                    if (data) {
-                        data->fade_time = (uint32_t)unsigned_value;
-                        data->use_fade_time = true;
-                    }
-                } else {
-                    return BACNET_STATUS_ERROR;
+            /* Tag 4: fade-time - OPTIONAL */
+            len = bacnet_unsigned_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 4, &unsigned_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->fade_time = (uint32_t)unsigned_value;
+                    data->use_fade_time = true;
                 }
+            } else if (len == 0) {
+                /* fade-time is optional, so do nothing */
+            } else {
+                return BACNET_STATUS_ERROR;
             }
-            if ((apdu_size - apdu_len) > 0) {
-                /* priority [5] Unsigned (1..16) OPTIONAL */
-                len = bacnet_unsigned_context_decode(
-                    &apdu[apdu_len], apdu_size, 5, &unsigned_value);
-                if (len > 0) {
-                    apdu_len += len;
-                    if (data) {
-                        data->priority = (uint8_t)unsigned_value;
-                        data->use_priority = true;
-                    }
+            /* priority [5] Unsigned (1..16) OPTIONAL */
+            len = bacnet_unsigned_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 5, &unsigned_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->priority = (uint8_t)unsigned_value;
+                    data->use_priority = true;
                 }
+            } else if (len == 0) {
+                /* priority is optional, so do nothing */
+            } else {
+                return BACNET_STATUS_ERROR;
             }
             break;
         case BACNET_LIGHTS_RAMP_TO:
-            if ((apdu_size - apdu_len) == 0) {
-                return BACNET_STATUS_REJECT;
-            }
-            /* target-level [1] REAL (0.0..100.0) OPTIONAL */
+            /* target-level [1] REAL (0.0..100.0) */
             len = bacnet_real_context_decode(
-                &apdu[apdu_len], apdu_size, 1, &real_value);
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &real_value);
             if (len > 0) {
                 apdu_len += len;
                 if (data) {
@@ -246,75 +244,85 @@ int lighting_command_decode(
                     data->use_target_level = true;
                 }
             }
-            if ((apdu_size - apdu_len) > 0) {
-                /* ramp-rate [2] REAL (0.1..100.0) OPTIONAL */
-                len = bacnet_real_context_decode(
-                    &apdu[apdu_len], apdu_size, 2, &real_value);
-                if (len > 0) {
-                    apdu_len += len;
-                    if (data) {
-                        data->ramp_rate = real_value;
-                        data->use_ramp_rate = true;
-                    }
+            /* ramp-rate [2] REAL (0.1..100.0) OPTIONAL */
+            len = bacnet_real_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 2, &real_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->ramp_rate = real_value;
+                    data->use_ramp_rate = true;
                 }
+            } else if (len == 0) {
+                /* ramp-rate is optional, so do nothing */
+            } else {
+                return BACNET_STATUS_ERROR;
             }
-            if ((apdu_size - apdu_len) > 0) {
-                /* priority [5] Unsigned (1..16) OPTIONAL */
-                len = bacnet_unsigned_context_decode(
-                    &apdu[apdu_len], apdu_size, 5, &unsigned_value);
-                if (len > 0) {
-                    apdu_len += len;
-                    if (data) {
-                        data->priority = (uint8_t)unsigned_value;
-                        data->use_priority = true;
-                    }
+            /* priority [5] Unsigned (1..16) OPTIONAL */
+            len = bacnet_unsigned_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 5, &unsigned_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->priority = (uint8_t)unsigned_value;
+                    data->use_priority = true;
                 }
+            } else if (len == 0) {
+                /* priority is optional, so do nothing */
+            } else {
+                return BACNET_STATUS_ERROR;
             }
             break;
         case BACNET_LIGHTS_STEP_UP:
         case BACNET_LIGHTS_STEP_DOWN:
         case BACNET_LIGHTS_STEP_ON:
         case BACNET_LIGHTS_STEP_OFF:
-            if ((apdu_size - apdu_len) > 0) {
-                /* step-increment [3] REAL (0.1..100.0) OPTIONAL */
-                len = bacnet_real_context_decode(
-                    &apdu[apdu_len], apdu_size, 3, &real_value);
-                if (len > 0) {
-                    apdu_len += len;
-                    if (data) {
-                        data->step_increment = real_value;
-                        data->use_step_increment = true;
-                    }
+            /* step-increment [3] REAL (0.1..100.0) OPTIONAL */
+            len = bacnet_real_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 3, &real_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->step_increment = real_value;
+                    data->use_step_increment = true;
                 }
+            } else if (len == 0) {
+                /* step-increment is optional, so do nothing */
+            } else {
+                return BACNET_STATUS_ERROR;
             }
-            if ((apdu_size - apdu_len) > 0) {
-                /* priority [5] Unsigned (1..16) OPTIONAL */
-                len = bacnet_unsigned_context_decode(
-                    &apdu[apdu_len], apdu_size, 5, &unsigned_value);
-                if (len > 0) {
-                    apdu_len += len;
-                    if (data) {
-                        data->priority = (uint8_t)unsigned_value;
-                        data->use_priority = true;
-                    }
+            /* priority [5] Unsigned (1..16) OPTIONAL */
+            len = bacnet_unsigned_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 5, &unsigned_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->priority = (uint8_t)unsigned_value;
+                    data->use_priority = true;
                 }
+            } else if (len == 0) {
+                /* priority is optional, so do nothing */
+            } else {
+                return BACNET_STATUS_ERROR;
             }
             break;
         case BACNET_LIGHTS_WARN:
         case BACNET_LIGHTS_WARN_OFF:
         case BACNET_LIGHTS_WARN_RELINQUISH:
         case BACNET_LIGHTS_STOP:
-            if ((apdu_size - apdu_len) > 0) {
-                /* priority [5] Unsigned (1..16) OPTIONAL */
-                len = bacnet_unsigned_context_decode(
-                    &apdu[apdu_len], apdu_size, 5, &unsigned_value);
-                if (len > 0) {
-                    apdu_len += len;
-                    if (data) {
-                        data->priority = (uint8_t)unsigned_value;
-                        data->use_priority = true;
-                    }
+            /* priority [5] Unsigned (1..16) OPTIONAL */
+            len = bacnet_unsigned_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 5, &unsigned_value);
+            if (len > 0) {
+                apdu_len += len;
+                if (data) {
+                    data->priority = (uint8_t)unsigned_value;
+                    data->use_priority = true;
                 }
+            } else if (len == 0) {
+                /* priority is optional, so do nothing */
+            } else {
+                return BACNET_STATUS_ERROR;
             }
             break;
         default:
