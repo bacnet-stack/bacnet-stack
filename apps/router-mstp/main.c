@@ -779,6 +779,45 @@ static void routed_src_address(
 }
 
 /**
+ * @brief Encode a routed APDU into the provided PDU buffer.
+ * @param pdu [out] The buffer to hold the encoded PDU.
+ * @param dest [in] The destination BACNET_ADDRESS.
+ * @param src [in] The source BACNET_ADDRESS.
+ * @param npdu [in] The NPDU data to encode.
+ * @param apdu [in] The APDU data to encode.
+ * @param apdu_len [in] The length of the APDU data.
+ * @return The total length of the encoded PDU, or 0 on error.
+ */
+static int routed_npdu_apdu_encode(
+    uint8_t *pdu,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    const BACNET_NPDU_DATA *npdu,
+    uint8_t *apdu,
+    uint16_t apdu_len)
+{
+    int npdu_len = 0;
+
+    npdu_len = npdu_encode_pdu(pdu, dest, src, npdu);
+    if (npdu_len <= 0) {
+        return 0;
+    }
+    if ((npdu_len + apdu_len) > sizeof(Tx_Buffer)) {
+        /* can't send, message too big */
+        log_printf(
+            "Dropping oversized routed APDU: "
+            "npdu_len=%d apdu_len=%u tx=%lu\n",
+            npdu_len, (unsigned)apdu_len, (unsigned long)sizeof(Tx_Buffer));
+        return 0;
+    }
+    if (apdu && (apdu_len > 0)) {
+        memmove(&pdu[npdu_len], apdu, apdu_len);
+    }
+
+    return npdu_len + apdu_len;
+}
+
+/**
  * If a BACnet NPDU is received with NPCI indicating that the message
  * should be relayed by virtue of the presence of a non-broadcast
  * DNET, the router shall search its routing table for the indicated
@@ -829,19 +868,19 @@ static void routed_apdu_handler(
         npdu->hop_count--;
         routed_src_address(&router_src, snet, src);
         /* encode both source and destination for broadcast */
-        npdu_len =
-            npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
-        memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-        /* send to my other ports */
-        log_printf("Routing a BROADCAST from %u\n", (unsigned)snet);
-        port = Router_Table_Head;
-        while (port != NULL) {
-            if (port->net != snet) {
-                datalink_send_pdu(
-                    port->net, &local_dest, npdu, &Tx_Buffer[0],
-                    npdu_len + apdu_len);
+        npdu_len = routed_npdu_apdu_encode(
+            &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
+        if (npdu_len > 0) {
+            /* send to my other ports */
+            log_printf("Routing a BROADCAST from %u\n", (unsigned)snet);
+            port = Router_Table_Head;
+            while (port != NULL) {
+                if (port->net != snet) {
+                    datalink_send_pdu(
+                        port->net, &local_dest, npdu, &Tx_Buffer[0], npdu_len);
+                }
+                port = port->next;
             }
-            port = port->next;
         }
         return;
     }
@@ -862,12 +901,12 @@ static void routed_apdu_handler(
             local_dest.net = 0;
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            npdu_len =
-                npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
-            memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-            datalink_send_pdu(
-                port->net, &local_dest, npdu, &Tx_Buffer[0],
-                npdu_len + apdu_len);
+            npdu_len = routed_npdu_apdu_encode(
+                &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
+            if (npdu_len > 0) {
+                datalink_send_pdu(
+                    port->net, &local_dest, npdu, &Tx_Buffer[0], npdu_len);
+            }
         } else {
             log_printf(
                 "Routing to another Router %u\n", (unsigned)remote_dest.net);
@@ -880,12 +919,12 @@ static void routed_apdu_handler(
                 discarded. */
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            npdu_len =
-                npdu_encode_pdu(&Tx_Buffer[0], &remote_dest, &router_src, npdu);
-            memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-            datalink_send_pdu(
-                port->net, &remote_dest, npdu, &Tx_Buffer[0],
-                npdu_len + apdu_len);
+            npdu_len = routed_npdu_apdu_encode(
+                &Tx_Buffer[0], &remote_dest, &router_src, npdu, apdu, apdu_len);
+            if (npdu_len > 0) {
+                datalink_send_pdu(
+                    port->net, &remote_dest, npdu, &Tx_Buffer[0], npdu_len);
+            }
         }
     } else if (dest->net) {
         log_printf("Routing to Unknown Route %u\n", (unsigned)dest->net);
@@ -894,16 +933,18 @@ static void routed_apdu_handler(
         npdu->hop_count--;
         /* encode both source and destination */
         routed_src_address(&router_src, snet, src);
-        npdu_len = npdu_encode_pdu(&Tx_Buffer[0], dest, &router_src, npdu);
-        memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-        /* send to all other ports */
-        port = Router_Table_Head;
-        while (port != NULL) {
-            if (port->net != snet) {
-                datalink_send_pdu(
-                    port->net, dest, npdu, &Tx_Buffer[0], npdu_len + apdu_len);
+        npdu_len = routed_npdu_apdu_encode(
+            &Tx_Buffer[0], dest, &router_src, npdu, apdu, apdu_len);
+        if (npdu_len > 0) {
+            /* send to all other ports */
+            port = Router_Table_Head;
+            while (port != NULL) {
+                if (port->net != snet) {
+                    datalink_send_pdu(
+                        port->net, dest, npdu, &Tx_Buffer[0], npdu_len);
+                }
+                port = port->next;
             }
-            port = port->next;
         }
         /*  If the next router is unknown, an attempt shall be made to
             identify it using a Who-Is-Router-To-Network message. */
@@ -930,12 +971,20 @@ static void my_routing_npdu_handler(
     uint16_t snet, BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
 {
     int apdu_offset = 0;
+    unsigned protocol_version = 0;
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
     if (!pdu) {
         /* no packet */
-    } else if (pdu[0] == BACNET_PROTOCOL_VERSION) {
+        return;
+    }
+    if (pdu_len == 0) {
+        /* empty packet */
+        return;
+    }
+    protocol_version = pdu[0];
+    if (protocol_version == BACNET_PROTOCOL_VERSION) {
         apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
             fprintf(stderr, "NPDU: Decoding failed; Discarded!\n");

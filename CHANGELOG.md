@@ -16,6 +16,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured apps/router-mstp and apps/router-ipv6 routing, introducing
+  routed_npdu_apdu_encode() with an explicit oversized-PDU drop check.
+  Fixed protocol-version access. (#1392)
 * Secured the network control handler in the router-ipv6 and router-mstp apps
   to ensure proper offset calculation and prevent buffer overrun. (#1387)
 * Secured the basic device object which had a expired stack frame
