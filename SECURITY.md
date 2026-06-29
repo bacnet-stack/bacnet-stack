@@ -23,9 +23,31 @@ currently being supported with security updates.
 ## Coordinated Vulnerability Disclosure
 
 Vulnerabilites are disclosed to [CVE](https://www.cve.org/)
-or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state=published)
+or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
-cybersecurity vulnerabilities. Here are the published vulnerability records:
+cybersecurity vulnerabilities.
+
+### Draft advisories (unpublished) for Unreleased Versions
+
+Out-of-bounds read in lighting_command_decode (full APDU size passed to nested tag decoders)
+[GHSA-9hq3-w3pc-8385](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9hq3-w3pc-8385).
+Status: Draft advisory.
+
+WriteProperty(File_Size) can bypass read-only protection and expose uninitialized RAMFS tail bytes through AtomicReadFile
+[GHSA-mwj7-2v5r-v934](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mwj7-2v5r-v934).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+
+Replacing a RAMFS record with a shorter one via AtomicWriteFile(record-access) can trigger a heap out-of-bounds read
+[GHSA-cf8g-hp9m-9fvv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cf8g-hp9m-9fvv).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+
+Consecutive AtomicWriteFile(record-access) appends can trigger a heap out-of-bounds read in the RAMFS file backend
+[GHSA-32jj-x86x-w98w](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-32jj-x86x-w98w).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+
+Remote unauthenticated DoS in Life_Safety_Zone PROP_ZONE_MEMBERS WriteProperty parsing
+[GHSA-2c8x-f46r-8phh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2c8x-f46r-8phh).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
 
 Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
 [GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
@@ -43,7 +65,7 @@ Pre-auth OOB read in xy_color_decode (BACnetXYColor) via WriteGroup/WritePropert
 [GHSA-mmg6-p4pr-cj6h](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mmg6-p4pr-cj6h).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 
-[CVE-2026-52790](https://www.cve.org/CVERecord?id=CVE-2026-CVE-2026-52790) -
+[CVE-2026-52790](https://www.cve.org/CVERecord?id=CVE-2026-52790) -
 bacnet_device.c stack-use-after-return in writable Device string properties
 [GHSA-jr7p-rm2x-739x](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jr7p-rm2x-739x).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
@@ -132,6 +154,8 @@ Patched versions: 1.4.4, 1.5.1, 1.6.0
 Atomic-Read-File RecordCount Stack-Based Out-of-Bounds Write
 [GHSA-v3gx-mwrp-xvh5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-v3gx-mwrp-xvh5)
 Patched versions: 1.4.4, 1.5.1, 1.6.0
+
+### Published advisories for Released Versions
 
 [CVE-2026-40279](https://www.cve.org/CVERecord?id=CVE-2026-40279) -
 Undefined-behavior signed left shift in `decode_signed32()`
