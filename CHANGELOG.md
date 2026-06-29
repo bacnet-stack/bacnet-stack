@@ -13,10 +13,41 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-05-29
+## [Unreleased] - 2026-06-29
 
 ### Security
 
+* Secured lighting_command_decode out-of-bounds read, and enforce the
+  FADE_TO and RAMP_TO required levels. (#1412)
+* Secure SCFailedConnectionRequest and SCDirectConnection decoder by
+  adjusting the apdu size calculation. (#1413)
+* Secured RAMFS by checking read-only property for file size setting
+  and zero new memory during realloc to prevent data leaking. (#1411)
+* Secured EPICs app property list management by adding append function. (#1409)
+* Secured Life Safety Zone member handling for write property. (#1410)
+* Secured the basic RAMFS to prevent buffer overrun during consecutive
+  record appends and prevent heap out-of-bounds read during record
+  replacement. (#1408)
+* Secured rpm_ack_decode_service_request buffer overflow by validating data
+  length and remaining bytes. Added unit tests for
+  handler_read_property_multiple_ack decoder paths. (#1395)
+* Secured BACnet/SC short proprietary option headers using BVLC-SC option
+  header validation and rejecting proprietary options with hdr_len < 3
+  (minimum vendor-id + option-type). Made proprietary option decode
+  initialize outputs and only read vendor-id/option-type when hdr_len >= 3.
+  Added a regression test that injects a malformed proprietary option
+  and asserts decode fails with ERROR_CODE_HEADER_ENCODING_ERROR. (#1396)
+* Secured apps/router-mstp and apps/router-ipv6 routing, introducing
+  routed_npdu_apdu_encode() with an explicit oversized-PDU drop check.
+  Fixed protocol-version access (avoid reading pdu[0] when pdu_len == 0).
+  Refactored logging in router applications to use debug_log_fprintf
+  for consistent debug output. Refactored the router apps to use the
+  bactext_debug_severity_strtol() for the BACNET_ROUTER_DEBUG environment
+  variable. (#1392)
+* Secured the network control handler in the router-ipv6 and router-mstp apps
+  to ensure proper offset calculation and prevent buffer overrun. (#1387)
+* Secured xy_color_decode() by adjusting apdu_size calculation to prevent
+  out-of-bounds read. (#1386)
 * Secured the basic device object which had a string use after free.
   Added character string buffer stndup and same/diff functions.
   Changed all the device object character string handling to use
@@ -66,6 +97,16 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added .github/prompts to .gitignore
+* Add debug severity handling with ASCII string conversion functions into
+  bactext module. Changed all the example apps to use the
+  bactext_debug_severity_strtol() function for the "--debug" command
+  line argument. (#1393)
+* Added Lighting_Output_Overridden_Ramp function. (#1389)
+* Added a lighting command override ramp function. Refactored the lighting
+  commands to prevent them from meddling with tracking values and lighting
+  operations while the light is overridden. (#1388)
+* Added BACNET_DEFINES variable to CMake build. (#1384)
 * Added BACnet/SC (BSC) datalink support to the modbus-gateway application.
   Extended GW_CONFIG with sc sub-struct holding all BACNET_SC_* fields, and
   added compile-time fallback: non-BSC binary + "bsc" JSON → warns and falls
@@ -115,6 +156,32 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the GTK discover app to refresh objects quickly. Fixed object
+  tree view to update a single row in place, preserving the selection.
+  Implemented property value editing with Enter key commit control for
+  WriteProperty. Refactored main window layout and default window size
+  and column spacing constants for better usability. Removed REFRESH
+  button. (#1390)
+* Changed compiler warnings to be stricter and remove unnecessary suppressions.
+  Apply const correctness across multiple files, including datalink interface
+  name parameters across multiple files. Apply const qualifications to the
+  character buffer string functions. Apply const correctness to string
+  parameters in bacapp.c and bacapp.h. Revise parsing of const strings using
+  bacnet_stptok() to tokenize. Add bacnet_strncpy to ensure null-terminated
+  partial string copying. Replace strncpy with bacnet_strncpy for safer string
+  copying in modbus_rtu and point_table modules. Fixed file compile warnings
+  where the "no previous declaration" is being generated. Fixed floating-point
+  arithmetic by adding type casts for clarity, including a changing
+  color_rgb_clamp to use float instead of double to fix compiler float
+  conversion warnings. Refactor hostname validation and encoding functions
+  for const correctness and improved string handling.
+  Renamed routed_get_my_address to Routed_Device_Get_My_Address and
+  update references for consistency with BAC_ROUTING.
+  Refactor Ringbuf functions to remove unnecessary volatile qualifiers
+  and casting to improve type safety. Use cast to uintptr_t for specific
+  casting to const where appropriate. Enable additional compiler warnings
+  in unit tests and treat them as errors to enforce clean builds.
+  Add parse_primitive_value function to handle primitive data parsing. (#1385)
 * Changed debug_print to debug_log_fprintf in ReadRange handler. (#1303)
 * Changed logging in many modules to use debug_log_fprintf for consistent
   error and debug output that can be adjusted during runtime. (#1364)
@@ -150,6 +217,17 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed out-of-bounds write in Read Property ACK closing tag encoding. (#1407)
+* Fixed AV COV change on out-of-service writes by marking them. (#1406)
+* Fixed GetEventInformation service choice in error reply. (#1405)
+* Fixed device object property value codec by  advancing cursor. (#1404)
+* Fixed Recipient_List decode by advancing the cursor for list elements. (#1402)
+* Fixed GetAlarmSummary to accept empty request. (#1401)
+* Fixed Binary_Lighting_Output_Create to initialize Time_Of_Active_Time_Reset
+  and Time_Of_Strike_Count_Reset using datetime_wildcard_set.
+* Fixed access credential object initialization to use datetime_wildcard_set
+  for activation and expiration times.
+* Fixed C89 build warnings from modbus gateway application. (#1383)
 * Fixed ReadRange service request to reject for missing mandatory parameters
   in Read Range request. (#1303)
 * Fixed BACnet/SC primary hub reconnection logic when connected to failover
@@ -204,6 +282,8 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Remove unnecessary LEGACY=true flag from build commands in Makefile,
+ workflows, and scripts. (#1383)
 * Removed unmaintained ports/uip, ports/arduino_uno, ports/pic18*,
   and ports/rx62n folders and references. (#1324)
 
