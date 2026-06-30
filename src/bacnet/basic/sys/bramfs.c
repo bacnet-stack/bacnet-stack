@@ -13,6 +13,7 @@
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/datalink/cobs.h"
@@ -385,7 +386,7 @@ bool bacfile_ramfs_write_record_data(
             return false;
         }
         /* sanitize the incoming record; assume from an octetstring */
-        fileDataStrLen = min(fileDataLen, MAX_OCTET_STRING_BYTES);
+        fileDataStrLen = BACNET_MIN(fileDataLen, MAX_OCTET_STRING_BYTES);
         memcpy(fileDataStr, fileData, fileDataStrLen);
         fileDataStr[fileDataStrLen] = 0; /* null-terminate */
         if (fileDataStrLen == 0) {

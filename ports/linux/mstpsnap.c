@@ -14,8 +14,9 @@
 #/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/bytes.h"
+#include "bacnet/basic/sys/compare.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
@@ -28,11 +29,6 @@
 
 /** @file linux/mstpsnap.c  Example application testing BACnet MS/TP on Linux.
  */
-
-#ifndef max
-#define max(a, b) (((a)(b)) ? (a) : (b))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
 
 /* local port data - shared with RS-485 */
 static struct mstp_port_struct_t MSTP_Port;
@@ -177,7 +173,8 @@ snap_received_packet(const struct mstp_port_struct_t *mstp_port, int sockfd)
     mtu[30] = mstp_port->HeaderCRCActual;
     mtu_len = 31;
     if (mstp_port->DataLength) {
-        max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+        max_data =
+            BACNET_MIN(mstp_port->InputBufferSize, mstp_port->DataLength);
         for (i = 0; i < max_data; i++) {
             mtu[31 + i] = mstp_port->InputBuffer[i];
         }
