@@ -19,6 +19,7 @@
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/npdu.h"
+#include "bacnet/basic/sys/compare.h"
 /* port specific */
 #include "rs485.h"
 
@@ -533,7 +534,8 @@ bool dlmstp_init(const char *ifname)
     if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
         fprintf(stderr, "Failed to set timer resolution\n");
     }
-    TimeBeginPeriod = min(max(tc.wPeriodMin, TARGET_RESOLUTION), tc.wPeriodMax);
+    TimeBeginPeriod =
+        BACNET_CLAMP(tc.wPeriodMin, TARGET_RESOLUTION, tc.wPeriodMax);
     timeBeginPeriod(TimeBeginPeriod);
 
     /* start the threads */

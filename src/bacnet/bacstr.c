@@ -20,6 +20,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/bacstr.h"
 
 #ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
@@ -246,7 +247,7 @@ bool bitstring_set_bits_used(
 unsigned bitstring_bits_capacity(const BACNET_BIT_STRING *bit_string)
 {
     if (bit_string) {
-        return min((MAX_BITSTRING_BYTES * 8), (UINT8_MAX + 1));
+        return BACNET_MIN((MAX_BITSTRING_BYTES * 8), (UINT8_MAX + 1));
     } else {
         return 0;
     }

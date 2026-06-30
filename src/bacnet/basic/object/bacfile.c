@@ -26,6 +26,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/tsm/tsm.h"
 /* BACnet Stack Objects */
@@ -1098,7 +1099,7 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
         return false;
     }
     max_records =
-        min(data->type.record.RecordCount, ARRAY_SIZE(data->fileData));
+        BACNET_MIN(data->type.record.RecordCount, ARRAY_SIZE(data->fileData));
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
@@ -1192,8 +1193,8 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
         /* if the file is read-only, then we cannot write to it */
         return false;
     }
-    max_records =
-        min(data->type.record.returnedRecordCount, ARRAY_SIZE(data->fileData));
+    max_records = BACNET_MIN(
+        data->type.record.returnedRecordCount, ARRAY_SIZE(data->fileData));
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;

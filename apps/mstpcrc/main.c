@@ -23,11 +23,6 @@
 /* OS specific include*/
 #include "bacport.h"
 
-#ifndef max
-#define max(a, b) (((a)(b)) ? (a) : (b))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
-
 /* buffer needed by CRC functions */
 static uint8_t CRC_Buffer[1512];
 static unsigned CRC_Buffer_Len = 0;

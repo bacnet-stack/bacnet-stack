@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include "bacnet/hostnport.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/basic/sys/compare.h"
 
 /**
  * @brief Encode the BACnetHostAddress CHOICE
@@ -726,7 +727,7 @@ void host_n_port_minimal_ip_init(
 
     if (host) {
         host->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
-        imax = min(address_len, sizeof(host->host.ip_address.address));
+        imax = BACNET_MIN(address_len, sizeof(host->host.ip_address.address));
         host->host.ip_address.length = imax;
         if (address) {
             for (i = 0; i < imax; i++) {
@@ -872,7 +873,8 @@ bool host_n_port_to_minimal(
             dst->tag = BACNET_HOST_ADDRESS_TAG_IP_ADDRESS;
             dst->host.ip_address.length = octetstring_copy_value(
                 dst->host.ip_address.address,
-                min(sizeof(dst->host.ip_address.address),
+                BACNET_MIN(
+                    sizeof(dst->host.ip_address.address),
                     src->host.ip_address.length),
                 &src->host.ip_address);
         } else if (src->host_name) {

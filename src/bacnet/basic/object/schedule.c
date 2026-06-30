@@ -15,6 +15,7 @@
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/object/schedule.h"
@@ -655,7 +656,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-            imax = min(
+            imax = BACNET_MIN(
                 CurrentSC->obj_prop_ref_cnt, BACNET_SCHEDULE_OBJ_PROP_REF_SIZE);
             for (i = 0; i < imax; i++) {
                 apdu_len += bacapp_encode_device_obj_property_ref(
@@ -729,9 +730,9 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
             len = bacnet_dailyschedule_context_decode(
                 application_data, application_data_len, 0, &daily_schedule);
             if (len > 0) {
-                tv_size =
-                    min(daily_schedule.TV_Count,
-                        BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE);
+                tv_size = BACNET_MIN(
+                    daily_schedule.TV_Count,
+                    BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE);
                 for (tv = 0; tv < tv_size; tv++) {
                     /* copy the time value */
                     memcpy(
