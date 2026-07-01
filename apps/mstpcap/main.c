@@ -21,6 +21,7 @@
 #include "bacnet/bacstr.h"
 /* basic datalink, timer, and filename */
 #include "bacnet/datalink/dlmstp.h"
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstptext.h"
@@ -31,23 +32,6 @@
 
 /* define our Data Link Type for libPCAP */
 #define DLT_BACNET_MS_TP (165)
-/* local min/max macros */
-#ifndef max
-#define max(a, b)               \
-    ({                          \
-        __typeof__(a) _a = (a); \
-        __typeof__(b) _b = (b); \
-        _a > _b ? _a : _b;      \
-    })
-
-#define min(a, b)               \
-    ({                          \
-        __typeof__(a) _a = (a); \
-        __typeof__(b) _b = (b); \
-        _a < _b ? _a : _b;      \
-    })
-#endif
-
 #define MSTP_HEADER_MAX (2 + 1 + 1 + 1 + 2 + 1)
 
 /* local port data - shared with RS-485 */
@@ -635,7 +619,7 @@ write_received_packet(struct mstp_port_struct_t *mstp_port, size_t header_len)
     (void)data_write(&ts_usec, sizeof(ts_usec), 1);
     if (mstp_port->ReceivedInvalidFrame) {
         if (mstp_port->Index) {
-            max_data = min(mstp_port->InputBufferSize, mstp_port->Index);
+            max_data = BACNET_MIN(mstp_port->InputBufferSize, mstp_port->Index);
             if ((mstp_port->DataLength > 0) &&
                 (mstp_port->Index == (mstp_port->DataLength + 1))) {
                 /* case where index is not incremented for CRC2,
@@ -649,7 +633,8 @@ write_received_packet(struct mstp_port_struct_t *mstp_port, size_t header_len)
         }
     } else {
         if (mstp_port->DataLength) {
-            max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+            max_data =
+                BACNET_MIN(mstp_port->InputBufferSize, mstp_port->DataLength);
             incl_len = orig_len = header_len + max_data + data_crc_len;
         } else {
             /* header only - or at least some bytes of the header */
