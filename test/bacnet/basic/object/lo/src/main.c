@@ -900,7 +900,9 @@ static void testLightingOutputCommandCallback(void)
     zassert_true(
         is_float_equal(Test_Lighting_Command_Target_Value, 50.0f),
         "Target value should be 50.0");
-    zassert_equal(Test_Lighting_Command_Modifier_Value, 100, NULL);
+    zassert_true(
+        is_float_equal(Test_Lighting_Command_Modifier_Value, 100.0f),
+        "Modifier (fade time) should be 100.0");
 
     /* Test ramp command */
     Test_Lighting_Command_Called = false;
