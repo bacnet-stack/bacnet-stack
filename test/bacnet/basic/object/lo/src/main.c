@@ -50,6 +50,12 @@ static bool property_list_contains(const int32_t *list, int32_t property)
 }
 
 static float Test_Tracking_Value;
+static uint32_t Test_Lighting_Command_Instance;
+static BACNET_LIGHTING_OPERATION Test_Lighting_Command_Operation;
+static float Test_Lighting_Command_Target_Value;
+static float Test_Lighting_Command_Modifier_Value;
+static bool Test_Lighting_Command_Called;
+
 /**
  * @brief Callback for tracking value updates
  * @param  key - key used to link to specific light
@@ -62,6 +68,26 @@ static void lighting_command_tracking_value_observer(
     (void)key;
     (void)old_value;
     Test_Tracking_Value = value;
+}
+
+/**
+ * @brief Callback for lighting command events
+ * @param  object_instance - object instance
+ * @param  operation - lighting operation
+ * @param  target_value - operation target value
+ * @param  modifier_value - operation modifier value
+ */
+static void lighting_command_event_observer(
+    uint32_t object_instance,
+    BACNET_LIGHTING_OPERATION operation,
+    float target_value,
+    float modifier_value)
+{
+    Test_Lighting_Command_Called = true;
+    Test_Lighting_Command_Instance = object_instance;
+    Test_Lighting_Command_Operation = operation;
+    Test_Lighting_Command_Target_Value = target_value;
+    Test_Lighting_Command_Modifier_Value = modifier_value;
 }
 
 /**
@@ -830,6 +856,94 @@ static void testLightingOutputMinMaxActualValue(void)
 }
 
 /**
+ * @brief Test lighting command callback API
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputCommandCallback)
+#else
+static void testLightingOutputCommandCallback(void)
+#endif
+{
+    const uint32_t instance = 500;
+    BACNET_LIGHTING_COMMAND lighting_command = { 0 };
+    bool status = false;
+    unsigned priority = 8;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+
+    /* Register callback */
+    Lighting_Output_Write_Lighting_Command_Callback_Set(
+        lighting_command_event_observer);
+
+    /* Initialize test tracking */
+    Test_Lighting_Command_Called = false;
+    Test_Lighting_Command_Instance = 0;
+    Test_Lighting_Command_Operation = BACNET_LIGHTS_NONE;
+    Test_Lighting_Command_Target_Value = 0.0f;
+    Test_Lighting_Command_Modifier_Value = 0.0f;
+
+    /* Test fade command */
+    lighting_command.operation = BACNET_LIGHTS_FADE_TO;
+    lighting_command.use_fade_time = true;
+    lighting_command.fade_time = 100;
+    lighting_command.use_target_level = true;
+    lighting_command.target_level = 50.0f;
+    lighting_command.use_priority = true;
+    lighting_command.priority = priority;
+
+    status = Lighting_Output_Lighting_Command_Set(instance, &lighting_command);
+    zassert_true(status, "Fade command should succeed");
+    zassert_true(Test_Lighting_Command_Called, "Callback should be called");
+    zassert_equal(Test_Lighting_Command_Instance, instance, NULL);
+    zassert_equal(Test_Lighting_Command_Operation, BACNET_LIGHTS_FADE_TO, NULL);
+    zassert_true(
+        is_float_equal(Test_Lighting_Command_Target_Value, 50.0f),
+        "Target value should be 50.0");
+    zassert_equal(Test_Lighting_Command_Modifier_Value, 100, NULL);
+
+    /* Test ramp command */
+    Test_Lighting_Command_Called = false;
+    lighting_command.operation = BACNET_LIGHTS_RAMP_TO;
+    lighting_command.use_ramp_rate = true;
+    lighting_command.ramp_rate = 10.0f;
+    lighting_command.target_level = 75.0f;
+
+    status = Lighting_Output_Lighting_Command_Set(instance, &lighting_command);
+    zassert_true(status, "Ramp command should succeed");
+    zassert_true(Test_Lighting_Command_Called, "Callback should be called");
+    zassert_equal(Test_Lighting_Command_Operation, BACNET_LIGHTS_RAMP_TO, NULL);
+    zassert_true(
+        is_float_equal(Test_Lighting_Command_Target_Value, 75.0f),
+        "Target value should be 75.0");
+    zassert_true(
+        is_float_equal(Test_Lighting_Command_Modifier_Value, 10.0f),
+        "Modifier (ramp rate) should be 10.0");
+
+    /* Test step command */
+    Test_Lighting_Command_Called = false;
+    lighting_command.operation = BACNET_LIGHTS_STEP_ON;
+    lighting_command.use_step_increment = true;
+    lighting_command.step_increment = 5.0f;
+
+    status = Lighting_Output_Lighting_Command_Set(instance, &lighting_command);
+    zassert_true(status, "Step command should succeed");
+    zassert_true(Test_Lighting_Command_Called, "Callback should be called");
+    zassert_equal(Test_Lighting_Command_Operation, BACNET_LIGHTS_STEP_ON, NULL);
+    zassert_true(
+        is_float_equal(Test_Lighting_Command_Target_Value, 5.0f),
+        "Target (step increment) should be 5.0");
+    zassert_true(
+        is_float_equal(Test_Lighting_Command_Modifier_Value, 0.0f),
+        "Modifier (fade time) should be 0.0 for step commands");
+
+    /* Cleanup */
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
+/**
  * @}
  */
 
@@ -843,6 +957,7 @@ void test_main(void)
         ztest_unit_test(testLightingOutputWritablePropertyList),
         ztest_unit_test(testLightingOutputBlinkStop),
         ztest_unit_test(testLightingOutputWarnRelinquishEgress),
+        ztest_unit_test(testLightingOutputCommandCallback),
         ztest_unit_test(testLightingOutputMinMaxActualValue));
 
     ztest_run_test_suite(lo_tests);
