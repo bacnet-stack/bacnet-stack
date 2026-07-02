@@ -63,6 +63,11 @@ Consecutive AtomicWriteFile(record-access) appends can trigger a heap out-of-bou
 Patched versions: 1.5.1
 Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
 
+Remote unauthenticated DoS in Life_Safety_Zone PROP_ZONE_MEMBERS WriteProperty parsing
+[GHSA-2c8x-f46r-8phh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2c8x-f46r-8phh).
+Patched versions: 1.5.1
+Pull Request: [#1410](https://github.com/bacnet-stack/bacnet-stack/pull/1410).
+
 [CVE-2026-52789](https://www.cve.org/CVERecord?id=CVE-2026-52789) -
 Denial of Service (Infinite Loop) in handler_read_property_multiple via malformed RPM requests.
 [GHSA-4rf9-4vgq-5gcw](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4rf9-4vgq-5gcw).
