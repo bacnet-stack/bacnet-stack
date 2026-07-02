@@ -25,6 +25,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Out-of-bounds read in lighting_command_decode (full APDU size passed to nested tag decoders)
+[GHSA-9hq3-w3pc-8385](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9hq3-w3pc-8385).
+Patched versions: 1.4.5
+Pull Request: [#1412](https://github.com/bacnet-stack/bacnet-stack/pull/1412).
+
 WriteProperty(File_Size) can bypass read-only protection and expose uninitialized RAMFS tail bytes through AtomicReadFile
 [GHSA-mwj7-2v5r-v934](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mwj7-2v5r-v934).
 Patched versions: 1.4.5

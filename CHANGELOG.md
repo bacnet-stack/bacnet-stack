@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured lighting_command_decode out-of-bounds read, and enforce the
+  FADE_TO and RAMP_TO required levels. (#1412)
 * Secured the basic RAMFS by checking read-only property for file size
   setting and zero new memory during realloc to prevent data leaking. (#1411)
 * Secured the basic RAMFS to prevent buffer overrun during consecutive
