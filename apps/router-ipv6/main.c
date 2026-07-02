@@ -38,6 +38,22 @@
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 
+#ifndef DEBUG_LOG_DEBUG
+#define DEBUG_LOG_DISABLED 0
+#define DEBUG_LOG_ERROR 1
+#define DEBUG_LOG_INFO 2
+#define DEBUG_LOG_DEBUG 3
+#endif
+
+#ifndef debug_log_fprintf
+#define debug_log_fprintf(level, stream, ...) \
+    debug_fprintf((stream), __VA_ARGS__)
+#endif
+
+#ifndef debug_log_severity_set
+#define debug_log_severity_set(level) ((void)(level))
+#endif
+
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
@@ -269,7 +285,8 @@ static void dnet_cleanup(DNET *dnets)
 {
     DNET *dnet = dnets;
     while (dnet != NULL) {
-        debug_printf("DNET %u removed\n", (unsigned)dnet->net);
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "DNET %u removed\n", (unsigned)dnet->net);
         dnet = dnet->next;
         free(dnets);
         dnets = dnet;
@@ -313,14 +330,20 @@ static int datalink_send_pdu(
     int bytes_sent = 0;
 
     if (snet == 0) {
-        debug_printf("BVLC/BVLC6 Send to DNET %u\n", (unsigned)dest->net);
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "BVLC/BVLC6 Send to DNET %u\n",
+            (unsigned)dest->net);
         bytes_sent = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
         bytes_sent = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
     } else if (snet == BIP_Net) {
-        debug_printf("BVLC Send to DNET %u\n", (unsigned)dest->net);
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "BVLC Send to DNET %u\n",
+            (unsigned)dest->net);
         bytes_sent = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
     } else if (snet == BIP6_Net) {
-        debug_printf("BVLC6 Send to DNET %u\n", (unsigned)dest->net);
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "BVLC6 Send to DNET %u\n",
+            (unsigned)dest->net);
         bytes_sent = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
     }
 
@@ -358,7 +381,7 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
         len = encode_unsigned16(&Tx_Buffer[pdu_len], net);
         pdu_len += len;
     } else {
-        debug_printf("I-Am-Router-To-Network ");
+        debug_log_fprintf(DEBUG_LOG_INFO, stderr, "I-Am-Router-To-Network ");
         /*  Each router shall broadcast out each port
             an I-Am-Router-To-Network message containing the network
             numbers of each accessible network except the networks
@@ -369,12 +392,12 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
         port = Router_Table_Head;
         while (port != NULL) {
             if (port->net != snet) {
-                debug_printf("%u,", port->net);
+                debug_log_fprintf(DEBUG_LOG_INFO, stderr, "%u,", port->net);
                 len = encode_unsigned16(&Tx_Buffer[pdu_len], port->net);
                 pdu_len += len;
                 dnet = port->dnets;
                 while (dnet != NULL) {
-                    debug_printf("%u,", dnet->net);
+                    debug_log_fprintf(DEBUG_LOG_INFO, stderr, "%u,", dnet->net);
                     len = encode_unsigned16(&Tx_Buffer[pdu_len], dnet->net);
                     pdu_len += len;
                     dnet = dnet->next;
@@ -382,7 +405,7 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
             }
             port = port->next;
         }
-        debug_printf("from %u\n", snet);
+        debug_log_fprintf(DEBUG_LOG_INFO, stderr, "from %u\n", snet);
     }
     datalink_send_pdu(snet, &dest, &npdu_data, &Tx_Buffer[0], pdu_len);
 }
@@ -642,7 +665,7 @@ static void network_control_handler(
     const char *msg_name = NULL;
 
     msg_name = bactext_network_layer_msg_name(npdu_data->network_message_type);
-    fprintf(stderr, "Received %s\n", msg_name);
+    debug_log_fprintf(DEBUG_LOG_INFO, stderr, "Received %s\n", msg_name);
     switch (npdu_data->network_message_type) {
         case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
             who_is_router_to_network_handler(
@@ -659,32 +682,47 @@ static void network_control_handler(
         case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
             if (npdu_len >= 3) {
                 decode_unsigned16(&npdu[1], &dnet);
-                fprintf(stderr, "for Network:%hu\n", dnet);
+                debug_log_fprintf(
+                    DEBUG_LOG_INFO, stderr, "for Network:%hu\n", dnet);
                 switch (npdu[0]) {
                     case 0:
-                        fprintf(stderr, "Reason: Other Error.\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr, "Reason: Other Error.\n");
                         break;
                     case 1:
-                        fprintf(stderr, "Reason: Network unreachable.\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr,
+                            "Reason: Network unreachable.\n");
                         break;
                     case 2:
-                        fprintf(stderr, "Reason: Network is busy.\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr,
+                            "Reason: Network is busy.\n");
                         break;
                     case 3:
-                        fprintf(
-                            stderr, "Reason: Unknown network message type.\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr,
+                            "Reason: Unknown network message type.\n");
                         break;
                     case 4:
-                        fprintf(stderr, "Reason: Message too long.\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr,
+                            "Reason: Message too long.\n");
                         break;
                     case 5:
-                        fprintf(stderr, "Reason: Security Error.\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr,
+                            "Reason: Security Error.\n");
                         break;
                     case 6:
-                        fprintf(stderr, "Reason: Invalid address length.\n");
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr,
+                            "Reason: Invalid address length.\n");
                         break;
                     default:
-                        fprintf(stderr, "Reason: %u\n", (unsigned int)npdu[0]);
+                        debug_log_fprintf(
+                            DEBUG_LOG_INFO, stderr, "Reason: %u\n",
+                            (unsigned int)npdu[0]);
                         break;
                 }
             }
@@ -755,6 +793,46 @@ static void routed_src_address(
 }
 
 /**
+ * @brief Encode a routed APDU into the provided PDU buffer
+ * @param pdu[out] The buffer to hold the encoded PDU
+ * @param dest[in] The destination BACNET_ADDRESS
+ * @param src[in] The source BACNET_ADDRESS
+ * @param npdu[in] The NPDU data to encode
+ * @param apdu[in] The APDU data to encode
+ * @param apdu_len[in] The length of the APDU data
+ * @return The total length of the encoded PDU, or 0 on error
+ */
+static int routed_npdu_apdu_encode(
+    uint8_t *pdu,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    const BACNET_NPDU_DATA *npdu,
+    uint8_t *apdu,
+    uint16_t apdu_len)
+{
+    int npdu_len = 0;
+
+    npdu_len = npdu_encode_pdu(pdu, dest, src, npdu);
+    if (npdu_len <= 0) {
+        return 0;
+    }
+    if ((npdu_len + apdu_len) > sizeof(Tx_Buffer)) {
+        /* can't send, message too big */
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "Dropping oversized routed APDU: "
+            "npdu_len=%d apdu_len=%u tx=%lu\n",
+            npdu_len, (unsigned)apdu_len, (unsigned long)sizeof(Tx_Buffer));
+        return 0;
+    }
+    if (apdu && (apdu_len > 0)) {
+        memmove(&pdu[npdu_len], apdu, apdu_len);
+    }
+
+    return npdu_len + apdu_len;
+}
+
+/**
  * If a BACnet NPDU is received with NPCI indicating that the message
  * should be relayed by virtue of the presence of a non-broadcast
  * DNET, the router shall search its routing table for the indicated
@@ -785,7 +863,7 @@ static void routed_apdu_handler(
     BACNET_ADDRESS local_dest;
     BACNET_ADDRESS remote_dest;
     BACNET_ADDRESS router_src;
-    int npdu_len = 0;
+    int pdu_len = 0;
 
     /* for broadcast messages no search is needed */
     if (dest->net == BACNET_BROADCAST_NETWORK) {
@@ -805,19 +883,21 @@ static void routed_apdu_handler(
         npdu->hop_count--;
         routed_src_address(&router_src, snet, src);
         /* encode both source and destination for broadcast */
-        npdu_len =
-            npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
-        memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-        /* send to my other ports */
-        debug_printf("Routing a BROADCAST from %u\n", (unsigned)snet);
-        port = Router_Table_Head;
-        while (port != NULL) {
-            if (port->net != snet) {
-                datalink_send_pdu(
-                    port->net, &local_dest, npdu, &Tx_Buffer[0],
-                    npdu_len + apdu_len);
+        pdu_len = routed_npdu_apdu_encode(
+            &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
+        if (pdu_len > 0) {
+            /* send to my other ports */
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Routing a BROADCAST from %u\n",
+                (unsigned)snet);
+            port = Router_Table_Head;
+            while (port != NULL) {
+                if (port->net != snet) {
+                    datalink_send_pdu(
+                        port->net, &local_dest, npdu, &Tx_Buffer[0], pdu_len);
+                }
+                port = port->next;
             }
-            port = port->next;
         }
         return;
     }
@@ -825,7 +905,9 @@ static void routed_apdu_handler(
     port = dnet_find(dest->net, &remote_dest);
     if (port) {
         if (port->net == dest->net) {
-            debug_printf("Routing to Port %u\n", (unsigned)dest->net);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Routing to Port %u\n",
+                (unsigned)dest->net);
             /*  Case 1: the router is directly
                 connected to the network referred to by DNET. */
             /*  In the first case, DNET, DADR, and Hop
@@ -838,15 +920,16 @@ static void routed_apdu_handler(
             local_dest.net = 0;
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            npdu_len =
-                npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
-            memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-            datalink_send_pdu(
-                port->net, &local_dest, npdu, &Tx_Buffer[0],
-                npdu_len + apdu_len);
+            pdu_len = routed_npdu_apdu_encode(
+                &Tx_Buffer[0], &local_dest, &router_src, npdu, apdu, apdu_len);
+            if (pdu_len > 0) {
+                datalink_send_pdu(
+                    port->net, &local_dest, npdu, &Tx_Buffer[0], pdu_len);
+            }
         } else {
-            debug_printf(
-                "Routing to another Router %u\n", (unsigned)remote_dest.net);
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "Routing to another Router %u\n",
+                (unsigned)remote_dest.net);
             /*  Case 2: the message must be
                 relayed to another router for further transmission */
             /*  In the second case, if the Hop Count is greater than zero,
@@ -856,30 +939,34 @@ static void routed_apdu_handler(
                 discarded. */
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            npdu_len =
-                npdu_encode_pdu(&Tx_Buffer[0], &remote_dest, &router_src, npdu);
-            memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-            datalink_send_pdu(
-                port->net, &remote_dest, npdu, &Tx_Buffer[0],
-                npdu_len + apdu_len);
+            pdu_len = routed_npdu_apdu_encode(
+                &Tx_Buffer[0], &remote_dest, &router_src, npdu, apdu, apdu_len);
+            if (pdu_len > 0) {
+                datalink_send_pdu(
+                    port->net, &remote_dest, npdu, &Tx_Buffer[0], pdu_len);
+            }
         }
     } else if (dest->net) {
-        debug_printf("Routing to Unknown Route %u\n", (unsigned)dest->net);
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Routing to Unknown Route %u\n",
+            (unsigned)dest->net);
         /* Case 3: a global broadcast is required. */
         dest->mac_len = 0;
         npdu->hop_count--;
         /* encode both source and destination */
         routed_src_address(&router_src, snet, src);
-        npdu_len = npdu_encode_pdu(&Tx_Buffer[0], dest, &router_src, npdu);
-        memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-        /* send to all other ports */
-        port = Router_Table_Head;
-        while (port != NULL) {
-            if (port->net != snet) {
-                datalink_send_pdu(
-                    port->net, dest, npdu, &Tx_Buffer[0], npdu_len + apdu_len);
+        pdu_len = routed_npdu_apdu_encode(
+            &Tx_Buffer[0], dest, &router_src, npdu, apdu, apdu_len);
+        if (pdu_len > 0) {
+            /* send to all other ports */
+            port = Router_Table_Head;
+            while (port != NULL) {
+                if (port->net != snet) {
+                    datalink_send_pdu(
+                        port->net, dest, npdu, &Tx_Buffer[0], pdu_len);
+                }
+                port = port->next;
             }
-            port = port->next;
         }
         /*  If the next router is unknown, an attempt shall be made to
             identify it using a Who-Is-Router-To-Network message. */
@@ -912,13 +999,18 @@ static void my_routing_npdu_handler(
 
     if (!pdu) {
         /* no packet */
-    } else {
-        protocol_version = pdu[0];
+        return;
     }
+    if (pdu_len == 0) {
+        /* empty packet */
+        return;
+    }
+    protocol_version = pdu[0];
     if (protocol_version == BACNET_PROTOCOL_VERSION) {
         apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
-            fprintf(stderr, "NPDU: Decoding failed; Discarded!\n");
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr, "NPDU: Decoding failed; Discarded!\n");
         } else if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
                 network_control_handler(
@@ -954,13 +1046,15 @@ static void my_routing_npdu_handler(
                     }
                 }
             } else {
-                fprintf(
-                    stderr, "NPDU: DNET=%u.  Discarded!\n", (unsigned)dest.net);
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr, "NPDU: DNET=%u.  Discarded!\n",
+                    (unsigned)dest.net);
             }
         }
     } else {
-        fprintf(
-            stderr, "NPDU: unsupported protocol version %u.  Discarded!\n",
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "NPDU: unsupported protocol version %u.  Discarded!\n",
             protocol_version);
     }
 
@@ -975,8 +1069,14 @@ static void datalink_init(void)
     char *pEnv = NULL;
     BACNET_ADDRESS my_address = { 0 };
 
+    pEnv = getenv("BACNET_ROUTER_DEBUG");
+    if (pEnv) {
+        bip_debug_enable();
+        fprintf(stderr, "Debug=enabled\n");
+    } else {
+        fprintf(stderr, "Debug=disabled\n");
+    }
     /* BACnet/IP Initialization */
-    bip_debug_enable();
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
         bip_set_port((uint16_t)strtol(pEnv, NULL, 0));
@@ -1043,7 +1143,7 @@ static void cleanup(void)
 {
     DNET *port = NULL;
 
-    fprintf(stderr, "Cleaning up...\n");
+    debug_log_fprintf(DEBUG_LOG_INFO, stderr, "Cleaning up...\n");
     /* clean up the remote networks */
     port = Router_Table_Head;
     while (port != NULL) {
@@ -1095,6 +1195,7 @@ static void control_c_hooks(void)
 }
 #endif
 
+#ifndef FUZZING
 /**
  * Main function of simple router demo.
  *
@@ -1134,7 +1235,8 @@ int main(int argc, char *argv[])
             bip_receive(&src, &BIP_Rx_Buffer[0], sizeof(BIP_Rx_Buffer), 5);
         /* process */
         if (pdu_len) {
-            debug_printf("BACnet/IP Received packet\n");
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "BACnet/IP Received packet\n");
             my_routing_npdu_handler(BIP_Net, &src, &BIP_Rx_Buffer[0], pdu_len);
         }
         /* returns 0 bytes on timeout */
@@ -1142,7 +1244,8 @@ int main(int argc, char *argv[])
             bip6_receive(&src, &BIP6_Rx_Buffer[0], sizeof(BIP6_Rx_Buffer), 5);
         /* process */
         if (pdu_len) {
-            debug_printf("BACnet/IPv6 Received packet\n");
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr, "BACnet/IPv6 Received packet\n");
             my_routing_npdu_handler(
                 BIP6_Net, &src, &BIP6_Rx_Buffer[0], pdu_len);
         }
@@ -1162,3 +1265,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif

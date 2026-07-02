@@ -43,6 +43,11 @@ Patched versions: 1.5.1
 Pull Request: [#1386](https://github.com/bacnet-stack/bacnet-stack/pull/1386),
 [#1387](https://github.com/bacnet-stack/bacnet-stack/pull/1387).
 
+Remote global-buffer-overflow in apps/router-ipv6/main.c routed APDU forwarding path
+[GHSA-4p4w-m434-jrhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4p4w-m434-jrhj).
+Patched versions: 1.5.1
+Pull Request: [#1392](https://github.com/bacnet-stack/bacnet-stack/pull/1392).
+
 [CVE-2026-52789](https://www.cve.org/CVERecord?id=CVE-2026-52789) -
 Denial of Service (Infinite Loop) in handler_read_property_multiple via malformed RPM requests.
 [GHSA-4rf9-4vgq-5gcw](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4rf9-4vgq-5gcw).

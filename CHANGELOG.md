@@ -27,6 +27,8 @@ The git repositories are hosted at the following sites:
 * Secured xy_color_decode() by adjusting apdu_size calculation to prevent
   out-of-bounds read, and secured network control handler offset calculation
   in router applications to prevent buffer overrun. (#1386, #1387)
+* Secured apps/router-mstp and apps/router-ipv6 routing by introducing
+  routed_npdu_apdu_encode() with explicit oversized-PDU drop checks. (#1392)
 * Secured rpm_decode_object_property by fixing a DoS vulnerability
   for malformed RPM requests. (#1374)
 * Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
