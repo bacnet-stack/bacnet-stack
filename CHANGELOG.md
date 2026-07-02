@@ -38,6 +38,8 @@ The git repositories are hosted at the following sites:
 * Secured Life Safety Zone member handling for write property. (#1410)
 * Secured RAMFS by checking read-only property for file size setting
   and zero new memory during realloc to prevent data leaking. (#1411)
+* Secured lighting_command_decode out-of-bounds read, and enforce the
+  FADE_TO and RAMP_TO required levels. (#1412)
 * Secured rpm_decode_object_property by fixing a DoS vulnerability
   for malformed RPM requests. (#1374)
 * Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
