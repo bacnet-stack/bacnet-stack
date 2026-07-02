@@ -25,6 +25,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Remote unauthenticated DoS in Life_Safety_Zone PROP_ZONE_MEMBERS WriteProperty parsing
+[GHSA-2c8x-f46r-8phh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2c8x-f46r-8phh).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+Pull Request: [#1410](https://github.com/bacnet-stack/bacnet-stack/pull/1410).
+
 Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
 [GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
 Patched versions: 1.4.5

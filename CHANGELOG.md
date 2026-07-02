@@ -16,6 +16,7 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured Life Safety Zone member handling for write property. (#1410)
 * Secured rpm_ack_decode_service_request buffer overflow by validating data
   length and remaining bytes. Added unit tests for
   handler_read_property_multiple_ack decoder paths. (#1395)
