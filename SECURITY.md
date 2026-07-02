@@ -53,6 +53,16 @@ Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultip
 Patched versions: 1.5.1
 Pull Request: [#1395](https://github.com/bacnet-stack/bacnet-stack/pull/1395).
 
+Replacing a RAMFS record with a shorter one via AtomicWriteFile(record-access) can trigger a heap out-of-bounds read
+[GHSA-cf8g-hp9m-9fvv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cf8g-hp9m-9fvv).
+Patched versions: 1.5.1
+Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
+
+Consecutive AtomicWriteFile(record-access) appends can trigger a heap out-of-bounds read in the RAMFS file backend
+[GHSA-32jj-x86x-w98w](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-32jj-x86x-w98w).
+Patched versions: 1.5.1
+Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
+
 [CVE-2026-52789](https://www.cve.org/CVERecord?id=CVE-2026-52789) -
 Denial of Service (Infinite Loop) in handler_read_property_multiple via malformed RPM requests.
 [GHSA-4rf9-4vgq-5gcw](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4rf9-4vgq-5gcw).
