@@ -109,3 +109,4 @@ apps/piface/libpifacedigital/
 
 *.vcxproj.user
 .venv/
+.agents
