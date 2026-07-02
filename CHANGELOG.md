@@ -17,6 +17,13 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the basic device object which had a string use after free.
+  Added character string buffer stndup and same/diff functions.
+  Changed all the device object character string handling to use
+  character string buffers, where the API set calls use static memory
+  and WriteProperty uses dynamic memory. This improves memory usage
+  and prevents use after free since the character string buffer tracks
+  allocated vs non-allocated strings. (#1375)
 * Secured rpm_decode_object_property by fixing a DoS vulnerability
   for malformed RPM requests. (#1374)
 * Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
