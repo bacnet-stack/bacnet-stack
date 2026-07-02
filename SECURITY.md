@@ -25,7 +25,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
-Here are the published vulnerability records for v1.5.x:
+[CVE-2026-52788](https://www.cve.org/CVERecord?id=CVE-2026-52788) -
+Buffer overflows in bsc_node_parse_urls() (BACnet/SC Address Resolution ACK URL parser).
+[GHSA-rf83-3rr5-v4mj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rf83-3rr5-v4mj).
+Patched versions: 1.5.1
+Pull Request: [#1365](https://github.com/bacnet-stack/bacnet-stack/pull/1365).
 
 [CVE-2026-52786](https://www.cve.org/CVERecord?id=CVE-2026-52786) -
 apps/epics: malicious ReadPropertyMultiple-ACK with excessive properties causes global-buffer-overflow in ProcessRPMData().

@@ -13,10 +13,12 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [1.5.1-rc3] - 2026-05-27
+## [1.5.1-rc4] - 2026-07-02
 
 ### Security
 
+* Secured bsc_node_parse_urls() by fixing buffer overflows by using relative
+  lengths and adding array bounds checks before every write. (#1365)
 * Secured apps/epics by preventing a buffer overflow in ProcessRPMData,
   resolving destination slot for property values. (#1366)
 * Secured address_list_encode() function buffer overrun by using
