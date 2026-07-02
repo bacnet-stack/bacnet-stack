@@ -552,7 +552,8 @@ int bacapp_decode_SCFailedConnectionRequest(
     if (value) {
         datetime_copy(&value->Timestamp, &bdatetime);
     }
-    len = host_n_port_context_decode(&apdu[apdu_len], apdu_size, 1, NULL, &hp);
+    len = host_n_port_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, NULL, &hp);
     if (len > 0) {
         apdu_len += len;
     } else {
@@ -907,7 +908,8 @@ int bacapp_decode_SCDirectConnection(
     if (value) {
         datetime_copy(&value->Disconnect_Timestamp, &datetime);
     }
-    len = host_n_port_context_decode(&apdu[apdu_len], apdu_size, 4, NULL, &hp);
+    len = host_n_port_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 4, NULL, &hp);
     if (len > 0) {
         apdu_len += len;
     } else {
