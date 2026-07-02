@@ -583,9 +583,11 @@ bool bacfile_file_size_set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->File_Access_Stream) {
-            status =
-                bacfile_file_size_set_callback(pObject->Pathname, file_size);
+        if (!pObject->Read_Only) {
+            if (pObject->File_Access_Stream) {
+                status = bacfile_file_size_set_callback(
+                    pObject->Pathname, file_size);
+            }
         }
     }
 

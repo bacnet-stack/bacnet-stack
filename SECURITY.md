@@ -25,6 +25,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+WriteProperty(File_Size) can bypass read-only protection and expose uninitialized RAMFS tail bytes through AtomicReadFile
+[GHSA-mwj7-2v5r-v934](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mwj7-2v5r-v934).
+Patched versions: 1.4.5, 1.5.1, 1.6.0
+Pull Request: [#1411](https://github.com/bacnet-stack/bacnet-stack/pull/1411).
+
 Replacing a RAMFS record with a shorter one via AtomicWriteFile(record-access) can trigger a heap out-of-bounds read
 [GHSA-cf8g-hp9m-9fvv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cf8g-hp9m-9fvv).
 Patched versions: 1.4.5

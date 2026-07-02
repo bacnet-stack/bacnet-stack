@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the basic RAMFS by checking read-only property for file size
+  setting and zero new memory during realloc to prevent data leaking. (#1411)
 * Secured the basic RAMFS to prevent buffer overrun during consecutive
   record appends and prevent heap out-of-bounds read during record
   replacement. (#1408)
