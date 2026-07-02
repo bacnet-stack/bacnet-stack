@@ -27,6 +27,12 @@ cybersecurity vulnerabilities.
 
 Here are the published vulnerability records for v1.5.x:
 
+[CVE-2026-52787](https://www.cve.org/CVERecord?id=CVE-2026-52787) -
+Global APDU transmit buffer out-of-bounds write in device.address-binding response encoding via address_list_encode()
+[GHSA-4fgg-fghm-jm43](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4fgg-fghm-jm43).
+Patched versions: [1.6.0](https://github.com/bacnet-stack/bacnet-stack/tree/bacnet-stack-1.6.0).
+Pull Request: [#1363](https://github.com/bacnet-stack/bacnet-stack/pull/1363).
+
 [CVE-2026-49990](https://www.cve.org/CVERecord?id=CVE-2026-49990) -
 AtomicReadFile/AtomicWriteFile stream fileStartPosition validation flaw causes out-of-bounds read/write in RAM file backends.
 [GHSA-8759-hx7g-94qx](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8759-hx7g-94qx).

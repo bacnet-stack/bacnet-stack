@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured address_list_encode() function buffer overrun by using
+  existing BACnetAddressBinding encoding function for length check
+  and refactoring. Added unit test for validation.(#1363)
 * Secured AtomicReadFile/AtomicWriteFile logic and underlying file backends
   by adding explicit invalid-start-position guards which reject negative
   and out-of-range positions/records. (#1362)
