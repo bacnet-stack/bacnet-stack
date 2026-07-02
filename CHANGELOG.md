@@ -29,6 +29,8 @@ The git repositories are hosted at the following sites:
   in router applications to prevent buffer overrun. (#1386, #1387)
 * Secured apps/router-mstp and apps/router-ipv6 routing by introducing
   routed_npdu_apdu_encode() with explicit oversized-PDU drop checks. (#1392)
+* Secured rpm_ack_decode_service_request buffer overflow by validating data
+  length and remaining bytes. Added decoder-path unit tests. (#1395)
 * Secured rpm_decode_object_property by fixing a DoS vulnerability
   for malformed RPM requests. (#1374)
 * Secured bsc_node_parse_urls() by fixing buffer overflows by using relative

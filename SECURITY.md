@@ -48,6 +48,11 @@ Remote global-buffer-overflow in apps/router-ipv6/main.c routed APDU forwarding 
 Patched versions: 1.5.1
 Pull Request: [#1392](https://github.com/bacnet-stack/bacnet-stack/pull/1392).
 
+Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
+[GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
+Patched versions: 1.5.1
+Pull Request: [#1395](https://github.com/bacnet-stack/bacnet-stack/pull/1395).
+
 [CVE-2026-52789](https://www.cve.org/CVERecord?id=CVE-2026-52789) -
 Denial of Service (Infinite Loop) in handler_read_property_multiple via malformed RPM requests.
 [GHSA-4rf9-4vgq-5gcw](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4rf9-4vgq-5gcw).
