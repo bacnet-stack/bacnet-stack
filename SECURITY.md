@@ -20,11 +20,15 @@ currently being supported with security updates.
 
 ## Coordinated Vulnerability Disclosure
 
-From time to time a vulnerability is disclosed to [CVE](https://www.cve.org/)
+Vulnerabilites are disclosed to [CVE](https://www.cve.org/)
+or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
-Here are the known CVE records for version 1.4.x:
+Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
+[GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
+Patched versions: [1.4.5](https://github.com/bacnet-stack/bacnet-stack/tree/bacnet-stack-1.4.5).
+Pull Request: [#1395](https://github.com/bacnet-stack/bacnet-stack/pull/1395).
 
 [CVE-2026-58265](https://www.cve.org/CVERecord?id=CVE-2026-58265) -
 Out-of-bounds read in BACnet/SC proprietary header-option decode (bvlc_sc_decode_proprietary_option)

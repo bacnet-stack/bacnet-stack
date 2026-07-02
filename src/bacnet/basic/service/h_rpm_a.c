@@ -46,6 +46,7 @@ int rpm_ack_decode_service_request(
     int len = 0; /* number of bytes returned from decoding */
     uint8_t tag_number = 0; /* decoded tag number */
     int data_len = 0; /* data blob length */
+    int data_remaining = 0; /* bytes left in the current data blob */
     int tag_len = 0; /* length of the tag portion of the data */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
@@ -98,10 +99,15 @@ int rpm_ack_decode_service_request(
             if (apdu_len &&
                 bacnet_is_opening_tag_number(apdu, apdu_len, 4, &tag_len)) {
                 data_len = bacnet_enclosed_data_length(apdu, apdu_len);
+                if (data_len < 0) {
+                    PERROR("RPM Ack: invalid enclosed property value length\n");
+                    return BACNET_STATUS_ERROR;
+                }
                 /* propertyValue */
                 decoded_len += tag_len;
                 apdu_len -= tag_len;
                 apdu += tag_len;
+                data_remaining = data_len;
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
                 if (apdu_len &&
@@ -126,27 +132,26 @@ int rpm_ack_decode_service_request(
                          * OK. */
                         if (len < 0) {
                             /* problem decoding */
-                            if (data_len >= 0) {
-                                /* valid data that we'll skip over */
-                                len = data_len;
-                                bacapp_value_list_init(value, 1);
-                            } else {
-                                PERROR(
-                                    "RPM Ack: unable to decode! %s:%s\n",
-                                    bactext_object_type_name(
-                                        rpm_object->object_type),
-                                    bactext_property_name(
-                                        rpm_property->propertyIdentifier));
-                                /* note: caller will free the memory */
-                                return BACNET_STATUS_ERROR;
-                            }
+                            len = data_remaining;
+                            bacapp_value_list_init(value, 1);
+                        }
+                        if (len > data_remaining) {
+                            PERROR("RPM Ack: decoded length exceeds property "
+                                   "value length\n");
+                            return BACNET_STATUS_ERROR;
                         }
                         decoded_len += len;
                         apdu_len -= len;
                         apdu += len;
-                        if (apdu_len &&
+                        data_remaining -= len;
+                        if ((apdu_len < 0) || (data_remaining < 0)) {
+                            PERROR("RPM Ack: invalid remaining length while "
+                                   "decoding property value\n");
+                            return BACNET_STATUS_ERROR;
+                        }
+                        if (apdu_len > 0 &&
                             bacnet_is_closing_tag_number(
-                                apdu, apdu_len, 4, &tag_len)) {
+                                apdu, (unsigned)apdu_len, 4, &tag_len)) {
                             decoded_len += tag_len;
                             apdu_len -= tag_len;
                             apdu += tag_len;

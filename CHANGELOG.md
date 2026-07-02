@@ -16,6 +16,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured rpm_ack_decode_service_request buffer overflow by validating data
+  length and remaining bytes. Added unit tests for
+  handler_read_property_multiple_ack decoder paths. (#1395)
 * Secured BACnet/SC short proprietary option headers using BVLC-SC option
   header validation and rejecting proprietary options with hdr_len < 3
   (minimum vendor-id + option-type). Made proprietary option decode
