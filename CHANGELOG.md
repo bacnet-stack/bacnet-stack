@@ -16,6 +16,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the basic RAMFS to prevent buffer overrun during consecutive
+  record appends and prevent heap out-of-bounds read during record
+  replacement. (#1408)
 * Secured Life Safety Zone member handling for write property. (#1410)
 * Secured rpm_ack_decode_service_request buffer overflow by validating data
   length and remaining bytes. Added unit tests for
