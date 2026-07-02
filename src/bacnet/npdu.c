@@ -891,3 +891,108 @@ bool npdu_is_data_expecting_reply(
         request_pdu, request_pdu_len, &request_address, reply_pdu,
         reply_pdu_len, &reply_address);
 }
+
+/**
+ * @brief Process the NPDU portion of an I-Am-Router-To-Network message, which
+ * contains a list of BACnet network numbers that the router is connected to.
+ * @param snet [in] The source network number of the I-Am-Router-To
+ * Network message, which is the network number of the router sending the
+ * message.
+ * @param src [in] The source address of the I-Am-Router-To-Network message,
+ * which is the address of the router sending the message.
+ * @param npdu [in] The buffer containing the NPDU portion of the
+ * I-Am-Router-To-Network message, which contains the list of BACnet network
+ * numbers that the router is connected to.
+ * @param npdu_size [in] The size of the npdu buffer in bytes.
+ * @param dnet_add [in] A callback function that will be called for each BACnet
+ * network number (DNET)
+ */
+void npdu_i_am_router_to_network_process(
+    uint16_t snet,
+    const BACNET_ADDRESS *src,
+    const uint8_t *npdu,
+    uint16_t npdu_size,
+    npdu_dnet_add_callback_t dnet_add)
+{
+    int len = 2;
+    uint16_t dnet = 0;
+    uint16_t npdu_offset = 0;
+    uint16_t npdu_len = npdu_size;
+
+    while (npdu_len >= len) {
+        len = decode_unsigned16(&npdu[npdu_offset], &dnet);
+        if (dnet_add) {
+            dnet_add(snet, dnet, src);
+        }
+        npdu_len -= len;
+        npdu_offset += len;
+    }
+}
+
+/**
+ * @brief Process the NPDU portion of an Initialize-Routing-Table message, which
+ * contains a list of BACnet network numbers (DNETs) and per-port information.
+ * @param snet [in] The source network number of the Initialize-Routing-Table
+ * message, which is the network number of the router sending the message.
+ * @param src [in] The source address of the I-Have-Router-To-Network message,
+ * which is the address of the router sending the message.
+ * @param npdu [in] The buffer containing the NPDU portion of the
+ * I-Have-Router-To-Network message, which contains the list of BACnet network
+ * numbers that the router is connected to, along with port information.
+ * @param npdu_size [in] The size of the npdu buffer in bytes.
+ * @param dnet_add [in] Optional callback invoked for each decoded DNET value.
+ * The callback receives the source network, decoded DNET, and source address.
+ */
+void npdu_init_routing_table_process(
+    uint16_t snet,
+    const BACNET_ADDRESS *src,
+    const uint8_t *npdu,
+    uint16_t npdu_size,
+    npdu_dnet_add_callback_t dnet_add)
+{
+    int len = 2;
+    uint16_t dnet = 0;
+    uint16_t npdu_offset = 0;
+    uint8_t port_id = 0;
+    uint8_t port_info_len = 0;
+    uint8_t net_count;
+    uint16_t npdu_len = npdu_size;
+
+    if (npdu_len <= 1) {
+        /* malformed message */
+        return;
+    }
+    net_count = npdu[npdu_offset];
+    npdu_offset += 1;
+    npdu_len -= 1;
+    if (net_count == 0) {
+        /* no networks, nothing to do */
+        return;
+    }
+    /* DNET(2) + PortID(1) + PortInfoLen(1) = 4 bytes */
+    while ((npdu_len >= 4) && (net_count--)) {
+        /* DNET */
+        len = decode_unsigned16(&npdu[npdu_offset], &dnet);
+        npdu_offset += len;
+        npdu_len -= len;
+        /* update routing table */
+        if (dnet_add) {
+            dnet_add(snet, dnet, src);
+        }
+        /* skip port_id & port_info */
+        port_id = npdu[npdu_offset];
+        npdu_offset += 1;
+        npdu_len -= 1;
+        port_info_len = npdu[npdu_offset];
+        npdu_offset += 1;
+        npdu_len -= 1;
+        if (npdu_len >= port_info_len) {
+            npdu_offset += port_info_len;
+            npdu_len -= port_info_len;
+        } else {
+            /* malformed message */
+            break;
+        }
+        (void)port_id;
+    }
+}
