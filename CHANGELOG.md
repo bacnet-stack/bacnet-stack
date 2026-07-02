@@ -16,6 +16,12 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnet/SC short proprietary option headers using BVLC-SC option
+  header validation and rejecting proprietary options with hdr_len < 3
+  (minimum vendor-id + option-type). Made proprietary option decode
+  initialize outputs and only read vendor-id/option-type when hdr_len >= 3.
+  Added a regression test that injects a malformed proprietary option
+  and asserts decode fails with ERROR_CODE_HEADER_ENCODING_ERROR. (#1396)
 * Secured apps/router-mstp and apps/router-ipv6 routing, introducing
   routed_npdu_apdu_encode() with an explicit oversized-PDU drop check.
   Fixed protocol-version access. (#1392)
@@ -41,7 +47,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed event_notify_decode_service_request() error handling and and unit test
+* Fixed event_notify_decode_service_request() error handling and check
   for change of reliability.
 
 ## [1.4.4] - 2026-05-26

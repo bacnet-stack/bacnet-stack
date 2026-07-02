@@ -26,6 +26,11 @@ cybersecurity vulnerabilities.
 
 Here are the known CVE records for version 1.4.x:
 
+[CVE-2026-58265](https://www.cve.org/CVERecord?id=CVE-2026-58265) -
+Out-of-bounds read in BACnet/SC proprietary header-option decode (bvlc_sc_decode_proprietary_option)
+[GHSA-j66x-fr38-r7m5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-j66x-fr38-r7m5).
+Patched versions: 1.4.5 [PR #1396](https://github.com/bacnet-stack/bacnet-stack/pull/1396)
+
 Remote global-buffer-overflow in apps/router-ipv6/main.c routed APDU forwarding path
 [GHSA-4p4w-m434-jrhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4p4w-m434-jrhj).
 Patched versions: 1.4.5

@@ -4216,6 +4216,30 @@ static void test_BAD_HEADER_OPTIONS(void)
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, 4, optbuf, optlen);
     zassert_equal(len, 0, NULL);
+
+    /* proprietary option with invalid hdr_len < 3 */
+    memset(buf, 0, sizeof(buf));
+    memset(&message, 0, sizeof(message));
+    npdu[0] = 0x01;
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), message_id, NULL, NULL, npdu, 1);
+    zassert_not_equal(len, 0, NULL);
+
+    /* insert malformed data option before payload */
+    memmove(&buf[9], &buf[4], 1);
+    buf[1] |= BVLC_SC_CONTROL_DATA_OPTIONS;
+    buf[4] = BVLC_SC_OPTION_TYPE_PROPRIETARY | BVLC_SC_HEADER_DATA;
+    npdulen = 2;
+    memcpy(&buf[5], &npdulen, sizeof(npdulen));
+    buf[7] = 0x34;
+    buf[8] = 0x12;
+    len += 5;
+
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, false, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
