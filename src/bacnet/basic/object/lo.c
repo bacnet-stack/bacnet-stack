@@ -70,6 +70,8 @@ static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
 /* callback for present value writes */
 static lighting_command_tracking_value_callback
     Lighting_Command_Tracking_Value_Callback;
+/* callback for lighting-command writes */
+static lighting_command_event_callback Lighting_Command_Event_Callback;
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
@@ -4020,6 +4022,42 @@ void Lighting_Output_Write_Present_Value_Callback_Set(
 }
 
 /**
+ * @brief Callback for lighting command event notifications
+ * @param  object_instance - object-instance number of the object
+ * @param  operation - BACnet lighting operation
+ * @param  target_value - operation target value (e.g., value for fade/ramp,
+ * step increment for step operations, interval for WARN operations)
+ * @param  modifier_value - operation modifier value (e.g., ramp rate for ramp,
+ * fade time for fade, duration for WARN operations)
+ */
+static void Lighting_Output_Lighting_Command_Callback(
+    uint32_t object_instance,
+    BACNET_LIGHTING_OPERATION operation,
+    float target_value,
+    float modifier_value)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (Lighting_Command_Event_Callback) {
+            Lighting_Command_Event_Callback(
+                object_instance, operation, target_value, modifier_value);
+        }
+    }
+}
+
+/**
+ * @brief Sets a callback used when lighting-command is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Lighting_Output_Write_Lighting_Command_Callback_Set(
+    lighting_command_event_callback cb)
+{
+    Lighting_Command_Event_Callback = cb;
+}
+
+/**
  * @brief Set the context used with a specific object instance
  * @param object_instance [in] BACnet object instance number
  * @param context [in] pointer to the context
@@ -4108,6 +4146,9 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         lighting_command_tracking_value_callback_set(
             &pObject->Lighting_Command,
             Lighting_Output_Tracking_Value_Callback);
+        lighting_command_event_callback_set(
+            &pObject->Lighting_Command,
+            Lighting_Output_Lighting_Command_Callback);
         pObject->Last_Lighting_Command.operation = BACNET_LIGHTS_NONE;
         pObject->Last_Lighting_Command.use_target_level = false;
         pObject->Last_Lighting_Command.use_ramp_rate = false;

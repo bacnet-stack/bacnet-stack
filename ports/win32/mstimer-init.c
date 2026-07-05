@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <time.h>
 #include "bacport.h"
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/mstimer.h"
 
 /* Windows timer period - in milliseconds */
@@ -47,7 +48,7 @@ void mstimer_init(void)
         fprintf(stderr, "Failed to get timer resolution parameters\n");
     }
     /* configure for 1ms resolution - if possible */
-    Timer_Period = min(max(tc.wPeriodMin, 1L), tc.wPeriodMax);
+    Timer_Period = BACNET_CLAMP(tc.wPeriodMin, 1L, tc.wPeriodMax);
     if (Timer_Period != 1L) {
         fprintf(
             stderr,
