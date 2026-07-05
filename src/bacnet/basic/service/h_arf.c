@@ -147,7 +147,8 @@ void handler_atomic_read_file(
                         (int)data.type.stream.fileStartPosition,
                         (int)data.type.stream.requestedOctetCount);
                     len = arf_ack_encode_apdu(
-                        &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
+                        &Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id, &data);
                     pdu_len += len;
                 } else {
                     error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -185,7 +186,8 @@ void handler_atomic_read_file(
                         (int)data.type.record.fileStartRecord,
                         (unsigned)data.type.record.RecordCount);
                     len = arf_ack_encode_apdu(
-                        &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
+                        &Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id, &data);
                     pdu_len += len;
                 } else {
                     DEBUG_PRINTF("ARF: file_access_denied! Sending Error!");
