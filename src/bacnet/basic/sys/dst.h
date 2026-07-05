@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief This file contains the function prototypes for for the module.
+ * @brief This file contains the function prototypes for the module.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 1997
  * @note Public domain algorithms from ACM

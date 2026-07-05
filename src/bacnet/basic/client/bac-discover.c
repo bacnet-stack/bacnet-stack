@@ -1118,7 +1118,7 @@ void bacnet_discover_dest_set(const BACNET_ADDRESS *dest)
 }
 
 /**
- * @brief Get the the BACnet address of target
+ * @brief Get the BACnet address of target
  * @return BACnet address
  */
 const BACNET_ADDRESS *bacnet_discover_dest(void)

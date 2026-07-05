@@ -603,8 +603,8 @@ static void *bws_srv_worker(void *arg)
                 "user_param = %p\n",
                 ctx->wsctx, ctx, ctx->user_param);
             /* TRICKY: Libwebsockets API is not designed to be used from
-                       multipe service threads, as a result
-               lws_context_destroy() is not thread safe. More over, on different
+                       multiple service threads, as a result
+               lws_context_destroy() is not thread safe. Moreover, on different
                platforms the function behaves in different ways. Call of
                        lws_context_destroy() leads to several calls of
                        bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
@@ -790,8 +790,8 @@ BSC_WEBSOCKET_RET bws_srv_start(
 
     if (r) {
         /* TRICKY: Libwebsockets API is not designed to be used from
-                   multipe service threads, as a result lws_context_destroy()
-                   is not thread safe. More over, on different platforms the
+                   multiple service threads, as a result lws_context_destroy()
+                   is not thread safe. Moreover, on different platforms the
                    function behaves in different ways. Call of
                    lws_context_destroy() leads to several calls of
                    bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
