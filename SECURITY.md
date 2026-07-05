@@ -27,8 +27,6 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
-### Draft advisories (unpublished) for Unreleased Versions
-
 Out-of-bounds read in lighting_command_decode (full APDU size passed to nested tag decoders)
 [GHSA-9hq3-w3pc-8385](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9hq3-w3pc-8385).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
@@ -185,8 +183,6 @@ Atomic-Read-File RecordCount Stack-Based Out-of-Bounds Write
 [GHSA-v3gx-mwrp-xvh5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-v3gx-mwrp-xvh5)
 Patched versions: 1.4.4, 1.5.1, 1.6.0
 Pull Request: [#1340](https://github.com/bacnet-stack/bacnet-stack/pull/1340).
-
-### Published advisories for Released Versions
 
 [CVE-2026-40279](https://www.cve.org/CVERecord?id=CVE-2026-40279) -
 Undefined-behavior signed left shift in `decode_signed32()`
