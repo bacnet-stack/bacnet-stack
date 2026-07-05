@@ -803,7 +803,7 @@ uint8_t Network_Port_Routing_Table_Count(uint32_t object_instance)
 }
 
 /**
- * @brief Handle a request to encode all the the routing table entries
+ * @brief Handle a request to encode all the routing table entries
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.
  *
@@ -1252,7 +1252,7 @@ int Network_Port_SC_Hub_Function_Connection_Status_Count(
 }
 
 /**
- * @brief Handle a request to encode all the the entries
+ * @brief Handle a request to encode all the entries
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.
@@ -1742,7 +1742,7 @@ int Network_Port_SC_Direct_Connect_Connection_Status_Count(
 }
 
 /**
- * @brief Handle a request to encode all the the entries
+ * @brief Handle a request to encode all the entries
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.
@@ -1860,7 +1860,7 @@ int Network_Port_SC_Failed_Connection_Requests_Count(uint32_t object_instance)
 }
 
 /**
- * @brief Handle a request to encode all the the entries
+ * @brief Handle a request to encode all the entries
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.

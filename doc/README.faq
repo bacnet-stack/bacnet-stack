@@ -25,7 +25,7 @@ A-3: Not really. The specific stuff is in the ports/ directory, and that is expe
 
 Q-4: Does the stack have some specific requirements regarding OS? What OS features are used (threads, timers, semaphors, events, mutexes...)?
 
-A-4: No, I did not use any OS features (except for the the ports to specific OS's: ports/win32/, ports/bsd and ports/linux/ which uses some tasks or threads for the MS/TP datalink layer or sockets for the BACnet/IP layers). Since my target was embedded microcontrollers, I kept the architecture single-threaded (but multithread safe except where noted) to keep it easy to follow and easy to implement in a microcontroller just running a main() loop.
+A-4: No, I did not use any OS features (except for the ports to specific OS's: ports/win32/, ports/bsd and ports/linux/ which uses some tasks or threads for the MS/TP datalink layer or sockets for the BACnet/IP layers). Since my target was embedded microcontrollers, I kept the architecture single-threaded (but multithread safe except where noted) to keep it easy to follow and easy to implement in a microcontroller just running a main() loop.
 
 Q-5: What is the difference between the two datalink layers BACnet/IP and BACnet Ethernet? In BACnet/IP, is the MAC address needed?
 
@@ -125,7 +125,7 @@ You can do one of the following:
    3. Write npdu router code to route from BACnet/IP to another datalink layer. Make server application on one datalink layer and make client applications on another datalink layer.
    4. Add external BACnet router or BACnet devices. Run a BACnet apps/server on another PC.
 
-Q-16: My Linux computer doesn't use eth0 for for the BACnet connection. My Windows computer has more than one network connnection. How can I choose the interface to use for the demo applications?
+Q-16: My Linux computer doesn't use eth0 for the BACnet connection. My Windows computer has more than one network connection. How can I choose the interface to use for the demo applications?
 
 A-16: Set the environment variable BACNET_IFACE. For Windows, set BACNET_IFACE=169.254.119.240 or whatever the address of the interface returned by ipconfig command. For Linux, use BACNET_IFACE=eth0 or whatever the name of the interface returned by the ifconfig command. Setting the environment variable under Windows can be done on the command line:
 
