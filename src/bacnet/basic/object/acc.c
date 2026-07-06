@@ -187,6 +187,45 @@ unsigned Accumulator_Instance_To_Index(uint32_t object_instance)
 }
 
 /**
+ * For a given object instance-number, returns the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return object-name C string, or NULL if not found.
+ */
+char *Accumulator_Name(uint32_t object_instance)
+{
+    char *name = NULL;
+    struct object_data *pObject = Object_Data(object_instance);
+
+    if (pObject) {
+        name = characterstring_value(&pObject->Object_Name);
+    }
+
+    return name;
+}
+
+/**
+ * For a given object instance-number, sets the object-name from a C string
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Accumulator_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject = Object_Data(object_instance);
+
+    if (pObject) {
+        status = characterstring_init_ansi(&pObject->Object_Name, new_name);
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, loads the object-name into
  * a characterstring. Note that the object name must be unique
  * within this device.

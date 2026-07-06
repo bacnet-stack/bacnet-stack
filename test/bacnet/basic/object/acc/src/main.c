@@ -5,6 +5,7 @@
  * @date 2017
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/acc.h>
 #include <bacnet/bactext.h>
@@ -37,6 +38,8 @@ static void test_Accumulator(void)
     bool status = false;
     const int32_t *writable_properties;
     const int32_t skip_fail_property_list[] = { -1 };
+    char test_name[] = "Test Accumulator Name";
+    char *name = NULL;
     char *sample_context = "context";
 
     Accumulator_Init();
@@ -86,6 +89,14 @@ static void test_Accumulator(void)
     }
     status = Accumulator_Description_Set(instance, "Test Accumulator");
     zassert_true(status, NULL);
+    status = Accumulator_Name_Set(instance, test_name);
+    zassert_true(status, NULL);
+    name = Accumulator_Name(instance);
+    zassert_not_null(name, NULL);
+    zassert_equal(strcmp(name, test_name), 0, NULL);
+    status = Accumulator_Name_Set(instance - 1, test_name);
+    zassert_false(status, NULL);
+    zassert_is_null(Accumulator_Name(instance - 1), NULL);
     Accumulator_Writable_Property_List(instance, &writable_properties);
     zassert_not_null(writable_properties, NULL);
     /* context API */
