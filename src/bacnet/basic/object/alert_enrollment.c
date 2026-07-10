@@ -291,7 +291,7 @@ bool Alert_Enrollment_Description_Set(
  */
 BACNET_OBJECT_ID Alert_Enrollment_Present_Value(uint32_t object_instance)
 {
-    BACNET_OBJECT_ID value = { OBJECT_NONE, BACNET_MAX_INSTANCE };
+    BACNET_OBJECT_ID value = { OBJECT_DEVICE, BACNET_MAX_INSTANCE };
     struct alert_enrollment_descr *pObject;
 
     pObject = Alert_Enrollment_Object(object_instance);
@@ -415,7 +415,7 @@ int Alert_Enrollment_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_size = rpdata->application_data_len;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    BACNET_OBJECT_ID value = { OBJECT_NONE, BACNET_MAX_INSTANCE };
+    BACNET_OBJECT_ID value = { OBJECT_DEVICE, BACNET_MAX_INSTANCE };
 
     struct alert_enrollment_descr *pObject = NULL;
 
@@ -616,7 +616,7 @@ void Alert_Enrollment_Intrinsic_Reporting(uint32_t object_instance)
 
         debug_log_fprintf(
             DEBUG_LOG_DEBUG, stderr,
-            "Analog-Input[%d]: Notification Class[%d]-%s "
+            "Alert-Enrollment[%d]: Notification Class[%d]-%s "
             "%u/%u/%u-%u:%u:%u.%u!\n",
             object_instance, event_data.notificationClass,
             bactext_event_type_name(event_data.eventType),
@@ -695,7 +695,7 @@ uint32_t Alert_Enrollment_Create(uint32_t object_instance)
         if (pObject) {
             pObject->Object_Name = NULL;
             pObject->Description = NULL;
-            pObject->Present_Value.type = OBJECT_NONE;
+            pObject->Present_Value.type = OBJECT_DEVICE;
             pObject->Present_Value.instance = BACNET_MAX_INSTANCE;
             pObject->Notification_Class = BACNET_MAX_INSTANCE;
 
