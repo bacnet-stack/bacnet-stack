@@ -13,7 +13,35 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-06-29
+## [unreleased] - 2026-07-13
+
+### Security
+### Added
+
+* Added definitions for the Accumulator_Name and Accumulator_Name_Set functions
+  that are declared in acc.h and referenced by ACCUMULATOR_OBJ_FUNCTIONS.
+  Covered the public C string name API in the accumulator object test. (#1419)
+* Added callback hook to the Lighting Output (LO) object so consumers can
+  observe lighting-command write events (operation + parameters).
+  Added a public API in lo.h to register a lighting-command event
+  callback (Lighting_Output_Write_Lighting_Command_Callback_Set).
+  Wired the LO object’s internal lighting-command engine to invoke
+  the registered callback via a wrapper in lo.c.
+  Added a new LO unit test that issues FADE_TO / RAMP_TO / STEP_* commands
+  and asserts the callback parameters. (#1416)
+
+### Changed
+### Fixed
+
+* Fixed typos in comments and docs. (#1418)
+* Fixed platform.h min() and max() helpers so that min and max small case names
+  no longer collide with C++ methods and no longer pollute BACnet Stack
+  library users. Renamed min/max to BACNET_MIN and BACNET_MAX and revised all
+  local code to use the new names. (#1415)
+
+### Removed
+
+## [1.6.0] - 2026-07-04
 
 ### Security
 
