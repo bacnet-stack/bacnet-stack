@@ -6,9 +6,8 @@
 #
 # Prior to running this script, be sure to:
 # a) update CHANGELOG, version.h and CMakeLists.txt with new version number
-# b) commit changes into master branch
+# b) commit changes into this bacnet-stack-1.6 branch
 # After running this script, be sure to:
-# c) create long term branch as bacnet-stack-x.y if needed
 # d) push tags and branch to github
 # e) mirror github to sourceforge using mirror.sh script
 
