@@ -13,6 +13,43 @@
 #include <bacnet/basic/object/command.h>
 #include <property_test.h>
 
+static float Test_Action_Real_Value;
+static bool Test_Action_Write_Success;
+
+uint32_t Device_Object_Instance_Number(void)
+{
+    return 260001;
+}
+
+static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int len;
+
+    if (!wp_data) {
+        return false;
+    }
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
+    if (len < 0) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
+    if ((wp_data->object_type == OBJECT_ANALOG_VALUE) &&
+        (wp_data->object_instance == 1) &&
+        (wp_data->object_property == PROP_PRESENT_VALUE) &&
+        (value.tag == BACNET_APPLICATION_TAG_REAL)) {
+        Test_Action_Real_Value = value.type.Real;
+        Test_Action_Write_Success = true;
+        return true;
+    }
+
+    wp_data->error_class = ERROR_CLASS_PROPERTY;
+    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    return false;
+}
+
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -64,6 +101,47 @@ static void test_object_command(void)
     bacnet_object_properties_read_write_test(
         OBJECT_COMMAND, object_instance, Command_Property_Lists,
         Command_Read_Property, Command_Write_Property, skip_fail_property_list);
+
+    status = Command_Delete(object_instance);
+    zassert_true(status, NULL);
+    Command_Cleanup();
+}
+
+/**
+ * @brief Test busy error when Present_Value is written while in-process.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command_present_value_write_busy)
+#else
+static void test_object_command_present_value_write_busy(void)
+#endif
+{
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+
+    Command_Cleanup();
+    object_instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    status = Command_Present_Value_Set(object_instance, 1);
+    zassert_true(status, NULL);
+    zassert_true(Command_In_Process(object_instance), NULL);
+
+    wp_data.object_type = OBJECT_COMMAND;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 1);
+
+    status = Command_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_BUSY, NULL);
+    zassert_equal(Command_Present_Value(object_instance), 1, NULL);
+    zassert_true(Command_In_Process(object_instance), NULL);
 
     status = Command_Delete(object_instance);
     zassert_true(status, NULL);
@@ -280,6 +358,170 @@ static void test_object_command_name_description_write(void)
     zassert_true(status, NULL);
     Command_Cleanup();
 }
+
+/**
+ * @brief Test Command_Timer executes action list and updates status flags.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command_timer_success)
+#else
+static void test_object_command_timer_success(void)
+#endif
+{
+    uint32_t command_instance = BACNET_MAX_INSTANCE;
+    bool status;
+    BACNET_ACTION_LIST *pAction;
+
+    Command_Cleanup();
+    command_instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(command_instance, BACNET_MAX_INSTANCE, NULL);
+    Command_Write_Property_Internal_Callback_Set(Write_Property_Internal);
+    Test_Action_Real_Value = 0.0f;
+    Test_Action_Write_Success = false;
+
+    status = Command_Present_Value_Set(command_instance, 1);
+    zassert_true(status, NULL);
+    pAction = Command_Action_List_Entry(command_instance, 0);
+    zassert_not_null(pAction, NULL);
+    pAction->Object_Id.type = OBJECT_ANALOG_VALUE;
+    pAction->Object_Id.instance = 1;
+    pAction->Property_Identifier = PROP_PRESENT_VALUE;
+    pAction->Property_Array_Index = BACNET_ARRAY_ALL;
+    pAction->Value.tag = BACNET_APPLICATION_TAG_REAL;
+    pAction->Value.type.Real = 12.5f;
+    pAction->Priority = 8;
+    pAction->Post_Delay = 0;
+    pAction->Quit_On_Failure = false;
+    pAction->Write_Successful = false;
+    pAction->next = NULL;
+
+    Command_Timer(command_instance, 1000);
+
+    zassert_false(Command_In_Process(command_instance), NULL);
+    zassert_true(Command_All_Writes_Successful(command_instance), NULL);
+    zassert_true(pAction->Write_Successful, NULL);
+    zassert_true(Test_Action_Write_Success, NULL);
+    zassert_equal(Test_Action_Real_Value, 12.5f, NULL);
+
+    status = Command_Delete(command_instance);
+    zassert_true(status, NULL);
+    Command_Cleanup();
+}
+
+/**
+ * @brief Test Command_Timer delay and quit-on-failure semantics.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command_timer_delay_and_failure)
+#else
+static void test_object_command_timer_delay_and_failure(void)
+#endif
+{
+    uint32_t command_instance = BACNET_MAX_INSTANCE;
+    bool status;
+    BACNET_ACTION_LIST *pAction0;
+    BACNET_ACTION_LIST *pAction1;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+
+    Command_Cleanup();
+    command_instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(command_instance, BACNET_MAX_INSTANCE, NULL);
+    Command_Write_Property_Internal_Callback_Set(Write_Property_Internal);
+    Test_Action_Real_Value = 0.0f;
+    Test_Action_Write_Success = false;
+
+    wp_data.object_type = OBJECT_COMMAND;
+    wp_data.object_instance = command_instance;
+    wp_data.object_property = PROP_ACTION;
+    wp_data.array_index = 0;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 2);
+    status = Command_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    status = Command_Present_Value_Set(command_instance, 1);
+    zassert_true(status, NULL);
+
+    pAction0 = Command_Action_List_Entry(command_instance, 0);
+    pAction1 = Command_Action_List_Entry(command_instance, 1);
+    zassert_not_null(pAction0, NULL);
+    zassert_not_null(pAction1, NULL);
+
+    pAction0->Object_Id.type = OBJECT_ANALOG_VALUE;
+    pAction0->Object_Id.instance = 1;
+    pAction0->Property_Identifier = PROP_PRESENT_VALUE;
+    pAction0->Property_Array_Index = BACNET_ARRAY_ALL;
+    pAction0->Value.tag = BACNET_APPLICATION_TAG_REAL;
+    pAction0->Value.type.Real = 7.0f;
+    pAction0->Priority = 8;
+    pAction0->Post_Delay = 1;
+    pAction0->Quit_On_Failure = false;
+    pAction0->Write_Successful = false;
+
+    pAction1->Object_Id.type = OBJECT_ANALOG_VALUE;
+    pAction1->Object_Id.instance = 1;
+    pAction1->Property_Identifier = PROP_OBJECT_NAME;
+    pAction1->Property_Array_Index = BACNET_ARRAY_ALL;
+    pAction1->Value.tag = BACNET_APPLICATION_TAG_NULL;
+    pAction1->Priority = BACNET_NO_PRIORITY;
+    pAction1->Post_Delay = 0;
+    pAction1->Quit_On_Failure = true;
+    pAction1->Write_Successful = false;
+
+    pAction0->next = pAction1;
+    pAction1->next = NULL;
+
+    Command_Timer(command_instance, 100);
+    zassert_true(pAction0->Write_Successful, NULL);
+    zassert_true(Command_In_Process(command_instance), NULL);
+    zassert_false(pAction1->Write_Successful, NULL);
+
+    Command_Timer(command_instance, 500);
+    zassert_true(Command_In_Process(command_instance), NULL);
+    zassert_false(pAction1->Write_Successful, NULL);
+    zassert_true(Test_Action_Write_Success, NULL);
+    zassert_equal(Test_Action_Real_Value, 7.0f, NULL);
+
+    Command_Timer(command_instance, 600);
+    zassert_false(Command_In_Process(command_instance), NULL);
+    zassert_false(Command_All_Writes_Successful(command_instance), NULL);
+    zassert_false(pAction1->Write_Successful, NULL);
+
+    status = Command_Delete(command_instance);
+    zassert_true(status, NULL);
+    Command_Cleanup();
+}
+
+/**
+ * @brief Test Present_Value of zero completes immediately with success.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command_timer_present_value_zero)
+#else
+static void test_object_command_timer_present_value_zero(void)
+#endif
+{
+    uint32_t command_instance = BACNET_MAX_INSTANCE;
+    bool status;
+
+    Command_Cleanup();
+    command_instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(command_instance, BACNET_MAX_INSTANCE, NULL);
+
+    status = Command_Present_Value_Set(command_instance, 0);
+    zassert_true(status, NULL);
+    zassert_true(Command_In_Process(command_instance), NULL);
+
+    Command_Timer(command_instance, 1);
+
+    zassert_false(Command_In_Process(command_instance), NULL);
+    zassert_true(Command_All_Writes_Successful(command_instance), NULL);
+
+    status = Command_Delete(command_instance);
+    zassert_true(status, NULL);
+    Command_Cleanup();
+}
 /**
  * @}
  */
@@ -293,7 +535,11 @@ void test_main(void)
         tests_object_command, ztest_unit_test(test_object_command),
         ztest_unit_test(test_object_command_dynamic),
         ztest_unit_test(test_object_command_action_array_write),
-        ztest_unit_test(test_object_command_name_description_write));
+        ztest_unit_test(test_object_command_present_value_write_busy),
+        ztest_unit_test(test_object_command_name_description_write),
+        ztest_unit_test(test_object_command_timer_success),
+        ztest_unit_test(test_object_command_timer_delay_and_failure),
+        ztest_unit_test(test_object_command_timer_present_value_zero));
 
     ztest_run_test_suite(tests_object_command);
 }

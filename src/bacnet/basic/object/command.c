@@ -40,12 +40,16 @@ struct object_data {
     uint32_t Present_Value;
     bool In_Process;
     bool All_Writes_Successful;
+    bool Action_Failed;
     char *Description;
     char *Object_Name;
+    BACNET_ACTION_LIST *Action;
+    uint32_t Action_Delay_Milliseconds;
     OS_Keylist Action_List;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
+static write_property_function Write_Property_Internal_Callback;
 #ifdef BAC_ROUTING
 #define Object_List (Object_Lists[Routed_Device_Object_Index()])
 #else
@@ -80,6 +84,43 @@ static void Action_List_Free(OS_Keylist list)
 }
 
 /**
+ * @brief Initialize a BACNET_ACTION_LIST entry to "empty" defaults.
+ * @param pAction [in,out] Action list entry to initialize.
+ */
+static void Action_List_Entry_Init(BACNET_ACTION_LIST *pAction)
+{
+    if (pAction) {
+        pAction->Device_Id.type = OBJECT_DEVICE;
+        pAction->Device_Id.instance = BACNET_MAX_INSTANCE;
+        pAction->Object_Id.type = OBJECT_NONE;
+        pAction->Object_Id.instance = BACNET_MAX_INSTANCE;
+        pAction->Property_Identifier = PROP_ALL;
+        pAction->Property_Array_Index = BACNET_ARRAY_ALL;
+        pAction->Value.tag = BACNET_APPLICATION_TAG_NULL;
+        pAction->Value.next = NULL;
+        pAction->Priority = BACNET_NO_PRIORITY;
+        pAction->Post_Delay = UINT32_MAX;
+        pAction->Quit_On_Failure = false;
+        pAction->Write_Successful = false;
+        pAction->next = NULL;
+    }
+}
+
+/**
+ * @brief Determine if a BACNET_ACTION_LIST entry is considered empty.
+ * @param pAction [in] Action list entry.
+ * @return true if empty.
+ */
+static bool Action_List_Entry_Empty(const BACNET_ACTION_LIST *pAction)
+{
+    if (!pAction) {
+        return true;
+    }
+
+    return (pAction->Object_Id.instance == BACNET_MAX_INSTANCE);
+}
+
+/**
  * @brief Initialize the action list for a Command object.
  * @param pObject [in,out] Pointer to object data.
  * @return true if all action entries were allocated and added.
@@ -104,6 +145,7 @@ static bool Action_List_Init(struct object_data *pObject)
             pObject->Action_List = NULL;
             return false;
         }
+        Action_List_Entry_Init(pAction);
         index = Keylist_Data_Add(pObject->Action_List, i, pAction);
         if (index < 0) {
             free(pAction);
@@ -158,6 +200,9 @@ static bool Command_Object_Instance_Add(uint32_t object_instance)
         }
         pObject->Description = NULL;
         pObject->Object_Name = NULL;
+        pObject->Action = NULL;
+        pObject->Action_Delay_Milliseconds = 0;
+        pObject->Action_Failed = false;
         pObject->All_Writes_Successful = true;
         if (!Action_List_Init(pObject)) {
             free(pObject);
@@ -369,7 +414,20 @@ bool Command_Present_Value_Set(uint32_t object_instance, uint32_t value)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
+        if (pObject->In_Process) {
+            return false;
+        }
         pObject->Present_Value = value;
+        pObject->In_Process = true;
+        pObject->All_Writes_Successful = false;
+        pObject->Action_Failed = false;
+        pObject->Action_Delay_Milliseconds = 0;
+        if (value == 0) {
+            pObject->Action = NULL;
+        } else {
+            pObject->Action =
+                Command_Action_List_Entry(object_instance, value - 1);
+        }
         status = true;
     }
 
@@ -726,6 +784,7 @@ static BACNET_ERROR_CODE Command_Action_List_Resize(
                 error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                 break;
             }
+            Action_List_Entry_Init(pAction);
             index = Keylist_Data_Add(pObject->Action_List, key, pAction);
             if (index < 0) {
                 free(pAction);
@@ -809,6 +868,158 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     }
 
     return error_code;
+}
+
+/**
+ * @brief Determine if action should be executed on the local device.
+ * @param pAction [in] Action entry.
+ * @return true if local execution is supported.
+ */
+static bool Command_Action_Target_Is_Local(const BACNET_ACTION_LIST *pAction)
+{
+    if (!pAction) {
+        return false;
+    }
+    if (pAction->Device_Id.instance == BACNET_MAX_INSTANCE) {
+        return true;
+    }
+    if (pAction->Device_Id.type != OBJECT_DEVICE) {
+        return false;
+    }
+
+    return (pAction->Device_Id.instance == Device_Object_Instance_Number());
+}
+
+/**
+ * @brief Execute a single action entry as a local WriteProperty operation.
+ * @param pAction [in,out] Action entry.
+ * @return true when write succeeds.
+ */
+static bool Command_Action_Write(BACNET_ACTION_LIST *pAction)
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    int len;
+    bool status = false;
+
+    if (!pAction) {
+        return false;
+    }
+    if (Action_List_Entry_Empty(pAction)) {
+        pAction->Write_Successful = false;
+        return false;
+    }
+    if (!Command_Action_Target_Is_Local(pAction)) {
+        pAction->Write_Successful = false;
+        return false;
+    }
+    wp_data.object_type = pAction->Object_Id.type;
+    wp_data.object_instance = pAction->Object_Id.instance;
+    wp_data.object_property = pAction->Property_Identifier;
+    wp_data.array_index = pAction->Property_Array_Index;
+    if ((pAction->Priority >= BACNET_MIN_PRIORITY) &&
+        (pAction->Priority <= BACNET_MAX_PRIORITY)) {
+        wp_data.priority = pAction->Priority;
+    } else {
+        wp_data.priority = BACNET_NO_PRIORITY;
+    }
+    len = bacnet_action_property_value_encode(
+        wp_data.application_data, &pAction->Value);
+    if ((len > 0) && Write_Property_Internal_Callback) {
+        wp_data.application_data_len = len;
+        status = write_property_bacnet_array_valid(&wp_data);
+        if (status) {
+            status = Write_Property_Internal_Callback(&wp_data);
+        }
+    }
+    pAction->Write_Successful = status;
+
+    return status;
+}
+
+/**
+ * @brief Mark all actions in a linked list as unsuccessful.
+ * @param pAction [in,out] First action entry.
+ */
+static void Command_Action_List_Fail(BACNET_ACTION_LIST *pAction)
+{
+    while (pAction) {
+        pAction->Write_Successful = false;
+        pAction = pAction->next;
+    }
+}
+
+/**
+ * @brief Convert post-delay seconds into object timer milliseconds.
+ * @param pObject [in,out] Command object data.
+ * @param post_delay [in] Post-delay in seconds, or UINT32_MAX if absent.
+ */
+static void
+Command_Action_Delay_Set(struct object_data *pObject, uint32_t post_delay)
+{
+    if (!pObject) {
+        return;
+    }
+    if ((post_delay == UINT32_MAX) || (post_delay == 0)) {
+        pObject->Action_Delay_Milliseconds = 0;
+    } else if (post_delay > (UINT32_MAX / 1000U)) {
+        pObject->Action_Delay_Milliseconds = UINT32_MAX;
+    } else {
+        pObject->Action_Delay_Milliseconds = post_delay * 1000U;
+    }
+}
+
+/**
+ * @brief Execute Command action sequence over time.
+ * @param object_instance [in] BACnet object instance number.
+ * @param milliseconds [in] Elapsed milliseconds since last tick.
+ */
+void Command_Timer(uint32_t object_instance, uint16_t milliseconds)
+{
+    struct object_data *pObject;
+    BACNET_ACTION_LIST *pAction;
+    bool status;
+
+    pObject = Object_Data(object_instance);
+    if (!pObject || !pObject->In_Process) {
+        return;
+    }
+    if (pObject->Action_Delay_Milliseconds > 0) {
+        if (pObject->Action_Delay_Milliseconds > milliseconds) {
+            pObject->Action_Delay_Milliseconds -= milliseconds;
+            return;
+        }
+        pObject->Action_Delay_Milliseconds = 0;
+    }
+    while (pObject->In_Process && (pObject->Action_Delay_Milliseconds == 0)) {
+        pAction = pObject->Action;
+        if ((pObject->Present_Value == 0) || Action_List_Entry_Empty(pAction)) {
+            pObject->In_Process = false;
+            pObject->All_Writes_Successful = !pObject->Action_Failed;
+            break;
+        }
+        status = Command_Action_Write(pAction);
+        if (!status) {
+            pObject->Action_Failed = true;
+            if (pAction->Quit_On_Failure) {
+                Command_Action_List_Fail(pAction->next);
+                pObject->Action = NULL;
+                pObject->In_Process = false;
+                pObject->All_Writes_Successful = false;
+                break;
+            }
+        }
+        pObject->Action = pAction->next;
+        Command_Action_Delay_Set(pObject, pAction->Post_Delay);
+    }
+}
+
+/**
+ * @brief Sets a callback used when Command action writes are executed.
+ * @param cb [in] callback used to write referenced properties.
+ */
+void Command_Write_Property_Internal_Callback_Set(write_property_function cb)
+{
+    Write_Property_Internal_Callback = cb;
 }
 
 /**
@@ -947,6 +1158,11 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = Command_Description_Write(wp_data, &char_string);
             break;
         case PROP_PRESENT_VALUE:
+            if (Command_In_Process(wp_data->object_instance)) {
+                wp_data->error_class = ERROR_CLASS_OBJECT;
+                wp_data->error_code = ERROR_CODE_BUSY;
+                return false;
+            }
             len = bacnet_unsigned_application_decode(
                 wp_data->application_data, wp_data->application_data_len,
                 &unsigned_value);

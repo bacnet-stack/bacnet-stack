@@ -450,7 +450,7 @@ static object_functions_t Default_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Command_Create,
       Command_Delete,
-      NULL /* Timer */,
+      Command_Timer,
       Command_Writable_Property_List },
 #if defined(INTRINSIC_REPORTING)
     { OBJECT_NOTIFICATION_CLASS,
@@ -4397,6 +4397,8 @@ void Device_Init(object_functions_t *object_table)
     /* link WriteProperty to Timer object for references */
     Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
+    /* link WriteProperty to Command object for action execution */
+    Command_Write_Property_Internal_Callback_Set(Device_Write_Property);
     Reinitialize_Data.State = BACNET_REINIT_IDLE;
     Reinitialize_Data.Password = "filister";
 }

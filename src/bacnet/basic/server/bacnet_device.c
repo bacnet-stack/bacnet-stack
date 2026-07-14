@@ -608,7 +608,7 @@ static object_functions_t Default_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Command_Create,
       Command_Delete,
-      NULL /* Timer */,
+      Command_Timer,
       Command_Writable_Property_List },
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT)
     { OBJECT_LIFE_SAFETY_POINT,
@@ -4087,6 +4087,10 @@ void Device_Init(object_functions_t *object_table)
 #ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
     /* link WriteProperty to Timer object for references */
     Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_COMMAND
+    /* link WriteProperty to Command object for action execution */
+    Command_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
 }
 

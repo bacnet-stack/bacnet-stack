@@ -69,6 +69,9 @@ BACNET_STACK_EXPORT
 bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
+void Command_Write_Property_Internal_Callback_Set(write_property_function cb);
+
+BACNET_STACK_EXPORT
 uint32_t Command_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Command_Present_Value_Set(uint32_t object_instance, uint32_t value);
@@ -104,6 +107,9 @@ unsigned Command_Action_List_Count(uint32_t instance);
    even when INTRINSIC_REPORTING is not defined */
 BACNET_STACK_EXPORT
 void Command_Intrinsic_Reporting(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+void Command_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
 void Command_Init(void);
