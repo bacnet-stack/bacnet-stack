@@ -129,7 +129,6 @@ static bool Action_List_Init(struct object_data *pObject)
 {
     BACNET_ACTION_LIST *pAction = NULL;
     int index = 0;
-    unsigned i = 0;
 
     if (!pObject) {
         return false;
@@ -138,21 +137,19 @@ static bool Action_List_Init(struct object_data *pObject)
     if (!pObject->Action_List) {
         return false;
     }
-    for (i = 0; i < MAX_COMMAND_ACTIONS; i++) {
-        pAction = calloc(1, sizeof(BACNET_ACTION_LIST));
-        if (!pAction) {
-            Action_List_Free(pObject->Action_List);
-            pObject->Action_List = NULL;
-            return false;
-        }
-        Action_List_Entry_Init(pAction);
-        index = Keylist_Data_Add(pObject->Action_List, i, pAction);
-        if (index < 0) {
-            free(pAction);
-            Action_List_Free(pObject->Action_List);
-            pObject->Action_List = NULL;
-            return false;
-        }
+    pAction = calloc(1, sizeof(BACNET_ACTION_LIST));
+    if (!pAction) {
+        Action_List_Free(pObject->Action_List);
+        pObject->Action_List = NULL;
+        return false;
+    }
+    Action_List_Entry_Init(pAction);
+    index = Keylist_Data_Add(pObject->Action_List, 0, pAction);
+    if (index < 0) {
+        free(pAction);
+        Action_List_Free(pObject->Action_List);
+        pObject->Action_List = NULL;
+        return false;
     }
 
     return true;
@@ -183,9 +180,6 @@ static bool Command_Object_Instance_Add(uint32_t object_instance)
     struct object_data *pObject;
     int index = 0;
 
-    if (object_instance >= MAX_COMMANDS) {
-        return false;
-    }
     if (!Object_List) {
         Object_List = Keylist_Create();
     }
@@ -294,7 +288,6 @@ void Command_Writable_Property_List(
 void Command_Init(void)
 {
     uint16_t dev_id;
-    uint32_t i;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
 #endif
@@ -306,11 +299,6 @@ void Command_Init(void)
 #endif
         if (!Object_List) {
             Object_List = Keylist_Create();
-        }
-        if (Object_List) {
-            for (i = 0; i < MAX_COMMANDS; i++) {
-                (void)Command_Create(i);
-            }
         }
     }
 
@@ -700,7 +688,7 @@ BACNET_ACTION_LIST *Command_Action_List_Entry(uint32_t instance, unsigned index)
     BACNET_ACTION_LIST *pAction = NULL;
 
     pObject = Object_Data(instance);
-    if (pObject && (index < MAX_COMMAND_ACTIONS)) {
+    if (pObject) {
         pAction = Keylist_Data(pObject->Action_List, index);
     }
 
@@ -764,9 +752,6 @@ static BACNET_ERROR_CODE Command_Action_List_Resize(
 
     if (!pObject) {
         return ERROR_CODE_UNKNOWN_OBJECT;
-    }
-    if (new_array_size > MAX_COMMAND_ACTIONS) {
-        return ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
     old_array_size = Keylist_Count(pObject->Action_List);
     if (new_array_size < old_array_size) {
@@ -847,9 +832,6 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
             error_code = Command_Action_List_Resize(pObject, array_size);
         } else {
             array_index--; /* array index is 1..N, but we want 0..(N-1) */
-            if (array_index >= MAX_COMMAND_ACTIONS) {
-                return ERROR_CODE_VALUE_OUT_OF_RANGE;
-            }
             len = bacnet_action_command_decode(apdu, apdu_size, &action);
             if (len > 0) {
                 pAction = Keylist_Data(pObject->Action_List, array_index);
@@ -1175,7 +1157,7 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
                 return false;
             }
-            if (unsigned_value >=
+            if (unsigned_value >
                 Command_Action_List_Count(wp_data->object_instance)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1238,9 +1220,6 @@ uint32_t Command_Create(uint32_t object_instance)
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
         object_instance = Keylist_Next_Empty_Key(Object_List, 0);
-    }
-    if (object_instance >= MAX_COMMANDS) {
-        return BACNET_MAX_INSTANCE;
     }
     if (!Command_Object_Instance_Add(object_instance)) {
         return BACNET_MAX_INSTANCE;

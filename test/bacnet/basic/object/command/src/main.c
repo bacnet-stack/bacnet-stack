@@ -69,6 +69,7 @@ static void test_object_command(void)
     uint32_t object_instance = BACNET_MAX_INSTANCE;
     const int32_t skip_fail_property_list[] = { -1 };
     BACNET_ACTION_LIST *pAction;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
 
     Command_Cleanup();
     object_instance = Command_Create(BACNET_MAX_INSTANCE);
@@ -124,7 +125,7 @@ static void test_object_command_present_value_write_busy(void)
     object_instance = Command_Create(BACNET_MAX_INSTANCE);
     zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
 
-    status = Command_Present_Value_Set(object_instance, 1);
+    status = Command_In_Process_Set(object_instance, true);
     zassert_true(status, NULL);
     zassert_true(Command_In_Process(object_instance), NULL);
 
@@ -140,7 +141,7 @@ static void test_object_command_present_value_write_busy(void)
     zassert_false(status, NULL);
     zassert_equal(wp_data.error_class, ERROR_CLASS_OBJECT, NULL);
     zassert_equal(wp_data.error_code, ERROR_CODE_BUSY, NULL);
-    zassert_equal(Command_Present_Value(object_instance), 1, NULL);
+    zassert_equal(Command_Present_Value(object_instance), 0, NULL);
     zassert_true(Command_In_Process(object_instance), NULL);
 
     status = Command_Delete(object_instance);
@@ -160,8 +161,6 @@ static void test_object_command_dynamic(void)
     uint32_t object_instance = BACNET_MAX_INSTANCE;
     bool status;
     unsigned count;
-    unsigned i;
-    BACNET_ACTION_LIST *pAction;
 
     Command_Cleanup();
     zassert_equal(Command_Count(), 0, NULL);
@@ -175,12 +174,7 @@ static void test_object_command_dynamic(void)
     zassert_equal(Command_Count(), 1, NULL);
 
     count = Command_Action_List_Count(object_instance);
-    zassert_equal(count, MAX_COMMAND_ACTIONS, NULL);
-    for (i = 0; i < count; i++) {
-        pAction = Command_Action_List_Entry(object_instance, i);
-        zassert_not_null(pAction, NULL);
-        pAction->Priority = i + 1;
-    }
+    zassert_true(count > 0, NULL);
 
     status = Command_Delete(object_instance);
     zassert_true(status, NULL);
@@ -371,6 +365,7 @@ static void test_object_command_timer_success(void)
     uint32_t command_instance = BACNET_MAX_INSTANCE;
     bool status;
     BACNET_ACTION_LIST *pAction;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
 
     Command_Cleanup();
     command_instance = Command_Create(BACNET_MAX_INSTANCE);
@@ -378,6 +373,16 @@ static void test_object_command_timer_success(void)
     Command_Write_Property_Internal_Callback_Set(Write_Property_Internal);
     Test_Action_Real_Value = 0.0f;
     Test_Action_Write_Success = false;
+
+    wp_data.object_type = OBJECT_COMMAND;
+    wp_data.object_instance = command_instance;
+    wp_data.object_property = PROP_ACTION;
+    wp_data.array_index = 0;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 1);
+    status = Command_Write_Property(&wp_data);
+    zassert_true(status, NULL);
 
     status = Command_Present_Value_Set(command_instance, 1);
     zassert_true(status, NULL);

@@ -16,14 +16,6 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
-#ifndef MAX_COMMANDS
-#define MAX_COMMANDS 4
-#endif
-
-#ifndef MAX_COMMAND_ACTIONS
-#define MAX_COMMAND_ACTIONS 8
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
