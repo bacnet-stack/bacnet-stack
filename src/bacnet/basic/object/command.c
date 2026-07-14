@@ -23,6 +23,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacaction.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactext.h"
 #include "bacnet/lighting.h"
@@ -39,6 +40,8 @@ struct object_data {
     uint32_t Present_Value;
     bool In_Process;
     bool All_Writes_Successful;
+    char *Description;
+    char *Object_Name;
     OS_Keylist Action_List;
 };
 /* Key List for storing the object data sorted by instance number  */
@@ -120,6 +123,8 @@ static bool Action_List_Init(struct object_data *pObject)
 static void Object_Data_Free(struct object_data *pObject)
 {
     if (pObject) {
+        free(pObject->Description);
+        free(pObject->Object_Name);
         Action_List_Free(pObject->Action_List);
         free(pObject);
     }
@@ -151,6 +156,8 @@ static bool Command_Object_Instance_Add(uint32_t object_instance)
         if (!pObject) {
             return false;
         }
+        pObject->Description = NULL;
+        pObject->Object_Name = NULL;
         pObject->All_Writes_Successful = true;
         if (!Action_List_Init(pObject)) {
             free(pObject);
@@ -180,7 +187,7 @@ static const int32_t Command_Properties_Required[] = {
     -1
 };
 
-static const int32_t Command_Properties_Optional[] = { -1 };
+static const int32_t Command_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int32_t Command_Properties_Proprietary[] = { -1 };
 
@@ -190,7 +197,7 @@ static const int32_t Command_Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, -1
+    PROP_PRESENT_VALUE, PROP_OBJECT_NAME, PROP_DESCRIPTION, -1
 };
 
 /**
@@ -477,9 +484,148 @@ bool Command_Object_Name(
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        snprintf(
-            text, sizeof(text), "COMMAND %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text);
+        if (pObject->Object_Name) {
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
+        } else {
+            snprintf(
+                text, sizeof(text), "COMMAND %lu",
+                (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the Command object-name for an instance.
+ * @param object_instance [in] BACnet object instance number.
+ * @param new_name [in] New object-name as a C string.
+ * @return true if the name was set.
+ */
+bool Command_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        free(pObject->Object_Name);
+        if (new_name) {
+            pObject->Object_Name = bacnet_strdup(new_name);
+            status = (pObject->Object_Name != NULL);
+        } else {
+            pObject->Object_Name = NULL;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the Command description as a C string.
+ * @param instance [in] BACnet object instance number.
+ * @return Description string, empty string, or NULL if object not found.
+ */
+const char *Command_Description(uint32_t instance)
+{
+    struct object_data *pObject;
+
+    pObject = Object_Data(instance);
+    if (pObject) {
+        if (pObject->Description) {
+            return pObject->Description;
+        }
+
+        return "";
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool Command_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+    char *utf8_name = NULL;
+
+    pObject = Object_Data(wp_data->object_instance);
+    if (pObject) {
+        utf8_name =
+            write_property_characterstring_utf8_strdup(wp_data, cstring);
+        if (utf8_name) {
+            free(pObject->Object_Name);
+            pObject->Object_Name = utf8_name;
+            status = true;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool Command_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+    char *utf8_name = NULL;
+
+    pObject = Object_Data(wp_data->object_instance);
+    if (pObject) {
+        utf8_name =
+            write_property_characterstring_utf8_strdup(wp_data, cstring);
+        if (utf8_name) {
+            free(pObject->Description);
+            pObject->Description = utf8_name;
+            status = true;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the Command description for an instance.
+ * @param instance [in] BACnet object instance number.
+ * @param new_name [in] New description as a C string.
+ * @return true if the description was set.
+ */
+bool Command_Description_Set(uint32_t instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(instance);
+    if (pObject) {
+        free(pObject->Description);
+        if (new_name) {
+            pObject->Description = bacnet_strdup(new_name);
+            status = (pObject->Description != NULL);
+        } else {
+            pObject->Description = NULL;
+            status = true;
+        }
     }
 
     return status;
@@ -704,6 +850,13 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_COMMAND);
             break;
 
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string, Command_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+
         case PROP_PRESENT_VALUE:
             apdu_len = encode_application_unsigned(
                 &apdu[0], Command_Present_Value(rpdata->object_instance));
@@ -779,6 +932,22 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     switch ((int)wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Command_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Command_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
