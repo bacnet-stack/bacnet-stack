@@ -129,6 +129,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE) ||       \
     defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL) ||           \
+    defined(CONFIG_BACNET_BASIC_OBJECT_COMMAND) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHANNEL) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT) || \
     defined(CONFIG_BACNET_BASIC_OBJECT_COLOR) ||                  \
@@ -164,6 +165,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE
 #define CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL
+#define CONFIG_BACNET_BASIC_OBJECT_COMMAND
 #define CONFIG_BACNET_BASIC_OBJECT_CHANNEL
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_COLOR
@@ -589,6 +591,7 @@ static object_functions_t Default_Object_Table[] = {
       NULL /* Timer */,
       Integer_Value_Writable_Property_List },
 #endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_COMMAND)
     { OBJECT_COMMAND,
       Command_Init,
       Command_Count,
@@ -610,6 +613,7 @@ static object_functions_t Default_Object_Table[] = {
       Command_Delete,
       Command_Timer,
       Command_Writable_Property_List },
+#endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT)
     { OBJECT_LIFE_SAFETY_POINT,
       Life_Safety_Point_Init,
