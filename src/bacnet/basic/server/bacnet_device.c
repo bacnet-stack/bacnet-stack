@@ -129,6 +129,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE) ||       \
     defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL) ||           \
+    defined(CONFIG_BACNET_BASIC_OBJECT_COMMAND) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHANNEL) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT) || \
     defined(CONFIG_BACNET_BASIC_OBJECT_COLOR) ||                  \
@@ -164,6 +165,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE
 #define CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL
+#define CONFIG_BACNET_BASIC_OBJECT_COMMAND
 #define CONFIG_BACNET_BASIC_OBJECT_CHANNEL
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_COLOR
@@ -588,6 +590,29 @@ static object_functions_t Default_Object_Table[] = {
       Integer_Value_Delete,
       NULL /* Timer */,
       Integer_Value_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_COMMAND)
+    { OBJECT_COMMAND,
+      Command_Init,
+      Command_Count,
+      Command_Index_To_Instance,
+      Command_Valid_Instance,
+      Command_Object_Name,
+      Command_Read_Property,
+      Command_Write_Property,
+      Command_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Command_Create,
+      Command_Delete,
+      Command_Timer,
+      Command_Writable_Property_List },
 #endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT)
     { OBJECT_LIFE_SAFETY_POINT,
@@ -4066,6 +4091,10 @@ void Device_Init(object_functions_t *object_table)
 #ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
     /* link WriteProperty to Timer object for references */
     Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_COMMAND
+    /* link WriteProperty to Command object for action execution */
+    Command_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
 }
 
