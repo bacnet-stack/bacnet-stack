@@ -29,6 +29,23 @@ static bool is_float_equal(float x1, float x2)
 static float Test_Action_Real_Value;
 static bool Test_Action_Write_Success;
 
+static void action_list_set_property_value(
+    BACNET_ACTION_LIST *action, const BACNET_ACTION_PROPERTY_VALUE *value)
+{
+    int len = 0;
+
+    if (!action || !value) {
+        return;
+    }
+    len =
+        bacnet_action_property_value_encode(action->Property_Value.data, value);
+    if ((len > 0) && (len <= (int)sizeof(action->Property_Value.data))) {
+        action->Property_Value.data_len = (uint16_t)len;
+    } else {
+        action->Property_Value.data_len = 0;
+    }
+}
+
 uint32_t Device_Object_Instance_Number(void)
 {
     return 260001;
@@ -82,6 +99,7 @@ static void test_object_command(void)
     uint32_t object_instance = BACNET_MAX_INSTANCE;
     const int32_t skip_fail_property_list[] = { -1 };
     BACNET_ACTION_LIST *pAction;
+    BACNET_ACTION_PROPERTY_VALUE action_value = { 0 };
 
     Command_Cleanup();
     object_instance = Command_Create(BACNET_MAX_INSTANCE);
@@ -102,8 +120,9 @@ static void test_object_command(void)
     pAction->Property_Identifier = PROP_PRESENT_VALUE;
     pAction->Property_Array_Index = BACNET_ARRAY_ALL;
     pAction->Priority = 16;
-    pAction->Value.tag = BACNET_APPLICATION_TAG_REAL;
-    pAction->Value.type.Real = 3.14159f;
+    action_value.tag = BACNET_APPLICATION_TAG_REAL;
+    action_value.type.Real = 3.14159f;
+    action_list_set_property_value(pAction, &action_value);
     pAction->Post_Delay = 0;
     pAction->Quit_On_Failure = false;
     pAction->Write_Successful = false;
@@ -214,6 +233,7 @@ static void test_object_command_action_array_write(void)
     BACNET_READ_PROPERTY_DATA rp_data = { 0 };
     BACNET_ACTION_LIST action_expected = { 0 };
     BACNET_ACTION_LIST action_decoded = { 0 };
+    BACNET_ACTION_PROPERTY_VALUE action_value = { 0 };
     BACNET_ACTION_LIST *pAction = NULL;
     uint8_t apdu[MAX_APDU] = { 0 };
 
@@ -241,8 +261,9 @@ static void test_object_command_action_array_write(void)
     action_expected.Object_Id.instance = 7;
     action_expected.Property_Identifier = PROP_PRESENT_VALUE;
     action_expected.Property_Array_Index = BACNET_ARRAY_ALL;
-    action_expected.Value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-    action_expected.Value.type.Unsigned_Int = 42;
+    action_value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    action_value.type.Unsigned_Int = 42;
+    action_list_set_property_value(&action_expected, &action_value);
     action_expected.Priority = 8;
     action_expected.Post_Delay = 10;
     action_expected.Quit_On_Failure = true;
@@ -377,6 +398,7 @@ static void test_object_command_timer_success(void)
     uint32_t command_instance = BACNET_MAX_INSTANCE;
     bool status;
     BACNET_ACTION_LIST *pAction;
+    BACNET_ACTION_PROPERTY_VALUE action_value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
 
     Command_Cleanup();
@@ -404,8 +426,9 @@ static void test_object_command_timer_success(void)
     pAction->Object_Id.instance = 1;
     pAction->Property_Identifier = PROP_PRESENT_VALUE;
     pAction->Property_Array_Index = BACNET_ARRAY_ALL;
-    pAction->Value.tag = BACNET_APPLICATION_TAG_REAL;
-    pAction->Value.type.Real = 12.5f;
+    action_value.tag = BACNET_APPLICATION_TAG_REAL;
+    action_value.type.Real = 12.5f;
+    action_list_set_property_value(pAction, &action_value);
     pAction->Priority = 8;
     pAction->Post_Delay = 0;
     pAction->Quit_On_Failure = false;
@@ -438,6 +461,7 @@ static void test_object_command_timer_delay_and_failure(void)
     bool status;
     BACNET_ACTION_LIST *pAction0;
     BACNET_ACTION_LIST *pAction1;
+    BACNET_ACTION_PROPERTY_VALUE action_value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
 
     Command_Cleanup();
@@ -469,8 +493,9 @@ static void test_object_command_timer_delay_and_failure(void)
     pAction0->Object_Id.instance = 1;
     pAction0->Property_Identifier = PROP_PRESENT_VALUE;
     pAction0->Property_Array_Index = BACNET_ARRAY_ALL;
-    pAction0->Value.tag = BACNET_APPLICATION_TAG_REAL;
-    pAction0->Value.type.Real = 7.0f;
+    action_value.tag = BACNET_APPLICATION_TAG_REAL;
+    action_value.type.Real = 7.0f;
+    action_list_set_property_value(pAction0, &action_value);
     pAction0->Priority = 8;
     pAction0->Post_Delay = 1;
     pAction0->Quit_On_Failure = false;
@@ -480,7 +505,8 @@ static void test_object_command_timer_delay_and_failure(void)
     pAction1->Object_Id.instance = 1;
     pAction1->Property_Identifier = PROP_OBJECT_NAME;
     pAction1->Property_Array_Index = BACNET_ARRAY_ALL;
-    pAction1->Value.tag = BACNET_APPLICATION_TAG_NULL;
+    action_value.tag = BACNET_APPLICATION_TAG_NULL;
+    action_list_set_property_value(pAction1, &action_value);
     pAction1->Priority = BACNET_NO_PRIORITY;
     pAction1->Post_Delay = 0;
     pAction1->Quit_On_Failure = true;
