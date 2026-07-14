@@ -49,6 +49,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
