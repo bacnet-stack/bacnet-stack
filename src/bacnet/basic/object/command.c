@@ -1,8 +1,8 @@
 /**
  * @file
- * @author Nikola Jelic <nikola.jelic@euroicc.com>
- * @date 2014
  * @brief Command objects, customize for your use
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date July 2026
  * @details The Command object type defines a standardized object whose
  * properties represent the externally visible characteristics of a
  * multi-action command procedure. A Command object is used to
@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -28,17 +29,143 @@
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/keylist.h"
 /* BACnet Stack Objects */
 #include "bacnet/basic/object/device.h"
 /* me!*/
 #include "bacnet/basic/object/command.h"
 
-static COMMAND_DESCR Command_Descrs[MAX_NUM_DEVICES][MAX_COMMANDS];
+struct object_data {
+    uint32_t Present_Value;
+    bool In_Process;
+    bool All_Writes_Successful;
+    OS_Keylist Action_List;
+};
+/* Key List for storing the object data sorted by instance number  */
+static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
 #ifdef BAC_ROUTING
-#define Command_Descr (Command_Descrs[Routed_Device_Object_Index()])
+#define Object_List (Object_Lists[Routed_Device_Object_Index()])
 #else
-#define Command_Descr (Command_Descrs[0])
+#define Object_List (Object_Lists[0])
 #endif
+
+/**
+ * @brief Get Command object data by object instance.
+ * @param object_instance [in] BACnet object instance number.
+ * @return Pointer to object data, or NULL if not found.
+ */
+static struct object_data *Object_Data(uint32_t object_instance)
+{
+    return Keylist_Data(Object_List, object_instance);
+}
+
+/**
+ * @brief Free all action entries and delete an action keylist.
+ * @param list [in] Action list keylist.
+ */
+static void Action_List_Free(OS_Keylist list)
+{
+    BACNET_ACTION_LIST *pAction;
+
+    if (list) {
+        do {
+            pAction = Keylist_Data_Pop(list);
+            free(pAction);
+        } while (pAction);
+        Keylist_Delete(list);
+    }
+}
+
+/**
+ * @brief Initialize the action list for a Command object.
+ * @param pObject [in,out] Pointer to object data.
+ * @return true if all action entries were allocated and added.
+ */
+static bool Action_List_Init(struct object_data *pObject)
+{
+    BACNET_ACTION_LIST *pAction = NULL;
+    int index = 0;
+    unsigned i = 0;
+
+    if (!pObject) {
+        return false;
+    }
+    pObject->Action_List = Keylist_Create();
+    if (!pObject->Action_List) {
+        return false;
+    }
+    for (i = 0; i < MAX_COMMAND_ACTIONS; i++) {
+        pAction = calloc(1, sizeof(BACNET_ACTION_LIST));
+        if (!pAction) {
+            Action_List_Free(pObject->Action_List);
+            pObject->Action_List = NULL;
+            return false;
+        }
+        index = Keylist_Data_Add(pObject->Action_List, i, pAction);
+        if (index < 0) {
+            free(pAction);
+            Action_List_Free(pObject->Action_List);
+            pObject->Action_List = NULL;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Free all memory owned by a Command object data record.
+ * @param pObject [in] Pointer to object data.
+ */
+static void Object_Data_Free(struct object_data *pObject)
+{
+    if (pObject) {
+        Action_List_Free(pObject->Action_List);
+        free(pObject);
+    }
+}
+
+/**
+ * @brief Add a Command object instance if it is not already present.
+ * @param object_instance [in] BACnet object instance number.
+ * @return true if the instance exists after the call.
+ */
+static bool Command_Object_Instance_Add(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+    int index = 0;
+
+    if (object_instance >= MAX_COMMANDS) {
+        return false;
+    }
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
+    if (!Object_List) {
+        return false;
+    }
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        pObject = calloc(1, sizeof(struct object_data));
+        if (!pObject) {
+            return false;
+        }
+        pObject->All_Writes_Successful = true;
+        if (!Action_List_Init(pObject)) {
+            free(pObject);
+            return false;
+        }
+        index = Keylist_Data_Add(Object_List, object_instance, pObject);
+        if (index < 0) {
+            Object_Data_Free(pObject);
+            return false;
+        }
+    }
+    status = true;
+
+    return status;
+}
 
 /* These arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Command_Properties_Required[] = {
@@ -115,20 +242,23 @@ void Command_Writable_Property_List(
 void Command_Init(void)
 {
     uint16_t dev_id;
-    unsigned i;
+    uint32_t i;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
 #endif
 
+    Command_Cleanup();
     for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
 #ifdef BAC_ROUTING
         Set_Routed_Device_Object_Index(dev_id);
 #endif
-        for (i = 0; i < MAX_COMMANDS; i++) {
-            Command_Descr[i].Present_Value = 0;
-            Command_Descr[i].In_Process = false;
-            Command_Descr[i].All_Writes_Successful =
-                true; /* Optimistic default */
+        if (!Object_List) {
+            Object_List = Keylist_Create();
+        }
+        if (Object_List) {
+            for (i = 0; i < MAX_COMMANDS; i++) {
+                (void)Command_Create(i);
+            }
         }
     }
 
@@ -146,10 +276,10 @@ void Command_Init(void)
  */
 bool Command_Valid_Instance(uint32_t object_instance)
 {
-    unsigned int index;
+    struct object_data *pObject;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
+    pObject = Object_Data(object_instance);
+    if (pObject) {
         return true;
     }
 
@@ -163,7 +293,7 @@ bool Command_Valid_Instance(uint32_t object_instance)
  */
 unsigned Command_Count(void)
 {
-    return MAX_COMMANDS;
+    return Keylist_Count(Object_List);
 }
 
 /**
@@ -176,7 +306,11 @@ unsigned Command_Count(void)
  */
 uint32_t Command_Index_To_Instance(unsigned index)
 {
-    return index;
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 /**
@@ -190,13 +324,7 @@ uint32_t Command_Index_To_Instance(unsigned index)
  */
 unsigned Command_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_COMMANDS;
-
-    if (object_instance < MAX_COMMANDS) {
-        index = object_instance;
-    }
-
-    return index;
+    return Keylist_Index(Object_List, object_instance);
 }
 
 /**
@@ -209,11 +337,11 @@ unsigned Command_Instance_To_Index(uint32_t object_instance)
 uint32_t Command_Present_Value(uint32_t object_instance)
 {
     uint32_t value = 0;
-    unsigned int index;
+    struct object_data *pObject;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
-        value = Command_Descr[index].Present_Value;
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Present_Value;
     }
 
     return value;
@@ -230,11 +358,11 @@ uint32_t Command_Present_Value(uint32_t object_instance)
 bool Command_Present_Value_Set(uint32_t object_instance, uint32_t value)
 {
     bool status = false;
-    unsigned int index;
+    struct object_data *pObject;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
-        Command_Descr[index].Present_Value = value;
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Present_Value = value;
         status = true;
     }
 
@@ -255,11 +383,11 @@ bool Command_Present_Value_Set(uint32_t object_instance, uint32_t value)
 bool Command_In_Process(uint32_t object_instance)
 {
     bool value = false;
-    unsigned int index;
+    struct object_data *pObject;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
-        value = Command_Descr[index].In_Process;
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->In_Process;
     }
 
     return value;
@@ -276,11 +404,11 @@ bool Command_In_Process(uint32_t object_instance)
 bool Command_In_Process_Set(uint32_t object_instance, bool value)
 {
     bool status = false;
-    unsigned int index;
+    struct object_data *pObject;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
-        Command_Descr[index].In_Process = value;
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->In_Process = value;
         status = true;
     }
 
@@ -299,11 +427,11 @@ bool Command_In_Process_Set(uint32_t object_instance, bool value)
 bool Command_All_Writes_Successful(uint32_t object_instance)
 {
     bool value = false;
-    unsigned int index;
+    struct object_data *pObject;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
-        value = Command_Descr[index].All_Writes_Successful;
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->All_Writes_Successful;
     }
 
     return value;
@@ -320,11 +448,11 @@ bool Command_All_Writes_Successful(uint32_t object_instance)
 bool Command_All_Writes_Successful_Set(uint32_t object_instance, bool value)
 {
     bool status = false;
-    unsigned int index;
+    struct object_data *pObject;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
-        Command_Descr[index].All_Writes_Successful = value;
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->All_Writes_Successful = value;
         status = true;
     }
 
@@ -344,11 +472,11 @@ bool Command_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     char text[32] = "";
-    unsigned int index;
+    struct object_data *pObject;
     bool status = false;
 
-    index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
+    pObject = Object_Data(object_instance);
+    if (pObject) {
         snprintf(
             text, sizeof(text), "COMMAND %lu", (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
@@ -362,24 +490,14 @@ bool Command_Object_Name(
  * @param object_instance [in] BACnet network port object instance number
  * @return pointer to the object data
  */
-static COMMAND_DESCR *Object_Data(uint32_t object_instance)
-{
-    unsigned int index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS) {
-        return &Command_Descr[index];
-    }
-
-    return NULL;
-}
-
 BACNET_ACTION_LIST *Command_Action_List_Entry(uint32_t instance, unsigned index)
 {
-    COMMAND_DESCR *pObject;
+    struct object_data *pObject;
     BACNET_ACTION_LIST *pAction = NULL;
 
     pObject = Object_Data(instance);
     if (pObject && (index < MAX_COMMAND_ACTIONS)) {
-        pAction = &pObject->Action[index];
+        pAction = Keylist_Data(pObject->Action_List, index);
     }
 
     return pAction;
@@ -390,8 +508,15 @@ BACNET_ACTION_LIST *Command_Action_List_Entry(uint32_t instance, unsigned index)
  */
 unsigned Command_Action_List_Count(uint32_t instance)
 {
-    (void)instance;
-    return MAX_COMMAND_ACTIONS;
+    unsigned count = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(instance);
+    if (pObject) {
+        count = Keylist_Count(pObject->Action_List);
+    }
+
+    return count;
 }
 
 /**
@@ -408,11 +533,11 @@ static int Command_Action_List_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    COMMAND_DESCR *pObject;
+    BACNET_ACTION_LIST *pAction;
 
-    pObject = Object_Data(object_instance);
-    if (pObject && (index < MAX_COMMAND_ACTIONS)) {
-        apdu_len = bacnet_action_command_encode(apdu, &pObject->Action[index]);
+    pAction = Command_Action_List_Entry(object_instance, index);
+    if (pAction) {
+        apdu_len = bacnet_action_command_encode(apdu, pAction);
     }
 
     return apdu_len;
@@ -473,7 +598,8 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_ACTION:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                Command_Action_List_Encode, MAX_COMMAND_ACTIONS, apdu,
+                Command_Action_List_Encode,
+                Command_Action_List_Count(rpdata->object_instance), apdu,
                 apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
@@ -533,7 +659,8 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                if (value.type.Unsigned_Int >= MAX_COMMAND_ACTIONS) {
+                if (value.type.Unsigned_Int >=
+                    Command_Action_List_Count(wp_data->object_instance)) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     return false;
@@ -562,7 +689,89 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return status;
 }
 
+/**
+ * @brief Intrinsic reporting task hook for Command object.
+ * @param object_instance [in] BACnet object instance number.
+ */
 void Command_Intrinsic_Reporting(uint32_t object_instance)
 {
     (void)object_instance;
+}
+
+/**
+ * @brief Create a Command object instance.
+ * @param object_instance [in] Instance number, or BACNET_MAX_INSTANCE for
+ * wildcard allocation.
+ * @return Object instance on success, or BACNET_MAX_INSTANCE on failure.
+ */
+uint32_t Command_Create(uint32_t object_instance)
+{
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
+    if (!Object_List) {
+        return BACNET_MAX_INSTANCE;
+    }
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        object_instance = Keylist_Next_Empty_Key(Object_List, 0);
+    }
+    if (object_instance >= MAX_COMMANDS) {
+        return BACNET_MAX_INSTANCE;
+    }
+    if (!Command_Object_Instance_Add(object_instance)) {
+        return BACNET_MAX_INSTANCE;
+    }
+
+    return object_instance;
+}
+
+/**
+ * @brief Delete a Command object instance.
+ * @param object_instance [in] BACnet object instance number.
+ * @return true if the object was deleted.
+ */
+bool Command_Delete(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject = NULL;
+
+    pObject = Keylist_Data_Delete(Object_List, object_instance);
+    if (pObject) {
+        Object_Data_Free(pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Delete all Command objects for all routed device contexts.
+ */
+void Command_Cleanup(void)
+{
+    struct object_data *pObject;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
+
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        if (Object_List) {
+            do {
+                pObject = Keylist_Data_Pop(Object_List);
+                Object_Data_Free(pObject);
+            } while (pObject);
+            Keylist_Delete(Object_List);
+            Object_List = NULL;
+        }
+    }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
 }

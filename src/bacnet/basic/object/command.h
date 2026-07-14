@@ -28,13 +28,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-typedef struct command_descr {
-    uint32_t Present_Value;
-    bool In_Process;
-    bool All_Writes_Successful;
-    BACNET_ACTION_LIST Action[MAX_COMMAND_ACTIONS];
-} COMMAND_DESCR;
-
 BACNET_STACK_EXPORT
 void Command_Property_Lists(
     const int32_t **pRequired,
@@ -53,7 +46,11 @@ uint32_t Command_Index_To_Instance(unsigned index);
 BACNET_STACK_EXPORT
 unsigned Command_Instance_To_Index(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Command_Object_Instance_Add(uint32_t instance);
+uint32_t Command_Create(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Command_Delete(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Command_Cleanup(void);
 
 BACNET_STACK_EXPORT
 bool Command_Object_Name(

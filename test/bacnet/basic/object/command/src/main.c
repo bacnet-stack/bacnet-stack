@@ -26,14 +26,15 @@ static void test_object_command(void)
 {
     bool status = false;
     unsigned count = 0;
-    uint32_t object_instance = 0;
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
     const int32_t skip_fail_property_list[] = { -1 };
     BACNET_ACTION_LIST *pAction;
 
-    Command_Init();
+    Command_Cleanup();
+    object_instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
     count = Command_Count();
     zassert_true(count > 0, NULL);
-    object_instance = Command_Index_To_Instance(0);
     status = Command_Valid_Instance(object_instance);
     zassert_true(status, NULL);
     count = Command_Action_List_Count(object_instance);
@@ -60,6 +61,54 @@ static void test_object_command(void)
     bacnet_object_properties_read_write_test(
         OBJECT_COMMAND, object_instance, Command_Property_Lists,
         Command_Read_Property, Command_Write_Property, skip_fail_property_list);
+
+    status = Command_Delete(object_instance);
+    zassert_true(status, NULL);
+    Command_Cleanup();
+}
+
+/**
+ * @brief Test dynamic object and action list lifecycle APIs
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command_dynamic)
+#else
+static void test_object_command_dynamic(void)
+#endif
+{
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
+    bool status;
+    unsigned count;
+    unsigned i;
+    BACNET_ACTION_LIST *pAction;
+
+    Command_Cleanup();
+    zassert_equal(Command_Count(), 0, NULL);
+
+    object_instance = Command_Create(BACNET_MAX_INSTANCE + 1);
+    zassert_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    object_instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    zassert_true(Command_Valid_Instance(object_instance), NULL);
+    zassert_equal(Command_Count(), 1, NULL);
+
+    count = Command_Action_List_Count(object_instance);
+    zassert_equal(count, MAX_COMMAND_ACTIONS, NULL);
+    for (i = 0; i < count; i++) {
+        pAction = Command_Action_List_Entry(object_instance, i);
+        zassert_not_null(pAction, NULL);
+        pAction->Priority = i + 1;
+    }
+
+    status = Command_Delete(object_instance);
+    zassert_true(status, NULL);
+    zassert_false(Command_Valid_Instance(object_instance), NULL);
+    zassert_equal(Command_Count(), 0, NULL);
+
+    status = Command_Delete(object_instance);
+    zassert_false(status, NULL);
+    Command_Cleanup();
 }
 /**
  * @}
@@ -71,7 +120,8 @@ ZTEST_SUITE(tests_object_command, NULL, NULL, NULL, NULL, NULL);
 void test_main(void)
 {
     ztest_test_suite(
-        tests_object_command, ztest_unit_test(test_object_command));
+        tests_object_command, ztest_unit_test(test_object_command),
+        ztest_unit_test(test_object_command_dynamic));
 
     ztest_run_test_suite(tests_object_command);
 }

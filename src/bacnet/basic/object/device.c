@@ -448,8 +448,8 @@ static object_functions_t Default_Object_Table[] = {
       NULL /* Intrinsic Reporting */,
       NULL /* Add_List_Element */,
       NULL /* Remove_List_Element */,
-      NULL /* Create */,
-      NULL /* Delete */,
+      Command_Create,
+      Command_Delete,
       NULL /* Timer */,
       Command_Writable_Property_List },
 #if defined(INTRINSIC_REPORTING)
