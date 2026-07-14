@@ -110,6 +110,85 @@ static void test_object_command_dynamic(void)
     zassert_false(status, NULL);
     Command_Cleanup();
 }
+
+/**
+ * @brief Test writable PROP_ACTION array resize and element read/write.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command_action_array_write)
+#else
+static void test_object_command_action_array_write(void)
+#endif
+{
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
+    bool status = false;
+    int len = 0;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    BACNET_ACTION_LIST action_expected = { 0 };
+    BACNET_ACTION_LIST action_decoded = { 0 };
+    BACNET_ACTION_LIST *pAction = NULL;
+    uint8_t apdu[MAX_APDU] = { 0 };
+
+    Command_Cleanup();
+    object_instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    wp_data.object_type = OBJECT_COMMAND;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_ACTION;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    /* Resize Action array by writing array index 0. */
+    wp_data.array_index = 0;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 2);
+    status = Command_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Command_Action_List_Count(object_instance), 2, NULL);
+
+    /* Write first action element (array index 1). */
+    action_expected.Device_Id.type = OBJECT_DEVICE;
+    action_expected.Device_Id.instance = 1234;
+    action_expected.Object_Id.type = OBJECT_ANALOG_VALUE;
+    action_expected.Object_Id.instance = 7;
+    action_expected.Property_Identifier = PROP_PRESENT_VALUE;
+    action_expected.Property_Array_Index = BACNET_ARRAY_ALL;
+    action_expected.Value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    action_expected.Value.type.Unsigned_Int = 42;
+    action_expected.Priority = 8;
+    action_expected.Post_Delay = 10;
+    action_expected.Quit_On_Failure = true;
+    action_expected.Write_Successful = false;
+
+    wp_data.array_index = 1;
+    wp_data.application_data_len = bacnet_action_command_encode(
+        wp_data.application_data, &action_expected);
+    status = Command_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    pAction = Command_Action_List_Entry(object_instance, 0);
+    zassert_not_null(pAction, NULL);
+    zassert_true(bacnet_action_command_same(&action_expected, pAction), NULL);
+
+    /* Read back first action element and verify round-trip decode. */
+    rp_data.object_type = OBJECT_COMMAND;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_ACTION;
+    rp_data.array_index = 1;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = Command_Read_Property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacnet_action_command_decode(apdu, len, &action_decoded);
+    zassert_true(len > 0, NULL);
+    zassert_true(
+        bacnet_action_command_same(&action_expected, &action_decoded), NULL);
+
+    status = Command_Delete(object_instance);
+    zassert_true(status, NULL);
+    Command_Cleanup();
+}
 /**
  * @}
  */
@@ -121,7 +200,8 @@ void test_main(void)
 {
     ztest_test_suite(
         tests_object_command, ztest_unit_test(test_object_command),
-        ztest_unit_test(test_object_command_dynamic));
+        ztest_unit_test(test_object_command_dynamic),
+        ztest_unit_test(test_object_command_action_array_write));
 
     ztest_run_test_suite(tests_object_command);
 }

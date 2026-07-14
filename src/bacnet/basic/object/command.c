@@ -544,6 +544,128 @@ static int Command_Action_List_Encode(
 }
 
 /**
+ * @brief Resize the Command Action_List for an object instance.
+ * @param pObject [in,out] Pointer to object data.
+ * @param new_array_size [in] New number of action entries.
+ * @return BACNET_ERROR_CODE_SUCCESS on success, else error code.
+ */
+static BACNET_ERROR_CODE Command_Action_List_Resize(
+    struct object_data *pObject, BACNET_UNSIGNED_INTEGER new_array_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    BACNET_ACTION_LIST *pAction;
+    BACNET_UNSIGNED_INTEGER old_array_size = 0;
+    KEY key = 0;
+    int index = 0;
+
+    if (!pObject) {
+        return ERROR_CODE_UNKNOWN_OBJECT;
+    }
+    if (new_array_size > MAX_COMMAND_ACTIONS) {
+        return ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+    old_array_size = Keylist_Count(pObject->Action_List);
+    if (new_array_size < old_array_size) {
+        key = new_array_size;
+        while (key < old_array_size) {
+            pAction = Keylist_Data_Delete(pObject->Action_List, key);
+            free(pAction);
+            key++;
+        }
+    } else if (new_array_size > old_array_size) {
+        key = old_array_size;
+        while (key < new_array_size) {
+            pAction = calloc(1, sizeof(BACNET_ACTION_LIST));
+            if (!pAction) {
+                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                break;
+            }
+            index = Keylist_Data_Add(pObject->Action_List, key, pAction);
+            if (index < 0) {
+                free(pAction);
+                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                break;
+            }
+            key++;
+        }
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a Command Action_List member element to determine length.
+ * @param object_instance [in] BACnet object instance number.
+ * @param apdu [in] Buffer containing encoded element value.
+ * @param apdu_size [in] Size of buffer.
+ * @return Decoded length, or BACNET_STATUS_ERROR on error.
+ */
+static int Command_Action_List_Member_Decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len = BACNET_STATUS_ERROR;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        len = bacnet_action_command_decode(apdu, apdu_size, NULL);
+    }
+
+    return len;
+}
+
+/**
+ * @brief Write a value to a Command Action_List BACnetARRAY element.
+ * @param object_instance [in] BACnet object instance number.
+ * @param array_index [in] Array index to write.
+ * @param array_size [in] Array size, used for index 0 writes.
+ * @param apdu [in] Encoded element value.
+ * @param apdu_size [in] Size of encoded element value.
+ * @return BACNET_ERROR_CODE value.
+ */
+static BACNET_ERROR_CODE Command_Action_List_Member_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_ACTION_LIST action = { 0 };
+    BACNET_ACTION_LIST *pAction;
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        if (array_index == 0) {
+            error_code = Command_Action_List_Resize(pObject, array_size);
+        } else {
+            array_index--; /* array index is 1..N, but we want 0..(N-1) */
+            if (array_index >= MAX_COMMAND_ACTIONS) {
+                return ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+            len = bacnet_action_command_decode(apdu, apdu_size, &action);
+            if (len > 0) {
+                pAction = Keylist_Data(pObject->Action_List, array_index);
+                if (pAction) {
+                    *pAction = action;
+                    pAction->next = NULL;
+                    pAction->Value.next = NULL;
+                    error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                }
+            } else {
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+        }
+    }
+
+    return error_code;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -633,6 +755,7 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     unsigned int object_index = 0;
     int len = 0;
+    BACNET_UNSIGNED_INTEGER array_size = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* Valid data? */
@@ -640,8 +763,9 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
+    len = bacapp_decode_known_array_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        OBJECT_COMMAND, wp_data->object_property, wp_data->array_index);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -671,6 +795,17 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 status = false;
+            }
+            break;
+        case PROP_ACTION:
+            array_size = Command_Action_List_Count(wp_data->object_instance);
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Command_Action_List_Member_Decode,
+                Command_Action_List_Member_Write, array_size,
+                wp_data->application_data, wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
         default:
