@@ -7,11 +7,24 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
+#include <math.h>
 #include <bacnet/bacapp.h>
 #include <bacnet/bacstr.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/command.h>
 #include <property_test.h>
+
+/**
+ * @brief compare two floating point values to 3 decimal places
+ *
+ * @param x1 - first comparison value
+ * @param x2 - second comparison value
+ * @return true if the value is the same to 3 decimal points
+ */
+static bool is_float_equal(float x1, float x2)
+{
+    return fabsf(x1 - x2) < 0.001f;
+}
 
 static float Test_Action_Real_Value;
 static bool Test_Action_Write_Success;
@@ -69,7 +82,6 @@ static void test_object_command(void)
     uint32_t object_instance = BACNET_MAX_INSTANCE;
     const int32_t skip_fail_property_list[] = { -1 };
     BACNET_ACTION_LIST *pAction;
-    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
 
     Command_Cleanup();
     object_instance = Command_Create(BACNET_MAX_INSTANCE);
@@ -406,7 +418,7 @@ static void test_object_command_timer_success(void)
     zassert_true(Command_All_Writes_Successful(command_instance), NULL);
     zassert_true(pAction->Write_Successful, NULL);
     zassert_true(Test_Action_Write_Success, NULL);
-    zassert_equal(Test_Action_Real_Value, 12.5f, NULL);
+    zassert_true(is_float_equal(Test_Action_Real_Value, 12.5f), NULL);
 
     status = Command_Delete(command_instance);
     zassert_true(status, NULL);
@@ -486,7 +498,7 @@ static void test_object_command_timer_delay_and_failure(void)
     zassert_true(Command_In_Process(command_instance), NULL);
     zassert_false(pAction1->Write_Successful, NULL);
     zassert_true(Test_Action_Write_Success, NULL);
-    zassert_equal(Test_Action_Real_Value, 7.0f, NULL);
+    zassert_true(is_float_equal(Test_Action_Real_Value, 7.0f), NULL);
 
     Command_Timer(command_instance, 600);
     zassert_false(Command_In_Process(command_instance), NULL);
