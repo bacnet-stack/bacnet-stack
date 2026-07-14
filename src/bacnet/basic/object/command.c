@@ -906,65 +906,67 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    unsigned int object_index = 0;
-    int len = 0;
     BACNET_UNSIGNED_INTEGER array_size = 0;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    int len = 0;
 
     /* Valid data? */
     if (wp_data == NULL) {
         return false;
     }
-    /* decode the some of the request */
-    len = bacapp_decode_known_array_property(
-        wp_data->application_data, wp_data->application_data_len, &value,
-        OBJECT_COMMAND, wp_data->object_property, wp_data->array_index);
-    /* FIXME: len < application_data_len: more data? */
-    if (len < 0) {
-        /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    object_index = Command_Instance_To_Index(wp_data->object_instance);
-    if (object_index >= MAX_COMMANDS) {
-        return false;
-    }
-
     switch ((int)wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Command_Object_Name_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            status = Command_Object_Name_Write(wp_data, &char_string);
             break;
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Command_Description_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            status = Command_Description_Write(wp_data, &char_string);
             break;
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                if (value.type.Unsigned_Int >=
-                    Command_Action_List_Count(wp_data->object_instance)) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    return false;
-                }
-                Command_Present_Value_Set(
-                    wp_data->object_instance, value.type.Unsigned_Int);
-            } else {
+            len = bacnet_unsigned_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &unsigned_value);
+            if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                status = false;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            if (unsigned_value >=
+                Command_Action_List_Count(wp_data->object_instance)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                return false;
+            }
+            status = Command_Present_Value_Set(
+                wp_data->object_instance, unsigned_value);
             break;
         case PROP_ACTION:
             array_size = Command_Action_List_Count(wp_data->object_instance);
