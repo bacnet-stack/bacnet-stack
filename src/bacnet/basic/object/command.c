@@ -910,7 +910,8 @@ Command_Action_List_Element_Add(uint32_t instance, BACNET_ACTION_LIST *element)
     if (pObject && element) {
         array_index = Command_Action_List_Element_Exist(instance, element);
         if (array_index == BACNET_ARRAY_ALL) {
-            key = Keylist_Next_Empty_Key(pObject->Action_List, 0);
+            /* Keep keys contiguous (BACnetARRAY semantics) */
+            key = (KEY)Keylist_Count(pObject->Action_List);
             data = calloc(1, sizeof(BACNET_ACTION_LIST));
             if (data) {
                 memmove(data, element, sizeof(BACNET_ACTION_LIST));
