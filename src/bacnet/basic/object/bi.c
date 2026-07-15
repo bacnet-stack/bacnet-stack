@@ -150,6 +150,27 @@ void Binary_Input_Property_Lists(
 }
 
 /**
+ * @brief Get the list of writable properties for a Binary Input object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Binary_Input_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
+}
+
+/**
  * @brief Gets an object from the list using an instance number as the key
  * @param  object_instance - object-instance number of the object
  * @return object found in the list, or NULL if not found
@@ -209,27 +230,6 @@ uint32_t Binary_Input_Index_To_Instance(unsigned index)
 unsigned Binary_Input_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
-}
-
-/**
- * @brief Get the list of writable properties for a Binary Input object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Binary_Input_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    struct object_data *pObject;
-
-    pObject = Binary_Input_Object(object_instance);
-    if (pObject && properties) {
-        if (pObject->Write_Enabled) {
-            *properties = Writable_Properties;
-        } else {
-            /* skip present-value property */
-            *properties = &Writable_Properties[1];
-        }
-    }
 }
 
 /**

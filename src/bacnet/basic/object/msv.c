@@ -106,6 +106,27 @@ void Multistate_Value_Property_Lists(
 }
 
 /**
+ * @brief Get the list of writable properties for a Multi-State Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Multistate_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
+}
+
+/**
  * @brief Gets an object from the list using an instance number as the key
  * @param  object_instance - object-instance number of the object
  * @return object found in the list, or NULL if not found
@@ -165,27 +186,6 @@ bool Multistate_Value_Valid_Instance(uint32_t object_instance)
     }
 
     return false;
-}
-
-/**
- * @brief Get the list of writable properties for a Multi-State Value object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Multistate_Value_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    struct object_data *pObject;
-
-    pObject = Multistate_Value_Object(object_instance);
-    if (pObject && properties) {
-        if (pObject->Write_Enabled) {
-            *properties = Writable_Properties;
-        } else {
-            /* skip present-value property */
-            *properties = &Writable_Properties[1];
-        }
-    }
 }
 
 /**

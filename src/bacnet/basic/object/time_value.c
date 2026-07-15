@@ -109,6 +109,27 @@ void Time_Value_Property_Lists(
 }
 
 /**
+ * @brief Get the list of writable properties for a Time Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Time_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
+}
+
+/**
  * Determines if a given Time Value instance is valid
  *
  * @param  object_instance - object-instance number of the object
@@ -166,27 +187,6 @@ uint32_t Time_Value_Index_To_Instance(unsigned index)
 unsigned Time_Value_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
-}
-
-/**
- * @brief Get the list of writable properties for a Time Value object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Time_Value_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    struct object_data *pObject;
-
-    pObject = Time_Value_Object(object_instance);
-    if (pObject && properties) {
-        if (pObject->Write_Enabled) {
-            *properties = Writable_Properties;
-        } else {
-            /* skip present-value property */
-            *properties = &Writable_Properties[1];
-        }
-    }
 }
 
 /**
