@@ -1262,7 +1262,7 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
             pObject->Active_Text = Default_Active_Text;
             pObject->Inactive_Text = Default_Inactive_Text;
             pObject->Change_Of_Value = false;
-            pObject->Write_Enabled = false;
+            pObject->Write_Enabled = true;
 #if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
             pObject->Event_State = EVENT_STATE_NORMAL;
             pObject->Event_Detection_Enable = true;

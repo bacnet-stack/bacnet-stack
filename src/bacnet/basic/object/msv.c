@@ -1093,6 +1093,7 @@ uint32_t Multistate_Value_Create(uint32_t object_instance)
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
+            pObject->Write_Enabled = true;
             if (!pObject->State_List) {
                 pObject->State_List = Keylist_Create();
             }

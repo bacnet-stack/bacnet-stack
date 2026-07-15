@@ -839,7 +839,7 @@ uint32_t Time_Value_Create(uint32_t object_instance)
         pObject->Description = NULL;
         datetime_set_time(&pObject->Present_Value, 0, 0, 0, 0);
         pObject->Change_Of_Value = false;
-        pObject->Write_Enabled = false;
+        pObject->Write_Enabled = true;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
         if (index < 0) {
