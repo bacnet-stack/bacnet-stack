@@ -938,14 +938,29 @@ BACNET_ARRAY_INDEX Command_Action_List_Element_Remove(
     uint32_t instance, BACNET_ACTION_LIST *element)
 {
     struct object_data *pObject;
+    BACNET_ACTION_LIST *dst = NULL;
+    BACNET_ACTION_LIST *src = NULL;
     BACNET_ACTION_LIST *data = NULL;
     BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
+    unsigned count = 0;
+    BACNET_ARRAY_INDEX i = 0;
 
     pObject = Object_Data(instance);
     if (pObject && element) {
+        count = (unsigned)Keylist_Count(pObject->Action_List);
         array_index = Command_Action_List_Element_Exist(instance, element);
-        if (array_index != BACNET_ARRAY_ALL) {
-            data = Keylist_Data_Delete(pObject->Action_List, array_index);
+        if ((array_index != BACNET_ARRAY_ALL) && (array_index < count)) {
+            /* Shift elements down to keep keys contiguous */
+            for (i = array_index; (i + 1) < count; i++) {
+                dst = Keylist_Data(pObject->Action_List, i);
+                src = Keylist_Data(pObject->Action_List, i + 1);
+                if (!dst || !src) {
+                    return BACNET_ARRAY_ALL;
+                }
+                *dst = *src;
+                dst->next = NULL;
+            }
+            data = Keylist_Data_Delete(pObject->Action_List, (KEY)(count - 1));
             free(data);
         }
     }
