@@ -109,14 +109,19 @@ void BitString_Value_Writable_Property_List(
 {
     struct object_data *pObject;
 
+    if (!properties) {
+        return;
+    }
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && properties) {
+    if (pObject) {
         if (pObject->Write_Enabled) {
             *properties = Writable_Properties;
         } else {
             /* skip present-value property */
             *properties = &Writable_Properties[1];
         }
+    } else {
+        *properties = Writable_Properties;
     }
 }
 
@@ -337,44 +342,6 @@ void BitString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     }
 
     return;
-}
-
-/**
- * For a given object instance-number, sets the out of service flag
- * from WriteProperty service
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - new value
- * @param  error_class - BACnet error class
- * @param  error_code - BACnet error code
- *
- * @return  true if value is set, or false if not set or error occurred
- */
-static bool BitString_Value_Out_Of_Service_Write(
-    uint32_t object_instance,
-    bool value,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE *error_code)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = BitString_Value_Object(object_instance);
-    if (pObject) {
-        if (pObject->Write_Enabled) {
-            BitString_Value_Out_Of_Service_COV_Detect(pObject, value);
-            pObject->Out_Of_Service = value;
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        }
-    } else {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    }
-
-    return status;
 }
 
 /**
@@ -752,9 +719,8 @@ bool BitString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                status = BitString_Value_Out_Of_Service_Write(
-                    wp_data->object_instance, value.type.Boolean,
-                    &wp_data->error_class, &wp_data->error_code);
+                BitString_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         default:

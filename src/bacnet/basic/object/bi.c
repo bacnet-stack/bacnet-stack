@@ -159,14 +159,19 @@ void Binary_Input_Writable_Property_List(
 {
     struct object_data *pObject;
 
+    if (!properties) {
+        return;
+    }
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && properties) {
+    if (pObject) {
         if (pObject->Write_Enabled) {
             *properties = Writable_Properties;
         } else {
             /* skip present-value property */
             *properties = &Writable_Properties[1];
         }
+    } else {
+        *properties = Writable_Properties;
     }
 }
 

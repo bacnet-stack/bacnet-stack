@@ -169,14 +169,19 @@ void Analog_Value_Writable_Property_List(
 {
     struct object_data *pObject;
 
+    if (!properties) {
+        return;
+    }
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && properties) {
+    if (pObject) {
         if (pObject->Write_Enabled) {
             *properties = Writable_Properties;
         } else {
             /* skip present-value property */
             *properties = &Writable_Properties[1];
         }
+    } else {
+        *properties = Writable_Properties;
     }
 }
 
@@ -1426,30 +1431,31 @@ static bool Analog_Value_Present_Value_Write(
                 object. */
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if ((!pObject->Write_Enabled) || (!pObject->Out_Of_Service)) {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (
-            isgreaterequal(value, pObject->Min_Pres_Value) &&
-            islessequal(value, pObject->Max_Pres_Value)) {
-            old_value = pObject->Present_Value;
-            Analog_Value_COV_Detect(pObject, value);
-            pObject->Present_Value = value;
-            if (pObject->Out_Of_Service) {
-                /* The physical point that the object represents
-                    is not in service. This means that changes to the
-                    Present_Value property are decoupled from the
-                    physical point when the value of Out_Of_Service
-                    is true. */
-            } else if (Analog_Value_Write_Present_Value_Callback) {
-                /* set the physical point */
-                Analog_Value_Write_Present_Value_Callback(
-                    object_instance, old_value, value);
+        } else if (pObject->Write_Enabled || pObject->Out_Of_Service) {
+            if (isgreaterequal(value, pObject->Min_Pres_Value) &&
+                islessequal(value, pObject->Max_Pres_Value)) {
+                old_value = pObject->Present_Value;
+                Analog_Value_COV_Detect(pObject, value);
+                pObject->Present_Value = value;
+                if (pObject->Out_Of_Service) {
+                    /* The physical point that the object represents
+                        is not in service. This means that changes to the
+                        Present_Value property are decoupled from the
+                        physical point when the value of Out_Of_Service
+                        is true. */
+                } else if (Analog_Value_Write_Present_Value_Callback) {
+                    /* set the physical point */
+                    Analog_Value_Write_Present_Value_Callback(
+                        object_instance, old_value, value);
+                }
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-            status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         }
     } else {
         *error_class = ERROR_CLASS_OBJECT;
