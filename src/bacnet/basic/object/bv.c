@@ -105,17 +105,18 @@ static const int32_t Binary_Value_Properties_Proprietary[] = { -1 };
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
-   that is always writable.  */
+   that is always writable.
+   Properties that are only conditionally writable, for example,
+   a Present_Value property whose writability is conditionally
+   based on the Out_Of_Service property value, shall not be included. */
 static const int32_t Writable_Properties[] = {
-    /* unordered list of always writable properties */
+    /* first property is present-value so it can be skipped if not writable */
     PROP_PRESENT_VALUE,
+    /* unordered list of always writable properties */
     PROP_OUT_OF_SERVICE,
 #if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
-    PROP_TIME_DELAY,
-    PROP_NOTIFICATION_CLASS,
-    PROP_ALARM_VALUE,
-    PROP_EVENT_ENABLE,
-    PROP_NOTIFY_TYPE,
+    PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_ALARM_VALUE,
+    PROP_EVENT_ENABLE, PROP_NOTIFY_TYPE,
 #endif
     -1
 };
@@ -144,20 +145,6 @@ void Binary_Value_Property_Lists(
     }
 
     return;
-}
-
-/**
- * @brief Get the list of writable properties for a Binary Value object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Binary_Value_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    (void)object_instance;
-    if (properties) {
-        *properties = Writable_Properties;
-    }
 }
 
 /**
@@ -220,6 +207,27 @@ uint32_t Binary_Value_Index_To_Instance(unsigned index)
 unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
+}
+
+/**
+ * @brief Get the list of writable properties for a Binary Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Binary_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Binary_Value_Object(object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
 }
 
 /**
@@ -528,7 +536,7 @@ static bool Binary_Value_Present_Value_Write(
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
         if (value < BINARY_PV_MAX) {
-            if (pObject->Write_Enabled) {
+            if (pObject->Write_Enabled || pObject->Out_Of_Service) {
                 old_value = Binary_Present_Value(pObject->Present_Value);
                 Binary_Value_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = Binary_Present_Value_Boolean(value);

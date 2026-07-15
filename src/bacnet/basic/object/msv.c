@@ -73,8 +73,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* first property is present-value so it can be skipped if not writable */
+    PROP_PRESENT_VALUE,
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+    PROP_OUT_OF_SERVICE, PROP_STATE_TEXT, -1
 };
 
 /**
@@ -101,20 +103,6 @@ void Multistate_Value_Property_Lists(
     }
 
     return;
-}
-
-/**
- * @brief Get the list of writable properties for a Multi-State Value object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Multistate_Value_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    (void)object_instance;
-    if (properties) {
-        *properties = Writable_Properties;
-    }
 }
 
 /**
@@ -177,6 +165,27 @@ bool Multistate_Value_Valid_Instance(uint32_t object_instance)
     }
 
     return false;
+}
+
+/**
+ * @brief Get the list of writable properties for a Multi-State Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Multistate_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Value_Object(object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
 }
 
 /**
@@ -418,7 +427,7 @@ static bool Multistate_Value_Present_Value_Write(
     if (pObject) {
         max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
-            if (pObject->Write_Enabled) {
+            if (pObject->Write_Enabled || pObject->Out_Of_Service) {
                 old_value = pObject->Present_Value;
                 Multistate_Value_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = value;

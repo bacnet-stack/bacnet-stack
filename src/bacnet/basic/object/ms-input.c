@@ -75,8 +75,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* first property is present-value so it can be skipped if not writable */
+    PROP_PRESENT_VALUE,
     /* unordered list of always writable properties */
-    -1
+    PROP_OUT_OF_SERVICE, PROP_STATE_TEXT, -1
 };
 
 /**
@@ -103,20 +105,6 @@ void Multistate_Input_Property_Lists(
     }
 
     return;
-}
-
-/**
- * @brief Get the list of writable properties for a Multi-State Input object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Multistate_Input_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    (void)object_instance;
-    if (properties) {
-        *properties = Writable_Properties;
-    }
 }
 
 /**
@@ -182,6 +170,27 @@ bool Multistate_Input_Valid_Instance(uint32_t object_instance)
 }
 
 /**
+ * @brief Get the list of writable properties for a Multi-State Input object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Multistate_Input_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
+}
+
+/**
  * @brief For a given object instance-number, determines number of states
  * @param  object_instance - object-instance number of the object
  * @return  number of states 1..N
@@ -191,7 +200,7 @@ uint32_t Multistate_Input_Max_States(uint32_t object_instance)
     uint32_t count = 0;
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         count = state_name_list_count(pObject->State_List);
     }
@@ -212,7 +221,7 @@ uint32_t Multistate_Input_State_From_Text(
     unsigned index = 0;
     const struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         index = state_name_list_index(pObject->State_List, state_text);
     }
@@ -234,7 +243,7 @@ Multistate_Input_State_Text(uint32_t object_instance, uint32_t state_index)
     const struct object_data *pObject;
     KEY key;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         if (state_index > 0) {
             key = state_index;
@@ -297,7 +306,7 @@ bool Multistate_Input_State_Text_List_Set(
     bool status = false;
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         if (!pObject->State_List) {
             pObject->State_List = Keylist_Create();
@@ -420,7 +429,7 @@ static bool Multistate_Input_Present_Value_Write(
     if (pObject) {
         max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
-            if (pObject->Write_Enabled) {
+            if (pObject->Write_Enabled || pObject->Out_Of_Service) {
                 old_value = pObject->Present_Value;
                 Multistate_Input_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = value;
@@ -1029,7 +1038,7 @@ void *Multistate_Input_Context_Get(uint32_t object_instance)
 {
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         return pObject->Context;
     }
@@ -1046,7 +1055,7 @@ void Multistate_Input_Context_Set(uint32_t object_instance, void *context)
 {
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         pObject->Context = context;
     }
@@ -1075,7 +1084,7 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
             the object identifier is a local matter.*/
         object_instance = Keylist_Next_Empty_Key(Object_List, 1);
     }
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {

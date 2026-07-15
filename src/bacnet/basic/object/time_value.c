@@ -73,8 +73,10 @@ static const int32_t Time_Value_Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* first property is present-value so it can be skipped if not writable */
+    PROP_PRESENT_VALUE,
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+    PROP_OUT_OF_SERVICE, -1
 };
 
 /**
@@ -104,20 +106,6 @@ void Time_Value_Property_Lists(
     }
 
     return;
-}
-
-/**
- * @brief Get the list of writable properties for a Time Value object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Time_Value_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    (void)object_instance;
-    if (properties) {
-        *properties = Writable_Properties;
-    }
 }
 
 /**
@@ -178,6 +166,27 @@ uint32_t Time_Value_Index_To_Instance(unsigned index)
 unsigned Time_Value_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
+}
+
+/**
+ * @brief Get the list of writable properties for a Time Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Time_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Time_Value_Object(object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
 }
 
 /**
@@ -269,7 +278,7 @@ static bool Time_Value_Present_Value_Write(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if (pObject->Write_Enabled) {
+        if (pObject->Write_Enabled || pObject->Out_Of_Service) {
             datetime_copy_time(&old_value, &pObject->Present_Value);
             Time_Value_Present_Value_COV_Detect(pObject, value);
             datetime_copy_time(&pObject->Present_Value, value);

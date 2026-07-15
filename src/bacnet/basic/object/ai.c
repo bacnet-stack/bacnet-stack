@@ -72,9 +72,25 @@ static const int32_t Properties_Proprietary[] = { -1 };
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
-   that is always writable.  */
+   that is always writable.
+   Properties that are only conditionally writable, for example,
+   a Present_Value property whose writability is conditionally
+   based on the Out_Of_Service property value, shall not be included. */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    PROP_COV_INCREMENT,
+#if defined(INTRINSIC_REPORTING)
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_HIGH_LIMIT,
+    PROP_LOW_LIMIT,
+    PROP_DEADBAND,
+    PROP_LIMIT_ENABLE,
+    PROP_EVENT_ENABLE,
+    PROP_NOTIFY_TYPE,
+#endif
     -1
 };
 

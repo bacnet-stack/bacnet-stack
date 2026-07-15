@@ -67,8 +67,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* first property is present-value so it can be skipped if not writable */
+    PROP_PRESENT_VALUE,
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+    PROP_OUT_OF_SERVICE, -1
 };
 
 /**
@@ -95,20 +97,6 @@ void BitString_Value_Property_Lists(
     }
 
     return;
-}
-
-/**
- * @brief Get the list of writable properties for a BitString Value object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void BitString_Value_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    (void)object_instance;
-    if (properties) {
-        *properties = Writable_Properties;
-    }
 }
 
 /**
@@ -179,6 +167,27 @@ uint32_t BitString_Value_Index_To_Instance(unsigned index)
 unsigned BitString_Value_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
+}
+
+/**
+ * @brief Get the list of writable properties for a BitString Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void BitString_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = BitString_Value_Object(object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
 }
 
 /**

@@ -114,26 +114,21 @@ static const int32_t Analog_Value_Properties_Proprietary[] = {
 };
 
 /* Every object shall have a Writable Property_List property
-which is a BACnetARRAY of property identifiers,
-one property identifier for each property within this object
-that is always writable.  */
+   which is a BACnetARRAY of property identifiers,
+   one property identifier for each property within this object
+   that is always writable.
+   Properties that are only conditionally writable, for example,
+   a Present_Value property whose writability is conditionally
+   based on the Out_Of_Service property value, shall not be included. */
 static const int32_t Writable_Properties[] = {
-    /* unordered list of always writable properties */
+    /* first property is present-value so it can be skipped if not writable */
     PROP_PRESENT_VALUE,
-    PROP_OUT_OF_SERVICE,
-    PROP_UNITS,
-    PROP_COV_INCREMENT,
-    PROP_MIN_PRES_VALUE,
+    /* unordered list of always writable properties */
+    PROP_OUT_OF_SERVICE, PROP_UNITS, PROP_COV_INCREMENT, PROP_MIN_PRES_VALUE,
     PROP_MAX_PRES_VALUE,
 #if defined(INTRINSIC_REPORTING)
-    PROP_TIME_DELAY,
-    PROP_NOTIFICATION_CLASS,
-    PROP_HIGH_LIMIT,
-    PROP_LOW_LIMIT,
-    PROP_DEADBAND,
-    PROP_LIMIT_ENABLE,
-    PROP_EVENT_ENABLE,
-    PROP_NOTIFY_TYPE,
+    PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT, PROP_LOW_LIMIT,
+    PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE, PROP_NOTIFY_TYPE,
 #endif
     -1
 };
@@ -162,20 +157,6 @@ void Analog_Value_Property_Lists(
     }
 
     return;
-}
-
-/**
- * @brief Get the list of writable properties for an Analog Value object
- * @param  object_instance - object-instance number of the object
- * @param  properties - Pointer to the pointer of writable properties.
- */
-void Analog_Value_Writable_Property_List(
-    uint32_t object_instance, const int32_t **properties)
-{
-    (void)object_instance;
-    if (properties) {
-        *properties = Writable_Properties;
-    }
 }
 
 /**
@@ -251,6 +232,27 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
+}
+
+/**
+ * @brief Get the list of writable properties for an Analog Value object
+ * @param  object_instance - object-instance number of the object
+ * @param  properties - Pointer to the pointer of writable properties.
+ */
+void Analog_Value_Writable_Property_List(
+    uint32_t object_instance, const int32_t **properties)
+{
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject && properties) {
+        if (pObject->Write_Enabled) {
+            *properties = Writable_Properties;
+        } else {
+            /* skip present-value property */
+            *properties = &Writable_Properties[1];
+        }
+    }
 }
 
 /**
@@ -1424,7 +1426,7 @@ static bool Analog_Value_Present_Value_Write(
                 object. */
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        } else if (!pObject->Write_Enabled) {
+        } else if ((!pObject->Write_Enabled) || (!pObject->Out_Of_Service)) {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if (
