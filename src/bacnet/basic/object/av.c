@@ -668,7 +668,7 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
  */
 float Analog_Value_Min_Pres_Value(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
@@ -706,7 +706,7 @@ bool Analog_Value_Min_Pres_Value_Set(uint32_t object_instance, float value)
  */
 float Analog_Value_Max_Pres_Value(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
@@ -1212,7 +1212,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    float real_value = (float)1.414;
+    float real_value = 1.414f;
     uint8_t *apdu = NULL;
     struct object_data *CurrentAV;
     bool state = false;

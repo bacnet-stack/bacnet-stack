@@ -203,7 +203,7 @@ unsigned Analog_Output_Instance_To_Index(uint32_t object_instance)
  */
 float Analog_Output_Present_Value(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     uint8_t priority = 0; /* loop counter */
     struct object_data *pObject;
 
@@ -284,7 +284,7 @@ static int Analog_Output_Priority_Array_Encode(
  */
 float Analog_Output_Relinquish_Default(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -326,9 +326,9 @@ bool Analog_Output_Relinquish_Default_Set(uint32_t object_instance, float value)
 static void
 Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
 {
-    float prior_value = 0.0;
-    float cov_increment = 0.0;
-    float cov_delta = 0.0;
+    float prior_value = 0.0f;
+    float cov_increment = 0.0f;
+    float cov_delta = 0.0f;
 
     if (pObject) {
         prior_value = pObject->Prior_Value;
@@ -362,8 +362,8 @@ bool Analog_Output_Present_Value_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-            (value >= pObject->Min_Pres_Value) &&
-            (value <= pObject->Max_Pres_Value)) {
+            isgreaterequal(value, pObject->Min_Pres_Value) &&
+            islessequal(value, pObject->Max_Pres_Value)) {
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
             Analog_Output_Present_Value_COV_Detect(
@@ -391,7 +391,7 @@ bool Analog_Output_Present_Value_Relinquish(
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
             pObject->Relinquished[priority - 1] = true;
-            pObject->Priority_Array[priority - 1] = 0.0;
+            pObject->Priority_Array[priority - 1] = 0.0f;
             Analog_Output_Present_Value_COV_Detect(
                 pObject, Analog_Output_Present_Value(object_instance));
             status = true;
@@ -462,14 +462,14 @@ static bool Analog_Output_Present_Value_Write(
 {
     bool status = false;
     struct object_data *pObject;
-    float old_value = 0.0;
-    float new_value = 0.0;
+    float old_value = 0.0f;
+    float new_value = 0.0f;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-            (value >= pObject->Min_Pres_Value) &&
-            (value <= pObject->Max_Pres_Value)) {
+            isgreaterequal(value, pObject->Min_Pres_Value) &&
+            islessequal(value, pObject->Max_Pres_Value)) {
             if (priority != 6) {
                 old_value = Analog_Output_Present_Value(object_instance);
                 Analog_Output_Present_Value_Set(
@@ -519,8 +519,8 @@ static bool Analog_Output_Present_Value_Relinquish_Write(
 {
     bool status = false;
     struct object_data *pObject;
-    float old_value = 0.0;
-    float new_value = 0.0;
+    float old_value = 0.0f;
+    float new_value = 0.0f;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -876,7 +876,7 @@ bool Analog_Output_Description_Set(
  */
 float Analog_Output_Min_Pres_Value(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -914,7 +914,7 @@ bool Analog_Output_Min_Pres_Value_Set(uint32_t object_instance, float value)
  */
 float Analog_Output_Max_Pres_Value(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1013,7 +1013,7 @@ bool Analog_Output_Encode_Value_List(
  */
 float Analog_Output_COV_Increment(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1056,7 +1056,7 @@ int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
     uint32_t units = 0;
-    float real_value = 0.0;
+    float real_value = 0.0f;
     unsigned i = 0;
     bool state = false;
 
@@ -1361,16 +1361,16 @@ uint32_t Analog_Output_Create(uint32_t object_instance)
             pObject->Overridden = false;
             for (priority = 0; priority < BACNET_MAX_PRIORITY; priority++) {
                 pObject->Relinquished[priority] = true;
-                pObject->Priority_Array[priority] = 0.0;
+                pObject->Priority_Array[priority] = 0.0f;
             }
-            pObject->Relinquish_Default = 0.0;
-            pObject->COV_Increment = 1.0;
-            pObject->Prior_Value = 0.0;
+            pObject->Relinquish_Default = 0.0f;
+            pObject->COV_Increment = 1.0f;
+            pObject->Prior_Value = 0.0f;
             pObject->Units = UNITS_NO_UNITS;
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
-            pObject->Min_Pres_Value = 0;
-            pObject->Max_Pres_Value = 100;
+            pObject->Min_Pres_Value = -FLT_MAX;
+            pObject->Max_Pres_Value = FLT_MAX;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {

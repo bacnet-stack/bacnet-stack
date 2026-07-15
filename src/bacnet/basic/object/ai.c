@@ -1000,7 +1000,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    float real_value = (float)1.414;
+    float real_value = 1.414f;
     bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
@@ -2094,9 +2094,9 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
             pObject->Object_Name = NULL;
             pObject->Description = NULL;
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
-            pObject->COV_Increment = 1.0;
+            pObject->COV_Increment = 1.0f;
             pObject->Present_Value = 0.0f;
-            pObject->Prior_Value = 0.0;
+            pObject->Prior_Value = 0.0f;
             pObject->Units = UNITS_PERCENT;
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
