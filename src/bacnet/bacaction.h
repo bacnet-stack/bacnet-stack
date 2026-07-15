@@ -19,6 +19,14 @@
 /* BACNET_ACTION_VALUE encodes and decodes the Property Value
    in the Action Command. Choose the datatypes that your
    application supports, or add additional. */
+#if defined(BACACTION_ALL) && !defined(BACACTION_VALUE_ALL)
+#ifndef BACACTION_NUMERIC
+#define BACACTION_NUMERIC
+#endif
+#ifndef BACACTION_OCTET_STRING
+#define BACACTION_OCTET_STRING
+#endif
+#endif
 #if !(                                                                      \
     defined(BACACTION_NUMERIC) || defined(BACACTION_NULL) ||                \
     defined(BACACTION_BOOLEAN) || defined(BACACTION_UNSIGNED) ||            \
