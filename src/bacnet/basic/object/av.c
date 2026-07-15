@@ -30,6 +30,40 @@
 /* me! */
 #include "bacnet/basic/object/av.h"
 
+struct object_data {
+    unsigned Event_State : 3;
+    bool Write_Enabled : 1;
+    bool Out_Of_Service : 1;
+    bool Changed : 1;
+    float Present_Value;
+    float Min_Pres_Value;
+    float Max_Pres_Value;
+    float Prior_Value;
+    float COV_Increment;
+    BACNET_ENGINEERING_UNITS Units;
+    const char *Object_Name;
+    const char *Description;
+    BACNET_RELIABILITY Reliability;
+    void *Context;
+#if defined(INTRINSIC_REPORTING)
+    uint32_t Time_Delay;
+    uint32_t Notification_Class;
+    float High_Limit;
+    float Low_Limit;
+    float Deadband;
+    unsigned Limit_Enable : 2;
+    unsigned Event_Enable : 3;
+    unsigned Event_Detection_Enable : 1;
+    unsigned Notify_Type : 1;
+    ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
+    BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+    /* time to generate event notification */
+    uint32_t Remaining_Time_Delay;
+    /* AckNotification information */
+    ACK_NOTIFICATION Ack_notify_data;
+#endif
+};
+
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
 #ifdef BAC_ROUTING
@@ -56,6 +90,8 @@ static const int32_t Analog_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
     PROP_COV_INCREMENT,
+    PROP_MIN_PRES_VALUE,
+    PROP_MAX_PRES_VALUE,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
@@ -87,6 +123,8 @@ static const int32_t Writable_Properties[] = {
     PROP_OUT_OF_SERVICE,
     PROP_UNITS,
     PROP_COV_INCREMENT,
+    PROP_MIN_PRES_VALUE,
+    PROP_MAX_PRES_VALUE,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
@@ -145,7 +183,7 @@ void Analog_Value_Writable_Property_List(
  * @param  object_instance - object-instance number of the object
  * @return object found in the list, or NULL if not found
  */
-static struct analog_value_descr *Analog_Value_Object(uint32_t object_instance)
+static struct object_data *Analog_Value_Object(uint32_t object_instance)
 {
     return Keylist_Data(Object_List, object_instance);
 }
@@ -156,7 +194,7 @@ static struct analog_value_descr *Analog_Value_Object(uint32_t object_instance)
  * @param index - index of the object in the list
  * @return object found in the list, or NULL if not found
  */
-static struct analog_value_descr *Analog_Value_Object_Index(int index)
+static struct object_data *Analog_Value_Object_Index(int index)
 {
     return Keylist_Data_Index(Object_List, index);
 }
@@ -169,7 +207,7 @@ static struct analog_value_descr *Analog_Value_Object_Index(int index)
  */
 bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -223,7 +261,7 @@ unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 float Analog_Value_Present_Value(uint32_t object_instance)
 {
     float value = 0.0f;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -243,8 +281,7 @@ float Analog_Value_Present_Value(uint32_t object_instance)
  * @param index  Object index
  * @param value  Given present value.
  */
-static void
-Analog_Value_COV_Detect(struct analog_value_descr *pObject, float value)
+static void Analog_Value_COV_Detect(struct object_data *pObject, float value)
 {
     float prior_value = 0.0f;
     float cov_increment = 0.0f;
@@ -279,7 +316,7 @@ bool Analog_Value_Present_Value_Set(
     uint32_t object_instance, float value, uint8_t priority)
 {
     bool status = false;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     (void)priority;
     pObject = Analog_Value_Object(object_instance);
@@ -307,7 +344,7 @@ bool Analog_Value_Object_Name(
 {
     char text_string[32] = "";
     bool status = false;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -336,7 +373,7 @@ bool Analog_Value_Object_Name(
 bool Analog_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -355,7 +392,7 @@ bool Analog_Value_Name_Set(uint32_t object_instance, const char *new_name)
 const char *Analog_Value_Name_ASCII(uint32_t object_instance)
 {
     const char *name = NULL;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -375,7 +412,7 @@ const char *Analog_Value_Name_ASCII(uint32_t object_instance)
 unsigned Analog_Value_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -386,6 +423,27 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object instance-number, sets the event-state property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param state - event-state property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Event_State_Set(uint32_t object_instance, unsigned state)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Event_State = state;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief For a given object instance-number, returns the description
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
@@ -393,7 +451,7 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
 const char *Analog_Value_Description(uint32_t object_instance)
 {
     const char *name = NULL;
-    const struct analog_value_descr *pObject;
+    const struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -413,7 +471,7 @@ bool Analog_Value_Description_Set(
     uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -432,7 +490,7 @@ bool Analog_Value_Description_Set(
 BACNET_RELIABILITY Analog_Value_Reliability(uint32_t object_instance)
 {
     BACNET_RELIABILITY value = RELIABILITY_NO_FAULT_DETECTED;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -447,7 +505,7 @@ BACNET_RELIABILITY Analog_Value_Reliability(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
  */
-static bool Analog_Value_Object_Fault(const struct analog_value_descr *pObject)
+static bool Analog_Value_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
 
@@ -471,7 +529,7 @@ bool Analog_Value_Reliability_Set(
 {
     bool status = false;
     bool fault = false;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -493,7 +551,7 @@ bool Analog_Value_Reliability_Set(
  */
 static bool Analog_Value_Fault(uint32_t object_instance)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
 
@@ -508,7 +566,7 @@ static bool Analog_Value_Fault(uint32_t object_instance)
 bool Analog_Value_Change_Of_Value(uint32_t object_instance)
 {
     bool changed = false;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -524,7 +582,7 @@ bool Analog_Value_Change_Of_Value(uint32_t object_instance)
  */
 void Analog_Value_Change_Of_Value_Clear(uint32_t object_instance)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -549,7 +607,7 @@ bool Analog_Value_Encode_Value_List(
     bool fault = false;
     const bool overridden = false;
     float present_value = 0.0f;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -577,7 +635,7 @@ bool Analog_Value_Encode_Value_List(
 float Analog_Value_COV_Increment(uint32_t object_instance)
 {
     float value = 0.0f;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -594,13 +652,89 @@ float Analog_Value_COV_Increment(uint32_t object_instance)
  */
 void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
         pObject->COV_Increment = value;
         Analog_Value_COV_Detect(pObject, pObject->Present_Value);
     }
+}
+
+/**
+ * @brief For a given object instance-number, returns the min-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @return value or 0.0 if not found
+ */
+float Analog_Value_Min_Pres_Value(uint32_t object_instance)
+{
+    float value = 0.0;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Min_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the min-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - value to be set
+ * @return true if valid object-instance and value within range
+ */
+bool Analog_Value_Min_Pres_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Min_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the max-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @return value or 0.0 if not found
+ */
+float Analog_Value_Max_Pres_Value(uint32_t object_instance)
+{
+    float value = 0.0;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Max_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the max-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - value to be set
+ * @return true if valid object-instance and value within range
+ */
+bool Analog_Value_Max_Pres_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Max_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -613,7 +747,7 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
 BACNET_ENGINEERING_UNITS Analog_Value_Units(uint32_t object_instance)
 {
     BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -635,7 +769,7 @@ bool Analog_Value_Units_Set(
     uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
 {
     bool status = false;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -655,7 +789,7 @@ bool Analog_Value_Units_Set(
 bool Analog_Value_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -674,7 +808,7 @@ bool Analog_Value_Out_Of_Service(uint32_t object_instance)
  */
 void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -686,6 +820,339 @@ void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 }
 
 #if defined(INTRINSIC_REPORTING)
+/**
+ * @brief For a given object instance-number, returns the time-delay property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return time-delay property value
+ */
+uint32_t Analog_Value_Time_Delay(uint32_t object_instance)
+{
+    uint32_t time_delay = 0;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        time_delay = pObject->Time_Delay;
+    }
+
+    return time_delay;
+}
+
+/**
+ * @brief For a given object instance-number, sets the time-delay property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param time_delay - time-delay property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Time_Delay = time_delay;
+        pObject->Remaining_Time_Delay = time_delay;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the notification-class
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @return notification-class property value
+ */
+uint32_t Analog_Value_Notification_Class(uint32_t object_instance)
+{
+    uint32_t notification_class = BACNET_MAX_INSTANCE;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        notification_class = pObject->Notification_Class;
+    }
+
+    return notification_class;
+}
+
+/**
+ * @brief For a given object instance-number, sets the notification-class
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @param notification_class - notification-class property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Notification_Class_Set(
+    uint32_t object_instance, uint32_t notification_class)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Notification_Class = notification_class;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the high-limit property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return high-limit property value
+ */
+float Analog_Value_High_Limit(uint32_t object_instance)
+{
+    float high_limit = 0.0f;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        high_limit = pObject->High_Limit;
+    }
+
+    return high_limit;
+}
+
+/**
+ * @brief For a given object instance-number, sets the high-limit property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param high_limit - high-limit property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_High_Limit_Set(uint32_t object_instance, float high_limit)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->High_Limit = high_limit;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the low-limit property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return low-limit property value
+ */
+float Analog_Value_Low_Limit(uint32_t object_instance)
+{
+    float low_limit = 0.0f;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        low_limit = pObject->Low_Limit;
+    }
+
+    return low_limit;
+}
+
+/**
+ * @brief For a given object instance-number, sets the low-limit property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param low_limit - low-limit property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Low_Limit_Set(uint32_t object_instance, float low_limit)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Low_Limit = low_limit;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the deadband property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return deadband property value
+ */
+float Analog_Value_Deadband(uint32_t object_instance)
+{
+    float deadband = 0.0f;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        deadband = pObject->Deadband;
+    }
+
+    return deadband;
+}
+
+/**
+ * @brief For a given object instance-number, sets the deadband property value
+ * @param object_instance - object-instance number of the object
+ * @param deadband - deadband property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Deadband_Set(uint32_t object_instance, float deadband)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Deadband = deadband;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the limit-enable
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @return limit-enable property value
+ */
+BACNET_LIMIT_ENABLE Analog_Value_Limit_Enable(uint32_t object_instance)
+{
+    BACNET_LIMIT_ENABLE limit_enable = 0;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        limit_enable = pObject->Limit_Enable;
+    }
+
+    return limit_enable;
+}
+
+/**
+ * @brief For a given object instance-number, sets the limit-enable property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param limit_enable - limit-enable property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Limit_Enable_Set(
+    uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        if (!(limit_enable &
+              ~(EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE))) {
+            pObject->Limit_Enable = limit_enable;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the event-enable
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @return event-enable property value
+ */
+BACNET_EVENT_ENABLE Analog_Value_Event_Enable(uint32_t object_instance)
+{
+    BACNET_EVENT_ENABLE event_enable = 0;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        event_enable = pObject->Event_Enable;
+    }
+
+    return event_enable;
+}
+
+/**
+ * @brief For a given object instance-number, sets the event-enable property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param event_enable - event-enable property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Event_Enable_Set(
+    uint32_t object_instance, BACNET_EVENT_ENABLE event_enable)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        if (!(event_enable &
+              ~(EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_FAULT |
+                EVENT_ENABLE_TO_NORMAL))) {
+            pObject->Event_Enable = event_enable;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the notify-type property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return notify-type property value
+ */
+BACNET_NOTIFY_TYPE Analog_Value_Notify_Type(uint32_t object_instance)
+{
+    BACNET_NOTIFY_TYPE notify_type = NOTIFY_EVENT;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        notify_type = pObject->Notify_Type;
+    }
+
+    return notify_type;
+}
+
+/**
+ * @brief For a given object instance-number, sets the notify-type property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param notify_type - notify-type property value
+ * @return true if the property value was set
+ */
+bool Analog_Value_Notify_Type_Set(
+    uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        if ((notify_type == NOTIFY_EVENT) || (notify_type == NOTIFY_ALARM)) {
+            pObject->Notify_Type = notify_type;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
 /**
  * @brief Encode a EventTimeStamps property element
  * @param object_instance [in] BACnet network port object instance number
@@ -700,7 +1167,7 @@ static int Analog_Value_Event_Time_Stamps_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
 {
     int apdu_len = 0, len = 0;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
@@ -747,7 +1214,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     float real_value = (float)1.414;
     uint8_t *apdu = NULL;
-    ANALOG_VALUE_DESCR *CurrentAV;
+    struct object_data *CurrentAV;
     bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
@@ -828,6 +1295,14 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_COV_INCREMENT:
             apdu_len =
                 encode_application_real(&apdu[0], CurrentAV->COV_Increment);
+            break;
+        case PROP_MIN_PRES_VALUE:
+            apdu_len =
+                encode_application_real(&apdu[0], CurrentAV->Min_Pres_Value);
+            break;
+        case PROP_MAX_PRES_VALUE:
+            apdu_len =
+                encode_application_real(&apdu[0], CurrentAV->Max_Pres_Value);
             break;
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
@@ -921,6 +1396,68 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * For a given object instance-number, sets the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - binary value
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Analog_Value_Present_Value_Write(
+    uint32_t object_instance,
+    float value,
+    unsigned priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+    float old_value = 0.0f;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        if (priority == 6) {
+            /* Command priority 6 is reserved for use by Minimum On/Off
+                algorithm and may not be used for other purposes in any
+                object. */
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else if (!pObject->Write_Enabled) {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else if (
+            isgreaterequal(value, pObject->Min_Pres_Value) &&
+            islessequal(value, pObject->Max_Pres_Value)) {
+            old_value = pObject->Present_Value;
+            Analog_Value_COV_Detect(pObject, value);
+            pObject->Present_Value = value;
+            if (pObject->Out_Of_Service) {
+                /* The physical point that the object represents
+                    is not in service. This means that changes to the
+                    Present_Value property are decoupled from the
+                    physical point when the value of Out_Of_Service
+                    is true. */
+            } else if (Analog_Value_Write_Present_Value_Callback) {
+                /* set the physical point */
+                Analog_Value_Write_Present_Value_Callback(
+                    object_instance, old_value, value);
+            }
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * @brief WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
@@ -931,9 +1468,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    float old_value = 0.0f;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    ANALOG_VALUE_DESCR *CurrentAV;
+    struct object_data *CurrentAV;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -960,33 +1496,10 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                /* Command priority 6 is reserved for use by Minimum On/Off
-                   algorithm and may not be used for other purposes in any
-                   object. */
-                if (wp_data->priority == 6) {
-                    /* Command priority 6 is reserved for use by Minimum On/Off
-                       algorithm and may not be used for other purposes in any
-                       object. */
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                } else {
-                    old_value =
-                        Analog_Value_Present_Value(wp_data->object_instance);
-                    if (Analog_Value_Present_Value_Set(
-                            wp_data->object_instance, value.type.Real,
-                            wp_data->priority)) {
-                        status = true;
-                        if (Analog_Value_Write_Present_Value_Callback) {
-                            Analog_Value_Write_Present_Value_Callback(
-                                wp_data->object_instance, old_value,
-                                Analog_Value_Present_Value(
-                                    wp_data->object_instance));
-                        }
-                    } else {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                }
+                status = Analog_Value_Present_Value_Write(
+                    wp_data->object_instance, value.type.Real,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -1022,6 +1535,22 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            }
+            break;
+        case PROP_MIN_PRES_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                Analog_Value_Min_Pres_Value_Set(
+                    wp_data->object_instance, value.type.Real);
+            }
+            break;
+        case PROP_MAX_PRES_VALUE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                Analog_Value_Max_Pres_Value_Set(
+                    wp_data->object_instance, value.type.Real);
             }
             break;
 #if defined(INTRINSIC_REPORTING)
@@ -1126,6 +1655,52 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Determines a object write-enabled flag state
+ * @param object_instance - object-instance number of the object
+ * @return  write-enabled status flag
+ */
+bool Analog_Value_Write_Enabled(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Write_Enabled;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Analog_Value_Write_Enable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = true;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, clears the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Analog_Value_Write_Disable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = false;
+    }
+}
+
+/**
  * @brief Sets a callback used when present-value is written from BACnet
  * @param cb - callback used to provide indications
  */
@@ -1144,7 +1719,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 #if defined(INTRINSIC_REPORTING)
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
     BACNET_CHARACTER_STRING msgText = { 0 };
-    ANALOG_VALUE_DESCR *CurrentAV = NULL;
+    struct object_data *CurrentAV = NULL;
     uint8_t FromState = 0;
     uint8_t ToState = 0;
     float ExceededLimit = 0.0f;
@@ -1507,7 +2082,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 bool Analog_Value_Event_Detection_Enable(uint32_t object_instance)
 {
     bool retval = false;
-    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+    struct object_data *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
         retval = pObject->Event_Detection_Enable;
@@ -1528,7 +2103,7 @@ bool Analog_Value_Event_Detection_Enable_Set(
     uint32_t object_instance, bool value)
 {
     bool retval = false;
-    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+    struct object_data *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
         pObject->Event_Detection_Enable = value;
@@ -1551,7 +2126,7 @@ int Analog_Value_Event_Information(
     bool IsNotAckedTransitions;
     bool IsActiveEvent;
     int i;
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object_Index(index);
     if (pObject) {
@@ -1625,7 +2200,7 @@ int Analog_Value_Event_Information(
 int Analog_Value_Alarm_Ack(
     BACNET_ALARM_ACK_DATA *alarmack_data, BACNET_ERROR_CODE *error_code)
 {
-    ANALOG_VALUE_DESCR *CurrentAV;
+    struct object_data *CurrentAV;
 
     if (!alarmack_data) {
         return -1;
@@ -1738,7 +2313,7 @@ int Analog_Value_Alarm_Ack(
 int Analog_Value_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Analog_Value_Object_Index(index);
     if (pObject) {
@@ -1782,7 +2357,7 @@ int Analog_Value_Alarm_Summary(
  */
 void *Analog_Value_Context_Get(uint32_t object_instance)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1799,7 +2374,7 @@ void *Analog_Value_Context_Get(uint32_t object_instance)
  */
 void Analog_Value_Context_Set(uint32_t object_instance, void *context)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1814,7 +2389,7 @@ void Analog_Value_Context_Set(uint32_t object_instance, void *context)
  */
 uint32_t Analog_Value_Create(uint32_t object_instance)
 {
-    struct analog_value_descr *pObject = NULL;
+    struct object_data *pObject = NULL;
     int index = 0;
 #if defined(INTRINSIC_REPORTING)
     unsigned j;
@@ -1835,18 +2410,21 @@ uint32_t Analog_Value_Create(uint32_t object_instance)
     }
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
-        pObject = calloc(1, sizeof(struct analog_value_descr));
+        pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
             pObject->Object_Name = NULL;
             pObject->Description = NULL;
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
-            pObject->COV_Increment = 1.0;
+            pObject->COV_Increment = 1.0f;
             pObject->Present_Value = 0.0f;
-            pObject->Prior_Value = 0.0;
+            pObject->Prior_Value = 0.0f;
             pObject->Units = UNITS_PERCENT;
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
             pObject->Event_State = EVENT_STATE_NORMAL;
+            pObject->Write_Enabled = true;
+            pObject->Min_Pres_Value = -FLT_MAX;
+            pObject->Max_Pres_Value = FLT_MAX;
 #if defined(INTRINSIC_REPORTING)
             pObject->Event_Detection_Enable = true;
             /* notification class not connected */
@@ -1880,7 +2458,7 @@ uint32_t Analog_Value_Create(uint32_t object_instance)
 bool Analog_Value_Delete(uint32_t object_instance)
 {
     bool status = false;
-    struct analog_value_descr *pObject = NULL;
+    struct object_data *pObject = NULL;
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
@@ -1896,7 +2474,7 @@ bool Analog_Value_Delete(uint32_t object_instance)
  */
 void Analog_Value_Cleanup(void)
 {
-    struct analog_value_descr *pObject;
+    struct object_data *pObject;
     uint16_t dev_id;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();

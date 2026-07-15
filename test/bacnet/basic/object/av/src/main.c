@@ -7,6 +7,9 @@
  *
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <float.h>
+#include <math.h>
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/av.h>
 #include <property_test.h>
@@ -45,6 +48,158 @@ static void testAnalog_Value(void)
     status = Analog_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+/**
+ * @brief Test direct Analog Value property APIs
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(av_tests, testAnalog_Value_APIs)
+#else
+static void testAnalog_Value_APIs(void)
+#endif
+{
+    const uint32_t instance = 123;
+    const uint32_t invalid_instance = instance + 1;
+    const char *sample_description = "Test Analog Value";
+    char sample_context[] = "context";
+    bool status = false;
+    uint32_t test_instance = BACNET_MAX_INSTANCE;
+
+    Analog_Value_Init();
+    test_instance = Analog_Value_Create(instance);
+    zassert_equal(test_instance, instance, NULL);
+    zassert_true(Analog_Value_Valid_Instance(instance), NULL);
+    zassert_true(Analog_Value_Write_Enabled(instance), NULL);
+    zassert_false(Analog_Value_Out_Of_Service(instance), NULL);
+    zassert_equal(Analog_Value_Event_State(instance), EVENT_STATE_NORMAL, NULL);
+    zassert_true(
+        fabsf(Analog_Value_Present_Value(instance)) < FLT_EPSILON, NULL);
+    zassert_true(
+        fabsf(Analog_Value_COV_Increment(instance) - 1.0f) < FLT_EPSILON, NULL);
+    zassert_equal(Analog_Value_Units(instance), UNITS_PERCENT, NULL);
+    zassert_equal(
+        Analog_Value_Reliability(instance), RELIABILITY_NO_FAULT_DETECTED,
+        NULL);
+    zassert_true(Analog_Value_Min_Pres_Value(instance) < -3.0e38f, NULL);
+    zassert_true(Analog_Value_Max_Pres_Value(instance) > 3.0e38f, NULL);
+    zassert_is_null(Analog_Value_Description(instance), NULL);
+    zassert_is_null(Analog_Value_Context_Get(instance), NULL);
+
+    status = Analog_Value_Description_Set(instance, sample_description);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Analog_Value_Description(instance), sample_description), 0,
+        NULL);
+    status = Analog_Value_Description_Set(invalid_instance, sample_description);
+    zassert_false(status, NULL);
+
+    status = Analog_Value_Reliability_Set(instance, RELIABILITY_PROCESS_ERROR);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Analog_Value_Reliability(instance), RELIABILITY_PROCESS_ERROR, NULL);
+    zassert_true(Analog_Value_Change_Of_Value(instance), NULL);
+    Analog_Value_Change_Of_Value_Clear(instance);
+    status = Analog_Value_Reliability_Set(instance, RELIABILITY_PROCESS_ERROR);
+    zassert_true(status, NULL);
+    zassert_false(Analog_Value_Change_Of_Value(instance), NULL);
+    status =
+        Analog_Value_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    zassert_true(status, NULL);
+    zassert_true(Analog_Value_Change_Of_Value(instance), NULL);
+    status = Analog_Value_Reliability_Set(
+        invalid_instance, RELIABILITY_PROCESS_ERROR);
+    zassert_false(status, NULL);
+
+    status = Analog_Value_Min_Pres_Value_Set(instance, -5.0f);
+    zassert_true(status, NULL);
+    zassert_true(
+        fabsf(Analog_Value_Min_Pres_Value(instance) - (-5.0f)) < FLT_EPSILON,
+        NULL);
+    status = Analog_Value_Max_Pres_Value_Set(instance, 55.0f);
+    zassert_true(status, NULL);
+    zassert_true(
+        fabsf(Analog_Value_Max_Pres_Value(instance) - 55.0f) < FLT_EPSILON,
+        NULL);
+    status = Analog_Value_Present_Value_Set(instance, 42.5f, 8);
+    zassert_true(status, NULL);
+    zassert_true(
+        fabsf(Analog_Value_Present_Value(instance) - 42.5f) < FLT_EPSILON,
+        NULL);
+
+    Analog_Value_COV_Increment_Set(instance, 2.5f);
+    zassert_true(
+        fabsf(Analog_Value_COV_Increment(instance) - 2.5f) < FLT_EPSILON, NULL);
+    status = Analog_Value_Units_Set(instance, UNITS_VOLTS);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Value_Units(instance), UNITS_VOLTS, NULL);
+    status = Analog_Value_Event_State_Set(instance, EVENT_STATE_HIGH_LIMIT);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Analog_Value_Event_State(instance), EVENT_STATE_HIGH_LIMIT, NULL);
+
+    Analog_Value_Write_Disable(instance);
+    zassert_false(Analog_Value_Write_Enabled(instance), NULL);
+    Analog_Value_Write_Enable(instance);
+    zassert_true(Analog_Value_Write_Enabled(instance), NULL);
+
+    Analog_Value_Change_Of_Value_Clear(instance);
+    Analog_Value_Out_Of_Service_Set(instance, true);
+    zassert_true(Analog_Value_Out_Of_Service(instance), NULL);
+    zassert_true(Analog_Value_Change_Of_Value(instance), NULL);
+    Analog_Value_Context_Set(instance, (void *)sample_context);
+    zassert_equal(Analog_Value_Context_Get(instance), sample_context, NULL);
+    zassert_is_null(Analog_Value_Context_Get(invalid_instance), NULL);
+
+#if defined(INTRINSIC_REPORTING)
+    status = Analog_Value_Time_Delay_Set(instance, 5);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Value_Time_Delay(instance), 5, NULL);
+    status = Analog_Value_Notification_Class_Set(instance, 7);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Value_Notification_Class(instance), 7, NULL);
+    status = Analog_Value_High_Limit_Set(instance, 90.0f);
+    zassert_true(status, NULL);
+    zassert_true(
+        fabsf(Analog_Value_High_Limit(instance) - 90.0f) < FLT_EPSILON, NULL);
+    status = Analog_Value_Low_Limit_Set(instance, 10.0f);
+    zassert_true(status, NULL);
+    zassert_true(
+        fabsf(Analog_Value_Low_Limit(instance) - 10.0f) < FLT_EPSILON, NULL);
+    status = Analog_Value_Deadband_Set(instance, 1.5f);
+    zassert_true(status, NULL);
+    zassert_true(
+        fabsf(Analog_Value_Deadband(instance) - 1.5f) < FLT_EPSILON, NULL);
+    status = Analog_Value_Limit_Enable_Set(
+        instance, EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Analog_Value_Limit_Enable(instance),
+        EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE, NULL);
+    status = Analog_Value_Limit_Enable_Set(instance, (BACNET_LIMIT_ENABLE)0x04);
+    zassert_false(status, NULL);
+    status = Analog_Value_Event_Enable_Set(
+        instance, EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_NORMAL);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Analog_Value_Event_Enable(instance),
+        EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_NORMAL, NULL);
+    status = Analog_Value_Event_Enable_Set(instance, (BACNET_EVENT_ENABLE)0x08);
+    zassert_false(status, NULL);
+    status = Analog_Value_Event_Detection_Enable_Set(instance, false);
+    zassert_true(status, NULL);
+    zassert_false(Analog_Value_Event_Detection_Enable(instance), NULL);
+    status = Analog_Value_Notify_Type_Set(instance, NOTIFY_ALARM);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Value_Notify_Type(instance), NOTIFY_ALARM, NULL);
+    status = Analog_Value_Notify_Type_Set(instance, (BACNET_NOTIFY_TYPE)42);
+    zassert_false(status, NULL);
+#endif
+
+    status = Analog_Value_Delete(instance);
+    zassert_true(status, NULL);
+    zassert_false(Analog_Value_Valid_Instance(instance), NULL);
+    Analog_Value_Cleanup();
+}
 /**
  * @}
  */
@@ -54,7 +209,9 @@ ZTEST_SUITE(av_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(av_tests, ztest_unit_test(testAnalog_Value));
+    ztest_test_suite(
+        av_tests, ztest_unit_test(testAnalog_Value),
+        ztest_unit_test(testAnalog_Value_APIs));
 
     ztest_run_test_suite(av_tests);
 }
