@@ -127,18 +127,13 @@ static bool Action_List_Entry_Empty(const BACNET_ACTION_LIST *pAction)
 static void Action_List_Purge(struct object_data *pObject)
 {
     BACNET_ACTION_LIST *pAction = NULL;
-    KEY key = 0;
-    int count = 0;
 
     if (!pObject) {
         return;
     }
-    count = Keylist_Count(pObject->Action_List);
-    while (count > 0) {
-        pAction = Keylist_Data_Delete(pObject->Action_List, key);
+    while (Keylist_Count(pObject->Action_List) > 0) {
+        pAction = Keylist_Data_Pop(pObject->Action_List);
         free(pAction);
-        key++;
-        count--;
     }
 }
 
