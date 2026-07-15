@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -96,8 +97,7 @@ static void Action_List_Entry_Init(BACNET_ACTION_LIST *pAction)
         pAction->Object_Id.instance = BACNET_MAX_INSTANCE;
         pAction->Property_Identifier = PROP_ALL;
         pAction->Property_Array_Index = BACNET_ARRAY_ALL;
-        pAction->Value.tag = BACNET_APPLICATION_TAG_NULL;
-        pAction->Value.next = NULL;
+        pAction->Property_Value.data_len = 0;
         pAction->Priority = BACNET_NO_PRIORITY;
         pAction->Post_Delay = UINT32_MAX;
         pAction->Quit_On_Failure = false;
@@ -118,6 +118,41 @@ static bool Action_List_Entry_Empty(const BACNET_ACTION_LIST *pAction)
     }
 
     return (pAction->Object_Id.instance == BACNET_MAX_INSTANCE);
+}
+
+/**
+ * @brief Free all action entries in a Command object action list.
+ * @param pObject [in,out] Pointer to object data.
+ */
+static void Action_List_Purge(struct object_data *pObject)
+{
+    BACNET_ACTION_LIST *pAction = NULL;
+
+    if (!pObject) {
+        return;
+    }
+    while (Keylist_Count(pObject->Action_List) > 0) {
+        pAction = Keylist_Data_Pop(pObject->Action_List);
+        free(pAction);
+    }
+}
+
+/**
+ * @brief Get action list element by array index.
+ * @param pObject [in] Pointer to object data.
+ * @param array_index [in] Action list array index.
+ * @return pointer to action element, or NULL.
+ */
+static BACNET_ACTION_LIST *
+Action_List_Member(struct object_data *pObject, BACNET_ARRAY_INDEX array_index)
+{
+    BACNET_ACTION_LIST *action = NULL;
+
+    if (pObject) {
+        action = Keylist_Data(pObject->Action_List, array_index);
+    }
+
+    return action;
 }
 
 /**
@@ -684,15 +719,132 @@ bool Command_Description_Set(uint32_t instance, const char *new_name)
  */
 BACNET_ACTION_LIST *Command_Action_List_Entry(uint32_t instance, unsigned index)
 {
+    return Command_Action_List_Member(instance, index);
+}
+
+/**
+ * @brief Return Action list as linked list with next pointers set.
+ * @param instance [in] BACnet object instance number.
+ * @return first Action list element, or NULL.
+ */
+BACNET_ACTION_LIST *Command_Action_List(uint32_t instance)
+{
     struct object_data *pObject;
-    BACNET_ACTION_LIST *pAction = NULL;
+    BACNET_ACTION_LIST *first_element = NULL;
+    BACNET_ACTION_LIST *element = NULL;
+    BACNET_ACTION_LIST *prev_element = NULL;
+    unsigned count = 0;
+    unsigned i = 0;
 
     pObject = Object_Data(instance);
     if (pObject) {
-        pAction = Keylist_Data(pObject->Action_List, index);
+        count = Command_Action_List_Count(instance);
+        for (i = 0; i < count; i++) {
+            element = Action_List_Member(pObject, i);
+            if (element) {
+                if (i == 0) {
+                    first_element = element;
+                } else if (prev_element) {
+                    prev_element->next = element;
+                }
+                element->next = NULL;
+                prev_element = element;
+            }
+        }
     }
 
-    return pAction;
+    return first_element;
+}
+
+/**
+ * @brief Set Action list from a linked list.
+ * @param instance [in] BACnet object instance number.
+ * @param action_list [in] Linked list to copy from.
+ */
+void Command_Action_List_Set(uint32_t instance, BACNET_ACTION_LIST *action_list)
+{
+    struct object_data *pObject;
+    BACNET_ACTION_LIST *element = NULL;
+    BACNET_ACTION_LIST *data = NULL;
+    KEY key;
+
+    pObject = Object_Data(instance);
+    if (pObject) {
+        Action_List_Purge(pObject);
+        element = action_list;
+        while (element) {
+            key = Keylist_Next_Empty_Key(pObject->Action_List, 0);
+            data = calloc(1, sizeof(BACNET_ACTION_LIST));
+            if (!data) {
+                break;
+            }
+            memmove(data, element, sizeof(BACNET_ACTION_LIST));
+            data->next = NULL;
+            if (Keylist_Data_Add(pObject->Action_List, key, data) < 0) {
+                free(data);
+                break;
+            }
+            element = element->next;
+        }
+    }
+}
+
+/**
+ * @brief Link an array of action entries with next pointers.
+ * @param array [in,out] Pointer to entry zero.
+ * @param size [in] Number of elements.
+ */
+void Command_Action_List_Link_Array(BACNET_ACTION_LIST *array, size_t size)
+{
+    size_t i;
+
+    if (!array) {
+        return;
+    }
+    for (i = 0; i < size; i++) {
+        if (i > 0) {
+            array[i - 1].next = &array[i];
+        }
+        array[i].next = NULL;
+    }
+}
+
+/**
+ * @brief Compare two action list elements.
+ * @param element1 [in] First element.
+ * @param element2 [in] Second element.
+ * @return true if same.
+ */
+bool Command_Action_List_Element_Same(
+    BACNET_ACTION_LIST *element1, BACNET_ACTION_LIST *element2)
+{
+    if (element1 == element2) {
+        return true;
+    }
+    if (!element1 || !element2) {
+        return false;
+    }
+
+    return bacnet_action_command_same(element1, element2);
+}
+
+/**
+ * @brief Return one action list element by array index.
+ * @param instance [in] BACnet object instance number.
+ * @param array_index [in] Action list array index.
+ * @return pointer to action element, or NULL.
+ */
+BACNET_ACTION_LIST *
+Command_Action_List_Member(uint32_t instance, BACNET_ARRAY_INDEX array_index)
+{
+    struct object_data *pObject;
+
+    pObject = Object_Data(instance);
+    if (pObject) {
+        return Action_List_Member(pObject, array_index);
+    }
+
+    return NULL;
 }
 
 /**
@@ -709,6 +861,129 @@ unsigned Command_Action_List_Count(uint32_t instance)
     }
 
     return count;
+}
+
+/**
+ * @brief Check if an action element exists in the action list.
+ * @param instance [in] BACnet object instance number.
+ * @param element [in] Element to locate.
+ * @return array index if found, else BACNET_ARRAY_ALL.
+ */
+BACNET_ARRAY_INDEX Command_Action_List_Element_Exist(
+    uint32_t instance, BACNET_ACTION_LIST *element)
+{
+    BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
+    BACNET_ACTION_LIST *list_element = NULL;
+    unsigned count = 0;
+
+    if (element) {
+        count = Command_Action_List_Count(instance);
+        for (array_index = 0; array_index < count; array_index++) {
+            list_element = Command_Action_List_Member(instance, array_index);
+            if (Command_Action_List_Element_Same(list_element, element)) {
+                break;
+            }
+        }
+        if (array_index >= count) {
+            array_index = BACNET_ARRAY_ALL;
+        }
+    }
+
+    return array_index;
+}
+
+/**
+ * @brief Add unique action list element.
+ * @param instance [in] BACnet object instance number.
+ * @param element [in] Element to add.
+ * @return array index if added/existing, else BACNET_ARRAY_ALL.
+ */
+BACNET_ARRAY_INDEX
+Command_Action_List_Element_Add(uint32_t instance, BACNET_ACTION_LIST *element)
+{
+    struct object_data *pObject;
+    BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
+    KEY key = 0;
+    BACNET_ACTION_LIST *data = NULL;
+
+    pObject = Object_Data(instance);
+    if (pObject && element) {
+        array_index = Command_Action_List_Element_Exist(instance, element);
+        if (array_index == BACNET_ARRAY_ALL) {
+            /* Keep keys contiguous (BACnetARRAY semantics) */
+            key = (KEY)Keylist_Count(pObject->Action_List);
+            data = calloc(1, sizeof(BACNET_ACTION_LIST));
+            if (data) {
+                memmove(data, element, sizeof(BACNET_ACTION_LIST));
+                data->next = NULL;
+                if (Keylist_Data_Add(pObject->Action_List, key, data) >= 0) {
+                    array_index = key;
+                } else {
+                    free(data);
+                }
+            }
+        }
+    }
+
+    return array_index;
+}
+
+/**
+ * @brief Remove action list element.
+ * @param instance [in] BACnet object instance number.
+ * @param element [in] Element to remove.
+ * @return removed element array index, else BACNET_ARRAY_ALL.
+ */
+BACNET_ARRAY_INDEX Command_Action_List_Element_Remove(
+    uint32_t instance, BACNET_ACTION_LIST *element)
+{
+    struct object_data *pObject;
+    BACNET_ACTION_LIST *dst = NULL;
+    BACNET_ACTION_LIST *src = NULL;
+    BACNET_ACTION_LIST *data = NULL;
+    BACNET_ARRAY_INDEX array_index = BACNET_ARRAY_ALL;
+    unsigned count = 0;
+    BACNET_ARRAY_INDEX i = 0;
+
+    pObject = Object_Data(instance);
+    if (pObject && element) {
+        count = (unsigned)Keylist_Count(pObject->Action_List);
+        array_index = Command_Action_List_Element_Exist(instance, element);
+        if ((array_index != BACNET_ARRAY_ALL) && (array_index < count)) {
+            /* Shift elements down to keep keys contiguous */
+            for (i = array_index; (i + 1) < count; i++) {
+                dst = Keylist_Data(pObject->Action_List, i);
+                src = Keylist_Data(pObject->Action_List, i + 1);
+                if (!dst || !src) {
+                    return BACNET_ARRAY_ALL;
+                }
+                *dst = *src;
+                dst->next = NULL;
+            }
+            data = Keylist_Data_Delete(pObject->Action_List, (KEY)(count - 1));
+            free(data);
+        }
+    }
+
+    return array_index;
+}
+
+/**
+ * @brief Purge all action entries for object instance.
+ * @param instance [in] BACnet object instance number.
+ * @return true if object exists and purge ran.
+ */
+bool Command_Action_List_Purge(uint32_t instance)
+{
+    struct object_data *pObject;
+
+    pObject = Object_Data(instance);
+    if (pObject) {
+        Action_List_Purge(pObject);
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -838,7 +1113,6 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
                 if (pAction) {
                     *pAction = action;
                     pAction->next = NULL;
-                    pAction->Value.next = NULL;
                     error_code = ERROR_CODE_SUCCESS;
                 } else {
                     error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -904,8 +1178,14 @@ static bool Command_Action_Write(BACNET_ACTION_LIST *pAction)
     } else {
         wp_data.priority = BACNET_NO_PRIORITY;
     }
-    len = bacnet_action_property_value_encode(
-        wp_data.application_data, &pAction->Value);
+    len = pAction->Property_Value.data_len;
+    if ((len > 0) && ((size_t)len <= sizeof(wp_data.application_data))) {
+        memcpy(
+            wp_data.application_data, pAction->Property_Value.data,
+            pAction->Property_Value.data_len);
+    } else {
+        len = 0;
+    }
     if ((len > 0) && Write_Property_Internal_Callback) {
         wp_data.application_data_len = len;
         status = write_property_bacnet_array_valid(&wp_data);

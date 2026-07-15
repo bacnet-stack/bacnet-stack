@@ -95,6 +95,7 @@ list(APPEND testdirs
   bacnet/bacaddr
   bacnet/bacapp
   bacnet/bacaudit
+  bacnet/bacaction
   bacnet/bacdcode
   bacnet/bacdevobjpropref
   bacnet/bacdest
