@@ -7,6 +7,7 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.7.x   | :white_check_mark: |
 | 1.6.x   | :white_check_mark: |
 | 1.5.x   | :white_check_mark: |
 | 1.4.x   | :white_check_mark: |
@@ -27,36 +28,48 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+MS/TP COBS decode overflow
+[GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1425](https://github.com/bacnet-stack/bacnet-stack/pull/1425).
+
+[CVE-2026-62972](https://www.cve.org/CVERecord?id=CVE-2026-62972) -
 Out-of-bounds read in lighting_command_decode (full APDU size passed to nested tag decoders)
 [GHSA-9hq3-w3pc-8385](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9hq3-w3pc-8385).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1412](https://github.com/bacnet-stack/bacnet-stack/pull/1412).
 
+[CVE-2026-62977](https://www.cve.org/CVERecord?id=CVE-2026-62977) -
 WriteProperty(File_Size) can bypass read-only protection and expose uninitialized RAMFS tail bytes through AtomicReadFile
 [GHSA-mwj7-2v5r-v934](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mwj7-2v5r-v934).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1411](https://github.com/bacnet-stack/bacnet-stack/pull/1411).
 
+[CVE-2026-62975](https://www.cve.org/CVERecord?id=CVE-2026-62975) -
 Replacing a RAMFS record with a shorter one via AtomicWriteFile(record-access) can trigger a heap out-of-bounds read
 [GHSA-cf8g-hp9m-9fvv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cf8g-hp9m-9fvv).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
 
+[CVE-2026-62976](https://www.cve.org/CVERecord?id=CVE-2026-62976) -
 Consecutive AtomicWriteFile(record-access) appends can trigger a heap out-of-bounds read in the RAMFS file backend
 [GHSA-32jj-x86x-w98w](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-32jj-x86x-w98w).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
 
+[CVE-2026-62974](https://www.cve.org/CVERecord?id=CVE-2026-62974) -
 Remote unauthenticated DoS in Life_Safety_Zone PROP_ZONE_MEMBERS WriteProperty parsing
 [GHSA-2c8x-f46r-8phh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2c8x-f46r-8phh).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1410](https://github.com/bacnet-stack/bacnet-stack/pull/1410).
 
+[CVE-2026-62973](https://www.cve.org/CVERecord?id=CVE-2026-62973) -
 Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
 [GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1395](https://github.com/bacnet-stack/bacnet-stack/pull/1395).
 
+[CVE-2026-58498](https://www.cve.org/CVERecord?id=CVE-2026-58498) -
 Remote global-buffer-overflow in apps/router-ipv6/main.c routed APDU forwarding path
 [GHSA-4p4w-m434-jrhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4p4w-m434-jrhj).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
