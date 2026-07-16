@@ -32,7 +32,6 @@ typedef struct bacnet_alert {
 
 typedef struct alert_enrollment_descr {
     BACNET_OBJECT_ID Present_Value;
-    BACNET_RELIABILITY Reliability;
     const char *Object_Name;
     const char *Description;
     void *Context;
