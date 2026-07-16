@@ -13,6 +13,7 @@
 #include <libwebsockets.h>
 #include "websocket-global.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/bsc/websocket.h"
 
 #if LWS_MAX_SMP <= 1
 #warning \

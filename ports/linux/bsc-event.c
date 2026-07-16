@@ -181,7 +181,7 @@ void bsc_wait_ms(int mseconds)
 
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
 {
-    getrandom(p->address, BVLC_SC_VMAC_SIZE, 0);
+    int rc = (int)getrandom(p->address, BVLC_SC_VMAC_SIZE, 0);
 
     /* According H.7.3 EUI-48 and Random-48 VMAC Address:
        The Random-48 VMAC is a 6-octet VMAC address in which the least
@@ -191,12 +191,12 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
     p->address[0] = (p->address[0] & 0xF0) | 0x02;
 
     debug_printf_hex(
-        0, p->address, BVLC_SC_VMAC_SIZE, "bsc_generate_random_vmac:");
+        0, p->address, BVLC_SC_VMAC_SIZE, "bsc_generate_random_vmac(%d):", rc);
 }
 
 void bsc_generate_random_uuid(BACNET_SC_UUID *p)
 {
-    getrandom(p->uuid, BVLC_SC_UUID_SIZE, 0);
+    int rc = (int)getrandom(p->uuid, BVLC_SC_UUID_SIZE, 0);
     debug_printf_hex(
-        0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid:");
+        0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid(%d):", rc);
 }
