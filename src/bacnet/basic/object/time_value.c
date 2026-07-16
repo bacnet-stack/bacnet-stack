@@ -73,8 +73,10 @@ static const int32_t Time_Value_Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* first property is present-value so it can be skipped if not writable */
+    PROP_PRESENT_VALUE,
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+    PROP_OUT_OF_SERVICE, -1
 };
 
 /**
@@ -114,8 +116,16 @@ void Time_Value_Property_Lists(
 void Time_Value_Writable_Property_List(
     uint32_t object_instance, const int32_t **properties)
 {
-    (void)object_instance;
-    if (properties) {
+    struct object_data *pObject;
+
+    if (!properties) {
+        return;
+    }
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && (!pObject->Write_Enabled)) {
+        /* skip present-value property */
+        *properties = &Writable_Properties[1];
+    } else {
         *properties = Writable_Properties;
     }
 }
@@ -269,7 +279,7 @@ static bool Time_Value_Present_Value_Write(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if (pObject->Write_Enabled) {
+        if (pObject->Write_Enabled || pObject->Out_Of_Service) {
             datetime_copy_time(&old_value, &pObject->Present_Value);
             Time_Value_Present_Value_COV_Detect(pObject, value);
             datetime_copy_time(&pObject->Present_Value, value);
@@ -336,42 +346,6 @@ bool Time_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
         }
         pObject->Out_Of_Service = value;
         status = true;
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, sets the out-of-service flag
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - indicator of 'Out-of-service'
- * @param  error_class - the BACnet error class
- * @param  error_code - BACnet Error code
- *
- * @return  true if value is set, or false if not or error occurred
- */
-static bool Time_Value_Out_Of_Service_Write(
-    uint32_t object_instance,
-    bool value,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE *error_code)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        if (pObject->Write_Enabled) {
-            Time_Value_Out_Of_Service_Set(object_instance, value);
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        }
-    } else {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;
@@ -703,9 +677,8 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                status = Time_Value_Out_Of_Service_Write(
-                    wp_data->object_instance, value.type.Boolean,
-                    &wp_data->error_class, &wp_data->error_code);
+                (void)Time_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         default:
@@ -867,7 +840,7 @@ uint32_t Time_Value_Create(uint32_t object_instance)
         pObject->Description = NULL;
         datetime_set_time(&pObject->Present_Value, 0, 0, 0, 0);
         pObject->Change_Of_Value = false;
-        pObject->Write_Enabled = false;
+        pObject->Write_Enabled = true;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
         if (index < 0) {

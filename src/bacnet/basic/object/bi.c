@@ -107,9 +107,19 @@ static const int32_t Properties_Proprietary[] = { -1 };
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
-   that is always writable.  */
+   that is always writable.
+   Properties that are only conditionally writable, for example,
+   a Present_Value property whose writability is conditionally
+   based on the Out_Of_Service property value, shall not be included. */
 static const int32_t Writable_Properties[] = {
-    /* unordered list of writable properties */
+    /* first property is present-value so it can be skipped if not writable */
+    PROP_PRESENT_VALUE,
+    /* unordered list of always writable properties */
+    PROP_OUT_OF_SERVICE, PROP_POLARITY,
+#if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
+    PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_ALARM_VALUE,
+    PROP_EVENT_ENABLE, PROP_NOTIFY_TYPE,
+#endif
     -1
 };
 
@@ -147,8 +157,16 @@ void Binary_Input_Property_Lists(
 void Binary_Input_Writable_Property_List(
     uint32_t object_instance, const int32_t **properties)
 {
-    (void)object_instance;
-    if (properties) {
+    struct object_data *pObject;
+
+    if (!properties) {
+        return;
+    }
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && (!pObject->Write_Enabled)) {
+        /* skip present-value property */
+        *properties = &Writable_Properties[1];
+    } else {
         *properties = Writable_Properties;
     }
 }
@@ -579,7 +597,7 @@ static bool Binary_Input_Present_Value_Write(
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
         if (value < BINARY_PV_MAX) {
-            if (pObject->Write_Enabled) {
+            if (pObject->Write_Enabled || pObject->Out_Of_Service) {
                 old_value = Binary_Present_Value(pObject->Present_Value);
                 Binary_Input_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = Binary_Present_Value_Boolean(value);
@@ -601,43 +619,6 @@ static bool Binary_Input_Present_Value_Write(
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        }
-    } else {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, sets the out-of-service flag
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - boolean out-of-service value
- * @param  error_class - the BACnet error class
- * @param  error_code - BACnet Error code
- *
- * @return  true if value is set, or false if not set or error occurred
- */
-static bool Binary_Input_Out_Of_Service_Write(
-    uint32_t object_instance,
-    bool value,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE *error_code)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Binary_Input_Object(object_instance);
-    if (pObject) {
-        if (pObject->Write_Enabled) {
-            Binary_Input_Out_Of_Service_COV_Detect(pObject, value);
-            pObject->Out_Of_Service = value;
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         }
     } else {
         *error_class = ERROR_CLASS_OBJECT;
@@ -1162,9 +1143,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                status = Binary_Input_Out_Of_Service_Write(
-                    wp_data->object_instance, value.type.Boolean,
-                    &wp_data->error_class, &wp_data->error_code);
+                Binary_Input_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_POLARITY:

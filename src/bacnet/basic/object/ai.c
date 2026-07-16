@@ -72,9 +72,25 @@ static const int32_t Properties_Proprietary[] = { -1 };
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
-   that is always writable.  */
+   that is always writable.
+   Properties that are only conditionally writable, for example,
+   a Present_Value property whose writability is conditionally
+   based on the Out_Of_Service property value, shall not be included. */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    PROP_COV_INCREMENT,
+#if defined(INTRINSIC_REPORTING)
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_HIGH_LIMIT,
+    PROP_LOW_LIMIT,
+    PROP_DEADBAND,
+    PROP_LIMIT_ENABLE,
+    PROP_EVENT_ENABLE,
+    PROP_NOTIFY_TYPE,
+#endif
     -1
 };
 
@@ -1000,7 +1016,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    float real_value = (float)1.414;
+    float real_value = 1.414f;
     bool state = false;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
@@ -2094,9 +2110,9 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
             pObject->Object_Name = NULL;
             pObject->Description = NULL;
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
-            pObject->COV_Increment = 1.0;
+            pObject->COV_Increment = 1.0f;
             pObject->Present_Value = 0.0f;
-            pObject->Prior_Value = 0.0;
+            pObject->Prior_Value = 0.0f;
             pObject->Units = UNITS_PERCENT;
             pObject->Out_Of_Service = false;
             pObject->Changed = false;

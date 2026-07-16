@@ -9,6 +9,7 @@
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/ai.h>
+#include <bacnet/proplist.h>
 #include <property_test.h>
 
 /**
@@ -45,6 +46,41 @@ static void testAnalogInput(void)
     status = Analog_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+/**
+ * @brief Test Analog Input Writable_Property_List API
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ai_tests, testAnalogInput_Writable_Properties)
+#else
+static void testAnalogInput_Writable_Properties(void)
+#endif
+{
+    const uint32_t instance = 456;
+    const uint32_t invalid_instance = instance + 1;
+    const int32_t *properties = NULL;
+    uint32_t count = 0;
+
+    Analog_Input_Init();
+    zassert_not_equal(Analog_Input_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* valid instance: list is non-NULL and -1-terminated */
+    Analog_Input_Writable_Property_List(instance, &properties);
+    zassert_not_null(properties, NULL);
+    count = property_list_count(properties);
+    zassert_true(count > 0, NULL);
+
+    /* unknown instance: must still return a valid list, not NULL/garbage */
+    properties = NULL;
+    Analog_Input_Writable_Property_List(invalid_instance, &properties);
+    zassert_not_null(properties, NULL);
+
+    /* NULL properties pointer: must not crash */
+    Analog_Input_Writable_Property_List(instance, NULL);
+
+    Analog_Input_Delete(instance);
+    Analog_Input_Cleanup();
+}
 /**
  * @}
  */
@@ -54,7 +90,9 @@ ZTEST_SUITE(ai_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(ai_tests, ztest_unit_test(testAnalogInput));
+    ztest_test_suite(
+        ai_tests, ztest_unit_test(testAnalogInput),
+        ztest_unit_test(testAnalogInput_Writable_Properties));
 
     ztest_run_test_suite(ai_tests);
 }

@@ -75,8 +75,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
+    /* first property is present-value so it can be skipped if not writable */
+    PROP_PRESENT_VALUE,
     /* unordered list of always writable properties */
-    -1
+    PROP_OUT_OF_SERVICE, PROP_STATE_TEXT, -1
 };
 
 /**
@@ -113,8 +115,16 @@ void Multistate_Input_Property_Lists(
 void Multistate_Input_Writable_Property_List(
     uint32_t object_instance, const int32_t **properties)
 {
-    (void)object_instance;
-    if (properties) {
+    struct object_data *pObject;
+
+    if (!properties) {
+        return;
+    }
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && (!pObject->Write_Enabled)) {
+        /* skip present-value property */
+        *properties = &Writable_Properties[1];
+    } else {
         *properties = Writable_Properties;
     }
 }
@@ -191,7 +201,7 @@ uint32_t Multistate_Input_Max_States(uint32_t object_instance)
     uint32_t count = 0;
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         count = state_name_list_count(pObject->State_List);
     }
@@ -212,7 +222,7 @@ uint32_t Multistate_Input_State_From_Text(
     unsigned index = 0;
     const struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         index = state_name_list_index(pObject->State_List, state_text);
     }
@@ -234,7 +244,7 @@ Multistate_Input_State_Text(uint32_t object_instance, uint32_t state_index)
     const struct object_data *pObject;
     KEY key;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         if (state_index > 0) {
             key = state_index;
@@ -297,7 +307,7 @@ bool Multistate_Input_State_Text_List_Set(
     bool status = false;
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         if (!pObject->State_List) {
             pObject->State_List = Keylist_Create();
@@ -420,7 +430,7 @@ static bool Multistate_Input_Present_Value_Write(
     if (pObject) {
         max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
-            if (pObject->Write_Enabled) {
+            if (pObject->Write_Enabled || pObject->Out_Of_Service) {
                 old_value = pObject->Present_Value;
                 Multistate_Input_Present_Value_COV_Detect(pObject, value);
                 pObject->Present_Value = value;
@@ -488,42 +498,6 @@ void Multistate_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
     }
 
     return;
-}
-
-/**
- * For a given object instance-number, sets the out-of-service state
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - out-of-service state
- * @param  error_class - the BACnet error class
- * @param  error_code - BACnet Error code
- *
- * @return  true if value is set, false if error occurred
- */
-static bool Multistate_Input_Out_Of_Service_Write(
-    uint32_t object_instance,
-    bool value,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE *error_code)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Multistate_Input_Object(object_instance);
-    if (pObject) {
-        if (pObject->Write_Enabled) {
-            Multistate_Input_Out_Of_Service_Set(object_instance, value);
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        }
-    } else {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    }
-
-    return status;
 }
 
 /**
@@ -969,9 +943,8 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                status = Multistate_Input_Out_Of_Service_Write(
-                    wp_data->object_instance, value.type.Boolean,
-                    &wp_data->error_class, &wp_data->error_code);
+                Multistate_Input_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_STATE_TEXT:
@@ -1066,7 +1039,7 @@ void *Multistate_Input_Context_Get(uint32_t object_instance)
 {
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         return pObject->Context;
     }
@@ -1083,7 +1056,7 @@ void Multistate_Input_Context_Set(uint32_t object_instance, void *context)
 {
     struct object_data *pObject;
 
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         pObject->Context = context;
     }
@@ -1112,7 +1085,7 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
             the object identifier is a local matter.*/
         object_instance = Keylist_Next_Empty_Key(Object_List, 1);
     }
-    pObject = Keylist_Data(Object_List, object_instance);
+    pObject = Multistate_Input_Object(object_instance);
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
