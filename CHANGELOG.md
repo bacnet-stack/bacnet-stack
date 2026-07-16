@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured an MS/TP implementation COBS frame decoding buffer overflow,
+  and added unit test for tight buffer handling. (#1425)
+
 ### Fixed
 
 ## [1.6.0] - 2026-07-04

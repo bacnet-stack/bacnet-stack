@@ -16,6 +16,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+MS/TP COBS decode overflow
+[GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
+Patched versions: 1.6.1
+Pull Request: [#1425](https://github.com/bacnet-stack/bacnet-stack/pull/1425).
+
 [CVE-2026-52790](https://www.cve.org/CVERecord?id=CVE-2026-52790) -
 bacnet_device.c stack-use-after-return in writable Device string properties
 [GHSA-jr7p-rm2x-739x](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jr7p-rm2x-739x).
