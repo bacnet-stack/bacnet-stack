@@ -13,9 +13,13 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [unreleased] - 2026-07-13
+## [unreleased] - 2026-07-16
 
 ### Security
+
+* Secured an MS/TP implementation COBS frame decoding buffer overflow,
+  and added unit test for tight buffer handling. (#1425)
+
 ### Added
 
 * Added definitions for the Accumulator_Name and Accumulator_Name_Set functions
@@ -31,8 +35,31 @@ The git repositories are hosted at the following sites:
   and asserts the callback parameters. (#1416)
 
 ### Changed
+
+* Changed the basic Analog Value object by encapsulating structure into the
+  C module and added get/set for the members. Added `Min_Pres_Value` and
+  `Max_Pres_Value` properties to Analog Value object. Implemented write
+  enable/disable functionality for the Analog Value object. Updated float
+  initialization to use 'f' suffix for consistency in analog objects.
+  Remove write-enabled for present-value coupling to out-of-service flag
+  in basic value objects. Changed writable properties for basic value objects
+  to conditionally skip Present_Value and allow writing when out-of-service
+  is TRUE. Enabled write by default for basic value objects that support the
+  Write_Enable flag. (#1424)
+* Changed Command object BACnet action property value to support abstract
+  data types with unit tests. Added API to Command object BACnet action list
+  to get/set/link/same/member/exist/add/remove/purge. (#1422)
+* Changed command object and its action list property to support dynamic
+  object and action list management including resize and read/write
+  functionality for Command Action_List. Added support for Command object
+  description and name management. Added Command object timer function
+  to process action writes with time delays and set the appropriate
+  in-process and all-writes-successful flags. (#1421)
+
 ### Fixed
 
+* Fixed bacnet_action_command_decode() that truncated Post_Delay to
+  8 bits (#1423)
 * Fixed typos in comments and docs. (#1418)
 * Fixed platform.h min() and max() helpers so that min and max small case names
   no longer collide with C++ methods and no longer pollute BACnet Stack
