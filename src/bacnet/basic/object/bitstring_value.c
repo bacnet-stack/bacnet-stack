@@ -113,13 +113,9 @@ void BitString_Value_Writable_Property_List(
         return;
     }
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        if (pObject->Write_Enabled) {
-            *properties = Writable_Properties;
-        } else {
-            /* skip present-value property */
-            *properties = &Writable_Properties[1];
-        }
+    if (pObject && (!pObject->Write_Enabled)) {
+        /* skip present-value property */
+        *properties = &Writable_Properties[1];
     } else {
         *properties = Writable_Properties;
     }
