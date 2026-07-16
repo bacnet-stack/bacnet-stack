@@ -13,6 +13,12 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
+## [1.5.2] - Unreleased
+
+### Security
+
+### Fixed
+
 ## [1.5.1] - 2026-07-04
 
 ### Security
@@ -26,7 +32,7 @@ The git repositories are hosted at the following sites:
   allocated vs non-allocated strings. (#1375)
 * Secured xy_color_decode() by adjusting apdu_size calculation to prevent
   out-of-bounds read, and secured network control handler offset calculation
-  in router applications to prevent buffer overrun. (#1386, #1387)
+  in router applications to prevent buffer overrun. (#1386) (#1387)
 * Secured apps/router-mstp and apps/router-ipv6 routing by introducing
   routed_npdu_apdu_encode() with explicit oversized-PDU drop checks. (#1392)
 * Secured rpm_ack_decode_service_request buffer overflow by validating data
