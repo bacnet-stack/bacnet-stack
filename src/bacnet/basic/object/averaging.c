@@ -25,16 +25,6 @@
 /* me! */
 #include "bacnet/basic/object/averaging.h"
 
-#ifndef BACNET_AVERAGING_SAMPLES_MAX
-#define BACNET_AVERAGING_SAMPLES_MAX 64
-#endif
-
-struct averaging_sample {
-    bool Valid : 1;
-    float Value;
-    BACNET_DATE_TIME Timestamp;
-};
-
 struct object_data {
     const char *Object_Name;
     const char *Description;
@@ -43,14 +33,13 @@ struct object_data {
     uint32_t Window_Samples;
     uint32_t Attempted_Samples;
     uint32_t Valid_Samples;
-    uint32_t Sample_Next;
     float Minimum_Value;
     float Average_Value;
     float Variance_Value;
+    double Variance_M2;
     float Maximum_Value;
     BACNET_DATE_TIME Minimum_Value_Timestamp;
     BACNET_DATE_TIME Maximum_Value_Timestamp;
-    struct averaging_sample Samples[BACNET_AVERAGING_SAMPLES_MAX];
     void *Context;
 };
 
@@ -84,6 +73,29 @@ static const int32_t Writable_Properties[] = { PROP_ATTEMPTED_SAMPLES,
                                                PROP_WINDOW_SAMPLES, -1 };
 
 /**
+ * @brief Perform weighted moving average update.
+ *
+ * AN+1 = (XN+1 + N * AN)/(N+1)
+ *
+ * @param latest_reading Latest reading value.
+ * @param previous_average Previous average value.
+ * @param nsamples Number of prior samples used for previous average.
+ * @return Updated average value.
+ */
+static float average_weighted_moving(
+    float latest_reading, float previous_average, uint32_t nsamples)
+{
+    double average;
+
+    average = (double)previous_average;
+    average *= (double)nsamples;
+    average += (double)latest_reading;
+    average /= ((double)nsamples + 1.0);
+
+    return (float)average;
+}
+
+/**
  * @brief Get object data by instance.
  * @param object_instance BACnet object instance.
  * @return Pointer to object data, or NULL if not found.
@@ -99,26 +111,19 @@ static struct object_data *Averaging_Object(uint32_t object_instance)
  */
 static void Averaging_Reset_Object(struct object_data *pObject)
 {
-    unsigned i;
-
     if (!pObject) {
         return;
     }
 
     pObject->Attempted_Samples = 0;
     pObject->Valid_Samples = 0;
-    pObject->Sample_Next = 0;
     pObject->Minimum_Value = INFINITY;
     pObject->Average_Value = NAN;
     pObject->Variance_Value = NAN;
+    pObject->Variance_M2 = 0.0;
     pObject->Maximum_Value = -INFINITY;
     datetime_wildcard_set(&pObject->Minimum_Value_Timestamp);
     datetime_wildcard_set(&pObject->Maximum_Value_Timestamp);
-    for (i = 0; i < BACNET_AVERAGING_SAMPLES_MAX; i++) {
-        pObject->Samples[i].Valid = false;
-        pObject->Samples[i].Value = 0.0f;
-        datetime_wildcard_set(&pObject->Samples[i].Timestamp);
-    }
 }
 
 /**
@@ -142,67 +147,7 @@ static void Averaging_Timestamp_Local(BACNET_DATE_TIME *bdatetime)
 }
 
 /**
- * @brief Recalculate min/max/average/variance from valid samples.
- * @param pObject Pointer to object data.
- */
-static void Averaging_Recalculate(struct object_data *pObject)
-{
-    uint32_t i;
-    uint32_t valid = 0;
-    float sum = 0.0f;
-    float sum_square = 0.0f;
-    float min_value = INFINITY;
-    float max_value = -INFINITY;
-    uint32_t index;
-
-    if (!pObject) {
-        return;
-    }
-
-    datetime_wildcard_set(&pObject->Minimum_Value_Timestamp);
-    datetime_wildcard_set(&pObject->Maximum_Value_Timestamp);
-
-    for (i = 0; i < pObject->Window_Samples; i++) {
-        index = i;
-        if (!pObject->Samples[index].Valid) {
-            continue;
-        }
-        valid++;
-        sum += pObject->Samples[index].Value;
-        sum_square +=
-            pObject->Samples[index].Value * pObject->Samples[index].Value;
-        if (pObject->Samples[index].Value < min_value) {
-            min_value = pObject->Samples[index].Value;
-            pObject->Minimum_Value_Timestamp =
-                pObject->Samples[index].Timestamp;
-        }
-        if (pObject->Samples[index].Value > max_value) {
-            max_value = pObject->Samples[index].Value;
-            pObject->Maximum_Value_Timestamp =
-                pObject->Samples[index].Timestamp;
-        }
-    }
-
-    pObject->Valid_Samples = valid;
-    if (valid == 0) {
-        pObject->Minimum_Value = INFINITY;
-        pObject->Average_Value = NAN;
-        pObject->Variance_Value = NAN;
-        pObject->Maximum_Value = -INFINITY;
-    } else {
-        pObject->Minimum_Value = min_value;
-        pObject->Maximum_Value = max_value;
-        pObject->Average_Value = sum / (float)valid;
-        pObject->Variance_Value = (sum_square / (float)valid) -
-            (pObject->Average_Value * pObject->Average_Value);
-        if (pObject->Variance_Value < 0.0f) {
-            pObject->Variance_Value = 0.0f;
-        }
-    }
-}
-
-/**
- * @brief Record a sample slot as valid or missed and recompute metrics.
+ * @brief Record sample event and update weighted average statistics.
  * @param object_instance BACnet object instance.
  * @param sample_valid True when sample is valid.
  * @param sample_value Sample value when valid.
@@ -212,38 +157,60 @@ static bool Averaging_Sample_Record(
     uint32_t object_instance, bool sample_valid, float sample_value)
 {
     struct object_data *pObject;
-    uint32_t slot;
+    BACNET_DATE_TIME timestamp = { 0 };
+    uint32_t valid_samples;
+    uint32_t weighting_samples;
+    float previous_average;
+    double delta, delta2;
 
     pObject = Averaging_Object(object_instance);
     if (!pObject) {
         return false;
     }
-
-    if (pObject->Window_Samples == 0) {
-        return false;
-    }
-
-    slot = pObject->Sample_Next;
-    if (sample_valid) {
-        pObject->Samples[slot].Valid = true;
-        pObject->Samples[slot].Value = sample_value;
-        Averaging_Timestamp_Local(&pObject->Samples[slot].Timestamp);
-    } else {
-        pObject->Samples[slot].Valid = false;
-        pObject->Samples[slot].Value = 0.0f;
-        datetime_wildcard_set(&pObject->Samples[slot].Timestamp);
-    }
-
-    pObject->Sample_Next++;
-    if (pObject->Sample_Next >= pObject->Window_Samples) {
-        pObject->Sample_Next = 0;
-    }
-
-    if (pObject->Attempted_Samples < pObject->Window_Samples) {
+    if (pObject->Attempted_Samples < UINT32_MAX) {
         pObject->Attempted_Samples++;
     }
-
-    Averaging_Recalculate(pObject);
+    if (!sample_valid) {
+        return true;
+    }
+    Averaging_Timestamp_Local(&timestamp);
+    /* keep the number of samples within the window */
+    valid_samples = pObject->Valid_Samples;
+    weighting_samples = valid_samples;
+    if (pObject->Window_Samples > 0U) {
+        if (weighting_samples >= pObject->Window_Samples) {
+            weighting_samples = pObject->Window_Samples - 1U;
+        }
+    }
+    previous_average = pObject->Average_Value;
+    if (valid_samples == 0U) {
+        pObject->Average_Value = sample_value;
+        pObject->Variance_M2 = 0.0;
+        pObject->Variance_Value = 0.0f;
+        pObject->Minimum_Value = sample_value;
+        pObject->Maximum_Value = sample_value;
+        pObject->Minimum_Value_Timestamp = timestamp;
+        pObject->Maximum_Value_Timestamp = timestamp;
+    } else {
+        pObject->Average_Value = average_weighted_moving(
+            sample_value, previous_average, weighting_samples);
+        delta = (double)sample_value - (double)previous_average;
+        delta2 = (double)sample_value - (double)pObject->Average_Value;
+        pObject->Variance_M2 += delta * delta2;
+        pObject->Variance_Value =
+            (float)(pObject->Variance_M2 / (double)(weighting_samples + 1U));
+        if (sample_value < pObject->Minimum_Value) {
+            pObject->Minimum_Value = sample_value;
+            pObject->Minimum_Value_Timestamp = timestamp;
+        }
+        if (sample_value > pObject->Maximum_Value) {
+            pObject->Maximum_Value = sample_value;
+            pObject->Maximum_Value_Timestamp = timestamp;
+        }
+    }
+    if (pObject->Valid_Samples < UINT32_MAX) {
+        pObject->Valid_Samples++;
+    }
 
     return true;
 }
@@ -887,9 +854,7 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     }
                     break;
                 case PROP_WINDOW_SAMPLES:
-                    if ((value.type.Unsigned_Int > 0U) &&
-                        (value.type.Unsigned_Int <=
-                         BACNET_AVERAGING_SAMPLES_MAX)) {
+                    if (value.type.Unsigned_Int > 0U) {
                         Averaging_Object(wp_data->object_instance)
                             ->Window_Samples = value.type.Unsigned_Int;
                         status = Averaging_Reset(wp_data->object_instance);

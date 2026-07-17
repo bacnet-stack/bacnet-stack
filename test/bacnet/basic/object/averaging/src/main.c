@@ -135,6 +135,17 @@ static void testAveragingResetAndWrite(void)
     zassert_true(status, NULL);
     zassert_equal(Averaging_Window_Samples(object_instance), 3, NULL);
 
+    status = Averaging_Sample_Add(object_instance, 10.0f);
+    zassert_true(status, NULL);
+    status = Averaging_Sample_Add(object_instance, 10.0f);
+    zassert_true(status, NULL);
+    status = Averaging_Sample_Add(object_instance, 10.0f);
+    zassert_true(status, NULL);
+    status = Averaging_Sample_Add(object_instance, 40.0f);
+    zassert_true(status, NULL);
+    zassert_true(
+        fabsf(Averaging_Average_Value(object_instance) - 20.0f) < 0.001f, NULL);
+
     ref.objectIdentifier.type = OBJECT_ANALOG_VALUE;
     ref.objectIdentifier.instance = 123;
     ref.propertyIdentifier = PROP_PRESENT_VALUE;
