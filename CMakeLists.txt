@@ -399,6 +399,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/auditlog.h
   src/bacnet/basic/object/ai.c
   src/bacnet/basic/object/ai.h
+  src/bacnet/basic/object/alert_enrollment.c
+  src/bacnet/basic/object/alert_enrollment.h
   src/bacnet/basic/object/ao.c
   src/bacnet/basic/object/ao.h
   src/bacnet/basic/object/av.c

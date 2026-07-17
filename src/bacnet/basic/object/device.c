@@ -38,6 +38,7 @@
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/alert_enrollment.h"
 #include "bacnet/basic/object/auditlog.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
@@ -1030,6 +1031,29 @@ static object_functions_t Default_Object_Table[] = {
       Audit_Log_Delete,
       NULL /* Timer */,
       Audit_Log_Writable_Property_List },
+#endif
+#if BACNET_EVENT_EXTENDED_ENABLED && defined(INTRINSIC_REPORTING)
+    { OBJECT_ALERT_ENROLLMENT,
+      Alert_Enrollment_Init,
+      Alert_Enrollment_Count,
+      Alert_Enrollment_Index_To_Instance,
+      Alert_Enrollment_Valid_Instance,
+      Alert_Enrollment_Object_Name,
+      Alert_Enrollment_Read_Property,
+      Alert_Enrollment_Write_Property,
+      Alert_Enrollment_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      Alert_Enrollment_Intrinsic_Reporting,
+      NULL /* Add_List_Element */,
+      NULL /* Remove_List_Element */,
+      Alert_Enrollment_Create,
+      Alert_Enrollment_Delete,
+      NULL /* Timer */,
+      Alert_Enrollment_Writable_Property_List },
 #endif
     { /** @note The array of object functions must be terminated
        *  with an entry with an Object_Type of MAX_BACNET_OBJECT_TYPE
