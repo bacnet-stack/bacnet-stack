@@ -606,10 +606,11 @@ const char *Averaging_Description(uint32_t object_instance)
 /**
  * @brief Set description pointer.
  * @param object_instance BACnet object instance.
- * @param new_name Description pointer.
+ * @param new_description Description pointer.
  * @return True if updated.
  */
-bool Averaging_Description_Set(uint32_t object_instance, const char *new_name)
+bool Averaging_Description_Set(
+    uint32_t object_instance, const char *new_description)
 {
     struct object_data *pObject;
 
@@ -618,7 +619,7 @@ bool Averaging_Description_Set(uint32_t object_instance, const char *new_name)
         return false;
     }
 
-    pObject->Description = new_name;
+    pObject->Description = new_description;
 
     return true;
 }
@@ -821,7 +822,7 @@ void Averaging_Timer(uint32_t object_instance, uint16_t milliseconds)
 int Averaging_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;
-    BACNET_CHARACTER_STRING char_string;
+    BACNET_CHARACTER_STRING char_string = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
     struct object_data *pObject = NULL;
     uint8_t *apdu = NULL;
@@ -837,7 +838,12 @@ int Averaging_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return BACNET_STATUS_ERROR;
     }
-
+    pObject = Averaging_Object(rpdata->object_instance);
+    if (!pObject) {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return BACNET_STATUS_ERROR;
+    }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -858,7 +864,6 @@ int Averaging_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu, Averaging_Minimum_Value(rpdata->object_instance));
             break;
         case PROP_MINIMUM_VALUE_TIMESTAMP:
-            pObject = Averaging_Object(rpdata->object_instance);
             if (pObject) {
                 apdu_len = bacapp_encode_datetime(
                     apdu, &pObject->Minimum_Value_Timestamp);
@@ -877,11 +882,8 @@ int Averaging_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu, Averaging_Maximum_Value(rpdata->object_instance));
             break;
         case PROP_MAXIMUM_VALUE_TIMESTAMP:
-            pObject = Averaging_Object(rpdata->object_instance);
-            if (pObject) {
-                apdu_len = bacapp_encode_datetime(
-                    apdu, &pObject->Maximum_Value_Timestamp);
-            }
+            apdu_len =
+                bacapp_encode_datetime(apdu, &pObject->Maximum_Value_Timestamp);
             break;
         case PROP_DESCRIPTION:
             if (Averaging_Description(rpdata->object_instance)) {

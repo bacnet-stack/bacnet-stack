@@ -90,7 +90,8 @@ bool Averaging_Reset(uint32_t object_instance);
 BACNET_STACK_EXPORT
 const char *Averaging_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Averaging_Description_Set(uint32_t object_instance, const char *new_name);
+bool Averaging_Description_Set(
+    uint32_t object_instance, const char *new_description);
 
 BACNET_STACK_EXPORT
 void *Averaging_Context_Get(uint32_t object_instance);
