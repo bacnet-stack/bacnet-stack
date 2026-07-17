@@ -11,6 +11,7 @@
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
+#include "bacnet/datalink/bsc/bsc-datalink.h"
 
 /**
  * @brief Map websocket return code to BACnet/SC return code
