@@ -101,7 +101,7 @@ void Notification_Class_Writable_Property_List(
  * @param src - source address of the router
  * @param network - network number of the router
  */
-static void Notification_Class_I_Am_Router_To_Network_Handler(
+void Notification_Class_I_Am_Router_To_Network_Handler(
     BACNET_ADDRESS *src, uint16_t network)
 {
     NOTIFICATION_CLASS_INFO *notification;
