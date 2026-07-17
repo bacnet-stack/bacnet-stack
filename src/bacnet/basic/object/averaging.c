@@ -54,23 +54,26 @@ static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_AVERAGING;
 
 static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,    PROP_OBJECT_TYPE,
     PROP_MINIMUM_VALUE,     PROP_AVERAGE_VALUE,  PROP_MAXIMUM_VALUE,
     PROP_ATTEMPTED_SAMPLES, PROP_VALID_SAMPLES,  PROP_OBJECT_PROPERTY_REFERENCE,
     PROP_WINDOW_INTERVAL,   PROP_WINDOW_SAMPLES, -1
 };
 
-static const int32_t Properties_Optional[] = { PROP_MINIMUM_VALUE_TIMESTAMP,
-                                               PROP_VARIANCE_VALUE,
-                                               PROP_MAXIMUM_VALUE_TIMESTAMP,
-                                               PROP_DESCRIPTION, -1 };
+static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_MINIMUM_VALUE_TIMESTAMP, PROP_VARIANCE_VALUE,
+    PROP_MAXIMUM_VALUE_TIMESTAMP, PROP_DESCRIPTION, -1
+};
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
-static const int32_t Writable_Properties[] = { PROP_ATTEMPTED_SAMPLES,
-                                               PROP_OBJECT_PROPERTY_REFERENCE,
-                                               PROP_WINDOW_INTERVAL,
-                                               PROP_WINDOW_SAMPLES, -1 };
+static const int32_t Writable_Properties[] = {
+    /* unordered list of always writable properties */
+    PROP_ATTEMPTED_SAMPLES, PROP_OBJECT_PROPERTY_REFERENCE,
+    PROP_WINDOW_INTERVAL, PROP_WINDOW_SAMPLES, -1
+};
 
 /**
  * @brief Perform weighted moving average update.
@@ -657,6 +660,7 @@ int Averaging_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0;
     BACNET_CHARACTER_STRING char_string;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
+    struct object_data *pObject = NULL;
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -691,11 +695,10 @@ int Averaging_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu, Averaging_Minimum_Value(rpdata->object_instance));
             break;
         case PROP_MINIMUM_VALUE_TIMESTAMP:
-            if (Averaging_Object(rpdata->object_instance)) {
+            pObject = Averaging_Object(rpdata->object_instance);
+            if (pObject) {
                 apdu_len = bacapp_encode_datetime(
-                    apdu,
-                    &Averaging_Object(rpdata->object_instance)
-                         ->Minimum_Value_Timestamp);
+                    apdu, &pObject->Minimum_Value_Timestamp);
             }
             break;
         case PROP_AVERAGE_VALUE:
@@ -711,11 +714,10 @@ int Averaging_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu, Averaging_Maximum_Value(rpdata->object_instance));
             break;
         case PROP_MAXIMUM_VALUE_TIMESTAMP:
-            if (Averaging_Object(rpdata->object_instance)) {
+            pObject = Averaging_Object(rpdata->object_instance);
+            if (pObject) {
                 apdu_len = bacapp_encode_datetime(
-                    apdu,
-                    &Averaging_Object(rpdata->object_instance)
-                         ->Maximum_Value_Timestamp);
+                    apdu, &pObject->Maximum_Value_Timestamp);
             }
             break;
         case PROP_DESCRIPTION:
@@ -774,8 +776,9 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false;
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE object_property_ref = { 0 };
+    struct object_data *pObject = NULL;
 
     if (wp_data == NULL) {
         return false;
@@ -814,23 +817,21 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_ATTEMPTED_SAMPLES:
         case PROP_WINDOW_INTERVAL:
         case PROP_WINDOW_SAMPLES:
-            len = bacapp_decode_known_array_property(
+            len = bacnet_unsigned_application_decode(
                 wp_data->application_data, wp_data->application_data_len,
-                &value, wp_data->object_type, wp_data->object_property,
-                wp_data->array_index);
+                &unsigned_value);
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                return false;
-            }
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (!status) {
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
                 return false;
             }
             switch (wp_data->object_property) {
                 case PROP_ATTEMPTED_SAMPLES:
-                    if (value.type.Unsigned_Int == 0U) {
+                    if (unsigned_value == 0U) {
                         status = Averaging_Reset(wp_data->object_instance);
                         if (!status) {
                             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -843,9 +844,15 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     }
                     break;
                 case PROP_WINDOW_INTERVAL:
-                    if (value.type.Unsigned_Int > 0U) {
-                        Averaging_Object(wp_data->object_instance)
-                            ->Window_Interval = value.type.Unsigned_Int;
+                    if (unsigned_value > 0U) {
+                        pObject = Averaging_Object(wp_data->object_instance);
+                        if (!pObject) {
+                            wp_data->error_class = ERROR_CLASS_OBJECT;
+                            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                            status = false;
+                            break;
+                        }
+                        pObject->Window_Interval = unsigned_value;
                         status = Averaging_Reset(wp_data->object_instance);
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -854,9 +861,15 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     }
                     break;
                 case PROP_WINDOW_SAMPLES:
-                    if (value.type.Unsigned_Int > 0U) {
-                        Averaging_Object(wp_data->object_instance)
-                            ->Window_Samples = value.type.Unsigned_Int;
+                    if (unsigned_value > 0U) {
+                        pObject = Averaging_Object(wp_data->object_instance);
+                        if (!pObject) {
+                            wp_data->error_class = ERROR_CLASS_OBJECT;
+                            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                            status = false;
+                            break;
+                        }
+                        pObject->Window_Samples = unsigned_value;
                         status = Averaging_Reset(wp_data->object_instance);
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
