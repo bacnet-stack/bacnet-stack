@@ -31,6 +31,7 @@ struct object_data {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Object_Property_Reference;
     uint32_t Window_Interval;
     uint32_t Window_Samples;
+    uint32_t Sample_Timer_Milliseconds;
     uint32_t Attempted_Samples;
     uint32_t Valid_Samples;
     float Minimum_Value;
@@ -52,6 +53,9 @@ static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
 #endif
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_AVERAGING;
+/* handling for read reference properties */
+static read_property_function Read_Property_Internal_Callback;
+static uint8_t Read_Property_Buffer[MAX_APDU];
 
 static const int32_t Properties_Required[] = {
     /* unordered list of required properties */
@@ -118,6 +122,7 @@ static void Averaging_Reset_Object(struct object_data *pObject)
         return;
     }
 
+    pObject->Sample_Timer_Milliseconds = 0;
     pObject->Attempted_Samples = 0;
     pObject->Valid_Samples = 0;
     pObject->Minimum_Value = INFINITY;
@@ -651,6 +656,164 @@ void Averaging_Context_Set(uint32_t object_instance, void *context)
 }
 
 /**
+ * @brief Sets callback used when Averaging reads referenced property value.
+ * @param cb Callback used to read referenced properties.
+ */
+void Averaging_Read_Property_Internal_Callback_Set(read_property_function cb)
+{
+    Read_Property_Internal_Callback = cb;
+}
+
+/**
+ * @brief Reads object-property-reference value and converts to Real sample.
+ * @param pObject Averaging object data.
+ * @param sample_value Output sample value.
+ * @return True if sample value read and converted.
+ */
+static bool Averaging_Object_Property_Reference_Read(
+    struct object_data *pObject, float *sample_value)
+{
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    BACNET_TAG tag = { 0 };
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *reference;
+    int apdu_len = 0;
+    int tag_len = 0;
+    int len = 0;
+    uint32_t payload_len = 0;
+    const uint8_t *payload = NULL;
+    bool boolean_value = false;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    int32_t signed_value = 0;
+    uint32_t enumerated_value = 0;
+    float real_value = 0.0f;
+    double double_value = 0.0;
+
+    if (!pObject || !sample_value || !Read_Property_Internal_Callback) {
+        return false;
+    }
+    reference = &pObject->Object_Property_Reference;
+    if ((reference->deviceIdentifier.type != BACNET_NO_DEV_TYPE) &&
+        (reference->deviceIdentifier.type != OBJECT_DEVICE)) {
+        return false;
+    }
+    if ((reference->deviceIdentifier.type == OBJECT_DEVICE) &&
+        (reference->deviceIdentifier.instance != BACNET_NO_DEV_ID) &&
+        (reference->deviceIdentifier.instance !=
+         Device_Object_Instance_Number())) {
+        return false;
+    }
+
+    rp_data.object_type = reference->objectIdentifier.type;
+    rp_data.object_instance = reference->objectIdentifier.instance;
+    rp_data.object_property = reference->propertyIdentifier;
+    rp_data.array_index = reference->arrayIndex;
+    rp_data.application_data = Read_Property_Buffer;
+    rp_data.application_data_len = sizeof(Read_Property_Buffer);
+    rp_data.error_class = ERROR_CLASS_PROPERTY;
+    rp_data.error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+    apdu_len = Read_Property_Internal_Callback(&rp_data);
+    if (apdu_len <= 0) {
+        return false;
+    }
+    tag_len = bacnet_tag_decode(Read_Property_Buffer, (uint32_t)apdu_len, &tag);
+    if ((tag_len <= 0) || !tag.application) {
+        return false;
+    }
+    payload = &Read_Property_Buffer[tag_len];
+    payload_len = (uint32_t)apdu_len - (uint32_t)tag_len;
+    switch (tag.number) {
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            boolean_value = decode_boolean(tag.len_value_type);
+            *sample_value = boolean_value ? 1.0f : 0.0f;
+            return true;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            len = bacnet_unsigned_decode(
+                payload, payload_len, tag.len_value_type, &unsigned_value);
+            if (len <= 0) {
+                return false;
+            }
+            *sample_value = (float)unsigned_value;
+            return true;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            len = bacnet_signed_decode(
+                payload, payload_len, tag.len_value_type, &signed_value);
+            if (len <= 0) {
+                return false;
+            }
+            *sample_value = (float)signed_value;
+            return true;
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            len = bacnet_enumerated_decode(
+                payload, payload_len, tag.len_value_type, &enumerated_value);
+            if (len <= 0) {
+                return false;
+            }
+            *sample_value = (float)enumerated_value;
+            return true;
+        case BACNET_APPLICATION_TAG_REAL:
+            len = bacnet_real_decode(
+                payload, payload_len, tag.len_value_type, &real_value);
+            if (len <= 0) {
+                return false;
+            }
+            *sample_value = real_value;
+            return true;
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            len = bacnet_double_decode(
+                payload, payload_len, tag.len_value_type, &double_value);
+            if (len <= 0) {
+                return false;
+            }
+            *sample_value = (float)double_value;
+            return true;
+        default:
+            break;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Updates Averaging sample state using time-based sampling period.
+ * @param object_instance BACnet object instance.
+ * @param milliseconds Elapsed milliseconds since last update.
+ */
+void Averaging_Timer(uint32_t object_instance, uint16_t milliseconds)
+{
+    struct object_data *pObject;
+    uint64_t sample_interval_milliseconds;
+    uint64_t sample_timer_milliseconds;
+    float sample_value = 0.0f;
+
+    pObject = Averaging_Object(object_instance);
+    if (!pObject) {
+        return;
+    }
+    if ((pObject->Window_Interval == 0U) || (pObject->Window_Samples == 0U)) {
+        return;
+    }
+
+    sample_interval_milliseconds =
+        ((uint64_t)pObject->Window_Interval * 1000ULL) /
+        (uint64_t)pObject->Window_Samples;
+    if (sample_interval_milliseconds == 0ULL) {
+        sample_interval_milliseconds = 1ULL;
+    }
+
+    sample_timer_milliseconds = pObject->Sample_Timer_Milliseconds;
+    sample_timer_milliseconds += milliseconds;
+    while (sample_timer_milliseconds >= sample_interval_milliseconds) {
+        sample_timer_milliseconds -= sample_interval_milliseconds;
+        if (Averaging_Object_Property_Reference_Read(pObject, &sample_value)) {
+            Averaging_Sample_Record(object_instance, true, sample_value);
+        } else {
+            Averaging_Sample_Record(object_instance, false, 0.0f);
+        }
+    }
+    pObject->Sample_Timer_Milliseconds = (uint32_t)sample_timer_milliseconds;
+}
+
+/**
  * @brief ReadProperty handler for Averaging object.
  * @param rpdata ReadProperty request/response payload.
  * @return APDU length or BACNET_STATUS_ERROR.
@@ -784,7 +947,8 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
 
-    if (!Averaging_Valid_Instance(wp_data->object_instance)) {
+    pObject = Averaging_Object(wp_data->object_instance);
+    if (!pObject) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
@@ -845,13 +1009,6 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     break;
                 case PROP_WINDOW_INTERVAL:
                     if (unsigned_value > 0U) {
-                        pObject = Averaging_Object(wp_data->object_instance);
-                        if (!pObject) {
-                            wp_data->error_class = ERROR_CLASS_OBJECT;
-                            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-                            status = false;
-                            break;
-                        }
                         pObject->Window_Interval = unsigned_value;
                         status = Averaging_Reset(wp_data->object_instance);
                     } else {
@@ -862,13 +1019,6 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     break;
                 case PROP_WINDOW_SAMPLES:
                     if (unsigned_value > 0U) {
-                        pObject = Averaging_Object(wp_data->object_instance);
-                        if (!pObject) {
-                            wp_data->error_class = ERROR_CLASS_OBJECT;
-                            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-                            status = false;
-                            break;
-                        }
                         pObject->Window_Samples = unsigned_value;
                         status = Averaging_Reset(wp_data->object_instance);
                     } else {

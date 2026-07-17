@@ -12,6 +12,11 @@
 #include <bacnet/basic/object/averaging.h>
 #include <property_test.h>
 
+static int Averaging_Read_Property_Internal(BACNET_READ_PROPERTY_DATA *data)
+{
+    return Averaging_Read_Property(data);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(averaging_tests, testAveragingReadWrite)
 #else
@@ -167,6 +172,76 @@ static void testAveragingResetAndWrite(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(averaging_tests, testAveragingTimer)
+#else
+static void testAveragingTimer(void)
+#endif
+{
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE ref = { 0 };
+
+    Averaging_Init();
+    object_instance = Averaging_Create(object_instance);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    Averaging_Read_Property_Internal_Callback_Set(
+        Averaging_Read_Property_Internal);
+
+    wp_data.object_type = OBJECT_AVERAGING;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    wp_data.object_property = PROP_WINDOW_INTERVAL;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 4);
+    status = Averaging_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    wp_data.object_property = PROP_WINDOW_SAMPLES;
+    wp_data.application_data_len =
+        encode_application_unsigned(wp_data.application_data, 4);
+    status = Averaging_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    ref.objectIdentifier.type = OBJECT_AVERAGING;
+    ref.objectIdentifier.instance = object_instance;
+    ref.propertyIdentifier = PROP_WINDOW_SAMPLES;
+    ref.arrayIndex = BACNET_ARRAY_ALL;
+    ref.deviceIdentifier.type = BACNET_NO_DEV_TYPE;
+    ref.deviceIdentifier.instance = BACNET_NO_DEV_ID;
+    status = Averaging_Object_Property_Reference_Set(object_instance, &ref);
+    zassert_true(status, NULL);
+
+    Averaging_Timer(object_instance, 999);
+    zassert_equal(Averaging_Attempted_Samples(object_instance), 0, NULL);
+    zassert_equal(Averaging_Valid_Samples(object_instance), 0, NULL);
+
+    Averaging_Timer(object_instance, 1);
+    zassert_equal(Averaging_Attempted_Samples(object_instance), 1, NULL);
+    zassert_equal(Averaging_Valid_Samples(object_instance), 1, NULL);
+    zassert_true(
+        fabsf(Averaging_Average_Value(object_instance) - 4.0f) < 0.001f, NULL);
+
+    Averaging_Timer(object_instance, 3000);
+    zassert_equal(Averaging_Attempted_Samples(object_instance), 4, NULL);
+    zassert_equal(Averaging_Valid_Samples(object_instance), 4, NULL);
+    zassert_true(
+        fabsf(Averaging_Average_Value(object_instance) - 4.0f) < 0.001f, NULL);
+
+    ref.propertyIdentifier = PROP_OBJECT_NAME;
+    status = Averaging_Object_Property_Reference_Set(object_instance, &ref);
+    zassert_true(status, NULL);
+    Averaging_Timer(object_instance, 1000);
+    zassert_equal(Averaging_Attempted_Samples(object_instance), 1, NULL);
+    zassert_equal(Averaging_Valid_Samples(object_instance), 0, NULL);
+
+    status = Averaging_Delete(object_instance);
+    zassert_true(status, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(averaging_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
@@ -174,7 +249,8 @@ void test_main(void)
     ztest_test_suite(
         averaging_tests, ztest_unit_test(testAveragingReadWrite),
         ztest_unit_test(testAveragingSlidingWindow),
-        ztest_unit_test(testAveragingResetAndWrite));
+        ztest_unit_test(testAveragingResetAndWrite),
+        ztest_unit_test(testAveragingTimer));
 
     ztest_run_test_suite(averaging_tests);
 }

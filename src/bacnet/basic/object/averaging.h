@@ -17,6 +17,7 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/bacdevobjpropref.h"
+#include "bacnet/basic/services.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,6 +96,11 @@ BACNET_STACK_EXPORT
 void *Averaging_Context_Get(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Averaging_Context_Set(uint32_t object_instance, void *context);
+
+BACNET_STACK_EXPORT
+void Averaging_Timer(uint32_t object_instance, uint16_t milliseconds);
+BACNET_STACK_EXPORT
+void Averaging_Read_Property_Internal_Callback_Set(read_property_function cb);
 
 BACNET_STACK_EXPORT
 uint32_t Averaging_Create(uint32_t object_instance);

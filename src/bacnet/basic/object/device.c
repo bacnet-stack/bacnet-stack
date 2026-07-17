@@ -239,7 +239,7 @@ static object_functions_t Default_Object_Table[] = {
       NULL /* Remove_List_Element */,
       Averaging_Create,
       Averaging_Delete,
-      NULL /* Timer */,
+      Averaging_Timer,
       Averaging_Writable_Property_List },
     { OBJECT_BINARY_INPUT,
       Binary_Input_Init,
@@ -4415,6 +4415,8 @@ void Device_Init(object_functions_t *object_table)
     /* link ReadProperty and WriteProperty to Loop object for references */
     Loop_Read_Property_Internal_Callback_Set(Device_Read_Property);
     Loop_Write_Property_Internal_Callback_Set(Device_Write_Property);
+    /* link ReadProperty to Averaging object for sampled references */
+    Averaging_Read_Property_Internal_Callback_Set(Device_Read_Property);
 #if (BACNET_PROTOCOL_REVISION >= 17)
     /* link WriteProperty to Timer object for references */
     Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
