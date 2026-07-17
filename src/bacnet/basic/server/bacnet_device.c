@@ -116,6 +116,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG) ||              \
+    defined(CONFIG_BACNET_BASIC_OBJECT_AVERAGING) ||              \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT) ||          \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE) ||           \
@@ -152,6 +153,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_ANALOG_VALUE
 #define CONFIG_BACNET_BASIC_OBJECT_AUDIT_LOG
+#define CONFIG_BACNET_BASIC_OBJECT_AVERAGING
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE
@@ -362,6 +364,7 @@ static object_functions_t Default_Object_Table[] = {
       NULL /* Timer */,
       Analog_Value_Writable_Property_List },
 #endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_AVERAGING)
     { OBJECT_AVERAGING,
       Averaging_Init,
       Averaging_Count,
@@ -383,6 +386,7 @@ static object_functions_t Default_Object_Table[] = {
       Averaging_Delete,
       Averaging_Timer,
       Averaging_Writable_Property_List },
+#endif
 #if defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT)
     { OBJECT_BINARY_INPUT,
       Binary_Input_Init,
