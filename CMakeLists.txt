@@ -403,6 +403,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/ao.h
   src/bacnet/basic/object/av.c
   src/bacnet/basic/object/av.h
+  src/bacnet/basic/object/averaging.c
+  src/bacnet/basic/object/averaging.h
   src/bacnet/basic/object/bacfile.c
   src/bacnet/basic/object/bacfile.h
   src/bacnet/basic/object/bi.c
