@@ -207,11 +207,11 @@ static bool Averaging_Sample_Record(
         pObject->Variance_M2 += delta * delta2;
         pObject->Variance_Value =
             (float)(pObject->Variance_M2 / (double)(weighting_samples + 1U));
-        if (sample_value < pObject->Minimum_Value) {
+        if (isless(sample_value, pObject->Minimum_Value)) {
             pObject->Minimum_Value = sample_value;
             pObject->Minimum_Value_Timestamp = timestamp;
         }
-        if (sample_value > pObject->Maximum_Value) {
+        if (isgreater(sample_value, pObject->Maximum_Value)) {
             pObject->Maximum_Value = sample_value;
             pObject->Maximum_Value_Timestamp = timestamp;
         }
