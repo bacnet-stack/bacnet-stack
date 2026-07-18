@@ -612,10 +612,13 @@ void Notification_Class_common_reporting_function(
 {
     /* Fill the parameters common for all types of events. */
 
-    NOTIFICATION_CLASS_INFO *CurrentNotify;
-    BACNET_DESTINATION *pBacDest;
-    uint32_t notify_index;
-    uint8_t index;
+    NOTIFICATION_CLASS_INFO *CurrentNotify = NULL;
+    BACNET_DESTINATION *pBacDest = NULL;
+    uint32_t notify_index = 0;
+    uint8_t index = 0;
+    BACNET_ADDRESS dest = { 0 };
+    uint32_t device_id = 0;
+    unsigned max_apdu = 0;
 
     notify_index =
         Notification_Class_Instance_To_Index(event_data->notificationClass);
@@ -677,10 +680,6 @@ void Notification_Class_common_reporting_function(
             continue;
         }
         if (IsRecipientActive(pBacDest, event_data->toState)) {
-            BACNET_ADDRESS dest;
-            uint32_t device_id;
-            unsigned max_apdu;
-
             /* Process Identifier */
             event_data->processIdentifier = pBacDest->ProcessIdentifier;
 
