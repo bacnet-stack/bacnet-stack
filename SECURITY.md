@@ -8,15 +8,6 @@ currently being supported with security updates.
 | Version | Supported          |
 | ------- | ------------------ |
 | 1.4.x   | :white_check_mark: |
-| 1.3.x   | :x:                |
-| 1.2.x   | :x:                |
-| 1.1.x   | :x:                |
-| 1.0.x   | :x:                |
-| 0.9.x   | :x:                |
-| 0.8.x   | :x:                |
-| 0.7.x   | :x:                |
-| < 0.6.x | :x:                |
-
 
 ## Coordinated Vulnerability Disclosure
 
@@ -24,6 +15,11 @@ Vulnerabilites are disclosed to [CVE](https://www.cve.org/)
 or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
+
+MS/TP COBS decode overflow
+[GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
+Patched versions: 1.4.6
+Pull Request: [#1425](https://github.com/bacnet-stack/bacnet-stack/pull/1425).
 
 Out-of-bounds read in lighting_command_decode (full APDU size passed to nested tag decoders)
 [GHSA-9hq3-w3pc-8385](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9hq3-w3pc-8385).

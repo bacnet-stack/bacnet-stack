@@ -12,6 +12,13 @@ The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
 * https://github.com/bacnet-stack/bacnet-stack/
 
+## [1.4.6] - Unreleased
+
+### Security
+
+* Secured an MS/TP implementation COBS frame decoding buffer overflow,
+  and added unit test for tight buffer handling. (#1425)
+
 ## [1.4.5] - 2026-07-04
 
 ### Security
