@@ -5,9 +5,11 @@
  * SPDX-License-Identifier: MIT
  */
 #include <assert.h>
+#include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <string.h>
 #include <sys/msg.h>
 
 #include "msgqueue.h"
@@ -18,6 +20,16 @@ typedef struct {
     MSGSUBTYPE subtype;
     void *data;
 } SYSV_MESSAGE;
+
+typedef struct {
+    SYSV_MESSAGE message;
+    uint8_t trailing[sizeof(long) - sizeof(MSGTYPE)];
+} OVERSIZED_SYSV_MESSAGE;
+
+typedef struct {
+    BACMSG message;
+    uint8_t canary[sizeof(long) - sizeof(MSGTYPE)];
+} GUARDED_BACMSG;
 
 static size_t sysv_payload_size(void)
 {
@@ -79,10 +91,39 @@ static void test_raw_send_to_wrapper_receive(void)
     del_msgbox(queue);
 }
 
+static void test_oversized_raw_message_is_not_received(void)
+{
+    MSGBOX_ID queue = create_msgbox();
+    OVERSIZED_SYSV_MESSAGE sent = { 0 };
+    GUARDED_BACMSG guarded = { 0 };
+
+    assert(sizeof(long) > sizeof(MSGTYPE));
+    assert(queue != INVALID_MSGBOX_ID);
+    sent.message.type = SERVICE;
+    sent.message.origin = 126;
+    sent.message.subtype = CHG_MAC;
+    sent.message.data = &sent;
+    memset(sent.trailing, 0x5A, sizeof(sent.trailing));
+    memset(guarded.canary, 0xA5, sizeof(guarded.canary));
+
+    assert(
+        msgsnd(queue, &sent, sysv_payload_size() + sizeof(sent.trailing), 0) ==
+        0);
+    errno = 0;
+    assert(recv_from_msgbox(queue, &guarded.message, IPC_NOWAIT) == NULL);
+    assert(errno == E2BIG);
+    for (size_t i = 0; i < sizeof(guarded.canary); i++) {
+        assert(guarded.canary[i] == 0xA5);
+    }
+
+    del_msgbox(queue);
+}
+
 int main(void)
 {
     test_wrapper_send_to_raw_receive();
     test_raw_send_to_wrapper_receive();
+    test_oversized_raw_message_is_not_received();
     test_sysv_layout();
 
     printf("router msgqueue SysV ABI tests passed\n");
