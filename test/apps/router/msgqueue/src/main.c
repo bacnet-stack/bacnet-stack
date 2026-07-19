@@ -14,6 +14,9 @@
 
 #include "msgqueue.h"
 
+#define SYSV_MESSAGE_OVERFLOW_BYTES \
+    ((sizeof(long) > sizeof(MSGTYPE)) ? (sizeof(long) - sizeof(MSGTYPE)) : 1U)
+
 typedef struct {
     long type;
     MSGBOX_ID origin;
@@ -23,12 +26,12 @@ typedef struct {
 
 typedef struct {
     SYSV_MESSAGE message;
-    uint8_t trailing[sizeof(long) - sizeof(MSGTYPE)];
+    uint8_t trailing[SYSV_MESSAGE_OVERFLOW_BYTES];
 } OVERSIZED_SYSV_MESSAGE;
 
 typedef struct {
     BACMSG message;
-    uint8_t canary[sizeof(long) - sizeof(MSGTYPE)];
+    uint8_t canary[SYSV_MESSAGE_OVERFLOW_BYTES];
 } GUARDED_BACMSG;
 
 static size_t sysv_payload_size(void)
@@ -93,11 +96,14 @@ static void test_raw_send_to_wrapper_receive(void)
 
 static void test_oversized_raw_message_is_not_received(void)
 {
+    if (sizeof(long) <= sizeof(MSGTYPE)) {
+        return;
+    }
+
     MSGBOX_ID queue = create_msgbox();
     OVERSIZED_SYSV_MESSAGE sent = { 0 };
     GUARDED_BACMSG guarded = { 0 };
 
-    assert(sizeof(long) > sizeof(MSGTYPE));
     assert(queue != INVALID_MSGBOX_ID);
     sent.message.type = SERVICE;
     sent.message.origin = 126;
