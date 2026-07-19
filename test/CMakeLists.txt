@@ -256,6 +256,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "Added ports specific tests for linux")
 
   list(APPEND testdirs
+  apps/router/msgqueue
   ports/linux/bsc_event
   ports/linux/bip_subnet
   ports/bip_broadcast_port

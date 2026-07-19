@@ -32,7 +32,7 @@ typedef enum { DATA = 1, SERVICE } MSGTYPE;
 typedef enum { SHUTDOWN, CHG_IP, CHG_MAC } MSGSUBTYPE;
 
 typedef struct _message {
-    MSGTYPE type;
+    long type;
     MSGBOX_ID origin;
     MSGSUBTYPE subtype;
     void *data;
