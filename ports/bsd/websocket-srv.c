@@ -460,17 +460,30 @@ static int bws_srv_websocket_event(
                         ctx->conn[h].fragment_buffer_len = 0;
                         ctx->conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                     }
-                    if (ctx->conn[h].fragment_buffer_len + len >
+                    size_t total_fragment_len = 0;
+
+                    if (!bws_fragment_total_len_within_limit(
+                            ctx->conn[h].fragment_buffer_len, len,
+                            BSC_RX_BUFFER_LEN, &total_fragment_len)) {
+                        lws_close_reason(
+                            wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
+                        pthread_mutex_unlock(ctx->mutex);
+                        DEBUG_PRINTF(
+                            "bws_srv_websocket_event() <<< ret = -1, "
+                            "fragment length exceeds max %d bytes\n",
+                            BSC_RX_BUFFER_LEN);
+                        return -1;
+                    }
+                    if (total_fragment_len >
                         ctx->conn[h].fragment_buffer_size) {
                         DEBUG_PRINTF(
                             "bws_srv_websocket_event() realloc buf of %d bytes"
                             "for socket %d to %d bytes\n",
                             ctx->conn[h].fragment_buffer_len, h,
-                            ctx->conn[h].fragment_buffer_len + len);
+                            total_fragment_len);
 
                         ctx->conn[h].fragment_buffer = realloc(
-                            ctx->conn[h].fragment_buffer,
-                            ctx->conn[h].fragment_buffer_len + len);
+                            ctx->conn[h].fragment_buffer, total_fragment_len);
                         if (!ctx->conn[h].fragment_buffer) {
                             lws_close_reason(
                                 wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL,
@@ -479,11 +492,10 @@ static int bws_srv_websocket_event(
                             DEBUG_PRINTF(
                                 "bws_srv_websocket_event() <<< ret = -1, "
                                 "re-allocation of %d bytes failed\n",
-                                ctx->conn[h].fragment_buffer_len + len);
+                                total_fragment_len);
                             return -1;
                         }
-                        ctx->conn[h].fragment_buffer_size =
-                            ctx->conn[h].fragment_buffer_len + len;
+                        ctx->conn[h].fragment_buffer_size = total_fragment_len;
                     }
                     DEBUG_PRINTF(
                         "bws_srv_websocket_event() got next %d bytes for "

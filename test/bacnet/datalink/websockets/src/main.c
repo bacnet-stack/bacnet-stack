@@ -1502,8 +1502,42 @@ static void test_onoff(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(websocket_srv_test_3, test_fragment_limit_helper)
+#else
+static void test_fragment_limit_helper(void)
+#endif
+{
+    size_t new_len = 0;
+    bool ok;
+
+    ok = bws_fragment_total_len_within_limit(
+        0, BSC_WEBSOCKET_RX_BUFFER_LEN, BSC_WEBSOCKET_RX_BUFFER_LEN, &new_len);
+    zassert_true(ok, NULL);
+    zassert_equal(new_len, BSC_WEBSOCKET_RX_BUFFER_LEN, NULL);
+
+    new_len = 0;
+    ok = bws_fragment_total_len_within_limit(
+        BSC_WEBSOCKET_RX_BUFFER_LEN - 1, 1, BSC_WEBSOCKET_RX_BUFFER_LEN,
+        &new_len);
+    zassert_true(ok, NULL);
+    zassert_equal(new_len, BSC_WEBSOCKET_RX_BUFFER_LEN, NULL);
+
+    new_len = 0;
+    ok = bws_fragment_total_len_within_limit(
+        BSC_WEBSOCKET_RX_BUFFER_LEN, 1, BSC_WEBSOCKET_RX_BUFFER_LEN, &new_len);
+    zassert_false(ok, NULL);
+
+    new_len = 0;
+    ok = bws_fragment_total_len_within_limit(
+        BSC_WEBSOCKET_RX_BUFFER_LEN + 1, 0, BSC_WEBSOCKET_RX_BUFFER_LEN,
+        &new_len);
+    zassert_false(ok, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(websocket_srv_test_1, NULL, NULL, NULL, NULL, NULL);
 ZTEST_SUITE(websocket_srv_test_2, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(websocket_srv_test_3, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -1512,7 +1546,10 @@ void test_main(void)
 
     ztest_test_suite(websocket_srv_test_1, ztest_unit_test(test_simple));
     ztest_test_suite(websocket_srv_test_2, ztest_unit_test(test_onoff));
+    ztest_test_suite(
+        websocket_srv_test_3, ztest_unit_test(test_fragment_limit_helper));
     ztest_run_test_suite(websocket_srv_test_1);
     ztest_run_test_suite(websocket_srv_test_2);
+    ztest_run_test_suite(websocket_srv_test_3);
 }
 #endif

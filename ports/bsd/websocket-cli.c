@@ -299,16 +299,28 @@ static int bws_cli_websocket_event(
                     bws_cli_conn[h].fragment_buffer_len = 0;
                     bws_cli_conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                 }
-                if (bws_cli_conn[h].fragment_buffer_len + len >
-                    bws_cli_conn[h].fragment_buffer_size) {
+                size_t total_fragment_len = 0;
+
+                if (!bws_fragment_total_len_within_limit(
+                        bws_cli_conn[h].fragment_buffer_len, len,
+                        BSC_RX_BUFFER_LEN, &total_fragment_len)) {
+                    lws_close_reason(
+                        wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
+                    pthread_mutex_unlock(&bws_cli_mutex);
+                    DEBUG_PRINTF(
+                        "bws_cli_websocket_event() <<< ret = -1, "
+                        "fragment length exceeds max %d bytes\n",
+                        BSC_RX_BUFFER_LEN);
+                    return -1;
+                }
+                if (total_fragment_len > bws_cli_conn[h].fragment_buffer_size) {
                     DEBUG_PRINTF(
                         "bws_cli_websocket_event() realloc buf of %d bytes"
                         "for socket %d to %d bytes\n",
                         bws_cli_conn[h].fragment_buffer_len, h,
-                        bws_cli_conn[h].fragment_buffer_len + len);
+                        total_fragment_len);
                     bws_cli_conn[h].fragment_buffer = realloc(
-                        bws_cli_conn[h].fragment_buffer,
-                        bws_cli_conn[h].fragment_buffer_len + len);
+                        bws_cli_conn[h].fragment_buffer, total_fragment_len);
                     if (!bws_cli_conn[h].fragment_buffer) {
                         lws_close_reason(
                             wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
@@ -316,11 +328,10 @@ static int bws_cli_websocket_event(
                         DEBUG_PRINTF(
                             "bws_cli_websocket_event() <<< ret = -1, "
                             "re-allocation of %d bytes failed\n",
-                            bws_cli_conn[h].fragment_buffer_len + len);
+                            total_fragment_len);
                         return -1;
                     }
-                    bws_cli_conn[h].fragment_buffer_size =
-                        bws_cli_conn[h].fragment_buffer_len + len;
+                    bws_cli_conn[h].fragment_buffer_size = total_fragment_len;
                 }
                 DEBUG_PRINTF(
                     "bws_cli_websocket_event() got next %d bytes for "
