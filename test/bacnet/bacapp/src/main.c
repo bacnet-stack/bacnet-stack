@@ -6,6 +6,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
@@ -1725,6 +1726,33 @@ static void test_parse_weeklyschedule(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, "(NoSuchTag; Mon: [])", &value);
     zassert_false(status, NULL);
+
+    /* invalid: one day with more time-value pairs than
+       BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE (40) fits in Time_Values[].
+       Without a bounds check, the parser keeps writing past the end of
+       weeklySchedule[0].Time_Values[] and corrupts the following days in
+       the same array instead of rejecting the input. */
+    {
+        char too_many[2048] = "(Boolean; Mon: [";
+        char pair[24];
+        int i;
+
+        for (i = 0; i < 41; i++) {
+            snprintf(
+                pair, sizeof(pair), "%s%02d:%02d:%02d.00 TRUE", (i == 0) ? "" : ", ",
+                (i / 3600) % 24, (i / 60) % 60, i % 60);
+            strcat(too_many, pair);
+        }
+        strcat(too_many, "]; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])");
+
+        memset(&value, 0, sizeof(value));
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, too_many, &value);
+        zassert_false(status, NULL);
+        /* Tuesday's schedule must stay untouched by Monday's overflow */
+        zassert_equal(
+            value.type.Weekly_Schedule.weeklySchedule[1].TV_Count, 0, NULL);
+    }
 #endif
 }
 
