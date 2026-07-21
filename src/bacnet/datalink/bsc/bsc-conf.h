@@ -116,7 +116,7 @@
 #define BSC_CONF_WSURL_MAX_LEN 128
 #endif
 
-/* When enabled, BACnet/SC websocket clients accept self-signed hub
+/* When enabled, BACnet/SC websocket clients accept self-signed server
    certificates and skip server certificate hostname validation.
    Disabled (0) by default for secure-by-default TLS validation. */
 #ifndef BSC_CONF_WEBSOCKET_SELFSIGNED_ENABLED
