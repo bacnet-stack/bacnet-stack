@@ -1437,8 +1437,9 @@ static void test_simple(void)
     zassert_equal(res, true, NULL);
     /*printf("client %s:%d connected.\n", ip_addr, port);*/
     /*printf("client sending data...\n");*/
-    cli_ctx.out_buf_size = sizeof(cli_ctx.out_buf);
-    fill_buf(cli_ctx.out_buf, sizeof(cli_ctx.out_buf), 1);
+    zassert_true(BSC_WEBSOCKET_RX_BUFFER_LEN <= sizeof(cli_ctx.out_buf), NULL);
+    cli_ctx.out_buf_size = BSC_WEBSOCKET_RX_BUFFER_LEN;
+    fill_buf(cli_ctx.out_buf, cli_ctx.out_buf_size, 1);
     bws_cli_send(h);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_RECEIVED);
     zassert_equal(srv_ctx.in_buf_size, cli_ctx.out_buf_size, NULL);
@@ -1446,8 +1447,9 @@ static void test_simple(void)
     zassert_equal(ret, 0, NULL);
 
     /*printf("server sending data...\n");*/
-    srv_ctx.out_buf_size = sizeof(srv_ctx.out_buf);
-    fill_buf(srv_ctx.out_buf, sizeof(srv_ctx.out_buf), 2);
+    zassert_true(BSC_WEBSOCKET_RX_BUFFER_LEN <= sizeof(srv_ctx.out_buf), NULL);
+    srv_ctx.out_buf_size = BSC_WEBSOCKET_RX_BUFFER_LEN;
+    fill_buf(srv_ctx.out_buf, srv_ctx.out_buf_size, 2);
     bws_srv_send(srv_ctx.sh, srv_ctx.h);
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_RECEIVED);
     zassert_equal(cli_ctx.in_buf_size, srv_ctx.out_buf_size, NULL);

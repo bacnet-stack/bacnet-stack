@@ -1342,6 +1342,7 @@ bool init_zephyr_env(void);
 #define SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS \
     "SC_Direct_Connect_Accept_URI1 SC_Direct_Connect_Accept_URI2"
 #define WAIT_EVENT_MS 500
+#define WAIT_EVENT_TIMEOUT_MS 30000
 
 #ifdef CONFIG_MBEDTLS
 #define ZERO_BYTE 1
@@ -1418,6 +1419,7 @@ static size_t
 datalink_wait_for_data(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu)
 {
     size_t len;
+    uint32_t elapsed_ms = 0;
     call_maintenance_timer(1, 0);
     while (1) {
         len = bsc_receive(src, pdu, max_pdu, WAIT_EVENT_MS);
@@ -1425,6 +1427,11 @@ datalink_wait_for_data(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu)
             return len;
         }
         call_maintenance_timer(0, WAIT_EVENT_MS);
+        elapsed_ms += WAIT_EVENT_MS;
+        if (elapsed_ms >= WAIT_EVENT_TIMEOUT_MS) {
+            zassert_true(false, "timeout waiting for datalink data");
+            return 0;
+        }
     }
 }
 
@@ -2048,6 +2055,14 @@ static void test_sc_datalink(void)
     zassert_equal(len > 0, true, NULL);
     ret = bsc_node_send(node2, buf, len);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    /* the encapsulated NPDU above exceeds the maximum legal BVLC-SC NPDU
+       size, so the hub rejects the reassembled message and closes the
+       connection instead of accepting it. Wait for node2 to notice the
+       disconnect and automatically reconnect to the hub before sending
+       further data over the link. */
+    wait_sec(BACNET_TIMEOUT + 1);
+    wait_for_connection_to_hub(&node_ev2, node2);
+    datalink_wait_for_connection_to_hub(&node_ev2);
     memset(npdu, 0x11, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 13, NULL, &vmac1, npdu, sizeof(npdu));
