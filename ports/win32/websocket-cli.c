@@ -645,8 +645,12 @@ BSC_WEBSOCKET_RET bws_cli_connect(
     bws_retry.secs_since_valid_ping = 3;
     bws_retry.secs_since_valid_hangup = 10;
     cinfo.retry_and_idle_policy = &bws_retry;
+#if BSC_CONF_WEBSOCKET_SELFSIGNED_ENABLED
     cinfo.ssl_connection = LCCSCF_USE_SSL |
         LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
+#else
+    cinfo.ssl_connection = LCCSCF_USE_SSL;
+#endif
 
     if (proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
         cinfo.protocol = bws_hub_protocol;
