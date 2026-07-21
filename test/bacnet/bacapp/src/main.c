@@ -1739,11 +1739,13 @@ static void test_parse_weeklyschedule(void)
 
         for (i = 0; i < 41; i++) {
             snprintf(
-                pair, sizeof(pair), "%s%02d:%02d:%02d.00 TRUE", (i == 0) ? "" : ", ",
-                (i / 3600) % 24, (i / 60) % 60, i % 60);
+                pair, sizeof(pair), "%s%02d:%02d:%02d.00 TRUE",
+                (i == 0) ? "" : ", ", (i / 3600) % 24, (i / 60) % 60, i % 60);
             strcat(too_many, pair);
         }
-        strcat(too_many, "]; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])");
+        strcat(
+            too_many,
+            "]; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])");
 
         memset(&value, 0, sizeof(value));
         status = bacapp_parse_application_data(
