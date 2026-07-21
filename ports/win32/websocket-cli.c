@@ -299,6 +299,24 @@ static int bws_cli_websocket_event(
                     bws_cli_conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                 }
                 if (bws_cli_conn[h].fragment_buffer_len + len >
+                    BSC_RX_BUFFER_LEN) {
+                    /* Reassembled message would exceed the maximum
+                       legal BVLC-SC NPDU size. Reject it instead of
+                       growing the buffer without bound, which could
+                       be used by a peer to exhaust memory by sending
+                       an endless stream of non-final fragments. */
+                    lws_close_reason(
+                        wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
+                    bsc_mutex_unlock(&bws_cli_mutex);
+                    DEBUG_PRINTF(
+                        "bws_cli_websocket_event() <<< ret = -1, "
+                        "reassembled message of %d bytes exceeds "
+                        "limit of %d bytes for socket %d\n",
+                        bws_cli_conn[h].fragment_buffer_len + len,
+                        BSC_RX_BUFFER_LEN, h);
+                    return -1;
+                }
+                if (bws_cli_conn[h].fragment_buffer_len + len >
                     bws_cli_conn[h].fragment_buffer_size) {
                     DEBUG_PRINTF(
                         "bws_cli_websocket_event() realloc buf of %d bytes"
