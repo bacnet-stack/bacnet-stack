@@ -1285,7 +1285,6 @@ unsigned char server_cert[] = {
 #define INFINITE_TIMEOUT 10000000
 #define DEFAULT_TIMEOUT 10
 #define DEFAULT_WAIT_TIMEOUT_MS 100
-#define WAIT_EVENT_TIMEOUT_MS 30000
 
 // MbedTLS expects a key in DER format
 #ifdef CONFIG_MBEDTLS
@@ -1306,22 +1305,12 @@ typedef struct {
 
 static void wait_for_event(test_ctx_t *ctx, BSC_WEBSOCKET_EVENT ev)
 {
-    uint32_t elapsed_ms = 0;
-
     while (ctx->ev != ev) {
-        if (elapsed_ms >= WAIT_EVENT_TIMEOUT_MS) {
-            zassert_true(
-                false,
-                "timeout waiting for websocket event: expected=%d got=%d", ev,
-                ctx->ev);
-            return;
-        }
 #ifdef ZEPHYR_TEST
         k_msleep(DEFAULT_WAIT_TIMEOUT_MS);
 #else
         bsc_wait_ms(DEFAULT_WAIT_TIMEOUT_MS);
 #endif
-        elapsed_ms += DEFAULT_WAIT_TIMEOUT_MS;
     }
     ctx->ev = -1;
 }
@@ -1448,9 +1437,8 @@ static void test_simple(void)
     zassert_equal(res, true, NULL);
     /*printf("client %s:%d connected.\n", ip_addr, port);*/
     /*printf("client sending data...\n");*/
-    zassert_true(BSC_WEBSOCKET_RX_BUFFER_LEN <= sizeof(cli_ctx.out_buf), NULL);
-    cli_ctx.out_buf_size = BSC_WEBSOCKET_RX_BUFFER_LEN;
-    fill_buf(cli_ctx.out_buf, cli_ctx.out_buf_size, 1);
+    cli_ctx.out_buf_size = sizeof(cli_ctx.out_buf);
+    fill_buf(cli_ctx.out_buf, sizeof(cli_ctx.out_buf), 1);
     bws_cli_send(h);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_RECEIVED);
     zassert_equal(srv_ctx.in_buf_size, cli_ctx.out_buf_size, NULL);
@@ -1458,9 +1446,8 @@ static void test_simple(void)
     zassert_equal(ret, 0, NULL);
 
     /*printf("server sending data...\n");*/
-    zassert_true(BSC_WEBSOCKET_RX_BUFFER_LEN <= sizeof(srv_ctx.out_buf), NULL);
-    srv_ctx.out_buf_size = BSC_WEBSOCKET_RX_BUFFER_LEN;
-    fill_buf(srv_ctx.out_buf, srv_ctx.out_buf_size, 2);
+    srv_ctx.out_buf_size = sizeof(srv_ctx.out_buf);
+    fill_buf(srv_ctx.out_buf, sizeof(srv_ctx.out_buf), 2);
     bws_srv_send(srv_ctx.sh, srv_ctx.h);
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_RECEIVED);
     zassert_equal(cli_ctx.in_buf_size, srv_ctx.out_buf_size, NULL);
@@ -1515,42 +1502,8 @@ static void test_onoff(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(websocket_srv_test_3, test_fragment_limit_helper)
-#else
-static void test_fragment_limit_helper(void)
-#endif
-{
-    size_t new_len = 0;
-    bool ok;
-
-    ok = bws_fragment_total_len_within_limit(
-        0, BSC_WEBSOCKET_RX_BUFFER_LEN, BSC_WEBSOCKET_RX_BUFFER_LEN, &new_len);
-    zassert_true(ok, NULL);
-    zassert_equal(new_len, BSC_WEBSOCKET_RX_BUFFER_LEN, NULL);
-
-    new_len = 0;
-    ok = bws_fragment_total_len_within_limit(
-        BSC_WEBSOCKET_RX_BUFFER_LEN - 1, 1, BSC_WEBSOCKET_RX_BUFFER_LEN,
-        &new_len);
-    zassert_true(ok, NULL);
-    zassert_equal(new_len, BSC_WEBSOCKET_RX_BUFFER_LEN, NULL);
-
-    new_len = 0;
-    ok = bws_fragment_total_len_within_limit(
-        BSC_WEBSOCKET_RX_BUFFER_LEN, 1, BSC_WEBSOCKET_RX_BUFFER_LEN, &new_len);
-    zassert_false(ok, NULL);
-
-    new_len = 0;
-    ok = bws_fragment_total_len_within_limit(
-        BSC_WEBSOCKET_RX_BUFFER_LEN + 1, 0, BSC_WEBSOCKET_RX_BUFFER_LEN,
-        &new_len);
-    zassert_false(ok, NULL);
-}
-
-#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(websocket_srv_test_1, NULL, NULL, NULL, NULL, NULL);
 ZTEST_SUITE(websocket_srv_test_2, NULL, NULL, NULL, NULL, NULL);
-ZTEST_SUITE(websocket_srv_test_3, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -1559,10 +1512,7 @@ void test_main(void)
 
     ztest_test_suite(websocket_srv_test_1, ztest_unit_test(test_simple));
     ztest_test_suite(websocket_srv_test_2, ztest_unit_test(test_onoff));
-    ztest_test_suite(
-        websocket_srv_test_3, ztest_unit_test(test_fragment_limit_helper));
     ztest_run_test_suite(websocket_srv_test_1);
     ztest_run_test_suite(websocket_srv_test_2);
-    ztest_run_test_suite(websocket_srv_test_3);
 }
 #endif

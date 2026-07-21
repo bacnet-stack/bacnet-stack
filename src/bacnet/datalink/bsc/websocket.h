@@ -137,22 +137,6 @@ typedef void (*BSC_WEBSOCKET_SRV_DISPATCH)(
     size_t bufsize,
     void *dispatch_func_user_param);
 
-static inline bool bws_fragment_total_len_within_limit(
-    size_t current_len, size_t append_len, size_t max_len, size_t *new_len)
-{
-    if (current_len > max_len) {
-        return false;
-    }
-    if (append_len > (max_len - current_len)) {
-        return false;
-    }
-    if (new_len) {
-        *new_len = current_len + append_len;
-    }
-
-    return true;
-}
-
 /**
  * @brief Asynchronous bws_cli_сonnect() function starts establishing
  * of a new connection to a websocket server specified by url parameter.
