@@ -2312,6 +2312,7 @@ static void *suite_setup(void)
 {
     setbuf(stdout, NULL);
     lws_set_log_level(0, NULL);
+    bws_cli_set_selfsigned_enabled(true);
     return NULL;
 }
 
@@ -2328,6 +2329,7 @@ void test_main(void)
 {
     // setbuf(stdout, NULL);
     lws_set_log_level(0, NULL);
+    bws_cli_set_selfsigned_enabled(true);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(
