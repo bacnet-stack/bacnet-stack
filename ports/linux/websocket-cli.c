@@ -96,7 +96,9 @@ static bool bws_cli_selfsigned_enabled = false;
 
 void bws_cli_set_selfsigned_enabled(bool enabled)
 {
+    pthread_mutex_lock(&bws_cli_mutex);
     bws_cli_selfsigned_enabled = enabled;
+    pthread_mutex_unlock(&bws_cli_mutex);
 }
 
 static BSC_WEBSOCKET_HANDLE bws_cli_alloc_connection(void)
