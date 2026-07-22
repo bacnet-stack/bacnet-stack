@@ -87,6 +87,17 @@ static BSC_WEBSOCKET_CONNECTION bws_cli_conn[BSC_CLIENT_WEBSOCKETS_MAX_NUM] = {
     0
 };
 
+/* Runtime toggle for accepting self-signed server certificates and
+   skipping server certificate hostname validation. Disabled (false) by
+   default for secure-by-default TLS validation. Set once at startup via
+   bws_cli_set_selfsigned_enabled(), before any connections are made. */
+static bool bws_cli_selfsigned_enabled = false;
+
+void bws_cli_set_selfsigned_enabled(bool enabled)
+{
+    bws_cli_selfsigned_enabled = enabled;
+}
+
 static BSC_WEBSOCKET_HANDLE bws_cli_alloc_connection(void)
 {
     int i;
@@ -645,12 +656,12 @@ BSC_WEBSOCKET_RET bws_cli_connect(
     bws_retry.secs_since_valid_ping = 3;
     bws_retry.secs_since_valid_hangup = 10;
     cinfo.retry_and_idle_policy = &bws_retry;
-#if BSC_CONF_WEBSOCKET_SELFSIGNED_ENABLED
-    cinfo.ssl_connection = LCCSCF_USE_SSL |
-        LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
-#else
-    cinfo.ssl_connection = LCCSCF_USE_SSL;
-#endif
+    if (bws_cli_selfsigned_enabled) {
+        cinfo.ssl_connection = LCCSCF_USE_SSL |
+            LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
+    } else {
+        cinfo.ssl_connection = LCCSCF_USE_SSL;
+    }
 
     if (proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
         cinfo.protocol = bws_hub_protocol;

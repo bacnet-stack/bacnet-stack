@@ -656,6 +656,7 @@ void dlenv_network_port_bsc_init(uint32_t instance)
     char *hub_binding;
     char *direct_connect_initiate;
     char *direct_connect_accept_urls;
+    char *selfsigned_enabled;
     uint32_t file_instance;
     char c;
 
@@ -669,6 +670,13 @@ void dlenv_network_port_bsc_init(uint32_t instance)
     hub_binding = getenv("BACNET_SC_HUB_FUNCTION_BINDING");
     direct_connect_initiate = getenv("BACNET_SC_DIRECT_CONNECT_INITIATE");
     direct_connect_accept_urls = getenv("BACNET_SC_DIRECT_CONNECT_ACCEPT_URLS");
+    selfsigned_enabled = getenv("BACNET_SC_SELFSIGNED_ENABLED");
+    /* Local-only runtime toggle: never exposed as a Network_Port
+       property, since that would allow a remote WriteProperty to
+       weaken TLS certificate validation. */
+    c = selfsigned_enabled ? selfsigned_enabled[0] : '0';
+    bws_cli_set_selfsigned_enabled(
+        (c != '0') && (c != 'n') && (c != 'N'));
 #endif
     if (getenv("BACNET_SC_DEBUG")) {
         dlenv_debug_enable();

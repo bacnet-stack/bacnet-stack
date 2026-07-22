@@ -1516,11 +1516,18 @@ static void test_onoff(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST_SUITE(websocket_srv_test_1, NULL, NULL, NULL, NULL, NULL);
-ZTEST_SUITE(websocket_srv_test_2, NULL, NULL, NULL, NULL, NULL);
+static void *suite_setup(void)
+{
+    bws_cli_set_selfsigned_enabled(true);
+    return NULL;
+}
+
+ZTEST_SUITE(websocket_srv_test_1, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(websocket_srv_test_2, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
+    bws_cli_set_selfsigned_enabled(true);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
 

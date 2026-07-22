@@ -2582,14 +2582,21 @@ static void test_sc_datalink_failed_requests(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST_SUITE(test_datalink_1, NULL, NULL, NULL, NULL, NULL);
-ZTEST_SUITE(test_datalink_2, NULL, NULL, NULL, NULL, NULL);
-ZTEST_SUITE(test_datalink_3, NULL, NULL, NULL, NULL, NULL);
-ZTEST_SUITE(test_datalink_4, NULL, NULL, NULL, NULL, NULL);
+static void *suite_setup(void)
+{
+    bws_cli_set_selfsigned_enabled(true);
+    return NULL;
+}
+
+ZTEST_SUITE(test_datalink_1, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(test_datalink_2, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(test_datalink_3, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(test_datalink_4, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
     // setbuf(stdout, NULL);
+    bws_cli_set_selfsigned_enabled(true);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(test_datalink_1, ztest_unit_test(test_sc_parameters));
