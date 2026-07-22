@@ -675,8 +675,7 @@ void dlenv_network_port_bsc_init(uint32_t instance)
        property, since that would allow a remote WriteProperty to
        weaken TLS certificate validation. */
     c = selfsigned_enabled ? selfsigned_enabled[0] : '0';
-    bws_cli_set_selfsigned_enabled(
-        (c != '0') && (c != 'n') && (c != 'N'));
+    bws_cli_set_selfsigned_enabled((c != '0') && (c != 'n') && (c != 'N'));
 #endif
     if (getenv("BACNET_SC_DEBUG")) {
         dlenv_debug_enable();
