@@ -20,6 +20,12 @@ export BACNET_SC_OPERATIONAL_CERTIFICATE_FILE
 BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE="certs/client_key.pem"
 export BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE
 
+# The certs/ files above are self-signed example certificates, so accept
+# self-signed peer certificates and skip hostname validation. Do NOT set
+# this in production deployments using CA-issued certificates.
+BACNET_SC_SELFSIGNED_ENABLED="1"
+export BACNET_SC_SELFSIGNED_ENABLED
+
 # Need if the device allows the direct connect.
 # Possible values: or port number, like "5000" or pair interface name and
 # port number, like "eth0:50050"

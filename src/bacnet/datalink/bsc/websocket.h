@@ -189,6 +189,21 @@ BSC_WEBSOCKET_RET bws_cli_connect(
     BSC_WEBSOCKET_HANDLE *out_handle);
 
 /**
+ * @brief bws_cli_set_selfsigned_enabled() sets, at runtime, whether
+ * subsequent bws_cli_connect() calls accept self-signed server
+ * certificates and skip server certificate hostname validation.
+ * Disabled (false) by default for secure-by-default TLS validation.
+ * This setting is process-wide and affects all client connections
+ * established after it is changed; it is intended to be set once
+ * during application startup, before any connections are made.
+ *
+ * @param enabled - true to accept self-signed certificates and skip
+ *                  hostname validation, false for strict validation.
+ */
+
+void bws_cli_set_selfsigned_enabled(bool enabled);
+
+/**
  * @brief Asynchronous  bws_cli_disconnnect() function starts process of
  * disconnection for specified websocket handle. When the process completes,
  * dispatch_func() with event BSC_WEBSOCKET_DISCONNECTED is called.
