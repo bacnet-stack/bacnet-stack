@@ -1285,6 +1285,7 @@ unsigned char server_cert[] = {
 #define INFINITE_TIMEOUT 10000000
 #define DEFAULT_TIMEOUT 10
 #define DEFAULT_WAIT_TIMEOUT_MS 100
+#define WAIT_EVENT_TIMEOUT_MS 30000
 
 // MbedTLS expects a key in DER format
 #ifdef CONFIG_MBEDTLS
@@ -1305,12 +1306,23 @@ typedef struct {
 
 static void wait_for_event(test_ctx_t *ctx, BSC_WEBSOCKET_EVENT ev)
 {
+    uint32_t elapsed_ms = 0;
+
     while (ctx->ev != ev) {
+        if (elapsed_ms >= WAIT_EVENT_TIMEOUT_MS) {
+            zassert_true(
+                false,
+                "timeout waiting for websocket event: expected=%d got=%d after "
+                "%u ms",
+                ev, ctx->ev, elapsed_ms);
+            return;
+        }
 #ifdef ZEPHYR_TEST
         k_msleep(DEFAULT_WAIT_TIMEOUT_MS);
 #else
         bsc_wait_ms(DEFAULT_WAIT_TIMEOUT_MS);
 #endif
+        elapsed_ms += DEFAULT_WAIT_TIMEOUT_MS;
     }
     ctx->ev = -1;
 }
