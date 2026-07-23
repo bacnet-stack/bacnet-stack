@@ -274,6 +274,22 @@ static const int32_t Writable_Properties[] = {
     PROP_PRESENT_VALUE, PROP_OBJECT_NAME, PROP_DESCRIPTION, -1
 };
 
+/*
+ * Remotely writable BACnetARRAY element 0 encodes number of Action_List
+ * elements. Guard against oversized synchronous growth from one write.
+ *
+ * Tune this value as needed for deployment requirements.
+ */
+#ifndef COMMAND_ACTION_LIST_MAX
+#define COMMAND_ACTION_LIST_MAX 1024U
+#endif
+
+static bool
+Command_Action_List_Size_Allowed(BACNET_UNSIGNED_INTEGER new_array_size)
+{
+    return (new_array_size <= COMMAND_ACTION_LIST_MAX);
+}
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -1028,6 +1044,11 @@ static BACNET_ERROR_CODE Command_Action_List_Resize(
     if (!pObject) {
         return ERROR_CODE_UNKNOWN_OBJECT;
     }
+
+    if (!Command_Action_List_Size_Allowed(new_array_size)) {
+        return ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
     old_array_size = Keylist_Count(pObject->Action_List);
     if (new_array_size < old_array_size) {
         key = new_array_size;
@@ -1104,6 +1125,9 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     pObject = Object_Data(object_instance);
     if (pObject) {
         if (array_index == 0) {
+            if (!Command_Action_List_Size_Allowed(array_size)) {
+                return ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
             error_code = Command_Action_List_Resize(pObject, array_size);
         } else {
             array_index--; /* array index is 1..N, but we want 0..(N-1) */
