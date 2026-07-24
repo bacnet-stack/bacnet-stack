@@ -574,7 +574,8 @@ bool Life_Safety_Zone_Members_Add(
     if (!pObject) {
         return false;
     }
-    /* NOTE: LIFE_SAFETY_ZONE_MEMBERS_MAX is enforced in the WriteProperty path */
+    /* NOTE: LIFE_SAFETY_ZONE_MEMBERS_MAX is only
+       enforced in the WriteProperty path */
     entry = calloc(1, sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
     if (!entry) {
         return false;
