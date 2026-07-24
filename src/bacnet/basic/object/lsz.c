@@ -85,6 +85,21 @@ static const int32_t Writable_Properties[] = {
     -1
 };
 
+/*
+ * Zone_Members is writable as a BACnetLIST. Guard against oversized list
+ * growth from a single request.
+ *
+ * Tune this value as needed for deployment requirements.
+ */
+#ifndef LIFE_SAFETY_ZONE_MEMBERS_MAX
+#define LIFE_SAFETY_ZONE_MEMBERS_MAX 1024U
+#endif
+
+static bool Life_Safety_Zone_Members_Size_Allowed(unsigned new_count)
+{
+    return (new_count <= LIFE_SAFETY_ZONE_MEMBERS_MAX);
+}
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -559,6 +574,8 @@ bool Life_Safety_Zone_Members_Add(
     if (!pObject) {
         return false;
     }
+    /* NOTE: LIFE_SAFETY_ZONE_MEMBERS_MAX is only
+       enforced in the WriteProperty path */
     entry = calloc(1, sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
     if (!entry) {
         return false;
@@ -616,6 +633,7 @@ static bool Life_Safety_Zone_Members_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
     OS_Keylist members = NULL;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *entry = NULL;
     int index = -1;
+    unsigned member_count = 0;
 
     if (wp_data == NULL) {
         return false;
@@ -644,6 +662,13 @@ static bool Life_Safety_Zone_Members_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
             Life_Safety_Zone_Members_List_Delete(members);
             return false;
         }
+        member_count++;
+        if (!Life_Safety_Zone_Members_Size_Allowed(member_count)) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            Life_Safety_Zone_Members_List_Delete(members);
+            return false;
+        }
         apdu_len += len;
     }
     /* Second pass: decode and stage members in temporary list. */
@@ -665,6 +690,14 @@ static bool Life_Safety_Zone_Members_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
             return false;
         }
         memcpy(entry, &data, sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+        if (!Life_Safety_Zone_Members_Size_Allowed(
+                Keylist_Count(members) + 1U)) {
+            free(entry);
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            Life_Safety_Zone_Members_List_Delete(members);
+            return false;
+        }
         index = Keylist_Data_Add(members, Keylist_Count(members), entry);
         if (index < 0) {
             free(entry);

@@ -84,6 +84,23 @@ static const int32_t Writable_Properties[] = {
     -1
 };
 
+/*
+ * Remotely writable BACnetARRAY element 0 encodes the number of elements in
+ * the subordinate list. Without a guard, a single WriteProperty request can
+ * trigger a very large synchronous expansion loop in the server path.
+ *
+ * Tune this value as needed for deployment requirements.
+ */
+#ifndef STRUCTURED_VIEW_SUBORDINATE_LIST_MAX
+#define STRUCTURED_VIEW_SUBORDINATE_LIST_MAX 1024U
+#endif
+
+static bool Structured_View_Subordinate_List_Size_Allowed(
+    BACNET_UNSIGNED_INTEGER new_array_size)
+{
+    return (new_array_size <= STRUCTURED_VIEW_SUBORDINATE_LIST_MAX);
+}
+
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
@@ -636,6 +653,11 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Resize(
     KEY key = 0;
 
     old_array_size = Structured_View_Subordinate_List_Size(pObject);
+
+    if (!Structured_View_Subordinate_List_Size_Allowed(new_array_size)) {
+        return ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
     /* Array element zero is the number of elements in the list. */
     if (new_array_size < old_array_size) {
         /* free the elements at the tail of the list */
@@ -710,6 +732,9 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
     if (pObject) {
         if (array_index == 0) {
             /* Array element zero is the number of elements in the list. */
+            if (!Structured_View_Subordinate_List_Size_Allowed(array_size)) {
+                return ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
             error_code =
                 Structured_View_Subordinate_List_Resize(pObject, array_size);
         } else {
