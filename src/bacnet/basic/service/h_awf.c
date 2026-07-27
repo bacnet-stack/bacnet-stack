@@ -129,6 +129,15 @@ int handler_atomic_write_file_encode(
     if (data.object_type == OBJECT_FILE) {
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
+        } else if (
+            bacfile_file_access_stream(data.object_instance) !=
+            (data.access == FILE_STREAM_ACCESS)) {
+            error = true;
+            error_class = ERROR_CLASS_SERVICES;
+            error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "AWF: File Access Method Mismatch. Sending Error!\n");
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (data.type.stream.fileStartPosition < -1) {
                 error = true;
