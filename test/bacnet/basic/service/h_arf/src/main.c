@@ -28,6 +28,7 @@
 extern bool Bacfile_Valid_Instance_Result;
 extern bool Bacfile_Read_Record_Data_Result;
 extern BACNET_UNSIGNED_INTEGER Bacfile_File_Size_Result;
+extern bool Bacfile_File_Access_Stream_Result;
 
 /**
  * @brief Build a minimal BACNET_CONFIRMED_SERVICE_DATA for use as the
@@ -107,6 +108,7 @@ static void testHandlerARF_RecordCountOutOfBounds(void)
 
     make_service_data(&service_data, 2);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = false;
 
     len = handler_atomic_read_file_encode(
@@ -157,6 +159,7 @@ static void testHandlerARF_FileStartRecordOutOfBounds(void)
 
     make_service_data(&service_data, 3);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = false;
 
     len = handler_atomic_read_file_encode(
@@ -203,6 +206,7 @@ static void testHandlerARF_ValidRecordRequest(void)
     make_service_data(&service_data, 4);
     /* Both the instance check and the read succeed */
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = true;
 
     len = handler_atomic_read_file_encode(
@@ -251,6 +255,7 @@ static void testHandlerARF_NegativeFileStartRecord(void)
 
     make_service_data(&service_data, 5);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = false;
 
     len = handler_atomic_read_file_encode(
@@ -296,6 +301,7 @@ static void testHandlerARF_NegativeStreamStartPosition(void)
 
     make_service_data(&service_data, 6);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
     Bacfile_File_Size_Result =
         64; /* non-zero: position check must still fire */
 
@@ -341,6 +347,7 @@ static void testHandlerARF_StreamStartPositionBeyondFile(void)
 
     make_service_data(&service_data, 7);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
     Bacfile_File_Size_Result = 64; /* position 100 > 64: guard must fire */
 
     len = handler_atomic_read_file_encode(
@@ -401,6 +408,107 @@ static void testHandlerARF_ValidStreamRequest(void)
         (unsigned)PDU_TYPE_COMPLEX_ACK, (unsigned)transmit_buffer[apdu_offset]);
 }
 
+/* -------------------------------------------------------------------------
+ * Test 9: stream request against a record-configured File object -> ERROR
+ *
+ * bacfile_file_access_stream() reports the File object is configured for
+ * FILE_RECORD_ACCESS, but the request asks for FILE_STREAM_ACCESS.  The
+ * handler must reject the mismatch with ERROR_CODE_INVALID_FILE_ACCESS_METHOD
+ * before ever calling bacfile_read_stream_data().
+ * ------------------------------------------------------------------------- */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_arf_tests, testHandlerARF_StreamRequestOnRecordFile)
+#else
+static void testHandlerARF_StreamRequestOnRecordFile(void)
+#endif
+{
+    BACNET_ATOMIC_READ_FILE_DATA req = { 0 };
+    uint8_t service_request[480] = { 0 };
+    uint8_t transmit_buffer[480] = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int apdu_offset, len, service_len;
+
+    req.object_type = OBJECT_FILE;
+    req.object_instance = 0;
+    req.access = FILE_STREAM_ACCESS;
+    req.type.stream.fileStartPosition = 0;
+    req.type.stream.requestedOctetCount = 16;
+
+    service_len = arf_service_encode_apdu(service_request, &req);
+    zassert_true(service_len > 0, "encoding failed: len=%d", service_len);
+
+    make_service_data(&service_data, 9);
+    Bacfile_Valid_Instance_Result = true;
+    /* File object is configured for FILE_RECORD_ACCESS */
+    Bacfile_File_Access_Stream_Result = false;
+    Bacfile_File_Size_Result = 64;
+
+    len = handler_atomic_read_file_encode(
+        transmit_buffer, service_request, (uint16_t)service_len, &src,
+        &npdu_data, &service_data);
+    zassert_true(len > 0, "encoding failed: len=%d", len);
+
+    apdu_offset = npdu_decode(transmit_buffer, NULL, NULL, &npdu_data);
+    zassert_equal(
+        transmit_buffer[apdu_offset], (uint8_t)PDU_TYPE_ERROR,
+        "Expected PDU_TYPE_ERROR (0x%02x) for stream request on a "
+        "record-configured file, got 0x%02x",
+        (unsigned)PDU_TYPE_ERROR, (unsigned)transmit_buffer[apdu_offset]);
+}
+
+/* -------------------------------------------------------------------------
+ * Test 10: record request against a stream-configured File object -> ERROR
+ *
+ * bacfile_file_access_stream() reports the File object is configured for
+ * FILE_STREAM_ACCESS, but the request asks for FILE_RECORD_ACCESS.  The
+ * handler must reject the mismatch with ERROR_CODE_INVALID_FILE_ACCESS_METHOD
+ * before ever calling bacfile_read_record_data().
+ * ------------------------------------------------------------------------- */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_arf_tests, testHandlerARF_RecordRequestOnStreamFile)
+#else
+static void testHandlerARF_RecordRequestOnStreamFile(void)
+#endif
+{
+    BACNET_ATOMIC_READ_FILE_DATA req = { 0 };
+    uint8_t service_request[480] = { 0 };
+    uint8_t transmit_buffer[480] = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int apdu_offset, len, service_len;
+
+    req.object_type = OBJECT_FILE;
+    req.object_instance = 0;
+    req.access = FILE_RECORD_ACCESS;
+    req.type.record.fileStartRecord = 0;
+    req.type.record.RecordCount = 1;
+
+    service_len = arf_service_encode_apdu(service_request, &req);
+    zassert_true(service_len > 0, "encoding failed: len=%d", service_len);
+
+    make_service_data(&service_data, 10);
+    Bacfile_Valid_Instance_Result = true;
+    /* File object is configured for FILE_STREAM_ACCESS */
+    Bacfile_File_Access_Stream_Result = true;
+    /* backend must never be reached: force it to fail if it is called */
+    Bacfile_Read_Record_Data_Result = true;
+
+    len = handler_atomic_read_file_encode(
+        transmit_buffer, service_request, (uint16_t)service_len, &src,
+        &npdu_data, &service_data);
+    zassert_true(len > 0, "encoding failed: len=%d", len);
+
+    apdu_offset = npdu_decode(transmit_buffer, NULL, NULL, &npdu_data);
+    zassert_equal(
+        transmit_buffer[apdu_offset], (uint8_t)PDU_TYPE_ERROR,
+        "Expected PDU_TYPE_ERROR (0x%02x) for record request on a "
+        "stream-configured file, got 0x%02x",
+        (unsigned)PDU_TYPE_ERROR, (unsigned)transmit_buffer[apdu_offset]);
+}
+
 /**
  * @}
  */
@@ -418,7 +526,9 @@ void test_main(void)
         ztest_unit_test(testHandlerARF_NegativeFileStartRecord),
         ztest_unit_test(testHandlerARF_NegativeStreamStartPosition),
         ztest_unit_test(testHandlerARF_StreamStartPositionBeyondFile),
-        ztest_unit_test(testHandlerARF_ValidStreamRequest));
+        ztest_unit_test(testHandlerARF_ValidStreamRequest),
+        ztest_unit_test(testHandlerARF_StreamRequestOnRecordFile),
+        ztest_unit_test(testHandlerARF_RecordRequestOnStreamFile));
 
     ztest_run_test_suite(h_arf_tests);
 }
