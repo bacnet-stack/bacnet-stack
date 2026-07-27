@@ -361,6 +361,98 @@ static void testHandlerAWF_ValidRecordAppend(void)
         (unsigned)PDU_TYPE_COMPLEX_ACK, (unsigned)transmit_buffer[apdu_offset]);
 }
 
+/* -------------------------------------------------------------------------
+ * Test 8: stream request against a record-configured File object -> ERROR
+ *
+ * bacfile_file_access_stream() reports the File object is configured for
+ * FILE_RECORD_ACCESS, but the request asks for FILE_STREAM_ACCESS.  The
+ * handler must reject the mismatch with ERROR_CODE_INVALID_FILE_ACCESS_METHOD
+ * before ever calling bacfile_write_stream_data().
+ * ------------------------------------------------------------------------- */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_awf_tests, testHandlerAWF_StreamRequestOnRecordFile)
+#else
+static void testHandlerAWF_StreamRequestOnRecordFile(void)
+#endif
+{
+    uint8_t payload[] = { "test data" };
+    uint8_t service_request[480] = { 0 };
+    uint8_t transmit_buffer[480] = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int apdu_offset, len, service_len;
+
+    service_len =
+        make_stream_request(service_request, 0, payload, sizeof(payload));
+    zassert_true(service_len > 0, "encoding failed: len=%d", service_len);
+
+    make_service_data(&service_data, 8);
+    Bacfile_Valid_Instance_Result = true;
+    /* File object is configured for FILE_RECORD_ACCESS */
+    Bacfile_File_Access_Stream_Result = false;
+    /* backend must never be reached: force it to fail if it is called */
+    Bacfile_Write_Stream_Data_Result = true;
+
+    len = handler_atomic_write_file_encode(
+        transmit_buffer, service_request, (uint16_t)service_len, &src,
+        &npdu_data, &service_data);
+    zassert_true(len > 0, "encoding failed: len=%d", len);
+
+    apdu_offset = npdu_decode(transmit_buffer, NULL, NULL, &npdu_data);
+    zassert_equal(
+        transmit_buffer[apdu_offset], (uint8_t)PDU_TYPE_ERROR,
+        "Expected PDU_TYPE_ERROR (0x%02x) for stream request on a "
+        "record-configured file, got 0x%02x",
+        (unsigned)PDU_TYPE_ERROR, (unsigned)transmit_buffer[apdu_offset]);
+}
+
+/* -------------------------------------------------------------------------
+ * Test 9: record request against a stream-configured File object -> ERROR
+ *
+ * bacfile_file_access_stream() reports the File object is configured for
+ * FILE_STREAM_ACCESS, but the request asks for FILE_RECORD_ACCESS.  The
+ * handler must reject the mismatch with ERROR_CODE_INVALID_FILE_ACCESS_METHOD
+ * before ever calling bacfile_write_record_data().
+ * ------------------------------------------------------------------------- */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_awf_tests, testHandlerAWF_RecordRequestOnStreamFile)
+#else
+static void testHandlerAWF_RecordRequestOnStreamFile(void)
+#endif
+{
+    uint8_t payload[] = { "record data" };
+    uint8_t service_request[480] = { 0 };
+    uint8_t transmit_buffer[480] = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int apdu_offset, len, service_len;
+
+    service_len =
+        make_record_request(service_request, 0, payload, sizeof(payload));
+    zassert_true(service_len > 0, "encoding failed: len=%d", service_len);
+
+    make_service_data(&service_data, 9);
+    Bacfile_Valid_Instance_Result = true;
+    /* File object is configured for FILE_STREAM_ACCESS */
+    Bacfile_File_Access_Stream_Result = true;
+    /* backend must never be reached: force it to fail if it is called */
+    Bacfile_Write_Record_Data_Result = true;
+
+    len = handler_atomic_write_file_encode(
+        transmit_buffer, service_request, (uint16_t)service_len, &src,
+        &npdu_data, &service_data);
+    zassert_true(len > 0, "encoding failed: len=%d", len);
+
+    apdu_offset = npdu_decode(transmit_buffer, NULL, NULL, &npdu_data);
+    zassert_equal(
+        transmit_buffer[apdu_offset], (uint8_t)PDU_TYPE_ERROR,
+        "Expected PDU_TYPE_ERROR (0x%02x) for record request on a "
+        "stream-configured file, got 0x%02x",
+        (unsigned)PDU_TYPE_ERROR, (unsigned)transmit_buffer[apdu_offset]);
+}
+
 /**
  * @}
  */
@@ -377,7 +469,9 @@ void test_main(void)
         ztest_unit_test(testHandlerAWF_ValidStreamAppend),
         ztest_unit_test(testHandlerAWF_InvalidRecordStartPosition),
         ztest_unit_test(testHandlerAWF_ValidRecordWrite),
-        ztest_unit_test(testHandlerAWF_ValidRecordAppend));
+        ztest_unit_test(testHandlerAWF_ValidRecordAppend),
+        ztest_unit_test(testHandlerAWF_StreamRequestOnRecordFile),
+        ztest_unit_test(testHandlerAWF_RecordRequestOnStreamFile));
 
     ztest_run_test_suite(h_awf_tests);
 }
