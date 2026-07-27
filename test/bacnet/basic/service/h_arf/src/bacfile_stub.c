@@ -25,6 +25,18 @@ bool bacfile_valid_instance(uint32_t object_instance)
     return Bacfile_Valid_Instance_Result;
 }
 
+/** Control variable: value returned by bacfile_file_access_stream() */
+bool Bacfile_File_Access_Stream_Result = true;
+
+/**
+ * @brief Stub: report the configured access method for the instance
+ */
+bool bacfile_file_access_stream(uint32_t object_instance)
+{
+    (void)object_instance;
+    return Bacfile_File_Access_Stream_Result;
+}
+
 /** Control variable: value returned by bacfile_file_size() */
 BACNET_UNSIGNED_INTEGER Bacfile_File_Size_Result = 0;
 
