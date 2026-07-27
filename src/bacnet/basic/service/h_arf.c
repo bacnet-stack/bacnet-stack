@@ -141,6 +141,13 @@ int handler_atomic_read_file_encode(
             if (!bacfile_valid_instance(data.object_instance)) {
                 error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 error = true;
+            } else if (
+                bacfile_file_access_stream(data.object_instance) !=
+                (data.access == FILE_STREAM_ACCESS)) {
+                DEBUG_PRINTF(
+                    "ARF: File Access Method Mismatch. Sending Error!\n");
+                error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
+                error = true;
             } else if (data.access == FILE_STREAM_ACCESS) {
                 file_size = bacfile_file_size(data.object_instance);
                 if (file_size > INT32_MAX) {
