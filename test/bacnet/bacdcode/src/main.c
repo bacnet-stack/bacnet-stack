@@ -1178,6 +1178,33 @@ static void testBACDCodeOctetString(void)
         len = bacnet_octet_string_application_encode(apdu, apdu_len, &value);
         zassert_equal(len, 0, NULL);
     }
+    /* direct coverage of bacnet_octet_string_decode() */
+    {
+        uint8_t buf[MAX_OCTET_STRING_BYTES + 8] = { 0 };
+        BACNET_OCTET_STRING decoded_value = { 0 };
+
+        for (i = 0; i < 8; i++) {
+            buf[i] = (uint8_t)i;
+        }
+        /* value NULL - length only mode, no dereference of value */
+        len = bacnet_octet_string_decode(buf, sizeof(buf), 8, NULL);
+        zassert_equal(len, 8, NULL);
+        /* value non-NULL, zero length */
+        len = bacnet_octet_string_decode(buf, sizeof(buf), 0, &decoded_value);
+        zassert_equal(len, 0, NULL);
+        /* value non-NULL, within capacity */
+        len = bacnet_octet_string_decode(buf, sizeof(buf), 8, &decoded_value);
+        zassert_equal(len, 8, NULL);
+        zassert_equal(octetstring_length(&decoded_value), 8, NULL);
+        /* len_value exceeds apdu_size - error */
+        len = bacnet_octet_string_decode(buf, 4, 8, &decoded_value);
+        zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+        /* len_value exceeds octet string capacity - octetstring_init()
+         * fails and the error is now propagated */
+        len = bacnet_octet_string_decode(
+            buf, sizeof(buf), MAX_OCTET_STRING_BYTES + 1, &decoded_value);
+        zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    }
 
     return;
 }
@@ -1269,6 +1296,40 @@ static void testBACDCodeCharacterString(void)
     while (--apdu_len) {
         len =
             bacnet_character_string_application_encode(apdu, apdu_len, &value);
+        zassert_equal(len, 0, NULL);
+    }
+    /* direct coverage of bacnet_character_string_decode() */
+    {
+        uint8_t buf[MAX_CHARACTER_STRING_BYTES + 8] = { 0 };
+        BACNET_CHARACTER_STRING decoded_value = { 0 };
+
+        buf[0] = CHARACTER_ANSI_X34;
+        for (i = 1; i < 8; i++) {
+            buf[i] = 'A' + i;
+        }
+        /* char_string NULL - length only mode, no dereference of
+         * char_string */
+        len = bacnet_character_string_decode(buf, sizeof(buf), 8, NULL);
+        zassert_equal(len, 8, NULL);
+        /* char_string non-NULL, encoding byte only */
+        len =
+            bacnet_character_string_decode(buf, sizeof(buf), 1, &decoded_value);
+        zassert_equal(len, 1, NULL);
+        /* char_string non-NULL, within capacity */
+        len =
+            bacnet_character_string_decode(buf, sizeof(buf), 8, &decoded_value);
+        zassert_equal(len, 8, NULL);
+        /* len_value exceeds apdu_size - error */
+        len = bacnet_character_string_decode(buf, 4, 8, &decoded_value);
+        zassert_equal(len, 0, NULL);
+        /* len_value of zero - nothing to decode */
+        len =
+            bacnet_character_string_decode(buf, sizeof(buf), 0, &decoded_value);
+        zassert_equal(len, 0, NULL);
+        /* len_value exceeds character string capacity -
+         * characterstring_init() fails and the error is now propagated */
+        len = bacnet_character_string_decode(
+            buf, sizeof(buf), MAX_CHARACTER_STRING_BYTES + 1, &decoded_value);
         zassert_equal(len, 0, NULL);
     }
 
