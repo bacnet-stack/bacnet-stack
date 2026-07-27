@@ -280,14 +280,14 @@ static const int32_t Writable_Properties[] = {
  *
  * Tune this value as needed for deployment requirements.
  */
-#ifndef COMMAND_ACTION_LIST_MAX
-#define COMMAND_ACTION_LIST_MAX 1024U
+#ifndef BACNET_COMMAND_ACTION_LIST_MAX
+#define BACNET_COMMAND_ACTION_LIST_MAX 1024U
 #endif
 
 static bool
 Command_Action_List_Size_Allowed(BACNET_UNSIGNED_INTEGER new_array_size)
 {
-    return (new_array_size <= COMMAND_ACTION_LIST_MAX);
+    return (new_array_size <= BACNET_COMMAND_ACTION_LIST_MAX);
 }
 
 /**

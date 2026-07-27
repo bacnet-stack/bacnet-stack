@@ -91,13 +91,13 @@ static const int32_t Writable_Properties[] = {
  *
  * Tune this value as needed for deployment requirements.
  */
-#ifndef LIFE_SAFETY_ZONE_MEMBERS_MAX
-#define LIFE_SAFETY_ZONE_MEMBERS_MAX 1024U
+#ifndef BACNET_LIFE_SAFETY_ZONE_MEMBERS_MAX
+#define BACNET_LIFE_SAFETY_ZONE_MEMBERS_MAX 1024U
 #endif
 
 static bool Life_Safety_Zone_Members_Size_Allowed(unsigned new_count)
 {
-    return (new_count <= LIFE_SAFETY_ZONE_MEMBERS_MAX);
+    return (new_count <= BACNET_LIFE_SAFETY_ZONE_MEMBERS_MAX);
 }
 
 /**
@@ -574,7 +574,7 @@ bool Life_Safety_Zone_Members_Add(
     if (!pObject) {
         return false;
     }
-    /* NOTE: LIFE_SAFETY_ZONE_MEMBERS_MAX is only
+    /* NOTE: BACNET_LIFE_SAFETY_ZONE_MEMBERS_MAX is only
        enforced in the WriteProperty path */
     entry = calloc(1, sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
     if (!entry) {

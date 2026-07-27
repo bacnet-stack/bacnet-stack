@@ -91,14 +91,14 @@ static const int32_t Writable_Properties[] = {
  *
  * Tune this value as needed for deployment requirements.
  */
-#ifndef STRUCTURED_VIEW_SUBORDINATE_LIST_MAX
-#define STRUCTURED_VIEW_SUBORDINATE_LIST_MAX 1024U
+#ifndef BACNET_STRUCTURED_VIEW_SUBORDINATE_LIST_MAX
+#define BACNET_STRUCTURED_VIEW_SUBORDINATE_LIST_MAX 1024U
 #endif
 
 static bool Structured_View_Subordinate_List_Size_Allowed(
     BACNET_UNSIGNED_INTEGER new_array_size)
 {
-    return (new_array_size <= STRUCTURED_VIEW_SUBORDINATE_LIST_MAX);
+    return (new_array_size <= BACNET_STRUCTURED_VIEW_SUBORDINATE_LIST_MAX);
 }
 
 /**
