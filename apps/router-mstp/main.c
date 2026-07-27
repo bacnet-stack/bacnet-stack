@@ -351,6 +351,7 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
     int len = 0;
     DNET *port = NULL;
     DNET *dnet = NULL;
+    bool buffer_full = false;
 
     datalink_get_broadcast_address(&dest);
     npdu_encode_npdu_network(
@@ -391,12 +392,16 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
                             DEBUG_LOG_WARNING, stderr,
                             "I-Am-Router-To-Network truncated - "
                             "Tx_Buffer full\n");
+                        buffer_full = true;
                         break;
                     }
                     debug_log_fprintf(DEBUG_LOG_INFO, stderr, "%u,", dnet->net);
                     len = encode_unsigned16(&Tx_Buffer[pdu_len], dnet->net);
                     pdu_len += len;
                     dnet = dnet->next;
+                }
+                if (buffer_full) {
+                    break;
                 }
             }
             port = port->next;
