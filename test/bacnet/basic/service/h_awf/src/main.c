@@ -29,6 +29,7 @@
 extern bool Bacfile_Valid_Instance_Result;
 extern bool Bacfile_Write_Stream_Data_Result;
 extern bool Bacfile_Write_Record_Data_Result;
+extern bool Bacfile_File_Access_Stream_Result;
 
 /**
  * @brief Build a minimal BACNET_CONFIRMED_SERVICE_DATA for use as the
@@ -139,6 +140,7 @@ static void testHandlerAWF_InvalidStreamStartPosition(void)
 
     make_service_data(&service_data, 2);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
     Bacfile_Write_Stream_Data_Result = false;
 
     len = handler_atomic_write_file_encode(
@@ -178,6 +180,7 @@ static void testHandlerAWF_ValidStreamWrite(void)
 
     make_service_data(&service_data, 3);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
     Bacfile_Write_Stream_Data_Result = true;
 
     len = handler_atomic_write_file_encode(
@@ -218,6 +221,7 @@ static void testHandlerAWF_ValidStreamAppend(void)
 
     make_service_data(&service_data, 4);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
     Bacfile_Write_Stream_Data_Result = true;
 
     len = handler_atomic_write_file_encode(
@@ -260,6 +264,7 @@ static void testHandlerAWF_InvalidRecordStartPosition(void)
 
     make_service_data(&service_data, 5);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Write_Record_Data_Result = false;
 
     len = handler_atomic_write_file_encode(
@@ -299,6 +304,7 @@ static void testHandlerAWF_ValidRecordWrite(void)
 
     make_service_data(&service_data, 6);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Write_Record_Data_Result = true;
 
     len = handler_atomic_write_file_encode(
@@ -339,6 +345,7 @@ static void testHandlerAWF_ValidRecordAppend(void)
 
     make_service_data(&service_data, 7);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Write_Record_Data_Result = true;
 
     len = handler_atomic_write_file_encode(

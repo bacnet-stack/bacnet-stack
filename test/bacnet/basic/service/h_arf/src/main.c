@@ -28,6 +28,7 @@
 extern bool Bacfile_Valid_Instance_Result;
 extern bool Bacfile_Read_Record_Data_Result;
 extern BACNET_UNSIGNED_INTEGER Bacfile_File_Size_Result;
+extern bool Bacfile_File_Access_Stream_Result;
 
 /**
  * @brief Build a minimal BACNET_CONFIRMED_SERVICE_DATA for use as the
@@ -107,6 +108,7 @@ static void testHandlerARF_RecordCountOutOfBounds(void)
 
     make_service_data(&service_data, 2);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = false;
 
     len = handler_atomic_read_file_encode(
@@ -157,6 +159,7 @@ static void testHandlerARF_FileStartRecordOutOfBounds(void)
 
     make_service_data(&service_data, 3);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = false;
 
     len = handler_atomic_read_file_encode(
@@ -203,6 +206,7 @@ static void testHandlerARF_ValidRecordRequest(void)
     make_service_data(&service_data, 4);
     /* Both the instance check and the read succeed */
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = true;
 
     len = handler_atomic_read_file_encode(
@@ -251,6 +255,7 @@ static void testHandlerARF_NegativeFileStartRecord(void)
 
     make_service_data(&service_data, 5);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
     Bacfile_Read_Record_Data_Result = false;
 
     len = handler_atomic_read_file_encode(
@@ -296,6 +301,7 @@ static void testHandlerARF_NegativeStreamStartPosition(void)
 
     make_service_data(&service_data, 6);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
     Bacfile_File_Size_Result =
         64; /* non-zero: position check must still fire */
 
@@ -341,6 +347,7 @@ static void testHandlerARF_StreamStartPositionBeyondFile(void)
 
     make_service_data(&service_data, 7);
     Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
     Bacfile_File_Size_Result = 64; /* position 100 > 64: guard must fire */
 
     len = handler_atomic_read_file_encode(
