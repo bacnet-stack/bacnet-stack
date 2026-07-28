@@ -14,6 +14,11 @@
 
 #include "cJSON.h"
 
+/* Maximum object/array nesting depth accepted by the parser. Guards
+ * against stack exhaustion from attacker-supplied, deeply nested JSON
+ * (both while parsing and while recursively freeing the resulting tree). */
+#define CJSON_NESTING_LIMIT 1000
+
 /* ------------------------------------------------------------------ */
 /* Internal state                                                       */
 /* ------------------------------------------------------------------ */
@@ -57,6 +62,7 @@ void cJSON_Delete(cJSON *c)
 /* ------------------------------------------------------------------ */
 static const char *parse_number(cJSON *item, const char *num)
 {
+    const char *start = num;
     double n = 0;
     double sign = 1.0;
     double scale = 0;
@@ -96,8 +102,16 @@ static const char *parse_number(cJSON *item, const char *num)
         }
     }
     n = sign * n * pow(10.0, scale + subscale * signsubscale);
+    if (!isfinite(n)) {
+        /* reject numbers that overflow to +/-Infinity or otherwise are
+         * not finite, rather than silently storing an unusable value */
+        global_ep = start;
+        return NULL;
+    }
     item->valuedouble = n;
-    item->valueint = (int)n;
+    item->valueint = (n > (double)INT_MAX) ? INT_MAX
+        : (n < (double)INT_MIN)            ? INT_MIN
+                                           : (int)n;
     item->type = cJSON_Number;
     return num;
 }
@@ -105,23 +119,26 @@ static const char *parse_number(cJSON *item, const char *num)
 /* ------------------------------------------------------------------ */
 /* Parse string (stored without surrounding quotes)                     */
 /* ------------------------------------------------------------------ */
-static unsigned parse_hex4(const char *str)
+/* Returns the decoded 0x0000-0xFFFF value, or -1 if str does not point
+ * to four valid hex digits. -1 is distinct from a valid \u0000 escape,
+ * which decodes to 0. */
+static int parse_hex4(const char *str)
 {
     unsigned h = 0;
     int i;
     for (i = 0; i < 4; i++) {
         if (*str >= '0' && *str <= '9') {
-            h = h * 16 + (*str - '0');
+            h = h * 16 + (unsigned)(*str - '0');
         } else if (*str >= 'A' && *str <= 'F') {
-            h = h * 16 + (*str - 'A') + 10;
+            h = h * 16 + (unsigned)(*str - 'A') + 10;
         } else if (*str >= 'a' && *str <= 'f') {
-            h = h * 16 + (*str - 'a') + 10;
+            h = h * 16 + (unsigned)(*str - 'a') + 10;
         } else {
-            return 0;
+            return -1;
         }
         str++;
     }
-    return h;
+    return (int)h;
 }
 
 static const char *parse_string(cJSON *item, const char *str)
@@ -130,7 +147,7 @@ static const char *parse_string(cJSON *item, const char *str)
     char *ptr2;
     char *out;
     int len = 0;
-    unsigned uc, uc2;
+    int uc, uc2;
 
     if (*str != '\"') {
         global_ep = str;
@@ -173,10 +190,22 @@ static const char *parse_string(cJSON *item, const char *str)
                     break;
                 case 'u':
                     uc = parse_hex4(ptr + 1);
+                    if (uc < 0) {
+                        /* invalid \u escape: do not silently treat as
+                         * U+0000, fail the parse instead */
+                        global_ep = ptr;
+                        free(out);
+                        return NULL;
+                    }
                     ptr += 4;
                     if (uc >= 0xD800 && uc <= 0xDBFF) {
                         if (ptr[1] == '\\' && ptr[2] == 'u') {
                             uc2 = parse_hex4(ptr + 3);
+                            if (uc2 < 0) {
+                                global_ep = ptr;
+                                free(out);
+                                return NULL;
+                            }
                             ptr += 6;
                             uc = 0x10000 +
                                 (((uc & 0x3FF) << 10) | (uc2 & 0x3FF));
@@ -228,14 +257,14 @@ static const char *skip(const char *in)
 /* ------------------------------------------------------------------ */
 /* Forward declare                                                      */
 /* ------------------------------------------------------------------ */
-static const char *parse_value(cJSON *item, const char *value);
-static const char *parse_array(cJSON *item, const char *value);
-static const char *parse_object(cJSON *item, const char *value);
+static const char *parse_value(cJSON *item, const char *value, int depth);
+static const char *parse_array(cJSON *item, const char *value, int depth);
+static const char *parse_object(cJSON *item, const char *value, int depth);
 
 /* ------------------------------------------------------------------ */
 /* parse_value                                                          */
 /* ------------------------------------------------------------------ */
-static const char *parse_value(cJSON *item, const char *value)
+static const char *parse_value(cJSON *item, const char *value, int depth)
 {
     if (!value) {
         return NULL;
@@ -260,10 +289,10 @@ static const char *parse_value(cJSON *item, const char *value)
         return parse_number(item, value);
     }
     if (*value == '[') {
-        return parse_array(item, value);
+        return parse_array(item, value, depth);
     }
     if (*value == '{') {
-        return parse_object(item, value);
+        return parse_object(item, value, depth);
     }
     global_ep = value;
     return NULL;
@@ -272,9 +301,13 @@ static const char *parse_value(cJSON *item, const char *value)
 /* ------------------------------------------------------------------ */
 /* parse_array                                                          */
 /* ------------------------------------------------------------------ */
-static const char *parse_array(cJSON *item, const char *value)
+static const char *parse_array(cJSON *item, const char *value, int depth)
 {
     cJSON *child;
+    if (depth >= CJSON_NESTING_LIMIT) {
+        global_ep = value;
+        return NULL;
+    }
     if (*value != '[') {
         global_ep = value;
         return NULL;
@@ -289,7 +322,7 @@ static const char *parse_array(cJSON *item, const char *value)
     if (!item->child) {
         return NULL;
     }
-    value = skip(parse_value(child, skip(value)));
+    value = skip(parse_value(child, skip(value), depth + 1));
     if (!value) {
         return NULL;
     }
@@ -302,7 +335,7 @@ static const char *parse_array(cJSON *item, const char *value)
         child->next = new_item;
         new_item->prev = child;
         child = new_item;
-        value = skip(parse_value(child, skip(value + 1)));
+        value = skip(parse_value(child, skip(value + 1), depth + 1));
         if (!value) {
             return NULL;
         }
@@ -317,9 +350,13 @@ static const char *parse_array(cJSON *item, const char *value)
 /* ------------------------------------------------------------------ */
 /* parse_object                                                         */
 /* ------------------------------------------------------------------ */
-static const char *parse_object(cJSON *item, const char *value)
+static const char *parse_object(cJSON *item, const char *value, int depth)
 {
     cJSON *child;
+    if (depth >= CJSON_NESTING_LIMIT) {
+        global_ep = value;
+        return NULL;
+    }
     if (*value != '{') {
         global_ep = value;
         return NULL;
@@ -346,7 +383,7 @@ static const char *parse_object(cJSON *item, const char *value)
         global_ep = value;
         return NULL;
     }
-    value = skip(parse_value(child, skip(value + 1)));
+    value = skip(parse_value(child, skip(value + 1), depth + 1));
     if (!value) {
         return NULL;
     }
@@ -371,7 +408,7 @@ static const char *parse_object(cJSON *item, const char *value)
             global_ep = value;
             return NULL;
         }
-        value = skip(parse_value(child, skip(value + 1)));
+        value = skip(parse_value(child, skip(value + 1), depth + 1));
         if (!value) {
             return NULL;
         }
@@ -393,7 +430,7 @@ cJSON *cJSON_Parse(const char *value)
     if (!c) {
         return NULL;
     }
-    if (!parse_value(c, skip(value))) {
+    if (!parse_value(c, skip(value), 0)) {
         cJSON_Delete(c);
         return NULL;
     }
