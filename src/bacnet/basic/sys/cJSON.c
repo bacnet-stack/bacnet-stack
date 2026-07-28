@@ -21,7 +21,7 @@ static const char *global_ep = NULL;
 
 const char *cJSON_GetErrorPtr(void)
 {
-    return global_ep;
+    return global_ep ? global_ep : "null";
 }
 
 /* ------------------------------------------------------------------ */
