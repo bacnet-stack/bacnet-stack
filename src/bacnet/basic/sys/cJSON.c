@@ -133,9 +133,14 @@ static int parse_hex4(const char *str)
     int i;
     for (i = 0; i < 4; i++) {
         if (*str == '\0') {
-            /* unterminated \u escape: stop before reading past the
-             * end of the input buffer */
-            return 0;
+            /* unterminated \u escape: stop before reading past the end
+             * of the input buffer. Report -1 (invalid), the same as any
+             * other malformed escape, rather than 0: the caller
+             * unconditionally advances its pointer by 4 on a
+             * non-negative result, which would walk it past the
+             * terminating NUL if we pretended this truncated escape
+             * was a valid four-digit \u0000. */
+            return -1;
         }
         if (*str >= '0' && *str <= '9') {
             h = h * 16 + (unsigned)(*str - '0');
