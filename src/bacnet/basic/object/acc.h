@@ -87,6 +87,14 @@ bool Accumulator_Max_Pres_Value_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
+bool Accumulator_Change_Of_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Accumulator_Change_Of_Value_Clear(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Accumulator_Encode_Value_List(
+    uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list);
+
+BACNET_STACK_EXPORT
 int32_t Accumulator_Scale_Integer(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Accumulator_Scale_Integer_Set(uint32_t object_instance, int32_t);
