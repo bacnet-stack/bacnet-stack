@@ -214,6 +214,7 @@ list(APPEND testdirs
   # basic/sys
   bacnet/basic/sys/bramfs
   bacnet/basic/sys/bsramfs
+  bacnet/basic/sys/cJSON
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
   bacnet/basic/sys/dst
