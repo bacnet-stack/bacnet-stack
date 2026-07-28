@@ -564,6 +564,9 @@ bool Alert_Enrollment_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @brief Add an alert to the object's queue of alerts to be sent at the next
  * intrinsic reporting hook
  * @param  object_instance - object-instance number of the object
+ * @note The alert->messageText buffer must be valid through the next call to
+ Alert_Enrollment_Intrinsic_Reporting, after which the buffer will be freed if
+ owned, using characterstring_buffer_free(&alert->messageText);
  * @return true on successful add, false if not added
  */
 bool Alert_Enrollment_Queue_Alert(
@@ -576,8 +579,7 @@ bool Alert_Enrollment_Queue_Alert(
         return false;
     }
 
-    if (!Ringbuf_Put(
-            &CurrentInstance->Alert_Queue, (const uint8_t *)alert)) {
+    if (!Ringbuf_Put(&CurrentInstance->Alert_Queue, (const uint8_t *)alert)) {
         return false;
     }
 
