@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief API for basic BACnet Alert Enrollemnt Object implementation.
+ * @brief API for basic BACnet Alert Enrollment Object implementation.
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_OBJECT_ALERT_ENROLLMENT_H
@@ -11,6 +11,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacstr.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -20,6 +21,9 @@
 /* count must be a power of 2 for ringbuf library */
 #ifndef ALERT_ENROLLMENT_ALERT_COUNT
 #define ALERT_ENROLLMENT_ALERT_COUNT 2
+#endif
+#if (ALERT_ENROLLMENT_ALERT_COUNT & (ALERT_ENROLLMENT_ALERT_COUNT - 1)) != 0
+#error "ALERT_ENROLLMENT_ALERT_COUNT must be a power of 2"
 #endif
 
 typedef struct bacnet_alert {

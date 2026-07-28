@@ -571,11 +571,19 @@ bool Alert_Enrollment_Queue_Alert(
 {
     struct alert_enrollment_descr *CurrentInstance =
         Alert_Enrollment_Object(object_instance);
-    if (!CurrentInstance) {
+
+    if (!CurrentInstance || !alert) {
         return false;
     }
+
+    if (!Ringbuf_Put(
+            &CurrentInstance->Alert_Queue, (const uint8_t *)alert)) {
+        return false;
+    }
+
     CurrentInstance->Present_Value = alert->source;
-    return Ringbuf_Put(&CurrentInstance->Alert_Queue, (const uint8_t *)alert);
+
+    return true;
 }
 
 /**
@@ -607,8 +615,9 @@ void Alert_Enrollment_Intrinsic_Reporting(uint32_t object_instance)
         characterstring_buffer_to_characterstring(
             &msgCharString, &alert->messageText);
         event_data.messageText = &msgCharString;
-        event_data.notificationParams.extended.extendedEventType = 0;
-        event_data.notificationParams.extended.vendorID = 0;
+        event_data.notificationParams.extended.extendedEventType =
+            alert->extendedEventType;
+        event_data.notificationParams.extended.vendorID = alert->vendorID;
         event_data.notificationParams.extended.parameters.tag =
             BACNET_APPLICATION_TAG_OBJECT_ID;
         event_data.notificationParams.extended.parameters.type.Object_Id =
