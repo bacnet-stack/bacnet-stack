@@ -217,12 +217,11 @@ static cJSON *load_json_file(const char *filename)
     fclose(fp);
 
     root = cJSON_Parse(buf);
-    free(buf);
-
     if (!root) {
         fprintf(
             stderr, "[PT] JSON parse error near: %s\n", cJSON_GetErrorPtr());
     }
+    free(buf);
     return root;
 }
 
