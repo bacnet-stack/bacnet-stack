@@ -4391,6 +4391,11 @@ parse_weeklyschedule(const char *str, BACNET_APPLICATION_DATA_VALUE *value)
                 *sp = '\0';
                 v = bacnet_ltrim(sp + 1, " ");
 
+                if (tvnum >= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
+                    /* too many time-value pairs for one day */
+                    return false;
+                }
+
                 /* Parse time directly into the Time_Value slot */
                 if (!datetime_time_init_ascii(
                         &dsch->Time_Values[tvnum].Time, t)) {

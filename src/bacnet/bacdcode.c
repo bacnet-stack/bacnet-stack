@@ -2659,7 +2659,7 @@ int encode_context_octet_string(
  * @param len_value - number of bytes in the unsigned value encoding, may be
  * zero
  * @param value - the value decoded, or NULL for length
- *
+ *  If value is NULL, then number of bytes decoded is returned.
  * @return  number of bytes decoded (0..N), or BACNET_STATUS_ERROR on error
  */
 int bacnet_octet_string_decode(
@@ -2669,14 +2669,25 @@ int bacnet_octet_string_decode(
     BACNET_OCTET_STRING *value)
 {
     int len = BACNET_STATUS_ERROR;
+    bool status = false;
 
     if (len_value <= apdu_size) {
-        if (len_value > 0) {
-            (void)octetstring_init(value, &apdu[0], len_value);
+        if (value) {
+            if (len_value > 0) {
+                status = octetstring_init(value, &apdu[0], len_value);
+            } else {
+                status = octetstring_init(value, NULL, 0);
+            }
+            if (status) {
+                len = (int)len_value;
+            } else {
+                /* octetstring_init failed */
+                len = BACNET_STATUS_ERROR;
+            }
         } else {
-            (void)octetstring_init(value, NULL, 0);
+            /* if value is NULL, just return the length */
+            len = (int)len_value;
         }
-        len = (int)len_value;
     }
 
     return len;
@@ -3002,8 +3013,8 @@ int encode_context_character_string(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - the value decoded, if decoded
- *
+ * @param value - the value decoded, if decoded.
+ *  If value is NULL, then number of bytes decoded is returned.
  * @return  number of bytes decoded, or zero if errors occur
  */
 int bacnet_character_string_decode(
@@ -3015,18 +3026,24 @@ int bacnet_character_string_decode(
     const char *string_value = NULL;
     int len = 0;
     uint8_t encoding;
+    bool status = false;
 
     /* check to see if the APDU is long enough */
-    if (len_value <= apdu_size) {
-        if (len_value > 0) {
-            encoding = apdu[0];
+    if ((len_value <= apdu_size) && (len_value > 0)) {
+        encoding = apdu[0];
+        if (char_string) {
             if (len_value > 1) {
                 string_value = (const char *)&apdu[1];
-                (void)characterstring_init(
+                status = characterstring_init(
                     char_string, encoding, string_value, len_value - 1);
             } else {
-                (void)characterstring_init(char_string, encoding, NULL, 0);
+                status = characterstring_init(char_string, encoding, NULL, 0);
             }
+            if (status) {
+                len = (int)len_value;
+            }
+        } else {
+            /* if char_string is NULL, just return the length */
             len = (int)len_value;
         }
     }

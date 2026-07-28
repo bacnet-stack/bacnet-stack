@@ -46,6 +46,8 @@ void cJSON_Delete(cJSON *item);
 
 /* Returns the error pointer after a failed parse. */
 const char *cJSON_GetErrorPtr(void);
+/* Returns the error string after a failed parse. */
+const char *cJSON_GetErrorString(void);
 
 /* Array / object access */
 cJSON *cJSON_GetArrayItem(const cJSON *array, int index);

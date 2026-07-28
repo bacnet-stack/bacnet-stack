@@ -116,9 +116,9 @@ int handler_atomic_write_file_encode(
         pdu_len += len;
         return pdu_len;
     }
-    len = awf_decode_service_request(service_request, service_len, &data);
-    /* bad decoding - send an abort */
+    len = awf_decode_service_request(service_request, service_len, NULL);
     if (len < 0) {
+        /* bad decoding - send an abort */
         len = abort_encode_apdu(
             apdu, service_data->invoke_id, ABORT_REASON_OTHER, true);
         debug_log_fprintf(
@@ -126,9 +126,28 @@ int handler_atomic_write_file_encode(
         pdu_len += len;
         return pdu_len;
     }
+    len = awf_decode_service_request(service_request, service_len, &data);
+    if (len < 0) {
+        /* an input buffer capacity has been exceeded in this device */
+        len = abort_encode_apdu(
+            apdu, service_data->invoke_id, ABORT_REASON_BUFFER_OVERFLOW, true);
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "AWF: Buffer Overflow. Sending Abort!\n");
+        pdu_len += len;
+        return pdu_len;
+    }
     if (data.object_type == OBJECT_FILE) {
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
+        } else if (
+            bacfile_file_access_stream(data.object_instance) !=
+            (data.access == FILE_STREAM_ACCESS)) {
+            error = true;
+            error_class = ERROR_CLASS_SERVICES;
+            error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "AWF: File Access Method Mismatch. Sending Error!\n");
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (data.type.stream.fileStartPosition < -1) {
                 error = true;

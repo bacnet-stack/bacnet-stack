@@ -615,6 +615,9 @@
     <ClCompile Include="..\..\rs485.c">
       <Filter>Source Files\ports\win32</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\averaging.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\auditlog.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
