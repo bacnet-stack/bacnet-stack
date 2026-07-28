@@ -26,8 +26,14 @@ static const char *global_ep = NULL;
 
 const char *cJSON_GetErrorPtr(void)
 {
+    return global_ep;
+}
+
+const char *cJSON_GetErrorString(void)
+{
     return global_ep ? global_ep : "null";
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Memory helpers                                                       */
@@ -127,6 +133,11 @@ static int parse_hex4(const char *str)
     unsigned h = 0;
     int i;
     for (i = 0; i < 4; i++) {
+        if (*str == '\0') {
+            /* unterminated \u escape: stop before reading past the
+             * end of the input buffer */
+            return 0;
+        }
         if (*str >= '0' && *str <= '9') {
             h = h * 16 + (unsigned)(*str - '0');
         } else if (*str >= 'A' && *str <= 'F') {
