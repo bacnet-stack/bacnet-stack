@@ -221,12 +221,10 @@ static void testAtomicReadFileAckOversizedOctetString(void)
     len = encode_closing_tag(&apdu[apdu_len], 0);
     apdu_len += len;
 
-    len = arf_ack_decode_service_request(apdu, apdu_len, &data);
+    len = arf_ack_decode_service_request(apdu, apdu_len, NULL);
     zassert_equal(len, apdu_len, NULL);
-    zassert_true(data.endOfFile, NULL);
-    zassert_equal(data.access, FILE_STREAM_ACCESS, NULL);
-    zassert_equal(data.type.stream.fileStartPosition, 1234, NULL);
-    zassert_equal(octetstring_length(&data.fileData[0]), 0, NULL);
+    len = arf_ack_decode_service_request(apdu, apdu_len, &data);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
 
     apdu_len = 0;
     len = encode_application_boolean(&apdu[apdu_len], false);
