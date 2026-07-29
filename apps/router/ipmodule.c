@@ -257,6 +257,25 @@ int dl_ip_send(
     return bytes_sent;
 }
 
+/* Validate BVLC framing and return PDU length, or -1 on error.
+ * Requires received_bytes >= header_len, declared length == received_bytes. */
+static int bvlc_parse(const uint8_t *buff, int received_bytes, int header_len)
+{
+    uint16_t declared_len;
+
+    if (received_bytes < header_len) {
+        return -1;
+    }
+    (void)decode_unsigned16(&buff[2], &declared_len);
+    if ((int)declared_len != received_bytes) {
+        return -1;
+    }
+    if (declared_len < (uint16_t)header_len) {
+        return -1;
+    }
+    return (int)declared_len - header_len;
+}
+
 int dl_ip_recv(
     IP_DATA *data, MSG_DATA **msg_data, BACNET_ADDRESS *src, unsigned timeout)
 {
@@ -267,6 +286,7 @@ int dl_ip_recv(
     struct sockaddr_in sin = { 0 };
     socklen_t sin_len = sizeof(sin);
     int ret;
+    int pdu_len;
     /* make sure the socket is open */
     if (data->socket < 0) {
         return 0;
@@ -315,73 +335,72 @@ int dl_ip_recv(
     switch (data->buff[1]) {
         case BVLC_ORIGINAL_UNICAST_NPDU:
         case BVLC_ORIGINAL_BROADCAST_NPDU: {
+            pdu_len = bvlc_parse(data->buff, received_bytes, 4);
+            if (pdu_len < 0) {
+                PRINT(ERROR, "BIP: invalid BVLC length. Discarded!\n");
+                break;
+            }
             if ((sin.sin_addr.s_addr == data->local_addr.s_addr) &&
                 (sin.sin_port == data->port)) {
-                buff_len = 0;
-
                 PRINT(DEBUG, "BIP: src is me. Discarded!\n");
-            } else {
-                src->mac_len = 6;
-                memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
-                memcpy(&src->mac[4], &sin.sin_port, 2);
-
-                (void)decode_unsigned16(&data->buff[2], &buff_len);
-                /* subtract off the BVLC header */
-                buff_len -= 4;
-                if (buff_len < data->max_buff) {
-                    /* allocate data message stucture */
-                    (*msg_data) = (MSG_DATA *)malloc(sizeof(MSG_DATA));
-                    (*msg_data)->pdu_len = buff_len;
-                    (*msg_data)->pdu = (uint8_t *)malloc((*msg_data)->pdu_len);
-                    /* fill up data message structure */
-                    memmove(
-                        &(*msg_data)->pdu[0], &data->buff[4],
-                        (*msg_data)->pdu_len);
-                    memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
-                }
-                /* ignore packets that are too large */
-                else {
-                    buff_len = 0;
-
-                    PRINT(ERROR, "BIP: PDU too large. Discarded!.\n");
-                }
+                break;
             }
+            src->mac_len = 6;
+            memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
+            memcpy(&src->mac[4], &sin.sin_port, 2);
+
+            (*msg_data) = (MSG_DATA *)malloc(sizeof(MSG_DATA));
+            if (!(*msg_data)) {
+                break;
+            }
+            (*msg_data)->pdu = (uint8_t *)malloc(pdu_len);
+            if (!(*msg_data)->pdu) {
+                free(*msg_data);
+                *msg_data = NULL;
+                break;
+            }
+            (*msg_data)->pdu_len = pdu_len;
+            memmove(&(*msg_data)->pdu[0], &data->buff[4], pdu_len);
+            memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
+            buff_len = (uint16_t)pdu_len;
         } break;
 
         case BVLC_FORWARDED_NPDU: {
+            /* header_len=10: 4-byte BVLC fixed + 4-byte orig IP + 2-byte port
+             */
+            pdu_len = bvlc_parse(data->buff, received_bytes, 10);
+            if (pdu_len < 0) {
+                PRINT(ERROR, "BIP: invalid BVLC length. Discarded!\n");
+                break;
+            }
             memcpy(&sin.sin_addr.s_addr, &data->buff[4], 4);
             memcpy(&sin.sin_port, &data->buff[8], 2);
             if ((sin.sin_addr.s_addr == data->local_addr.s_addr) &&
                 (sin.sin_port == data->port)) {
-                buff_len = 0;
-            } else {
-                src->mac_len = 6;
-                memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
-                memcpy(&src->mac[4], &sin.sin_port, 2);
-
-                (void)decode_unsigned16(&data->buff[2], &buff_len);
-                /* subtract off the BVLC header */
-                buff_len -= 10;
-                if (buff_len < data->max_buff) {
-                    /* allocate data message stucture */
-                    (*msg_data) = (MSG_DATA *)malloc(sizeof(MSG_DATA));
-                    (*msg_data)->pdu_len = buff_len;
-                    (*msg_data)->pdu = (uint8_t *)malloc((*msg_data)->pdu_len);
-                    /* fill up data message structure */
-                    memmove(
-                        &(*msg_data)->pdu[0], &data->buff[4 + 6],
-                        (*msg_data)->pdu_len);
-                    memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
-                } else {
-                    /* ignore packets that are too large */
-                    buff_len = 0;
-                }
+                break;
             }
+            src->mac_len = 6;
+            memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
+            memcpy(&src->mac[4], &sin.sin_port, 2);
+
+            (*msg_data) = (MSG_DATA *)malloc(sizeof(MSG_DATA));
+            if (!(*msg_data)) {
+                break;
+            }
+            (*msg_data)->pdu = (uint8_t *)malloc(pdu_len);
+            if (!(*msg_data)->pdu) {
+                free(*msg_data);
+                *msg_data = NULL;
+                break;
+            }
+            (*msg_data)->pdu_len = pdu_len;
+            memmove(&(*msg_data)->pdu[0], &data->buff[10], pdu_len);
+            memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
+            buff_len = (uint16_t)pdu_len;
         } break;
+
         default:
-
             PRINT(ERROR, "BIP: BVLC discarded!\n");
-
             break;
     }
     return buff_len;
