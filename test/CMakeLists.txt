@@ -163,6 +163,7 @@ list(APPEND testdirs
   bacnet/basic/object/access_user
   bacnet/basic/object/access_zone
   bacnet/basic/object/ai
+  bacnet/basic/object/alert_enrollment
   bacnet/basic/object/ao
   bacnet/basic/object/av
   bacnet/basic/object/averaging

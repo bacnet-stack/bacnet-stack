@@ -44,17 +44,7 @@ static const int32_t Properties_Required[] = {
 
 static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION,
-    PROP_EVENT_MESSAGE_TEXTS,
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
-    PROP_EVENT_ALGORITHM_INHIBIT_REF,
-    PROP_EVENT_ALGORITHM_INHIBIT,
-    PROP_AUDIT_LEVEL,
-    PROP_AUDITABLE_OPERATIONS,
-    PROP_TAGS,
-    PROP_PROFILE_LOCATION,
-    PROP_PROFILE_NAME,
-    -1
+    PROP_DESCRIPTION, -1
 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
@@ -411,8 +401,8 @@ static int Alert_Enrollment_Event_Time_Stamps_Encode(
 int Alert_Enrollment_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    uint8_t *apdu = rpdata->application_data;
-    int apdu_size = rpdata->application_data_len;
+    uint8_t *apdu = NULL;
+    int apdu_size = 0;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_OBJECT_ID value = { OBJECT_DEVICE, BACNET_MAX_INSTANCE };
@@ -423,6 +413,8 @@ int Alert_Enrollment_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+    apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     pObject = Alert_Enrollment_Object(rpdata->object_instance);
     if (!pObject) {
         return BACNET_STATUS_ERROR;
