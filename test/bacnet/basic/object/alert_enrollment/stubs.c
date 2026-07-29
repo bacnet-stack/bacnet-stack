@@ -12,7 +12,8 @@
 
 /* records the event data passed to each call, so tests can verify that
    Alert_Enrollment_Intrinsic_Reporting reported the alert it queued */
-static BACNET_EVENT_NOTIFICATION_DATA Reporting_Stub_Data[REPORTING_STUB_MAX_CALLS];
+static BACNET_EVENT_NOTIFICATION_DATA
+    Reporting_Stub_Data[REPORTING_STUB_MAX_CALLS];
 static BACNET_CHARACTER_STRING Reporting_Stub_Text[REPORTING_STUB_MAX_CALLS];
 static bool Reporting_Stub_Has_Text[REPORTING_STUB_MAX_CALLS];
 static unsigned Reporting_Stub_Count;
@@ -26,7 +27,8 @@ void Notification_Class_common_reporting_function(
            contents rather than keeping the pointer */
         Reporting_Stub_Data[Reporting_Stub_Count] = *event_data;
         if (event_data->messageText) {
-            Reporting_Stub_Text[Reporting_Stub_Count] = *event_data->messageText;
+            Reporting_Stub_Text[Reporting_Stub_Count] =
+                *event_data->messageText;
             Reporting_Stub_Has_Text[Reporting_Stub_Count] = true;
         } else {
             Reporting_Stub_Has_Text[Reporting_Stub_Count] = false;

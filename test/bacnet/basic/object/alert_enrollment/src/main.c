@@ -34,8 +34,7 @@ static void testAlert_Enrollment(void)
     zassert_true(count == 1, NULL);
     test_object_instance = Alert_Enrollment_Index_To_Instance(0);
     zassert_equal(object_instance, test_object_instance, NULL);
-    zassert_equal(
-        Alert_Enrollment_Instance_To_Index(object_instance), 0, NULL);
+    zassert_equal(Alert_Enrollment_Instance_To_Index(object_instance), 0, NULL);
     zassert_true(Alert_Enrollment_Valid_Instance(object_instance), NULL);
     bacnet_object_properties_read_write_test(
         OBJECT_ALERT_ENROLLMENT, object_instance,
@@ -89,7 +88,8 @@ static void testAlert_Enrollment_APIs(void)
     zassert_is_null(Alert_Enrollment_Description(instance), NULL);
     status = Alert_Enrollment_Description_Set(instance, sample_description);
     zassert_true(status, NULL);
-    zassert_equal(Alert_Enrollment_Description(instance), sample_description, NULL);
+    zassert_equal(
+        Alert_Enrollment_Description(instance), sample_description, NULL);
     status =
         Alert_Enrollment_Description_Set(invalid_instance, sample_description);
     zassert_false(status, NULL);
@@ -226,27 +226,23 @@ static void testAlert_Enrollment_Notification_Reporting(void)
     zassert_equal(event_data->toState, EVENT_STATE_NORMAL, NULL);
     zassert_equal(event_data->notifyType, NOTIFY_EVENT, NULL);
     zassert_equal(
-        event_data->eventObjectIdentifier.type, OBJECT_ALERT_ENROLLMENT,
-        NULL);
+        event_data->eventObjectIdentifier.type, OBJECT_ALERT_ENROLLMENT, NULL);
     zassert_equal(event_data->eventObjectIdentifier.instance, instance, NULL);
     zassert_equal(event_data->notificationClass, 11, NULL);
     zassert_equal(event_data->timeStamp.tag, TIME_STAMP_DATETIME, NULL);
-    zassert_equal(
-        event_data->timeStamp.value.dateTime.date.year, 2024, NULL);
+    zassert_equal(event_data->timeStamp.value.dateTime.date.year, 2024, NULL);
     zassert_equal(event_data->timeStamp.value.dateTime.date.month, 6, NULL);
     zassert_equal(event_data->timeStamp.value.dateTime.date.day, 15, NULL);
     zassert_equal(event_data->timeStamp.value.dateTime.time.hour, 10, NULL);
     zassert_equal(event_data->timeStamp.value.dateTime.time.min, 30, NULL);
-    zassert_equal(
-        event_data->notificationParams.extended.vendorID, 260, NULL);
+    zassert_equal(event_data->notificationParams.extended.vendorID, 260, NULL);
     zassert_equal(
         event_data->notificationParams.extended.extendedEventType, 55, NULL);
     zassert_equal(
         event_data->notificationParams.extended.parameters.tag,
         BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
     zassert_equal(
-        event_data->notificationParams.extended.parameters.type.Object_Id
-            .type,
+        event_data->notificationParams.extended.parameters.type.Object_Id.type,
         OBJECT_BINARY_INPUT, NULL);
     zassert_equal(
         event_data->notificationParams.extended.parameters.type.Object_Id
@@ -269,13 +265,11 @@ static void testAlert_Enrollment_Notification_Reporting(void)
     zassert_equal(event_data->timeStamp.value.dateTime.time.sec, 12, NULL);
     zassert_equal(
         event_data->timeStamp.value.dateTime.time.hundredths, 50, NULL);
-    zassert_equal(
-        event_data->notificationParams.extended.vendorID, 999, NULL);
+    zassert_equal(event_data->notificationParams.extended.vendorID, 999, NULL);
     zassert_equal(
         event_data->notificationParams.extended.extendedEventType, 77, NULL);
     zassert_equal(
-        event_data->notificationParams.extended.parameters.type.Object_Id
-            .type,
+        event_data->notificationParams.extended.parameters.type.Object_Id.type,
         OBJECT_ANALOG_INPUT, NULL);
     zassert_equal(
         event_data->notificationParams.extended.parameters.type.Object_Id
