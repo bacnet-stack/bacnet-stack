@@ -236,6 +236,10 @@ server-mini:
 server-segmentation:
 	$(MAKE) SEGMENT=true -s -C apps server
 
+.PHONY: timesync
+timesync:
+	$(MAKE) -s -C apps $@
+
 .PHONY: sc-hub
 sc-hub:
 	$(MAKE) BACDL=bsc -s -C apps $@
