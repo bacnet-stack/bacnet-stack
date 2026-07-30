@@ -28,6 +28,7 @@ static uint16_t Local_Network_Number;
 static uint8_t Local_Network_Number_Status = NETWORK_NUMBER_LEARNED;
 
 static i_am_router_to_network_function I_Am_Router_To_Network_Function;
+static network_number_is_function Network_Number_Is_Function;
 
 /**
  * @brief Set a handler function called for the I Am Router To Network message
@@ -38,6 +39,16 @@ void npdu_set_i_am_router_to_network_handler(
     i_am_router_to_network_function pFunction)
 {
     I_Am_Router_To_Network_Function = pFunction;
+}
+
+/**
+ * @brief Set a handler function called for the Network Number Is message
+ *
+ * @param pFunction  Pointer to the function
+ */
+void npdu_set_network_number_is_handler(network_number_is_function pFunction)
+{
+    Network_Number_Is_Function = pFunction;
 }
 
 /**
@@ -179,6 +190,9 @@ static void network_control_handler(
                 if (npdu_len >= 2) {
                     (void)decode_unsigned16(npdu, &dnet);
                     Local_Network_Number = dnet;
+                    if (Network_Number_Is_Function) {
+                        Network_Number_Is_Function(Local_Network_Number);
+                    }
                 }
                 if (npdu_len >= 3) {
                     status = npdu[2];
