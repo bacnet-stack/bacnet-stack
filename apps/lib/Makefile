@@ -166,6 +166,7 @@ BACNET_BASIC_SRC += \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/ucix/*.c)
 endif
 
+# NOTE: SRCS order matters for libbacnet.a when multiple objects provide the same symbols (e.g. datetime_*). Put port sources before basic sources so the port implementation is preferred.
 SRCS := $(BACNET_SRC) $(BACNET_PORT_SRC) $(BACNET_BASIC_SRC)
 
 OBJS = ${SRCS:.c=.o}

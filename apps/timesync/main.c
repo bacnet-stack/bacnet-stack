@@ -238,10 +238,27 @@ int main(int argc, char *argv[])
             use_utc = true;
         }
         if (strcmp(argv[argi], "--now") == 0) {
-            datetime_local(&bdate, &btime, NULL, NULL);
-            printf(
-                "%04u/%02u/%02u-%02u:%02u:%02u.%02u\n", bdate.year, bdate.month,
-                bdate.day, btime.hour, btime.min, btime.sec, btime.hundredths);
+            datetime_local(&bdate, &btime, &utc_offset_minutes, &dst_active);
+            if (use_utc) {
+                /* convert to UTC */
+                if (dst_active) {
+                    dst_adjust_minutes = -60;
+                }
+                datetime_set(&local_time, &bdate, &btime);
+                datetime_local_to_utc(
+                    &utc_time, &local_time, utc_offset_minutes,
+                    dst_adjust_minutes);
+                printf(
+                    "%04u/%02u/%02u-%02u:%02u:%02u.%02u\n", utc_time.date.year,
+                    utc_time.date.month, utc_time.date.day, utc_time.time.hour,
+                    utc_time.time.min, utc_time.time.sec,
+                    utc_time.time.hundredths);
+            } else {
+                printf(
+                    "%04u/%02u/%02u-%02u:%02u:%02u.%02u\n", bdate.year,
+                    bdate.month, bdate.day, btime.hour, btime.min, btime.sec,
+                    btime.hundredths);
+            }
             return 0;
         }
     }
