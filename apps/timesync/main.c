@@ -122,6 +122,9 @@ static void print_help(const char *filename)
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
+    printf("--now\n"
+           "Print the current date and time.\n");
+    printf("\n");
     printf("--debug S\n"
            "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
            "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
@@ -233,6 +236,13 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--utc") == 0) {
             use_utc = true;
+        }
+        if (strcmp(argv[argi], "--now") == 0) {
+            datetime_local(&bdate, &btime, NULL, NULL);
+            printf(
+                "%04u/%02u/%02u-%02u:%02u:%02u.%02u\n", bdate.year, bdate.month,
+                bdate.day, btime.hour, btime.min, btime.sec, btime.hundredths);
+            return 0;
         }
     }
     if (global_broadcast) {

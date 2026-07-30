@@ -166,7 +166,7 @@ BACNET_BASIC_SRC += \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/ucix/*.c)
 endif
 
-SRCS := $(BACNET_SRC) $(BACNET_BASIC_SRC) $(BACNET_PORT_SRC)
+SRCS := $(BACNET_SRC) $(BACNET_PORT_SRC) $(BACNET_BASIC_SRC)
 
 OBJS = ${SRCS:.c=.o}
 
