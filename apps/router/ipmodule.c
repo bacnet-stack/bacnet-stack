@@ -258,19 +258,20 @@ int dl_ip_send(
 }
 
 /* Validate BVLC framing and return PDU length, or -1 on error.
- * Requires received_bytes >= header_len, declared length == received_bytes. */
+ * Requires received_bytes >= header_len + 2, declared length == received_bytes.
+ */
 static int bvlc_parse(const uint8_t *buff, int received_bytes, int header_len)
 {
     uint16_t declared_len;
 
-    if (received_bytes < header_len) {
+    if (received_bytes < (header_len + 2)) {
         return -1;
     }
     (void)decode_unsigned16(&buff[2], &declared_len);
     if ((int)declared_len != received_bytes) {
         return -1;
     }
-    if (declared_len < (uint16_t)header_len) {
+    if (declared_len < (uint16_t)(header_len + 2)) {
         return -1;
     }
     return (int)declared_len - header_len;
