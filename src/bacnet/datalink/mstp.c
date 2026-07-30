@@ -556,13 +556,14 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     printf_receive_data(
                         "%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
-                    if (((mstp_port->Index + 1) < mstp_port->InputBufferSize) &&
-                        (mstp_port->FrameType >= Nmin_COBS_type) &&
+                    if ((mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
+                        /* decode in-place: FrameTooLong check ensures
+                           decoded output fits in InputBuffer */
                         mstp_port->DataLength = cobs_frame_decode(
-                            &mstp_port->InputBuffer[mstp_port->Index + 1],
-                            mstp_port->InputBufferSize - (mstp_port->Index + 1),
-                            mstp_port->InputBuffer, mstp_port->Index + 1);
+                            &mstp_port->InputBuffer[0],
+                            mstp_port->InputBufferSize, mstp_port->InputBuffer,
+                            mstp_port->Index + 1);
                         if (mstp_port->DataLength > 0) {
                             /* GoodCRC */
                             if (mstp_port->receive_state ==
