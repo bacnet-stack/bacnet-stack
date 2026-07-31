@@ -557,10 +557,10 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     printf_receive_data(
                         "%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
-#ifdef BACNET_MSTP_CRC_CHECK_SKIP
-                    mstp_port->ReceivedValidFrame = true;
-#else
-                    if ((mstp_port->FrameType >= Nmin_COBS_type) &&
+                    if (mstp_port->SkipCRC == true) {
+                        mstp_port->ReceivedValidFrame = true;
+                    } else if (
+                        (mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
                         /* decode the data in-place: FrameTooLong check
                            ensures decoded output fits in InputBuffer */
@@ -605,7 +605,6 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                                 mstp_port->DataRegister);
                         }
                     }
-#endif
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {
                     mstp_port->ReceivedInvalidFrame = true;
@@ -1873,6 +1872,7 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->SoleMaster = false;
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
+        mstp_port->SkipCRC = false;
         /* zero config */
         mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
     }
