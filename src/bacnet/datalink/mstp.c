@@ -562,10 +562,11 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
 #else
                     if ((mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
-                        /* decode in-place: FrameTooLong check ensures
-                           decoded output fits in InputBuffer */
+                        /* decode the data in-place: FrameTooLong check
+                           ensures decoded output fits in InputBuffer */
                         mstp_port->DataLength = cobs_frame_decode(
-                            mstp_port->InputBuffer, mstp_port->InputBufferSize,
+                            &mstp_port->InputBuffer[mstp_port->Index],
+                            mstp_port->InputBufferSize - mstp_port->Index,
                             mstp_port->InputBuffer, mstp_port->Index);
                         if (mstp_port->DataLength > 0) {
                             /* GoodCRC */
