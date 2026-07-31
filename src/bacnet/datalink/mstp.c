@@ -557,6 +557,9 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     printf_receive_data(
                         "%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
+#ifdef BACNET_MSTP_CRC_CHECK_SKIP
+                    mstp_port->ReceivedValidFrame = true;
+#else
                     if ((mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
                         /* decode in-place: FrameTooLong check ensures
@@ -602,6 +605,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                                 mstp_port->DataRegister);
                         }
                     }
+#endif
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {
                     mstp_port->ReceivedInvalidFrame = true;
