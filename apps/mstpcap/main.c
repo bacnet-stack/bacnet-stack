@@ -23,7 +23,6 @@
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/datalink/cobs.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/basic/sys/filename.h"
@@ -609,7 +608,6 @@ write_received_packet(struct mstp_port_struct_t *mstp_port, size_t header_len)
     uint8_t header[MSTP_HEADER_MAX] = { 0 }; /* MS/TP header */
     struct timeval tv;
     size_t max_data = 0;
-    uint16_t wire_data_length;
 
     gettimeofday(&tv, NULL);
     ts_sec = tv.tv_sec;
@@ -617,23 +615,13 @@ write_received_packet(struct mstp_port_struct_t *mstp_port, size_t header_len)
     if (mstp_port->ReceivedValidFrame) {
         packet_statistics(&tv, mstp_port);
     }
-    /* for COBS extended frames, cobs_frame_decode overwrites DataLength with
-       the decoded NPDU length; recover the wire value from Index */
-    if ((mstp_port->FrameType >= Nmin_COBS_type) &&
-        (mstp_port->FrameType <= Nmax_COBS_type) && (mstp_port->Index > 0) &&
-        (mstp_port->ReceivedValidFrame ||
-         (mstp_port->ReceivedInvalidFrame && (mstp_port->DataLength == 0)))) {
-        wire_data_length = (uint16_t)(mstp_port->Index - 1);
-    } else {
-        wire_data_length = mstp_port->DataLength;
-    }
     (void)data_write(&ts_sec, sizeof(ts_sec), 1);
     (void)data_write(&ts_usec, sizeof(ts_usec), 1);
     if (mstp_port->ReceivedInvalidFrame) {
         if (mstp_port->Index) {
             max_data = BACNET_MIN(mstp_port->InputBufferSize, mstp_port->Index);
-            if ((wire_data_length > 0) &&
-                (mstp_port->Index == (wire_data_length + 1))) {
+            if ((mstp_port->DataLength > 0) &&
+                (mstp_port->Index == (mstp_port->DataLength + 1))) {
                 /* case where index is not incremented for CRC2,
                     so only 1 for checksum */
                 data_crc_len = 1;
@@ -644,8 +632,9 @@ write_received_packet(struct mstp_port_struct_t *mstp_port, size_t header_len)
             incl_len = orig_len = header_len;
         }
     } else {
-        if (wire_data_length) {
-            max_data = BACNET_MIN(mstp_port->InputBufferSize, wire_data_length);
+        if (mstp_port->DataLength) {
+            max_data =
+                BACNET_MIN(mstp_port->InputBufferSize, mstp_port->DataLength);
             incl_len = orig_len = header_len + max_data + data_crc_len;
         } else {
             /* header only - or at least some bytes of the header */
@@ -665,8 +654,8 @@ write_received_packet(struct mstp_port_struct_t *mstp_port, size_t header_len)
         header[2] = mstp_port->FrameType;
         header[3] = mstp_port->DestinationAddress;
         header[4] = mstp_port->SourceAddress;
-        header[5] = HI_BYTE(wire_data_length);
-        header[6] = LO_BYTE(wire_data_length);
+        header[5] = HI_BYTE(mstp_port->DataLength);
+        header[6] = LO_BYTE(mstp_port->DataLength);
         header[7] = mstp_port->HeaderCRCActual;
     }
     (void)data_write(header, header_len, 1);
