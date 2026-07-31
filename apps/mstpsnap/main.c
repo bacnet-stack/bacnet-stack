@@ -25,6 +25,7 @@
 #include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/datalink/cobs.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
@@ -229,7 +230,7 @@ int main(int argc, char *argv[])
     filename = filename_remove_path(argv[0]);
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf(
-            "%f [serial] [baud] [network]\r\n"
+            "%s [serial] [baud] [network]\r\n"
             "Captures MS/TP packets from a serial interface\r\n"
             "and sends them to a network interface using SNAP \r\n"
             "protocol packets (mimics Cimetrics U+4 packet).\r\n"
@@ -299,6 +300,13 @@ int main(int argc, char *argv[])
         if (mstp_port->ReceivedValidFrame) {
             mstp_port->ReceivedValidFrame = false;
             snap_received_packet(mstp_port, sockfd);
+            /* tell us about any COBS frames */
+            if ((mstp_port->FrameType >= Nmin_COBS_type) &&
+                (mstp_port->FrameType <= Nmax_COBS_type)) {
+                fprintf(
+                    stderr, "ReceivedValidFrame-COBS DataLength=%d\n",
+                    mstp_port->DataLength);
+            }
             packet_count++;
         } else if (mstp_port->ReceivedValidFrameNotForUs) {
             mstp_port->ReceivedValidFrameNotForUs = false;
