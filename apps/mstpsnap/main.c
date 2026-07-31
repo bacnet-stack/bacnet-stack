@@ -1,27 +1,36 @@
-/**************************************************************************
+/**
+ * @file
+ * @brief command line tool to capture MS/TP packets from a serial
+ *  interface and send them to a network interface using SNAP
+ *  protocol packets (mimics Cimetrics U+4 packet).
  *
- * Copyright (C) 2008 Steve Karg
+ *  Run with `sudo ./mstsnap [serial] [baud] [network]`
  *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *  Use a Wireshark capture filter like: ether[0:4] == 0x00000000
  *
- *********************************************************************/
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#/* BACnet Stack defines - first */
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/basic/sys/bytes.h"
 #include "bacnet/basic/sys/compare.h"
+#include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/bacint.h"
+#include "bacnet/version.h"
 /* OS specific include*/
 #include "bacport.h"
 /* local includes */
@@ -41,6 +50,7 @@ static uint32_t Timer_Silence(void *pArg)
 {
     uint32_t delta_time = 0;
 
+    (void)pArg;
     delta_time = mstimer_elapsed(&Silence_Timer);
     if (delta_time > 0xFFFF) {
         delta_time = 0xFFFF;
@@ -51,6 +61,7 @@ static uint32_t Timer_Silence(void *pArg)
 
 static void Timer_Silence_Reset(void *pArg)
 {
+    (void)pArg;
     mstimer_set(&Silence_Timer, 0);
 }
 
@@ -96,35 +107,30 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 
 static int network_init(const char *name, int protocol)
 {
+    int sockfd;
+    struct ifreq ifr = { 0 };
+    struct sockaddr_ll sll = { 0 };
+
     /* check to see if we are being run as root */
     if (getuid() != 0) {
         fprintf(stderr, "Requires root priveleges.\n");
         return -1;
     }
-
-    int sockfd = socket(PF_PACKET, SOCK_RAW, htons(protocol));
-
+    sockfd = socket(PF_PACKET, SOCK_RAW, htons(protocol));
     if (sockfd == -1) {
         perror("Unable to create socket");
         return sockfd;
     }
-
-    struct ifreq ifr;
-
     memset(&ifr, 0, sizeof(ifr));
     snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", name);
     if (ioctl(sockfd, SIOCGIFINDEX, &ifr) == -1) {
         perror("Unable to get interface index");
         return -1;
     }
-
-    struct sockaddr_ll sll;
-
     memset(&sll, 0, sizeof(sll));
     sll.sll_family = AF_PACKET;
     sll.sll_ifindex = ifr.ifr_ifindex;
     sll.sll_protocol = htons(protocol);
-
     if (bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) == -1) {
         perror("Unable to bind socket");
         return -1;
@@ -140,6 +146,7 @@ snap_received_packet(const struct mstp_port_struct_t *mstp_port, int sockfd)
     unsigned i = 0; /* counter */
     static uint8_t mtu[1500] = { 0 };
     uint16_t max_data = 0;
+    size_t written = 0;
 
     mtu[0] = 0;
     mtu[1] = 0;
@@ -184,7 +191,8 @@ snap_received_packet(const struct mstp_port_struct_t *mstp_port, int sockfd)
     }
     /* Ethernet length is data only - not address or length bytes */
     encode_unsigned16(&mtu[12], mtu_len - 14);
-    (void)write(sockfd, &mtu[0], mtu_len);
+    written = write(sockfd, &mtu[0], mtu_len);
+    (void)written;
 }
 
 static void cleanup(void)
@@ -200,7 +208,7 @@ static void sig_int(int signo)
     exit(0);
 }
 
-void signal_init(void)
+static void signal_init(void)
 {
     signal(SIGINT, sig_int);
     signal(SIGHUP, sig_int);
@@ -216,23 +224,33 @@ int main(int argc, char *argv[])
     uint32_t packet_count = 0;
     int sockfd = -1;
     char *my_interface = "eth0";
+    const char *filename = NULL;
 
-    /* mimic our pointer in the state machine */
-    mstp_port = &MSTP_Port;
+    filename = filename_remove_path(argv[0]);
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("mstsnap [serial] [baud] [network]\r\n"
-               "Captures MS/TP packets from a serial interface\r\n"
-               "and sends them to a network interface using SNAP \r\n"
-               "protocol packets (mimics Cimetrics U+4 packet).\r\n"
-               "\r\n"
-               "Command line options:\r\n"
-               "[serial] - serial interface.\r\n"
-               "    defaults to /dev/ttyUSB0.\r\n"
-               "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
-               "    defaults to 38400.\r\n"
-               "[network] - network interface.\r\n"
-               "    defaults to eth0.\r\n"
-               "");
+        printf(
+            "%f [serial] [baud] [network]\r\n"
+            "Captures MS/TP packets from a serial interface\r\n"
+            "and sends them to a network interface using SNAP \r\n"
+            "protocol packets (mimics Cimetrics U+4 packet).\r\n"
+            "\r\n"
+            "Command line options:\r\n"
+            "[serial] - serial interface.\r\n"
+            "    defaults to /dev/ttyUSB0.\r\n"
+            "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
+            "    defaults to 38400.\r\n"
+            "[network] - network interface.\r\n"
+            "    defaults to eth0.\r\n",
+            filename);
+        return 0;
+    }
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2008 by Steve Karg\n"
+               "This is free software; see the source for copying "
+               "conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
         return 0;
     }
     /* initialize our interface */
@@ -255,12 +273,14 @@ int main(int argc, char *argv[])
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = 127;
+    MSTP_Port.This_Station = MSTP_BROADCAST_ADDRESS;
     MSTP_Port.Nmax_info_frames = 1;
     MSTP_Port.Nmax_master = 127;
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
+    mstp_port = &MSTP_Port;
     MSTP_Init(mstp_port);
+    MSTP_Port.SkipCRC = true;
     fprintf(
         stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long)RS485_Get_Baud_Rate());

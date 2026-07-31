@@ -288,7 +288,7 @@ endif
 
 ifeq (${BACNET_PORT},linux)
 ifneq (${OSTYPE},cygwin)
-SUBDIRS += mstpcap mstpcrc
+SUBDIRS += mstpcap mstpcrc mstpsnap
 endif
 endif
 
@@ -425,6 +425,10 @@ mstpcap:
 
 .PHONY: mstpcrc
 mstpcrc:
+	$(MAKE) -B -C $@
+
+.PHONY: mstpsnap
+mstpsnap:
 	$(MAKE) -B -C $@
 
 .PHONY: piface
