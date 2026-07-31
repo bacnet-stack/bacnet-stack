@@ -62,6 +62,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_noserv.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
+	$(BACNET_BASIC)/service/s_upt.c \
 	$(BACNET_BASIC)/sys/bsramfs.c \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/datetime_mstimer.c \
@@ -100,6 +101,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/proplist.c \
+	$(BACNET_CORE)/ptransfer.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
@@ -179,7 +181,7 @@ OPTIMIZE_FLAGS += -DNDEBUG
 
 BACNET_FLAGS = -DBACDL_MSTP=
 # note: MS/TP extended frames can be up to MAX_APDU=1476 bytes
-BACNET_FLAGS += -DMAX_APDU=480
+BACNET_FLAGS += -DMAX_APDU=1476
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
