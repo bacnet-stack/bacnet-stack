@@ -673,8 +673,8 @@ static void testReceiveNodeFSM_COBS_Decode_TightBuffer(void)
 
     cobs_len = (((unsigned)frame[5]) << 8) | frame[6];
     cobs_len += 2;
-    /* tight_size: just enough for COBS raw bytes; in-place decode still
-       succeeds because decoded output <= cobs_len and guard bytes are safe */
+    /* tight_size: enough for wire bytes plus almost no decode destination.
+        This should fail decode but must not overwrite guard bytes. */
     tight_size = cobs_len + 1;
     zassert_true(tight_size < sizeof(rx_tight), NULL);
 
@@ -700,17 +700,10 @@ static void testReceiveNodeFSM_COBS_Decode_TightBuffer(void)
         MSTP_Receive_Frame_FSM(&mstp_port);
     }
 
-    /* in-place decode writes decoded NPDU to InputBuffer[0..DataLength-1] */
-    zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
-    zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
+    /* Decode destination space is intentionally too small. */
+    zassert_true(mstp_port.ReceivedValidFrame == false, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == true, NULL);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
-    zassert_true(mstp_port.DataLength == sizeof(payload), NULL);
-    for (i = 0; i < sizeof(payload); i++) {
-        zassert_true(
-            mstp_port.InputBuffer[i] == payload[i],
-            "decoded payload[%u]: got 0x%02X expected 0x%02X", i,
-            mstp_port.InputBuffer[i], payload[i]);
-    }
     /* guard bytes must be untouched */
     for (i = guard_start; i < (guard_start + 8); i++) {
         zassert_true(rx_tight[i] == 0xA5, NULL);
@@ -726,6 +719,7 @@ static void testReceiveNodeFSM_COBS_Large_Frame(void)
        that previously failed with the off-buffer decode destination */
     uint8_t payload[Nmin_COBS_length_BACnet] = { 0 };
     unsigned len;
+    unsigned cobs_len;
     unsigned i;
 
     for (i = 0; i < sizeof(payload); i++) {
@@ -741,6 +735,8 @@ static void testReceiveNodeFSM_COBS_Large_Frame(void)
         FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY, my_mac, my_mac,
         payload, sizeof(payload));
     zassert_true(len > 0, NULL);
+    cobs_len = (((unsigned)frame[5]) << 8) | frame[6];
+    cobs_len += 2;
 
     mstp_port.InputBuffer = &RxBuffer[0];
     mstp_port.InputBufferSize = sizeof(RxBuffer);
@@ -764,11 +760,13 @@ static void testReceiveNodeFSM_COBS_Large_Frame(void)
     zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
     zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
     zassert_true(mstp_port.DataLength == sizeof(payload), NULL);
+    zassert_true(
+        (cobs_len + sizeof(payload)) <= mstp_port.InputBufferSize, NULL);
     for (i = 0; i < sizeof(payload); i++) {
         zassert_true(
-            mstp_port.InputBuffer[i] == payload[i],
+            mstp_port.InputBuffer[cobs_len + i] == payload[i],
             "large frame decoded payload[%u]: got 0x%02X expected 0x%02X", i,
-            mstp_port.InputBuffer[i], payload[i]);
+            mstp_port.InputBuffer[cobs_len + i], payload[i]);
     }
 }
 
