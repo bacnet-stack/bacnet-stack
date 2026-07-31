@@ -546,13 +546,14 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     /* SKIP_DATA or DATA - no change in state */
                 } else if (mstp_port->Index == (mstp_port->DataLength + 1)) {
                     /* CRC2 */
+                    mstp_port->DataCRC = CRC_Calc_Data(
+                        mstp_port->DataRegister, mstp_port->DataCRC);
+                    mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
                     if (mstp_port->Index < mstp_port->InputBufferSize) {
                         mstp_port->InputBuffer[mstp_port->Index] =
                             mstp_port->DataRegister;
                     }
-                    mstp_port->DataCRC = CRC_Calc_Data(
-                        mstp_port->DataRegister, mstp_port->DataCRC);
-                    mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
+                    mstp_port->Index++;
                     printf_receive_data(
                         "%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
@@ -563,7 +564,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port->DataLength = cobs_frame_decode(
                             &mstp_port->InputBuffer[0],
                             mstp_port->InputBufferSize, mstp_port->InputBuffer,
-                            mstp_port->Index + 1);
+                            mstp_port->Index);
                         if (mstp_port->DataLength > 0) {
                             /* GoodCRC */
                             if (mstp_port->receive_state ==
