@@ -592,6 +592,9 @@ bool Accumulator_Out_Of_Service_Set(uint32_t object_instance, bool value)
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
+        if (pObject->Out_Of_Service != value) {
+            pObject->Changed = true;
+        }
         pObject->Out_Of_Service = value;
         status = true;
     }
