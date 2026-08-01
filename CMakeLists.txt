@@ -1076,7 +1076,6 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACDL_MSTP)
     add_executable(mstpcap apps/mstpcap/main.c)
     target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
-    target_compile_definitions(mstpcap PRIVATE BACNET_MSTP_CRC_CHECK_SKIP)
     target_compile_options(mstpcap PRIVATE
       # NOTE: Might be that this example currently doesn't work on Windows because
       # of the following warning:

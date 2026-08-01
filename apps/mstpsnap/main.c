@@ -4,7 +4,7 @@
  *  interface and send them to a network interface using SNAP
  *  protocol packets (mimics Cimetrics U+4 packet).
  *
- *  Run with `sudo ./mstsnap [serial] [baud] [network]`
+ *  Run with `sudo ./bin/mstpsnap [serial] [baud] [network]`
  *
  *  Use a Wireshark capture filter like: ether[0:4] == 0x00000000
  *
@@ -126,6 +126,7 @@ static int network_init(const char *name, int protocol)
     snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", name);
     if (ioctl(sockfd, SIOCGIFINDEX, &ifr) == -1) {
         perror("Unable to get interface index");
+        close(sockfd);
         return -1;
     }
     memset(&sll, 0, sizeof(sll));
@@ -134,6 +135,7 @@ static int network_init(const char *name, int protocol)
     sll.sll_protocol = htons(protocol);
     if (bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) == -1) {
         perror("Unable to bind socket");
+        close(sockfd);
         return -1;
     }
 
@@ -283,7 +285,7 @@ int main(int argc, char *argv[])
     MSTP_Init(mstp_port);
     MSTP_Port.SkipCRC = true;
     fprintf(
-        stdout, "mstpcap: Using %s for capture at %ld bps.\n",
+        stdout, "%s: Using %s for capture at %ld bps.\n", filename,
         RS485_Interface(), (long)RS485_Get_Baud_Rate());
     atexit(cleanup);
 #if defined(_WIN32)
