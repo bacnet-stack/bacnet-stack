@@ -657,7 +657,6 @@ write_received_packet(struct mstp_port_struct_t *mstp_port, size_t header_len)
         header[5] = HI_BYTE(mstp_port->DataLength);
         header[6] = LO_BYTE(mstp_port->DataLength);
         header[7] = mstp_port->HeaderCRCActual;
-        header_len = 8;
     }
     (void)data_write(header, header_len, 1);
     if (max_data) {
