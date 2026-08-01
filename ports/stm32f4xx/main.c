@@ -96,7 +96,11 @@ static const char UBASIC_Program_4[] =
     /* program listing with either \0, \n, or ';' at the end of each line.
        note: indentation is not required */
     "println 'Demo - Many BACnet Objects';"
+#if MAX_APDU > 480
     "n = 60;"
+#else
+    "n = 20;"
+#endif
     "for i = 1 to n;"
     "  bac_create(2, i, 'AV-' + str$(i));"
     "next i;"

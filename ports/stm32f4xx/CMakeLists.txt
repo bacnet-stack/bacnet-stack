@@ -259,7 +259,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DSTM32F4XX
     -DBACDL_MSTP
     # note: MS/TP extended frames can be up to MAX_APDU=1476 bytes
-    -DMAX_APDU=1476
+    -DMAX_APDU=480
     -DBIG_ENDIAN=0
     -DMAX_TSM_TRANSACTIONS=1
     -DBACAPP_MINIMAL
