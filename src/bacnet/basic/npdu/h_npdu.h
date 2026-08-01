@@ -61,6 +61,12 @@ BACNET_STACK_EXPORT
 void npdu_set_i_am_router_to_network_handler(
     i_am_router_to_network_function pFunction);
 
+/* Network Number Is function */
+typedef void (*network_number_is_function)(uint16_t network);
+
+BACNET_STACK_EXPORT
+void npdu_set_network_number_is_handler(network_number_is_function pFunction);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
