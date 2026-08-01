@@ -564,10 +564,15 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
                         /* decode the data in-place: FrameTooLong check
                            ensures decoded output fits in InputBuffer */
-                        mstp_port->DataLength = cobs_frame_decode(
-                            &mstp_port->InputBuffer[mstp_port->Index],
-                            mstp_port->InputBufferSize - mstp_port->Index,
-                            mstp_port->InputBuffer, mstp_port->Index);
+                        if (mstp_port->Index < mstp_port->InputBufferSize) {
+                            mstp_port->DataLength = cobs_frame_decode(
+                                &mstp_port->InputBuffer[mstp_port->Index],
+                                mstp_port->InputBufferSize - mstp_port->Index,
+                                mstp_port->InputBuffer, mstp_port->Index);
+                        } else {
+                            /* FrameTooLong */
+                            mstp_port->DataLength = 0;
+                        }
                         if (mstp_port->DataLength > 0) {
                             /* GoodCRC */
                             if (mstp_port->receive_state ==
