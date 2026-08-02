@@ -408,8 +408,8 @@ xplained-clean: ports/xplained/Makefile
 	$(MAKE) -s -C ports/xplained clean
 
 .PHONY: mstpsnap
-mstpsnap: ports/linux/mstpsnap.mak
-	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
+mstpsnap:
+	$(MAKE) -s -C apps $@
 
 .PHONY: gtk-discover
 gtk-discover:
@@ -577,7 +577,6 @@ clean: ports-clean
 	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
-	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean
 	$(MAKE) -s -C ports/linux -f dlmstp.mak clean
 	rm -rf ./build
 

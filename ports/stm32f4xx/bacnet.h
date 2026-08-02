@@ -14,8 +14,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void bacnet_init(void);
+void bacnet_task_timed(void);
 void bacnet_task(void);
+void bacnet_init(void);
 
 #ifdef __cplusplus
 }

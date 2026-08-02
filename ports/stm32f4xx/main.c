@@ -18,18 +18,21 @@
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/program.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/bsramfs.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstp.h"
+#include "bacnet/ptransfer.h"
 #include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
 #include "program-ubasic.h"
 
 /* MS/TP port */
+static struct mstimer_callback_data_t BACnet_Callback;
 static struct mstp_port_struct_t MSTP_Port;
 static struct dlmstp_rs485_driver RS485_Driver = {
     .init = rs485_init,
@@ -44,7 +47,7 @@ static struct dlmstp_rs485_driver RS485_Driver = {
 static struct dlmstp_user_data_t MSTP_User_Data;
 static uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
 static uint8_t Output_Buffer[DLMSTP_MPDU_MAX];
-static const char *UBASIC_Program_1 =
+static const char UBASIC_Program_1[] =
     /* program listing with either \0, \n, or ';' at the end of each line.
        note: indentation is not required */
     "println 'Demo - GPIO';"
@@ -53,9 +56,9 @@ static const char *UBASIC_Program_1 =
     "  sleep (0.3);"
     "  dwrite(3, 0);"
     "  sleep (0.3);"
-    "goto loop;"
+    "  goto loop;"
     "end;";
-static const char *UBASIC_Program_2 =
+static const char UBASIC_Program_2[] =
     /* program listing with either \0, \n, or ';' at the end of each line.
        note: indentation is not required */
     "println 'Demo - GPIO';"
@@ -64,16 +67,16 @@ static const char *UBASIC_Program_2 =
     "  sleep (0.5);"
     "  dwrite(2, 0);"
     "  sleep (0.1);"
-    "goto loop;"
+    "  goto loop;"
     "end;";
-static const char *UBASIC_Program_3 =
+static const char UBASIC_Program_3[] =
     /* program listing with either \0, \n, or ';' at the end of each line.
        note: indentation is not required */
     "println 'Demo - BACnet & GPIO';"
     "bac_create(0, 1, 'ADC-1-AVG');"
     "bac_create(0, 2, 'ADC-2-AVG');"
     "bac_create(0, 3, 'ADC-1-RAW');"
-    "bac_create(0, 4, 'ADC-3-RAW');"
+    "bac_create(0, 4, 'ADC-2-RAW');"
     "bac_create(4, 1, 'LED-1');"
     ":startover;"
     "  a = aread(1);"
@@ -87,11 +90,87 @@ static const char *UBASIC_Program_3 =
     "  h = bac_read(4, 1, 85);"
     "  dwrite(1, (h % 2));"
     "  sleep (0.2);"
-    "goto startover;"
+    "  goto startover;"
+    "end;";
+static const char UBASIC_Program_4[] =
+    /* program listing with either \0, \n, or ';' at the end of each line.
+       note: indentation is not required */
+    "println 'Demo - Many BACnet Objects';"
+#if MAX_APDU > 480
+    "n = 60;"
+#else
+    "n = 20;"
+#endif
+    "for i = 1 to n;"
+    "  bac_create(2, i, 'AV-' + str$(i));"
+    "next i;"
+    ":loop;"
+    "  for j = 1 to n;"
+    "    a = uniform;"
+    "    bac_write(2, j, 85, a);"
+    "  next j;"
+    "  sleep (1.0);"
+    "  goto loop;"
     "end;";
 /* uBASIC data tree for each program running */
-static struct ubasic_data UBASIC_Data[3];
-static struct bacnet_file_sramfs_data Static_Files[3];
+static struct ubasic_data UBASIC_Data[4];
+static struct bacnet_file_sramfs_data Static_Files[] = {
+    { .data = UBASIC_Program_1,
+      .size = sizeof(UBASIC_Program_1),
+      .pathname = "/program1.bas" },
+    { .data = UBASIC_Program_2,
+      .size = sizeof(UBASIC_Program_2),
+      .pathname = "/program2.bas" },
+    { .data = UBASIC_Program_3,
+      .size = sizeof(UBASIC_Program_3),
+      .pathname = "/program3.bas" },
+    { .data = UBASIC_Program_4,
+      .size = sizeof(UBASIC_Program_4),
+      .pathname = "/program4.bas" }
+};
+
+#ifdef PORTS_STM32_EXTENDED_FRAMES_TEST
+/* timer for extended frames task */
+static struct mstimer Extended_Frames_Timer;
+/* buffer for UnconfirmedPrivateTransfer parameters */
+static uint8_t Service_Parameters[MAX_APDU];
+static BACNET_CHARACTER_STRING Service_Character_String;
+static BACNET_ADDRESS Target_Address;
+/**
+ * @brief Task to send extended frames using UnconfirmedPrivateTransfer
+ */
+static void extended_frames_task(void)
+{
+    BACNET_PRIVATE_TRANSFER_DATA private_data = { 0 };
+    const char *fill_string = "0123456789ABCDEF";
+
+    if (mstimer_interval(&Extended_Frames_Timer) == 0) {
+        mstimer_set(&Extended_Frames_Timer, 10000);
+    }
+    if (!mstimer_expired(&Extended_Frames_Timer)) {
+        return;
+    }
+    mstimer_reset(&Extended_Frames_Timer);
+    datalink_get_broadcast_address(&Target_Address);
+    /* fill the buffer with large characterstring */
+    characterstring_init_ansi(&Service_Character_String, "");
+    while (characterstring_append(
+        &Service_Character_String, fill_string, strlen(fill_string))) {
+        /* keep appending until buffer is mostly full */
+        private_data.serviceParametersLen =
+            bacnet_character_string_application_encode(
+                &Service_Parameters[0], sizeof(Service_Parameters),
+                &Service_Character_String);
+        if (private_data.serviceParametersLen > 1200) {
+            break;
+        }
+    }
+    private_data.serviceParameters = &Service_Parameters[0];
+    private_data.vendorID = BACNET_VENDOR_ID;
+    private_data.serviceNumber = 0;
+    Send_UnconfirmedPrivateTransfer(&Target_Address, &private_data);
+}
+#endif
 
 /**
  * @brief Called from _write() function from printf and friends
@@ -157,6 +236,8 @@ int main(void)
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
     dlmstp_init((const char *)&MSTP_Port);
+    /* always send reply-postponed */
+    MSTP_Port.Treply_delay = 0;
     if (MSTP_Port.ZeroConfigEnabled) {
         /* set node to monitor address */
         dlmstp_set_mac_address(255);
@@ -174,15 +255,6 @@ int main(void)
     /* configure the program object and loop time */
     Program_UBASIC_Init(10);
     /* create the uBASIC programs and link to file objects */
-    Static_Files[0].data = (char *)UBASIC_Program_1;
-    Static_Files[0].size = strlen(UBASIC_Program_1);
-    Static_Files[0].pathname = "/program1.bas";
-    Static_Files[1].data = (char *)UBASIC_Program_2;
-    Static_Files[1].size = strlen(UBASIC_Program_2);
-    Static_Files[1].pathname = "/program2.bas";
-    Static_Files[2].data = (char *)UBASIC_Program_3;
-    Static_Files[2].size = strlen(UBASIC_Program_3);
-    Static_Files[2].pathname = "/program3.bas";
     for (i = 0; i < ARRAY_SIZE(Static_Files); i++) {
         bacfile_create(1 + i);
         bacfile_pathname_set(1 + i, Static_Files[i].pathname);
@@ -191,10 +263,15 @@ int main(void)
         Program_UBASIC_Create(1 + i, &UBASIC_Data[i], Static_Files[i].data);
         Program_Instance_Of_Set(1 + i, Static_Files[i].pathname);
     }
+    /* realtime task */
+    mstimer_callback(&BACnet_Callback, bacnet_task_timed, 5);
     /* loop forever */
     for (;;) {
         led_task();
         bacnet_task();
         Program_UBASIC_Task();
+#ifdef PORTS_STM32_EXTENDED_FRAMES_TEST
+        extended_frames_task();
+#endif
     }
 }
