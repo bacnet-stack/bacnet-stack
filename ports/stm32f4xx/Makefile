@@ -217,7 +217,7 @@ CFLAGS += $(INCLUDES)
 # enable garbage collection of unused functions and data to shrink binary
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 # enable stack usage tracking
-CFLAGS += -fstack-usage -fdump-rtl-dfinish
+CFLAGS += -fstack-usage
 # function calls will not use any special __builtin_xx to allow debug/linking
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
@@ -256,6 +256,8 @@ ODFLAGS	= -x --syms
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
 CSTACK = $(CSRC:.c=.su)
+CDFINISH = $(wildcard $(CSRC:.c=.*.dfinish))
+CSU = $(wildcard $(CSRC:.c=.*.su))
 
 all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
@@ -346,9 +348,11 @@ install: $(TARGET).bin
 clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
 	-rm -rf $(CSTACK) $(CEXPAND)
+	-rm -rf $(CDFINISH) $(CSU)
 	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
 	-rm -rf $(TARGET).su $(TARGET).nm
 	-rm -rf *.lst
+	-find . -name "*.dfinish" -delete
 
 ## Other dependencies
 -include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
