@@ -172,9 +172,11 @@ SIZE = $(PREFIX)size
 LDSCRIPT = $(PLATFORM_DIR)/stm32f4xx.ld
 
 MCU_FLAGS = -mcpu=cortex-m4
-MCU_FLAGS += -mthumb -mabi=aapcs
-MCU_FLAGS += -mno-thumb-interwork
-MCU_FLAGS += -DUSE_STDPERIPH_DRIVER
+MCU_FLAGS += -mthumb -mthumb-interwork
+MCU_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+
+SDK_FLAGS = -DUSE_STDPERIPH_DRIVER
+SDK_FLAGS += -DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING
 
 OPTIMIZE_FLAGS := -Os -ggdb
 OPTIMIZE_FLAGS += -DNDEBUG
@@ -208,17 +210,18 @@ BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
 CFLAGS += $(MCU_FLAGS)
+CFLAGS += $(SDK_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)
 CFLAGS += $(BACNET_FLAGS)
 CFLAGS += $(INCLUDES)
 # enable garbage collection of unused functions and data to shrink binary
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 # enable stack usage tracking
-CFLAGS += -fstack-usage
+CFLAGS += -fstack-usage -fdump-rtl-dfinish
 # function calls will not use any special __builtin_xx to allow debug/linking
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
-CFLAGS += -fno-common
+CFLAGS += -fno-common -fmessage-length=0
 # enable all relevant warnings that find bugs
 WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
 WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
@@ -243,8 +246,8 @@ AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 
 #Set the linker flags
 #  -Wl,<options> Pass comma-separated <options> on to the linker
-LIBRARIES=-lc,-lgcc,-lm
-LDFLAGS = -nostartfiles
+LIBRARIES=-lc,-lgcc,-lm,-lnosys
+LDFLAGS = -specs=nano.specs $(MCU_FLAGS)
 LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
 # dead code removal
 LDFLAGS += -Wl,--gc-sections,-static
