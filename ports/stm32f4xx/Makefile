@@ -179,9 +179,11 @@ MCU_FLAGS += -DUSE_STDPERIPH_DRIVER
 OPTIMIZE_FLAGS := -Os -ggdb
 OPTIMIZE_FLAGS += -DNDEBUG
 
+MAX_APDU ?= 480
+
 BACNET_FLAGS = -DBACDL_MSTP=
 # note: MS/TP extended frames can be up to MAX_APDU=1476 bytes
-BACNET_FLAGS += -DMAX_APDU=480
+BACNET_FLAGS += -DMAX_APDU=$(MAX_APDU)
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
@@ -298,6 +300,11 @@ openocd:
 
 flash: $(TARGET).elf
 	openocd $(OPENOCD_FLAGS) -c "program $< verify reset" -c "shutdown"
+
+# MS/TP extended frames build (MAX_APDU=1476)
+.PHONY: extended
+extended:
+	$(MAKE) MAX_APDU=1476
 
 # graphical GDB debugging tool
 # note: relies on .gdbinit containing:
