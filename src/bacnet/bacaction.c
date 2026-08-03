@@ -693,3 +693,65 @@ bool bacnet_action_command_same(
 
     return true;
 }
+
+/**
+ * @brief Encode a BACnetActionList as a flat sequence of action commands.
+ * @param apdu [out] Buffer or NULL for length-only.
+ * @param list [in] Head of linked list; NULL encodes an empty list (0 bytes).
+ * @return encoded byte count, or BACNET_STATUS_ERROR on encode failure.
+ */
+int bacnet_action_list_encode(uint8_t *apdu, const BACNET_ACTION_LIST *list)
+{
+    int apdu_len = 0;
+    int len;
+    const BACNET_ACTION_LIST *entry;
+    uint8_t *p = apdu;
+
+    for (entry = list; entry; entry = entry->next) {
+        len = bacnet_action_command_encode(p, entry);
+        if (len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (p) {
+            p += len;
+        }
+    }
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a flat sequence of action commands, calling @p store_fn each.
+ * @param apdu [in] Buffer of concatenated BACnetActionCommand encodings.
+ * @param apdu_size [in] Number of bytes available.
+ * @param store_fn [in] Called per decoded entry; return false to abort.
+ * @param ctx [in] Caller context passed to store_fn.
+ * @return total bytes consumed (0 for empty buffer), or BACNET_STATUS_ERROR.
+ */
+int bacnet_action_list_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    bacnet_action_list_store_fn store_fn,
+    void *ctx)
+{
+    int apdu_len = 0;
+    int len;
+    BACNET_ACTION_LIST entry;
+
+    if (!apdu && (apdu_size > 0)) {
+        return BACNET_STATUS_ERROR;
+    }
+    while ((size_t)apdu_len < apdu_size) {
+        len = bacnet_action_command_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, &entry);
+        if (len <= 0) {
+            /* trailing bytes that don't form a valid command */
+            return BACNET_STATUS_ERROR;
+        }
+        if (store_fn && !store_fn(&entry, ctx)) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+    }
+    return apdu_len;
+}

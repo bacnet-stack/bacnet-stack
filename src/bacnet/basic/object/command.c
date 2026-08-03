@@ -984,11 +984,11 @@ bool Command_Action_List_Element_Same(
 static int Command_Action_List_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
 {
-    int apdu_len = 0;
-    int len;
     struct object_data *pObject;
     OS_Keylist inner;
-    BACNET_ACTION_LIST *pAction;
+    BACNET_ACTION_LIST *head = NULL;
+    BACNET_ACTION_LIST *prev = NULL;
+    BACNET_ACTION_LIST *cur;
     unsigned count;
     unsigned i;
 
@@ -1000,58 +1000,42 @@ static int Command_Action_List_Encode(
     if (!inner) {
         return BACNET_STATUS_ERROR;
     }
+    /* build a linked list of non-empty entries for encoding */
     count = Keylist_Count(inner);
     for (i = 0; i < count; i++) {
-        pAction = Keylist_Data(inner, (KEY)i);
-        if (!pAction || Action_Entry_Empty(pAction)) {
+        cur = Keylist_Data(inner, (KEY)i);
+        if (!cur || Action_Entry_Empty(cur)) {
             continue;
         }
-        len = bacnet_action_command_encode(
-            apdu ? &apdu[apdu_len] : NULL, pAction);
-        if (len < 0) {
-            return BACNET_STATUS_ERROR;
+        cur->next = NULL;
+        if (!head) {
+            head = cur;
         }
-        apdu_len += len;
+        if (prev) {
+            prev->next = cur;
+        }
+        prev = cur;
     }
-    return apdu_len;
+    return bacnet_action_list_encode(apdu, head);
 }
 
 /**
- * @brief Decode one BACnetARRAY element (a list of action commands) for length.
- * @param object_instance [in] BACnet object instance number.
- * @param apdu [in] Buffer containing encoded list.
- * @param apdu_size [in] Size of buffer.
- * @return total bytes consumed, or BACNET_STATUS_ERROR.
+ * @brief Decode one BACnetARRAY element (a list) to determine its byte length.
  */
 static int Command_Action_List_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    int len;
-    int total = 0;
-
+    /* returns one command's byte length for BACNET_ARRAY_ALL slot partitioning
+     */
     if (!Object_Data(object_instance)) {
         return BACNET_STATUS_ERROR;
     }
-    while ((size_t)total < apdu_size) {
-        len =
-            bacnet_action_command_decode(&apdu[total], apdu_size - total, NULL);
-        if (len <= 0) {
-            break;
-        }
-        total += len;
-    }
-    return (total > 0) ? total : BACNET_STATUS_ERROR;
+    return bacnet_action_command_decode(apdu, apdu_size, NULL);
 }
 
 /**
  * @brief Write one BACnetARRAY element: resize (index 0) or replace a list
  * slot.
- * @param object_instance [in] BACnet object instance number.
- * @param array_index [in] 0 to resize; 1..N to replace that slot's list.
- * @param array_size [in] New array size when array_index == 0.
- * @param apdu [in] Encoded list of action commands.
- * @param apdu_size [in] Size of encoded data.
- * @return BACNET_ERROR_CODE value.
  */
 static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     uint32_t object_instance,
@@ -1060,7 +1044,6 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     uint8_t *apdu,
     size_t apdu_size)
 {
-    BACNET_ERROR_CODE error_code;
     BACNET_ACTION_LIST action = { 0 };
     BACNET_ACTION_LIST *data;
     OS_Keylist inner;
@@ -1084,32 +1067,39 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     if (!inner) {
         return ERROR_CODE_INVALID_ARRAY_INDEX;
     }
+
+    /* first pass: validate all commands before modifying stored state */
+    offset = 0;
+    while (offset < apdu_size) {
+        len = bacnet_action_command_decode(
+            &apdu[offset], apdu_size - offset, NULL);
+        if (len <= 0) {
+            return ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        offset += len;
+    }
+
+    /* second pass: purge then store validated commands in-place */
     Action_Inner_List_Purge(inner);
     offset = 0;
     key = 0;
-    error_code = ERROR_CODE_SUCCESS;
     while (offset < apdu_size) {
         len = bacnet_action_command_decode(
             &apdu[offset], apdu_size - offset, &action);
-        if (len <= 0) {
-            break;
-        }
         data = calloc(1, sizeof(BACNET_ACTION_LIST));
         if (!data) {
-            error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-            break;
+            return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
         memmove(data, &action, sizeof(BACNET_ACTION_LIST));
         data->next = NULL;
         if (Keylist_Data_Add(inner, key, data) < 0) {
             free(data);
-            error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-            break;
+            return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
         key++;
         offset += len;
     }
-    return error_code;
+    return ERROR_CODE_SUCCESS;
 }
 
 /**
@@ -1439,11 +1429,6 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_BUSY;
                 return false;
             }
-            if (wp_data->array_index == BACNET_ARRAY_ALL) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                return false;
-            }
             array_size = Command_Action_Array_Count(wp_data->object_instance);
             wp_data->error_code = bacnet_array_write_resizable(
                 wp_data->object_instance, wp_data->array_index,
@@ -1452,6 +1437,8 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data, wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
             }
             break;
         default:
