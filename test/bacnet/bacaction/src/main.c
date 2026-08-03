@@ -12,6 +12,30 @@
 #include "bacnet/bacaction.h"
 #include "bacnet/bacdcode.h"
 
+typedef struct BACnetActionStoreContext {
+    BACNET_ACTION_LIST entries[4];
+    size_t count;
+} BACNET_ACTION_STORE_CONTEXT;
+
+static bool
+bacnet_action_store_entry(const BACNET_ACTION_LIST *entry, void *ctx)
+{
+    BACNET_ACTION_STORE_CONTEXT *store = ctx;
+
+    if (!entry || !store) {
+        return false;
+    }
+    if (store->count >= (sizeof(store->entries) / sizeof(store->entries[0]))) {
+        return false;
+    }
+
+    store->entries[store->count] = *entry;
+    store->entries[store->count].next = NULL;
+    store->count++;
+
+    return true;
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(BACnetAction_Tests, test_BACnetActionPropertyValue)
 #else
@@ -154,13 +178,80 @@ static void test_BACnetActionCommandConstructedValue(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetAction_Tests, test_BACnetActionListEncodeDecode)
+#else
+static void test_BACnetActionListEncodeDecode(void)
+#endif
+{
+    BACNET_ACTION_LIST in[2] = { 0 };
+    BACNET_ACTION_STORE_CONTEXT out = { 0 };
+    BACNET_CHARACTER_STRING cs = { 0 };
+    uint8_t payload[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int payload_len = 0;
+    int apdu_len = 0;
+    int len = 0;
+
+    characterstring_init_ansi(&cs, "action-list-entry-1");
+    payload_len = encode_application_character_string(payload, &cs);
+    zassert_true(payload_len > 0, NULL);
+
+    in[0].Device_Id.type = OBJECT_DEVICE;
+    in[0].Device_Id.instance = 100;
+    in[0].Object_Id.type = OBJECT_ANALOG_VALUE;
+    in[0].Object_Id.instance = 200;
+    in[0].Property_Identifier = PROP_PRESENT_VALUE;
+    in[0].Property_Array_Index = BACNET_ARRAY_ALL;
+    in[0].Priority = BACNET_MIN_PRIORITY;
+    in[0].Post_Delay = 5;
+    in[0].Quit_On_Failure = true;
+    in[0].Write_Successful = true;
+    in[0].Property_Value.data_len = (uint16_t)payload_len;
+    memcpy(in[0].Property_Value.data, payload, (size_t)payload_len);
+
+    payload_len = encode_application_unsigned(payload, 42);
+    zassert_true(payload_len > 0, NULL);
+
+    in[1].Device_Id.type = OBJECT_DEVICE;
+    in[1].Device_Id.instance = 101;
+    in[1].Object_Id.type = OBJECT_BINARY_VALUE;
+    in[1].Object_Id.instance = 201;
+    in[1].Property_Identifier = PROP_PRIORITY_ARRAY;
+    in[1].Property_Array_Index = 3;
+    in[1].Priority = 3;
+    in[1].Post_Delay = 0;
+    in[1].Quit_On_Failure = false;
+    in[1].Write_Successful = false;
+    in[1].Property_Value.data_len = (uint16_t)payload_len;
+    memcpy(in[1].Property_Value.data, payload, (size_t)payload_len);
+
+    in[0].next = &in[1];
+
+    zassert_equal(bacnet_action_list_encode(apdu, NULL), 0, NULL);
+
+    apdu_len = bacnet_action_list_encode(apdu, &in[0]);
+    zassert_true(apdu_len > 0, NULL);
+
+    len = bacnet_action_list_decode(apdu, (size_t)apdu_len, NULL, NULL);
+    zassert_equal(len, apdu_len, NULL);
+
+    len = bacnet_action_list_decode(
+        apdu, (size_t)apdu_len, bacnet_action_store_entry, &out);
+    zassert_equal(len, apdu_len, NULL);
+    zassert_equal(out.count, 2, NULL);
+    zassert_true(bacnet_action_command_same(&in[0], &out.entries[0]), NULL);
+    zassert_true(bacnet_action_command_same(&in[1], &out.entries[1]), NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(BACnetAction_Tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
     ztest_test_suite(
         BACnetAction_Tests, ztest_unit_test(test_BACnetActionPropertyValue),
-        ztest_unit_test(test_BACnetActionCommandConstructedValue));
+        ztest_unit_test(test_BACnetActionCommandConstructedValue),
+        ztest_unit_test(test_BACnetActionListEncodeDecode));
 
     ztest_run_test_suite(BACnetAction_Tests);
 }
