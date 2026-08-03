@@ -108,10 +108,10 @@ static void test_object_command(void)
     zassert_true(count > 0, NULL);
     status = Command_Valid_Instance(object_instance);
     zassert_true(status, NULL);
-    count = Command_Action_List_Count(object_instance);
+    count = Command_Action_Array_Count(object_instance);
     zassert_true(count > 0, NULL);
     /* configure the instance property values */
-    pAction = Command_Action_List_Entry(object_instance, 0);
+    pAction = Command_Action_List_Member(object_instance, 0, 0);
     zassert_not_null(pAction, NULL);
     pAction->Device_Id.type = OBJECT_DEVICE;
     pAction->Device_Id.instance = 4194303;
@@ -204,7 +204,7 @@ static void test_object_command_dynamic(void)
     zassert_true(Command_Valid_Instance(object_instance), NULL);
     zassert_equal(Command_Count(), 1, NULL);
 
-    count = Command_Action_List_Count(object_instance);
+    count = Command_Action_Array_Count(object_instance);
     zassert_true(count > 0, NULL);
 
     status = Command_Delete(object_instance);
@@ -252,7 +252,7 @@ static void test_object_command_action_array_write(void)
         encode_application_unsigned(wp_data.application_data, 2);
     status = Command_Write_Property(&wp_data);
     zassert_true(status, NULL);
-    zassert_equal(Command_Action_List_Count(object_instance), 2, NULL);
+    zassert_equal(Command_Action_Array_Count(object_instance), 2, NULL);
 
     /* Write first action element (array index 1). */
     action_expected.Device_Id.type = OBJECT_DEVICE;
@@ -275,7 +275,7 @@ static void test_object_command_action_array_write(void)
     status = Command_Write_Property(&wp_data);
     zassert_true(status, NULL);
 
-    pAction = Command_Action_List_Entry(object_instance, 0);
+    pAction = Command_Action_List_Member(object_instance, 0, 0);
     zassert_not_null(pAction, NULL);
     zassert_true(bacnet_action_command_same(&action_expected, pAction), NULL);
 
@@ -420,7 +420,7 @@ static void test_object_command_timer_success(void)
 
     status = Command_Present_Value_Set(command_instance, 1);
     zassert_true(status, NULL);
-    pAction = Command_Action_List_Entry(command_instance, 0);
+    pAction = Command_Action_List_Member(command_instance, 0, 0);
     zassert_not_null(pAction, NULL);
     pAction->Object_Id.type = OBJECT_ANALOG_VALUE;
     pAction->Object_Id.instance = 1;
@@ -477,43 +477,48 @@ static void test_object_command_timer_delay_and_failure(void)
     wp_data.array_index = 0;
     wp_data.priority = BACNET_NO_PRIORITY;
     wp_data.application_data_len =
-        encode_application_unsigned(wp_data.application_data, 2);
+        encode_application_unsigned(wp_data.application_data, 1);
     status = Command_Write_Property(&wp_data);
     zassert_true(status, NULL);
 
-    status = Command_Present_Value_Set(command_instance, 1);
-    zassert_true(status, NULL);
+    /* build a 2-command list in slot 0: cmd0 (real write, 1s post-delay)
+     * followed by cmd1 (fails quit-on-failure) */
+    BACNET_ACTION_LIST setup_cmds[2] = { 0 };
+    setup_cmds[0].Device_Id.type = OBJECT_DEVICE;
+    setup_cmds[0].Device_Id.instance = BACNET_MAX_INSTANCE; /* local */
+    setup_cmds[0].Object_Id.type = OBJECT_ANALOG_VALUE;
+    setup_cmds[0].Object_Id.instance = 1;
+    setup_cmds[0].Property_Identifier = PROP_PRESENT_VALUE;
+    setup_cmds[0].Property_Array_Index = BACNET_ARRAY_ALL;
+    action_value.tag = BACNET_APPLICATION_TAG_REAL;
+    action_value.type.Real = 7.0f;
+    action_list_set_property_value(&setup_cmds[0], &action_value);
+    setup_cmds[0].Priority = 8;
+    setup_cmds[0].Post_Delay = 1;
+    setup_cmds[0].Quit_On_Failure = false;
 
-    pAction0 = Command_Action_List_Entry(command_instance, 0);
-    pAction1 = Command_Action_List_Entry(command_instance, 1);
+    setup_cmds[1].Device_Id.type = OBJECT_DEVICE;
+    setup_cmds[1].Device_Id.instance = BACNET_MAX_INSTANCE; /* local */
+    setup_cmds[1].Object_Id.type = OBJECT_ANALOG_VALUE;
+    setup_cmds[1].Object_Id.instance = 1;
+    setup_cmds[1].Property_Identifier = PROP_OBJECT_NAME;
+    setup_cmds[1].Property_Array_Index = BACNET_ARRAY_ALL;
+    action_value.tag = BACNET_APPLICATION_TAG_NULL;
+    action_list_set_property_value(&setup_cmds[1], &action_value);
+    setup_cmds[1].Priority = BACNET_NO_PRIORITY;
+    setup_cmds[1].Post_Delay = 0;
+    setup_cmds[1].Quit_On_Failure = true;
+    setup_cmds[0].next = &setup_cmds[1];
+    Command_Action_List_Set(command_instance, 0, &setup_cmds[0]);
+
+    /* retrieve stored copies to check Write_Successful after timer */
+    pAction0 = Command_Action_List_Member(command_instance, 0, 0);
+    pAction1 = Command_Action_List_Member(command_instance, 0, 1);
     zassert_not_null(pAction0, NULL);
     zassert_not_null(pAction1, NULL);
 
-    pAction0->Object_Id.type = OBJECT_ANALOG_VALUE;
-    pAction0->Object_Id.instance = 1;
-    pAction0->Property_Identifier = PROP_PRESENT_VALUE;
-    pAction0->Property_Array_Index = BACNET_ARRAY_ALL;
-    action_value.tag = BACNET_APPLICATION_TAG_REAL;
-    action_value.type.Real = 7.0f;
-    action_list_set_property_value(pAction0, &action_value);
-    pAction0->Priority = 8;
-    pAction0->Post_Delay = 1;
-    pAction0->Quit_On_Failure = false;
-    pAction0->Write_Successful = false;
-
-    pAction1->Object_Id.type = OBJECT_ANALOG_VALUE;
-    pAction1->Object_Id.instance = 1;
-    pAction1->Property_Identifier = PROP_OBJECT_NAME;
-    pAction1->Property_Array_Index = BACNET_ARRAY_ALL;
-    action_value.tag = BACNET_APPLICATION_TAG_NULL;
-    action_list_set_property_value(pAction1, &action_value);
-    pAction1->Priority = BACNET_NO_PRIORITY;
-    pAction1->Post_Delay = 0;
-    pAction1->Quit_On_Failure = true;
-    pAction1->Write_Successful = false;
-
-    pAction0->next = pAction1;
-    pAction1->next = NULL;
+    status = Command_Present_Value_Set(command_instance, 1);
+    zassert_true(status, NULL);
 
     Command_Timer(command_instance, 100);
     zassert_true(pAction0->Write_Successful, NULL);
