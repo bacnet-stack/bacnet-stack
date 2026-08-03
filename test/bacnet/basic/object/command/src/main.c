@@ -570,6 +570,78 @@ static void test_object_command_timer_present_value_zero(void)
     zassert_true(status, NULL);
     Command_Cleanup();
 }
+
+/* re-entrant callback: tries to shrink Action[0] of the same command object */
+static uint32_t Reentrant_Command_Instance;
+static bool Reentrant_WP_Called;
+
+static bool Write_Property_Reentrant_Shrink(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    BACNET_WRITE_PROPERTY_DATA inner_wp = { 0 };
+
+    (void)wp_data;
+    Reentrant_WP_Called = true;
+    inner_wp.object_type = OBJECT_COMMAND;
+    inner_wp.object_instance = Reentrant_Command_Instance;
+    inner_wp.object_property = PROP_ACTION;
+    inner_wp.array_index = 0;
+    /* attempt to shrink array to 0 while the command is executing */
+    inner_wp.application_data_len =
+        encode_application_unsigned(inner_wp.application_data, 0);
+    /* must be rejected with BUSY while in-process */
+    zassert_false(Command_Write_Property(&inner_wp), NULL);
+    zassert_equal(inner_wp.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(inner_wp.error_code, ERROR_CODE_BUSY, NULL);
+    return true;
+}
+
+/**
+ * @brief Test PROP_ACTION write is blocked (BUSY) while command is executing.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command_action_write_busy_during_exec)
+#else
+static void test_object_command_action_write_busy_during_exec(void)
+#endif
+{
+    BACNET_ACTION_LIST cmd = { 0 };
+    BACNET_ACTION_PROPERTY_VALUE val = { 0 };
+    bool status;
+
+    Command_Cleanup();
+    Reentrant_Command_Instance = Command_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(Reentrant_Command_Instance, BACNET_MAX_INSTANCE, NULL);
+
+    cmd.Device_Id.type = OBJECT_DEVICE;
+    cmd.Device_Id.instance = BACNET_MAX_INSTANCE; /* local */
+    cmd.Object_Id.type = OBJECT_ANALOG_VALUE;
+    cmd.Object_Id.instance = 99;
+    cmd.Property_Identifier = PROP_PRESENT_VALUE;
+    cmd.Property_Array_Index = BACNET_ARRAY_ALL;
+    val.tag = BACNET_APPLICATION_TAG_REAL;
+    val.type.Real = 1.0f;
+    action_list_set_property_value(&cmd, &val);
+    cmd.Priority = BACNET_NO_PRIORITY;
+    cmd.Post_Delay = UINT32_MAX;
+    cmd.Quit_On_Failure = false;
+    Command_Action_List_Set(Reentrant_Command_Instance, 0, &cmd);
+
+    Command_Write_Property_Internal_Callback_Set(
+        Write_Property_Reentrant_Shrink);
+    Reentrant_WP_Called = false;
+
+    status = Command_Present_Value_Set(Reentrant_Command_Instance, 1);
+    zassert_true(status, NULL);
+    Command_Timer(Reentrant_Command_Instance, 0);
+
+    zassert_true(Reentrant_WP_Called, NULL);
+    /* action list must still be intact after the blocked shrink attempt */
+    zassert_equal(
+        Command_Action_Array_Count(Reentrant_Command_Instance), 1u, NULL);
+    zassert_false(Command_In_Process(Reentrant_Command_Instance), NULL);
+
+    Command_Cleanup();
+}
 /**
  * @}
  */
@@ -587,7 +659,8 @@ void test_main(void)
         ztest_unit_test(test_object_command_name_description_write),
         ztest_unit_test(test_object_command_timer_success),
         ztest_unit_test(test_object_command_timer_delay_and_failure),
-        ztest_unit_test(test_object_command_timer_present_value_zero));
+        ztest_unit_test(test_object_command_timer_present_value_zero),
+        ztest_unit_test(test_object_command_action_write_busy_during_exec));
 
     ztest_run_test_suite(tests_object_command);
 }

@@ -1433,6 +1433,12 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->object_instance, unsigned_value);
             break;
         case PROP_ACTION:
+            /* guard: action-write callback could re-enter and free pAction */
+            if (Command_In_Process(wp_data->object_instance)) {
+                wp_data->error_class = ERROR_CLASS_OBJECT;
+                wp_data->error_code = ERROR_CODE_BUSY;
+                return false;
+            }
             if (wp_data->array_index == BACNET_ARRAY_ALL) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
