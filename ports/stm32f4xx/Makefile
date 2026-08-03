@@ -1,7 +1,7 @@
 #+-------------------------------------------------------------------------------------------------+
 #| GNU Make script for STM32F4xx microcontroller                                                               |
 #+-------------------------------------------------------------------------------------------------+
-TARGET=bacnet
+TARGET=bacnet-mstp
 
 BACNET_DIR = $(realpath ../..)
 BACNET_SRC := $(BACNET_DIR)/src
@@ -9,6 +9,15 @@ BACNET_CORE := $(BACNET_SRC)/bacnet
 BACNET_BASIC := $(BACNET_CORE)/basic
 BACNET_INCLUDE := $(BACNET_SRC)
 PLATFORM_DIR = $(realpath .)
+BUILD_DIR ?= $(PLATFORM_DIR)/build
+
+TARGET_ELF := $(BUILD_DIR)/$(TARGET).elf
+TARGET_BIN := $(BUILD_DIR)/$(TARGET).bin
+TARGET_HEX := $(BUILD_DIR)/$(TARGET).hex
+TARGET_DMP := $(BUILD_DIR)/$(TARGET).dmp
+TARGET_MAP := $(BUILD_DIR)/$(TARGET).map
+TARGET_NM := $(BUILD_DIR)/$(TARGET).nm
+TARGET_SU := $(BUILD_DIR)/$(TARGET).su
 LIBRARY_STM32 = $(realpath ./external/STM32F4xx_StdPeriph_Driver/src)
 LIBRARY_STM32_INCLUDES = $(realpath ./external/STM32F4xx_StdPeriph_Driver/inc)
 LIBRARY_CMSIS = $(realpath ./external/CMSIS)
@@ -248,7 +257,7 @@ AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 #  -Wl,<options> Pass comma-separated <options> on to the linker
 LIBRARIES=-lc,-lgcc,-lm,-lnosys
 LDFLAGS = -specs=nano.specs $(MCU_FLAGS)
-LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
+LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET_MAP),$(LIBRARIES),-T$(LDSCRIPT)
 # dead code removal
 LDFLAGS += -Wl,--gc-sections,-static
 ODFLAGS	= -x --syms
@@ -259,35 +268,38 @@ CSTACK = $(CSRC:.c=.su)
 CDFINISH = $(wildcard $(CSRC:.c=.*.dfinish))
 CSU = $(wildcard $(CSRC:.c=.*.su))
 
-all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
-	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
-	$(SIZE) $(TARGET).elf
+all: $(TARGET_BIN) $(TARGET_HEX) $(TARGET_ELF)
+	$(OBJDUMP) $(ODFLAGS) $(TARGET_ELF) > $(TARGET_DMP)
+	$(SIZE) $(TARGET_ELF)
 
-$(TARGET).bin:  $(TARGET).elf
-	$(OBJCOPY) $(TARGET).elf --output-target=binary $(TARGET).bin
+$(TARGET_BIN):  $(TARGET_ELF)
+	$(OBJCOPY) $(TARGET_ELF) --output-target=binary $(TARGET_BIN)
 
-$(TARGET).hex:  $(TARGET).elf
-	$(OBJCOPY) $(TARGET).elf --output-target=ihex $(TARGET).hex
+$(TARGET_HEX):  $(TARGET_ELF)
+	$(OBJCOPY) $(TARGET_ELF) --output-target=ihex $(TARGET_HEX)
 
-$(TARGET).elf: $(COBJ) $(AOBJ) Makefile
+$(TARGET_ELF): $(COBJ) $(AOBJ) Makefile | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
+$(BUILD_DIR):
+	mkdir -p $@
+
 .PHONY: ram-usage
-ram-usage:
-	@$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+ram-usage: $(TARGET_ELF) | $(BUILD_DIR)
+	@$(NM) -t d -S --size-sort $(TARGET_ELF) 1> $(TARGET_NM)
 	@echo "=ADDRESS= ==SIZE== = ==VARIABLE NAME=="
-	@tail $(TARGET).nm
+	@tail $(TARGET_NM)
 
 .PHONY: cstack
-cstack:
-	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET).su
-	@head -n 25 $(TARGET).su
+cstack: | $(BUILD_DIR)
+	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET_SU)
+	@head -n 25 $(TARGET_SU)
 
 .PHONY: memap
-memap:
+memap: $(TARGET_MAP)
 	# memmap needs Python and PrettyPrint and IntelHex
 	# sudo apt install python3-prettytable python3-intelhex
-	$(MEMAP_TOOL) -t GCC_ARM $(TARGET).map
+	$(MEMAP_TOOL) -t GCC_ARM $(TARGET_MAP)
 
 # GDB using st-util (GDB server for ST Link)
 GDB_PORT = 3333
@@ -303,7 +315,7 @@ OPENOCD_FLAGS = -f interface/stlink.cfg -f target/stm32f4x.cfg
 openocd:
 	openocd $(OPENOCD_FLAGS)
 
-flash: $(TARGET).elf
+flash: $(TARGET_ELF)
 	openocd $(OPENOCD_FLAGS) -c "program $< verify reset" -c "shutdown"
 
 # MS/TP extended frames build (MAX_APDU=1476)
@@ -320,13 +332,13 @@ extended:
 # sudo apt install ddd
 .PHONY: ddd
 ddd:
-	ddd --debugger $(GDB) $(realpath $(TARGET).elf)
+	ddd --debugger $(GDB) $(TARGET_ELF)
 
 # web based graphical GDB debugging tool
 # pip install gdbgui
 .PHONY: gdbgui
 gdbgui:
-	gdbgui -g $(GDB) $(realpath $(TARGET).elf)
+	gdbgui -g $(GDB) $(TARGET_ELF)
 
 # sudo apt install stlink-tools
 # note: might require adding rule file to /etc/udev/rules.d/
@@ -335,8 +347,8 @@ gdbgui:
 # and reloading with
 # $ sudo udevadm control --reload-rules
 # or unplug and plugin the stlink after adding the rules file
-install: $(TARGET).bin
-	st-flash write $(TARGET).bin 0x08000000
+install: $(TARGET_BIN)
+	st-flash write $(TARGET_BIN) 0x08000000
 
 .c.o:
 	$(CC) -c $(OPTIMIZATION) $(CFLAGS) $*.c -o $@
@@ -349,8 +361,8 @@ clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
 	-rm -rf $(CSTACK) $(CEXPAND)
 	-rm -rf $(CDFINISH) $(CSU)
-	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
-	-rm -rf $(TARGET).su $(TARGET).nm
+	-rm -rf $(TARGET_ELF) $(TARGET_BIN) $(TARGET_DMP) $(TARGET_MAP)
+	-rm -rf $(TARGET_SU) $(TARGET_NM)
 	-rm -rf *.lst
 	-find . -name "*.dfinish" -delete
 
