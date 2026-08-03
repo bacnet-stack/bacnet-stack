@@ -189,6 +189,7 @@ int __io_putchar(int ch)
 int main(void)
 {
     size_t i;
+
     /*At this stage the microcontroller clock setting is already configured,
        this is done through SystemInit() function which is called from startup
        file (startup_stm32f4xx.s) before to branch to application main.
@@ -263,8 +264,12 @@ int main(void)
         Program_UBASIC_Create(1 + i, &UBASIC_Data[i], Static_Files[i].data);
         Program_Instance_Of_Set(1 + i, Static_Files[i].pathname);
     }
+    /* LED test */
+    led_on_interval(LED_LD1, 500);
+    led_on_interval(LED_LD2, 500);
+    led_on_interval(LED_LD3, 500);
     /* realtime task */
-    mstimer_callback(&BACnet_Callback, bacnet_task_timed, 5);
+    mstimer_callback(&BACnet_Callback, bacnet_task_timed, 2);
     /* loop forever */
     for (;;) {
         led_task();
