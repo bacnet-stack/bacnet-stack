@@ -1,7 +1,7 @@
 #+-------------------------------------------------------------------------------------------------+
 #| GNU Make script for STM32F4xx microcontroller                                                               |
 #+-------------------------------------------------------------------------------------------------+
-TARGET=bacnet
+TARGET=bacnet-mstp
 
 BACNET_DIR = $(realpath ../..)
 BACNET_SRC := $(BACNET_DIR)/src
@@ -9,6 +9,15 @@ BACNET_CORE := $(BACNET_SRC)/bacnet
 BACNET_BASIC := $(BACNET_CORE)/basic
 BACNET_INCLUDE := $(BACNET_SRC)
 PLATFORM_DIR = $(realpath .)
+BUILD_DIR ?= $(PLATFORM_DIR)/build
+
+TARGET_ELF := $(BUILD_DIR)/$(TARGET).elf
+TARGET_BIN := $(BUILD_DIR)/$(TARGET).bin
+TARGET_HEX := $(BUILD_DIR)/$(TARGET).hex
+TARGET_DMP := $(BUILD_DIR)/$(TARGET).dmp
+TARGET_MAP := $(BUILD_DIR)/$(TARGET).map
+TARGET_NM := $(BUILD_DIR)/$(TARGET).nm
+TARGET_SU := $(BUILD_DIR)/$(TARGET).su
 LIBRARY_STM32 = $(realpath ./external/STM32F4xx_StdPeriph_Driver/src)
 LIBRARY_STM32_INCLUDES = $(realpath ./external/STM32F4xx_StdPeriph_Driver/inc)
 LIBRARY_CMSIS = $(realpath ./external/CMSIS)
@@ -172,16 +181,20 @@ SIZE = $(PREFIX)size
 LDSCRIPT = $(PLATFORM_DIR)/stm32f4xx.ld
 
 MCU_FLAGS = -mcpu=cortex-m4
-MCU_FLAGS += -mthumb -mabi=aapcs
-MCU_FLAGS += -mno-thumb-interwork
-MCU_FLAGS += -DUSE_STDPERIPH_DRIVER
+MCU_FLAGS += -mthumb -mthumb-interwork
+MCU_FLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+
+SDK_FLAGS = -DUSE_STDPERIPH_DRIVER
+SDK_FLAGS += -DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING
 
 OPTIMIZE_FLAGS := -Os -ggdb
 OPTIMIZE_FLAGS += -DNDEBUG
 
+MAX_APDU ?= 480
+
 BACNET_FLAGS = -DBACDL_MSTP=
 # note: MS/TP extended frames can be up to MAX_APDU=1476 bytes
-BACNET_FLAGS += -DMAX_APDU=480
+BACNET_FLAGS += -DMAX_APDU=$(MAX_APDU)
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
@@ -206,6 +219,7 @@ BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
 CFLAGS += $(MCU_FLAGS)
+CFLAGS += $(SDK_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)
 CFLAGS += $(BACNET_FLAGS)
 CFLAGS += $(INCLUDES)
@@ -216,7 +230,7 @@ CFLAGS += -fstack-usage
 # function calls will not use any special __builtin_xx to allow debug/linking
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
-CFLAGS += -fno-common
+CFLAGS += -fno-common -fmessage-length=0
 # enable all relevant warnings that find bugs
 WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
 WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
@@ -241,9 +255,9 @@ AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 
 #Set the linker flags
 #  -Wl,<options> Pass comma-separated <options> on to the linker
-LIBRARIES=-lc,-lgcc,-lm
-LDFLAGS = -nostartfiles
-LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
+LIBRARIES=-lc,-lgcc,-lm,-lnosys
+LDFLAGS = -specs=nano.specs $(MCU_FLAGS)
+LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET_MAP),$(LIBRARIES),-T$(LDSCRIPT)
 # dead code removal
 LDFLAGS += -Wl,--gc-sections,-static
 ODFLAGS	= -x --syms
@@ -251,36 +265,41 @@ ODFLAGS	= -x --syms
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
 CSTACK = $(CSRC:.c=.su)
+CDFINISH = $(wildcard $(CSRC:.c=.*.dfinish))
+CSU = $(wildcard $(CSRC:.c=.*.su))
 
-all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
-	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
-	$(SIZE) $(TARGET).elf
+all: $(TARGET_BIN) $(TARGET_HEX) $(TARGET_ELF)
+	$(OBJDUMP) $(ODFLAGS) $(TARGET_ELF) > $(TARGET_DMP)
+	$(SIZE) $(TARGET_ELF)
 
-$(TARGET).bin:  $(TARGET).elf
-	$(OBJCOPY) $(TARGET).elf --output-target=binary $(TARGET).bin
+$(TARGET_BIN):  $(TARGET_ELF)
+	$(OBJCOPY) $(TARGET_ELF) --output-target=binary $(TARGET_BIN)
 
-$(TARGET).hex:  $(TARGET).elf
-	$(OBJCOPY) $(TARGET).elf --output-target=ihex $(TARGET).hex
+$(TARGET_HEX):  $(TARGET_ELF)
+	$(OBJCOPY) $(TARGET_ELF) --output-target=ihex $(TARGET_HEX)
 
-$(TARGET).elf: $(COBJ) $(AOBJ) Makefile
+$(TARGET_ELF): $(COBJ) $(AOBJ) Makefile | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
+$(BUILD_DIR):
+	mkdir -p $@
+
 .PHONY: ram-usage
-ram-usage:
-	@$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+ram-usage: $(TARGET_ELF) | $(BUILD_DIR)
+	@$(NM) -t d -S --size-sort $(TARGET_ELF) 1> $(TARGET_NM)
 	@echo "=ADDRESS= ==SIZE== = ==VARIABLE NAME=="
-	@tail $(TARGET).nm
+	@tail $(TARGET_NM)
 
 .PHONY: cstack
-cstack:
-	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET).su
-	@head -n 25 $(TARGET).su
+cstack: | $(BUILD_DIR)
+	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET_SU)
+	@head -n 25 $(TARGET_SU)
 
 .PHONY: memap
-memap:
+memap: $(TARGET_MAP)
 	# memmap needs Python and PrettyPrint and IntelHex
 	# sudo apt install python3-prettytable python3-intelhex
-	$(MEMAP_TOOL) -t GCC_ARM $(TARGET).map
+	$(MEMAP_TOOL) -t GCC_ARM $(TARGET_MAP)
 
 # GDB using st-util (GDB server for ST Link)
 GDB_PORT = 3333
@@ -296,8 +315,13 @@ OPENOCD_FLAGS = -f interface/stlink.cfg -f target/stm32f4x.cfg
 openocd:
 	openocd $(OPENOCD_FLAGS)
 
-flash: $(TARGET).elf
+flash: $(TARGET_ELF)
 	openocd $(OPENOCD_FLAGS) -c "program $< verify reset" -c "shutdown"
+
+# MS/TP extended frames build (MAX_APDU=1476)
+.PHONY: extended
+extended:
+	$(MAKE) MAX_APDU=1476
 
 # graphical GDB debugging tool
 # note: relies on .gdbinit containing:
@@ -308,13 +332,13 @@ flash: $(TARGET).elf
 # sudo apt install ddd
 .PHONY: ddd
 ddd:
-	ddd --debugger $(GDB) $(realpath $(TARGET).elf)
+	ddd --debugger $(GDB) $(TARGET_ELF)
 
 # web based graphical GDB debugging tool
 # pip install gdbgui
 .PHONY: gdbgui
 gdbgui:
-	gdbgui -g $(GDB) $(realpath $(TARGET).elf)
+	gdbgui -g $(GDB) $(TARGET_ELF)
 
 # sudo apt install stlink-tools
 # note: might require adding rule file to /etc/udev/rules.d/
@@ -323,8 +347,8 @@ gdbgui:
 # and reloading with
 # $ sudo udevadm control --reload-rules
 # or unplug and plugin the stlink after adding the rules file
-install: $(TARGET).bin
-	st-flash write $(TARGET).bin 0x08000000
+install: $(TARGET_BIN)
+	st-flash write $(TARGET_BIN) 0x08000000
 
 .c.o:
 	$(CC) -c $(OPTIMIZATION) $(CFLAGS) $*.c -o $@
@@ -336,9 +360,11 @@ install: $(TARGET).bin
 clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
 	-rm -rf $(CSTACK) $(CEXPAND)
-	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
-	-rm -rf $(TARGET).su $(TARGET).nm
+	-rm -rf $(CDFINISH) $(CSU)
+	-rm -rf $(TARGET_ELF) $(TARGET_BIN) $(TARGET_DMP) $(TARGET_MAP)
+	-rm -rf $(TARGET_SU) $(TARGET_NM)
 	-rm -rf *.lst
+	-find . -name "*.dfinish" -delete
 
 ## Other dependencies
 -include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
