@@ -28,6 +28,51 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Command object: Action list resize causes a heap use-after-free write
+[GHSA-f23j-5f4w-cxhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f23j-5f4w-cxhj).
+Patched versions: 1.7.0-rc2
+Pull Request: [#1461](https://github.com/bacnet-stack/bacnet-stack/pull/1461).
+
+Cross-peer disclosure caused by a BVLC length mismatch
+[GHSA-rxvq-3mhq-474x](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rxvq-3mhq-474x).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1451](https://github.com/bacnet-stack/bacnet-stack/pull/1451).
+
+Silent decode failure in bacnet_octet_string_decode() due to discarded return value - oversized octet strings reported as successfully decoded
+[GHSA-9qx8-hr5x-r35c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9qx8-hr5x-r35c).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1440](https://github.com/bacnet-stack/bacnet-stack/pull/1440).
+
+AtomicWriteFile access-method mismatch leading to RAMFS heap OOB read
+[GHSA-gv7j-28x8-cr37](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv7j-28x8-cr37).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1439](https://github.com/bacnet-stack/bacnet-stack/pull/1439).
+
+Router route-table Tx_Buffer overflow
+[GHSA-gj7v-fwjp-7x8q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gj7v-fwjp-7x8q).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1438](https://github.com/bacnet-stack/bacnet-stack/pull/1438).
+
+Structured View subordinate-list[0] WriteProperty allows unbounded synchronous resize and remote unauthenticated DoS
+[GHSA-hg85-pmm3-jfcf](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-hg85-pmm3-jfcf).
+Patched versions: 1.6.1, 1.7.0
+Pull Request: [#1437](https://github.com/bacnet-stack/bacnet-stack/pull/1437).
+
+BACnet/SC hub never requires a client cert, so any host joins the mesh unauthenticated
+[GHSA-92q2-p4vr-fvmp](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-92q2-p4vr-fvmp).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1436](https://github.com/bacnet-stack/bacnet-stack/pull/1436).
+
+Trailing MORE bit on the last BACnet/SC header option walks the option list past the end of the message, causing a pre-auth out-of-bounds read escalating to an out-of-bounds write into global memory
+[GHSA-gr74-333w-7wg8](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gr74-333w-7wg8).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1435](https://github.com/bacnet-stack/bacnet-stack/pull/1435).
+
+bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacker can MITM it
+[GHSA-jgm4-2wg9-jwfg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jgm4-2wg9-jwfg).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1434](https://github.com/bacnet-stack/bacnet-stack/pull/1434).
+
 MS/TP COBS decode overflow
 [GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
@@ -81,6 +126,7 @@ Out-of-bounds read in BACnet/SC proprietary header-option decode (bvlc_sc_decode
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1396](https://github.com/bacnet-stack/bacnet-stack/pull/1396).
 
+[CVE-2026-64675](https://www.cve.org/CVERecord?id=CVE-2026-64675) -
 Pre-auth OOB read in xy_color_decode (BACnetXYColor) via WriteGroup/WriteProperty
 [GHSA-mmg6-p4pr-cj6h](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mmg6-p4pr-cj6h).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
