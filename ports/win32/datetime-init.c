@@ -34,6 +34,10 @@
 long int timezone;
 #endif
 
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+int gettimeofday(struct timeval *tp, void *tzp);
+#endif
+
 static int32_t Time_Offset; /* Time offset in ms */
 
 /**
@@ -145,8 +149,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         debug_log_fprintf(
             DEBUG_LOG_INFO, stderr,
             "TimeSync offset = %d at %02d:%02d:%02d.%03d\n", Time_Offset,
-            tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60,
-            tv_sys.tv_sec % 60, tv_inp.tv_usec / 1000);
+            tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60, tv_sys.tv_sec % 60,
+            tv_inp.tv_usec / 1000);
     }
     return;
 }
