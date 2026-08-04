@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include "bacport.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datetime.h"
 
 /* Offset between Windows epoch 1/1/1601 and
@@ -140,9 +142,11 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         } else {
             Time_Offset = time_difference(tv_inp, tv_sys);
         }
-#if PRINT_ENABLED
-        debug_printf("Time offset = %d\n", Time_Offset);
-#endif
+        debug_log_fprintf(
+            DEBUG_LOG_INFO, stderr,
+            "TimeSync offset = %d at %02d:%02d:%02d.%03d\n", Time_Offset,
+            tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60,
+            tv_sys.tv_sec % 60, tv_inp.tv_usec / 1000);
     }
     return;
 }
