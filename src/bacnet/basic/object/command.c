@@ -77,7 +77,11 @@ static struct object_data *Object_Data(uint32_t object_instance)
     return Keylist_Data(Object_List, object_instance);
 }
 
-/* initialise one BACNET_ACTION_LIST entry to the "nothing configured" state */
+/**
+ * @brief Initialise one BACNET_ACTION_LIST entry to the
+ *  "nothing configured" state.
+ * @param p [in] Pointer to BACNET_ACTION_LIST entry to initialize.
+ */
 static void Action_Entry_Init(BACNET_ACTION_LIST *p)
 {
     if (p) {
@@ -96,6 +100,11 @@ static void Action_Entry_Init(BACNET_ACTION_LIST *p)
     }
 }
 
+/**
+ * @brief Check if a BACNET_ACTION_LIST entry is empty (not configured).
+ * @param p [in] Pointer to BACNET_ACTION_LIST entry to check.
+ * @return true if the entry is empty, false otherwise.
+ */
 static bool Action_Entry_Empty(const BACNET_ACTION_LIST *p)
 {
     if (!p) {
@@ -104,7 +113,10 @@ static bool Action_Entry_Empty(const BACNET_ACTION_LIST *p)
     return (p->Object_Id.instance == BACNET_MAX_INSTANCE);
 }
 
-/* free all entries and delete an inner list keylist */
+/**
+ * @brief Free all entries and delete an inner list keylist.
+ * @param inner [in] Inner list keylist to free.
+ */
 static void Action_Inner_List_Free(OS_Keylist inner)
 {
     BACNET_ACTION_LIST *p;
@@ -118,7 +130,11 @@ static void Action_Inner_List_Free(OS_Keylist inner)
     }
 }
 
-/* remove all entries from an inner list keylist without deleting the list */
+/**
+ * @brief Remove all entries from an inner list keylist without deleting the
+ * list.
+ * @param inner [in] Inner list keylist to purge.
+ */
 static void Action_Inner_List_Purge(OS_Keylist inner)
 {
     BACNET_ACTION_LIST *p;
@@ -131,7 +147,11 @@ static void Action_Inner_List_Purge(OS_Keylist inner)
     }
 }
 
-/* link inner keylist entries via next pointers and return the head */
+/**
+ * @brief Link inner keylist entries via next pointers and return the head.
+ * @param inner [in] Inner list keylist to link.
+ * @return Head of the linked list.
+ */
 static BACNET_ACTION_LIST *Action_Inner_List_Link(OS_Keylist inner)
 {
     BACNET_ACTION_LIST *head = NULL;
@@ -161,7 +181,10 @@ static BACNET_ACTION_LIST *Action_Inner_List_Link(OS_Keylist inner)
     return head;
 }
 
-/* create an inner list keylist pre-populated with one empty entry */
+/**
+ * @brief Create an inner list keylist pre-populated with one empty entry.
+ * @return The created inner list keylist, or NULL on failure.
+ */
 static OS_Keylist Action_Inner_List_Create(void)
 {
     OS_Keylist inner;
@@ -185,12 +208,19 @@ static OS_Keylist Action_Inner_List_Create(void)
     return inner;
 }
 
-/* resize the outer Action_Array keylist; each new slot gets one empty entry */
+/**
+ * @brief Resize the outer Action_Array keylist; each new slot gets one empty
+ * entry.
+ * @param pObject [in] Pointer to the object containing the Action_Array.
+ * @param new_size [in] The new size of the Action_Array.
+ * @return Error code indicating success or failure.
+ */
 static BACNET_ERROR_CODE Action_Array_Resize(
     struct object_data *pObject, BACNET_UNSIGNED_INTEGER new_size)
 {
     OS_Keylist inner;
     KEY key;
+    int outer_size;
 
     if (!pObject) {
         return ERROR_CODE_UNKNOWN_OBJECT;
@@ -198,14 +228,13 @@ static BACNET_ERROR_CODE Action_Array_Resize(
     if (new_size > BACNET_COMMAND_ACTION_LIST_MAX) {
         return ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
-    while ((BACNET_UNSIGNED_INTEGER)Keylist_Count(pObject->Action_Array) >
-           new_size) {
+    outer_size = new_size;
+    while (Keylist_Count(pObject->Action_Array) > outer_size) {
         key = (KEY)(Keylist_Count(pObject->Action_Array) - 1);
         inner = Keylist_Data_Delete(pObject->Action_Array, key);
         Action_Inner_List_Free(inner);
     }
-    while ((BACNET_UNSIGNED_INTEGER)Keylist_Count(pObject->Action_Array) <
-           new_size) {
+    while (Keylist_Count(pObject->Action_Array) < outer_size) {
         key = (KEY)Keylist_Count(pObject->Action_Array);
         inner = Action_Inner_List_Create();
         if (!inner) {
@@ -219,7 +248,11 @@ static BACNET_ERROR_CODE Action_Array_Resize(
     return ERROR_CODE_SUCCESS;
 }
 
-/* init Action_Array with one empty inner list (one array slot, one empty cmd)
+/**
+ * @brief Init Action_Array with one empty inner list (one array slot, one empty
+ * cmd).
+ * @param pObject [in] Pointer to the object containing the Action_Array.
+ * @return true on success, false on failure.
  */
 static bool Action_Array_Init(struct object_data *pObject)
 {
@@ -247,7 +280,10 @@ static bool Action_Array_Init(struct object_data *pObject)
     return true;
 }
 
-/* free all inner lists and the outer Action_Array keylist */
+/**
+ * @brief Free all inner lists and the outer Action_Array keylist.
+ * @param array [in] Outer Action_Array keylist to free.
+ */
 static void Action_Array_Free(OS_Keylist array)
 {
     OS_Keylist inner;
