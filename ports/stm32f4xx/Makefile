@@ -74,7 +74,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/s_upt.c \
 	$(BACNET_BASIC)/sys/bsramfs.c \
 	$(BACNET_BASIC)/sys/debug.c \
-	$(BACNET_BASIC)/sys/datetime_mstimer.c \
+	$(BACNET_BASIC)/datetime/datetime_mstimer.c \
 	$(BACNET_BASIC)/sys/days.c \
 	$(BACNET_BASIC)/sys/dst.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
