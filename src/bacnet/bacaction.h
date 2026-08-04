@@ -160,6 +160,19 @@ BACNET_STACK_EXPORT
 bool bacnet_action_command_same(
     const BACNET_ACTION_LIST *entry1, const BACNET_ACTION_LIST *entry2);
 
+/* callback type for bacnet_action_list_decode */
+typedef bool (*bacnet_action_list_store_fn)(
+    const BACNET_ACTION_LIST *entry, void *ctx);
+
+BACNET_STACK_EXPORT
+int bacnet_action_list_encode(uint8_t *apdu, const BACNET_ACTION_LIST *list);
+BACNET_STACK_EXPORT
+int bacnet_action_list_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    bacnet_action_list_store_fn store_fn,
+    void *ctx);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -89,35 +89,31 @@ float Command_COV_Increment(uint32_t instance);
 BACNET_STACK_EXPORT
 void Command_COV_Increment_Set(uint32_t instance, float value);
 
+/* Action_Array: outer array of inner lists (BACnetARRAY of BACnetLIST) */
+BACNET_STACK_EXPORT
+unsigned Command_Action_Array_Count(uint32_t instance);
+BACNET_STACK_EXPORT
+unsigned
+Command_Action_List_Count(uint32_t instance, BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
+BACNET_ACTION_LIST *Command_Action_List_Member(
+    uint32_t instance, BACNET_ARRAY_INDEX array_index, unsigned list_index);
 BACNET_STACK_EXPORT
 BACNET_ACTION_LIST *
-Command_Action_List_Entry(uint32_t instance, unsigned index);
-BACNET_STACK_EXPORT
-BACNET_ACTION_LIST *Command_Action_List(uint32_t instance);
+Command_Action_List(uint32_t instance, BACNET_ARRAY_INDEX array_index);
 BACNET_STACK_EXPORT
 void Command_Action_List_Set(
-    uint32_t instance, BACNET_ACTION_LIST *action_list);
+    uint32_t instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_ACTION_LIST *action_list);
+BACNET_STACK_EXPORT
+bool Command_Action_List_Purge(
+    uint32_t instance, BACNET_ARRAY_INDEX array_index);
 BACNET_STACK_EXPORT
 void Command_Action_List_Link_Array(BACNET_ACTION_LIST *array, size_t size);
 BACNET_STACK_EXPORT
 bool Command_Action_List_Element_Same(
     BACNET_ACTION_LIST *element1, BACNET_ACTION_LIST *element2);
-BACNET_STACK_EXPORT
-BACNET_ACTION_LIST *
-Command_Action_List_Member(uint32_t instance, BACNET_ARRAY_INDEX array_index);
-BACNET_STACK_EXPORT
-unsigned Command_Action_List_Count(uint32_t instance);
-BACNET_STACK_EXPORT
-BACNET_ARRAY_INDEX Command_Action_List_Element_Exist(
-    uint32_t instance, BACNET_ACTION_LIST *element);
-BACNET_STACK_EXPORT
-BACNET_ARRAY_INDEX
-Command_Action_List_Element_Add(uint32_t instance, BACNET_ACTION_LIST *element);
-BACNET_STACK_EXPORT
-BACNET_ARRAY_INDEX Command_Action_List_Element_Remove(
-    uint32_t instance, BACNET_ACTION_LIST *element);
-BACNET_STACK_EXPORT
-bool Command_Action_List_Purge(uint32_t instance);
 
 /* note: header of Intrinsic_Reporting function is required
    even when INTRINSIC_REPORTING is not defined */
