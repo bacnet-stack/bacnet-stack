@@ -81,6 +81,7 @@ Out-of-bounds read in BACnet/SC proprietary header-option decode (bvlc_sc_decode
 Patched versions: 1.4.5, 1.5.1, 1.6.0
 Pull Request: [#1396](https://github.com/bacnet-stack/bacnet-stack/pull/1396).
 
+[CVE-2026-64675](https://www.cve.org/CVERecord?id=CVE-2026-64675) -
 Pre-auth OOB read in xy_color_decode (BACnetXYColor) via WriteGroup/WriteProperty
 [GHSA-mmg6-p4pr-cj6h](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mmg6-p4pr-cj6h).
 Patched versions: 1.4.5, 1.5.1, 1.6.0
