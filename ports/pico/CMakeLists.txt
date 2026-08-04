@@ -36,6 +36,7 @@ set(BACNET_COMMON_SOURCES
     ${BACNET_BASIC}/binding/address.c
     ${BACNET_BASIC}/object/client/device-client.c
     ${BACNET_BASIC}/npdu/h_npdu.c
+    ${BACNET_BASIC}/datetime/datetime_mstimer.c
     ${BACNET_BASIC}/service/h_apdu.c
     ${BACNET_BASIC}/service/h_cov.c
     ${BACNET_BASIC}/service/h_dcc.c
@@ -48,7 +49,6 @@ set(BACNET_COMMON_SOURCES
     ${BACNET_BASIC}/service/h_wp.c
     ${BACNET_BASIC}/service/s_iam.c
     ${BACNET_BASIC}/service/s_ihave.c
-    ${BACNET_BASIC}/sys/datetime_mstimer.c
     ${BACNET_BASIC}/sys/days.c
     ${BACNET_BASIC}/sys/dst.c
     ${BACNET_BASIC}/sys/debug.c
