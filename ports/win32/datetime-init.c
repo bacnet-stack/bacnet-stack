@@ -16,8 +16,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include "bacport.h"
-#include "bacnet/bacdef.h"
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datetime.h"
 
 /* Offset between Windows epoch 1/1/1601 and
@@ -33,123 +31,6 @@
 /* difference from UTC and local standard time  */
 long int timezone;
 #endif
-
-static int32_t Time_Offset; /* Time offset in ms */
-
-/**
- * @brief Wrapper for localtime that works across different compilers.
- * @param newtime Pointer to a struct tm to hold the local time.
- * @param seconds Pointer to a time_t value representing the time in seconds
- * since the epoch.
- * @param tblock Pointer to a struct tm pointer that will point to the result.
- * @return True if successful, False otherwise.
- */
-static bool
-datetime_localtime(struct tm *newtime, time_t *seconds, struct tm **tblock)
-{
-#if defined(_MSC_VER)
-    errno_t err = 0;
-
-    err = localtime_s(newtime, seconds);
-    if (err == 0) {
-        *tblock = newtime;
-        return true;
-    }
-#else
-    struct tm *tmp = NULL;
-
-    tmp = localtime(seconds);
-    if (tmp) {
-        *newtime = *tmp;
-        *tblock = newtime;
-        return true;
-    }
-#endif
-
-    *tblock = NULL;
-    return false;
-}
-
-/**
- * @brief Wrapper for localtime that works across different compilers.
- * @param newtime Pointer to a struct tm to hold the local time.
- * @param tblock Pointer to a struct tm pointer that will point to the result.
- * @return True if successful, False otherwise.
- */
-static bool datetime_time(struct tm *newtime, struct tm **tblock)
-{
-#if defined(_MSC_VER)
-    __time64_t long_time = 0;
-    errno_t err = 0;
-
-    _time64(&long_time);
-    err = localtime_s(newtime, &long_time);
-    if (err == 0) {
-        *tblock = newtime;
-        return true;
-    }
-#else
-    time_t seconds = 0;
-
-    time(&seconds);
-    if (datetime_localtime(newtime, &seconds, tblock)) {
-        return true;
-    }
-#endif
-
-    *tblock = NULL;
-    return false;
-}
-
-/**
- * @brief Calculate the time offset from the system clock.
- * @return Time offset in ms
- */
-static int32_t time_difference(struct timeval t0, struct timeval t1)
-{
-    return (t0.tv_sec - t1.tv_sec) * 1000 + (t0.tv_usec - t1.tv_usec) / 1000;
-}
-
-/**
- * @brief Set offset from the system clock.
- * @param bdate BACnet Date structure to hold local time
- * @param btime BACnet Time structure to hold local time
- * @param utc - True for UTC sync, False for Local time
- * @return True if time is set
- */
-void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
-{
-    struct timeval tv_inp, tv_sys;
-    struct tm *timeinfo = NULL;
-    struct tm newtime = { 0 };
-    if (!datetime_time(&newtime, &timeinfo)) {
-        return;
-    }
-    /* fixme: only set the time if off by some amount */
-    timeinfo->tm_year = bdate->year - 1900;
-    timeinfo->tm_mon = bdate->month - 1;
-    timeinfo->tm_mday = bdate->day;
-    timeinfo->tm_hour = btime->hour;
-    timeinfo->tm_min = btime->min;
-    timeinfo->tm_sec = btime->sec;
-    tv_inp.tv_sec = mktime(timeinfo);
-    tv_inp.tv_usec = btime->hundredths * 10000;
-    if (gettimeofday(&tv_sys, NULL) == 0) {
-        if (utc) {
-            Time_Offset = time_difference(tv_inp, tv_sys) -
-                (timezone - timeinfo->tm_isdst * 3600) * 1000;
-
-        } else {
-            Time_Offset = time_difference(tv_inp, tv_sys);
-        }
-        debug_log_fprintf(
-            DEBUG_LOG_INFO, stderr,
-            "TimeSync offset = %d at %02d:%02d:%02d.%03d\n", Time_Offset,
-            tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60,
-            tv_sys.tv_sec % 60, tv_inp.tv_usec / 1000);
-    }
-    return;
-}
 
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 struct timezone {
@@ -218,58 +99,18 @@ int gettimeofday(struct timeval *tp, void *tzp)
 #endif
 
 /**
- * @brief Convert a struct tm to BACnet date and time
- * @param bdate - the BACnet Date structure to hold date
- * @param btime - the BACnet Time structure to hold time
- * @param hundredths - hundredths of a second [0..99]
- * @param utc_offset_minutes - number of minutes offset from UTC
- * For example, -6*60 represents 6.00 hours behind UTC/GMT
- * @param dst_active - true if DST is enabled and active
- * @param tblock - the struct tm to convert
- *
- *  struct tm :
- *    int    tm_sec   Seconds [0,60].
- *    int    tm_min   Minutes [0,59].
- *    int    tm_hour  Hour [0,23].
- *    int    tm_mday  Day of month [1,31].
- *    int    tm_mon   Month of year [0,11].
- *    int    tm_year  Years since 1900.
- *    int    tm_wday  Day of week [0,6] (Sunday =0).
- *    int    tm_yday  Day of year [0,365].
- *    int    tm_isdst Daylight Savings flag.
+ * @brief Set offset from the system clock.
+ * @param bdate BACnet Date structure to hold local time
+ * @param btime BACnet Time structure to hold local time
+ * @param utc - True for UTC sync, False for Local time
+ * @return True if time is set
  */
-static void datetime_from_tm(
-    BACNET_DATE *bdate,
-    BACNET_TIME *btime,
-    uint8_t hundredths,
-    int16_t *utc_offset_minutes,
-    bool *dst_active,
-    struct tm *tblock)
+void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
-    datetime_set_date(
-        bdate, (uint16_t)tblock->tm_year + 1900, (uint8_t)tblock->tm_mon + 1,
-        (uint8_t)tblock->tm_mday);
-    datetime_set_time(
-        btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
-        (uint8_t)tblock->tm_sec, hundredths);
-    if (dst_active) {
-        /* The value of tm_isdst is:
-           - positive if Daylight Saving Time is in effect,
-           - 0 if Daylight Saving Time is not in effect, and
-           - negative if the information is not available. */
-        if (tblock->tm_isdst > 0) {
-            *dst_active = true;
-        } else {
-            *dst_active = false;
-        }
-    }
-    /* note: timezone is declared in <time.h> stdlib. */
-    if (utc_offset_minutes) {
-        /* timezone is set to the difference, in seconds,
-            between Coordinated Universal Time (UTC) and
-            local standard time */
-        *utc_offset_minutes = (int16_t)(timezone / 60);
-    }
+    (void)bdate;
+    (void)btime;
+    (void)utc;
+    return;
 }
 
 /**
@@ -289,29 +130,65 @@ bool datetime_local(
 {
     bool status = false;
     struct tm *tblock = NULL;
+#if defined(_MSC_VER)
     struct tm newtime = { 0 };
-    struct timeval tv = { 0 };
-    int32_t to = 0;
-    time_t seconds = 0;
+    __time64_t long_time = 0;
+#else
+    struct timeval tv;
+#endif
 
+#if defined(_MSC_VER)
+    _time64(&long_time);
+    (void)localtime_s(&newtime, &long_time);
+    tblock = &newtime;
+#else
     if (gettimeofday(&tv, NULL) == 0) {
-        to = Time_Offset;
-        tv.tv_sec += (to / 1000);
-        tv.tv_usec += (to % 1000) * 1000;
-        while (tv.tv_usec >= 1000000) {
-            tv.tv_sec++;
-            tv.tv_usec -= 1000000;
+        tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
+    }
+#endif
+
+    if (tblock) {
+        status = true;
+        /** struct tm
+         *   int    tm_sec   Seconds [0,60].
+         *   int    tm_min   Minutes [0,59].
+         *   int    tm_hour  Hour [0,23].
+         *   int    tm_mday  Day of month [1,31].
+         *   int    tm_mon   Month of year [0,11].
+         *   int    tm_year  Years since 1900.
+         *   int    tm_wday  Day of week [0,6] (Sunday =0).
+         *   int    tm_yday  Day of year [0,365].
+         *   int    tm_isdst Daylight Savings flag.
+         */
+        datetime_set_date(
+            bdate, (uint16_t)tblock->tm_year + 1900,
+            (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
+#if !defined(_MSC_VER)
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, (uint8_t)(tv.tv_usec / 10000));
+#else
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, 0);
+#endif
+        if (dst_active) {
+            /* The value of tm_isdst is:
+               - positive if Daylight Saving Time is in effect,
+               - 0 if Daylight Saving Time is not in effect, and
+               - negative if the information is not available. */
+            if (tblock->tm_isdst > 0) {
+                *dst_active = true;
+            } else {
+                *dst_active = false;
+            }
         }
-        while (tv.tv_usec < 0) {
-            tv.tv_sec--;
-            tv.tv_usec += 1000000;
-        }
-        seconds = tv.tv_sec;
-        if (datetime_localtime(&newtime, &seconds, &tblock)) {
-            datetime_from_tm(
-                bdate, btime, (uint8_t)(tv.tv_usec / 10000), utc_offset_minutes,
-                dst_active, tblock);
-            status = true;
+        /* note: timezone is declared in <time.h> stdlib. */
+        if (utc_offset_minutes) {
+            /* timezone is set to the difference, in seconds,
+                between Coordinated Universal Time (UTC) and
+                local standard time */
+            *utc_offset_minutes = (int16_t)(timezone / 60);
         }
     }
 
