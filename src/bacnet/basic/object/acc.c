@@ -388,8 +388,8 @@ bool Accumulator_Encode_Value_List(
         bool out_of_service = pObject->Out_Of_Service;
 
         status = cov_value_list_encode_unsigned(
-            value_list, (uint32_t)pObject->Present_Value, in_alarm, fault,
-            overridden, out_of_service);
+            value_list, pObject->Present_Value, in_alarm, fault, overridden,
+            out_of_service);
     }
 
     return status;
