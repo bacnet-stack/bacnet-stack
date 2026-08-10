@@ -6,6 +6,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
@@ -1434,6 +1435,122 @@ static void test_bacapp_sprintf_epics(void)
 }
 
 /**
+ * @brief Test parse_weeklyschedule() via bacapp_parse_application_data()
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_parse_weeklyschedule)
+#else
+static void test_parse_weeklyschedule(void)
+#endif
+{
+#if defined(BACAPP_WEEKLY_SCHEDULE)
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    bool status = false;
+
+    /* round-trip: all 7 days empty, inner type reported as Null */
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+        "(Null; Mon: []; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])",
+        "(Null; Mon: []; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: "
+        "[])");
+
+    /* round-trip: Boolean type, Monday has two entries, rest empty */
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+        "(Boolean; Mon: [07:30:00.00 TRUE, 17:00:00.00 FALSE];"
+        " Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])",
+        "(Boolean; Mon: [07:30:00.00 TRUE, 17:00:00.00 FALSE];"
+        " Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])");
+
+    /* round-trip: numeric inner tag (1 = Boolean) */
+    test_bacapp_snprintf(
+        BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+        "(1; Mon: []; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])",
+        "(Null; Mon: []; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: "
+        "[])");
+
+    /* single-day format: singleDay flag must be set */
+    memset(&value, 0, sizeof(value));
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+        "(Boolean; Mon: [07:30:00.00 TRUE])", &value);
+    zassert_true(status, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, NULL);
+    zassert_true(value.type.Weekly_Schedule.singleDay, NULL);
+    zassert_equal(
+        value.type.Weekly_Schedule.weeklySchedule[0].TV_Count, 1, NULL);
+
+    /* full 7-day parse: Monday has one entry, verify fields */
+    memset(&value, 0, sizeof(value));
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+        "(Boolean; Mon: [07:30:00.00 TRUE]; Tue: []; Wed: [];"
+        " Thu: []; Fri: []; Sat: []; Sun: [])",
+        &value);
+    zassert_true(status, NULL);
+    zassert_false(value.type.Weekly_Schedule.singleDay, NULL);
+    zassert_equal(
+        value.type.Weekly_Schedule.weeklySchedule[0].TV_Count, 1, NULL);
+    zassert_equal(
+        value.type.Weekly_Schedule.weeklySchedule[0].Time_Values[0].Time.hour,
+        7, NULL);
+    zassert_equal(
+        value.type.Weekly_Schedule.weeklySchedule[0].Time_Values[0].Time.min,
+        30, NULL);
+    zassert_equal(
+        value.type.Weekly_Schedule.weeklySchedule[0].Time_Values[0].Time.sec, 0,
+        NULL);
+    /* remaining days must be empty */
+    zassert_equal(
+        value.type.Weekly_Schedule.weeklySchedule[1].TV_Count, 0, NULL);
+
+    /* invalid: missing space between time and value → must return false */
+    memset(&value, 0, sizeof(value));
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+        "(Boolean; Mon: [07:30:00.00TRUE]; Tue: []; Wed: [];"
+        " Thu: []; Fri: []; Sat: []; Sun: [])",
+        &value);
+    zassert_false(status, NULL);
+
+    /* invalid: unknown tag name */
+    memset(&value, 0, sizeof(value));
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, "(NoSuchTag; Mon: [])", &value);
+    zassert_false(status, NULL);
+
+    /* invalid: one day with more time-value pairs than
+       BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE (40) fits in Time_Values[].
+       Without a bounds check, the parser keeps writing past the end of
+       weeklySchedule[0].Time_Values[] and corrupts the following days in
+       the same array instead of rejecting the input. */
+    {
+        char too_many[2048] = "(Boolean; Mon: [";
+        char pair[24];
+        int i;
+
+        for (i = 0; i < 41; i++) {
+            snprintf(
+                pair, sizeof(pair), "%s%02d:%02d:%02d.00 TRUE",
+                (i == 0) ? "" : ", ", (i / 3600) % 24, (i / 60) % 60, i % 60);
+            strcat(too_many, pair);
+        }
+        strcat(
+            too_many,
+            "]; Tue: []; Wed: []; Thu: []; Fri: []; Sat: []; Sun: [])");
+
+        memset(&value, 0, sizeof(value));
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, too_many, &value);
+        zassert_false(status, NULL);
+        /* Tuesday's schedule must stay untouched by Monday's overflow */
+        zassert_equal(
+            value.type.Weekly_Schedule.weeklySchedule[1].TV_Count, 0, NULL);
+    }
+#endif
+}
+
+/**
  * @}
  */
 
@@ -1453,7 +1570,8 @@ void test_main(void)
         ztest_unit_test(testBACnetApplicationDataLength),
         ztest_unit_test(testBACnetApplicationData_Safe),
         ztest_unit_test(test_bacapp_data),
-        ztest_unit_test(test_bacapp_sprintf_epics));
+        ztest_unit_test(test_bacapp_sprintf_epics),
+        ztest_unit_test(test_parse_weeklyschedule));
 
     ztest_run_test_suite(bacapp_tests);
 }

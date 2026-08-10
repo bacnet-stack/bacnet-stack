@@ -19,6 +19,11 @@ The git repositories are hosted at the following sites:
 * Secured an MS/TP implementation COBS frame decoding buffer overflow,
   and added unit test for tight buffer handling. (#1425)
 
+### Fixed
+
+* Fixed missing bounds check when parsing Weekly_Schedule day entries
+  from ASCII (#1432)
+
 ## [1.4.5] - 2026-07-04
 
 ### Security

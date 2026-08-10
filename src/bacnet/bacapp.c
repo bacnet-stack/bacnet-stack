@@ -4169,15 +4169,81 @@ static char *trim(char *str, const char *trimmedchars)
     return ltrim(rtrim(str, trimmedchars), trimmedchars);
 }
 
+/**
+ * @brief Parse a token from a string.
+ * @details From a string, a buffer to receive the "token" that gets scanned,
+ *  the length of the buffer, and a string of "break" characters that stop
+ *  the scan. The function will copy the string into the buffer up to any
+ *  of the break characters, or until the buffer is full, and will always
+ *  leave the buffer null-terminated. The function will return a pointer
+ *  to the first non-breaking character after the one that stopped the scan.
+ * @param s string to parse
+ * @param tok buffer that receives the "token" that gets scanned
+ * @param toklen length of the buffer
+ * @param brk string of break characters that will stop the scan
+ * @return a pointer to the first non-breaking character after the one that
+ *  stopped the scan or NULL on error or end of string.
+ * @note public domain by Ray Gardner, modified by Bob Stout and Steve Karg
+ */
+static const char *
+stptok(const char *s, char *tok, size_t toklen, const char *brk)
+{
+    char *lim; /* limit of token */
+    const char *b; /* current break character */
+
+    /* check for invalid pointers */
+    if (!s || !tok || !brk) {
+        return NULL;
+    }
+
+    /* check for empty string */
+    if (!*s) {
+        return NULL;
+    }
+
+    lim = tok + toklen - 1;
+    while (*s && tok < lim) {
+        for (b = brk; *b; b++) {
+            if (*s == *b) {
+                *tok = 0;
+                for (++s, b = brk; *s && *b; ++b) {
+                    if (*s == *b) {
+                        ++s;
+                        b = brk;
+                    }
+                }
+                if (!*s) {
+                    return NULL;
+                }
+                return s;
+            }
+        }
+        *tok++ = *s++;
+    }
+    *tok = 0;
+
+    if (!*s) {
+        return NULL;
+    }
+
+    return s;
+}
+
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 static bool
 parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
-    char *chunk, *comma, *space, *t, *v, *colonpos, *sqpos;
+    const char *remaining;
+    char *t, *v, *p, *chunk, *space, *comma;
+    const char *colonpos, *sqpos;
     int daynum = 0, tvnum = 0;
-    unsigned int inner_tag;
+    uint32_t inner_tag;
     BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
     BACNET_DAILY_SCHEDULE *dsch;
+    /* token: sized for the inner-tag token (e.g. "(Boolean") */
+    char token[48] = "";
+    /* day_buf: sized to hold one full day's time-value list */
+    char day_buf[BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE * 32 + 64];
 
     /*
      Format:
@@ -4195,59 +4261,57 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
     */
 
     value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
-
-    /* Parse the inner tag */
-    chunk = strtok(str, ";");
-    chunk = ltrim(chunk, "(");
+    /* Parse the inner tag (first ';'-delimited token; always small) */
+    remaining = stptok(str, token, sizeof(token), ";");
+    p = ltrim(token, "(");
     if (false ==
         bacapp_parse_application_data(
-            BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
-        /* Try searching it by name */
-        if (false == bactext_application_tag_index(chunk, &inner_tag)) {
+            BACNET_APPLICATION_TAG_UNSIGNED_INT, p, &dummy_value)) {
+        if (false == bactext_application_tag_index(p, &inner_tag)) {
             return false;
         }
     } else {
-        inner_tag = (int)dummy_value.type.Unsigned_Int;
+        inner_tag = (uint32_t)dummy_value.type.Unsigned_Int;
     }
 
-    chunk = strtok(NULL, ";");
-
-    while (chunk != NULL) {
+    while ((remaining != NULL) && (daynum < 7)) {
         dsch = &value->type.Weekly_Schedule.weeklySchedule[daynum];
 
-        /* Strip day name prefix, if present */
+        /* Copy next ';'-delimited segment into a writable local buffer */
+        remaining = stptok(remaining, day_buf, sizeof(day_buf), ";");
+        chunk = day_buf;
+
+        /* Strip optional day name prefix (e.g., "Mon: ") */
         colonpos = strchr(chunk, ':');
         sqpos = strchr(chunk, '[');
-        if (colonpos && colonpos < sqpos) {
-            chunk = colonpos + 1;
+        if (colonpos && sqpos && (colonpos < sqpos)) {
+            chunk = (char *)(colonpos + 1);
         }
 
-        /* Extract the inner list of time-values */
-        chunk = rtrim(ltrim(chunk, "([ "), " ])");
+        /* Extract content between '[' and ']' */
+        chunk = ltrim(chunk, "( [");
+        rtrim(chunk, " ])");
 
-        /* The list can be empty */
-        if (chunk[0] != 0) {
-            /* loop through the time value pairs */
-            tvnum = 0;
+        tvnum = 0;
+        if (chunk[0] != '\0') {
             do {
-                /* Find the comma delimiter, replace with NUL (like strtok) */
+                /* Split off one time-value pair at the next comma */
                 comma = strchr(chunk, ',');
                 if (comma) {
-                    *comma = 0;
+                    *comma = '\0';
                 }
-                /* trim the time-value pair and find the delimiter space */
+                /* trim the time-value pair and find the space delimiter */
                 chunk = trim(chunk, " ");
                 space = strchr(chunk, ' ');
                 if (!space) {
                     /* malformed time-value pair */
                     return false;
                 }
-                *space = 0;
+                *space = '\0';
 
                 /* Extract time and value */
                 t = chunk;
-                /* value starts one byte after the space, and there can be */
-                /* multiple spaces */
+                /* value starts after the space; skip multiple spaces */
                 chunk = ltrim(space + 1, " ");
                 v = chunk;
 
@@ -4261,9 +4325,9 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 
                 /* Parse value */
                 if (false ==
-                    bacapp_parse_application_data(inner_tag, v, &dummy_value)) {
-                    /* Schedules can be set to active, inactive, or null to
-                     * revert to default value */
+                    bacapp_parse_application_data(
+                        (BACNET_APPLICATION_TAG)inner_tag, v, &dummy_value)) {
+                    /* null overrides the tag for that time value */
                     if (bacnet_stricmp(v, "null") == 0) {
                         dummy_value.tag = BACNET_APPLICATION_TAG_NULL;
                     } else {
@@ -4276,18 +4340,19 @@ parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
                     return false;
                 }
 
-                /* Advance past the comma to the next chunk */
+                /* Advance past the comma to the next pair */
                 if (comma) {
                     chunk = comma + 1;
                 }
                 tvnum++;
+                if (tvnum >= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
+                    /* too many time-value pairs */
+                    return false;
+                }
             } while (comma != NULL);
         }
 
         dsch->TV_Count = tvnum;
-
-        /* Find the start of the next day */
-        chunk = strtok(NULL, ";");
         daynum++;
     }
 
