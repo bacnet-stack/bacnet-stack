@@ -73,6 +73,11 @@ bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacke
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
 Pull Request: [#1434](https://github.com/bacnet-stack/bacnet-stack/pull/1434).
 
+BACnet/SC hub grows its WebSocket reassembly buffer without limit, so a peer can exhaust its memory
+[GHSA-4vgv-v5ph-rmxr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4vgv-v5ph-rmxr).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1433](https://github.com/bacnet-stack/bacnet-stack/pull/1433).
+
 MS/TP COBS decode overflow
 [GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
