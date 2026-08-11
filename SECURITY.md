@@ -25,6 +25,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Structured View subordinate-list[0] WriteProperty allows unbounded synchronous resize and remote unauthenticated DoS
+[GHSA-hg85-pmm3-jfcf](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-hg85-pmm3-jfcf).
+Patched versions: 1.5.2
+Pull Request: [#1437](https://github.com/bacnet-stack/bacnet-stack/pull/1437).
+
 BACnet/SC hub never requires a client cert, so any host joins the mesh unauthenticated
 [GHSA-92q2-p4vr-fvmp](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-92q2-p4vr-fvmp).
 Patched versions: 1.5.2
