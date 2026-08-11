@@ -398,7 +398,7 @@ netnumis: $(BACNET_LIB_TARGET)
 
 .PHONY: mstpcap
 mstpcap:
-	$(MAKE) -B -C $@
+	$(MAKE) -B -DMAX_APDU=1476 -C $@
 
 .PHONY: mstpcrc
 mstpcrc:

@@ -58,6 +58,9 @@ struct mstp_port_struct_t {
     unsigned SlaveNodeEnabled : 1;
     /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
     unsigned ZeroConfigEnabled : 1;
+    /* A Boolean flag set to TRUE if CRC checking should be skipped.
+       Used for raw captures by the mstpcap application. */
+    unsigned SkipCRC : 1;
     /* stores the latest received data */
     uint8_t DataRegister;
     /* Used to accumulate the CRC on the data field of a frame. */
