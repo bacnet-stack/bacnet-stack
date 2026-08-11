@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the apps/router by validating BVLC framing and improving error
+  handling in dl_ip_recv function. (#1451)
 * Secured bacnet_octet_string_decode and bacnet_character_string_decode
   to handle NULL store and return error when exeeding store capacity.
   Fixed atomic file service request decoding to return appropriate error
