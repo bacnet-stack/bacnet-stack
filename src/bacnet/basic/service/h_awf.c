@@ -120,8 +120,7 @@ void handler_atomic_write_file(
             ABORT_REASON_BUFFER_OVERFLOW, true);
         debug_print(
             DEBUG_LOG_ERROR, stderr, "AWF: Buffer Overflow. Sending Abort!\n");
-        pdu_len += len;
-        return pdu_len;
+        goto AWF_ABORT;
     }
     if (data.object_type == OBJECT_FILE) {
         if (!bacfile_valid_instance(data.object_instance)) {
