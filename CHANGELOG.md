@@ -17,6 +17,7 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnet/SC by adding fragment length validation for websocket. (#1433)
 * Secured an MS/TP implementation COBS frame decoding buffer overflow,
   and added unit test for tight buffer handling. (#1425)
 
