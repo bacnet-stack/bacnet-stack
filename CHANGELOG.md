@@ -16,6 +16,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnet/SC websocket to require valid OpenSSL client certificate
+  for websocket server connections. (#1436)
 * Secured BACnet/SC when'More Options Follow' flag is set to handle incomplete
   option list. (#1435)
 * Secured BACnet/SC by adding optional support for self-signed server
