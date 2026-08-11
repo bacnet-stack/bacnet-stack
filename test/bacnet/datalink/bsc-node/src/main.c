@@ -3392,6 +3392,7 @@ static void test_node_bad_cases(void)
 static void *suite_setup(void)
 {
     setbuf(stdout, NULL);
+    bws_cli_set_selfsigned_enabled(true);
     return NULL;
 }
 
@@ -3406,6 +3407,7 @@ ZTEST_SUITE(node_test_7, NULL, suite_setup, NULL, NULL, NULL);
 void test_main(void)
 {
     // setbuf(stdout, NULL);
+    bws_cli_set_selfsigned_enabled(true);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(node_test_1, ztest_unit_test(test_node_start_stop));
