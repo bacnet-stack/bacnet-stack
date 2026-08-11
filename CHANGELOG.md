@@ -16,6 +16,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnet/SC by adding optional support for self-signed server
+  certificates in BACnet/SC clients by using a single runtime setter,
+  disabled by default. Added BACNET_SC_SELFSIGNED_ENABLED environment
+  variable for example apps, disabled by default. (#1434)
 * Secured BACnet/SC by adding fragment length validation for websocket. (#1433)
 * Secured an MS/TP implementation COBS frame decoding buffer overflow,
   and added unit test for tight buffer handling. (#1425)

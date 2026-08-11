@@ -16,6 +16,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacker can MITM it
+[GHSA-jgm4-2wg9-jwfg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jgm4-2wg9-jwfg).
+Patched versions: 1.4.6
+Pull Request: [#1434](https://github.com/bacnet-stack/bacnet-stack/pull/1434).
+
 BACnet/SC hub grows its WebSocket reassembly buffer without limit, so a peer can exhaust its memory
 [GHSA-4vgv-v5ph-rmxr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4vgv-v5ph-rmxr).
 Patched versions: 1.4.6
