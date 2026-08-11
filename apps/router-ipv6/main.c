@@ -371,26 +371,22 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
         while (port != NULL) {
             if (port->net != snet) {
                 if ((pdu_len + 2) > (int)sizeof(Tx_Buffer)) {
-                    debug_log_fprintf(
-                        DEBUG_LOG_WARNING, stderr,
-                        "I-Am-Router-To-Network truncated - "
-                        "Tx_Buffer full\n");
+                    debug_printf("I-Am-Router-To-Network truncated - "
+                                 "Tx_Buffer full\n");
                     break;
                 }
-                debug_log_fprintf(DEBUG_LOG_INFO, stderr, "%u,", port->net);
+                debug_fprintf(stderr, "%u,", port->net);
                 len = encode_unsigned16(&Tx_Buffer[pdu_len], port->net);
                 pdu_len += len;
                 dnet = port->dnets;
                 while (dnet != NULL) {
                     if ((pdu_len + 2) > (int)sizeof(Tx_Buffer)) {
-                        debug_log_fprintf(
-                            DEBUG_LOG_WARNING, stderr,
-                            "I-Am-Router-To-Network truncated - "
-                            "Tx_Buffer full\n");
+                        debug_printf("I-Am-Router-To-Network truncated - "
+                                     "Tx_Buffer full\n");
                         buffer_full = true;
                         break;
                     }
-                    debug_log_fprintf(DEBUG_LOG_INFO, stderr, "%u,", dnet->net);
+                    debug_fprintf(stderr, "%u,", dnet->net);
                     len = encode_unsigned16(&Tx_Buffer[pdu_len], dnet->net);
                     pdu_len += len;
                     dnet = dnet->next;
