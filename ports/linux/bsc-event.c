@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <unistd.h>
 #include <sys/random.h>
 #include "bacnet/basic/sys/debug.h"
@@ -29,6 +30,26 @@ struct BSC_Event {
     bool v;
     size_t counter;
 };
+
+static bool bsc_getrandom_fill(void *buffer, size_t length)
+{
+    unsigned char *p = buffer;
+    size_t offset = 0;
+
+    while (offset < length) {
+        ssize_t bytes = getrandom(&p[offset], length - offset, 0);
+        if (bytes > 0) {
+            offset += (size_t)bytes;
+            continue;
+        }
+        if ((bytes < 0) && (errno == EINTR)) {
+            continue;
+        }
+        return false;
+    }
+
+    return true;
+}
 
 BSC_EVENT *bsc_event_init(void)
 {
@@ -181,7 +202,10 @@ void bsc_wait_ms(int mseconds)
 
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
 {
-    getrandom(p->address, BVLC_SC_VMAC_SIZE, 0);
+    if (!bsc_getrandom_fill(p->address, BVLC_SC_VMAC_SIZE)) {
+        memset(p->address, 0, BVLC_SC_VMAC_SIZE);
+        DEBUG_PRINTF("getrandom failed for VMAC\n");
+    }
 
     /* According H.7.3 EUI-48 and Random-48 VMAC Address:
        The Random-48 VMAC is a 6-octet VMAC address in which the least
@@ -196,7 +220,10 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
 
 void bsc_generate_random_uuid(BACNET_SC_UUID *p)
 {
-    getrandom(p->uuid, BVLC_SC_UUID_SIZE, 0);
+    if (!bsc_getrandom_fill(p->uuid, BVLC_SC_UUID_SIZE)) {
+        memset(p->uuid, 0, BVLC_SC_UUID_SIZE);
+        DEBUG_PRINTF("getrandom failed for UUID\n");
+    }
     debug_printf_hex(
         0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid:");
 }
