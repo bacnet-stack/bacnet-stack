@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured apps/router by preventing buffer overflow in I-Am-Router-To-Network
+  message handling. (#1438)
 * Secured Life-Safety Zone and Structured View object resizable
   arrays and lists to prevent unbounded expansion, adding size limits for
   remotely writable BACnet array or list elements. (#1437)

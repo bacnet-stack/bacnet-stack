@@ -25,6 +25,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Router route-table Tx_Buffer overflow
+[GHSA-gj7v-fwjp-7x8q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gj7v-fwjp-7x8q).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1438](https://github.com/bacnet-stack/bacnet-stack/pull/1438).
+
 Structured View subordinate-list[0] WriteProperty allows unbounded synchronous resize and remote unauthenticated DoS
 [GHSA-hg85-pmm3-jfcf](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-hg85-pmm3-jfcf).
 Patched versions: 1.5.2
