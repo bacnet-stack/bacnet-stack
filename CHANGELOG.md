@@ -17,6 +17,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured bacnet_octet_string_decode and bacnet_character_string_decode
+  to handle NULL store and return error when exeeding store capacity.
+  Fixed atomic file service request decoding to return appropriate error
+  for buffer overflow. (#1440)
 * Secured AtomicReadFile and AtomicWriteFile service by forcing errors when
   file access methods supported are mismatched from requested. (#1439)
 * Secured apps/router by preventing buffer overflow in I-Am-Router-To-Network
