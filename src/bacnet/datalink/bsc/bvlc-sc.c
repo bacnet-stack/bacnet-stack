@@ -127,6 +127,7 @@ static bool bvlc_sc_validate_options_headers(
     uint8_t flags = 0;
     uint8_t option;
     uint16_t hdr_len;
+    bool more = false;
 
     if (!option_headers_max_len || !out_option_headers_real_length) {
         *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
@@ -212,9 +213,20 @@ static bool bvlc_sc_validate_options_headers(
             *out_option_header_num += 1;
         }
 
-        if (!(flags & BVLC_SC_HEADER_MORE)) {
+        more = (flags & BVLC_SC_HEADER_MORE) ? true : false;
+        if (!more) {
             break;
         }
+    }
+
+    if (more) {
+        /* the option list was exhausted while the last option still had
+           the MORE bit set - the list is truncated/incomplete and must
+           not be accepted */
+        *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
+        *error_desc_string = s_message_is_incompleted;
+        return false;
     }
 
     *out_option_headers_real_length = options_len;
@@ -1837,7 +1849,7 @@ static bool bvlc_sc_decode_header_options(
     uint8_t *next_option = options_list;
     size_t i = 0;
 
-    while (next_option) {
+    while (next_option && i < BVLC_SC_HEADER_OPTION_MAX) {
         bvlc_sc_decode_option_hdr(
             options_list, &option_array[i].type,
             &option_array[i].must_understand, &next_option);
