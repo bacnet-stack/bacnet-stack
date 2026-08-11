@@ -38,6 +38,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnet/SC network port object by updating certificate file property
+  handling to use object ID encoding. (#1447)
 * Fixed missing bounds check when parsing Weekly_Schedule day entries
   from ASCII (#1432)
 

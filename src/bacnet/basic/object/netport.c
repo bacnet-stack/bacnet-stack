@@ -4314,8 +4314,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Network_Port_SC_Hub_Connector_State(rpdata->object_instance));
             break;
         case PROP_OPERATIONAL_CERTIFICATE_FILE:
-            apdu_len = encode_application_unsigned(
-                &apdu[0],
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_FILE,
                 Network_Port_Operational_Certificate_File(
                     rpdata->object_instance));
             break;
@@ -4333,8 +4333,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
-            apdu_len = encode_application_unsigned(
-                &apdu[0],
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_FILE,
                 Network_Port_Certificate_Signing_Request_File(
                     rpdata->object_instance));
             break;
