@@ -118,8 +118,7 @@ void handler_atomic_write_file(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_BUFFER_OVERFLOW, true);
-        debug_print(
-            DEBUG_LOG_ERROR, stderr, "AWF: Buffer Overflow. Sending Abort!\n");
+        debug_print("AWF: Buffer Overflow. Sending Abort!\n");
         goto AWF_ABORT;
     }
     if (data.object_type == OBJECT_FILE) {
