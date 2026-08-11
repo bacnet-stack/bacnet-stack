@@ -593,7 +593,8 @@ int Network_Port_Issuer_Certificate_File_Encode(
     } else {
         file_instance =
             Network_Port_Issuer_Certificate_File(object_instance, index);
-        apdu_len = encode_application_unsigned(apdu, file_instance);
+        apdu_len =
+            encode_application_object_id(apdu, OBJECT_FILE, file_instance);
     }
 
     return apdu_len;
