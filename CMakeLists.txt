@@ -242,7 +242,10 @@ if(BACDL_BSC)
   find_package(PkgConfig)
   pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
   #libwebsocket need C99 with variadic-macros
-  add_compile_options(-Wno-variadic-macros)
+  #MSVC has no such warning and rejects the option as an invalid argument
+  if(NOT MSVC)
+    add_compile_options(-Wno-variadic-macros)
+  endif()
   find_package(OpenSSL)
 endif()
 

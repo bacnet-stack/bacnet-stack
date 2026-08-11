@@ -42,6 +42,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnet/SC build under MSVC by skipping GCC-only -Wno-variadic-macros
+  option when building with MSVC to silence a libwebsockets warning. MSVC
+  has no such warning and rejects the option outright. (#1450)
 * Fixed BACnet/SC network port object by updating certificate file property
   handling to use object ID encoding. (#1447)
 
