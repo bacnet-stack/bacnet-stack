@@ -16,6 +16,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Cross-peer disclosure caused by a BVLC length mismatch
+[GHSA-rxvq-3mhq-474x](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rxvq-3mhq-474x).
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1451](https://github.com/bacnet-stack/bacnet-stack/pull/1451).
+
 Silent decode failure in bacnet_octet_string_decode() due to discarded return value - oversized octet strings reported as successfully decoded
 [GHSA-9qx8-hr5x-r35c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9qx8-hr5x-r35c).
 Patched versions: 1.4.6
