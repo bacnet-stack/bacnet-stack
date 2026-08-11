@@ -25,9 +25,14 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+AtomicWriteFile access-method mismatch leading to RAMFS heap OOB read
+[GHSA-gv7j-28x8-cr37](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv7j-28x8-cr37).
+Patched versions: 1.5.2
+Pull Request: [#1439](https://github.com/bacnet-stack/bacnet-stack/pull/1439).
+
 Router route-table Tx_Buffer overflow
 [GHSA-gj7v-fwjp-7x8q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gj7v-fwjp-7x8q).
-Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Patched versions: 1.5.2
 Pull Request: [#1438](https://github.com/bacnet-stack/bacnet-stack/pull/1438).
 
 Structured View subordinate-list[0] WriteProperty allows unbounded synchronous resize and remote unauthenticated DoS
