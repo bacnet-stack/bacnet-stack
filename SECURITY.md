@@ -16,6 +16,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Silent decode failure in bacnet_octet_string_decode() due to discarded return value - oversized octet strings reported as successfully decoded
+[GHSA-9qx8-hr5x-r35c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9qx8-hr5x-r35c).
+Patched versions: 1.4.6
+Pull Request: [#1440](https://github.com/bacnet-stack/bacnet-stack/pull/1440).
+
 AtomicWriteFile access-method mismatch leading to RAMFS heap OOB read
 [GHSA-gv7j-28x8-cr37](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv7j-28x8-cr37).
 Patched versions: 1.4.6

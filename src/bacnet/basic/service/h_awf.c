@@ -103,14 +103,25 @@ void handler_atomic_write_file(
         debug_print("AWF:Segmented Message. Sending Abort!\n");
         goto AWF_ABORT;
     }
-    len = awf_decode_service_request(service_request, service_len, &data);
-    /* bad decoding - send an abort */
+    len = awf_decode_service_request(service_request, service_len, NULL);
     if (len < 0) {
+        /* bad decoding - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
         debug_print("AWF: Bad Encoding. Sending Abort!\n");
         goto AWF_ABORT;
+    }
+    len = awf_decode_service_request(service_request, service_len, &data);
+    if (len < 0) {
+        /* an input buffer capacity has been exceeded in this device */
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_BUFFER_OVERFLOW, true);
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr, "AWF: Buffer Overflow. Sending Abort!\n");
+        pdu_len += len;
+        return pdu_len;
     }
     if (data.object_type == OBJECT_FILE) {
         if (!bacfile_valid_instance(data.object_instance)) {

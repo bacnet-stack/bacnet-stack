@@ -12,6 +12,19 @@
  * @{
  */
 
+static int
+encode_application_octet_string_with_raw_length(uint8_t *apdu, uint32_t length)
+{
+    int apdu_len = 0;
+
+    apdu_len =
+        encode_tag(apdu, BACNET_APPLICATION_TAG_OCTET_STRING, false, length);
+    memset(&apdu[apdu_len], 0xA5, length);
+    apdu_len += (int)length;
+
+    return apdu_len;
+}
+
 /**
  * @brief Test
  */
@@ -180,6 +193,59 @@ static void testAtomicReadFile(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(arf_tests, testAtomicReadFileAckOversizedOctetString)
+#else
+static void testAtomicReadFileAckOversizedOctetString(void)
+#endif
+{
+    BACNET_ATOMIC_READ_FILE_DATA data;
+    uint8_t apdu[2048] = { 0 };
+    uint32_t oversized_length = MAX_OCTET_STRING_BYTES + 1;
+    int apdu_len = 0;
+    int len = 0;
+
+    zassert_true((oversized_length + 16U) < sizeof(apdu), NULL);
+
+    memset(&data, 0xA5, sizeof(data));
+    apdu_len = 0;
+    len = encode_application_boolean(&apdu[apdu_len], true);
+    apdu_len += len;
+    len = encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    len = encode_application_signed(&apdu[apdu_len], 1234);
+    apdu_len += len;
+    len = encode_application_octet_string_with_raw_length(
+        &apdu[apdu_len], oversized_length);
+    apdu_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+
+    len = arf_ack_decode_service_request(apdu, apdu_len, NULL);
+    zassert_equal(len, apdu_len, NULL);
+    len = arf_ack_decode_service_request(apdu, apdu_len, &data);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+
+    apdu_len = 0;
+    len = encode_application_boolean(&apdu[apdu_len], false);
+    apdu_len += len;
+    len = encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    len = encode_application_signed(&apdu[apdu_len], -17);
+    apdu_len += len;
+    len = encode_application_octet_string_with_raw_length(&apdu[apdu_len], 3);
+    apdu_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+
+    len = arf_ack_decode_service_request(apdu, apdu_len, &data);
+    zassert_equal(len, apdu_len, NULL);
+    zassert_false(data.endOfFile, NULL);
+    zassert_equal(data.access, FILE_STREAM_ACCESS, NULL);
+    zassert_equal(data.type.stream.fileStartPosition, -17, NULL);
+    zassert_equal(octetstring_length(&data.fileData[0]), 3, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(arf_tests, testAtomicReadFileMalformed)
 #else
 static void testAtomicReadFileMalformed(void)
@@ -226,6 +292,7 @@ void test_main(void)
     ztest_test_suite(
         arf_tests, ztest_unit_test(testAtomicReadFile),
         ztest_unit_test(testAtomicReadFileAck),
+        ztest_unit_test(testAtomicReadFileAckOversizedOctetString),
         ztest_unit_test(testAtomicReadFileMalformed));
 
     ztest_run_test_suite(arf_tests);
