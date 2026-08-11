@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnet/SC when'More Options Follow' flag is set to handle incomplete
+  option list. (#1435)
 * Secured BACnet/SC by adding optional support for self-signed server
   certificates in BACnet/SC clients by using a single runtime setter,
   disabled by default. Added BACNET_SC_SELFSIGNED_ENABLED environment

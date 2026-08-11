@@ -25,6 +25,12 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Trailing MORE bit on the last BACnet/SC header option walks the option list past the end of the message,
+causing a pre-auth out-of-bounds read escalating to an out-of-bounds write into global memory
+[GHSA-gr74-333w-7wg8](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gr74-333w-7wg8).
+Patched versions: 1.5.2
+Pull Request: [#1435](https://github.com/bacnet-stack/bacnet-stack/pull/1435).
+
 bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacker can MITM it
 [GHSA-jgm4-2wg9-jwfg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jgm4-2wg9-jwfg).
 Patched versions: 1.5.2
