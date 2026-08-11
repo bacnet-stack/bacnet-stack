@@ -16,6 +16,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+AtomicWriteFile access-method mismatch leading to RAMFS heap OOB read
+[GHSA-gv7j-28x8-cr37](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv7j-28x8-cr37).
+Patched versions: 1.4.6
+Pull Request: [#1439](https://github.com/bacnet-stack/bacnet-stack/pull/1439).
+
 Router route-table Tx_Buffer overflow
 [GHSA-gj7v-fwjp-7x8q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gj7v-fwjp-7x8q).
 Patched versions: 1.4.6

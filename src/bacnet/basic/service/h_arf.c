@@ -100,6 +100,7 @@ void handler_atomic_read_file(
     int len = 0;
     int pdu_len = 0;
     bool error = false;
+    bool stream = false;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -138,7 +139,14 @@ void handler_atomic_read_file(
         goto ARF_ABORT;
     }
     if (data.object_type == OBJECT_FILE) {
+        if (data.access == FILE_STREAM_ACCESS) {
+            stream = true;
+        }
         if (!bacfile_valid_instance(data.object_instance)) {
+            error_code = ERROR_CODE_UNKNOWN_OBJECT;
+            error = true;
+        } else if (bacfile_file_access_stream(data.object_instance) != stream) {
+            error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
             file_size = bacfile_file_size(data.object_instance);
