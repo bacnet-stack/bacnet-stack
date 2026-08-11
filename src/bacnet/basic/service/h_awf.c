@@ -118,7 +118,7 @@ void handler_atomic_write_file(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_BUFFER_OVERFLOW, true);
-        debug_log_fprintf(
+        debug_print(
             DEBUG_LOG_ERROR, stderr, "AWF: Buffer Overflow. Sending Abort!\n");
         pdu_len += len;
         return pdu_len;
