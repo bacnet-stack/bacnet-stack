@@ -824,7 +824,7 @@ int bacnet_enclosed_data_length(const uint8_t *apdu, size_t apdu_size)
     int apdu_len = 0;
     BACNET_TAG tag = { 0 };
     uint8_t opening_tag_number = 0;
-    uint8_t opening_tag_number_counter = 0;
+    size_t opening_tag_number_counter = 0;
     bool total_len_enable = false;
 
     if (!apdu) {

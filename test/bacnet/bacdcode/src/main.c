@@ -2057,6 +2057,76 @@ static void test_bacnet_array_encode(void)
     zassert_true(apdu_len == BACNET_STATUS_ABORT, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_bacnet_enclosed_data_length)
+#else
+static void test_bacnet_enclosed_data_length(void)
+#endif
+{
+    uint8_t apdu[1024] = { 0 };
+    int apdu_len = 0, len = 0, test_len = 0;
+    unsigned bit_i;
+    uint8_t tag_number;
+
+    test_len = bacnet_enclosed_data_length(NULL, apdu_len);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    /* nested sequence of open then close tags */
+    for (bit_i = 0; bit_i < 8; bit_i++) {
+        tag_number = BIT(bit_i);
+        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+        apdu_len += len;
+    }
+    for (bit_i = 0; bit_i < 8; bit_i++) {
+        tag_number = BIT(7 - bit_i);
+        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        apdu_len += len;
+    }
+    test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+    /* enclosed is 1 open and 1 close tag less than the APDU length */
+    zassert_equal(
+        test_len, apdu_len - 2, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    while (apdu_len) {
+        apdu_len--;
+        test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
+    /* nested same open then close tags */
+    tag_number = BIT(0);
+    for (bit_i = 0; bit_i < 8; bit_i++) {
+        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+        apdu_len += len;
+    }
+    for (bit_i = 0; bit_i < 8; bit_i++) {
+        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        apdu_len += len;
+    }
+    test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+    zassert_equal(
+        test_len, apdu_len - 2, "test_len=%d apdu_len=%d", test_len, apdu_len);
+    while (apdu_len) {
+        apdu_len--;
+        test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
+
+    /* overflow regression: 256 nested same-tag openings must not wrap */
+    tag_number = BIT(0);
+    apdu_len = 0;
+    for (bit_i = 0; bit_i < 256; bit_i++) {
+        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+        apdu_len += len;
+    }
+    for (bit_i = 0; bit_i < 256; bit_i++) {
+        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        apdu_len += len;
+    }
+    test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+    zassert_equal(
+        test_len, apdu_len - 2, "test_len=%d apdu_len=%d", test_len, apdu_len);
+}
+
 /**
  * @}
  */
@@ -2096,6 +2166,7 @@ void test_main(void)
         ztest_unit_test(testDateRangeContextDecodes),
         ztest_unit_test(testOctetStringContextDecodes),
         ztest_unit_test(testBACDCodeDouble),
+        ztest_unit_test(test_bacnet_enclosed_data_length),
         ztest_unit_test(test_bacnet_array_encode));
 
     ztest_run_test_suite(bacdcode_tests);
