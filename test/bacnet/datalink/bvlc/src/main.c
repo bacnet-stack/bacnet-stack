@@ -85,6 +85,17 @@ static int test_BVLC_Header(
     return bytes_consumed;
 }
 
+static void test_BVLC_Header_BufferTooSmall(void)
+{
+    uint8_t pdu[4] = { 0 };
+    int len = 0;
+
+    len = bvlc_encode_header(pdu, 3, BVLC_RESULT, 6);
+    zassert_equal(len, 0, "BVLC header must reject 3-byte buffer");
+    len = bvlc_encode_header(pdu, 2, BVLC_RESULT, 6);
+    zassert_equal(len, 0, "BVLC header must reject 2-byte buffer");
+}
+
 static void test_BVLC_Result_Code(uint16_t result_code)
 {
     uint8_t pdu[50] = { 0 };
@@ -1027,7 +1038,8 @@ ZTEST_SUITE(bvlc_tests, NULL, NULL, NULL, NULL, NULL);
 void test_main(void)
 {
     ztest_test_suite(
-        bvlc_tests, ztest_unit_test(test_BVLC_Result),
+        bvlc_tests, ztest_unit_test(test_BVLC_Header_BufferTooSmall),
+        ztest_unit_test(test_BVLC_Result),
         ztest_unit_test(test_BVLC_Write_Broadcast_Distribution_Table),
         ztest_unit_test(test_BVLC_Read_Broadcast_Distribution_Table_Message),
         ztest_unit_test(test_BVLC_Forwarded_NPDU),
