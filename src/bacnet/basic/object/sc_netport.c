@@ -1543,25 +1543,6 @@ bool Network_Port_SC_Direct_Connect_Accept_URIs_Set(
     return status;
 }
 
-bool Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set(
-    uint32_t object_instance, const char *str)
-{
-    bool status = false;
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-
-    if (params) {
-        if (str) {
-            snprintf(
-                params->SC_Direct_Connect_Accept_URIs_dirty,
-                sizeof(params->SC_Direct_Connect_Accept_URIs_dirty), "%s", str);
-        } else {
-            params->SC_Direct_Connect_Accept_URIs_dirty[0] = 0;
-        }
-    }
-
-    return status;
-}
-
 bool Network_Port_SC_Direct_Connect_Binding(
     uint32_t object_instance, BACNET_CHARACTER_STRING *str)
 {

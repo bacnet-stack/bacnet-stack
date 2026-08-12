@@ -59,6 +59,10 @@ The git repositories are hosted at the following sites:
 * Fixed BACnet/SC network port object by updating certificate file property
   handling to use object ID encoding. (#1447)
 
+### Removed
+
+* Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
+
 ## [1.5.1] - 2026-07-04
 
 ### Security
