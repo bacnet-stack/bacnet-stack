@@ -33,7 +33,7 @@ int bvlc_encode_header(
 {
     int bytes_encoded = 0;
 
-    if (pdu && (pdu_size >= 2)) {
+    if (pdu && (pdu_size >= 4)) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
         pdu[1] = message_type;
         /* The 2-octet BVLC Length field is the length, in octets,
