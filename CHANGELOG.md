@@ -13,10 +13,14 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [unreleased] - 2026-08-04
+## [unreleased] - 2026-08-12
 
 ### Security
 
+* Secured bvlc_encode_header() by increasing minimum PDU size to prevent
+  buffer overflow. (#1467)
+* Secured bacnet_enclosed_data_length() function to prevent integer overflow
+  resulting in too small length which results in heap overflow. (#1466)
 * Secured the Command Object to prevent WriteProperty to the Action property
   while in-progress. Fixed the Action property to be an Array of Lists. (#1461)
 * Secured the apps/router by validating BVLC framing and improving error
@@ -53,6 +57,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added COV support to basic accumulator object without COV increment support
+  since standard does not list COV_Increment property for accumulators. (#1452)
 * Added support for configurable MAX_APDU in Makefile for extended frames in
   the ports/stm32f4xx example. Changed MCU_FLAGS and SDK_FLAGS for STM32F4xx
   configuration. Cleaned up generated files in the Makefile and remove unused
@@ -85,6 +91,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed location of datetime_mstimer module for time management to
+  src/bacnet/basic/datetime instead of sys so it isn't included by default
+  in core library.(#1463)
 * Changed the basic Analog Value object by encapsulating structure into the
   C module and added get/set for the members. Added `Min_Pres_Value` and
   `Max_Pres_Value` properties to Analog Value object. Implemented write
@@ -107,6 +116,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed circular dependency in bacnet_stack_exports.h file.
+* Fixed win32 datetime management with cross-compiler support and
+  time offset calculations supporting soft BACnet TimeSync. (#1463)
 * Fixed wire data length for COBS extended frames in apps/mstpcap and
   apps/mstpsnap by skipping CRC in-place modifications in the MSTP receive
   state machine for raw captures. Changed MSTP forced reply-postponed handling
@@ -119,7 +131,7 @@ The git repositories are hosted at the following sites:
   zeroed address. (#1457)
 * Fixed update cov_value_list_encode_unsigned to use BACNET_UNSIGNED_INTEGER
   data type to avoid truncation. (#1458)
-* Fixed BACnet/SC bulld under MSVC by skipping GCC-only -Wno-variadic-macros
+* Fixed BACnet/SC build under MSVC by skipping GCC-only -Wno-variadic-macros
   option when building with MSVC to silence a libwebsockets warning. MSVC
   has no such warning and rejects the option outright. (#1450)
 * Fixed BACnet/SC network port object by updating certificate file property
@@ -136,6 +148,8 @@ The git repositories are hosted at the following sites:
   local code to use the new names. (#1415)
 
 ### Removed
+
+* Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
 
 ## [1.6.0] - 2026-07-04
 
