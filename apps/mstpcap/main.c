@@ -974,6 +974,8 @@ static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
         mstp_port->ReceivedValidFrameNotForUs = false;
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
         mstp_port->SilenceTimerReset(NULL);
+        /* skip CRC checking for raw captures */
+        mstp_port->SkipCRC = true;
     }
 }
 
@@ -999,6 +1001,7 @@ int main(int argc, char *argv[])
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
     MSTP_Init(mstp_port);
+    mstp_structure_init(mstp_port);
     packet_statistics_clear();
     /* decode any command line parameters */
     filename = filename_remove_path(argv[0]);
