@@ -44,6 +44,13 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed wire data length for COBS extended frames in apps/mstpcap by
+  skipping CRC in-place modifications in the MSTP receive state machine
+  for raw captures. Changed MSTP forced reply-postponed handling
+  logic in MSTP master state machine. Updated COBS decode tests to
+  ensure guard bytes are preserved and handle tight buffer
+  scenarios. Changed MSTP MAX_APDU 1476 to ensure apps/mstpcap can
+  receive full-size extended frames. (#1453)
 * Fixed BBMD handler to send Delete-Foreign-Device to the BBMD, not a
   zeroed address. (#1457)
 * Fixed BACnet/SC build under MSVC by skipping GCC-only -Wno-variadic-macros

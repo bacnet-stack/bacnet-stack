@@ -847,9 +847,9 @@ bool dlmstp_init(char *ifname)
     MSTP_Port.ValidFrameTimerReset = dlmstp_valid_frame_milliseconds_reset;
     MSTP_Port.BaudRate = dlmstp_baud_rate;
     MSTP_Port.BaudRateSet = dlmstp_set_baud_rate;
+    MSTP_Init(&MSTP_Port);
     /* always send reply postponed - can't meet timing on Windows */
     MSTP_Port.Treply_delay = 0;
-    MSTP_Init(&MSTP_Port);
 #if PRINT_ENABLED
     fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
     fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
