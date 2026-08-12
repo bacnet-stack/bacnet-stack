@@ -1288,7 +1288,7 @@ int bvlc_delete_from_bbmd(void)
     if (bbmd_addr.port) {
         BVLC_Buffer_Len = bvlc_encode_delete_foreign_device(
             &BVLC_Buffer[0], sizeof(BVLC_Buffer), &addr);
-        status = bip_send_mpdu(&Remote_BBMD, &BVLC_Buffer[0], BVLC_Buffer_Len);
+        status = bip_send_mpdu(&bbmd_addr, &BVLC_Buffer[0], BVLC_Buffer_Len);
     }
     return status;
 }

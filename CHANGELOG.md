@@ -40,6 +40,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BBMD handler to send Delete-Foreign-Device to the BBMD, not a
+  zeroed address. (#1457)
 * Fixed wire data length for COBS extended frames in apps/mstpcap by
   skipping CRC in-place modifications in the MSTP receive state machine
   for raw captures. Changed MSTP forced reply-postponed handling
