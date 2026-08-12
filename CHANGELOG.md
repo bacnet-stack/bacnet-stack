@@ -54,6 +54,10 @@ The git repositories are hosted at the following sites:
 * Fixed missing bounds check when parsing Weekly_Schedule day entries
   from ASCII (#1432)
 
+### Removed
+
+* Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
+
 ## [1.4.5] - 2026-07-04
 
 ### Security
