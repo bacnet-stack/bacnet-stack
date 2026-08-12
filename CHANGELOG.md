@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured bvlc_encode_header() by increasing minimum PDU size to prevent
+  buffer overflow. (#1467)
 * Secured bacnet_enclosed_data_length() function to prevent integer overflow
   resulting in too small length which results in heap overflow. (#1466)
 * Secured the apps/router by validating BVLC framing and improving error
