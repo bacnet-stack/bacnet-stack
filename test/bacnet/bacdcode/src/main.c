@@ -2422,6 +2422,33 @@ static void test_bacnet_enclosed_data_length(void)
     test_len = bacnet_enclosed_data_length(apdu, apdu_len);
     zassert_equal(
         test_len, apdu_len - 2, "test_len=%d apdu_len=%d", test_len, apdu_len);
+
+    /* overflow regression: a tag whose extended length value approaches
+       INT_MAX must be rejected, not summed into the running lengths. The
+       guard bounds each addend, so the SUM is what overflows: len already
+       holds this tag's header size when the data length is added to it, and
+       apdu_len already holds the opening tag when len is added to it. */
+    apdu_len = 0;
+    apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += encode_tag(&apdu[apdu_len], 2, false, INT_MAX);
+    apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
+    test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, "test_len=%d", test_len);
+    /* the same, context tagged */
+    apdu_len = 0;
+    apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += encode_tag(&apdu[apdu_len], 1, true, INT_MAX);
+    apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
+    test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, "test_len=%d", test_len);
+    /* INT_MAX less the 6-octet tag header: the data length fits into len
+       exactly, and it is the enclosing apdu_len that would overflow */
+    apdu_len = 0;
+    apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += encode_tag(&apdu[apdu_len], 2, false, INT_MAX - 6);
+    apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
+    test_len = bacnet_enclosed_data_length(apdu, apdu_len);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, "test_len=%d", test_len);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

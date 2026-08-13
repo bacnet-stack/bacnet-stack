@@ -862,14 +862,16 @@ int bacnet_enclosed_data_length(const uint8_t *apdu, size_t apdu_size)
             }
             total_len_enable = true;
         } else if (tag.context) {
-            if (tag.len_value_type > INT_MAX) {
+            /* note: bound the SUM, not only the addend: len already holds
+               the size of this tag's header */
+            if (tag.len_value_type > (uint32_t)(INT_MAX - len)) {
                 /* error: length is out of range */
                 return BACNET_STATUS_ERROR;
             }
             len += tag.len_value_type;
             total_len_enable = true;
         } else {
-            if (tag.len_value_type > INT_MAX) {
+            if (tag.len_value_type > (uint32_t)(INT_MAX - len)) {
                 /* error: length is out of range */
                 return BACNET_STATUS_ERROR;
             }
@@ -881,10 +883,18 @@ int bacnet_enclosed_data_length(const uint8_t *apdu, size_t apdu_size)
         if (opening_tag_number_counter > 0) {
             if (len > 0) {
                 if (total_len_enable) {
+                    if (len > (INT_MAX - total_len)) {
+                        /* error: length is out of range */
+                        return BACNET_STATUS_ERROR;
+                    }
                     total_len += len;
                 }
             } else {
                 /* error: len is not incrementing */
+                return BACNET_STATUS_ERROR;
+            }
+            if (len > (INT_MAX - apdu_len)) {
+                /* error: length is out of range */
                 return BACNET_STATUS_ERROR;
             }
             apdu_len += len;
