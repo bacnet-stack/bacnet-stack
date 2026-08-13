@@ -168,7 +168,7 @@ first line of the script.
 - *pinmode(pin,mode,speed), a=dread(pin), dwrite(pin,state)*
 
   Allows direct control over digital pins. The pin, mode, speed, and state
-  designations accept an 8-bit value passed to the the hardware abstraction.
+  designations accept an 8-bit value passed to the hardware abstraction.
 
 - *awrite_conf(prescaler,period), awrite(channel,value), awrite(channel)*
 

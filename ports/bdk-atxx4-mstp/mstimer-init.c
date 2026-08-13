@@ -40,7 +40,7 @@
 /* Timer counts up from count to TIMER_TICKS_MAX and then signals overflow */
 #define TIMER2_COUNT (TIMER_TICKS_MAX - TIMER2_TICKS)
 
-/* counter for the the timer which wraps every 49.7 days */
+/* counter for the timer which wraps every 49.7 days */
 static volatile uint32_t Millisecond_Counter;
 
 /*************************************************************************

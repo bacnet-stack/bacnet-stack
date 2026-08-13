@@ -1561,7 +1561,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    /* decode the the request or the first element in array */
+    /* decode the request or the first element in array */
     len = bacapp_decode_known_property(
         wp_data->application_data, wp_data->application_data_len, &value,
         wp_data->object_type, wp_data->object_property);
