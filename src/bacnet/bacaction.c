@@ -487,7 +487,7 @@ int bacnet_action_command_decode(
     if (len > 0) {
         apdu_len += len;
         if (entry) {
-            entry->Post_Delay = (uint8_t)unsigned_value;
+            entry->Post_Delay = (uint32_t)unsigned_value;
         }
     } else {
         /* wrong tag or malformed - optional - skip apdu_len increment */
