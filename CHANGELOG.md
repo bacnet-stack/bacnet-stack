@@ -17,6 +17,43 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured bacnet_enclosed_data_length() against signed integer overflow while
+  accumulating tag lengths: the guards bounded each length value against
+  INT_MAX but not the running sums, so a tag claiming a length near INT_MAX
+  overflowed len, total_len and apdu_len. (#1468)
+* Secured bvlc_encode_header() by increasing minimum PDU size to prevent
+  buffer overflow. (#1467)
+* Secured bacnet_enclosed_data_length() function to prevent integer overflow
+  resulting in too small length which results in heap overflow. (#1466)
+* Secured the apps/router by validating BVLC framing and improving error
+  handling in dl_ip_recv function. (#1451)
+* Secured cJSON local library by applying fixes to known vulnerabilities.
+  Added global error pointer string function for use in printing.
+  Enhanced JSON parser to prevent stack exhaustion and handle numeric overflows.
+  Improved JSON error handling and prevented buffer over-read in cJSON parser.
+  Added unit tests for cJSON parser functionality and error handling. (#1444)
+* Secured bacnet_octet_string_decode and bacnet_character_string_decode
+  to handle NULL store and return error when exeeding store capacity.
+  Fixed atomic file service request decoding to return appropriate error
+  for buffer overflow. (#1440)
+* Secured apps/modbus-gateway by fixing use-after-free on JSON parse
+  errors. (#1441)
+* Secured AtomicReadFile and AtomicWriteFile service by forcing errors when
+  file access methods supported are mismatched from requested. (#1439)
+* Secured apps/router by preventing buffer overflow in I-Am-Router-To-Network
+  message handling. (#1438)
+* Secured Life-Safety Zone and Structured View object resizable
+  arrays and lists to prevent unbounded expansion, adding size limits for
+  remotely writable BACnet array or list elements. (#1437)
+* Secured BACnet/SC websocket to require valid OpenSSL client certificate
+  for websocket server connections. (#1436)
+* Secured BACnet/SC when'More Options Follow' flag is set to handle incomplete
+  option list. (#1435)
+* Secured BACnet/SC by adding optional support for self-signed server
+  certificates in BACnet/SC clients by using a single runtime setter,
+  disabled by default. Added BACNET_SC_SELFSIGNED_ENABLED environment
+  variable for example apps, disabled by default. (#1434)
+* Secured BACnet/SC by adding fragment length validation for websocket. (#1433)
 * Secured an MS/TP implementation COBS frame decoding buffer overflow,
   and added unit test for tight buffer handling. (#1425)
 
