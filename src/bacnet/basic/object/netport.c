@@ -3583,7 +3583,7 @@ uint32_t Network_Port_IP_DHCP_Lease_Time_Remaining(uint32_t object_instance)
 }
 
 /**
- * @brief Get the the address of the DHCP server from which the last DHCP
+ * @brief Get the address of the DHCP server from which the last DHCP
  *  lease was obtained for the port. If the address of the DHCP server
  *  cannot be determined, the value of this property shall be X'00000000'.
  * @param object_instance [in] BACnet network port object instance number
