@@ -16,6 +16,56 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Buffer overflow from 8-bit integer overflow in bacnet_enclosed_data_length() function
+Patched versions: 1.6.1
+Pull Request: [#1466](https://github.com/bacnet-stack/bacnet-stack/pull/1466).
+
+Cross-peer disclosure caused by a BVLC length mismatch
+[GHSA-rxvq-3mhq-474x](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rxvq-3mhq-474x).
+Patched versions: 1.6.1
+Pull Request: [#1451](https://github.com/bacnet-stack/bacnet-stack/pull/1451).
+
+Silent decode failure in bacnet_octet_string_decode() due to discarded return value - oversized octet strings reported as successfully decoded
+[GHSA-9qx8-hr5x-r35c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9qx8-hr5x-r35c).
+Patched versions: 1.6.1
+Pull Request: [#1440](https://github.com/bacnet-stack/bacnet-stack/pull/1440).
+
+AtomicWriteFile access-method mismatch leading to RAMFS heap OOB read
+[GHSA-gv7j-28x8-cr37](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv7j-28x8-cr37).
+Patched versions: 1.6.1
+Pull Request: [#1439](https://github.com/bacnet-stack/bacnet-stack/pull/1439).
+
+Router route-table Tx_Buffer overflow
+[GHSA-gj7v-fwjp-7x8q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gj7v-fwjp-7x8q).
+Patched versions: 1.6.1
+Pull Request: [#1438](https://github.com/bacnet-stack/bacnet-stack/pull/1438).
+
+Structured View subordinate-list[0] WriteProperty allows unbounded synchronous resize and remote unauthenticated DoS
+[GHSA-hg85-pmm3-jfcf](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-hg85-pmm3-jfcf).
+Patched versions: 1.6.1
+Pull Request: [#1437](https://github.com/bacnet-stack/bacnet-stack/pull/1437).
+
+BACnet/SC hub never requires a client cert, so any host joins the mesh unauthenticated
+[GHSA-92q2-p4vr-fvmp](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-92q2-p4vr-fvmp).
+Patched versions: 1.6.1
+Pull Request: [#1436](https://github.com/bacnet-stack/bacnet-stack/pull/1436).
+
+Trailing MORE bit on the last BACnet/SC header option walks the option list past the end of the message,
+causing a pre-auth out-of-bounds read escalating to an out-of-bounds write into global memory
+[GHSA-gr74-333w-7wg8](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gr74-333w-7wg8).
+Patched versions: 1.6.1
+Pull Request: [#1435](https://github.com/bacnet-stack/bacnet-stack/pull/1435).
+
+bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacker can MITM it
+[GHSA-jgm4-2wg9-jwfg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jgm4-2wg9-jwfg).
+Patched versions: 1.6.1
+Pull Request: [#1434](https://github.com/bacnet-stack/bacnet-stack/pull/1434).
+
+BACnet/SC hub grows its WebSocket reassembly buffer without limit, so a peer can exhaust its memory
+[GHSA-4vgv-v5ph-rmxr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4vgv-v5ph-rmxr).
+Patched versions: 1.6.1
+Pull Request: [#1433](https://github.com/bacnet-stack/bacnet-stack/pull/1433).
+
 MS/TP COBS decode overflow
 [GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
 Patched versions: 1.6.1
