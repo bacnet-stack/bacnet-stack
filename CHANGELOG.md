@@ -17,6 +17,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured bacnet_enclosed_data_length() against signed integer overflow while
+  accumulating tag lengths: the guards bounded each length value against
+  INT_MAX but not the running sums, so a tag claiming a length near INT_MAX
+  overflowed len, total_len and apdu_len. (#1468)
 * Secured bvlc_encode_header() by increasing minimum PDU size to prevent
   buffer overflow. (#1467)
 * Secured bacnet_enclosed_data_length() function to prevent integer overflow
