@@ -90,15 +90,31 @@ int private_transfer_request_service_encode(
 }
 
 /**
- * @brief Encode a ConfirmedPrivateTransfer-Error APDU
- * ConfirmedPrivateTransfer-Error ::= SEQUENCE {
- *  errorType       [0] Error,
- *  vendorID        [1] Unsigned,
- *  serviceNumber [2] Unsigned,
- *  errorParameters [3] ABSTRACT-SYNTAX.&Type OPTIONAL
- * }
+ * @brief Encode the initial portion of the service
  * @param apdu [in] The APDU buffer for encoding, or NULL for length
  * @param apdu_size [in] The maximum APDU size for encoding
+ * @param invoke_id [in] Invoke ID
+ * @return number of bytes encoded, or zero on error
+ */
+int ptransfer_service_header_encode(
+    uint8_t *apdu, uint16_t apdu_size, uint8_t invoke_id)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    if (apdu && (apdu_size >= 4)) {
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[2] = invoke_id;
+        apdu[3] = SERVICE_CONFIRMED_PRIVATE_TRANSFER; /* service choice */
+        apdu_len = 4;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a ConfirmedPrivateTransfer-Request APDU
+ * @param apdu [in] The APDU buffer for encoding, or NULL for length
  * @param invoke_id [in] The invoke ID for the error response
  * @param data [in] The BACNET_PRIVATE_TRANSFER_DATA structure to encode
  * @return number of bytes encoded, or zero on error

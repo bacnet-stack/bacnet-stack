@@ -250,12 +250,13 @@ int main(int argc, char *argv[])
     uint16_t pdu_len = 0;
     unsigned timeout = 100;
     unsigned max_apdu = 0;
-    unsigned timeout_milliseconds = 0;
+    unsigned binding_timeout_milliseconds = 0;
     bool found = false;
     const char *filename = NULL;
     char *value_string = NULL;
-    struct mstimer apdu_timer = { 0 };
+    struct mstimer binding_timer = { 0 };
     struct mstimer datalink_timer = { 0 };
+    struct mstimer transaction_timer = { 0 };
     bool status = false;
     int argi = 0;
     long dnet = -1;
@@ -365,6 +366,9 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Error: unable to parse the tag value\n");
                 return 1;
             }
+            fprintf(
+                stderr, "Parsed tag=%u->value.tag=%u\n", property_tag,
+                Target_Object_Property_Value[property_count].tag);
             Target_Object_Property_Value[property_count].next = NULL;
             if (property_count > 0) {
                 Target_Object_Property_Value[property_count - 1].next =
@@ -399,9 +403,10 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     mstimer_init();
-    timeout_milliseconds = apdu_timeout() * apdu_retries();
-    mstimer_set(&apdu_timer, timeout_milliseconds);
+    binding_timeout_milliseconds = apdu_timeout() * apdu_retries();
+    mstimer_set(&binding_timer, binding_timeout_milliseconds);
     mstimer_set(&datalink_timer, 1000);
+    mstimer_set(&transaction_timer, 1000);
 
     found = address_bind_request(
         Target_Device_Object_Instance, &max_apdu, &Target_Address);
@@ -437,9 +442,9 @@ int main(int argc, char *argv[])
                 /* try again or abort? */
                 break;
             }
-        } else if (mstimer_expired(&apdu_timer)) {
+        } else if (mstimer_expired(&binding_timer)) {
             /* increment timer - exit if timed out */
-            printf("\rError: APDU Timeout!\n");
+            printf("\rError: Binding Timeout!\n");
             Error_Detected = true;
             break;
         }
@@ -447,6 +452,10 @@ int main(int argc, char *argv[])
             datalink_maintenance_timer(
                 mstimer_interval(&datalink_timer) / 1000);
             mstimer_reset(&datalink_timer);
+        }
+        if (mstimer_expired(&transaction_timer)) {
+            mstimer_reset(&transaction_timer);
+            tsm_timer_milliseconds(mstimer_interval(&transaction_timer));
         }
     }
     if (Error_Detected) {
