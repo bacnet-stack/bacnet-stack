@@ -26,16 +26,14 @@
 #include "bacnet/datalink/datalink.h"
 
 /**
- * @brief Sends a ConfirmedPrivateTransfer request with a list of encoded
- * values.
- * @param pdu [out] Buffer to build the outgoing message into.
- * @param max_pdu [in] Length of the pdu buffer.
- * @param device_id [in] Destination device instance.
- * @param vendor_id [in] Proprietary vendor ID.
- * @param service_number [in] Private service number.
- * @param value_list [in] Linked list of BACNET_APPLICATION_DATA_VALUE values.
- * @return invoke id of outgoing message, or 0 if device is not bound or no tsm
- * is available.
+ * @brief Send a confirmed private transfer request with one or more values.
+ * @param pdu Output buffer for the encoded APDU.
+ * @param max_pdu Maximum size of the output buffer in bytes.
+ * @param device_id BACnet device instance to send the request to.
+ * @param vendor_id Vendor identifier for the private transfer.
+ * @param service_number Vendor-defined private service number.
+ * @param value_list Linked list of application values to encode.
+ * @return Invoke ID of the transaction, or 0 on failure.
  */
 uint8_t Send_Private_Transfer_Request(
     uint8_t *pdu,

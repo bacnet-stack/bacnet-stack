@@ -24,6 +24,13 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/service/h_upt.h"
 
+/**
+ * @brief Handle a confirmed private transfer request.
+ * @param service_request Buffer containing the service request payload.
+ * @param service_len Length of the service request payload in bytes.
+ * @param src Source BACnet address of the requester.
+ * @param service_data Confirmed service metadata for the request.
+ */
 void handler_confirmed_private_transfer(
     uint8_t *service_request,
     uint16_t service_len,

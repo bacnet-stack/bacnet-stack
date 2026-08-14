@@ -19,6 +19,13 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/service/h_upt.h"
 
+/**
+ * @brief Handle a confirmed private transfer ACK.
+ * @param service_request Buffer containing the service ACK payload.
+ * @param service_len Length of the service ACK payload in bytes.
+ * @param src Source BACnet address of the ACK sender.
+ * @param service_data Confirmed service ACK metadata.
+ */
 void handler_confirmed_private_transfer_ack(
     uint8_t *service_request,
     uint16_t service_len,
