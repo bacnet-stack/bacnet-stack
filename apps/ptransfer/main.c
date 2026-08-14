@@ -22,6 +22,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/ptransfer.h"
+#include "bacnet/version.h"
 #include "bacnet/whois.h"
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
@@ -245,6 +246,14 @@ int main(int argc, char *argv[])
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             print_help(filename);
         }
+        return 0;
+    }
+    if (((argc > 1) && strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2026 by Steve Karg and others.\n"
+               "This is free software; see the source for copying conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
         return 0;
     }
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
