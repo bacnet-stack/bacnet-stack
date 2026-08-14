@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <ctype.h>
 #define PRINT_ENABLED 1
 /* BACnet Stack defines - first */
@@ -31,6 +30,7 @@
 #include "bacnet/basic/service/h_pt_a.h"
 #include "bacnet/basic/service/s_pt.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
@@ -160,14 +160,12 @@ int main(int argc, char *argv[])
     uint16_t pdu_len = 0;
     unsigned timeout = 100;
     unsigned max_apdu = 0;
-    time_t elapsed_seconds = 0;
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    time_t timeout_seconds = 0;
-    time_t delta_seconds = 0;
+    unsigned timeout_milliseconds = 0;
     bool found = false;
     const char *filename = NULL;
     char *value_string = NULL;
+    struct mstimer apdu_timer = { 0 };
+    struct mstimer datalink_timer = { 0 };
     bool status = false;
     int args_remaining = 0;
     int tag_value_arg = 0;
@@ -254,9 +252,10 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);
-
-    last_seconds = time(NULL);
-    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    mstimer_init();
+    timeout_milliseconds = apdu_timeout() * apdu_retries();
+    mstimer_set(&apdu_timer, timeout_milliseconds);
+    mstimer_set(&datalink_timer, 1000);
 
     found = address_bind_request(
         Target_Device_Object_Instance, &max_apdu, &Target_Address);
@@ -266,12 +265,9 @@ int main(int argc, char *argv[])
     }
 
     for (;;) {
-        current_seconds = time(NULL);
-        if (current_seconds != last_seconds) {
-            delta_seconds = current_seconds - last_seconds;
-            elapsed_seconds += delta_seconds;
-            tsm_timer_milliseconds(delta_seconds * 1000);
-            datalink_maintenance_timer(delta_seconds);
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        if (pdu_len) {
+            npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
 
         if (Error_Detected) {
@@ -281,6 +277,12 @@ int main(int argc, char *argv[])
         if (!found) {
             found = address_bind_request(
                 Target_Device_Object_Instance, &max_apdu, &Target_Address);
+        }
+
+        if (mstimer_expired(&datalink_timer)) {
+            datalink_maintenance_timer(
+                mstimer_interval(&datalink_timer) / 1000);
+            mstimer_reset(&datalink_timer);
         }
 
         if (!sent_message) {
@@ -298,25 +300,18 @@ int main(int argc, char *argv[])
                     "Sent ConfirmedPrivateTransfer to Device %u.\n",
                     Target_Device_Object_Instance);
                 sent_message = true;
-            } else if (elapsed_seconds > timeout_seconds) {
+            } else if (mstimer_expired(&apdu_timer)) {
                 printf("\rError: APDU Timeout!\n");
                 Error_Detected = true;
                 break;
             }
         }
 
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-        if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
-        }
-
-        if (Error_Detected) {
+        if (sent_message && mstimer_expired(&apdu_timer)) {
+            printf("\rError: APDU Timeout!\n");
+            Error_Detected = true;
             break;
         }
-        if (elapsed_seconds > timeout_seconds) {
-            break;
-        }
-        last_seconds = current_seconds;
     }
 
     if (Error_Detected) {
