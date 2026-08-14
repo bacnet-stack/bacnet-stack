@@ -39,6 +39,9 @@ int ptransfer_decode_service_request(
     BACNET_PRIVATE_TRANSFER_DATA *private_data);
 
 BACNET_STACK_EXPORT
+int ptransfer_service_header_encode(
+    uint8_t *apdu, uint16_t apdu_size, uint8_t invoke_id);
+BACNET_STACK_EXPORT
 int private_transfer_request_encode(
     uint8_t *apdu, const BACNET_PRIVATE_TRANSFER_DATA *private_data);
 BACNET_STACK_EXPORT

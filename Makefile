@@ -176,6 +176,10 @@ piface:
 piface6:
 	$(MAKE) CSTANDARD="-std=gnu11" BACDL=bip6 -s -C apps piface
 
+.PHONY: ptransfer
+ptransfer:
+	$(MAKE) -s -C apps $@
+
 .PHONY: readbdt
 readbdt:
 	$(MAKE) -s -C apps $@
@@ -194,6 +198,10 @@ readpropm:
 
 .PHONY: remove-list-element
 remove-list-element:
+	$(MAKE) -s -C apps $@
+
+.PHONY: uptransfer
+uptransfer:
 	$(MAKE) -s -C apps $@
 
 .PHONY: writebdt
