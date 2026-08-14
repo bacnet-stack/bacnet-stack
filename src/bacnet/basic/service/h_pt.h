@@ -1,12 +1,9 @@
 /**
  * @file
- * @author Steve Karg
- * @date October 2019
  * @brief Header file for a basic ConfirmedPrivateTransfer service handler
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2026
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef HANDLER_CONFIRMED_PRIVATE_TRANSFER_H
 #define HANDLER_CONFIRMED_PRIVATE_TRANSFER_H
@@ -14,7 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -24,6 +20,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 void handler_conf_private_trans(
     uint8_t *service_request,
     uint16_t service_len,

@@ -1,0 +1,112 @@
+/**
+ * @file
+ * @brief Send a ConfirmedPrivateTransfer request with one or more values.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2026
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/dcc.h"
+#include "bacnet/npdu.h"
+#include "bacnet/apdu.h"
+#include "bacnet/ptransfer.h"
+/* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
+
+/**
+ * @brief Sends a ConfirmedPrivateTransfer request with a list of encoded
+ * values.
+ * @param pdu [out] Buffer to build the outgoing message into.
+ * @param max_pdu [in] Length of the pdu buffer.
+ * @param device_id [in] Destination device instance.
+ * @param vendor_id [in] Proprietary vendor ID.
+ * @param service_number [in] Private service number.
+ * @param value_list [in] Linked list of BACNET_APPLICATION_DATA_VALUE values.
+ * @return invoke id of outgoing message, or 0 if device is not bound or no tsm
+ * is available.
+ */
+uint8_t Send_Private_Transfer_Request(
+    uint8_t *pdu,
+    size_t max_pdu,
+    uint32_t device_id,
+    uint16_t vendor_id,
+    uint32_t service_number,
+    const BACNET_APPLICATION_DATA_VALUE *value_list)
+{
+    BACNET_ADDRESS dest;
+    BACNET_ADDRESS my_address;
+    unsigned max_apdu = 0;
+    uint8_t invoke_id = 0;
+    bool status = false;
+    int len = 0;
+    int pdu_len = 0;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+    BACNET_PRIVATE_TRANSFER_DATA private_data;
+    static uint8_t pt_req_buffer[MAX_APDU];
+
+    if (!dcc_communication_enabled()) {
+        return 0;
+    }
+
+    status = address_get_by_device(device_id, &max_apdu, &dest);
+    if (status) {
+        invoke_id = tsm_next_free_invokeID();
+    }
+    if (!invoke_id) {
+        return 0;
+    }
+
+    private_data.vendorID = vendor_id;
+    private_data.serviceNumber = service_number;
+    private_data.serviceParameters = pt_req_buffer;
+    private_data.serviceParametersLen =
+        bacapp_encode_data_list(private_data.serviceParameters, value_list);
+    if (private_data.serviceParametersLen <= 0) {
+        tsm_free_invoke_id(invoke_id);
+        return 0;
+    }
+
+    datalink_get_my_address(&my_address);
+    npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&pdu[0], &dest, &my_address, &npdu_data);
+
+    len = ptransfer_encode_apdu(&pdu[pdu_len], invoke_id, &private_data);
+    if (len <= 0) {
+        tsm_free_invoke_id(invoke_id);
+        return 0;
+    }
+    pdu_len += len;
+
+    if ((size_t)pdu_len >= max_pdu) {
+        tsm_free_invoke_id(invoke_id);
+        debug_fprintf(
+            stderr,
+            "Failed to Send ConfirmedPrivateTransfer Request "
+            "(exceeds provided PDU buffer)!\n");
+        return 0;
+    }
+
+    tsm_set_confirmed_unsegmented_transaction(
+        invoke_id, &dest, &npdu_data, &pdu[0], (uint16_t)pdu_len);
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &pdu[0], pdu_len);
+    if (bytes_sent <= 0) {
+        tsm_free_invoke_id(invoke_id);
+        debug_perror("Failed to Send PrivateTransfer Request");
+        return 0;
+    }
+
+    return invoke_id;
+}

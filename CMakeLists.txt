@@ -520,6 +520,10 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_list_element.h
   src/bacnet/basic/service/h_noserv.c
   src/bacnet/basic/service/h_noserv.h
+  src/bacnet/basic/service/h_pt.c
+  src/bacnet/basic/service/h_pt.h
+  src/bacnet/basic/service/h_pt_a.c
+  src/bacnet/basic/service/h_pt_a.h
   src/bacnet/basic/service/h_rd.c
   src/bacnet/basic/service/h_rd.h
   src/bacnet/basic/service/h_rp_a.c
@@ -588,6 +592,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_list_element.h
   src/bacnet/basic/service/s_lso.c
   src/bacnet/basic/service/s_lso.h
+  src/bacnet/basic/service/s_pt.c
+  src/bacnet/basic/service/s_pt.h
   src/bacnet/basic/service/s_rd.c
   src/bacnet/basic/service/s_rd.h
   src/bacnet/basic/service/s_readrange.c
@@ -1279,6 +1285,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
+
+  add_executable(ptransfer apps/ptransfer/main.c)
+  target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
 
   add_executable(whoami apps/who-am-i/main.c)
   target_link_libraries(whoami PRIVATE ${PROJECT_NAME})

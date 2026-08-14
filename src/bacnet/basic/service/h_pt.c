@@ -1,0 +1,86 @@
+/**
+ * @file
+ * @brief Handles Confirmed Private Transfer requests.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2026
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/abort.h"
+#include "bacnet/apdu.h"
+#include "bacnet/npdu.h"
+#include "bacnet/ptransfer.h"
+#include "bacnet/reject.h"
+/* basic objects, services, TSM, and datalink */
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/service/h_upt.h"
+
+void handler_conf_private_trans(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
+{
+    BACNET_PRIVATE_TRANSFER_DATA data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_ADDRESS my_address = { 0 };
+    int decode_len = 0;
+    int npdu_len = 0;
+    int apdu_len = 0;
+    int pdu_len = 0;
+    int bytes_sent = 0;
+
+    if (service_len == 0) {
+        apdu_len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[0], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+    } else if (service_data->segmented_message) {
+        apdu_len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[0], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+    } else {
+        decode_len = ptransfer_decode_service_request(
+            service_request, service_len, &data);
+        if (decode_len < 0) {
+            apdu_len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[0], service_data->invoke_id,
+                ABORT_REASON_OTHER, true);
+        } else {
+            private_transfer_print_data(&data);
+            datalink_get_my_address(&my_address);
+            npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
+            npdu_len = npdu_encode_pdu(
+                &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
+            apdu_len = ptransfer_ack_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+                &data);
+            pdu_len = npdu_len + apdu_len;
+            bytes_sent = datalink_send_pdu(
+                src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+            if (bytes_sent <= 0) {
+                debug_perror("CPT: Failed to send PDU");
+            }
+            return;
+        }
+    }
+
+    datalink_get_my_address(&my_address);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
+    npdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
+    pdu_len = npdu_len + apdu_len;
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
+        debug_perror("CPT: Failed to send PDU");
+    }
+}
