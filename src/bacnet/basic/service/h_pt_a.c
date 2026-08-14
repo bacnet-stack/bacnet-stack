@@ -19,7 +19,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/service/h_upt.h"
 
-void handler_conf_private_trans_ack(
+void handler_confirmed_private_transfer_ack(
     uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,

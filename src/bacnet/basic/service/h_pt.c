@@ -24,7 +24,7 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/service/h_upt.h"
 
-void handler_conf_private_trans(
+void handler_confirmed_private_transfer(
     uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
@@ -56,10 +56,22 @@ void handler_conf_private_trans(
                 ABORT_REASON_OTHER, true);
         } else {
             private_transfer_print_data(&data);
+            /* Configure for the ACK */
             datalink_get_my_address(&my_address);
             npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
             npdu_len = npdu_encode_pdu(
                 &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
+            /* The 'Result(-)' parameter shall indicate that the
+               service request has failed. The Error Type parameter
+               consists of two component parameters:
+               (1) the 'Error Class' and (2) the 'Error Code'. */
+            /* The 'Result(+)' parameter shall indicate that the
+               service request succeeded. Result Block returns a
+               conditional parameter of type list of ANY.
+               It shall convey any additional results
+               from the execution of the requested service.
+               Interpretation of these results is a local matter. */
+            /* For this example handler, we use the received block.*/
             apdu_len = ptransfer_ack_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 &data);
@@ -72,7 +84,6 @@ void handler_conf_private_trans(
             return;
         }
     }
-
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     npdu_len = npdu_encode_pdu(

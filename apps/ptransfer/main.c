@@ -51,7 +51,7 @@ static BACNET_ADDRESS Target_Address;
 static uint8_t Request_Invoke_ID = 0;
 static bool Error_Detected = false;
 
-static void MyPrivateTransferErrorHandler(
+static void My_Private_Transfer_Error_Handler(
     BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
@@ -83,7 +83,7 @@ static void MyPrivateTransferErrorHandler(
     }
 }
 
-static void MyAbortHandler(
+static void My_Abort_Handler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
@@ -96,7 +96,7 @@ static void MyAbortHandler(
 }
 
 static void
-MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+My_Reject_Handler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
@@ -104,6 +104,38 @@ MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
             "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
+    }
+}
+
+/** Handler for a ReadProperty ACK.
+ * @ingroup DSRP
+ * Doesn't actually do anything, except, for debugging, to
+ * print out the ACK data of a matching request.
+ *
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
+ */
+static void My_Private_Transfer_Ack_Handler(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+{
+    int len = 0;
+    BACNET_PRIVATE_TRANSFER_DATA data;
+
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len = ptransfer_decode_service_request(
+            service_request, service_len, &data);
+        if (len < 0) {
+            printf("<decode failed!>\n");
+        } else {
+            private_transfer_print_data(&data);
+        }
     }
 }
 
@@ -115,14 +147,13 @@ static void Init_Service_Handlers(void)
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_PRIVATE_TRANSFER, handler_conf_private_trans);
+    /* application specific handling */
     apdu_set_confirmed_ack_handler(
-        SERVICE_CONFIRMED_PRIVATE_TRANSFER, handler_conf_private_trans_ack);
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, My_Private_Transfer_Ack_Handler);
     apdu_set_complex_error_handler(
-        SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyPrivateTransferErrorHandler);
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, My_Private_Transfer_Error_Handler);
+    apdu_set_abort_handler(My_Abort_Handler);
+    apdu_set_reject_handler(My_Reject_Handler);
 }
 
 static void print_usage(const char *filename)
@@ -173,7 +204,6 @@ int main(int argc, char *argv[])
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
     uint8_t tx_buffer[MAX_APDU] = { 0 };
-    bool sent_message = false;
 
     if ((argc < 6) || ((argc > 1) && (strcmp(argv[1], "--help") == 0))) {
         filename = filename_remove_path(argv[0]);
@@ -183,18 +213,15 @@ int main(int argc, char *argv[])
         }
         return 0;
     }
-
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Target_Vendor_Identifier = strtol(argv[2], NULL, 0);
     Target_Service_Number = strtol(argv[3], NULL, 0);
-
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(
             stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-
     args_remaining = argc - 4;
     for (i = 0; i < MAX_PROPERTY_VALUES; i++) {
         tag_value_arg = 4 + (i * 2);
@@ -239,14 +266,12 @@ int main(int argc, char *argv[])
             break;
         }
     }
-
     if (args_remaining > 0) {
         fprintf(
             stderr, "Error: Exceeded %d tag-value pairs.\n",
             MAX_PROPERTY_VALUES);
         return 1;
     }
-
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
@@ -269,51 +294,40 @@ int main(int argc, char *argv[])
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-
         if (Error_Detected) {
             break;
         }
-
         if (!found) {
             found = address_bind_request(
                 Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
-
+        if (found) {
+            if (Request_Invoke_ID == 0) {
+                Request_Invoke_ID = Send_Private_Transfer_Request(
+                    &tx_buffer[0], sizeof(tx_buffer),
+                    Target_Device_Object_Instance, Target_Vendor_Identifier,
+                    Target_Service_Number, &Target_Object_Property_Value[0]);
+            } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
+                break;
+            } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
+                fprintf(stderr, "\rError: TSM Timeout!\n");
+                tsm_free_invoke_id(Request_Invoke_ID);
+                Error_Detected = true;
+                /* try again or abort? */
+                break;
+            }
+        } else if (mstimer_expired(&apdu_timer)) {
+            /* increment timer - exit if timed out */
+            printf("\rError: APDU Timeout!\n");
+            Error_Detected = true;
+            break;
+        }
         if (mstimer_expired(&datalink_timer)) {
             datalink_maintenance_timer(
                 mstimer_interval(&datalink_timer) / 1000);
             mstimer_reset(&datalink_timer);
         }
-
-        if (!sent_message) {
-            if (found) {
-                Request_Invoke_ID = Send_Private_Transfer_Request(
-                    &tx_buffer[0], sizeof(tx_buffer),
-                    Target_Device_Object_Instance, Target_Vendor_Identifier,
-                    Target_Service_Number, &Target_Object_Property_Value[0]);
-                if (!Request_Invoke_ID) {
-                    printf("Error: failed to send PrivateTransfer\n");
-                    Error_Detected = true;
-                    break;
-                }
-                printf(
-                    "Sent ConfirmedPrivateTransfer to Device %u.\n",
-                    Target_Device_Object_Instance);
-                sent_message = true;
-            } else if (mstimer_expired(&apdu_timer)) {
-                printf("\rError: APDU Timeout!\n");
-                Error_Detected = true;
-                break;
-            }
-        }
-
-        if (sent_message && mstimer_expired(&apdu_timer)) {
-            printf("\rError: APDU Timeout!\n");
-            Error_Detected = true;
-            break;
-        }
     }
-
     if (Error_Detected) {
         return 1;
     }
