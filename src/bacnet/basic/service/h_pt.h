@@ -15,10 +15,15 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/apdu.h"
+#include "bacnet/ptransfer.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
+void handler_confirmed_private_transfer_callback_set(
+    handler_private_transfer_callback_t cb);
 
 BACNET_STACK_EXPORT
 int handler_confirmed_private_transfer_encode(

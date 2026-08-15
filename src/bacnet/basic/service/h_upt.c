@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Source file for a basic UnconfirmedPrivateTransfer service handler
+ * @author Steve Karg
+ * @date October 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -21,6 +21,15 @@
 #include "bacnet/basic/tsm/tsm.h"
 
 /** @file h_upt.c  Handles Unconfirmed Private Transfer requests. */
+
+static handler_private_transfer_callback_t
+    Handler_Unconfirmed_Private_Transfer_Callback = NULL;
+
+void handler_unconfirmed_private_transfer_callback_set(
+    handler_private_transfer_callback_t cb)
+{
+    Handler_Unconfirmed_Private_Transfer_Callback = cb;
+}
 
 void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
@@ -90,10 +99,24 @@ void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
     }
 }
 
+/**
+ * @brief Private Transfer Handler print callback function.
+ * @param data [in] The private transfer data
+ * @param context [in] The context pointer
+ * @return ERROR_CODE_SUCCESS if successful, otherwise an error code
+ */
+BACNET_ERROR_CODE handler_private_transfer_print(
+    BACNET_PRIVATE_TRANSFER_DATA *data, void *context)
+{
+    (void)context;
+    private_transfer_print_data(data);
+    return ERROR_CODE_SUCCESS;
+}
+
 void handler_unconfirmed_private_transfer(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
-    BACNET_PRIVATE_TRANSFER_DATA private_data;
+    BACNET_PRIVATE_TRANSFER_DATA private_data = { 0 };
     int len = 0;
 
     (void)src;
@@ -103,6 +126,9 @@ void handler_unconfirmed_private_transfer(
     len = ptransfer_decode_service_request(
         service_request, service_len, &private_data);
     if (len >= 0) {
-        private_transfer_print_data(&private_data);
+        if (Handler_Unconfirmed_Private_Transfer_Callback) {
+            (void)Handler_Unconfirmed_Private_Transfer_Callback(
+                &private_data, NULL);
+        }
     }
 }

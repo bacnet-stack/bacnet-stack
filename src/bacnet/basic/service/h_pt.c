@@ -25,6 +25,21 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/service/h_upt.h"
 
+/* Confirmed Private Transfer data callback */
+static handler_private_transfer_callback_t
+    Handler_Confirmed_Private_Transfer_Callback = NULL;
+
+/**
+ * @brief Set the callback function for handling confirmed private transfer
+ * requests.
+ * @param cb The callback function to set.
+ */
+void handler_confirmed_private_transfer_callback_set(
+    handler_private_transfer_callback_t cb)
+{
+    Handler_Confirmed_Private_Transfer_Callback = cb;
+}
+
 int handler_confirmed_private_transfer_encode(
     uint8_t *pdu,
     uint8_t *service_request,
@@ -61,7 +76,31 @@ int handler_confirmed_private_transfer_encode(
         if (len < 0) {
             error_code = ERROR_CODE_ABORT_OTHER;
         } else {
-            private_transfer_print_data(&data);
+            if (Handler_Confirmed_Private_Transfer_Callback) {
+                error_code =
+                    Handler_Confirmed_Private_Transfer_Callback(&data, NULL);
+            }
+            if (error_code == ERROR_CODE_SUCCESS) {
+                /* The 'Result(-)' parameter shall indicate that the
+                   service request has failed. The Error Type parameter
+                   consists of two component parameters:
+                   (1) the 'Error Class' and (2) the 'Error Code'. */
+                /* The 'Result(+)' parameter shall indicate that the
+                   service request succeeded. Result Block returns a
+                   conditional parameter of type list of ANY.
+                   It shall convey any additional results
+                   from the execution of the requested service.
+                   Interpretation of these results is a local matter. */
+                /* For this example handler, we use the received block.*/
+                len = ptransfer_ack_encode_apdu(
+                    apdu, service_data->invoke_id, &data);
+                pdu_len += len;
+            } else {
+                len = bacnet_error_encode_apdu(
+                    apdu, service_data->invoke_id,
+                    SERVICE_CONFIRMED_PRIVATE_TRANSFER, error_code);
+                pdu_len += len;
+            }
             /* The 'Result(-)' parameter shall indicate that the
                service request has failed. The Error Type parameter
                consists of two component parameters:
