@@ -377,6 +377,45 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
 
 #if defined(INTRINSIC_REPORTING)
 /**
+ * @brief For a given object instance-number, returns the time-delay property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return time-delay property value
+ */
+uint32_t Analog_Input_Time_Delay(uint32_t object_instance)
+{
+    uint32_t time_delay = 0;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        time_delay = pObject->Time_Delay;
+    }
+
+    return time_delay;
+}
+
+/**
+ * @brief For a given object instance-number, sets the time-delay property
+ * value, and restarts the remaining time delay
+ * @param object_instance - object-instance number of the object
+ * @param time_delay - time-delay property value
+ * @return true if the time-delay property value was set
+ */
+bool Analog_Input_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay)
+{
+    bool status = false;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        pObject->Time_Delay = time_delay;
+        pObject->Remaining_Time_Delay = time_delay;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, returns the notification_class property
  * value
  *

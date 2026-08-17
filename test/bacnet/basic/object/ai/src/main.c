@@ -121,10 +121,11 @@ static void Analog_Input_Property_Decode(
         bactext_property_name(object_property));
 }
 
+#endif
+
 /**
  * @brief Test Analog Input limit property get/set API
  */
-#endif
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(ai_tests, testAnalogInput_Limits)
 #else
@@ -221,6 +222,81 @@ static void testAnalogInput_Limits(void)
     ztest_test_skip();
 #endif
 }
+
+/**
+ * @brief Test Analog Input time-delay property get/set API
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ai_tests, testAnalogInput_Time_Delay)
+#else
+static void testAnalogInput_Time_Delay(void)
+#endif
+{
+#if defined(INTRINSIC_REPORTING)
+    const uint32_t instance = 123;
+    const uint32_t invalid_instance = instance + 1;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    bool status = false;
+
+    Analog_Input_Init();
+    zassert_not_equal(Analog_Input_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* a newly created object starts without a time delay */
+    zassert_equal(Analog_Input_Time_Delay(instance), 0, NULL);
+
+    /* set/get round trip */
+    status = Analog_Input_Time_Delay_Set(instance, 5);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Input_Time_Delay(instance), 5, NULL);
+    status = Analog_Input_Time_Delay_Set(instance, 0);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Input_Time_Delay(instance), 0, NULL);
+    status = Analog_Input_Time_Delay_Set(instance, UINT32_MAX);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Input_Time_Delay(instance), UINT32_MAX, NULL);
+
+    /* the setter stores the value used by the object property */
+    status = Analog_Input_Time_Delay_Set(instance, 5);
+    zassert_true(status, NULL);
+    Analog_Input_Property_Decode(instance, PROP_TIME_DELAY, &value);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_equal(value.type.Unsigned_Int, 5, NULL);
+
+    /* unknown instance: getter returns the default and the setter fails */
+    zassert_equal(Analog_Input_Time_Delay(invalid_instance), 0, NULL);
+    zassert_false(Analog_Input_Time_Delay_Set(invalid_instance, 5), NULL);
+
+    /* the time delay holds off the TO-OFFNORMAL transition */
+    status = Analog_Input_High_Limit_Set(instance, 50.0f);
+    zassert_true(status, NULL);
+    status = Analog_Input_Limit_Enable_Set(instance, EVENT_HIGH_LIMIT_ENABLE);
+    zassert_true(status, NULL);
+    status = Analog_Input_Event_Enable_Set(instance, EVENT_ENABLE_TO_OFFNORMAL);
+    zassert_true(status, NULL);
+    zassert_true(Analog_Input_Event_Detection_Enable(instance), NULL);
+    status = Analog_Input_Time_Delay_Set(instance, 2);
+    zassert_true(status, NULL);
+    Analog_Input_Present_Value_Set(instance, 100.0f);
+    Analog_Input_Intrinsic_Reporting(instance);
+    zassert_equal(Analog_Input_Event_State(instance), EVENT_STATE_NORMAL, NULL);
+    Analog_Input_Intrinsic_Reporting(instance);
+    zassert_equal(Analog_Input_Event_State(instance), EVENT_STATE_NORMAL, NULL);
+    /* setting the time delay restarts the remaining time delay */
+    status = Analog_Input_Time_Delay_Set(instance, 1);
+    zassert_true(status, NULL);
+    Analog_Input_Intrinsic_Reporting(instance);
+    zassert_equal(Analog_Input_Event_State(instance), EVENT_STATE_NORMAL, NULL);
+    Analog_Input_Intrinsic_Reporting(instance);
+    zassert_equal(
+        Analog_Input_Event_State(instance), EVENT_STATE_HIGH_LIMIT, NULL);
+
+    status = Analog_Input_Delete(instance);
+    zassert_true(status, NULL);
+    Analog_Input_Cleanup();
+#else
+    ztest_test_skip();
+#endif
+}
 /**
  * @}
  */
@@ -233,7 +309,8 @@ void test_main(void)
     ztest_test_suite(
         ai_tests, ztest_unit_test(testAnalogInput),
         ztest_unit_test(testAnalogInput_Writable_Properties),
-        ztest_unit_test(testAnalogInput_Limits));
+        ztest_unit_test(testAnalogInput_Limits),
+        ztest_unit_test(testAnalogInput_Time_Delay));
 
     ztest_run_test_suite(ai_tests);
 }
