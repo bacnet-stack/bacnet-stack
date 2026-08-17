@@ -25,6 +25,7 @@
 static handler_private_transfer_callback_t
     Handler_Unconfirmed_Private_Transfer_Callback = NULL;
 
+BACNET_STACK_EXPORT
 void handler_unconfirmed_private_transfer_callback_set(
     handler_private_transfer_callback_t cb)
 {

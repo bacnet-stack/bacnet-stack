@@ -19,14 +19,14 @@
 #include "bacnet/basic/service/h_pt.h"
 #include "bacnet/basic/services.h"
 
-static int Stub_Private_Transfer_Result = ERROR_CODE_SUCCESS;
+static BACNET_ERROR_CODE Stub_Private_Transfer_Result = ERROR_CODE_SUCCESS;
 
 static BACNET_ERROR_CODE
 stub_private_transfer_handler(BACNET_PRIVATE_TRANSFER_DATA *data, void *context)
 {
     (void)context;
     if (data) {
-        return (BACNET_ERROR_CODE)Stub_Private_Transfer_Result;
+        return Stub_Private_Transfer_Result;
     }
     return ERROR_CODE_OTHER;
 }

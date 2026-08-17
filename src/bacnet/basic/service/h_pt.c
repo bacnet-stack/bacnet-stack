@@ -34,6 +34,7 @@ static handler_private_transfer_callback_t
  * requests.
  * @param cb The callback function to set.
  */
+BACNET_STACK_EXPORT
 void handler_confirmed_private_transfer_callback_set(
     handler_private_transfer_callback_t cb)
 {
