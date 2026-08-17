@@ -366,9 +366,9 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Error: unable to parse the tag value\n");
                 return 1;
             }
-            debug_log_fprintf(DEBUG_LOG_INFO,
-                stderr, "Parsed tag=%u->value.tag=%u\n", property_tag,
-                Target_Object_Property_Value[property_count].tag);
+            debug_log_fprintf(
+                DEBUG_LOG_INFO, stderr, "Parsed tag=%u->value.tag=%u\n",
+                property_tag, Target_Object_Property_Value[property_count].tag);
             Target_Object_Property_Value[property_count].next = NULL;
             if (property_count > 0) {
                 Target_Object_Property_Value[property_count - 1].next =
