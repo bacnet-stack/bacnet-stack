@@ -101,20 +101,6 @@ int handler_confirmed_private_transfer_encode(
                     SERVICE_CONFIRMED_PRIVATE_TRANSFER, error_code);
                 pdu_len += len;
             }
-            /* The 'Result(-)' parameter shall indicate that the
-               service request has failed. The Error Type parameter
-               consists of two component parameters:
-               (1) the 'Error Class' and (2) the 'Error Code'. */
-            /* The 'Result(+)' parameter shall indicate that the
-               service request succeeded. Result Block returns a
-               conditional parameter of type list of ANY.
-               It shall convey any additional results
-               from the execution of the requested service.
-               Interpretation of these results is a local matter. */
-            /* For this example handler, we use the received block.*/
-            len =
-                ptransfer_ack_encode_apdu(apdu, service_data->invoke_id, &data);
-            pdu_len += len;
         }
     }
     if (error_code != ERROR_CODE_SUCCESS) {
