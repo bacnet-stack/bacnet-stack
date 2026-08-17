@@ -69,8 +69,7 @@ int handler_confirmed_private_transfer_encode(
         error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
     } else if (service_data->segmented_message) {
         error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-    }
-    if (error_code == ERROR_CODE_SUCCESS) {
+    } else {
         len = ptransfer_decode_service_request(
             service_request, service_len, &data);
         if (len < 0) {
@@ -93,7 +92,6 @@ int handler_confirmed_private_transfer_encode(
             Interpretation of these results is a local matter. */
         /* For this example handler, we use the received block.*/
         len = ptransfer_ack_encode_apdu(apdu, service_data->invoke_id, &data);
-        pdu_len += len;
     } else {
         /* The 'Result(-)' parameter shall indicate that the
             service request has failed. The Error Type parameter
@@ -102,8 +100,8 @@ int handler_confirmed_private_transfer_encode(
         len = bacnet_error_encode_apdu(
             apdu, service_data->invoke_id, SERVICE_CONFIRMED_PRIVATE_TRANSFER,
             error_code);
-        pdu_len += len;
     }
+    pdu_len += len;
 
     return pdu_len;
 }
