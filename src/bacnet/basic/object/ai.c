@@ -420,6 +420,161 @@ bool Analog_Input_Notification_Class_Set(
 }
 
 /**
+ * @brief For a given object instance-number, returns the high-limit property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return high-limit property value
+ */
+float Analog_Input_High_Limit(uint32_t object_instance)
+{
+    float high_limit = 0.0f;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        high_limit = pObject->High_Limit;
+    }
+
+    return high_limit;
+}
+
+/**
+ * @brief For a given object instance-number, sets the high-limit property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param high_limit - high-limit property value
+ * @return true if the high-limit property value was set
+ */
+bool Analog_Input_High_Limit_Set(uint32_t object_instance, float high_limit)
+{
+    bool status = false;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        pObject->High_Limit = high_limit;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the low-limit property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return low-limit property value
+ */
+float Analog_Input_Low_Limit(uint32_t object_instance)
+{
+    float low_limit = 0.0f;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        low_limit = pObject->Low_Limit;
+    }
+
+    return low_limit;
+}
+
+/**
+ * @brief For a given object instance-number, sets the low-limit property value
+ * @param object_instance - object-instance number of the object
+ * @param low_limit - low-limit property value
+ * @return true if the low-limit property value was set
+ */
+bool Analog_Input_Low_Limit_Set(uint32_t object_instance, float low_limit)
+{
+    bool status = false;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        pObject->Low_Limit = low_limit;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the deadband property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return deadband property value
+ */
+float Analog_Input_Deadband(uint32_t object_instance)
+{
+    float deadband = 0.0f;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        deadband = pObject->Deadband;
+    }
+
+    return deadband;
+}
+
+/**
+ * @brief For a given object instance-number, sets the deadband property value
+ * @param object_instance - object-instance number of the object
+ * @param deadband - deadband property value
+ * @return true if the deadband property value was set
+ */
+bool Analog_Input_Deadband_Set(uint32_t object_instance, float deadband)
+{
+    bool status = false;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        pObject->Deadband = deadband;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the limit_enable property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @return limit_enable property value
+ */
+BACNET_LIMIT_ENABLE Analog_Input_Limit_Enable(uint32_t object_instance)
+{
+    uint32_t limit_enable = 0;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        limit_enable = pObject->Limit_Enable;
+    }
+
+    return limit_enable;
+}
+
+/**
+ * @brief For a given object instance-number, sets the limit_enable property
+ * value
+ * @param object_instance - object-instance number of the object
+ * @param limit_enable - limit_enable property value - the combination of bits:
+ *                       EVENT_LOW_LIMIT_ENABLE, EVENT_HIGH_LIMIT_ENABLE
+ * @return true if the limit_enable property value was set
+ */
+bool Analog_Input_Limit_Enable_Set(
+    uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable)
+{
+    bool status = false;
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        if (!(limit_enable &
+              ~(EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE))) {
+            pObject->Limit_Enable = limit_enable;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, returns the event_enable property value
  *
  * @param  object_instance - object-instance number of the object
