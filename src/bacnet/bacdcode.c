@@ -692,6 +692,20 @@ int decode_tag_number_and_value(
     uint16_t value16;
     uint32_t value32;
 
+    /* This legacy function cannot validate buffer bounds because
+     * it lacks an apdu_size parameter. Reject extended-value tags
+     * to prevent out-of-bounds reads. New code should use
+     * bacnet_tag_number_and_value_decode() instead. */
+    if (IS_EXTENDED_VALUE(apdu[0])) {
+        if (tag_number) {
+            *tag_number = (uint8_t)(apdu[0] >> 4);
+        }
+        if (value) {
+            *value = 0;
+        }
+        return BACNET_STATUS_ERROR;
+    }
+
     len = decode_tag_number(&apdu[0], tag_number);
     if (IS_EXTENDED_VALUE(apdu[0])) {
         /* tagged as uint32_t */
