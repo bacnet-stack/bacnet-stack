@@ -2594,6 +2594,63 @@ static void test_bacnet_character_string_buffer(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_bacnet_character_string_ansi)
+#else
+static void test_bacnet_character_string_ansi(void)
+#endif
+{
+    uint8_t apdu[64] = { 0 };
+    BACNET_CHARACTER_STRING_ANSI value = { 0 };
+    char buffer[32] = { 0 };
+    char unpack_buffer[32] = { 0 };
+    BACNET_TAG tag = { 0 };
+    uint8_t tag_number = 7;
+    uint8_t encoding = 0;
+    uint32_t unpack_length = 0;
+    int len = 0, null_len = 0;
+    size_t value_len = 0;
+
+    strcpy(buffer, "Hello BACnet");
+    bacnet_character_string_ansi_init(&value, buffer, false);
+
+    len = encode_bacnet_character_string_ansi(apdu, &value);
+    null_len = encode_bacnet_character_string_ansi(NULL, &value);
+    zassert_equal(len, null_len, NULL);
+    zassert_equal(len, 1 + strlen(buffer), NULL);
+    zassert_equal(apdu[0], CHARACTER_ANSI_X34, NULL);
+    zassert_equal(memcmp(&apdu[1], buffer, strlen(buffer)), 0, NULL);
+
+    value_len = bacnet_character_string_ansi_strncpy(
+        &value, &encoding, unpack_buffer, sizeof(unpack_buffer),
+        &unpack_length);
+    zassert_equal(value_len, strlen(buffer), NULL);
+    zassert_equal(unpack_length, value_len, NULL);
+    zassert_equal(encoding, CHARACTER_ANSI_X34, NULL);
+    zassert_equal(memcmp(unpack_buffer, buffer, value_len), 0, NULL);
+
+    len = bacnet_character_string_ansi_application_encode(
+        apdu, sizeof(apdu), &value);
+    null_len = bacnet_character_string_ansi_application_encode(
+        NULL, sizeof(apdu), &value);
+    zassert_equal(len, null_len, NULL);
+    zassert_true(len > 0, NULL);
+    zassert_true(bacnet_tag_decode(apdu, len, &tag) > 0, NULL);
+    zassert_equal(tag.number, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    zassert_true(tag.application, NULL);
+
+    len = bacnet_character_string_ansi_context_encode(
+        apdu, sizeof(apdu), tag_number, &value);
+    null_len = bacnet_character_string_ansi_context_encode(
+        NULL, sizeof(apdu), tag_number, &value);
+    zassert_equal(len, null_len, NULL);
+    zassert_true(len > 0, NULL);
+    zassert_true(bacnet_tag_decode(apdu, len, &tag) > 0, NULL);
+    zassert_equal(tag.number, tag_number, NULL);
+    zassert_true(tag.context, NULL);
+    zassert_false(tag.application, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacdcode_tests, test_bacnet_constructed_value)
 #else
 static void test_bacnet_constructed_value(void)
@@ -2686,6 +2743,7 @@ void test_main(void)
         ztest_unit_test(test_bacnet_enclosed_data_length),
         ztest_unit_test(test_octet_string_buffer),
         ztest_unit_test(test_bacnet_character_string_buffer),
+        ztest_unit_test(test_bacnet_character_string_ansi),
         ztest_unit_test(test_bacnet_constructed_value),
         ztest_unit_test(test_simple_ack));
 
