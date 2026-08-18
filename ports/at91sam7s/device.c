@@ -583,6 +583,7 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
     /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
     int result = -1;
 
+    (void)local;
     if (status < MAX_DEVICE_STATUS) {
         System_Status = status;
         result = 0;
