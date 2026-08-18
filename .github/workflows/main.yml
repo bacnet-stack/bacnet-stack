@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macOS-latest]
+        os: [windows-latest, ubuntu-slim, macOS-latest]
         project: [root, test]
         exclude:
           # Currently does not build. Need to be fixed at some point.
@@ -30,11 +30,12 @@ jobs:
     - uses: actions/checkout@v7
 
     - name: Install Dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest' && matrix.project == 'root'
+      if: matrix.os == 'ubuntu-slim'
       run: |
         sudo apt-get update
+        sudo apt-get install -qq build-essential cmake
         # apps/router needs libconfig-dev.
-        sudo apt-get install -y libconfig-dev
+        sudo apt-get install -qq libconfig-dev
 
     - name: Install Dependencies (macOS)
       if: matrix.os == 'macOS-latest' && matrix.project == 'root'
@@ -69,12 +70,13 @@ jobs:
         c_flags="$c_flags -DBACAPP_COLOR_RGB_CONVERSION_ENABLED=ON"
         cmake_options="$cmake_options -DCMAKE_C_FLAGS=$c_flags"
 
-        # TODO: Add BACDL_BIP6=ON when it builds withous errors.
+        # Compile all the datalink layers supported by the BACnet stack.
         cmake_options="$cmake_options -DBACDL_BIP=ON"
+        cmake_options="$cmake_options -DBACDL_BIP6=ON"
         cmake_options="$cmake_options -DBACDL_ETHERNET=ON"
         cmake_options="$cmake_options -DBACNET_PROTOCOL_REVISION=24"
 
-        if [[ "$RUNNER_OS" == "Linux" ]]; then
+        if [[ "$RUNNER_OS" == "Linux" ]] && [[ "${{ matrix.os }}" == "ubuntu-slim" ]]; then
           # Apple nor Windows does not have port yet for this.
           cmake_options="$cmake_options -DBACDL_ARCNET=ON"
         fi

@@ -23,7 +23,7 @@ on:
 
 jobs:
   log-the-inputs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - run: |
           echo "Log level: $LEVEL"
@@ -35,7 +35,7 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
 
   raspi-bip-apps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - name: Checkout
       uses: actions/checkout@v7
@@ -54,7 +54,7 @@ jobs:
         make all
 
   piface:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - name: Checkout
       uses: actions/checkout@v7
@@ -103,7 +103,7 @@ jobs:
         make piface
 
   blinkt:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - name: Checkout
       uses: actions/checkout@v7
