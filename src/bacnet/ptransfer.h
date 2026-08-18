@@ -20,6 +20,9 @@ typedef struct BACnet_Private_Transfer_Data {
     int serviceParametersLen;
 } BACNET_PRIVATE_TRANSFER_DATA;
 
+typedef BACNET_ERROR_CODE (*handler_private_transfer_callback_t)(
+    BACNET_PRIVATE_TRANSFER_DATA *data, void *context);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
