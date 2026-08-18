@@ -10,14 +10,14 @@ on:
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v7
     - uses: actions/setup-python@v7
     - uses: pre-commit/action@v3.0.1
 
   scan-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v7
     - name: Create LLVM clang-tools scan-build Workspace
@@ -30,7 +30,7 @@ jobs:
         make scan-build
 
   splint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v7
     - name: Create SPLint Workspace
@@ -42,7 +42,7 @@ jobs:
 
 
   cppcheck:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v7
     - name: Create CPPcheck Workspace
@@ -56,7 +56,7 @@ jobs:
         make cppcheck
 
   flawfinder:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v7
     - name: Create Flawfinder Workspace
@@ -70,7 +70,7 @@ jobs:
         make flawfinder
 
   codespell:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v7
     - name: Create codespell Workspace
@@ -81,7 +81,7 @@ jobs:
       run: make spell
 
   unittest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -92,7 +92,7 @@ jobs:
       run: make test
 
   unittest-secure-connect:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - name: Checkout BACnet Stack
       uses: actions/checkout@v7

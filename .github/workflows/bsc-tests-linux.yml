@@ -10,7 +10,7 @@ on:
 
 jobs:
   job_bsc_tests_linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Checkout BACnet Stack
         uses: actions/checkout@v7

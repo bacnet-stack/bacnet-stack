@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macOS-latest]
+        os: [windows-latest, ubuntu-slim, macOS-latest]
         project: [root, test]
         exclude:
           # Currently does not build. Need to be fixed at some point.
@@ -30,7 +30,7 @@ jobs:
     - uses: actions/checkout@v7
 
     - name: Install Dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest' && matrix.project == 'root'
+      if: matrix.os == 'ubuntu-slim' && matrix.project == 'root'
       run: |
         sudo apt-get update
         # apps/router needs libconfig-dev.
@@ -74,7 +74,7 @@ jobs:
         cmake_options="$cmake_options -DBACDL_ETHERNET=ON"
         cmake_options="$cmake_options -DBACNET_PROTOCOL_REVISION=24"
 
-        if [[ "$RUNNER_OS" == "Linux" ]]; then
+        if [[ "$RUNNER_OS" == "Linux" ]] && [[ "${{ matrix.os }}" == "ubuntu-slim" ]]; then
           # Apple nor Windows does not have port yet for this.
           cmake_options="$cmake_options -DBACDL_ARCNET=ON"
         fi
