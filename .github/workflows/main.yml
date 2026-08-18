@@ -34,7 +34,8 @@ jobs:
       run: |
         sudo apt-get update
         # apps/router needs libconfig-dev.
-        sudo apt-get install -y libconfig-dev
+        sudo apt-get install -qq build-essential cmake
+        sudo apt-get install -qq libconfig-dev
 
     - name: Install Dependencies (macOS)
       if: matrix.os == 'macOS-latest' && matrix.project == 'root'
