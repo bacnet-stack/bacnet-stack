@@ -32,8 +32,6 @@
 /*   FIXME: use header files?     External References */
 /*  ******************************************************* */
 extern void LowLevelInit(void);
-extern unsigned enableIRQ(void);
-extern unsigned enableFIQ(void);
 
 /* used by crt.s file */
 unsigned FiqCount = 0;

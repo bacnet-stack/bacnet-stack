@@ -156,13 +156,13 @@ static void Lighting_Output_Write_Value_Handler(
     if (index < blinkt_led_count()) {
         /* brightness intensity from 0..31, 0=OFF, 1=dimmest, 31=brightest */
         if (isgreaterequal(value, 1.0)) {
-            brightness = linear_interpolate(1.0, value, 100.0, 1, 31);
+            brightness = (uint8_t)linear_interpolate(1.0, value, 100.0, 1, 31);
         } else {
             brightness = 0;
         }
         blinkt_set_pixel_brightness(index, brightness);
         printf(
-            "LED[%u]=%.1f%% (%u)\n", (unsigned)index, value,
+            "LED[%u]=%.1f%% (%u)\n", (unsigned)index, (double)value,
             (unsigned)brightness);
     }
 }
@@ -176,7 +176,7 @@ static void Lighting_Output_Write_Value_Handler(
 static void Color_Temperature_Write_Value_Handler(
     uint32_t object_instance, uint32_t old_value, uint32_t value)
 {
-    uint8_t red, green, blue;
+    uint8_t red = 0, green = 0, blue = 0;
     uint8_t index = 255;
 
     (void)old_value;
@@ -203,8 +203,8 @@ static void Color_Write_Value_Handler(
     BACNET_XY_COLOR *old_value,
     BACNET_XY_COLOR *value)
 {
-    uint8_t red, green, blue;
-    float brightness_percent = 100.0;
+    uint8_t red = 0, green = 0, blue = 0;
+    uint8_t brightness_percent = 100;
     uint8_t index = 255;
 
     (void)old_value;
@@ -217,9 +217,10 @@ static void Color_Write_Value_Handler(
             brightness_percent);
         blinkt_set_pixel(index, red, green, blue);
         printf(
-            "x,y=%0.2f,%0.2f(%.1f%%) RGB[%u]=%u,%u,%u\n", value->x_coordinate,
-            value->y_coordinate, brightness_percent, (unsigned)index,
-            (unsigned)red, (unsigned)green, (unsigned)blue);
+            "x,y=%0.2f,%0.2f(%u%%) RGB[%u]=%u,%u,%u\n",
+            (double)value->x_coordinate, (double)value->y_coordinate,
+            (unsigned)brightness_percent, (unsigned)index, (unsigned)red,
+            (unsigned)green, (unsigned)blue);
     }
 }
 
