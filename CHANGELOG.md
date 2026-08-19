@@ -17,10 +17,15 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the apps/ptransfer demo by moving ConfirmedPrivateTransfer
+  send/handler logic into the core stack’s basic service layer,
+  wiring the server demo to handle confirmed private transfers,
+  updated the command line arguments to be similar to apps/uptransfer while
+  adding addressing and debug options, and updating build targets. (#1470)
 * Secured bacnet_enclosed_data_length() against signed integer overflow while
   accumulating tag lengths: the guards bounded each length value against
   INT_MAX but not the running sums, so a tag claiming a length near INT_MAX
-  overflowed len, total_len and apdu_len.
+  overflowed len, total_len and apdu_len. (#1468)
 * Secured bvlc_encode_header() by increasing minimum PDU size to prevent
   buffer overflow. (#1467)
 * Secured bacnet_enclosed_data_length() function to prevent integer overflow
@@ -61,6 +66,14 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added callback handlers for confirmed and unconfirmed private
+  transfer services. (#1471)
+* Added Analog Input object limit API functions including:
+  Analog_Input_High_Limit, Analog_Input_High_Limit_Set,
+  Analog_Input_Low_Limit, Analog_Input_Low_Limit_Set,
+  Analog_Input_Deadband, Analog_Input_Deadband_Set,
+  Analog_Input_Limit_Enable, Analog_Input_Limit_Enable_Set,
+  Analog_Input_Time_Delay, and Analog_Input_Time_Delay_Set. (#1473)
 * Added COV support to basic accumulator object without COV increment support
   since standard does not list COV_Increment property for accumulators. (#1452)
 * Added support for configurable MAX_APDU in Makefile for extended frames in
@@ -120,6 +133,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed compiler warnings by using appropriate types and qualifiers. (#1476)
 * Fixed circular dependency in bacnet_stack_exports.h file.
 * Fixed win32 datetime management with cross-compiler support and
   time offset calculations supporting soft BACnet TimeSync. (#1463)
