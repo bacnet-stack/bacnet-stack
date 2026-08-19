@@ -2606,7 +2606,6 @@ static void test_bacnet_character_string_ansi(void)
     BACNET_TAG tag = { 0 };
     uint8_t tag_number = 7;
     uint8_t encoding = 0;
-    uint32_t unpack_length = 0;
     int len = 0, null_len = 0;
     size_t value_len = 0;
 
@@ -2621,10 +2620,8 @@ static void test_bacnet_character_string_ansi(void)
     zassert_equal(memcmp(&apdu[1], buffer, strlen(buffer)), 0, NULL);
 
     value_len = bacnet_character_string_ansi_strncpy(
-        &value, &encoding, unpack_buffer, sizeof(unpack_buffer),
-        &unpack_length);
+        &value, &encoding, unpack_buffer, sizeof(unpack_buffer));
     zassert_equal(value_len, strlen(buffer), NULL);
-    zassert_equal(unpack_length, value_len, NULL);
     zassert_equal(encoding, CHARACTER_ANSI_X34, NULL);
     zassert_equal(memcmp(unpack_buffer, buffer, value_len), 0, NULL);
 

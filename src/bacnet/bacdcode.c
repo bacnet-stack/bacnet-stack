@@ -3612,21 +3612,25 @@ void bacnet_character_string_ansi_init(
 }
 
 /**
- * @brief Unpacks a BACnet Character String buffer value from bytes
+ * @brief Copy not more than buffer_size bytes (bytes that follow a null
+ *  byte in the CharacterString value are not copied) from the CharacterString
+ *  pointed to by value to the array pointed to by buffer.
+ *  If the array pointed to by buffer is a string that is shorter than
+ *  buffer_size bytes, null bytes shall be appended to the copy in the
+ *  array pointed to by buffer, until buffer_size bytes in all are written.
+ *  If there is no null byte in the first buffer_size bytes of the array
+ *  pointed to by buffer, the result is forced to be null-terminated.
  *
- * @param value - the BACnetCharacterStringANSI value to be unpacked
+ * @param value - the BACNET_CHARACTER_STRING_ANSI value to be copied
  * @param encoding - pointer to the BACnet Character String encoding value
  * @param buffer - pointer to the buffer to hold the string value
- * @param buffer_length - pointer to hold the buffer length
- *
- * @return size of the CharacterString value
+ * @return number of bytes copied
  */
 size_t bacnet_character_string_ansi_strncpy(
     const BACNET_CHARACTER_STRING_ANSI *value,
     uint8_t *encoding,
     char *buffer,
-    size_t buffer_size,
-    uint32_t *buffer_length)
+    size_t buffer_size)
 {
     size_t len = 0, copy_len = 0;
 
@@ -3635,16 +3639,16 @@ size_t bacnet_character_string_ansi_strncpy(
             len = strlen(value->buffer);
         }
         if (encoding) {
-            *encoding = CHARACTER_ANSI_X34;
-        }
-        if (buffer_length) {
-            *buffer_length = len;
+            *encoding = CHARACTER_UTF8;
         }
         if (buffer && value->buffer && (buffer_size > 0) &&
             (len <= buffer_size)) {
             copy_len = BACNET_MIN(len, buffer_size - 1);
             memcpy(buffer, value->buffer, copy_len);
-            buffer[copy_len] = '\0';
+            /* fill the rest of the buffer with null bytes if any */
+            memset(buffer + copy_len, 0, buffer_size - copy_len);
+            /* return the strlen size of the copied string */
+            len = copy_len;
         }
     }
 
@@ -3652,12 +3656,12 @@ size_t bacnet_character_string_ansi_strncpy(
 }
 
 /**
- * @brief Encode the BACnet Character String Value
+ * @brief Encode the BACnet Character String Value ANSI/UTF8 encoded
  *  from 20.2.9 Encoding of a Character String Value
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the bytes
- * @param value - the BACnetCharacterStringANSI value to be encoded
+ * @param value - the BACNET_CHARACTER_STRING_ANSI value to be encoded
  *
  * @return returns the number of apdu bytes consumed, or 0 if too large
  */
@@ -3669,7 +3673,7 @@ uint32_t encode_bacnet_character_string_ansi(
     uint32_t i;
 
     if (apdu) {
-        apdu[0] = CHARACTER_ANSI_X34;
+        apdu[0] = CHARACTER_UTF8;
     }
     if (value && value->buffer) {
         len = strlen(value->buffer);
@@ -3685,13 +3689,13 @@ uint32_t encode_bacnet_character_string_ansi(
 }
 
 /**
- * @brief Encode the BACnet Character String Value as context tagged
- *  from 20.2.9 Encoding of a Character String Value
+ * @brief Encode the BACnet Character String Value ANSI/UTF8 encoded as
+ *  context tagged from 20.2.9 Encoding of a Character String Value
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the bytes, or NULL for length
  * @param tag_number - context tag number to encode
- * @param char_string - the BACnetCharacterStringANSI to be encoded
+ * @param char_string - the BACNET_CHARACTER_STRING_ANSI to be encoded
  *
  * @return returns the number of apdu bytes consumed, or 0 if too large
  */
@@ -3721,12 +3725,12 @@ int encode_context_character_string_ansi(
 }
 
 /**
- * @brief Encode the BACnet Character String Value as application tagged
- *  from 20.2.9 Encoding of a Character String Value
+ * @brief Encode the BACnet Character String Value ANSI/UTF8 encoded
+ *  as application tagged from 20.2.9 Encoding of a Character String Value
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the bytes, or NULL for length
- * @param char_string - the BACnetCharacterStringANSI to be encoded
+ * @param char_string - the BACNET_CHARACTER_STRING_ANSI to be encoded
  *
  * @return returns the number of apdu bytes consumed
  */
@@ -3751,13 +3755,14 @@ int encode_application_character_string_ansi(
 }
 
 /**
- * @brief Encode the BACnet Character String Value as application tagged
+ * @brief Encode the BACnet Character String Value ANSI/UTF8 encoded
+ *  as application tagged
  *  from 20.2.9 Encoding of a Character String Value
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the data to be encoded, or NULL for length
  * @param apdu_size - number of bytes in the buffer
- * @param value - the BACnetCharacterStringANSI to be encoded
+ * @param value - the BACNET_CHARACTER_STRING_ANSI to be encoded
  *
  * @return returns the number of apdu bytes encoded
  *  or 0 if apdu_size is too small to fit the data
@@ -3780,14 +3785,14 @@ int bacnet_character_string_ansi_application_encode(
 }
 
 /**
- * @brief Encode the BACnet Character String Value as context tagged
- *  from 20.2.9 Encoding of a Character String Value
+ * @brief Encode the BACnet Character String Value ANSI/UTF8 encoded
+ *  as context tagged from 20.2.9 Encoding of a Character String Value
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the data to be encoded, or NULL for length
  * @param apdu_size - number of bytes in the buffer
  * @param tag_number - context tag number to be encoded
- * @param value - the BACnetCharacterStringANSI to be encoded
+ * @param value - the BACNET_CHARACTER_STRING_ANSI to be encoded
  *
  * @return returns the number of apdu bytes encoded
  *  or 0 if apdu_size is too small to fit the data

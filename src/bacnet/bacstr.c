@@ -1391,7 +1391,7 @@ void characterstring_ansi_const_init(
 
 /**
  * @brief Initialize a BACnet character string by duplicating an ANSI C string.
- * @param char_string Pointer to destination structure.
+ * @param char_string Pointer to destination BACNET_CHARACTER_STRING_ANSI.
  * @param value Pointer to source ANSI C string, or NULL to free and set empty.
  * @param tmax Maximum number of characters to duplicate from the source string.
  * @return true on success, false on allocation/argument failure.
@@ -1472,8 +1472,8 @@ bool characterstring_ansi_to_characterstring(
 }
 
 /**
- * @brief Release dynamic resources in a BACNET_CHARACTER_STRING_ANSI, only if
- * allocated.
+ * @brief Release dynamic resources in a BACNET_CHARACTER_STRING_ANSI,
+ *  but only if allocated.
  * @param char_string Pointer to BACNET_CHARACTER_STRING_ANSI structure.
  */
 void characterstring_ansi_free(BACNET_CHARACTER_STRING_ANSI *char_string)
@@ -1514,6 +1514,7 @@ bool characterstring_ansi_same_characterstring(
 {
     size_t s1_length = 0;
     size_t s2_length = 0;
+    uint8_t s2_encoding = 0;
 
     if (!s1 || !s2) {
         return false;
@@ -1521,6 +1522,10 @@ bool characterstring_ansi_same_characterstring(
     s1_length = characterstring_ansi_length(s1);
     s2_length = characterstring_length(s2);
     if (s1_length != s2_length) {
+        return false;
+    }
+    s2_encoding = characterstring_encoding(s2);
+    if (s2_encoding != CHARACTER_UTF8) {
         return false;
     }
     if (s1_length == 0) {

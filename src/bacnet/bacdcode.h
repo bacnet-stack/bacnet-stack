@@ -536,8 +536,7 @@ size_t bacnet_character_string_ansi_strncpy(
     const BACNET_CHARACTER_STRING_ANSI *value,
     uint8_t *encoding,
     char *buffer,
-    size_t buffer_size,
-    uint32_t *buffer_length);
+    size_t buffer_size);
 BACNET_STACK_EXPORT
 uint32_t encode_bacnet_character_string_ansi(
     uint8_t *apdu, const BACNET_CHARACTER_STRING_ANSI *value);
