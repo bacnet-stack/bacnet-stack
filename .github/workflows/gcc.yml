@@ -10,7 +10,7 @@ on:
 
 jobs:
   bip-apps:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -36,7 +36,7 @@ jobs:
         make CSTANDARD="-std=gnu17" all
 
   bip-no-bbmd-apps:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -50,7 +50,7 @@ jobs:
         make BBMD=none all
 
   bip-client-bbmd-apps:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -64,7 +64,7 @@ jobs:
         make BBMD=client all
 
   gateway:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -78,7 +78,7 @@ jobs:
         make gateway
 
   bacnet-sc-hub:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout BACnet Stack
       uses: actions/checkout@v7
@@ -91,7 +91,6 @@ jobs:
     - name: Create BACnet/SC Build Environment
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -qq build-essential cmake
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
@@ -107,7 +106,7 @@ jobs:
         make sc-hub
 
   router:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout BACnet Stack
       uses: actions/checkout@v7
@@ -120,7 +119,6 @@ jobs:
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -qq build-essential cmake
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
@@ -136,7 +134,7 @@ jobs:
         make router
 
   router-ipv6:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -150,7 +148,7 @@ jobs:
         make router-ipv6
 
   router-mstp:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -164,7 +162,7 @@ jobs:
         make router-mstp
 
   bip6:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -178,7 +176,7 @@ jobs:
         make bip6
 
   mstp:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -192,7 +190,7 @@ jobs:
         make mstp
 
   ethernet:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -207,7 +205,7 @@ jobs:
         make ethernet
 
   ports-arm-makefile:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -225,13 +223,12 @@ jobs:
         make at91sam7s
 
   ports-arm-cmake:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -qq build-essential cmake
         sudo apt-get install -qq gcc-arm-none-eabi
         sudo apt-get install -qq libnewlib-arm-none-eabi
     - name: ports-arm-cmake
@@ -242,7 +239,7 @@ jobs:
         make pico-cmake
 
   ports-avr:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -258,7 +255,7 @@ jobs:
         make xplained
 
   ports-lwip:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -271,7 +268,7 @@ jobs:
         make lwip
 
   mingw:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Create Build Environment
@@ -294,7 +291,7 @@ jobs:
       run: make PREFIX=i686-w64-mingw32- BACNET_PORT=win32 clean gateway
 
   piface:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v7
@@ -305,7 +302,7 @@ jobs:
         make BUILD=pipeline piface
 
   blinkt:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v7
@@ -316,7 +313,7 @@ jobs:
         make BUILD=pipeline blinkt
 
   gtk-discover:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v7
@@ -331,7 +328,7 @@ jobs:
         make gtk-discover
 
   ports-esp32:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
     - name: Install PlatformIO
