@@ -27,8 +27,17 @@ cybersecurity vulnerabilities.
 
 Deprecated Decoder Out-of-Bounds Read (BN-05)
 [GHSA-f96q-cj8v-939q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f96q-cj8v-939q)
-Patched versions: 1.4.6
-Pull Request: [#1470](https://github.com/bacnet-stack/bacnet-stack/pull/1470).
+Patched versions: 1.5.2
+
+Signed Integer Overflow in bacnet_enclosed_data_length() Leads to Heap Memory Corruption
+[GHSA-g68j-34rj-cmhv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-g68j-34rj-cmhv)
+Patched versions: 1.5.2
+Pull Request: [#1468](https://github.com/bacnet-stack/bacnet-stack/pull/1468).
+
+BVLC Header Encoder Out-of-Bounds Write (BN-06)
+[GHSA-3q5x-2r73-c55v](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3q5x-2r73-c55v)
+Patched versions: 1.5.2
+Pull Request: [#1467](https://github.com/bacnet-stack/bacnet-stack/pull/1467).
 
 Buffer overflow from 8-bit integer overflow in bacnet_enclosed_data_length() function
 Patched versions: 1.5.2
