@@ -10,7 +10,7 @@ on:
 
 jobs:
   job_bsc_tests_linux:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout BACnet Stack
         uses: actions/checkout@v7
@@ -23,7 +23,6 @@ jobs:
       - name: Create Build Environment
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -qq build-essential cmake
           sudo apt-get install -qq libconfig-dev
           sudo apt-get install -qq libcap-dev
           sudo apt-get install -qq libssl-dev
