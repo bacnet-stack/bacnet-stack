@@ -2625,6 +2625,30 @@ static void test_bacnet_character_string_ansi(void)
     zassert_equal(encoding, CHARACTER_ANSI_X34, NULL);
     zassert_equal(memcmp(unpack_buffer, buffer, value_len), 0, NULL);
 
+    struct {
+        char buffer[8];
+        char guard[4];
+    } overflow = {
+        .buffer = { 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X' },
+        .guard = { 'G', 'H', 'I', 'J' },
+    };
+    char overflow_string[] = "Hello BACnet!";
+    BACNET_CHARACTER_STRING_ANSI overflow_value = {
+        .buffer = overflow_string,
+        .buffer_allocated = false,
+    };
+
+    value_len = bacnet_character_string_ansi_strncpy(
+        &overflow_value, &encoding, overflow.buffer, sizeof(overflow.buffer));
+    zassert_equal(value_len, sizeof(overflow.buffer) - 1, NULL);
+    zassert_equal(encoding, CHARACTER_ANSI_X34, NULL);
+    zassert_equal(overflow.buffer[sizeof(overflow.buffer) - 1], '\0', NULL);
+    zassert_equal(memcmp(overflow.buffer, overflow_string, value_len), 0, NULL);
+    zassert_equal(overflow.guard[0], 'G', NULL);
+    zassert_equal(overflow.guard[1], 'H', NULL);
+    zassert_equal(overflow.guard[2], 'I', NULL);
+    zassert_equal(overflow.guard[3], 'J', NULL);
+
     len = bacnet_character_string_ansi_application_encode(
         apdu, sizeof(apdu), &value);
     null_len = bacnet_character_string_ansi_application_encode(

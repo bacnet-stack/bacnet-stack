@@ -3641,13 +3641,13 @@ size_t bacnet_character_string_ansi_strncpy(
         if (encoding) {
             *encoding = CHARACTER_UTF8;
         }
-        if (buffer && value->buffer && (buffer_size > 0) &&
-            (len <= buffer_size)) {
+        if (buffer && value->buffer && (buffer_size > 0)) {
             copy_len = BACNET_MIN(len, buffer_size - 1);
-            memcpy(buffer, value->buffer, copy_len);
-            /* fill the rest of the buffer with null bytes if any */
-            memset(buffer + copy_len, 0, buffer_size - copy_len);
-            /* return the strlen size of the copied string */
+            memset(buffer, 0, buffer_size);
+            if (copy_len > 0) {
+                memcpy(buffer, value->buffer, copy_len);
+            }
+            /* return the number of bytes copied into the buffer */
             len = copy_len;
         }
     }
