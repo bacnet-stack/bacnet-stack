@@ -16,6 +16,7 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the apps/ptransfer demo which used deprecated API by removing it.
 * Secured bacnet_enclosed_data_length() against signed integer overflow while
   accumulating tag lengths: the guards bounded each length value against
   INT_MAX but not the running sums, so a tag claiming a length near INT_MAX
