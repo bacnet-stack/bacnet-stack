@@ -34,7 +34,7 @@ from the following BACnet services (messages) provided by this BACnet stack:
     * get_alarm_sum.c - GetAlarmSummary service encode/decode
     * getevent.c - GetEventInformation service encode/decode
     * lso.c - LifeSafetyOperation service encode/decode
-    * ptransfer.c - PrivateTransfer service encode/deco
+    * ptransfer.c - PrivateTransfer service encode/decode
     * readrange.c - ReadRange service encode/decode
 
 Adding additional services is a matter of adding the encoding and decoding for

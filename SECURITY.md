@@ -25,6 +25,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Deprecated Decoder Out-of-Bounds Read (BN-05)
+[GHSA-f96q-cj8v-939q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f96q-cj8v-939q)
+Patched versions: 1.4.6
+Pull Request: [#1470](https://github.com/bacnet-stack/bacnet-stack/pull/1470).
+
 Buffer overflow from 8-bit integer overflow in bacnet_enclosed_data_length() function
 Patched versions: 1.5.2
 Pull Request: [#1466](https://github.com/bacnet-stack/bacnet-stack/pull/1466).

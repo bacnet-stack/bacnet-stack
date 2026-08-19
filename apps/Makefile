@@ -422,10 +422,6 @@ mstpcrc:
 piface:
 	$(MAKE) -B -C $@
 
-.PHONY: ptransfer
-ptransfer: $(BACNET_LIB_TARGET)
-	$(MAKE) -B -C $@
-
 .PHONY: readprop
 readprop: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
