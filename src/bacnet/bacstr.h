@@ -209,14 +209,14 @@ uint8_t characterstring_buffer_encoding(
 
 /* lightweight BACnetCharacterString for ANSI C strings */
 BACNET_STACK_EXPORT
-void characterstring_ansi_const_init(
+bool characterstring_ansi_const_init(
     BACNET_CHARACTER_STRING_ANSI *char_string, const char *value);
 BACNET_STACK_EXPORT
 bool characterstring_ansi_strndup(
     BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax);
 BACNET_STACK_EXPORT
 bool characterstring_ansi_from_characterstring_strdup(
-    BACNET_CHARACTER_STRING_ANSI *dest, BACNET_CHARACTER_STRING *src);
+    BACNET_CHARACTER_STRING_ANSI *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
 bool characterstring_ansi_to_characterstring(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING_ANSI *src);
