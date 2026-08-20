@@ -215,6 +215,9 @@ BACNET_STACK_EXPORT
 bool characterstring_ansi_strndup(
     BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax);
 BACNET_STACK_EXPORT
+bool characterstring_ansi_const_length_init(
+    BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax);
+BACNET_STACK_EXPORT
 bool characterstring_ansi_from_characterstring_strdup(
     BACNET_CHARACTER_STRING_ANSI *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT

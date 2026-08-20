@@ -1429,6 +1429,30 @@ bool characterstring_ansi_strndup(
 }
 
 /**
+ * @brief Initialize a BACnet character string by referencing an ANSI C string.
+ * If the string is not null-terminated at the expected length, it will be
+ * duplicated instead.
+ * @param char_string Pointer to destination structure.
+ * @param value Pointer to source ANSI C string, or NULL for empty.
+ * @param tmax Maximum number of characters to reference from the source string.
+ * @return true on success, false on allocation/argument failure.
+ * @note The CharacterString is unchanged if memory allocation fails.
+ */
+bool characterstring_ansi_const_length_init(
+    BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax)
+{
+    if (!char_string) {
+        return false;
+    }
+    if ((tmax > 0) && value && (value[tmax - 1] != '\0')) {
+        /* missing a null terminator at the expected place */
+        return characterstring_ansi_strndup(char_string, value, tmax);
+    }
+    /* otherwise, just use the constant string as-is */
+    return characterstring_ansi_const_init(char_string, value);
+}
+
+/**
  * @brief Initialize a BACnet character string by duplicating a
  * BACNET_CHARACTER_STRING value.
  * @param dest Pointer to BACNET_CHARACTER_STRING_ANSI structure.

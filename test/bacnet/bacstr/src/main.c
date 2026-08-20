@@ -342,6 +342,24 @@ static void testCharacterStringAnsiHelpers(void)
     characterstring_ansi_free(&duplicated);
     zassert_is_null(duplicated.buffer, NULL);
 
+    status = characterstring_ansi_const_length_init(&ansi_string, NULL, 5);
+    zassert_true(status, NULL);
+    zassert_is_null(characterstring_ansi_value_const(&ansi_string), NULL);
+
+    status = characterstring_ansi_const_length_init(&ansi_string, NULL, 0);
+    zassert_true(status, NULL);
+    zassert_is_null(characterstring_ansi_value_const(&ansi_string), NULL);
+
+    status = characterstring_ansi_const_length_init(&ansi_string, value, 0);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(characterstring_ansi_value_const(&ansi_string), value), 0, NULL);
+
+    status = characterstring_ansi_const_length_init(&ansi_string, value, 5);
+    zassert_true(status, NULL);
+    zassert_true(ansi_string.buffer_allocated, NULL);
+    zassert_equal(strncmp(ansi_string.buffer, expected, 5), 0, NULL);
+
     status = characterstring_init_ansi(&bacnet_string, value);
     zassert_true(status, NULL);
     status = characterstring_ansi_from_characterstring_strdup(
