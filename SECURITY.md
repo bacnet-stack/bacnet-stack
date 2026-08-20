@@ -28,6 +28,21 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Signed Integer Overflow in bacnet_enclosed_data_length() Leads to Heap Memory Corruption
+[GHSA-g68j-34rj-cmhv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-g68j-34rj-cmhv)
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1468](https://github.com/bacnet-stack/bacnet-stack/pull/1468).
+
+Deprecated Decoder Out-of-Bounds Read (BN-05)
+[GHSA-f96q-cj8v-939q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f96q-cj8v-939q)
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1470](https://github.com/bacnet-stack/bacnet-stack/pull/1470).
+
+BVLC Header Encoder Out-of-Bounds Write (BN-06)
+[GHSA-3q5x-2r73-c55v](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3q5x-2r73-c55v)
+Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
+Pull Request: [#1467](https://github.com/bacnet-stack/bacnet-stack/pull/1467).
+
 Command object: Action list resize causes a heap use-after-free write
 [GHSA-f23j-5f4w-cxhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f23j-5f4w-cxhj).
 Patched versions: 1.7.0-rc2
