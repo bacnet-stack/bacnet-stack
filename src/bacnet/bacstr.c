@@ -1627,7 +1627,7 @@ characterstring_ansi_encoding(const BACNET_CHARACTER_STRING_ANSI *char_string)
 const char *characterstring_ansi_value_default(
     const BACNET_CHARACTER_STRING_ANSI *char_string, const char *default_value)
 {
-    if (char_string) {
+    if (char_string && char_string->buffer) {
         return char_string->buffer;
     }
     return default_value;

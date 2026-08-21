@@ -392,6 +392,13 @@ static void testCharacterStringAnsiHelpers(void)
     characterstring_ansi_const_init(&ansi_string, NULL);
     zassert_is_null(characterstring_ansi_value_const(&ansi_string), NULL);
     zassert_equal(characterstring_ansi_length(&ansi_string), 0, NULL);
+    zassert_is_null(
+        characterstring_ansi_value_default(&ansi_string, NULL), NULL);
+    zassert_equal(
+        strcmp(
+            characterstring_ansi_value_default(&ansi_string, "default-value"),
+            "default-value"),
+        0, NULL);
     status = characterstring_ansi_to_characterstring_default(
         &bacnet_string, &ansi_string, "default-value");
     zassert_true(status, NULL);
