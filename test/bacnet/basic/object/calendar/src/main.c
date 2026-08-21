@@ -125,19 +125,71 @@ static void testCalendar(void)
     }
     /* check for unsupported property - use ALL */
     rpdata.object_property = PROP_ALL;
+    wpdata.object_property = PROP_ALL;
     len = Calendar_Read_Property(&rpdata);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     status = Calendar_Write_Property(&wpdata);
     zassert_false(status, NULL);
-    /* test the ASCII name get/set */
+    /* test the writable property list */
+    Calendar_Writable_Property_List(instance, &pRequired);
+    zassert_not_null(pRequired, NULL);
+    {
+        bool writable_name = false;
+        bool writable_description = false;
+        const int32_t *property = pRequired;
+
+        while (*property != -1) {
+            if (*property == PROP_OBJECT_NAME) {
+                writable_name = true;
+            }
+            if (*property == PROP_DESCRIPTION) {
+                writable_description = true;
+            }
+            property++;
+        }
+        zassert_true(writable_name || writable_description, NULL);
+    }
+    /* test the ANSI name get/set */
     status = Calendar_Name_Set(instance, sample_name);
     zassert_true(status, NULL);
     test_name = Calendar_Name_ASCII(instance);
-    zassert_equal(test_name, sample_name, NULL);
+    zassert_true(strcmp(test_name, sample_name) == 0, NULL);
     status = Calendar_Name_Set(instance, NULL);
     zassert_true(status, NULL);
     test_name = Calendar_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+
+    {
+        BACNET_CHARACTER_STRING new_name = { 0 };
+        BACNET_CHARACTER_STRING new_description = { 0 };
+        const char *updated_name = "renamed-calendar";
+        const char *updated_description = "updated description";
+
+        characterstring_init_ansi(&new_name, updated_name);
+        wpdata.object_type = OBJECT_CALENDAR;
+        wpdata.object_instance = instance;
+        wpdata.object_property = PROP_OBJECT_NAME;
+        wpdata.array_index = BACNET_ARRAY_ALL;
+        wpdata.application_data_len =
+            encode_application_character_string(&apdu[0], &new_name);
+        memcpy(wpdata.application_data, apdu, sizeof(apdu));
+        status = Calendar_Write_Property(&wpdata);
+        zassert_true(status, "PROP_OBJECT_NAME write should succeed");
+        zassert_true(
+            strcmp(Calendar_Name_ASCII(instance), updated_name) == 0,
+            "object name should match updated value");
+
+        characterstring_init_ansi(&new_description, updated_description);
+        wpdata.object_property = PROP_DESCRIPTION;
+        wpdata.application_data_len =
+            encode_application_character_string(&apdu[0], &new_description);
+        memcpy(wpdata.application_data, apdu, sizeof(apdu));
+        status = Calendar_Write_Property(&wpdata);
+        zassert_true(status, "PROP_DESCRIPTION write should succeed");
+        zassert_true(
+            strcmp(Calendar_Description(instance), updated_description) == 0,
+            "description should match updated value");
+    }
     /* check the delete function */
     status = Calendar_Delete(instance);
     zassert_true(status, NULL);
