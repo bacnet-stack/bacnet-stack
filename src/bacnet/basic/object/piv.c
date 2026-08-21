@@ -15,6 +15,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
@@ -45,7 +46,7 @@ static const int32_t Properties_Required[] = {
 
 static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_OUT_OF_SERVICE, -1
+    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1
 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
@@ -56,7 +57,8 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, PROP_UNITS,
+    PROP_OBJECT_NAME,   PROP_DESCRIPTION,    -1
 };
 
 /**
@@ -146,7 +148,8 @@ uint32_t PositiveInteger_Value_Create(uint32_t object_instance)
         pObject->Out_Of_Service = false;
         pObject->Present_Value = 0;
         pObject->Units = UNITS_NO_UNITS;
-        pObject->Object_Name = NULL;
+        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
+        characterstring_ansi_const_init(&pObject->Description, NULL);
     }
 
     return object_instance;
@@ -163,6 +166,8 @@ bool PositiveInteger_Value_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        characterstring_ansi_free(&pObject->Object_Name);
+        characterstring_ansi_free(&pObject->Description);
         free(pObject);
         return true;
     }
@@ -299,20 +304,21 @@ PositiveInteger_Value_Present_Value(uint32_t object_instance)
 bool PositiveInteger_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[48] = "";
     bool status = false;
     POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+    int len = 0;
 
     pObject = PositiveInteger_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "POSITIVEINTEGER-VALUE-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -334,8 +340,8 @@ bool PositiveInteger_Value_Name_Set(
 
     pObject = PositiveInteger_Value_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -353,10 +359,117 @@ const char *PositiveInteger_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = PositiveInteger_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
+}
+
+/**
+ * Writes the object-name property value for a given Positive Integer Value
+ * object.
+ *
+ * @param wp_data - BACNET write-property request data including the object
+ * instance.
+ * @param cstring - object-name value to write.
+ *
+ * @return true if the object-name was updated successfully.
+ */
+static bool PositiveInteger_Value_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * Returns the description string for a given Positive Integer Value object.
+ *
+ * @param object_instance Object instance number.
+ *
+ * @return Description text, or an empty string when the value is unset.
+ */
+const char *PositiveInteger_Value_Description(uint32_t object_instance)
+{
+    const char *name = NULL;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        name = characterstring_ansi_value_default(&pObject->Description, "");
+    }
+
+    return name;
+}
+
+/**
+ * Sets the description for a given Positive Integer Value object.
+ *
+ * @param object_instance Object instance number.
+ * @param new_name New description text.
+ *
+ * @return true if the description was updated successfully.
+ */
+bool PositiveInteger_Value_Description_Set(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * Writes the description property value for a given Positive Integer Value
+ * object.
+ *
+ * @param wp_data - BACNET write-property request data including the object
+ * instance.
+ * @param cstring - description value to write.
+ *
+ * @return true if the description was updated successfully.
+ */
+static bool PositiveInteger_Value_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
 }
 
 /**
@@ -403,6 +516,20 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
+            break;
+
+        case PROP_DESCRIPTION:
+            if (PositiveInteger_Value_Description(rpdata->object_instance)) {
+                characterstring_init_ansi(
+                    &char_string,
+                    PositiveInteger_Value_Description(rpdata->object_instance));
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            } else {
+                characterstring_init_ansi(&char_string, "");
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
 
         case PROP_OBJECT_TYPE:
@@ -491,6 +618,22 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = PositiveInteger_Value_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = PositiveInteger_Value_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
