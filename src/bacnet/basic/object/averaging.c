@@ -16,6 +16,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 #include "bacnet/proplist.h"
 #include "bacnet/basic/services.h"
@@ -26,8 +27,8 @@
 #include "bacnet/basic/object/averaging.h"
 
 struct object_data {
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Description;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Object_Property_Reference;
     uint32_t Window_Interval;
     uint32_t Window_Samples;
@@ -75,8 +76,13 @@ static const int32_t Properties_Proprietary[] = { -1 };
 
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_ATTEMPTED_SAMPLES, PROP_OBJECT_PROPERTY_REFERENCE,
-    PROP_WINDOW_INTERVAL, PROP_WINDOW_SAMPLES, -1
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
+    PROP_ATTEMPTED_SAMPLES,
+    PROP_OBJECT_PROPERTY_REFERENCE,
+    PROP_WINDOW_INTERVAL,
+    PROP_WINDOW_SAMPLES,
+    -1
 };
 
 /**
@@ -311,20 +317,25 @@ unsigned Averaging_Instance_To_Index(uint32_t object_instance)
 bool Averaging_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char name_text[32] = "";
+    bool status = false;
     struct object_data *pObject;
+    int len = 0;
 
     pObject = Averaging_Object(object_instance);
     if (!pObject) {
         return false;
     }
-    if (pObject->Object_Name) {
-        return characterstring_init_ansi(object_name, pObject->Object_Name);
+    status = characterstring_ansi_to_characterstring(
+        object_name, &pObject->Object_Name);
+    if (!status) {
+        len = characterstring_utf8_snprintf(
+            object_name, "AVERAGING-%lu", (unsigned long)object_instance);
+        if (len > 0) {
+            status = true;
+        }
     }
-    snprintf(
-        name_text, sizeof(name_text), "AVERAGING %lu",
-        (unsigned long)object_instance);
-    return characterstring_init_ansi(object_name, name_text);
+
+    return status;
 }
 
 /**
@@ -335,15 +346,44 @@ bool Averaging_Object_Name(
  */
 bool Averaging_Name_Set(uint32_t object_instance, const char *new_name)
 {
+    bool status = false;
     struct object_data *pObject;
 
     pObject = Averaging_Object(object_instance);
-    if (!pObject) {
-        return false;
+    if (pObject) {
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
-    pObject->Object_Name = new_name;
 
-    return true;
+    return status;
+}
+
+/**
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool Averaging_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Averaging_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
 }
 
 /**
@@ -353,14 +393,15 @@ bool Averaging_Name_Set(uint32_t object_instance, const char *new_name)
  */
 const char *Averaging_Name_ASCII(uint32_t object_instance)
 {
+    const char *name = NULL;
     struct object_data *pObject;
 
     pObject = Averaging_Object(object_instance);
     if (pObject) {
-        return pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
-    return NULL;
+    return name;
 }
 
 /**
@@ -593,14 +634,16 @@ bool Averaging_Reset(uint32_t object_instance)
  */
 const char *Averaging_Description(uint32_t object_instance)
 {
+    const char *description = NULL;
     struct object_data *pObject;
 
     pObject = Averaging_Object(object_instance);
     if (pObject) {
-        return pObject->Description;
+        description =
+            characterstring_ansi_value_default(&pObject->Description, "");
     }
 
-    return NULL;
+    return description;
 }
 
 /**
@@ -612,16 +655,44 @@ const char *Averaging_Description(uint32_t object_instance)
 bool Averaging_Description_Set(
     uint32_t object_instance, const char *new_description)
 {
+    bool status = false;
     struct object_data *pObject;
 
     pObject = Averaging_Object(object_instance);
-    if (!pObject) {
-        return false;
+    if (pObject) {
+        status = characterstring_ansi_const_init(
+            &pObject->Description, new_description);
     }
 
-    pObject->Description = new_description;
+    return status;
+}
 
-    return true;
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool Averaging_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Averaging_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
 }
 
 /**
@@ -943,6 +1014,7 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE object_property_ref = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     struct object_data *pObject = NULL;
 
     if (wp_data == NULL) {
@@ -963,6 +1035,40 @@ bool Averaging_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            len = bacapp_decode_known_array_property(
+                wp_data->application_data, wp_data->application_data_len,
+                &value, wp_data->object_type, wp_data->object_property,
+                wp_data->array_index);
+            if (len < 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                return false;
+            }
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Averaging_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            len = bacapp_decode_known_array_property(
+                wp_data->application_data, wp_data->application_data_len,
+                &value, wp_data->object_type, wp_data->object_property,
+                wp_data->array_index);
+            if (len < 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                return false;
+            }
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Averaging_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_OBJECT_PROPERTY_REFERENCE:
             len = bacnet_device_object_property_reference_decode(
                 wp_data->application_data, wp_data->application_data_len,
@@ -1075,8 +1181,8 @@ uint32_t Averaging_Create(uint32_t object_instance)
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
-        pObject->Object_Name = NULL;
-        pObject->Description = NULL;
+        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
+        characterstring_ansi_const_init(&pObject->Description, NULL);
         pObject->Window_Interval = 60;
         pObject->Window_Samples = 15;
         pObject->Object_Property_Reference.objectIdentifier.type =
@@ -1112,6 +1218,8 @@ bool Averaging_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Object_Name);
         free(pObject);
         return true;
     }
@@ -1138,6 +1246,8 @@ void Averaging_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    characterstring_ansi_free(&pObject->Description);
+                    characterstring_ansi_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);
