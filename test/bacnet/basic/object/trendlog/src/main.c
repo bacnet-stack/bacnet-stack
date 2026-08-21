@@ -140,6 +140,75 @@ static void test_Trend_Log_ReadRange_BySequence(void)
         (unsigned)pRequest.FirstSequence,
         (unsigned)(total_records - pRequest.ItemCount + 1));
 }
+
+static void test_Trend_Log_Name_Description_Write(void)
+{
+    uint32_t object_instance = 0;
+    bool status = false;
+    int len = 0;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_CHARACTER_STRING cstring = { 0 };
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    const char *test_name = "TREND-LOG-NAME-WP";
+    const char *test_description = "Trend log description written via WP";
+
+    Trend_Log_Init();
+    object_instance = Trend_Log_Index_To_Instance(0);
+    zassert_true(Trend_Log_Valid_Instance(object_instance), NULL);
+
+    wp_data.object_type = OBJECT_TRENDLOG;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    status = characterstring_init_ansi(&cstring, test_name);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_OBJECT_NAME;
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Trend_Log_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    status = Trend_Log_Object_Name(object_instance, &object_name);
+    zassert_true(status, NULL);
+    status = characterstring_ansi_same(&object_name, test_name);
+    zassert_true(status, NULL);
+
+    rp_data.object_type = OBJECT_TRENDLOG;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_OBJECT_NAME;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = Trend_Log_Read_Property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(&value.type.Character_String, test_name);
+    zassert_true(status, NULL);
+
+    status = characterstring_init_ansi(&cstring, test_description);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_DESCRIPTION;
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Trend_Log_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    rp_data.object_property = PROP_DESCRIPTION;
+    len = Trend_Log_Read_Property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(
+        &value.type.Character_String, test_description);
+    zassert_true(status, NULL);
+}
 /**
  * @}
  */
@@ -148,7 +217,8 @@ void test_main(void)
 {
     ztest_test_suite(
         trendlog_tests, ztest_unit_test(test_Trend_Log_ReadProperty),
-        ztest_unit_test(test_Trend_Log_ReadRange_BySequence));
+        ztest_unit_test(test_Trend_Log_ReadRange_BySequence),
+        ztest_unit_test(test_Trend_Log_Name_Description_Write));
 
     ztest_run_test_suite(trendlog_tests);
 }
