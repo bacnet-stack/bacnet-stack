@@ -235,6 +235,9 @@ BACNET_STACK_EXPORT
 uint8_t
 characterstring_ansi_encoding(const BACNET_CHARACTER_STRING_ANSI *char_string);
 BACNET_STACK_EXPORT
+const char *characterstring_ansi_value_default(
+    const BACNET_CHARACTER_STRING_ANSI *char_string, const char *default_value);
+BACNET_STACK_EXPORT
 const char *characterstring_ansi_value_const(
     const BACNET_CHARACTER_STRING_ANSI *char_string);
 

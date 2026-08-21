@@ -1578,6 +1578,22 @@ characterstring_ansi_encoding(const BACNET_CHARACTER_STRING_ANSI *char_string)
 
 /**
  * @brief Returns the pointer to the C-string for a
+ * BACNET_CHARACTER_STRING_ANSI, or a default value if the string is NULL.
+ * @param char_string Pointer to BACNET_CHARACTER_STRING_ANSI structure.
+ * @return Pointer to a zero-terminated C-string, or the default value
+ *  if char_string is NULL.
+ */
+const char *characterstring_ansi_value_default(
+    const BACNET_CHARACTER_STRING_ANSI *char_string, const char *default_value)
+{
+    if (char_string) {
+        return char_string->buffer;
+    }
+    return default_value;
+}
+
+/**
+ * @brief Returns the pointer to the C-string for a
  * BACNET_CHARACTER_STRING_ANSI.
  * @param char_string Pointer to BACNET_CHARACTER_STRING_ANSI structure.
  * @return Pointer to a zero-terminated C-string, or NULL if char_string is NULL
@@ -1585,10 +1601,7 @@ characterstring_ansi_encoding(const BACNET_CHARACTER_STRING_ANSI *char_string)
 const char *characterstring_ansi_value_const(
     const BACNET_CHARACTER_STRING_ANSI *char_string)
 {
-    if (char_string) {
-        return char_string->buffer;
-    }
-    return NULL;
+    return characterstring_ansi_value_default(char_string, NULL);
 }
 
 #if BACNET_USE_OCTETSTRING
