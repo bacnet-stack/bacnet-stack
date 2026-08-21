@@ -14,6 +14,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/datetime.h"
 #include "bacnet/shed_level.h"
@@ -95,8 +96,8 @@ struct object_data {
     uint32_t Update_Interval;
     uint32_t Task_Milliseconds;
     void *Context;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Description;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
@@ -140,13 +141,9 @@ static const int32_t Load_Control_Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_REQUESTED_SHED_LEVEL,
-    PROP_START_TIME,
-    PROP_SHED_DURATION,
-    PROP_DUTY_WINDOW,
-    PROP_SHED_LEVELS,
-    PROP_ENABLE,
-    -1
+    PROP_REQUESTED_SHED_LEVEL, PROP_START_TIME,  PROP_SHED_DURATION,
+    PROP_DUTY_WINDOW,          PROP_SHED_LEVELS, PROP_ENABLE,
+    PROP_OBJECT_NAME,          PROP_DESCRIPTION, -1
 };
 
 /**
@@ -282,18 +279,19 @@ bool Load_Control_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[32] = "LOAD_CONTROL-4194303";
+    int len = 0;
 
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "LOAD_CONTROL-%lu",
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "LOAD_CONTROL-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -313,8 +311,8 @@ bool Load_Control_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -332,10 +330,50 @@ const char *Load_Control_Name_ASCII(uint32_t object_instance)
 
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+const char *Load_Control_Description(uint32_t object_instance)
+{
+    const char *description = NULL;
+    struct object_data *pObject;
+
+    pObject = Object_Instance_Data(object_instance);
+    if (pObject) {
+        description =
+            characterstring_ansi_value_default(&pObject->Description, "");
+    }
+
+    return description;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if the description was set
+ */
+bool Load_Control_Description_Set(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Instance_Data(object_instance);
+    if (pObject) {
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
+    }
+
+    return status;
 }
 
 /**
@@ -1113,8 +1151,14 @@ int Load_Control_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_LOAD_CONTROL, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             Load_Control_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string,
+                Load_Control_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -1531,6 +1575,64 @@ static bool Load_Control_Enable_Write(
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA including object instance and
+ * data
+ * @param  cstring - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+static bool Load_Control_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Instance_Data(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description property
+ * @param wp_data - BACNET_WRITE_PROPERTY_DATA including object instance and
+ * data
+ * @param cstring - holds the description to be set
+ * @return true if description was set
+ */
+static bool Load_Control_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Instance_Data(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -1575,6 +1677,22 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Load_Control_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Load_Control_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_REQUESTED_SHED_LEVEL:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SHED_LEVEL);
@@ -2174,7 +2292,8 @@ uint32_t Load_Control_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            pObject->Object_Name = NULL;
+            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
+            characterstring_ansi_const_init(&pObject->Description, NULL);
             /* defaults */
             pObject->Present_Value = BACNET_SHED_INACTIVE;
             pObject->Requested_Shed_Level.type = BACNET_SHED_TYPE_LEVEL;
@@ -2241,6 +2360,8 @@ bool Load_Control_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -2267,6 +2388,8 @@ void Load_Control_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    characterstring_ansi_free(&pObject->Description);
+                    characterstring_ansi_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);
